@@ -27,20 +27,6 @@ export enum Chains {
   BLAST = 168587773, // TODO: mainnet
 }
 
-// TODO: support / mainnet
-export const blastSepolia = {
-  id: Chains.BLAST_SEPOLIA,
-  name: 'Blast Sepolia',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: [process.env.NEXT_PUBLIC_BLAST_SEPOLIA_RPC!] },
-    public: { http: [process.env.NEXT_PUBLIC_BLAST_SEPOLIA_RPC!] },
-  },
-  blockExplorers: {
-    default: { name: 'Blastscan', url: 'https://testnet.blastscan.io' },
-  }
-};
-
 export const ChainsById = {
   "1": "mainnet",
   "4": "rinkeby",
@@ -59,7 +45,6 @@ export const ChainRpcs = {
   [avalanche.id]: "https://api.avax.network/ext/bc/C/rpc",
   [avalancheFuji.id]: "https://api.avax-test.network/ext/bc/C/rpc",
   [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC!,
-  [blastSepolia.id]: process.env.NEXT_PUBLIC_BLAST_SEPOLIA_RPC!
 };
 
 export const ChainNames = {

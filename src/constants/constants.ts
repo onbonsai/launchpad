@@ -77,8 +77,6 @@ export const MONGO_COLLECTION_BIDS = `bids${IS_PRODUCTION ? "" : "-testnet"}`;
 export const MONGO_COLLECTION_PROMOTED = `promoted${IS_PRODUCTION ? "" : "-testnet"}`;
 export const REDIS_EXP_IMPRESSION_MAP = 604_800; // 7 days
 
-export const MADFI_API_KEYS = [process.env.BUTTRFLY_API_KEY, process.env.FLATLAY_API_KEY];
-
 export const ADMIN_ADDRESSES = [
   "0xDC4471ee9DFcA619Ac5465FdE7CF2634253a9dc6",
   "0x28ff8e457feF9870B9d1529FE68Fbb95C3181f64",
@@ -108,8 +106,3 @@ export const MEDIA_SERVER_URL = process.env.NEXT_PUBLIC_MEDIA_SERVER_URL || "htt
 export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
   ? ``
   : `https://bundler.biconomy.io/api/v2/168587773/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`;
-
-// :shrug:
-export const PRIVY_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAENF62v8iZKLvfRTt+evkdMDeSXc3M5w+vuAlugrw7+I1hyR+2zSfEW+m4H7MyWF7ZzzPjLWpo8ul+PD3de3g2cA==
------END PUBLIC KEY-----`;
