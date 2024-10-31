@@ -1,8 +1,6 @@
 import {
   mainnet,
-  goerli,
   polygon,
-  polygonMumbai,
   base,
   baseSepolia,
   baseGoerli,
@@ -25,7 +23,6 @@ export const ChainRpcs = {
   [base.id]: "https://mainnet.base.org",
   [baseGoerli.id]: "https://goerli.base.org",
   [baseSepolia.id]: "https://sepolia.base.org",
-  [goerli.id]: process.env.NEXT_PUBLIC_GOERLI_RPC!,
   [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC!,
 };
 
