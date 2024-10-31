@@ -153,7 +153,7 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
               )}
             </div>
 
-            {isConnected && (
+            {/* {isConnected && (
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
                 {isProfileAdmin && (
                   <Button
@@ -166,7 +166,7 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
                   </Button>
                 )}
               </div>
-            )}
+            )} */}
           </div>
 
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
