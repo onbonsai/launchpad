@@ -1,0 +1,104 @@
+import Image from "next/image";
+import { formatUnits, decodeAbiParameters, formatEther } from "viem";
+import { useInView } from "react-intersection-observer";
+import React, { useState, useEffect, useMemo } from "react";
+import { useAccount } from "wagmi";
+
+import { roundedToFixed } from "@src/utils/utils";
+import { kFormatter } from "@src/utils/utils";
+import { Header, Subtitle } from "@src/styles/text";
+import { DECIMALS, calculatePriceDelta, CONTRACT_CHAIN_ID, BONSAI_TOKEN_BASE_ADDRESS } from "@src/services/madfi/moneyClubs";
+import { useGetHoldings } from "@src/hooks/useMoneyClubs";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import HoldingSection from "./HoldingSection";
+import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
+
+interface HoldingProps {
+  address: `0x${string}`;
+  bonsaiAmount: bigint;
+}
+
+export const Holdings = React.memo((props: HoldingProps) => {
+  const { address, bonsaiAmount } = props;
+  const { ref, inView } = useInView()
+  const [page, setPage] = useState(0);
+  const [allHoldings, setAllHoldings] = useState<any[]>();
+  const [bonsaiPrice, setBonsaiPrice] = useState(0);
+  const { data, isLoading, refetch } = useGetHoldings(address, page);
+  const { holdings, hasMore } = data || {};
+
+  useEffect(() => {
+    if (inView && !isLoading && hasMore) {
+      setPage(page + 1);
+      refetch();
+    }
+  }, [inView]);
+
+  useEffect(() => {
+    if (!isLoading && holdings?.length) {
+      const _holdings = holdings.map((h) => {
+        let { name, symbol, uri: image } = h.club
+
+        if (h.club.tokenInfo && (!h.club.name || !h.club.symbol || !h.club.uri)){
+          // backup for v1 clubs
+          ;[name, symbol, image] = decodeAbiParameters([
+            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+          ], h.club.tokenInfo);
+        }
+
+        let priceDelta;
+        if (h.club.prevTrade24Hr?.length) {
+          priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
+        }
+        return { ...h, token: { name, symbol, image }, priceDelta };
+      }).sort((a, b) => b.balance - a.balance);
+      setAllHoldings([...allHoldings || [], ..._holdings]);
+    } else if (!isLoading && holdings?.length === 0) {
+      setAllHoldings([]);
+    }
+  }, [isLoading]);
+
+  useMemo(() => {
+    if (!bonsaiAmount || bonsaiAmount === BigInt(0)) {
+      setBonsaiPrice(0);
+      return;
+    }
+    const fetchPrice = async () => {
+      const tokenPrice = await queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+      const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiAmount));
+      const tokenHoldings = tokenPrice * bonsaiHoldings;
+      setBonsaiPrice(tokenHoldings);
+    }
+    fetchPrice();
+  }, [bonsaiAmount]);
+
+  const totalBalance = useMemo(() => {
+    if (!allHoldings) return;
+    if (allHoldings.length === 0) return 0;
+    return allHoldings!.reduce((total, holding) => total + holding.balance, 0);
+  }, [allHoldings]);
+
+  if (isLoading && allHoldings === undefined) {
+    return (
+      <div ref={ref} className="flex justify-center pt-4">
+        <Spinner customClasses="h-6 w-6" color="#5be39d" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full">
+      <Subtitle className="mb-2">
+        Balance
+      </Subtitle>
+      <Header>
+        ${totalBalance !== undefined ? roundedToFixed(totalBalance, 2) : '-'}
+      </Header>
+      <HoldingSection
+        holdings={allHoldings || []}
+        bonsaiAmount={bonsaiAmount}
+        bonsaiPriceString={bonsaiPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      />
+    </div>
+  )
+});

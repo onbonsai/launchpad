@@ -1,0 +1,158 @@
+[
+  {
+    "type": "function",
+    "name": "configureAccountAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "account", "type": "address", "internalType": "address" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "configurePostAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "feed", "type": "address", "internalType": "address" },
+      { "name": "postId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "disableAccountAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "account", "type": "address", "internalType": "address" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "disablePostAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "feed", "type": "address", "internalType": "address" },
+      { "name": "postId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "enableAccountAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "account", "type": "address", "internalType": "address" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "enablePostAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "feed", "type": "address", "internalType": "address" },
+      { "name": "postId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "executeAccountAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "account", "type": "address", "internalType": "address" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "executePostAction",
+    "inputs": [
+      { "name": "action", "type": "address", "internalType": "address" },
+      { "name": "feed", "type": "address", "internalType": "address" },
+      { "name": "postId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct KeyValue[]",
+        "components": [
+          { "name": "key", "type": "bytes32", "internalType": "bytes32" },
+          { "name": "value", "type": "bytes", "internalType": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "bytes", "internalType": "bytes" }],
+    "stateMutability": "payable"
+  }
+]

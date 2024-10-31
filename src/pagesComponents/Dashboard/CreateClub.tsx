@@ -1,0 +1,59 @@
+import { useState } from "react";
+import { useReadContract, useAccount } from "wagmi";
+import { erc20Abi, erc721Abi } from 'viem'
+
+import { Modal } from "@src/components/Modal";
+import { Button } from "@src/components/Button";
+import { USDC_CONTRACT_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+
+import { RegisterClubModal } from "./RegisterClubModal";
+
+export const CreateClub = () => {
+  const { address } = useAccount();
+  const { data: tokenBalance } = useReadContract({
+    address: USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`]
+  });
+  const { data: bonsaiNftBalance } = useReadContract({
+    address: BONSAI_NFT_BASE_ADDRESS,
+    abi: erc721Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address!],
+    query: { enabled: !!address }
+  });
+
+  const [registerClubModal, setRegisterClubModal] = useState(false);
+
+  return (
+    <>
+      <Button
+        variant="accent"
+        size="md" // This sets the height to 40px and padding appropriately
+        className="text-base font-medium md:px-4 bg-white rounded-lg"
+        onClick={() => setRegisterClubModal(true)}
+      >
+        Create Token
+      </Button>
+
+      {/* Register Club Modal */}
+      <Modal
+        onClose={() => setRegisterClubModal(false)}
+        open={registerClubModal}
+        setOpen={setRegisterClubModal}
+        panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+      >
+        <RegisterClubModal
+          tokenBalance={tokenBalance || 0n}
+          closeModal={() => setRegisterClubModal(false)}
+          refetchRegisteredClub={() => { }}
+          refetchClubBalance={() => { }}
+          bonsaiNftBalance={bonsaiNftBalance}
+        />
+      </Modal>
+    </>
+  )
+};

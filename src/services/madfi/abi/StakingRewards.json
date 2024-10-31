@@ -1,0 +1,205 @@
+[
+  {
+      "type": "constructor",
+      "inputs": [
+          {
+              "name": "_token",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "claimTokensWithProof",
+      "inputs": [
+          {
+              "name": "proof",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          },
+          {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "claims",
+      "inputs": [
+          {
+              "name": "accountAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "claimed",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "merkleClaimAmountTotal",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256",
+              "internalType": "uint256"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "merkleClaimEndAt",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256",
+              "internalType": "uint256"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "owner",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "renounceOwnership",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "setClaimProof",
+      "inputs": [
+          {
+              "name": "_merkleClaimAmountTotal",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "__merkleRoot",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "token",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "contract IERC20"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "transferOwnership",
+      "inputs": [
+          {
+              "name": "newOwner",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "withdrawUnclaimed",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "event",
+      "name": "ClaimedWithProof",
+      "inputs": [
+          {
+              "name": "sender",
+              "type": "address",
+              "indexed": false,
+              "internalType": "address"
+          },
+          {
+              "name": "amount",
+              "type": "uint256",
+              "indexed": false,
+              "internalType": "uint256"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "OwnershipTransferred",
+      "inputs": [
+          {
+              "name": "previousOwner",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          },
+          {
+              "name": "newOwner",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "error",
+      "name": "AlreadyClaimed",
+      "inputs": []
+  },
+  {
+      "type": "error",
+      "name": "InvalidProof",
+      "inputs": []
+  },
+  {
+      "type": "error",
+      "name": "NoZeroAddress",
+      "inputs": []
+  },
+  {
+      "type": "error",
+      "name": "NotAllowed",
+      "inputs": []
+  }
+]

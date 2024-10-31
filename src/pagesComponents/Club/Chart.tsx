@@ -1,0 +1,71 @@
+import React, { useEffect, useRef } from "react";
+import {
+  AvailableSaveloadVersions,
+  ChartingLibraryWidgetOptions,
+  LanguageCode,
+  ResolutionString,
+  IChartingLibraryWidget,
+  TradingTerminalWidgetOptions
+} from "../../../public/static/charting_library";
+/* webpackIgnore: true */
+import { widget } from "../../../public/static/charting_library";
+import { createDatafeed, BONDING_CURVE_BASE_TOKEN, BONDING_CURVE_LENS_TOKEN } from '@src/services/chart/datafeed';
+
+const Chart = ({ symbol, clubId, chain }) => {
+  const chartContainerRef = useRef(null);
+  const chartRef = useRef<IChartingLibraryWidget | null>(null);
+
+  const defaultProps = {
+    symbol: `${symbol}/${chain === "base" ? BONDING_CURVE_BASE_TOKEN : BONDING_CURVE_LENS_TOKEN}:${clubId}`,
+    interval: '15' as ResolutionString,
+    libraryPath: '/static/charting_library/',
+    chartsStorageApiVersion: '1.1' as AvailableSaveloadVersions,
+    clientId: 'tradingview.com',
+    userId: 'public_user_id',
+    fullscreen: false,
+    autosize: true,
+    locale: "en"
+  };
+
+  useEffect(() => {
+    if (chartContainerRef.current) {
+      const widgetOptions: ChartingLibraryWidgetOptions | TradingTerminalWidgetOptions = {
+        symbol: defaultProps.symbol,
+        datafeed: createDatafeed(chain),
+        interval: defaultProps.interval as ResolutionString,
+        container: chartContainerRef.current,
+        library_path: defaultProps.libraryPath,
+        locale: defaultProps.locale as LanguageCode,
+        theme: "dark",
+        disabled_features: ["use_localstorage_for_settings", "popup_hints"],
+        enabled_features: [],
+        charts_storage_api_version: defaultProps.chartsStorageApiVersion,
+        client_id: defaultProps.clientId,
+        user_id: defaultProps.userId,
+        fullscreen: defaultProps.fullscreen,
+        autosize: defaultProps.autosize,
+        loading_screen: { backgroundColor: "#141414" },
+        toolbar_bg: "#000",
+        overrides: {
+          "paneProperties.background": "#000",
+          "paneProperties.backgroundType": "solid",
+        } // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/chart-overrides#scalesproperties
+      };
+
+      chartRef.current = new widget(widgetOptions);
+
+      // Cleanup function to remove the widget on unmount
+      return () => {
+        chartRef.current!.remove();
+      };
+    }
+  }, [chartContainerRef, chain]);
+
+  return (
+    <div className="rounded-lg shadow-md">
+      <div className="h-[50vh] md:h-[60vh] min-h-[200px] md:min-h-[425px] bg-background text-secondary" ref={chartContainerRef}></div>
+    </div>
+  )
+}
+
+export default React.memo(Chart);

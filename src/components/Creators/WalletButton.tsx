@@ -1,0 +1,46 @@
+import { Subtitle } from '@src/styles/text';
+import { shortAddress } from '@src/utils/utils';
+import React, { useCallback, useMemo } from 'react';
+import { toast } from 'react-hot-toast';
+import Image from 'next/image';
+
+interface WalletButtonProps {
+  wallet: string;
+  chain?: string;
+  length?: number;
+  onlyFirst?: boolean;
+  ellipsis?: boolean;
+}
+
+const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain, length, onlyFirst, ellipsis }) => {
+
+  const copyToClipboard = useCallback(() => {
+    navigator.clipboard
+      .writeText(wallet)
+      .then(() => {
+        toast("Copied");
+      })
+      .catch((err) => {
+        console.error('Failed to copy wallet address: ', err);
+      });
+  }, [wallet]);
+
+  const formattedAddress = useMemo(() => {
+    return shortAddress(wallet, length, onlyFirst);
+  }, [wallet]);
+
+  return (
+    <button
+      type="button"
+      onClick={copyToClipboard}
+      className="flex items-center pr-[10px] rounded-[10px] bg-backgroundAccent text-[#ffffff] text-sm transition-colors hover:text-[#e5e7eb]"
+    >
+      {chain && (
+        <Image src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" fill />
+      )}
+      <Subtitle className='text-white'>{formattedAddress}{ellipsis && "..."}</Subtitle>
+    </button>
+  );
+};
+
+export default WalletButton;
