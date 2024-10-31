@@ -1,0 +1,37 @@
+import { useQuery } from "@tanstack/react-query";
+import { ProfileFragment } from "@lens-protocol/client";
+
+import { getDefaultProfile } from "@src/services/lens/getDefaultProfile";
+import { getProfilesOwned, getProfileById } from "@src/services/lens/getProfiles";
+
+import { getAuthenticatedProfileId } from "./useLensLogin";
+
+export const fetchLensProfile = async (address: string | `0x${string}` | undefined): Promise<ProfileFragment> => {
+  const [
+    {
+      data: { defaultProfile },
+    },
+    profiles,
+  ] = await Promise.all([getDefaultProfile(address), getProfilesOwned(address)]);
+  const profile = profiles?.length ? profiles[0] : null;
+
+  return defaultProfile || profile;
+};
+
+export const useLensProfile = (address: string | `0x${string}` | undefined) => {
+  return useQuery({
+    queryKey: ["lensProfile", address],
+    queryFn: () => fetchLensProfile(address),
+    enabled: !!address,
+  });
+};
+
+export const useAuthenticatedLensProfile = () => {
+  return useQuery({
+    queryKey: ["lensProfile-authenticated"],
+    queryFn: async () => {
+      const profileId = await getAuthenticatedProfileId();
+      return profileId ? await getProfileById(profileId) : null;
+    },
+  });
+};

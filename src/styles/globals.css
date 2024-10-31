@@ -1,0 +1,321 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("./fonts.css");
+
+@layer components {
+  .btn {
+    @apply md:px-12 py-3 rounded-[2px] transition-all font-bold font-sans bg-size-200 bg-pos-0 hover:bg-pos-100 normal-case;
+  }
+
+  .red-gradient {
+    @apply bg-gradient-to-b from-red-500 via-red-500 to-red-600 border-[1px] border-red-300;
+  }
+
+  .hover-red-gradient {
+    @apply hover:bg-gradient-to-b hover:from-red-700 hover:via-red-700 hover:to-red-800 hover:border-red-400;
+  }
+
+  .grey-gradient {
+    @apply bg-gradient-to-b from-grey-500 via-grey-600 to-grey-600 border border-solid border-grey-700;
+  }
+
+  .dark-grey-gradient {
+    @apply bg-gradient-to-b from-grey-700 via-grey-700 to-grey-800 border-grey-400;
+  }
+
+  .hover-grey-gradient {
+    @apply hover:bg-gradient-to-b hover:from-grey-700 hover:via-grey-700 hover:to-grey-800 hover:border-grey-700;
+  }
+
+  .blue-gradient {
+    @apply bg-gradient-to-b from-blue-500 via-blue-500 to-blue-600 border-[1px] border-blue-300;
+  }
+
+  .hover-blue-gradient {
+    @apply hover:bg-gradient-to-b hover:from-blue-700 hover:via-blue-700 hover:to-blue-800 hover:border-blue-400;
+  }
+
+  .hero-content {
+    @apply max-w-full;
+  }
+
+  .link {
+    @apply font-sans active:font-bold text-white;
+  }
+
+  .link-hover {
+    @apply inline-block relative no-underline hover:underline;
+  }
+}
+
+.grid-ram {
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.tooltip {
+  --tooltip-tail: 8px;
+}
+
+.tooltip::before {
+  @apply rounded-sm shadow-md font-normal px-8 py-2;
+}
+
+.tooltip-right::before {
+  --tooltip-offset: 50px;
+}
+
+.tooltip-right::after {
+  --tooltip-tail-offset: 35px;
+}
+
+.radio {
+  --b1: 0, 0%, 100%;
+}
+
+@layer utilities {
+  input[type="number"]::-webkit-inner-spin-button:not(#number-posts),
+  input[type="number"]::-webkit-outer-spin-button:not(#number-posts) {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .bg-linear-gradient {
+    background-image: linear-gradient(to right, rgba(255, 0, 0, 0.85), rgba(255, 165, 0, 0.85));
+  }
+}
+
+.bg-linear-gradient-up-right {
+  background-image: linear-gradient(to right, red, orange, yellow);
+  transition: background-position 0.4s;
+  background-size: 200% 100%;
+  background-position: 0 100%;
+}
+
+.bg-linear-gradient-up-right:hover {
+  background-position: 100% 0;
+}
+
+.up-right-shadow {
+  box-shadow: -8px 8px #70140b, -16px 16px #252f3e;
+  transition: all 200ms ease-out;
+}
+
+.up-right-shadow:hover {
+  transition: all 200ms ease-out;
+  box-shadow: -14px 14px #70140b, -28px 28px #252f3e;
+}
+
+.down-left-shadow {
+  transition: all 200ms ease-out;
+  box-shadow: 8px -8px #70140b, 16px -16px #252f3e;
+}
+
+.down-left-shadow:hover {
+  transition: all 200ms ease-out;
+  box-shadow: 14px -14px #70140b, 28px -28px #252f3e;
+}
+
+/* .grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 10px;
+  justify-content: left;
+  grid-column-gap: 64px;
+  grid-row-gap: 24px;
+} */
+
+/* @media (max-width: 1072px) {
+  .grid {
+    grid-template-columns: auto;
+  }
+} */
+
+main {
+    min-height: calc(var(--vh, 1vh) * 100 - 347px);
+}
+
+html {
+  background-color: #141414;
+}
+
+/* REMOVE NUMBER INPUT DEFAULT STYLES */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.show-on-hover {
+  display: none;
+  transition: 0.25s ease;
+}
+
+.reveal-on-hover:hover .show-on-hover {
+  display: block;
+  opacity: 1;
+}
+
+/* hover badge thing */
+.module-border-wrap {
+  padding: 12px;
+  position: relative;
+  background: linear-gradient(to top right, black, black, rgba(209, 57, 32));
+  box-shadow: -20px 20px 40px -5px rgba(209, 57, 32, 0.85);
+  transition: 0.5s ease;
+}
+
+.module-border-wrap:hover {
+  box-shadow: -12px 12px 60px -8px rgba(209, 57, 32, 0.6);
+  transform: scale(1.075);
+}
+
+.module-border-wrap-subtle {
+  padding: 12px;
+  position: relative;
+  background: linear-gradient(to top right, black, black, rgba(209, 57, 32));
+  box-shadow: -15px 15px 20px -5px rgba(209, 57, 32, 0.6);
+  transition: 0.5s ease;
+}
+
+.module-border-wrap-subtle:hover {
+  box-shadow: -12px 12px 40px -8px rgba(209, 57, 32, 0.4);
+  transform: scale(1.075);
+}
+
+.badge-holder {
+  background: linear-gradient(to right, red, orange);
+  max-width: 350px;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-holder a {
+  text-decoration: underline;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-smooth {
+  will-change: transform;
+}
+
+[id^="react-select-"][id$="-input"]:focus {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-color: initial !important;
+}
+
+.badge-holder-border-percentile::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, orange, red);
+  box-sizing: border-box;
+}
+
+.percentile-span {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 75px;
+  height: 25px;
+  padding: 5px 0;
+  background: red;
+  color: white;
+  text-align: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.no-focus:focus {
+  outline: none;
+}
+
+.blob {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.gradient-txt {
+  --bg-size: 400%;
+  --color-one: hsl(15 90% 55%);
+  --color-two: hsl(40 95% 55%);
+  background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
+  color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  --bg-size: 400%;
+  --color-one: hsl(15 90% 55%);
+  --color-two: hsl(40 95% 55%);
+  background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
+}
+
+header .bonsaiLogo {
+  width: 50px;
+  height: 50px;
+  display: block;
+  background: url("/static/images/logo.svg") no-repeat center;
+  background-size: 100% auto;
+  margin-left: 8px;
+
+  font-size: 0px;
+  text-indent: -50000em;
+}
