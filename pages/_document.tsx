@@ -6,12 +6,8 @@ class MyDocument extends Document {
     return (
       <Html lang="en" className="w-full h-full bg-background">
         <Head>
-          <link rel="shortcut icon" href="/static/images/favicon/favicon.ico" />
-          <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicon/apple-touch-icon.png" />
-          <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon/favicon-32x32.png" />
-          <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon/favicon-16x16.png" />
-          <link rel="manifest" href="/manifest.json" />
-          <link rel="mask-icon" href="/static/images/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+          <link rel="shortcut icon" href="/favicon.png" />
+          <link href="/webclip.png" rel="apple-touch-icon image_src" />
           <meta name="msapplication-TileColor" content="#da532c" />
           <meta name="theme-color" content="#ffffff" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
