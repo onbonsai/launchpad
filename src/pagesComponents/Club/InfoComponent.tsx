@@ -59,7 +59,8 @@ export const InfoComponent = ({
 
   const bondingCurveProgress = useMemo(() => {
     if (minLiquidityThreshold) {
-      const fraction = (BigInt(club.marketCap) * BigInt(100)) / parseUnits(minLiquidityThreshold.toString(), USDC_DECIMALS);
+      const scaledMinLiquidityThreshold = (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS);
+      const fraction = (BigInt(club.marketCap) * BigInt(100)) / scaledMinLiquidityThreshold;
       return parseInt(fraction.toString());
     }
   }, [minLiquidityThreshold, club]);
@@ -223,7 +224,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
     <div className="w-full rounded-xl border border-dark-grey bg-transparent shadow-sm">
       <div
         className="bg-primary text-xs leading-none py-1 text-center text-white rounded-xl"
-        style={{ width: `${validProgress}%` }}
+        style={{ width: `${validProgress}%`, marginLeft: validProgress == 0 ? '8px' : '0px' }}
       >
         {validProgress}%
       </div>
