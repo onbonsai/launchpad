@@ -277,7 +277,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })()
   ]);
 
-  clubSocial.featured = !!clubSocial?.featureStartAt && (parseInt(clubSocial.featureStartAt) - parseInt(_club.createdAt)) < 48 * 60 * 60;
+  clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(_club.featureStartAt) + 48 * 60 * 60);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
   return { props: {

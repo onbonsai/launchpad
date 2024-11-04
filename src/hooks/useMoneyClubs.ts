@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
-
+import { getAddress, createPublicClient, http } from "viem";
+import { mainnet } from 'viem/chains'
+import { groupBy } from "lodash/collection";
 import {
   getRegisteredClub,
   getRegisteredClubById,
@@ -15,6 +17,7 @@ import {
   getHoldings,
   getClubHoldings,
 } from "@src/services/madfi/moneyClubs";
+import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
 export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
@@ -52,19 +55,50 @@ export const useGetClubVolume = (clubId?: string) => {
   });
 };
 
+// enriched with lens profile or ens
 export const useGetClubTrades = (clubId: string, page: number) => {
   return useQuery({
     queryKey: ["club-trades", clubId, page],
-    queryFn: () => getTrades(clubId!, page),
+    queryFn: async () => {
+      const res = await getTrades(clubId!, page);
+      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
+      const profiles = await getHandlesByAddresses(res.trades?.map(({ trader }) => trader.id));
+      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+
+      const trades = await Promise.all(res.trades?.map(async (trade) => {
+        const address = getAddress(trade.trader.id);
+        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        let ens;
+        if (!profile) ens = await publicClient.getEnsName({ address });
+        return { ...trade, profile, ens };
+      }));
+
+      return { trades, hasMore: res.hasMore };
+    },
     enabled: !!clubId,
-    staleTime: 60000, // fetch every minute
+    staleTime: 60000, // TODO: fetch every minute (not working)
   });
 };
 
 export const useGetClubHoldings = (clubId: string, page: number) => {
   return useQuery({
     queryKey: ["club-holdings", clubId, page],
-    queryFn: () => getClubHoldings(clubId!, page),
+    queryFn: async () => {
+      const res = await getClubHoldings(clubId!, page);
+      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
+      const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
+      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+
+      const holdings = await Promise.all(res.holdings?.map(async (trade) => {
+        const address = getAddress(trade.trader.id);
+        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        let ens;
+        if (!profile) ens = await publicClient.getEnsName({ address });
+        return { ...trade, profile, ens };
+      }));
+
+      return { holdings, hasMore: res.hasMore };
+    },
     enabled: !!clubId
   });
 };
