@@ -50,7 +50,7 @@ const HookFormModal = () => {
       <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">
         <div className="flex flex-col w-full my-8 space-y-4">
           <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
-            Submit a hook to be available on the Moonshot platform.
+            Submit a hook to be available on the Token platform.
           </p>
           <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
             Every submission MUST be verified on the zkSync Era block explorer and include a call to the{" "}

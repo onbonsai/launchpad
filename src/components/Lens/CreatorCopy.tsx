@@ -12,7 +12,7 @@ export default function CreatorCopy() {
       <p className="text-lg text-secondary mb-4">
         Login to create your own{" "}
         <Link href="/help" legacyBehavior>
-          <span className="link link-hover">Moonshot</span>
+          <span className="link link-hover">Token</span>
         </Link>.
       </p>
       <div className="pt-4"><ConnectButton className="md:px-12" setOpenSignInModal={setOpenSignInModal} /></div>

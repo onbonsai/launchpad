@@ -29,7 +29,7 @@ const ClubCard = ({ data }: Props) => {
   const { club, publication } = data;
 
   return (
-    <Link href={`/moonshot/${club?.clubId}`} legacyBehavior target="_blank">
+    <Link href={`/token/${club?.clubId}`} legacyBehavior target="_blank">
       <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-primary">
         <canvas
           className={`absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl ${club?.featured ? 'gradient-bg opacity-20 group-hover:opacity-50' : 'bg-red-400 opacity-0 group-hover:opacity-40'

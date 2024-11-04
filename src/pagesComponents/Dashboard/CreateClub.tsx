@@ -37,7 +37,7 @@ export const CreateClub = ({
           disabled={!isCreatorAdmin}
           onClick={() => setRegisterClubModal(true)}
         >
-          Create a Moonshot
+          Create a Token
         </Button>
       )}
 

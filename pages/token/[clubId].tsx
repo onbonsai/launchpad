@@ -56,7 +56,7 @@ type Club = {
   featured: boolean;
 };
 
-interface MoonshotPageProps {
+interface TokenPageProps {
   club: Club;
   profile: any;
   creatorInfo: any;
@@ -69,12 +69,12 @@ const profileAddress = (profile, creatorInfoAddress?: string) =>
   (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
   profile?.address;
 
-const MoonshotPage: NextPage<MoonshotPageProps> = ({
+const TokenPage: NextPage<TokenPageProps> = ({
   club,
   profile,
   creatorInfo,
   type,
-}: MoonshotPageProps) => {
+}: TokenPageProps) => {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -253,7 +253,7 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
   );
 };
 
-export default MoonshotPage;
+export default TokenPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const {

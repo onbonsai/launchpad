@@ -319,3 +319,17 @@ header .bonsaiLogo {
   font-size: 0px;
   text-indent: -50000em;
 }
+
+.dashed-list {
+  list-style: none;
+  /* Remove default list markers */
+  padding-left: 0;
+  /* Adjust padding as needed */
+}
+
+.dashed-list li::before {
+  content: "- ";
+  /* Add dash before each list item */
+  padding-right: 0.5rem;
+  /* Adjust space between dash and list item text */
+}

@@ -3,15 +3,10 @@ import Link from "next/link";
 import { useRouter } from 'next/router';
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 
-import { polygonScanUrl } from "@src/utils/utils";
-import {
-  MAD_SBT_CONTRACT_ADDRESS,
-  BOUNTIES_CONTRACT_ADDRESS,
-  REV_SHARE_LIBRARY_ADDRESS,
-  STICKERS_CONTRACT_ADDRESS
-} from "@src/services/madfi/utils";
 import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
+import { baseScanUrl } from "@src/services/madfi/moneyClubs";
+import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 
 const DisclosurePanelWithTransition = ({ children }) => {
   return (
@@ -29,16 +24,10 @@ const Help = () => {
   const router = useRouter();
   const isMounted = useIsMounted();
 
-  const { section } = router.query;
-
-  const ANCHOR_BOUNTIES = "bounties";
-  const ANCHOR_CLUBS = "clubs";
-  const ANCHOR_CASHTAGS = "cashtags";
-  const ANCHOR_CREATE_CLUB = "create-a-club";
-  const ANCHOR_BOUNTIES_PERMISSIONS = "bounties-permissions";
-  const ANCHOR_SUBMIT_BID = "submit-a-bid";
-  const ANCHOR_CREATE_BOUNTY = "create-a-bounty";
+  const ANCHOR_LAUNCHPAD = "launchpad";
   const ANCHOR_DEPLOYED_CONTRACTS = "deployed-contracts";
+
+  const { section = ANCHOR_LAUNCHPAD } = router.query;
 
   const handleDisclosureClick = (anchor: string) => {
     router.replace({
@@ -63,17 +52,17 @@ const Help = () => {
             <section className="mt-4 max-w-screen-lg">
               {/* Top */}
               <h3 className="text-xl leading-6">
-                Create a Moonshot and earn trading fees. Once your Moonshot reaches $6.9k in liquidity, a Uni v4 Pool will be created.
+                Launch a token with built-in community features and your own onchain agent.
               </h3>
 
-              {/* Cashtags */}
+              {/* Launchpad */}
               <div className="pt-12">
-                <Disclosure as="div" key={ANCHOR_CASHTAGS} defaultOpen={section == ANCHOR_CASHTAGS} onClick={() => handleDisclosureClick(ANCHOR_CASHTAGS)}>
+                <Disclosure as="div" key={ANCHOR_LAUNCHPAD} defaultOpen={section == ANCHOR_LAUNCHPAD} onClick={() => handleDisclosureClick(ANCHOR_LAUNCHPAD)}>
                   {({ open }) => (
                     <>
                       <h3 className="text-xl leading-6 text-secondary">
                         <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80">
-                          <span className="font-medium">Cashtags</span>
+                          <span className="font-medium">Launchpad Features</span>
                           <span className="ml-6 flex items-center">
                             {open ? (
                               <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
@@ -85,30 +74,30 @@ const Help = () => {
                       </h3>
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
-                          <p className="mt-4 text-lg text-secondary/70">
-                            Remember FriendTech? This is better.
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            <span className="text-primary">Cashtags</span> allow anyone to trade a creator's Lens handle - where price is determined by supply + demand (a bonding curve).
-                            Creators earn trading fees as people buy and sell the $cashtag.
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            You can trade $cashtags on any client that supports Transaction Frames. Featured apps include{" "}
-                            <Link href={"https://dex.bonsai.meme"} passHref>
-                              <span className="link link-hover">Bonsai DEX</span>
-                            </Link>
-                            {", and "}
-                            <Link href={"https://buttrfly.app"} passHref>
-                              <span className="link link-hover">Buttrfly</span>
-                            </Link>
-                            .
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            <Link href={routesApp.clubs} passHref>
-                              <span className="link link-hover">Explore some cashtags</span>
-                            </Link>
-                            {" "} and start trading today.
-                          </p>
+                          <ul className="list-disc pl-5 mt-4 text-lg text-secondary/70">
+                            <li>
+                              69k liquidity threshold in order to create a uni v4 pool for the token
+                              <ul className="dashed-list pl-5 mt-2">
+                                <li>Configurable bonding curves (cheap, normal, expensive)</li>
+                                <li>USDC pairing</li>
+                                <li>Early buyers cannot sell into the newly created pools for 72 hours</li>
+                                <li>Social features for profiles, posts, comments</li>
+                              </ul>
+                            </li>
+                            <li>
+                              Pools can be initialized with a uni v4 hook
+                              <ul className="dashed-list pl-5 mt-2">
+                                <li>Default hook removes trading fees for bonsai NFT holders</li>
+                                <li>Process for whitelisting verified hooks for the platform</li>
+                              </ul>
+                            </li>
+                            <li>
+                              Tokens are associated with an onchain agent that periodically posts and is the ideal community member for the token
+                              <ul className="dashed-list pl-5 mt-2">
+                                <li>Custodial wallet for the agent to earn crypto through Zora NFTs, launchpad trades, and other onchain activity</li>
+                              </ul>
+                            </li>
+                          </ul>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>
                     </>
@@ -118,7 +107,7 @@ const Help = () => {
 
               {/* Contracts */}
               <div className="pt-8">
-                <Disclosure as="div" defaultOpen={section === ANCHOR_DEPLOYED_CONTRACTS} onClick={() => handleDisclosureClick(ANCHOR_DEPLOYED_CONTRACTS)}>
+                <Disclosure as="div" defaultOpen={true} onClick={() => handleDisclosureClick(ANCHOR_DEPLOYED_CONTRACTS)}>
                   {({ open }) => (
                     <>
                       <h3 className="text-xl leading-6 text-secondary">
@@ -136,47 +125,14 @@ const Help = () => {
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bounties |{" "}
+                            Bonsai Launchpad |{" "}
                             <a
                               className="link link-hover"
                               target="_blank"
                               rel="noreferrer"
-                              href={polygonScanUrl(BOUNTIES_CONTRACT_ADDRESS, process.env.NEXT_PUBLIC_CHAIN_ID!)}
+                              href={baseScanUrl(LAUNCHPAD_CONTRACT_ADDRESS)}
                             >
-                              {BOUNTIES_CONTRACT_ADDRESS}
-                            </a>
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            Social Club Badges |{" "}
-                            <a
-                              className="link link-hover"
-                              target="_blank"
-                              rel="noreferrer"
-                              href={polygonScanUrl(MAD_SBT_CONTRACT_ADDRESS, process.env.NEXT_PUBLIC_CHAIN_ID!)}
-                            >
-                              {MAD_SBT_CONTRACT_ADDRESS}
-                            </a>
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            Reward NFT |{" "}
-                            <a
-                              className="link link-hover"
-                              target="_blank"
-                              rel="noreferrer"
-                              href={polygonScanUrl(STICKERS_CONTRACT_ADDRESS, process.env.NEXT_PUBLIC_CHAIN_ID!)}
-                            >
-                              {STICKERS_CONTRACT_ADDRESS}
-                            </a>
-                          </p>
-                          <p className="mt-4 text-lg text-secondary/70">
-                            Revenue Share Library |{" "}
-                            <a
-                              className="link link-hover"
-                              target="_blank"
-                              rel="noreferrer"
-                              href={polygonScanUrl(REV_SHARE_LIBRARY_ADDRESS, process.env.NEXT_PUBLIC_CHAIN_ID!)}
-                            >
-                              {REV_SHARE_LIBRARY_ADDRESS}
+                              {LAUNCHPAD_CONTRACT_ADDRESS}
                             </a>
                           </p>
                         </Disclosure.Panel>

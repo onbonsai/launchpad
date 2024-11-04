@@ -85,7 +85,7 @@ export const RegisterClubModal = ({
     try {
       await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
 
-      toastId = toast.loading("Creating moonshot...");
+      toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
       const featureStartAt = bonsaiNftZkSync > 0n ? Math.floor(Date.now() / 1000) : undefined;
       const { objectId, clubId } = await registerClubTransaction(walletClient, {
@@ -124,10 +124,10 @@ export const RegisterClubModal = ({
       setTimeout(refetchClubBalance, 8000); // give the indexer some time
       setIsBuying(false);
 
-      // toast.success("Moonshot created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
-      toast.success("Moonshot created! Redirecting...", { duration: 10000, id: toastId });
+      // toast.success("Token created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
+      toast.success("Token created! Redirecting...", { duration: 10000, id: toastId });
       closeModal();
-      setTimeout(() => router.push(`/moonshot/${clubId}`), 3000);
+      setTimeout(() => router.push(`/token/${clubId}`), 3000);
     } catch (error) {
       setIsBuying(false);
       console.log(error);
@@ -140,7 +140,7 @@ export const RegisterClubModal = ({
       const publicationMetadata = publicationBody(
         `${tokenName} ($${tokenSymbol})
 ${tokenDescription}
-${MADFI_CLUBS_URL}/moonshot/${clubId}
+${MADFI_CLUBS_URL}/token/${clubId}
 `,
         [attachment],
         profile.metadata?.displayName || profile.handle!.suggestedFormatted.localName
@@ -169,7 +169,7 @@ ${MADFI_CLUBS_URL}/moonshot/${clubId}
   return (
     <div className="flex flex-col w-full mt-8">
       <Dialog.Title as="h2" className="text-5xl uppercase text-center font-owners font-bold">
-        Create a moonshot
+        Create a token
       </Dialog.Title>
       <form
         className="p-4 mx-auto max-w-fit min-w-[50%] space-y-4 divide-y divide-dark-grey"
@@ -185,7 +185,7 @@ ${MADFI_CLUBS_URL}/moonshot/${clubId}
                       Linked social profile
                     </label>
                     <div className="text-sm inline-block">
-                      <Tooltip message="Your moonshot will have a social feed, and by default use your currently logged-in Lens profile" direction="top">
+                      <Tooltip message="Your token will have a social feed, and by default use your currently logged-in Lens profile" direction="top">
                         <InformationCircleIcon
                           width={18}
                           height={18}
@@ -224,7 +224,7 @@ ${MADFI_CLUBS_URL}/moonshot/${clubId}
                     Name
                   </label>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your moonshot reaches the liquidity threshold, a token with this name and symbol will be created" direction="top">
+                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and symbol" direction="top">
                       <InformationCircleIcon
                         width={18}
                         height={18}
@@ -396,11 +396,11 @@ ${MADFI_CLUBS_URL}/moonshot/${clubId}
               Create
             </Button>
             <p className="text-sm text-secondary font-light">
-              Creating will also make a post for your Moonshot
+              Creating will also make a post for your Token
             </p>
             {(bonsaiNftZkSync > 0n) && (
               <p className="text-sm text-secondary font-light gradient-txt">
-                For being a Bonsai NFT holder, your Moonshot will be featured for 48 hours
+                For being a Bonsai NFT holder, your Token will be featured for 48 hours
               </p>
             )}
           </div>
