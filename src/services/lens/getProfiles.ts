@@ -3,6 +3,7 @@ import { LimitType } from "@lens-protocol/client";
 
 import { apolloClient, apolloClientReadOnly } from "./apolloClient";
 import { lensClient } from "./client";
+import { getAccessToken } from "@src/hooks/useLensLogin";
 
 const GET_PROFILES_BY_HANDLES = `
 query($handles: [Handle!]) {
@@ -254,6 +255,9 @@ query($request: ProfilesRequest!) {
       ownedBy {
         address
       }
+      operations {
+        isFollowedByMe { value }
+      }
       metadata {
         displayName
         picture {
@@ -460,6 +464,7 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
   try {
     const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
     const promises: any[] = [];
+    const accessToken = await getAccessToken();
 
     for (let i = 0; i < ownedBy.length; i += _limit) {
       const _ownedBy = ownedBy.slice(i, i + _limit);
@@ -467,6 +472,12 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
         apolloClient.query({
           query: gql(GET_PROFILE_HANDLES),
           variables: { request: { where: { ownedBy: _ownedBy }, limit } },
+          context: {
+            headers: {
+              'x-access-token': accessToken,
+              authorization: `Bearer: ${accessToken}`
+            }
+          }
         }),
       );
     }

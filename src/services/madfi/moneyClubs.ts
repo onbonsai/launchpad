@@ -34,6 +34,7 @@ const REGISTERED_CLUB = gql`
       completedAt
       tokenInfo
       tokenAddress
+      creatorFees
       prevTrade: trades(where:{createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
@@ -121,7 +122,7 @@ const HOLDINGS_PAGINATED = gql`
 
 const CLUB_HOLDINGS_PAGINATED = gql`
   query ClubChips($club: Bytes!, $skip: Int!) {
-    clubChips(where:{ club: $club }, orderBy: amount, orderDirection: desc, first: 50, skip: $skip) {
+    clubChips(where:{ club: $club }, orderBy: amount, orderDirection: desc, first: 100, skip: $skip) {
       id
       trader {
         id
@@ -251,7 +252,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
-  const limit = 50;
+  const limit = 100;
   const skip = page * limit;
   const client = subgraphClient();
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });

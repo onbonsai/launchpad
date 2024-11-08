@@ -3,24 +3,24 @@ export default (date: Date): string => {
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (seconds < 60) {
-    return `${seconds} ${seconds === 1 ? 'sec' : 'secs'} ago`;
+    return `${seconds}sec ago`;
   }
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} ${minutes === 1 ? 'min' : 'mins'} ago`;
+    return `${minutes}min ago`;
   }
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} ${hours === 1 ? 'hr' : 'hrs'} ago`;
+    return `${hours}hr ago`;
   }
   const days = Math.floor(hours / 24);
   if (days < 30) {
-    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    return `${days}day ago`;
   }
   const months = Math.floor(days / 30);
   if (months < 12) {
-    return `${months} ${months === 1 ? 'mo' : 'mos'} ago`;
+    return `${months}mo ago`;
   }
   const years = Math.floor(months / 12);
-  return `${years} ${years === 1 ? 'yr' : 'yrs'} ago`;
+  return `${years}yr ago`;
 }

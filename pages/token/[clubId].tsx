@@ -2,7 +2,7 @@ import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useReadContract } from "wagmi";
-import { getAddress } from "viem";
+import { formatUnits, getAddress } from "viem";
 import dynamic from "next/dynamic";
 import { VideoCameraIcon } from "@heroicons/react/solid";
 import { usePrivy } from "@privy-io/react-auth";
@@ -17,7 +17,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { getRegisteredClubById } from "@src/services/madfi/moneyClubs";
+import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import {
@@ -26,6 +26,7 @@ import {
   ChartingLibraryWidgetOptions,
   ResolutionString,
 } from '../../../public/static/charting_library/charting_library';
+import { roundedToFixed } from "@src/utils/utils";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -54,6 +55,7 @@ type Club = {
   token: Token;
   pubId: string;
   featured: boolean;
+  creatorFees: string;
 };
 
 interface TokenPageProps {
@@ -89,19 +91,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
   // const [canFollow, setCanFollow] = useState(false);
   // const [isFollowed, setIsFollowed] = useState(false);
 
-  // for admin stuff unrelated to lens (ex: livestreams)
-  const isCreatorAdmin = useMemo(() => {
-    if (!(profile?.ownedBy && address)) return false;
-
-    return getAddress(profileAddress(profile, creatorInfo?.address)) === getAddress(address);
-  }, [profile, address]);
-
-  // for admin stuff directly related to lens (create post, decrypt)
-  const isProfileAdmin = useMemo(() => {
-    if (!authenticatedProfileId) return false;
-
-    return profile?.id === authenticatedProfileId;
-  }, [profile, authenticatedProfileId]);
+  // for admin stuff unrelated to lens (ex: livestreams, claim fees)
+  const isCreatorAdmin = useMemo(() => (
+    address && getAddress(creatorInfo?.address) === getAddress(address)
+  ), [creatorInfo, address]);
 
   // const onFollowClick = async (e: React.MouseEvent) => {
   //   e.preventDefault();
@@ -153,9 +146,17 @@ const TokenPage: NextPage<TokenPageProps> = ({
               )}
             </div>
 
+            {isCreatorAdmin && (
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
+                <span className="text-2xl font-bold font-owners tracking-wide font-bold mt-4 gradient-txt">
+                  {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)))}`}
+                </span>
+              </div>
+            )}
+
             {/* {isConnected && (
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
-                {isProfileAdmin && (
+                {isCreatorAdmin && (
                   <Button
                     variant="accent"
                     className="w-full mb-2 mr-4 md:mb-0 text-base"
@@ -278,7 +279,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })()
   ]);
 
-  clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(_club.featureStartAt) + 48 * 60 * 60);
+  clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(clubSocial.featureStartAt) + 48 * 60 * 60);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
   return { props: {

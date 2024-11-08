@@ -1,11 +1,21 @@
 import { useState, useMemo } from "react";
 import { orderBy } from "lodash/collection";
 import { get } from "lodash/object";
-
+import { useReadContract } from "wagmi";
 import ClubCard from "./ClubCard";
+import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import { CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 
 export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy }) => {
   const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
+
+  const { data: minLiquidityThreshold } = useReadContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'minLiquidityThreshold'
+  });
 
   const sortedClubs = useMemo(() => {
     const _clubs = filterBy ? filteredClubs : clubs;
@@ -63,7 +73,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
             <ul role="list" className="grid group/item grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-3">
               {sortedClubs.map((club, idx) =>
                 <li className="w-full" key={`club-${idx}`}>
-                  <ClubCard data={club} />
+                  <ClubCard data={club} minLiquidityThreshold={minLiquidityThreshold as bigint} />
                 </li>
               )}
             </ul>

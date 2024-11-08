@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { useReadContract } from "wagmi";
 import toast from "react-hot-toast";
 import {
@@ -18,6 +18,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { Button } from "@src/components/Button";
+import ProgressBar from "@src/components/ProgressBar";
 
 export const InfoComponent = ({
   club,
@@ -210,24 +211,4 @@ export const InfoComponent = ({
           )} */}
     </>
   )
-};
-
-interface ProgressBarProps {
-  progress: number; // expects a value between 0 and 100
-}
-
-const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
-  // Ensure progress is within bounds
-  const validProgress = Math.min(100, Math.max(0, progress));
-
-  return (
-    <div className="w-full rounded-xl border border-dark-grey bg-transparent shadow-sm">
-      <div
-        className="bg-primary text-xs leading-none py-1 text-center text-white rounded-xl"
-        style={{ width: `${validProgress}%`, marginLeft: validProgress == 0 ? '8px' : '0px' }}
-      >
-        {validProgress}%
-      </div>
-    </div>
-  );
 };

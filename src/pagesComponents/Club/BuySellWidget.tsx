@@ -253,7 +253,7 @@ export const BuySellWidget = ({
   }
 
   return (
-    <div className="flex flex-col w-full h-full md:-mt-4">
+    <div className="flex flex-col w-full md:-mt-4">
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
         {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
@@ -265,7 +265,7 @@ export const BuySellWidget = ({
       <div className="w-full">
         {/* Buy */}
         {openTab === 1 && (
-          <div className="w-full space-y-8 divide-y divide-dark-grey">
+          <div className="w-full divide-y divide-dark-grey">
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">

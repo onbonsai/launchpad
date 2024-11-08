@@ -82,10 +82,20 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
               <div className="lg:col-span-2 overflow-auto">
+                {/* Holdings */}
+                <div>
+                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
+                    <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
+                  </div>
+                  <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
+                    <Holdings address={address} />
+                  </div>
+                </div>
+
                 {/* Profile */}
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
-                  <>
+                  <div className="mt-8">
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between">
                       <h2 className="text-2xl font-owners tracking-wide leading-6">Profile</h2>
                     </div>
@@ -106,60 +116,52 @@ const IndexPage: NextPage = () => {
                         </a>
                       </Link>
                     </div>
+                  </div>
+                )}
 
-                    {/* Bonsai NFT Perks */}
-                    {isConnected && (
-                      <div className="relative lg:col-span-3 mt-8">
-                        <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                          <h2 className="text-2xl font-owners tracking-wide leading-6 gradient-txt">Bonsai NFT Perks</h2>
-                        </div>
+                {/* Bonsai NFT Perks */}
+                {isConnected && (
+                  <div className="relative lg:col-span-3 mt-8">
+                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
+                      <h2 className="text-2xl font-owners tracking-wide leading-6 gradient-txt">Bonsai NFT Perks</h2>
+                    </div>
 
-                        <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                          <div className="flex justify-between">
-                            <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
-                            <Tooltip message="100k tokens = 1 NFT" direction="top">
-                              <p className="text-2xl font-owners tracking-wide">
-                                {bonsaiBalanceZkSync ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
-                                {" | "}
-                                {bonsaiNftZkSync ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
-                              </p>
-                            </Tooltip>
-                          </div>
-                          <ul className="text-md pl-2">
-                            <li>✅ zero fees on creating and trading</li>
-                            <li>✅ auto-feature after creating</li>
-                            <li>✅ zero fees on uni v4 pools</li>
-                            <li>✅ access to the{" "}
-                              <Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                                <span className="link link-hover mb-2">Rooftop Club</span>
-                              </Link>
-                            </li>
-                          </ul>
-
-                          <div className="flex justify-center text-sm">
-                            <div className="absolute right-6 bottom-2">
-                              <span
-                                className="font-bold opacity-40 link link-hover mb-2"
-                                onClick={() => setOpenBuyModal(true)}
-                              >
-                                Buy more
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                    <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
+                      <div className="flex justify-between">
+                        <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
+                        <Tooltip message="100k tokens = 1 NFT" direction="top">
+                          <p className="text-2xl font-owners tracking-wide">
+                            {bonsaiBalanceZkSync ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
+                            {" | "}
+                            {bonsaiNftZkSync ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
+                          </p>
+                        </Tooltip>
                       </div>
-                    )}
+                      <ul className="text-md pl-2">
+                        <li>✅ zero fees on creating and trading</li>
+                        <li>✅ auto-feature after creating</li>
+                        <li>✅ zero fees on uni v4 pools</li>
+                        <li>✅ access to the{" "}
+                          <Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                            <span className="link link-hover mb-2">Rooftop Club</span>
+                          </Link>
+                        </li>
+                      </ul>
 
-                    <div className="mt-8">
-                      <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                        <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
-                      </div>
-                      <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                        <Holdings address={address} />
+                      <div className="flex justify-center text-sm">
+                        <div className="absolute right-6 bottom-2">
+                          <span
+                            className="font-bold opacity-40 link link-hover mb-2"
+                            onClick={() => setOpenBuyModal(true)}
+                          >
+                            Buy more
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
+
               </div>
 
               <div className="lg:col-span-4 max-w-full">
