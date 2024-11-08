@@ -14,11 +14,9 @@ import { last } from "lodash/array";
 
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
-import { Tooltip } from "@src/components/Tooltip";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { getIsFollowedBy } from "@src/services/lens/getProfiles";
 import { followProfile } from "@src/services/lens/follow";
-import { routesApp } from "@src/constants/routesApp";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
@@ -31,7 +29,7 @@ import PublicationFeed from "@src/components/Publication/PublicationFeed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
 import { FarcasterProfile } from "@src/services/farcaster/types";
-// import TradeComponent from "@src/components/Creators/TradeComponent";
+import { Holdings } from "@src/pagesComponents/Dashboard";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 
@@ -215,46 +213,14 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   allSocials={allSocials?.data}
                 />
 
-                {/* Trade */}
-                {(isLoadingMoneyClub || moneyClub?.id || isCreatorAdmin) && (
-                  <div className="lg:col-span-3 mt-10 mb-2 tour__chips">
-                    <div className="flex items-center gap-x-4">
-                      <h2 className="text-2xl font-owners tracking-wide leading-6">$Cashtag</h2>
-                      <Tooltip
-                        message="Buy and sell this creator's $cashtag. Click to learn more."
-                        direction="top"
-                      >
-                        <Link
-                          href={{
-                            pathname: routesApp.help,
-                            query: {
-                              section: "cashtags",
-                            },
-                          }}
-                          prefetch={false}
-                          legacyBehavior
-                        >
-                          <span className="text-xl font-bold font-owners tracking-wide opacity-30 cursor-pointer">
-                            [?]
-                          </span>
-                        </Link>
-                      </Tooltip>
-                    </div>
-
-                    {/* {isLoadingMoneyClub ? (
-                      <div className="flex justify-center pt-4">
-                        <Spinner customClasses="h-6 w-6" color="#E42101" />
-                      </div>
-                    ) : (
-                      <TradeComponent
-                        address={address}
-                        profile={profile}
-                        isCreatorAdmin={isCreatorAdmin}
-                        authenticatedProfile={authenticatedProfile}
-                      />
-                    )} */}
+                <div className="mt-8">
+                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
+                    <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
                   </div>
-                )}
+                  <div className="rounded-md p-6 md:w-[500px] w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
+                    <Holdings address={profileAddress(profile, creatorInfo?.address)} />
+                  </div>
+                </div>
               </div>
 
               <div className="lg:col-span-3">

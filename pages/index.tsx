@@ -155,7 +155,7 @@ const IndexPage: NextPage = () => {
                         <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
                       </div>
                       <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                        <Holdings />
+                        <Holdings address={address} />
                       </div>
                     </div>
                   </>

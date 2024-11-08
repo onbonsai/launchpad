@@ -252,7 +252,8 @@ const PublicationContainer = ({
               //   decryptGatedPosts(); // we're either decrypting this in single publication view or the feed
               // }
             }}
-            disabled={decrypting || !isConnected || !isAuthenticated}
+            // disabled={decrypting || !isConnected || !isAuthenticated}
+            disabled
           >
             {(decrypting && isConnected && isAuthenticated) && <Spinner />}
             {!decrypting && (

@@ -272,7 +272,7 @@ const SinglePublicationPage: NextPage = () => {
     <div className="bg-background text-secondary min-h-[50vh]">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4">
         <span onClick={() => goToCreatorPage()} className="link link-hover mb-4">
-          ← Back to {returnTo === "bounty" ? 'Bounty' : 'Club'}
+          ← Back
         </span>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center">
           <div className="flex flex-col gap-y-4">
