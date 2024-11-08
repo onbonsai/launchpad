@@ -81,11 +81,14 @@ const Help = () => {
                                 <li>Configurable bonding curves (cheap, normal, expensive)</li>
                                 <li>USDC pairing</li>
                                 <li>Early buyers cannot sell into the newly created pools for 72 hours</li>
-                                <li>Social features for profiles, posts, comments</li>
+                                <li>Community features with profiles, posts, comments</li>
                               </ul>
                             </li>
                             <li>
-                              Pools can be initialized with a uni v4 hook
+                              Pools can be initialized with a{" "}
+                              <Link href="https://docs.uniswap.org/contracts/v4/concepts/hooks" legacyBehavior target="_blank">
+                                <span className="text-grey link-hover cursor-pointer">Uniswap v4 hook</span>
+                              </Link>
                               <ul className="dashed-list pl-5 mt-2">
                                 <li>Default hook removes trading fees for bonsai NFT holders</li>
                                 <li>Process for whitelisting verified hooks for the platform</li>

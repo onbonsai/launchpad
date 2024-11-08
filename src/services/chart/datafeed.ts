@@ -59,7 +59,9 @@ const getAllSymbols = async () => {
       symbol,
       ticker: symbol,
       description: symbol,
-      exchange: !!club.tokenAddress ? EXCHANGE_UNI_V4 : `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
+      // if we want to enable uniswap trades in the app
+      // exchange: !!club.tokenAddress ? EXCHANGE_UNI_V4 : `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
+      exchange: `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
       type: 'crypto',
     }
   });

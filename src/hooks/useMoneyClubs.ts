@@ -16,6 +16,7 @@ import {
   getTrades,
   getHoldings,
   getClubHoldings,
+  getLiquidity,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
@@ -51,7 +52,16 @@ export const useGetClubVolume = (clubId?: string) => {
     queryKey: ["club-volume", clubId],
     queryFn: () => getVolume(clubId!),
     enabled: !!clubId,
-    staleTime: 60000, // fetch every minute
+    refetchInterval: 15000, // fetch every 15seconds
+  });
+};
+
+export const useGetClubLiquidity = (clubId?: string) => {
+  return useQuery({
+    queryKey: ["club-liquidity", clubId],
+    queryFn: () => getLiquidity(clubId!),
+    enabled: !!clubId,
+    refetchInterval: 15000, // fetch every 15seconds
   });
 };
 
@@ -76,7 +86,7 @@ export const useGetClubTrades = (clubId: string, page: number) => {
       return { trades, hasMore: res.hasMore };
     },
     enabled: !!clubId,
-    staleTime: 60000, // TODO: fetch every minute (not working)
+    refetchInterval: 60000, // fetch every minute
   });
 };
 
@@ -108,7 +118,7 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
     queryKey: ["holdings", account, page],
     queryFn: () => getHoldings(account!, page!),
     enabled: !!account,
-    staleTime: 60000, // fetch every minute
+    refetchInterval: 60000, // fetch every minute
   });
 };
 
@@ -125,6 +135,7 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
     queryKey: ["buy-price", clubId, amount],
     queryFn: () => getBuyPrice(account!, clubId!, amount!),
     enabled: !!clubId && !!amount && !!account,
+    refetchInterval: 15000, // refetch every 15 seconds
   });
 };
 

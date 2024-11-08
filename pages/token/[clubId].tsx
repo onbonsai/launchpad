@@ -202,6 +202,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     <TradeComponent club={club} address={address} />
                   </div>
                 </div>
+                {/* TODO: creator admin panel to claim fees, create agent with handle if club.completed */}
               </div>
 
               <div className="lg:col-span-2">

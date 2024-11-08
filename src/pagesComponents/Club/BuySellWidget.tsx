@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { formatUnits, parseUnits, erc721Abi } from "viem";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 import { Button } from "@src/components/Button"
 import { roundedToFixed } from "@src/utils/utils";
@@ -18,7 +19,9 @@ import {
   sellChips as sellChipsTransaction,
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
+  releaseLiquidity as releaseLiquidityTransaction,
 } from "@src/services/madfi/moneyClubs";
+import Countdown from "@src/components/Countdown";
 
 export const BuySellWidget = ({
   refetchRegisteredClub,
@@ -37,11 +40,15 @@ export const BuySellWidget = ({
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
+  const [isReleased, setIsReleased] = useState(false);
+  const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
 
   const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
   const { buyPriceAfterFees } = buyPriceResult || {};
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
+  const [claimEnabled, setClaimEnabled] = useState(false);
+  const claimEnabledAtDate = club.completedAt ? new Date((club.completedAt + 72 * 60 * 60) * 1000) : null;
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -51,6 +58,13 @@ export const BuySellWidget = ({
     args: [address!],
     query: { enabled: !!address }
   });
+
+  useEffect(() => {
+    if (club.completedAt) {
+      const isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
+      setClaimEnabled(isClaimEnabled);
+    }
+  }, [club.completedAt]);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(buyPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -137,6 +151,105 @@ export const BuySellWidget = ({
       toast.error("Failed to sell", { id: toastId });
     }
     setIsSelling(false);
+  }
+
+  const claimTokens = async () => {
+
+  }
+
+  const releaseLiquidity = async () => {
+    setIsBuying(true);
+    let toastId;
+
+    if (chain!.id !== CONTRACT_CHAIN_ID) {
+      try {
+        console.log('switching to', CONTRACT_CHAIN_ID);
+        switchChain({ chainId: CONTRACT_CHAIN_ID });
+      } catch {
+        toast.error("Please switch networks");
+        setIsBuying(false);
+        return;
+      }
+    }
+
+    try {
+      toastId = toast.loading("Creating pool...");
+      // also triggers token swap in the backend
+      const token = await releaseLiquidityTransaction(walletClient, club.id);
+      setIsReleased(true);
+      setTokenAddress(token);
+
+      setTimeout(refetchRegisteredClub, 5000);
+      toast.success('Pool created!');
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create the pool", { id: toastId });
+    }
+    setIsBuying(false);
+  };
+
+  if (club.complete && tokenAddress) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[250px] md:-mt-4">
+        <div className="text-center">
+          <p className="mt-2 text-lg text-secondary/70">
+            ${club.token.symbol}/USDC pool is live!{" "}
+            <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
+              <span className="text-grey link-hover cursor-pointer">Trade on Uniswap here</span>
+            </Link>
+          </p>
+        </div>
+        {clubBalance > 0n && (
+          <div className="flex flex-col items-center justify-center space-y-2 mt-8 w-full">
+            {claimEnabled && (
+              <div className="w-full flex justify-center">
+                <Button
+                  variant="accent"
+                  className="mb-2 md:mb-0 text-base"
+                  onClick={claimTokens}
+                  disabled
+                >
+                  [TODO] Claim Tokens
+                </Button>
+              </div>
+            )}
+            {!claimEnabled && claimEnabledAtDate && (
+              <div className="w-full flex justify-center">
+                <Countdown
+                  date={claimEnabledAtDate}
+                  onComplete={() => setClaimEnabled(true)}
+                  label={"Claim tokens in"}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  } else if (club.complete) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[250px] md:-mt-4">
+        <div className="text-center">
+          <p className="mt-2 text-lg text-secondary/70">
+            ${club.token.symbol} has bonded.<br /> Anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
+          </p>
+        </div>
+        {club.complete && !club.tokenAddress && !isReleased && (
+          <div className="flex justify-center space-y-2 mt-8">
+            {!club.tokenAddress && (
+              <Button
+                variant="accent"
+                className="mb-2 md:mb-0 text-base"
+                onClick={releaseLiquidity}
+                disabled={isBuying}
+              >
+                Create Pool
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (

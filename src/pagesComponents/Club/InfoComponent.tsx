@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { formatUnits, parseUnits } from "viem";
 import { useReadContract } from "wagmi";
 import toast from "react-hot-toast";
-
 import {
   useGetBuyPrice,
   useGetFeesEarned,
   useGetClubVolume,
+  useGetClubLiquidity,
 } from "@src/hooks/useMoneyClubs";
 import {
   calculatePriceDelta,
@@ -17,8 +17,7 @@ import {
 import { roundedToFixed } from "@src/utils/utils";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-
-import { BuySellWidget } from "./BuySellWidget";
+import { Button } from "@src/components/Button";
 
 export const InfoComponent = ({
   club,
@@ -29,6 +28,7 @@ export const InfoComponent = ({
   const { data: buyPriceResult } = useGetBuyPrice(address, club?.clubId, '1');
   const { data: creatorFeesEarned } = useGetFeesEarned(isCreatorAdmin, address);
   const { data: clubVolume, isLoading: isLoadingVolume } = useGetClubVolume(club?.clubId);
+  const { data: clubLiquidity } = useGetClubLiquidity(club?.clubId);
   const { data: minLiquidityThreshold } = useReadContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
@@ -58,12 +58,12 @@ export const InfoComponent = ({
   }, [creatorFeesEarned]);
 
   const bondingCurveProgress = useMemo(() => {
-    if (minLiquidityThreshold) {
+    if (minLiquidityThreshold && clubLiquidity) {
       const scaledMinLiquidityThreshold = (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS);
-      const fraction = (BigInt(club.marketCap) * BigInt(100)) / scaledMinLiquidityThreshold;
+      const fraction = (clubLiquidity * BigInt(100)) / scaledMinLiquidityThreshold;
       return parseInt(fraction.toString());
     }
-  }, [minLiquidityThreshold, club]);
+  }, [minLiquidityThreshold, club, clubLiquidity]);
 
   // const withdrawFeesEarned = async () => {
   //   setClaiming(true);
@@ -138,7 +138,7 @@ export const InfoComponent = ({
           <h2 className="text-lg font-owners tracking-wide leading-6">Market Cap</h2>
           <div className="flex flex-col items-start gap-x-2">
             <div className="md:text-lg text-md">
-              ${roundedToFixed(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)), 2)}
+              ${clubLiquidity === undefined ? '-' : roundedToFixed(parseFloat(formatUnits(clubLiquidity, USDC_DECIMALS)), 2)}
             </div>
           </div>
         </div>
@@ -151,7 +151,7 @@ export const InfoComponent = ({
           </div>
         </div>
         <div className="space-y-2 mt-8">
-          <h2 className="text-lg font-owners tracking-wide leading-6">Bonding Curve Progress</h2>
+          <h2 className="text-lg font-owners tracking-wide leading-6">Bonding Curve{" "}{club.complete ? "Complete" : "Progress"}</h2>
           <ProgressBar progress={bondingCurveProgress || 0} />
         </div>
       </div>

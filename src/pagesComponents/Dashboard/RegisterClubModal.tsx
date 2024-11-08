@@ -78,8 +78,8 @@ export const RegisterClubModal = ({
       } catch {
         toast.error("Please switch networks");
         setIsBuying(false);
-        return;
       }
+      return;
     }
 
     try {
@@ -108,7 +108,7 @@ export const RegisterClubModal = ({
       });
       if (!pubId) throw new Error("Failed to create post");
 
-      const response = await fetch('/api/clubs/register-link-social', {
+      const response = await fetch('/api/clubs/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -396,11 +396,11 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               Create
             </Button>
             <p className="text-sm text-secondary font-light">
-              Creating will also make a post for your Token
+              Creating will also make a post from your profile
             </p>
             {(bonsaiNftZkSync > 0n) && (
               <p className="text-sm text-secondary font-light gradient-txt">
-                For being a Bonsai NFT holder, your Token will be featured for 48 hours
+                For being a Bonsai NFT holder, your token will be featured for 48 hours
               </p>
             )}
           </div>
