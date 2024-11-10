@@ -133,10 +133,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
             <div className="flex items-center gap-x-4">
-              <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">
+              <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
                 {`${club.token.name} ($${club.token.symbol})`}
               </h1>
               {club.featured && (
@@ -147,9 +147,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
             </div>
 
             {isCreatorAdmin && (
-              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
+              <div className="flex flex-col md:flex-row md:items-start md:items-center md:justify-end md:w-auto items-end">
                 <span className="text-2xl font-bold font-owners tracking-wide font-bold mt-4 gradient-txt">
-                  {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)))}`}
+                  {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
                 </span>
               </div>
             )}
@@ -170,12 +170,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
             )} */}
           </div>
 
-          <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
+          <section aria-labelledby="dashboard-heading" className="pt-4 max-w-full">
             <h2 id="dashboard-heading" className="sr-only">
               {profile?.metadata?.displayName}
             </h2>
 
-            <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-6 max-w-full">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
               <div className="lg:col-span-4 p-2">
                 <div className="lg:col-span-3">
                   <Script

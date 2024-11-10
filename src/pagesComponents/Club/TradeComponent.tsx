@@ -5,7 +5,6 @@ import { sampleSize } from "lodash/collection";
 import { useGetClubBalance, useGetBuyPrice, useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import { USDC_CONTRACT_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import ProfilePics from "@src/components/ProfilePics/ProfilePics";
-
 import { BuySellWidget } from "./BuySellWidget";
 
 export const TradeComponent = ({ club, address }) => {
@@ -25,29 +24,30 @@ export const TradeComponent = ({ club, address }) => {
 
   const clubHoldingsFriends = useMemo(() => {
     if (!isLoadingClubHoldings) {
-      const res = clubHoldings?.holdings?.filter((data) => data.profile.operations.isFollowedByMe.value) || []
+      const res = clubHoldings?.holdings?.filter((data) => data.profile?.operations.isFollowedByMe.value) || []
       setFriendCount(res.length);
       return sampleSize(res, 5).map(({ profile }) => profile);
     }
   }, [clubHoldings, isLoadingClubHoldings]);
 
   return (
-    <>
-      <BuySellWidget
-        refetchRegisteredClub={() => { }}
-        refetchClubBalance={refetchClubBalance}
-        refetchClubPrice={refetchClubPrice}
-        club={club}
-        clubBalance={clubBalance}
-        tokenBalance={tokenBalance}
-        openTab={1}
-      />
+    <div className="flex flex-col h-full"> {/* Use flex container with full height */}
+      <div className="flex-grow"> {/* This div will grow to take available space, pushing the friends component to the bottom */}
+        <BuySellWidget
+          refetchClubBalance={refetchClubBalance}
+          refetchClubPrice={refetchClubPrice}
+          club={club}
+          clubBalance={clubBalance}
+          tokenBalance={tokenBalance}
+          openTab={1}
+        />
+      </div>
       {friendCount > 0 && (
-        <div className="mt-8 flex gap-4">
+        <div className="mt-4 flex gap-4 bottom-0 w-full"> {/* Fixed position at the bottom of the viewport */}
           <ProfilePics profiles={clubHoldingsFriends} />
-          <span className="text-md opacity-30 mt-2 font-bold">{`${friendCount} friend${friendCount > 1 ? 's' : ''} are holding.`}</span>
+          <span className="text-md opacity-30 mt-2 font-bold">{`${friendCount} FRIEND${friendCount > 1 ? 'S ARE' : ' IS'} HODLING`}</span>
         </div>
       )}
-    </>
+    </div>
   )
 };

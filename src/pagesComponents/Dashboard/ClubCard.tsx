@@ -37,8 +37,10 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
     if (minLiquidityThreshold && clubLiquidity) {
       const scaledMinLiquidityThreshold = (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS);
       const fraction = (clubLiquidity * BigInt(100)) / scaledMinLiquidityThreshold;
-      return parseInt(fraction.toString());
+      return Math.min(parseInt(fraction.toString()), 100);
     }
+
+    return 0;
   }, [minLiquidityThreshold, club, clubLiquidity]);
 
   return (
@@ -71,9 +73,6 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
                     <span className="text-grey link-hover">@{club.handle}</span>
                   </Link>
                 </p>
-                <p className="text-secondary/70 text-grey text-xs max-w-fit mt-1">
-                  {formatRelativeDate(new Date(parseInt(club?.createdAt as string) * 1000))}
-                </p>
               </div>
             </div>
 
@@ -96,14 +95,16 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
               </p>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0" style={{ height: '35px' }}>
-              <div
-                className="bg-gradient text-md w-full py-2 px-3"
-                style={{ width: `${bondingCurveProgress}%`, marginLeft: bondingCurveProgress == 0 ? '8px' : '0px', animation: 'pulse 2s infinite' }}
-              >
-                {bondingCurveProgress}%
+            {bondingCurveProgress > 0 && (
+              <div className="absolute bottom-0 left-0 right-0" style={{ height: '35px' }}>
+                <div
+                  className="bg-gradient text-md w-full py-2 px-3"
+                  style={{ width: `${bondingCurveProgress}%`, marginLeft: bondingCurveProgress == 0 ? '0px' : '0px', animation: 'pulse 2s infinite' }}
+                >
+                  {bondingCurveProgress}%
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

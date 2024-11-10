@@ -10,6 +10,7 @@ import { Modal } from "@src/components/Modal";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
+import { CreateClub } from "@src/pagesComponents/Dashboard";
 
 const headerLinks = [
   {
@@ -43,10 +44,10 @@ export const Header = () => {
 
   return (
     <header className="bg-black border-b border-dark-grey shadow-sm">
-      <nav className="mx-auto max-w-[92rem]" aria-label="Top">
-        <div className="flex w-full items-center justify-between border-b border-dark-grey border-opacity-80 py-6 lg:border-none">
+      <nav className="mx-auto max-w-[100rem]" aria-label="Top">
+        <div className="flex w-full items-center justify-between border-b border-dark-grey border-opacity-80 py-4 lg:border-none">
           <div className="flex items-center">
-            <div className="pl-4 md:pl-8 w-max">
+            <div className="pl-2 md:pl-6 w-max">
               <a className="bonsaiLogo" href={routesApp.home}>
 
               </a>
@@ -69,7 +70,7 @@ export const Header = () => {
               ))}
             </div>
             {/* MOBILE NAVIGATION */}
-            <div className="relative z-10 lg:hidden">
+            {/* <div className="relative z-10 lg:hidden">
               <section
                 id="bottom-navigation"
                 className="block fixed inset-x-0 bottom-0 z-10 bg-black shadow py-4 pl-24 pr-24"
@@ -89,12 +90,13 @@ export const Header = () => {
                   ))}
                 </div>
               </section>
-            </div>
+            </div> */}
           </div>
           <div className="hidden lg:block">{/** <SearchApp />  */}</div>
-          <div className="flex space-x-4 gap-x-2">
+          <div className="flex space-x-2 gap-x-2 md:pr-6">
+            <CreateClub />
             <ConnectButton
-              className="md:px-12"
+              className="md:px-4"
               setOpenSignInModal={setOpenSignInModal}
               autoLensLogin={!isAuthenticated}
             />

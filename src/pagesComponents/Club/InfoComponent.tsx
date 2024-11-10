@@ -110,44 +110,46 @@ export const InfoComponent = ({
 
   return (
     <>
-      <div className="flex flex-col space-y-4">
-        <div className="space-y-2">
-          <h2 className="text-lg font-owners tracking-wide leading-6">Price</h2>
-          <div className="flex flex-col items-start gap-y-2">
-            <div className="flex justify-between items-center md:gap-x-2">
-              <div className="md:text-lg text-md">
-                ${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}
-              </div>
-              {buyPriceDelta && buyPriceDelta.valuePct > 0 && (
-                <div className={`flex ${buyPriceDelta.positive ? 'text-green-500' : 'text-red-200'}`}>
-                  {buyPriceDelta.positive ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  <span className="text-sm">{buyPriceDelta.valuePct}%</span>
+      <div className="flex flex-col">
+        <div className="grid grid-cols-2">
+          <div className="space-y-2">
+            <h2 className="text-lg font-owners tracking-wide leading-6">Price</h2>
+            <div className="flex flex-col items-start gap-y-2">
+              <div className="flex justify-between items-center md:gap-x-2">
+                <div className="md:text-lg text-md">
+                  ${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}
                 </div>
-              )}
+                {buyPriceDelta && buyPriceDelta.valuePct > 0 && (
+                  <div className={`flex ${buyPriceDelta.positive ? 'text-green-500' : 'text-red-200'}`}>
+                    {buyPriceDelta.positive ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                    <span className="text-sm">{buyPriceDelta.valuePct}%</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-owners tracking-wide leading-6">Market Cap</h2>
-          <div className="flex flex-col items-start gap-x-2">
-            <div className="md:text-lg text-md">
-              ${clubLiquidity === undefined ? '-' : roundedToFixed(parseFloat(formatUnits(clubLiquidity, USDC_DECIMALS)), 2)}
+          <div className="space-y-2">
+            <h2 className="text-lg font-owners tracking-wide leading-6">Market Cap</h2>
+            <div className="flex flex-col items-start gap-x-2">
+              <div className="md:text-lg text-md">
+                ${clubLiquidity === undefined ? '-' : roundedToFixed(parseFloat(formatUnits(clubLiquidity, USDC_DECIMALS)), 2)}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-owners tracking-wide leading-6">Volume (24hr)</h2>
-          <div className="flex justify-between items-center gap-x-2">
-            <div className="md:text-lg text-md">
-              ${volume === undefined ? ' -' : roundedToFixed(parseFloat(formatUnits(volume || 0n, USDC_DECIMALS)), 2)}
+          <div className="space-y-2 mt-8">
+            <h2 className="text-lg font-owners tracking-wide leading-6">Volume (24hr)</h2>
+            <div className="flex justify-between items-center gap-x-2">
+              <div className="md:text-lg text-md">
+                ${volume === undefined ? ' -' : roundedToFixed(parseFloat(formatUnits(volume || 0n, USDC_DECIMALS)), 2)}
+              </div>
             </div>
           </div>
         </div>

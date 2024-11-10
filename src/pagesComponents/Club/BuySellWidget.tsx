@@ -9,6 +9,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import {
   useGetBuyPrice,
   useGetSellPrice,
+  useGetClubLiquidity,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -21,10 +22,11 @@ import {
   BONSAI_NFT_BASE_ADDRESS,
   releaseLiquidity as releaseLiquidityTransaction,
 } from "@src/services/madfi/moneyClubs";
+import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import Countdown from "@src/components/Countdown";
 
 export const BuySellWidget = ({
-  refetchRegisteredClub,
   refetchClubBalance,
   refetchClubPrice,
   club,
@@ -32,7 +34,7 @@ export const BuySellWidget = ({
   tokenBalance, // balance in USDC
   openTab: _openTab,
 }) => {
-  const { chain, address } = useAccount();
+  const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
@@ -45,6 +47,13 @@ export const BuySellWidget = ({
 
   const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
+  const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
+  const { data: minLiquidityThreshold } = useReadContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'minLiquidityThreshold'
+  });
   const { buyPriceAfterFees } = buyPriceResult || {};
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
@@ -87,6 +96,10 @@ export const BuySellWidget = ({
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
 
+  const bonded = useMemo(() => (
+    clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
+  ), [clubLiquidity, minLiquidityThreshold]);
+
   const buyChips = async (e) => {
     e.preventDefault();
     setIsBuying(true);
@@ -110,7 +123,6 @@ export const BuySellWidget = ({
       await buyChipsTransaction(walletClient, club.id, buyAmount!);
 
       // give the indexer some time
-      setTimeout(refetchRegisteredClub, 5000);
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
@@ -141,7 +153,7 @@ export const BuySellWidget = ({
       toastId = toast.loading("Selling...");
       await sellChipsTransaction(walletClient, club.id, sellAmount!);
 
-      setTimeout(refetchRegisteredClub, 5000);
+      refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
@@ -178,8 +190,6 @@ export const BuySellWidget = ({
       const token = await releaseLiquidityTransaction(walletClient, club.id);
       setIsReleased(true);
       setTokenAddress(token);
-
-      setTimeout(refetchRegisteredClub, 5000);
       toast.success('Pool created!');
     } catch (error) {
       console.log(error);
@@ -190,7 +200,7 @@ export const BuySellWidget = ({
 
   if (club.complete && tokenAddress) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-[250px] md:-mt-4">
+      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
         <div className="text-center">
           <p className="mt-2 text-lg text-secondary/70">
             ${club.token.symbol}/USDC pool is live!{" "}
@@ -226,15 +236,15 @@ export const BuySellWidget = ({
         )}
       </div>
     )
-  } else if (club.complete) {
+  } else if (club.complete || bonded) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-[250px] md:-mt-4">
+      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
         <div className="text-center">
-          <p className="mt-2 text-lg text-secondary/70">
-            ${club.token.symbol} has bonded.<br /> Anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
+          <p className="mt-2 text-md text-secondary/70">
+            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
           </p>
         </div>
-        {club.complete && !club.tokenAddress && !isReleased && (
+        {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
           <div className="flex justify-center space-y-2 mt-8">
             {!club.tokenAddress && (
               <Button
@@ -312,7 +322,7 @@ export const BuySellWidget = ({
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={isBuying || !buyAmount || isLoadingBuyPrice || !buyPriceAfterFees || tokenBalance < (buyPriceAfterFees || 0n)} onClick={buyChips} variant="primary">
+                <Button className="w-full" disabled={!isConnected || isBuying || !buyAmount || isLoadingBuyPrice || !buyPriceAfterFees || tokenBalance < (buyPriceAfterFees || 0n)} onClick={buyChips} variant="primary">
                   Buy
                 </Button>
               </div>
@@ -371,7 +381,7 @@ export const BuySellWidget = ({
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="primary">
+                <Button className="w-full" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="primary">
                   Sell
                 </Button>
               </div>

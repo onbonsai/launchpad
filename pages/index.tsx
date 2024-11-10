@@ -56,9 +56,9 @@ const IndexPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between md:pt-12 md:pb-12 pt-6 pb-6 w-full gap-y-2">
-            <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">Launchpad</h1>
+        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
+            <div></div>
 
             <div className="flex-1 flex justify-center">
               <SearchClubs
@@ -68,14 +68,8 @@ const IndexPage: NextPage = () => {
               />
             </div>
 
-            <div className="flex md:flex-row justify-center md:justify-end w-full md:w-auto gap-x-6">
-              <CreateClub
-                address={address}
-                profile={authenticatedProfile}
-                isCreatorAdmin={true}
-                refetchAllClubs
-                bonsaiNftZkSync={bonsaiNftZkSync}
-              />
+            <div className="md:hidden">
+              <CreateClub />
             </div>
           </div>
 

@@ -139,11 +139,11 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetRegistrationFee = (curve: number, amount: number, clubId?: string, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (curve: number, amount: number, account?: `0x${string}`) => {
   return useQuery({
     queryKey: ["registration-fee", amount, curve, account],
     queryFn: () => getRegistrationFee(amount!, curve, account!),
-    enabled: !clubId && !!account,
+    enabled: !!account,
   });
 };
 

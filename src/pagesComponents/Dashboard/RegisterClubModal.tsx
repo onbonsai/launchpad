@@ -32,7 +32,6 @@ export const RegisterClubModal = ({
   closeModal,
   refetchRegisteredClub,
   refetchClubBalance,
-  moneyClub,
   tokenBalance, // balance in USDC
   bonsaiNftZkSync, // bonsai nft balance
 }) => {
@@ -50,7 +49,7 @@ export const RegisterClubModal = ({
   const [tokenImage, setTokenImage] = useState<any[]>([]);
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, moneyClub?.id, address);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
   const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage;
 
   const { data: registrationCost } = useReadContract({

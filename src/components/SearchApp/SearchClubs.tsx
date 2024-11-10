@@ -108,7 +108,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
                         <Combobox.Input
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
                           displayValue={(profile) => profile?.name ?? ""}
-                          placeholder="Search for clubs by @handle, name, or interests"
+                          placeholder="Search tokens by name, symbol or @creator"
                           onChange={handleSelected}
                         />
                       </div>
