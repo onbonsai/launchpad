@@ -57,7 +57,6 @@ export const BuySellWidget = ({
   const { buyPriceAfterFees } = buyPriceResult || {};
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
-  const claimEnabledAtDate = club.completedAt ? new Date((club.completedAt + 72 * 60 * 60) * 1000) : null;
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -99,6 +98,10 @@ export const BuySellWidget = ({
   const bonded = useMemo(() => (
     clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
   ), [clubLiquidity, minLiquidityThreshold]);
+
+  const claimEnabledAtDate = club.completedAt
+    ? new Date((club.completedAt + 72 * 60 * 60) * 1000)
+    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 72 * 60 * 60) * 1000) : null);
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -190,7 +193,7 @@ export const BuySellWidget = ({
       const token = await releaseLiquidityTransaction(walletClient, club.id);
       setIsReleased(true);
       setTokenAddress(token);
-      toast.success('Pool created!');
+      toast.success('Pool created!', { id: toastId });
     } catch (error) {
       console.log(error);
       toast.error("Failed to create the pool", { id: toastId });

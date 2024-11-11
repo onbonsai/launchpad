@@ -23,12 +23,12 @@ export const TradeComponent = ({ club, address }) => {
   if (!club?.createdAt) return null;
 
   const clubHoldingsFriends = useMemo(() => {
-    if (!isLoadingClubHoldings) {
+    if (!isLoadingClubHoldings && !club.complete) {
       const res = clubHoldings?.holdings?.filter((data) => data.profile?.operations.isFollowedByMe.value) || []
       setFriendCount(res.length);
       return sampleSize(res, 5).map(({ profile }) => profile);
     }
-  }, [clubHoldings, isLoadingClubHoldings]);
+  }, [clubHoldings, isLoadingClubHoldings, club]);
 
   return (
     <div className="flex flex-col h-full"> {/* Use flex container with full height */}
@@ -42,7 +42,7 @@ export const TradeComponent = ({ club, address }) => {
           openTab={1}
         />
       </div>
-      {friendCount > 0 && (
+      {!club.complete && friendCount > 0 && (
         <div className="mt-4 flex gap-4 bottom-0 w-full"> {/* Fixed position at the bottom of the viewport */}
           <ProfilePics profiles={clubHoldingsFriends} />
           <span className="text-md opacity-30 mt-2 font-bold">{`${friendCount} FRIEND${friendCount > 1 ? 'S ARE' : ' IS'} HODLING`}</span>
