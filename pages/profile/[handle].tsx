@@ -15,7 +15,6 @@ import { last } from "lodash/array";
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { getIsFollowedBy } from "@src/services/lens/getProfiles";
 import { followProfile } from "@src/services/lens/follow";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -30,6 +29,7 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
 import { FarcasterProfile } from "@src/services/farcaster/types";
 import { Holdings } from "@src/pagesComponents/Dashboard";
+import useIsFollowed from "@src/hooks/useIsFollowed";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 
@@ -77,13 +77,14 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const { data: moneyClub, isLoading: isLoadingMoneyClub } = useRegisteredClub(
     profile?.handle?.localName || profile.profileHandle,
   );
+  const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, profile?.id)
+  const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
+  const [isFollowed, setIsFollowed] = useState(_isFollowed);
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
-  const [canFollow, setCanFollow] = useState(false);
-  const [isFollowed, setIsFollowed] = useState(false);
   const [welcomeToast, setWelcomeToast] = useState(false);
 
   // for admin stuff unrelated to lens (ex: livestreams)
@@ -99,17 +100,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
     return profile?.id === authenticatedProfileId;
   }, [profile, authenticatedProfileId]);
-
-  useMemo(async () => {
-    if (!(authenticatedProfileId && profile)) return;
-
-    if (profile.id) {
-      const { isFollowedByMe, canFollow } = await getIsFollowedBy(profile.id);
-
-      setIsFollowed(isFollowedByMe!.value);
-      setCanFollow(canFollow!);
-    }
-  }, [isAuthenticated, authenticatedProfileId, profile]);
 
   const onFollowClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -168,7 +158,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
             <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">
               {profile?.metadata?.displayName}
@@ -204,7 +194,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   onClick={() => { }}
                   environment={LENS_ENVIRONMENT}
                   containerStyle={{ cursor: "default" }}
-                  hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin}
+                  hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || !canFollow}
                   onFollowPress={onFollowClick}
                   followButtonBackgroundColor={isFollowed ? "transparent" : "#EEEDED"}
                   followButtonDisabled={!isConnected}
