@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { formatUnits, parseUnits, erc721Abi } from "viem";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 import { Button } from "@src/components/Button"
 import { roundedToFixed } from "@src/utils/utils";
 import {
   useGetBuyPrice,
   useGetSellPrice,
+  useGetClubLiquidity,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -18,10 +20,13 @@ import {
   sellChips as sellChipsTransaction,
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
+  releaseLiquidity as releaseLiquidityTransaction,
 } from "@src/services/madfi/moneyClubs";
+import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import Countdown from "@src/components/Countdown";
 
 export const BuySellWidget = ({
-  refetchRegisteredClub,
   refetchClubBalance,
   refetchClubPrice,
   club,
@@ -29,7 +34,7 @@ export const BuySellWidget = ({
   tokenBalance, // balance in USDC
   openTab: _openTab,
 }) => {
-  const { chain, address } = useAccount();
+  const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
@@ -37,11 +42,22 @@ export const BuySellWidget = ({
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
+  const [isReleased, setIsReleased] = useState(false);
+  const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
 
   const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
+  const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
+  const { data: minLiquidityThreshold } = useReadContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'minLiquidityThreshold'
+  });
   const { buyPriceAfterFees } = buyPriceResult || {};
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
+  const [claimEnabled, setClaimEnabled] = useState(false);
+  const claimEnabledAtDate = club.completedAt ? new Date((club.completedAt + 72 * 60 * 60) * 1000) : null;
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -51,6 +67,13 @@ export const BuySellWidget = ({
     args: [address!],
     query: { enabled: !!address }
   });
+
+  useEffect(() => {
+    if (club.completedAt) {
+      const isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
+      setClaimEnabled(isClaimEnabled);
+    }
+  }, [club.completedAt]);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(buyPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -72,6 +95,10 @@ export const BuySellWidget = ({
 
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
+
+  const bonded = useMemo(() => (
+    clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
+  ), [clubLiquidity, minLiquidityThreshold]);
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -96,7 +123,6 @@ export const BuySellWidget = ({
       await buyChipsTransaction(walletClient, club.id, buyAmount!);
 
       // give the indexer some time
-      setTimeout(refetchRegisteredClub, 5000);
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
@@ -127,7 +153,7 @@ export const BuySellWidget = ({
       toastId = toast.loading("Selling...");
       await sellChipsTransaction(walletClient, club.id, sellAmount!);
 
-      setTimeout(refetchRegisteredClub, 5000);
+      refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
@@ -139,8 +165,105 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
+  const claimTokens = async () => {
+
+  }
+
+  const releaseLiquidity = async () => {
+    setIsBuying(true);
+    let toastId;
+
+    if (chain!.id !== CONTRACT_CHAIN_ID) {
+      try {
+        console.log('switching to', CONTRACT_CHAIN_ID);
+        switchChain({ chainId: CONTRACT_CHAIN_ID });
+      } catch {
+        toast.error("Please switch networks");
+        setIsBuying(false);
+        return;
+      }
+    }
+
+    try {
+      toastId = toast.loading("Creating pool...");
+      // also triggers token swap in the backend
+      const token = await releaseLiquidityTransaction(walletClient, club.id);
+      setIsReleased(true);
+      setTokenAddress(token);
+      toast.success('Pool created!');
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create the pool", { id: toastId });
+    }
+    setIsBuying(false);
+  };
+
+  if (club.complete && tokenAddress) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
+        <div className="text-center">
+          <p className="mt-2 text-lg text-secondary/70">
+            ${club.token.symbol}/USDC pool is live!{" "}
+            <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
+              <span className="text-grey link-hover cursor-pointer">Trade on Uniswap here</span>
+            </Link>
+          </p>
+        </div>
+        {clubBalance > 0n && (
+          <div className="flex flex-col items-center justify-center space-y-2 mt-8 w-full">
+            {claimEnabled && (
+              <div className="w-full flex justify-center">
+                <Button
+                  variant="accent"
+                  className="mb-2 md:mb-0 text-base"
+                  onClick={claimTokens}
+                  disabled
+                >
+                  [TODO] Claim Tokens
+                </Button>
+              </div>
+            )}
+            {!claimEnabled && claimEnabledAtDate && (
+              <div className="w-full flex justify-center">
+                <Countdown
+                  date={claimEnabledAtDate}
+                  onComplete={() => setClaimEnabled(true)}
+                  label={"Claim tokens in"}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  } else if (club.complete || bonded) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
+        <div className="text-center">
+          <p className="mt-2 text-md text-secondary/70">
+            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
+          </p>
+        </div>
+        {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
+          <div className="flex justify-center space-y-2 mt-8">
+            {!club.tokenAddress && (
+              <Button
+                variant="accent"
+                className="mb-2 md:mb-0 text-base"
+                onClick={releaseLiquidity}
+                disabled={isBuying}
+              >
+                Create Pool
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col w-full h-full md:-mt-4">
+    <div className="flex flex-col w-full md:-mt-4">
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
         {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
@@ -152,7 +275,7 @@ export const BuySellWidget = ({
       <div className="w-full">
         {/* Buy */}
         {openTab === 1 && (
-          <div className="w-full space-y-8 divide-y divide-dark-grey">
+          <div className="w-full divide-y divide-dark-grey">
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
@@ -199,7 +322,7 @@ export const BuySellWidget = ({
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={isBuying || !buyAmount || isLoadingBuyPrice || !buyPriceAfterFees || tokenBalance < (buyPriceAfterFees || 0n)} onClick={buyChips} variant="primary">
+                <Button className="w-full" disabled={!isConnected || isBuying || !buyAmount || isLoadingBuyPrice || !buyPriceAfterFees || tokenBalance < (buyPriceAfterFees || 0n)} onClick={buyChips} variant="primary">
                   Buy
                 </Button>
               </div>
@@ -258,7 +381,7 @@ export const BuySellWidget = ({
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="primary">
+                <Button className="w-full" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="primary">
                   Sell
                 </Button>
               </div>

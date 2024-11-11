@@ -30,7 +30,7 @@ const Hooks = () => {
               <section className="mt-4 max-w-screen-lg">
                 {/* Top */}
                 <h3 className="text-xl leading-6">
-                  Every Moonshot has a hook associated with it. If the Moonshot crosses the liquidity threshold and is
+                  Every Token has a hook associated with it. If the Token crosses the liquidity threshold and is
                   launched as a pool on Uniswap then the pool will be created with the selected hook. If no hook is
                   selected then the Default Hook will be used.
                 </h3>

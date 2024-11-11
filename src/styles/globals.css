@@ -301,7 +301,7 @@ input[type="number"] {
   background-clip: text;
 }
 
-.gradient-bg {
+.bg-gradient {
   --bg-size: 400%;
   --color-one: hsl(15 90% 55%);
   --color-two: hsl(40 95% 55%);
@@ -318,4 +318,37 @@ header .bonsaiLogo {
 
   font-size: 0px;
   text-indent: -50000em;
+}
+
+.dashed-list {
+  list-style: none;
+  /* Remove default list markers */
+  padding-left: 0;
+  /* Adjust padding as needed */
+}
+
+.dashed-list li::before {
+  content: "- ";
+  /* Add dash before each list item */
+  padding-right: 0.5rem;
+  /* Adjust space between dash and list item text */
+}
+
+:root {
+  --club-red-dark: hsl(357deg 99% 56% / 0.35);
+  --club-red-light: hsl(357deg 99% 75%);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 12px var(--club-red-dark);
+  }
+
+  50% {
+    box-shadow: 0 0 12px var(--club-red-light);
+  }
+
+  100% {
+    box-shadow: 0 0 12px var(--club-red-dark);
+  }
 }

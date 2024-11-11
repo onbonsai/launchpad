@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
-
+import { getAddress, createPublicClient, http } from "viem";
+import { mainnet } from 'viem/chains'
+import { groupBy } from "lodash/collection";
 import {
   getRegisteredClub,
   getRegisteredClubById,
@@ -14,7 +16,9 @@ import {
   getTrades,
   getHoldings,
   getClubHoldings,
+  getLiquidity,
 } from "@src/services/madfi/moneyClubs";
+import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
 export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
@@ -48,23 +52,63 @@ export const useGetClubVolume = (clubId?: string) => {
     queryKey: ["club-volume", clubId],
     queryFn: () => getVolume(clubId!),
     enabled: !!clubId,
-    staleTime: 60000, // fetch every minute
+    refetchInterval: 15000, // fetch every 15seconds
   });
 };
 
+export const useGetClubLiquidity = (clubId?: string) => {
+  return useQuery({
+    queryKey: ["club-liquidity", clubId],
+    queryFn: () => getLiquidity(clubId!),
+    enabled: !!clubId,
+    refetchInterval: 15000, // fetch every 15seconds
+  });
+};
+
+// enriched with lens profile or ens
 export const useGetClubTrades = (clubId: string, page: number) => {
   return useQuery({
     queryKey: ["club-trades", clubId, page],
-    queryFn: () => getTrades(clubId!, page),
+    queryFn: async () => {
+      const res = await getTrades(clubId!, page);
+      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
+      const profiles = await getHandlesByAddresses(res.trades?.map(({ trader }) => trader.id));
+      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+
+      const trades = await Promise.all(res.trades?.map(async (trade) => {
+        const address = getAddress(trade.trader.id);
+        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        let ens;
+        if (!profile) ens = await publicClient.getEnsName({ address });
+        return { ...trade, profile, ens };
+      }));
+
+      return { trades, hasMore: res.hasMore };
+    },
     enabled: !!clubId,
-    staleTime: 60000, // fetch every minute
+    refetchInterval: 60000, // fetch every minute
   });
 };
 
 export const useGetClubHoldings = (clubId: string, page: number) => {
   return useQuery({
     queryKey: ["club-holdings", clubId, page],
-    queryFn: () => getClubHoldings(clubId!, page),
+    queryFn: async () => {
+      const res = await getClubHoldings(clubId!, page);
+      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
+      const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
+      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+
+      const holdings = await Promise.all(res.holdings?.map(async (trade) => {
+        const address = getAddress(trade.trader.id);
+        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        let ens;
+        if (!profile) ens = await publicClient.getEnsName({ address });
+        return { ...trade, profile, ens };
+      }));
+
+      return { holdings, hasMore: res.hasMore };
+    },
     enabled: !!clubId
   });
 };
@@ -74,7 +118,7 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
     queryKey: ["holdings", account, page],
     queryFn: () => getHoldings(account!, page!),
     enabled: !!account,
-    staleTime: 60000, // fetch every minute
+    refetchInterval: 60000, // fetch every minute
   });
 };
 
@@ -91,14 +135,15 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
     queryKey: ["buy-price", clubId, amount],
     queryFn: () => getBuyPrice(account!, clubId!, amount!),
     enabled: !!clubId && !!amount && !!account,
+    refetchInterval: 15000, // refetch every 15 seconds
   });
 };
 
-export const useGetRegistrationFee = (curve: number, amount: number, clubId?: string, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (curve: number, amount: number, account?: `0x${string}`) => {
   return useQuery({
     queryKey: ["registration-fee", amount, curve, account],
     queryFn: () => getRegistrationFee(amount!, curve, account!),
-    enabled: !clubId && !!account,
+    enabled: !!account,
   });
 };
 

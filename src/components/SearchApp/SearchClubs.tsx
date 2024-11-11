@@ -57,14 +57,14 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
     <>
       <div className="md:w-[400px] w-full">
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
-          Search moonshots
+          Search tokens
         </label>
         <div className="relative flex items-center">
           <input
             type="text"
             name="finder"
             id="finder"
-            placeholder="Search moonshots"
+            placeholder="Search tokens"
             value={query}
             onInput={() => openModal()}
             className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
@@ -108,7 +108,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
                         <Combobox.Input
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
                           displayValue={(profile) => profile?.name ?? ""}
-                          placeholder="Search for clubs by @handle, name, or interests"
+                          placeholder="Search tokens by name, symbol or @creator"
                           onChange={handleSelected}
                         />
                       </div>

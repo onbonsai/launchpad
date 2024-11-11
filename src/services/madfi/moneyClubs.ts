@@ -16,7 +16,7 @@ import { getEventFromReceipt } from "@src/utils/viem";
 import { toHexString } from "../lens/utils";
 import { lensClient } from "../lens/client";
 
-const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
+export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
 const REGISTERED_CLUB = gql`
   query Club($id: Bytes!, $startOfDayUTC: Int!) {
@@ -30,6 +30,11 @@ const REGISTERED_CLUB = gql`
       feesEarned
       currentPrice
       marketCap
+      complete
+      completedAt
+      tokenInfo
+      tokenAddress
+      creatorFees
       prevTrade: trades(where:{createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
@@ -89,6 +94,7 @@ const REGISTERED_CLUBS = gql`
       feesEarned
       currentPrice
       marketCap
+      complete
     }
   }
 `;
@@ -116,7 +122,7 @@ const HOLDINGS_PAGINATED = gql`
 
 const CLUB_HOLDINGS_PAGINATED = gql`
   query ClubChips($club: Bytes!, $skip: Int!) {
-    clubChips(where:{ club: $club }, orderBy: amount, orderDirection: desc, first: 50, skip: $skip) {
+    clubChips(where:{ club: $club }, orderBy: amount, orderDirection: desc, first: 100, skip: $skip) {
       id
       trader {
         id
@@ -206,6 +212,18 @@ export const getVolume = async (clubId: string): Promise<bigint> => {
   return volume;
 };
 
+export const getLiquidity = async (clubId: string) => {
+  const client = publicClient();
+  const [_,__,___,____,liquidity] = await client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "registeredClubs",
+    args: [clubId],
+  }) as any[];
+
+  return liquidity;
+};
+
 export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
   const client = subgraphClient();
@@ -234,7 +252,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
-  const limit = 50;
+  const limit = 100;
   const skip = page * limit;
   const client = subgraphClient();
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
@@ -265,7 +283,6 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
 };
 
 // TODO: paginate
-// TODO: filter for `complete`
 export const getRegisteredClubs = async () => {
   const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS });
 
@@ -431,11 +448,12 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
     functionName: "registerClub",
     args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType],
     chain: IS_PRODUCTION ? base : baseSepolia,
+    gas: 2_100_000
   });
   console.log(`tx: ${hash}`);
 
   const identityToken = await getAccessToken();
-  const response = await fetch('/api/clubs/register-link-social', {
+  const response = await fetch('/api/clubs/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -513,8 +531,39 @@ export const approveToken = async (
       functionName: "approve",
       args: [LAUNCHPAD_CONTRACT_ADDRESS, maxUint256],
     });
+    console.log(`hash: ${hash}`)
     await client.waitForTransactionReceipt({ hash });
 
     toast.dismiss(toastId);
   }
+};
+
+export const releaseLiquidity = async (walletClient: any, clubId: string) => {
+  const hash = await walletClient.writeContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "releaseLiquidity",
+    args: [clubId],
+    chain: IS_PRODUCTION ? base : baseSepolia
+  });
+  console.log(`tx: ${hash}`);
+  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+
+  if (receipt.status === "reverted") throw new Error("Reverted");
+
+  const event = getEventFromReceipt({
+    contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+    transactionReceipt: receipt,
+    abi: BonsaiLaunchpadAbi,
+    eventName: "LiquidityReleased",
+  });
+
+  console.log({ updateRecord: { clubId, liquidityReleasedTxHash: hash } });
+  await fetch('/api/clubs/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash } })
+  });
+
+  return event.args.token;
 };

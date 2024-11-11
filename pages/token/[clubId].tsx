@@ -2,7 +2,7 @@ import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useReadContract } from "wagmi";
-import { getAddress } from "viem";
+import { formatUnits, getAddress } from "viem";
 import dynamic from "next/dynamic";
 import { VideoCameraIcon } from "@heroicons/react/solid";
 import { usePrivy } from "@privy-io/react-auth";
@@ -17,7 +17,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { getRegisteredClubById } from "@src/services/madfi/moneyClubs";
+import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import {
@@ -26,6 +26,7 @@ import {
   ChartingLibraryWidgetOptions,
   ResolutionString,
 } from '../../../public/static/charting_library/charting_library';
+import { roundedToFixed } from "@src/utils/utils";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -54,9 +55,10 @@ type Club = {
   token: Token;
   pubId: string;
   featured: boolean;
+  creatorFees: string;
 };
 
-interface MoonshotPageProps {
+interface TokenPageProps {
   club: Club;
   profile: any;
   creatorInfo: any;
@@ -69,12 +71,12 @@ const profileAddress = (profile, creatorInfoAddress?: string) =>
   (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
   profile?.address;
 
-const MoonshotPage: NextPage<MoonshotPageProps> = ({
+const TokenPage: NextPage<TokenPageProps> = ({
   club,
   profile,
   creatorInfo,
   type,
-}: MoonshotPageProps) => {
+}: TokenPageProps) => {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -89,19 +91,10 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
   // const [canFollow, setCanFollow] = useState(false);
   // const [isFollowed, setIsFollowed] = useState(false);
 
-  // for admin stuff unrelated to lens (ex: livestreams)
-  const isCreatorAdmin = useMemo(() => {
-    if (!(profile?.ownedBy && address)) return false;
-
-    return getAddress(profileAddress(profile, creatorInfo?.address)) === getAddress(address);
-  }, [profile, address]);
-
-  // for admin stuff directly related to lens (create post, decrypt)
-  const isProfileAdmin = useMemo(() => {
-    if (!authenticatedProfileId) return false;
-
-    return profile?.id === authenticatedProfileId;
-  }, [profile, authenticatedProfileId]);
+  // for admin stuff unrelated to lens (ex: livestreams, claim fees)
+  const isCreatorAdmin = useMemo(() => (
+    address && getAddress(creatorInfo?.address) === getAddress(address)
+  ), [creatorInfo, address]);
 
   // const onFollowClick = async (e: React.MouseEvent) => {
   //   e.preventDefault();
@@ -140,10 +133,10 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
             <div className="flex items-center gap-x-4">
-              <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">
+              <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
                 {`${club.token.name} ($${club.token.symbol})`}
               </h1>
               {club.featured && (
@@ -153,9 +146,17 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
               )}
             </div>
 
+            {isCreatorAdmin && (
+              <div className="flex flex-col md:flex-row md:items-start md:items-center md:justify-end md:w-auto items-end">
+                <span className="text-2xl font-bold font-owners tracking-wide font-bold mt-4 gradient-txt">
+                  {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
+                </span>
+              </div>
+            )}
+
             {/* {isConnected && (
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
-                {isProfileAdmin && (
+                {isCreatorAdmin && (
                   <Button
                     variant="accent"
                     className="w-full mb-2 mr-4 md:mb-0 text-base"
@@ -169,12 +170,12 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
             )} */}
           </div>
 
-          <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
+          <section aria-labelledby="dashboard-heading" className="pt-4 max-w-full">
             <h2 id="dashboard-heading" className="sr-only">
               {profile?.metadata?.displayName}
             </h2>
 
-            <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-6 max-w-full">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
               <div className="lg:col-span-4 p-2">
                 <div className="lg:col-span-3">
                   <Script
@@ -202,6 +203,7 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
                     <TradeComponent club={club} address={address} />
                   </div>
                 </div>
+                {/* TODO: creator admin panel to claim fees, create agent with handle if club.completed */}
               </div>
 
               <div className="lg:col-span-2">
@@ -253,7 +255,7 @@ const MoonshotPage: NextPage<MoonshotPageProps> = ({
   );
 };
 
-export default MoonshotPage;
+export default TokenPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const {
@@ -277,7 +279,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })()
   ]);
 
-  clubSocial.featured = !!clubSocial?.featureStartAt && (parseInt(clubSocial.featureStartAt) - parseInt(_club.createdAt)) < 48 * 60 * 60;
+  clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(clubSocial.featureStartAt) + 48 * 60 * 60);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
   return { props: {

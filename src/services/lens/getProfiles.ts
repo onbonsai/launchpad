@@ -3,6 +3,7 @@ import { LimitType } from "@lens-protocol/client";
 
 import { apolloClient, apolloClientReadOnly } from "./apolloClient";
 import { lensClient } from "./client";
+import { getAccessToken } from "@src/hooks/useLensLogin";
 
 const GET_PROFILES_BY_HANDLES = `
 query($handles: [Handle!]) {
@@ -200,7 +201,6 @@ query($request: ProfilesRequest!) {
   profiles(request: $request) {
     items {
       id
-      interests
       ownedBy {
         address
       }
@@ -241,6 +241,45 @@ query($request: ProfilesRequest!) {
         comments
         posts
         mirrors
+      }
+    }
+  }
+}
+`;
+
+const GET_PROFILE_HANDLES = `
+query($request: ProfilesRequest!) {
+  profiles(request: $request) {
+    items {
+      id
+      ownedBy {
+        address
+      }
+      operations {
+        isFollowedByMe { value }
+      }
+      metadata {
+        displayName
+        picture {
+          ... on NftImage {
+            image {
+              optimized {
+                uri
+              }
+            }
+          }
+          ... on ImageSet {
+            optimized {
+              uri
+            }
+          }
+        }
+      }
+      handle {
+        id
+        fullHandle
+        namespace
+        localName
       }
     }
   }
@@ -407,6 +446,38 @@ export const getHandleAndFollowersByAddresses = async (ownedBy: string[], limit 
         apolloClient.query({
           query: gql(GET_PROFILE_AND_FOLLOWERS),
           variables: { request: { where: { ownedBy: _ownedBy }, limit } },
+        }),
+      );
+    }
+
+    const results = await Promise.all(promises);
+    const items = results.map((result) => result.data.profiles.items);
+
+    return items.flat();
+  } catch (error) {
+    console.log(error);
+    return []
+  }
+};
+
+export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType.Fifty) => {
+  try {
+    const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
+    const promises: any[] = [];
+    const accessToken = await getAccessToken();
+
+    for (let i = 0; i < ownedBy.length; i += _limit) {
+      const _ownedBy = ownedBy.slice(i, i + _limit);
+      promises.push(
+        apolloClient.query({
+          query: gql(GET_PROFILE_HANDLES),
+          variables: { request: { where: { ownedBy: _ownedBy }, limit } },
+          context: {
+            headers: {
+              'x-access-token': accessToken,
+              authorization: `Bearer: ${accessToken}`
+            }
+          }
         }),
       );
     }

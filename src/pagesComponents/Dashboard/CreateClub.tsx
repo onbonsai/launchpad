@@ -1,45 +1,45 @@
 import { useState } from "react";
-import { useReadContract } from "wagmi";
-import { erc20Abi } from 'viem'
+import { useReadContract, useAccount } from "wagmi";
+import { erc20Abi, erc721Abi } from 'viem'
 
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
-import { useRegisteredClub, useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
-import { USDC_CONTRACT_ADDRESS, USDC_DECIMALS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { USDC_CONTRACT_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
 import { RegisterClubModal } from "./RegisterClubModal";
 
-export const CreateClub = ({
-  address,
-  profile,
-  isCreatorAdmin,
-  refetchAllClubs,
-  bonsaiNftZkSync
-}) => {
-  const { refetch: refetchRegisteredClubs } = useGetRegisterdClubs();
-  const { data: moneyClub, refetch: refetchRegisteredClub } = useRegisteredClub(profile?.handle?.localName || profile?.profileHandle);
+export const CreateClub = () => {
+  const { address } = useAccount();
+  const { data: profile } = useAuthenticatedLensProfile();
   const { data: tokenBalance } = useReadContract({
     address: USDC_CONTRACT_ADDRESS,
     abi: erc20Abi,
     chainId: CONTRACT_CHAIN_ID,
     functionName: 'balanceOf',
-    args: [address]
+    args: [address as `0x${string}`]
+  });
+  const { data: bonsaiNftZkSync } = useReadContract({
+    address: BONSAI_NFT_BASE_ADDRESS,
+    abi: erc721Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address!],
+    query: { enabled: !!address }
   });
 
   const [registerClubModal, setRegisterClubModal] = useState(false);
 
   return (
     <>
-      {isCreatorAdmin && !moneyClub?.createdAt && (
-        <Button
-          variant="accent"
-          className="mb-2 md:mb-0 text-base"
-          disabled={!isCreatorAdmin}
-          onClick={() => setRegisterClubModal(true)}
-        >
-          Create a Moonshot
-        </Button>
-      )}
+      <Button
+        variant="accent"
+        className="text-base md:px-8"
+        disabled={!profile?.id}
+        onClick={() => setRegisterClubModal(true)}
+      >
+        Create a Token
+      </Button>
 
       {/* Register Club Modal */}
       <Modal
@@ -50,10 +50,9 @@ export const CreateClub = ({
       >
         <RegisterClubModal
           profile={profile}
-          moneyClub={moneyClub}
           tokenBalance={tokenBalance}
           closeModal={() => setRegisterClubModal(false)}
-          refetchRegisteredClub={() => { refetchRegisteredClub(); if (refetchAllClubs) refetchRegisteredClubs(); }}
+          refetchRegisteredClub={() => {}}
           refetchClubBalance={() => {}}
           bonsaiNftZkSync={bonsaiNftZkSync}
         />

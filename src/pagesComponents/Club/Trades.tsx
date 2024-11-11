@@ -12,7 +12,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 const Row = ({ row }) => (
   <tr className={`text-white h-14 ${row.isBuy ? 'bg-green-800' : 'bg-red-700'} bg-opacity-40`}>
-    <td className="px-2 text-xs">
+    <td className="px-2 text-xs text-left">
       {formatRelativeDate(new Date(parseInt(row?.createdAt as string) * 1000))}
     </td>
     <td className="px-2">
@@ -28,9 +28,15 @@ const Row = ({ row }) => (
             />
           )}
         </div>
-        <span className="col-span-4 text-left">{
-          row.profile ? row.profile?.metadata?.displayName || `@${row.profile?.handle.localName}` : shortAddress(row.trader?.id, 6).split("... ")[0]
-        }...</span>
+        <span className="col-span-4 text-left overflow-ellipsis overflow-hidden whitespace-nowrap">
+          {row.profile?.handle.localName ? (
+            <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
+              <span className="link-hover">@{row.profile.handle.localName}</span>
+            </Link>
+          ) : (
+            row.ens || shortAddress(row.trader?.id, 6).split("... ")[0]
+          )}
+        </span>
       </div>
     </td>
     <td className="px-2">{row.isBuy ? "+" : "-"}{" "}{roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)}</td>

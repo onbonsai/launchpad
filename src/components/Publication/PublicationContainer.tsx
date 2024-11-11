@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
-import { useWalletClient, useAccount } from "wagmi";
+import { useWalletClient, useAccount, useSwitchChain } from "wagmi";
 import { PostFragment, PublicationReactionType } from "@lens-protocol/client"
 import { Publication, Theme } from "@madfi/widgets-react";
 
@@ -15,6 +15,9 @@ import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/crea
 import { ChainRpcs } from "@src/constants/chains";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import publicationBody from "@src/services/lens/publicationBody";
+import { followProfile } from "@src/services/lens/follow";
+import useIsFollowed from "@src/hooks/useIsFollowed";
+import { polygon } from "viem/chains";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -29,6 +32,8 @@ type PublicationContainerProps = {
   onActButtonClick?: (e) => void;
   renderActButtonWithCTA?: string;
   returnToPage?: string;
+  hideQuoteButton?: boolean;
+  hideFollowButton?: boolean;
 };
 
 export type PostFragmentPotentiallyDecrypted = PostFragment & {
@@ -53,14 +58,21 @@ const PublicationContainer = ({
   onActButtonClick,
   renderActButtonWithCTA,
   returnToPage,
+  hideQuoteButton = false,
+  hideFollowButton,
 }: PublicationContainerProps) => {
   const router = useRouter();
-  const { isConnected, address } = useAccount();
+  const { isConnected, chain } = useAccount();
+  const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const {
     isAuthenticated,
     authenticatedProfile,
+    authenticatedProfileId,
   } = useLensSignIn(walletClient);
+  const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, publication?.by?.id);
+  const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
+  const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
   const [hasMirrored, setHasMirrored] = useState<boolean>(publication?.operations?.hasMirrored || false);
 
@@ -75,7 +87,7 @@ const PublicationContainer = ({
 
     navigator.clipboard.writeText(`${MADFI_POST_URL}/${_publicationId}`);
 
-    toast("Link copied to clipboard", { position: "bottom-center", icon: "🔗", duration: 2000 });
+    toast("Link copied", { position: "bottom-center", icon: "🔗", duration: 2000 });
   };
 
   const goToPublicationPage = (e: React.MouseEvent) => {
@@ -209,6 +221,32 @@ const PublicationContainer = ({
     return storjGatewayURL(postIpfsHash);
   }
 
+  // TODO: only for lens profiles
+  const onFollowClick = async (e: React.MouseEvent, _) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) return;
+
+    if (chain!.id !== polygon.id && switchChain) {
+      try {
+        await switchChain({ chainId: polygon.id });
+      } catch {
+        toast.error("Please switch networks");
+      }
+      return;
+    }
+
+    const toastId = toast.loading("Following...");
+    try {
+      await followProfile(walletClient, publication?.by?.id!);
+      setIsFollowed(true);
+      toast.success("Followed", { id: toastId });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed", { id: toastId });
+    }
+  };
+
   return (
     <div className="mt-4 relative">
       <Publication
@@ -237,6 +275,12 @@ const PublicationContainer = ({
         handlePinMetadata={handlePinMetadata}
         onActButtonClick={onActButtonClick}
         renderActButtonWithCTA={renderActButtonWithCTA}
+        hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
+        onFollowPress={onFollowClick}
+        followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
+        followButtonDisabled={!isConnected}
+        isFollowed={_isFollowed || isFollowed}
+        hideQuoteButton={hideQuoteButton}
       />
       {publication?.metadata.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
@@ -252,7 +296,8 @@ const PublicationContainer = ({
               //   decryptGatedPosts(); // we're either decrypting this in single publication view or the feed
               // }
             }}
-            disabled={decrypting || !isConnected || !isAuthenticated}
+            // disabled={decrypting || !isConnected || !isAuthenticated}
+            disabled
           >
             {(decrypting && isConnected && isAuthenticated) && <Spinner />}
             {!decrypting && (

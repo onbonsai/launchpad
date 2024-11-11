@@ -9,8 +9,7 @@ import { DECIMALS, calculatePriceDelta } from "@src/services/madfi/moneyClubs";
 import { useGetHoldings } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
-export const Holdings = () => {
-  const { address } = useAccount();
+export const Holdings = ({ address }) => {
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
   const [allHoldings, setAllHoldings] = useState<any[]>([]);

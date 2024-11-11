@@ -14,6 +14,8 @@ interface ImageUploaderProps {
   children?: ReactNode;
 }
 
+const MAX_SIZE = 10000000; // 10mb
+
 export const ImageUploader: FC<ImageUploaderProps> = ({
   files,
   setFiles,
@@ -87,7 +89,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         </div>
       )}
       {files.length != maxFiles && (
-        <Dropzone accept={{ "image/": ["*"] }} onDrop={onDrop} maxFiles={maxFiles} maxSize={8000000} {...rest}>
+        <Dropzone accept={{ "image/": ["*"] }} onDrop={onDrop} maxFiles={maxFiles} maxSize={MAX_SIZE} {...rest}>
           {({ getRootProps, getInputProps }) => (
             <div
               {...getRootProps()}
@@ -102,7 +104,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
                 <PhotographIcon width={50} height={50} />
                 <p className="font-bold text-xl">
                   {/* Add {orderedPreview ? "" : "up to"} {maxFiles - files.length} {files.length === 0 ? "" : "more"}{" "} */}
-                  Upload an image
+                  Upload an image (max: 10mb)
                 </p>
               </div>
             </div>

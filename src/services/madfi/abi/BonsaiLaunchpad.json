@@ -8,7 +8,7 @@
         "internalType": "address"
       },
       {
-        "name": "_baseToken",
+        "name": "_quoteToken",
         "type": "address",
         "internalType": "address"
       },
@@ -18,7 +18,22 @@
         "internalType": "address"
       },
       {
+        "name": "_posm",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
         "name": "_defaultHook",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_bonsaiNFT",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_agentCreator",
         "type": "address",
         "internalType": "address"
       }
@@ -27,26 +42,13 @@
   },
   {
     "type": "function",
-    "name": "BASE_TOKEN",
+    "name": "BONSAI_NFT",
     "inputs": [],
     "outputs": [
       {
         "name": "",
         "type": "address",
-        "internalType": "contract IERC20"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "BASE_TOKEN_DECIMALS",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "uint8"
+        "internalType": "contract IERC721"
       }
     ],
     "stateMutability": "view"
@@ -60,6 +62,32 @@
         "name": "",
         "type": "uint8",
         "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "QUOTE_TOKEN",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "agentCreator",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -192,11 +220,6 @@
         "name": "token1",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "fee",
-        "type": "uint24",
-        "internalType": "uint24"
       }
     ],
     "outputs": [],
@@ -395,19 +418,6 @@
   },
   {
     "type": "function",
-    "name": "poolManager",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPoolManager"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "protocolFeeBps",
     "inputs": [],
     "outputs": [
@@ -495,8 +505,8 @@
       },
       {
         "name": "complete",
-        "type": "bool",
-        "internalType": "bool"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -578,6 +588,19 @@
   },
   {
     "type": "function",
+    "name": "setAgentCreator",
+    "inputs": [
+      {
+        "name": "_agentCreator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setClubCurve",
     "inputs": [
       {
@@ -625,6 +648,16 @@
         "name": "_minLiquidityThreshold",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "_startingPrice1",
+        "type": "uint160",
+        "internalType": "uint160"
+      },
+      {
+        "name": "_startingPrice2",
+        "type": "uint160",
+        "internalType": "uint160"
       }
     ],
     "outputs": [],
@@ -702,18 +735,81 @@
   },
   {
     "type": "event",
-    "name": "LiquidityReleased",
+    "name": "Complete",
     "inputs": [
       {
         "name": "clubId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeesSet",
+    "inputs": [
+      {
+        "name": "protocolFee",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "creatorFee",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "clientFee",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LiqThresholdSet",
+    "inputs": [
+      {
+        "name": "liquidityThreshold",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
       },
       {
+        "name": "startingPrice1",
+        "type": "uint160",
+        "indexed": false,
+        "internalType": "uint160"
+      },
+      {
+        "name": "startingPrice2",
+        "type": "uint160",
+        "indexed": false,
+        "internalType": "uint160"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LiquidityReleased",
+    "inputs": [
+      {
+        "name": "clubId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
         "name": "token",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
       },
       {
@@ -721,6 +817,12 @@
         "type": "address",
         "indexed": false,
         "internalType": "address"
+      },
+      {
+        "name": "agentCreatorAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -751,13 +853,13 @@
       {
         "name": "clubId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       },
       {
         "name": "creator",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
       },
       {
@@ -833,6 +935,12 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "complete",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -858,43 +966,9 @@
         "type": "address",
         "indexed": false,
         "internalType": "address"
-      },
-      {
-        "name": "amount0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "amount1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
       }
     ],
     "anonymous": false
-  },
-  {
-    "type": "error",
-    "name": "AddressEmptyCode",
-    "inputs": [
-      {
-        "name": "target",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "AddressInsufficientBalance",
-    "inputs": [
-      {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
   },
   {
     "type": "error",
@@ -903,7 +977,7 @@
   },
   {
     "type": "error",
-    "name": "FailedInnerCall",
+    "name": "InitialTooLarge",
     "inputs": []
   },
   {

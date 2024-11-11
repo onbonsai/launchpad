@@ -1,5 +1,5 @@
 {
-  "name": "moonshot",
+  "name": "launchpad",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -21,7 +21,7 @@
     "@lens-protocol/gated-content": "^0.5.1",
     "@lens-protocol/metadata": "1.2.0",
     "@madfi/lens-oa-client": "^0.3.0",
-    "@madfi/widgets-react": "^2.4.0",
+    "@madfi/widgets-react": "^2.5.2",
     "@mui/icons-material": "^5.8.0",
     "@mui/material": "^5.13.5",
     "@mui/styles": "^5.14.0",

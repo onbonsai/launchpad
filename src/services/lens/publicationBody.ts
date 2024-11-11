@@ -10,7 +10,7 @@ import {
   PublicationMetadataSchema,
 } from '@lens-protocol/metadata';
 
-const APP_ID = "Moonshot";
+const APP_ID = "Token";
 
 interface LivestreamConfig { playbackUrl: string, title: string, startsAt ?: string, endsAt ?: string }
 

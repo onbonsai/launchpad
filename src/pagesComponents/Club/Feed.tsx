@@ -5,7 +5,7 @@ import {
   formatProfilePicture,
   ActionButton,
 } from "@madfi/widgets-react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
@@ -31,12 +31,15 @@ import PublicationContainer, {
   PostFragmentPotentiallyDecrypted,
 } from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
-import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
+// import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
+import { followProfile } from "@src/services/lens/follow";
+import { polygon } from "viem/chains";
 
 export const Feed = ({ pubId }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
+  const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
@@ -88,6 +91,13 @@ export const Feed = ({ pubId }) => {
       return formatProfilePicture(authenticatedProfile).metadata.picture.url;
     }
   }, [authenticatedProfile]);
+
+  const goToProfile = (e: React.MouseEvent, handleLocalName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
+    router.push(`/profile/${handleLocalName}`);
+  };
 
   const sortedComments = useMemo(() => {
     return (freshComments || comments || []).slice().sort((a, b) => {
@@ -237,6 +247,34 @@ export const Feed = ({ pubId }) => {
     toast.success("Liked", { duration: 2000 });
   };
 
+  // TODO: only for lens profiles
+  const onFollowClick = async (e: React.MouseEvent, profileId: string) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) return;
+
+    if (chain!.id !== polygon.id && switchChain) {
+      try {
+        await switchChain({ chainId: polygon.id });
+      } catch {
+        toast.error("Please switch networks");
+      }
+      return;
+    }
+
+    const toastId = toast.loading("Following...");
+    try {
+      await followProfile(walletClient, profileId);
+
+      // TODO: update state for the comment
+
+      toast.success("Followed", { id: toastId });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed", { id: toastId });
+    }
+  };
+
   if (!isMounted) return null;
 
   if (isLoadingPage)
@@ -266,6 +304,8 @@ export const Feed = ({ pubId }) => {
             shouldGoToPublicationPage={false}
             isProfileAdmin={isProfileAdmin}
             setSubscriptionOpenModal={() => { }}
+            hideQuoteButton
+            hideFollowButton={false}
           />
         ) : null}
       </div>
@@ -278,9 +318,13 @@ export const Feed = ({ pubId }) => {
           hideCommentButton={true}
           hideQuoteButton={true}
           hideShareButton={true}
+          hideFollowButton={false}
           hasUpvotedComment={hasUpvotedComment}
           onLikeButtonClick={onLikeButtonClick}
           getOperationsFor={getOperationsFor}
+          followButtonDisabled={!isConnected}
+          onFollowPress={onFollowClick}
+          onProfileClick={goToProfile}
         />
       </div>
       {isConnected && isAuthenticated && (
