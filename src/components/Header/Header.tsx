@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { HomeIcon, SearchCircleIcon } from "@heroicons/react/outline";
+// import { HomeIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useWalletClient } from "wagmi";
-
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
 import { ConnectButton } from "@components/ConnectButton";
@@ -11,28 +10,30 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
+import { TradeBanner } from "./TradeBanner";
+import { NewTokenBanner } from "./NewTokenBanner";
 
 const headerLinks = [
-  {
-    href: routesApp.hooks,
-    label: "Uniswap Hooks"
-  },
+  // {
+  //   href: routesApp.hooks,
+  //   label: "Uniswap Hooks"
+  // },
   {
     href: routesApp.help,
-    label: "Help"
+    label: "How?"
   },
 ];
 
-const mobileNavLinks = [
-  {
-    href: routesApp.home,
-    icon: <HomeIcon width={50} height={25} />,
-  },
-  // {
-  //   href: routesApp.clubs,
-  //   icon: <SearchCircleIcon width={50} height={25} />,
-  // },
-];
+// const mobileNavLinks = [
+//   {
+//     href: routesApp.home,
+//     icon: <HomeIcon width={50} height={25} />,
+//   },
+//   // {
+//   //   href: routesApp.clubs,
+//   //   icon: <SearchCircleIcon width={50} height={25} />,
+//   // },
+// ];
 
 export const Header = () => {
   const { route } = useRouter();
@@ -43,14 +44,12 @@ export const Header = () => {
   if (!isMounted) return null;
 
   return (
-    <header className="bg-black border-b border-dark-grey shadow-sm">
+    <header className="sticky top-0 z-20 bg-black border-b border-dark-grey shadow-sm">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         <div className="flex w-full items-center justify-between border-b border-dark-grey border-opacity-80 py-4 lg:border-none">
           <div className="flex items-center">
             <div className="pl-2 md:pl-6 w-max">
-              <a className="bonsaiLogo" href={routesApp.home}>
-
-              </a>
+              <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
             <div className="ml-10 hidden space-x-8 lg:block">
               {headerLinks.map((link) => (
@@ -68,6 +67,10 @@ export const Header = () => {
                   {link.label}
                 </Link>
               ))}
+            </div>
+            <div className="flex ml-8 space-x-8">
+              <TradeBanner />
+              <NewTokenBanner />
             </div>
             {/* MOBILE NAVIGATION */}
             {/* <div className="relative z-10 lg:hidden">

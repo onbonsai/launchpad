@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
-import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256 } from "viem";
+import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
@@ -47,6 +47,15 @@ const REGISTERED_CLUB = gql`
         amount
         createdAt
       }
+    }
+  }
+`;
+
+const REGISTERED_CLUB_INFO = gql`
+  query ClubInfo($ids: [Bytes!]!) {
+    clubs(where: { id_in: $ids }) {
+      tokenInfo
+      clubId
     }
   }
 `;
@@ -183,6 +192,17 @@ export const getRegisteredClubById = async (clubId: string) => {
     ...club,
     prevTrade,
   };
+};
+
+export const getRegisteredClubInfo = async (ids: string[]) => {
+  const client = subgraphClient();
+  const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
+  return clubs?.map((club) => {
+    const [name, symbol, image] = decodeAbiParameters([
+      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+    ], club.tokenInfo);
+    return { name, symbol, image, clubId: club.clubId };
+  });
 };
 
 export const getVolume = async (clubId: string): Promise<bigint> => {

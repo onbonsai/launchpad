@@ -86,7 +86,7 @@ export const Trades = ({ clubId }) => {
             <th className="px-2">User</th>
             <th className="px-2">Amount</th>
             <th className="px-2">Price</th>
-            <th className="px-2"></th>
+            <th className="px-2">Txn</th>
           </tr>
         </thead>
         <tbody>

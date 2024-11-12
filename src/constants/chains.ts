@@ -4,6 +4,8 @@ import {
   base,
   baseSepolia,
   baseGoerli,
+  zkSync,
+  zkSyncSepoliaTestnet,
 } from "viem/chains";
 
 export enum Chains {
@@ -20,9 +22,10 @@ export const ChainsById = {
 
 export const ChainRpcs = {
   [polygon.id]: process.env.NEXT_PUBLIC_POLYGON_RPC!,
-  [base.id]: "https://mainnet.base.org",
-  [baseGoerli.id]: "https://goerli.base.org",
-  [baseSepolia.id]: "https://sepolia.base.org",
+  [base.id]: process.env.NEXT_PUBLIC_BASE_RPC!,
+  [baseSepolia.id]: process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC!,
+  [zkSync.id]: process.env.NEXT_PUBLIC_ZKSYNC_RPC!,
+  [zkSyncSepoliaTestnet.id]: process.env.NEXT_PUBLIC_ZKSYNC_SEPOLIA_RPC!,
   [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC!,
 };
 

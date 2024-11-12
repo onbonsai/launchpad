@@ -1,7 +1,19 @@
-import Image from "next/image";
 import { useRouter } from "next/router";
 import Twitter from "@mui/icons-material/Twitter";
 import Link from "next/link";
+import { cx } from "@src/utils/classnames";
+import { routesApp } from "@src/constants/routesApp";
+
+const links = [
+  {
+    href: routesApp.hooks,
+    label: "Uniswap v4 Hooks"
+  },
+  {
+    href: routesApp.help,
+    label: "FAQ"
+  },
+];
 
 export const Footer = () => {
   const { route } = useRouter();
@@ -13,7 +25,23 @@ export const Footer = () => {
       <div className="px-8 md:px-16 py-12 pb-24">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                passHref
+                className={cx(
+                  "link link-hover",
+                  route.includes(link.href)
+                    ? "font-medium"
+                    : `font-medium opacity-70 hover:opacity-100`,
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
+          {/* TODO: terms and conditions, privacy policy, support */}
           <div className="flex items-center justify-evenly w-full md:w-fit md:gap-8">
             <a target="_blank" rel="noreferrer" href="https://twitter.com/bonsaitoken404">
               <div className="w-14 h-14 flex items-center justify-center">

@@ -87,7 +87,7 @@ const IndexPage: NextPage = () => {
                 </div>
 
                 {/* Profile */}
-                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
+                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <div className="mt-8"><CreatorCopy /></div>}
                 {isConnected && authenticatedProfile && (
                   <div className="mt-8">
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between">
@@ -125,9 +125,9 @@ const IndexPage: NextPage = () => {
                         <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
                         <Tooltip message="100k tokens = 1 NFT" direction="top">
                           <p className="text-2xl font-owners tracking-wide">
-                            {bonsaiBalanceZkSync ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
+                            {bonsaiBalanceZkSync !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
                             {" | "}
-                            {bonsaiNftZkSync ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
+                            {bonsaiNftZkSync !== undefined ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
                           </p>
                         </Tooltip>
                       </div>

@@ -352,3 +352,70 @@ header .bonsaiLogo {
     box-shadow: 0 0 12px var(--club-red-dark);
   }
 }
+
+/* TradeBanner */
+@keyframes banner-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    /* Increased scale for more drama */
+    opacity: 0.5;
+    /* Lower opacity for more contrast */
+  }
+}
+
+@keyframes banner-shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.trade-banner {
+  animation: banner-pulse 0.5s ease-in-out 1, banner-shake 0.5s ease-in-out 1;
+  /* Added shake animation with 2 iterations for effect */
+}
+
+.pulse-green {
+  color: #fff;
+  /* Adjust text color as needed */
+  background-color: #4caf50;
+  /* Green background */
+}
+
+.pulse-red {
+  color: #fff;
+  /* Adjust text color as needed */
+  background-color: #f44336;
+  /* Red background */
+}
+
+.pulse-gradient {
+  color: #fff;
+  --bg-size: 400%;
+  --color-one: hsl(15 90% 55%);
+  --color-two: hsl(40 95% 55%);
+  background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
+}
