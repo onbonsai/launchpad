@@ -47,7 +47,7 @@ type Club = {
   feesEarned: string;
   currentPrice: string;
   marketCap: string;
-  prevTrade: object; // Replace 'object' with a more specific type if available
+  prevTrade24Hr: object; // Replace 'object' with a more specific type if available
   clubId: number;
   profileId: string;
   strategy: string;

@@ -45,8 +45,8 @@ export const InfoComponent = ({
   }, [buyPriceResult]);
 
   const buyPriceDelta = useMemo(() => {
-    if (buyPriceResult?.buyPrice && !!club.prevTrade) {
-      return calculatePriceDelta(buyPriceResult?.buyPrice, BigInt(club.prevTrade.prevPrice || 0n));
+    if (buyPriceResult?.buyPrice && !!club.prevTrade24Hr) {
+      return calculatePriceDelta(buyPriceResult?.buyPrice, BigInt(club.prevTrade24Hr.prevPrice || 0n));
     }
   }, [buyPriceResult]);
 

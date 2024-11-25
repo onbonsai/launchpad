@@ -19,7 +19,7 @@ import { lensClient } from "../lens/client";
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
 const REGISTERED_CLUB = gql`
-  query Club($id: Bytes!, $startOfDayUTC: Int!) {
+  query Club($id: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
     club(id: $id) {
       id
       creator
@@ -35,16 +35,25 @@ const REGISTERED_CLUB = gql`
       tokenInfo
       tokenAddress
       creatorFees
-      prevTrade: trades(where:{createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: asc, first: 1) {
+      holders
+      prevTrade24Hr: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
         createdAt
       }
-      chips {
-        trader {
-          id
-        }
-        amount
+      prevTrade6Hr: trades(where:{createdAt_gt: $sixHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade1Hr: trades(where:{createdAt_gt: $oneHourAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade5min: trades(where:{createdAt_gt: $fiveMinutesAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
         createdAt
       }
     }
@@ -114,7 +123,7 @@ const HOLDINGS_PAGINATED = gql`
       id
       club {
         clubId
-        prevTrade: trades(where:{createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        prevTrade24Hr: trades(where:{createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: asc, first: 1) {
           price
           createdAt
         }
@@ -181,16 +190,34 @@ export const subgraphClient = () => {
 // server-side
 export const getRegisteredClubById = async (clubId: string) => {
   const id = toHexString(parseInt(clubId));
-  const now = new Date();
-  const startOfDayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0);
+  const now = Date.now();
+  const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
+  const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
+  const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
+  const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
   const client = subgraphClient();
-  const { data: { club } } = await client.query({ query: REGISTERED_CLUB, variables: { id, startOfDayUTC: Math.floor(startOfDayUTC / 1000) } })
+  const { data: { club } } = await client.query({
+    query: REGISTERED_CLUB,
+    variables: {
+      id,
+      twentyFourHoursAgo,
+      sixHoursAgo,
+      oneHourAgo,
+      fiveMinutesAgo
+    }
+  })
 
-  const prevTrade = club?.prevTrade[0] || {};
+  const prevTrade24Hr = club?.prevTrade24Hr ? club?.prevTrade24Hr[0] :  {};
+  const prevTrade6Hr = club?.prevTrade6hr ? club?.prevTrade6hr[0] : {};
+  const prevTrade1Hr = club?.prevTrade1Hr ? club?.prevTrade1Hr[0] : {};
+  const prevTrade5min = club?.prevTrade1Hr ? club?.prevTrade5min[0] : {};
 
   return {
     ...club,
-    prevTrade,
+    prevTrade24Hr,
+    prevTrade6Hr,
+    prevTrade1Hr,
+    prevTrade5min,
   };
 };
 
@@ -285,20 +312,19 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
     profileId = profile?.id;
   }
 
-  const now = new Date();
-  const twentyFourHoursAgoUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 24);
+  const twentyFourHoursAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
   const { data } = await subgraphClient().query({
     query: REGISTERED_CLUB,
-    variables: { id: profileId, startOfDayUTC: Math.floor(twentyFourHoursAgoUTC / 1000) } // TODO: as graph hex
+    variables: { id: profileId, twentyFourHoursAgo }
   });
 
   const trades = data?.club?.trades;
-  const prevTrade = data?.club?.prevTrade[0];
+  const prevTrade24Hr = data?.club?.prevTrade24Hr[0];
 
   return {
     ...data?.club,
     trades,
-    prevTrade,
+    prevTrade24Hr,
   };
 };
 

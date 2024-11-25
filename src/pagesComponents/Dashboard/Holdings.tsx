@@ -30,8 +30,8 @@ export const Holdings = ({ address }) => {
           { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
         ], h.club.tokenInfo);
         let priceDelta;
-        if (h.club.prevTrade?.length) {
-          priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade[0].price);
+        if (h.club.prevTrade24Hr?.length) {
+          priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
         }
         return { ...h, token: { name, symbol, image }, priceDelta };
       })
