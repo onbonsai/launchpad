@@ -462,11 +462,12 @@ type RegistrationParams = {
 };
 export const registerClub = async (walletClient, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
+  const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registerClub",
-    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType],
+    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType, recipient],
     chain: IS_PRODUCTION ? base : baseSepolia,
     gas: 2_100_000
   });
@@ -503,7 +504,7 @@ export const buyChips = async (walletClient: any, clubId: string, buyAmount: str
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amountWithDecimals, zeroAddress, recipient],
+    args: [clubId, amountWithDecimals, zeroAddress, recipient, zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);
