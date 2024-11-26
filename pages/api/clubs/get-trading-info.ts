@@ -1,14 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, decodeAbiParameters } from "viem";
 
 import { getVolume, getLiquidity, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS } from "@src/services/madfi/moneyClubs";
 
 const RANDOM_ADDRESS = "0x1C111355EdE4259Fa9825AEC1f16f95ED737D62E"; // wont be holding bonsai nft
 const PREV_TRADE_KEYS = [
   "prevTrade24Hr",
-  "prevTrade24Hr6Hr",
-  "prevTrade24Hr1Hr",
-  "prevTrade24Hr5min"
+  "prevTrade6Hr",
+  "prevTrade1Hr",
+  "prevTrade5min"
 ];
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -16,7 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { clubId } = req.query;
 
     const [{ buyPrice }, volume, liquidity, club] = await Promise.all([
-      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1000000"),
+      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1"),
       getVolume(clubId as string),
       getLiquidity(clubId as string),
       getRegisteredClubById(clubId as string)
@@ -24,23 +24,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const priceDeltas = {};
     PREV_TRADE_KEYS.forEach((key) => {
-      if (club[key]) {
-        const res = calculatePriceDelta(buyPrice, BigInt(club[key].price));
-        priceDeltas[key] = res.positive ? res.valuePct.toString() : `-${res.valuePct.toString()}`;
+      if (club[key]?.price) {
+        const res = calculatePriceDelta(buyPrice, BigInt(club[key].prevPrice));
+        priceDeltas[key] = `${res.positive ? '+' : '-'}${res.valuePct.toString()}`;
+      } else {
+        priceDeltas[key] = "0";
       }
     });
 
-    const marketCap = (BigInt(formatUnits(club.supply, DECIMALS)) * BigInt(buyPrice.toString())).toString();
+    const marketCap = BigInt(formatUnits(club.supply, DECIMALS)) * BigInt(buyPrice.toString());
     const holders = club.holders;
     const createdAt = club.createdAt;
     const graduated = club.completed;
 
+    const [name, symbol, image] = decodeAbiParameters([
+      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+    ], club.tokenInfo);
+
     return res.status(200).json({
+      name,
+      symbol,
+      image,
       createdAt,
       buyPrice: buyPrice.toString(),
       volume24Hr: volume.toString(),
       liquidity: liquidity.toString(),
-      marketCap,
+      marketCap: marketCap.toString(),
       holders,
       graduated,
       priceDeltas

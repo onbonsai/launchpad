@@ -210,7 +210,7 @@ export const getRegisteredClubById = async (clubId: string) => {
   const prevTrade24Hr = club?.prevTrade24Hr ? club?.prevTrade24Hr[0] :  {};
   const prevTrade6Hr = club?.prevTrade6hr ? club?.prevTrade6hr[0] : {};
   const prevTrade1Hr = club?.prevTrade1Hr ? club?.prevTrade1Hr[0] : {};
-  const prevTrade5min = club?.prevTrade1Hr ? club?.prevTrade5min[0] : {};
+  const prevTrade5min = club?.prevTrade5min ? club?.prevTrade5min[0] : {};
 
   return {
     ...club,
