@@ -350,8 +350,8 @@ export const getRegisteredClubs = async () => {
       const groupedClubs = groupBy(clubs || [], "clubId");
       return data?.clubs.map((_club) => {
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
-        club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
         if (!club) return;
+        club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
         const publication = gPublications[club.pubId][0];
         return { publication, ..._club, ...club };
       }).filter((c) => c);
