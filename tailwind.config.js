@@ -85,6 +85,7 @@ module.exports = {
         primary: "#E42101",
         secondary: "#ECE5D5",
         "dark-grey": "#262626",
+        "button": "rgba(255, 255, 255, 0.12)",
       },
     },
   },

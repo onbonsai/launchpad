@@ -36,9 +36,11 @@ export const useDecryptedGatedPosts = (walletClient, gatedPosts: any[] = []) => 
     const checkAuthSig = async () => {
       // if (chainId !== chainIdNumber) await switchChain({ chainId: chainIdNumber });
       const client = _gatedClient();
-      const res = await client.authentication.isAuthenticated();
-      const res2 = client.isAuthSigCached();
-      setCanDecrypt((res && res2) || false);
+      if (client) {
+        const res = await client.authentication.isAuthenticated();
+        const res2 = client.isAuthSigCached();
+        setCanDecrypt((res && res2) || false);
+      }
     };
 
     // only attempt to auto-decrypt if the connected wallet has a profile

@@ -12,12 +12,25 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
 import { TradeBanner } from "./TradeBanner";
 import { NewTokenBanner } from "./NewTokenBanner";
+import HeaderButton from "./HeaderButton";
 
 const headerLinks = [
   // {
   //   href: routesApp.hooks,
   //   label: "Uniswap Hooks"
   // },
+  {
+    href: routesApp.home,
+    label: "Trending"
+  },
+  {
+    href: routesApp.leaderboard,
+    label: "New"
+  },
+  {
+    href: routesApp.clubs,
+    label: "Graduated"
+  },
   {
     href: routesApp.help,
     label: "How?"
@@ -51,22 +64,15 @@ export const Header = () => {
             <div className="pl-2 md:pl-6 w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
-            <div className="ml-10 hidden space-x-8 lg:block">
-              {headerLinks.map((link) => (
-                <Link
+            <div className="ml-10 hidden space-x-0 lg:flex">
+              {headerLinks.map((link) =>
+                <HeaderButton
                   key={link.href}
                   href={link.href}
-                  passHref
-                  className={cx(
-                    "link link-hover",
-                    route.includes(link.href)
-                      ? "font-bold"
-                      : `font-medium opacity-70 hover:opacity-100 tour__${link.label.toLowerCase()}`,
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
+                  label={link.label}
+                  active={route === link.href}
+                />
+              )}
             </div>
             <div className="flex ml-8 space-x-8">
               <TradeBanner />
