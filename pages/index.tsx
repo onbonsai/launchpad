@@ -18,12 +18,12 @@ import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID }
 import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
+import { useClubs } from "@src/context/ClubsContext";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
   const isMounted = useIsMounted();
-  const [filteredClubs, setFilteredClubs] = useState<any[]>([]);
-  const [filterBy, setFilterBy] = useState<string>("");
+  const { filteredClubs, setFilteredClubs, filterBy, setFilterBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
   const { data: clubs, isLoading: isLoadingClubs } = useGetRegisterdClubs();
@@ -59,14 +59,6 @@ const IndexPage: NextPage = () => {
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
             <div></div>
-
-            <div className="flex-1 flex justify-center">
-              <SearchClubs
-                clubs={clubs}
-                setFilteredClubs={setFilteredClubs}
-                setFilterBy={setFilterBy}
-              />
-            </div>
 
             <div className="md:hidden">
               <CreateClub />

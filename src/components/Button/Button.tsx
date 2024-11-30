@@ -8,9 +8,9 @@ const buttonStyles = cva(
   {
     variants: {
       variant: {
-        primary: "grey-gradient hover-grey-gradient text-black disabled:text-black disabled:hover:text-black",
+        primary: "bg-button text-white disabled:text-black disabled:hover:text-black",
         secondary: "bg-secondary/90 text-black hover:bg-secondary",
-        accent: "bg-primary text-white hover:bg-primary/90",
+        accent: "bg-white text-black hover:bg-white/90",
         info: "bg-white hover:bg-grey-300 text-black border border-solid border-grey-500 hover:border-grey-700 disabled:text-white disabled:hover:text-white",
         "dark-grey": "bg-dark-grey text-white hover:bg-dark-grey/90",
         "accent-disabled": "bg-primary text-white cursor-not-allowed hover:bg-primary",
@@ -24,8 +24,8 @@ const buttonStyles = cva(
       },
       size: {
         sm: "px-4 py-1 min-h-fit h-8 text-sm",
-        md: "px-6 py-2 min-h-fit h-10 text-base",
-        compact: "px-2 py-2 min-h-fit  text-base",
+        md: "px-6 py-2 min-h-fit h-10 text-[16px] leading-5",
+        compact: "px-2 py-2 min-h-fit text-[16px] leading-5",
       },
     },
     defaultVariants: {
@@ -51,7 +51,7 @@ export const Button: FC<ButtonProps> = forwardRef(
     return (
       <button
         type={type}
-        className={buttonStyles({ variant, className, hasIcon, disabled, size })}
+        className={`${buttonStyles({ variant, hasIcon, disabled, size })} ${className}`}
         onClick={onClick}
         disabled={disabled ?? false}
         ref={forwardRef}

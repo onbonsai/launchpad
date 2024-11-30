@@ -18,6 +18,7 @@ import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { configureChainsConfig } from "@utils/wagmi";
+import { ClubsProvider } from "@src/context/ClubsContext";
 
 const queryClient = new QueryClient();
 
@@ -70,38 +71,40 @@ export default function MyApp(props: AppProps) {
         <WagmiProvider config={configureChainsConfig}>
           <HandleSEO pageProps={pageProps} />
           <ThemeProvider>
-            <Head>
-              <meta name="viewport" content="initial-scale=1, width=device-width" />
-            </Head>
-            <HotkeysProvider>
-              <Toaster
-                position="bottom-right"
-                toastOptions={{
-                  style: {
-                    backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                    color: "white",
-                  },
-                }}
-              >
-                {(t) => (
-                  <ToastBar toast={t}>
-                    {({ icon, message }) => (
-                      <>
-                        {icon}
-                        {message}
-                      </>
-                    )}
-                  </ToastBar>
-                )}
-              </Toaster>
-              <NextNProgress color={"#7B0100"} height={2} />
-              <Layout>
-                <BoxThemeProvider theme={boxTheme}>
-                  <Component {...pageProps} />
-                </BoxThemeProvider>
-              </Layout>
-              <Analytics />
-            </HotkeysProvider>
+            <ClubsProvider>
+              <Head>
+                <meta name="viewport" content="initial-scale=1, width=device-width" />
+              </Head>
+              <HotkeysProvider>
+                <Toaster
+                  position="bottom-right"
+                  toastOptions={{
+                    style: {
+                      backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                      color: "white",
+                    },
+                  }}
+                >
+                  {(t) => (
+                    <ToastBar toast={t}>
+                      {({ icon, message }) => (
+                        <>
+                          {icon}
+                          {message}
+                        </>
+                      )}
+                    </ToastBar>
+                  )}
+                </Toaster>
+                <NextNProgress color={"#7B0100"} height={2} />
+                <Layout>
+                  <BoxThemeProvider theme={boxTheme}>
+                    <Component {...pageProps} />
+                  </BoxThemeProvider>
+                </Layout>
+                <Analytics />
+              </HotkeysProvider>
+            </ClubsProvider>
           </ThemeProvider>
         </WagmiProvider>
       </QueryClientProvider>

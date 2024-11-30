@@ -13,6 +13,10 @@ import { CreateClub } from "@src/pagesComponents/Dashboard";
 import { TradeBanner } from "./TradeBanner";
 import { NewTokenBanner } from "./NewTokenBanner";
 import HeaderButton from "./HeaderButton";
+import { SearchClubs } from "../SearchApp/SearchClubs";
+import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
+import { useState } from "react";
+import { useClubs } from "@src/context/ClubsContext";
 
 const headerLinks = [
   // {
@@ -52,6 +56,8 @@ export const Header = () => {
   const { route } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated } = useLensSignIn(walletClient);
+  const { data: clubs, isLoading: isLoadingClubs } = useGetRegisterdClubs();
+  const { setFilteredClubs, setFilterBy } = useClubs();
   const isMounted = useIsMounted();
 
   if (!isMounted) return null;
@@ -64,7 +70,7 @@ export const Header = () => {
             <div className="pl-2 md:pl-6 w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
-            <div className="ml-10 hidden space-x-0 lg:flex">
+            <div className="ml-6 hidden space-x-0 lg:flex">
               {headerLinks.map((link) =>
                 <HeaderButton
                   key={link.href}
@@ -101,11 +107,16 @@ export const Header = () => {
               </section>
             </div> */}
           </div>
-          <div className="hidden lg:block">{/** <SearchApp />  */}</div>
+          <div className="hidden lg:block">
+            <SearchClubs
+              clubs={clubs}
+              setFilteredClubs={setFilteredClubs}
+              setFilterBy={setFilterBy}
+            />
+          </div>
           <div className="flex space-x-2 gap-x-2 md:pr-6">
             <CreateClub />
             <ConnectButton
-              className="md:px-4"
               setOpenSignInModal={setOpenSignInModal}
               autoLensLogin={!isAuthenticated}
             />

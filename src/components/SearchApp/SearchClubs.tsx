@@ -66,6 +66,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
             id="finder"
             placeholder="Search tokens"
             value={query}
+            autoComplete="off"
             onInput={() => openModal()}
             className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
           />

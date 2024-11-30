@@ -309,12 +309,11 @@ input[type="number"] {
 }
 
 header .bonsaiLogo {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: block;
   background: url("/static/images/logo.svg") no-repeat center;
   background-size: 100% auto;
-  margin-left: 8px;
 
   font-size: 0px;
   text-indent: -50000em;

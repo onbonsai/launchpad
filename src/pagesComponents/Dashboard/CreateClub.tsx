@@ -34,11 +34,12 @@ export const CreateClub = () => {
     <>
       <Button
         variant="accent"
-        className="text-base md:px-8"
+        size="md" // This sets the height to 40px and padding appropriately
+        className="text-base font-medium md:px-4 bg-white rounded-xl"
         disabled={!profile?.id}
         onClick={() => setRegisterClubModal(true)}
       >
-        Create a Token
+        Create Token
       </Button>
 
       {/* Register Club Modal */}
@@ -52,8 +53,8 @@ export const CreateClub = () => {
           profile={profile}
           tokenBalance={tokenBalance}
           closeModal={() => setRegisterClubModal(false)}
-          refetchRegisteredClub={() => {}}
-          refetchClubBalance={() => {}}
+          refetchRegisteredClub={() => { }}
+          refetchClubBalance={() => { }}
           bonsaiNftZkSync={bonsaiNftZkSync}
         />
       </Modal>
