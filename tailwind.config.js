@@ -30,7 +30,7 @@ module.exports = {
         "md-plus": "832px",
       },
       fontFamily: {
-        sans: ["Open sans", "sans-serif"],
+        sans: ['var(--font-inter)', "Open sans", "sans-serif"],
         owners: ["owners-narrow", "sans-serif"],
         ownersx: ["owners-xnarrow", "sans-serif"],
         "helvetica-display": ["HelveticaNowDisplay", "sans-serif"],

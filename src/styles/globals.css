@@ -50,6 +50,10 @@
   }
 }
 
+html {
+  font-family: var(--font-inter);
+}
+
 .grid-ram {
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }

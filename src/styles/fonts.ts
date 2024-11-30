@@ -1,4 +1,5 @@
 export const fontSourceCodePro = [
+  '"Inter"',
   '"Source Code Pro"',
   '"Helvetica"',
   'Arial',
