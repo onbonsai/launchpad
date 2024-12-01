@@ -77,7 +77,7 @@ const PublicationContainer = ({
   const [hasMirrored, setHasMirrored] = useState<boolean>(publication?.operations?.hasMirrored || false);
 
   if (!(publicationId || publication)) throw new Error('Need publicationId or publication');
-  if (publication?.metadata.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
+  if (publication?.metadata?.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
 
   const _publicationId = publication?.id || publicationId!;
 
@@ -282,7 +282,7 @@ const PublicationContainer = ({
         isFollowed={_isFollowed || isFollowed}
         hideQuoteButton={hideQuoteButton}
       />
-      {publication?.metadata.encryptedWith && decryptGatedPosts && (
+      {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
           <Button
             variant={isConnected ? "accent" : "accent-disabled"}

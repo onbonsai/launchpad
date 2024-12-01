@@ -2,28 +2,18 @@
 // disabling ts check due to Expression produces a union type that is too complex to represent. when using transitions
 import { useHotkeys } from "react-hotkeys-hook";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
-import { ChangeEvent, Fragment, useMemo, useState } from "react";
+import { ChangeEvent, Fragment, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { useRouter } from "next/router";
 
-export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
+import useClubSearch from "@src/hooks/useClubSearch";
+
+export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery] = useDebounce(query, 500);
-  const filteredActions = []; // TODO: once we filter more complex (see SearchCreators.tsx)
-
-  const filteredClubs = useMemo(() => {
-    if (debouncedQuery === "") return [];
-
-    if (debouncedQuery.startsWith("@")) {
-      return clubs.filter(({ handle }) => handle?.includes(debouncedQuery.substring(1)));
-    }
-
-    const regex = new RegExp(debouncedQuery, "i");
-
-    return clubs
-      .filter(({ club: { handle, token: { name, description } } }) => (regex.test(handle) || regex.test(name) || regex.test(description)));
-  }, [debouncedQuery]);
+  const { push } = useRouter();
+  const { data: clubSearchResults, isLoading }  = useClubSearch(debouncedQuery);
 
   function closeModal() {
     setIsOpen(false);
@@ -34,16 +24,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
   }
 
   function handleSelectItem(item) {
-    setSelected(item);
-
-    if (!item.action) {
-      setFilterBy(`$${item.club.token.symbol}`);
-      setFilteredClubs([item]);
-    }
-
-    setQuery("");
-
-    closeModal();
+    push(`/token/${item.clubId}`);
   }
 
   function handleSelected(event: ChangeEvent<HTMLInputElement>) {
@@ -103,7 +84,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-black min-w-[50%] text-left align-middle shadow-md transition-all">
-                  <Combobox value={selected} onChange={handleSelectItem}>
+                  <Combobox onChange={handleSelectItem}>
                     <div className="relative py-2">
                       <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-transparent text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                         <Combobox.Input
@@ -121,34 +102,15 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
                         afterLeave={() => setQuery("")}
                       >
                         <Combobox.Options className="mt-1 max-h-60 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          {filteredClubs.length === 0 && filteredActions.length === 0 && debouncedQuery !== "" && (
+                          {clubSearchResults?.length === 0 && debouncedQuery !== "" && !isLoading && (
                             <div className="relative cursor-default select-none py-2 px-4 text-secondary">
                               Nothing found.
                             </div>
                           )}
 
-                          {filteredActions.map((action, index) => (
+                          {clubSearchResults?.map((data) => (
                             <Combobox.Option
-                              key={`filtered-${action.key}-${index}`}
-                              className={({ active }) =>
-                                `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
-                                }`
-                              }
-                              value={action}
-                            >
-                              {({ selected }) => (
-                                <>
-                                  <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
-                                    {action.key.toUpperCase()}: {action[action.key]}
-                                  </span>
-                                </>
-                              )}
-                            </Combobox.Option>
-                          ))}
-
-                          {filteredClubs.map((data) => (
-                            <Combobox.Option
-                              key={data.club.id}
+                              key={data.id}
                               className={({ active }) =>
                                 `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
                                 }`
@@ -158,7 +120,7 @@ export const SearchClubs = ({ clubs, setFilteredClubs, setFilterBy }) => {
                               {({ selected }) => (
                                 <>
                                   <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
-                                    {data.club.token.name} (${data.club.token.symbol}) by @{data.club.handle}
+                                    {data.token.name} (${data.token.symbol}) by @{data.handle}
                                   </span>
                                 </>
                               )}
