@@ -12,7 +12,6 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
 import { ClubList, CreateClub, Holdings } from "@src/pagesComponents/Dashboard";
-import { SearchClubs } from "@src/components/SearchApp/SearchClubs";
 import { kFormatter } from "@src/utils/utils";
 import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { Tooltip } from "@src/components/Tooltip";
