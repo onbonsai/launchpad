@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { formatUnits, decodeAbiParameters } from "viem";
 
-import { getVolume, getLiquidity, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS } from "@src/services/madfi/moneyClubs";
+import { getVolume, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS } from "@src/services/madfi/moneyClubs";
 
 const RANDOM_ADDRESS = "0x1C111355EdE4259Fa9825AEC1f16f95ED737D62E"; // wont be holding bonsai nft
 const PREV_TRADE_KEYS = [
@@ -15,10 +15,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { clubId } = req.query;
 
-    const [{ buyPrice }, volume, liquidity, club] = await Promise.all([
+    const [{ buyPrice }, volume, club] = await Promise.all([
       getBuyPrice(RANDOM_ADDRESS, clubId as string, "1"),
       getVolume(clubId as string),
-      getLiquidity(clubId as string),
       getRegisteredClubById(clubId as string)
     ]);
 
@@ -48,7 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       createdAt,
       buyPrice: buyPrice.toString(),
       volume24Hr: volume.toString(),
-      liquidity: liquidity.toString(),
+      liquidity: club.liquidity.toString(),
       marketCap: marketCap.toString(),
       holders,
       graduated,

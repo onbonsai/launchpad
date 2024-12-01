@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
-import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters } from "viem";
+import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters, formatUnits } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
@@ -30,6 +30,7 @@ const REGISTERED_CLUB = gql`
       feesEarned
       currentPrice
       marketCap
+      liquidity
       complete
       completedAt
       tokenInfo
@@ -98,6 +99,15 @@ const CLUB_TRADES_PAGINATED = gql`
         txHash
         createdAt
       }
+  }
+`;
+
+const CLUB_TRADES_LATEST = gql`
+  query {
+    trades(where:{isBuy: true}, orderBy: createdAt, orderDirection: desc, first: 100) {
+        club { clubId }
+        createdAt
+    }
   }
 `;
 
@@ -285,6 +295,15 @@ export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any
   return { trades: trades || [], hasMore: trades?.length == limit };
 };
 
+export const getLatestTrades = async (): Promise<any[]> => {
+  const client = subgraphClient();
+  const { data: { trades } } = await client.query({
+    query: CLUB_TRADES_LATEST
+  });
+
+  return trades || [];
+};
+
 export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
   const limit = 50;
   const skip = page * limit;
@@ -353,7 +372,8 @@ export const getRegisteredClubs = async () => {
         if (!club) return;
         club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
         const publication = gPublications[club.pubId][0];
-        return { publication, ..._club, ...club };
+        const marketCap = BigInt(formatUnits(_club.supply, DECIMALS)) * BigInt(_club.currentPrice);
+        return { publication, ..._club, ...club, marketCap };
       }).filter((c) => c);
     } catch (error) {
       console.log(error);
