@@ -29,14 +29,14 @@ const headerLinks = [
     href: routesApp.leaderboard,
     label: "New"
   },
-  {
-    href: routesApp.clubs,
-    label: "Graduated"
-  },
-  {
-    href: routesApp.help,
-    label: "How?"
-  },
+  // {
+  //   href: routesApp.clubs,
+  //   label: "Graduated"
+  // },
+  // {
+  //   href: routesApp.help,
+  //   label: "How?"
+  // },
 ];
 
 // const mobileNavLinks = [
