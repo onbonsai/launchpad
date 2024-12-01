@@ -3,6 +3,7 @@ import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wa
 import { formatUnits, parseUnits, erc721Abi } from "viem";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { InformationCircleIcon } from "@heroicons/react/solid";
 
 import { Button } from "@src/components/Button"
 import { roundedToFixed } from "@src/utils/utils";
@@ -10,6 +11,7 @@ import {
   useGetBuyPrice,
   useGetSellPrice,
   useGetClubLiquidity,
+  useGetBuyAmount,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -25,6 +27,7 @@ import {
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import Countdown from "@src/components/Countdown";
+import { Tooltip } from "@src/components/Tooltip";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -38,14 +41,16 @@ export const BuySellWidget = ({
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
-  const [buyAmount, setBuyAmount] = useState<string>('');
+  const [buyPrice, setBuyPrice] = useState<string>('');
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
   const [isReleased, setIsReleased] = useState(false);
   const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
 
-  const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
+  // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.id, buyPrice);
+  const { buyAmount, maxAllowed } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
   const { data: minLiquidityThreshold } = useReadContract({
@@ -54,9 +59,9 @@ export const BuySellWidget = ({
     chainId: CONTRACT_CHAIN_ID,
     functionName: 'minLiquidityThreshold'
   });
-  const { buyPriceAfterFees } = buyPriceResult || {};
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
+  const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -73,10 +78,6 @@ export const BuySellWidget = ({
       setClaimEnabled(isClaimEnabled);
     }
   }, [club.completedAt]);
-
-  const buyPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(buyPriceAfterFees || 0n, USDC_DECIMALS)), 4)
-  ), [buyPriceAfterFees, isLoadingBuyPrice]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -120,7 +121,7 @@ export const BuySellWidget = ({
     }
 
     try {
-      await approveToken(USDC_CONTRACT_ADDRESS, buyPriceAfterFees!, walletClient, toastId);
+      await approveToken(USDC_CONTRACT_ADDRESS, parseUnits(buyPrice, USDC_DECIMALS), walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
       await buyChipsTransaction(walletClient, club.id, buyAmount!);
@@ -129,7 +130,7 @@ export const BuySellWidget = ({
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
-      toast.success(`Bought ${buyAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
+      toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
     } catch (error) {
       console.log(error);
       toast.error("Failed to buy", { id: toastId });
@@ -283,49 +284,51 @@ export const BuySellWidget = ({
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
-                    <div className="relative flex flex-col space-y-1">
+                    <div className="relative flex flex-col space-y-2">
                       <div className="relative flex-1">
                         <input
                           type="number"
                           step="1"
                           placeholder="0.0"
-                          value={buyAmount}
-                          className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                          onChange={(e) => setBuyAmount(e.target.value)}
+                          value={buyPrice}
+                          className={`block w-full rounded-md ${isBuyMax ? 'text-primary/90' : 'text-secondary'} placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm`}
+                          onChange={(e) => setBuyPrice(e.target.value)}
                         />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{club.token.symbol}</span>
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}{" "}USDC</span>
                       </div>
 
-                      <div className="absolute left-1/2 transform -translate-x-1/2 bg-black/70 rounded-full p-1 shadow-md top-6 z-10">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-secondary"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                      <div className="flex justify-between">
+                        {[10, 25, 50, 100].map((percent) => (
+                          <Button
+                            key={percent}
+                            size="sm"
+                            onClick={() => setBuyPrice(tokenBalance ? formatUnits((tokenBalance * BigInt(percent)) / BigInt(100), USDC_DECIMALS) : '0')}
+                          >
+                            {percent}%
+                          </Button>
+                        ))}
                       </div>
-
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          className={"block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"}
-                          value={buyPriceFormatted}
-                          disabled
-                        />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">USDC</span>
-                      </div>
-                      <p className={`absolute right-3 top-full mt-2 text-xs ${tokenBalance < (buyPriceAfterFees || 0n) ? 'text-primary/90' : 'text-secondary/70'}`}>
-                        USDC Balance: {tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}
+                      {isBuyMax && (
+                        <div className="right-6 top-full text-secondary/70 text-xs inline-block">
+                          Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}
+                          <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
+                            <InformationCircleIcon
+                              width={14}
+                              height={14}
+                              className="inline-block -mt-1 text-secondary ml-2"
+                            />
+                          </Tooltip>
+                        </div>
+                      )}
+                      <p className={`absolute right-3 top-full text-xs text-secondary/70`}>
+                        You will receive: {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` $${club.token.symbol}`}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={!isConnected || isBuying || !buyAmount || isLoadingBuyPrice || !buyPriceAfterFees || tokenBalance < (buyPriceAfterFees || 0n)} onClick={buyChips} variant="primary">
+                <Button className="w-full" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="primary">
                   Buy
                 </Button>
               </div>
@@ -339,7 +342,7 @@ export const BuySellWidget = ({
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
-                    <div className="relative flex flex-col space-y-1">
+                    <div className="relative flex flex-col space-y-2">
                       <div className="relative flex-1">
                         <input
                           type="number"
@@ -349,36 +352,25 @@ export const BuySellWidget = ({
                           className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
                           onChange={(e) => setSellAmount(e.target.value)}
                         />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{club.token.symbol}</span>
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{clubBalance ? roundedToFixed(parseFloat(formatUnits(clubBalance, DECIMALS)), 2) : 0.0}{" "}{club.token.symbol}</span>
                       </div>
-
-                      <div className="absolute left-1/2 transform -translate-x-1/2 bg-black/70 rounded-full p-1 shadow-md top-6 z-10">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-secondary"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                      <div className="flex justify-between">
+                        {[10, 25, 50, 100].map((percent) => (
+                          <Button
+                            key={percent}
+                            size="sm"
+                            onClick={() => setSellAmount(clubBalance ? formatUnits((clubBalance * BigInt(percent)) / BigInt(100), DECIMALS) : '0')}
+                          >
+                            {percent}%
+                          </Button>
+                        ))}
                       </div>
-
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          className={"block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"}
-                          value={sellPriceFormatted}
-                          disabled
-                        />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">USDC</span>
-                      </div>
-                      <a
+                      <span
                         className={`absolute right-3 top-full mt-2 text-xs link link-hover ${sellAmountError ? 'text-primary/90' : 'text-secondary/70'}`}
                         onClick={() => setSellAmount(formatUnits(clubBalance, DECIMALS))}
                       >
-                        {club.token.symbol}{" "}Balance: {clubBalance ? roundedToFixed(parseFloat(formatUnits(clubBalance, DECIMALS)), 2) : 0.0}
-                      </a>
+                        You will receive:{" $"}{sellPriceFormatted}
+                      </span>
                     </div>
                   </div>
                 </div>

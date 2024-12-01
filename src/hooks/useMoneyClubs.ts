@@ -17,6 +17,7 @@ import {
   getHoldings,
   getClubHoldings,
   getLiquidity,
+  getBuyAmount,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
@@ -136,6 +137,15 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
     queryFn: () => getBuyPrice(account!, clubId!, amount!),
     enabled: !!clubId && !!amount && !!account,
     refetchInterval: 15000, // refetch every 15 seconds
+  });
+};
+
+export const useGetBuyAmount = (account?: `0x${string}`, clubId?: string, price?: string) => {
+  return useQuery({
+    queryKey: ["buy-amount", clubId, price],
+    queryFn: () => getBuyAmount(account!, clubId!, price!),
+    enabled: !!clubId && !!price && !!account,
+    refetchInterval: 5000, // refetch every 5 seconds
   });
 };
 

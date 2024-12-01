@@ -14,6 +14,7 @@
     "@next/next/no-img-element": "off",
     "@next/next/no-page-custom-font": "off",
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off"
     "@typescript-eslint/no-restricted-imports": [
       "error",
       {

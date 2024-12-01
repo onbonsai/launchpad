@@ -372,7 +372,9 @@ export const getRegisteredClubs = async () => {
         if (!club) return;
         club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
         const publication = gPublications[club.pubId][0];
-        const marketCap = BigInt(formatUnits(_club.supply, DECIMALS)) * BigInt(_club.currentPrice);
+        console.log(`_club.supply: ${_club.supply}`)
+        console.log(`_club.currentPrice: ${_club.currentPrice}`)
+        const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         return { publication, ..._club, ...club, marketCap };
       }).filter((c) => c);
     } catch (error) {
@@ -427,6 +429,32 @@ export const getBuyPrice = async (
     buyPrice: buyPrice as bigint,
     buyPriceAfterFees: buyPriceAfterFees as bigint,
   };
+};
+
+export const getBuyAmount = async (
+  account: `0x${string}`,
+  clubId: string,
+  price: string,
+): Promise<{ maxAllowed: bigint, buyAmount: bigint }> => {
+  const adjustedPrice = parseFloat(price) * 0.94; // HACK: account for protocol fees
+  const priceWithDecimals = parseUnits(adjustedPrice.toString(), DECIMALS);
+  const client = publicClient();
+  const [maxAllowed] = await client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "calculatePurchaseAllocation",
+    args: [priceWithDecimals, clubId],
+    account
+  }) as bigint[];
+  const buyAmount = await client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "getTokensForSpend",
+    args: [clubId, maxAllowed],
+    account
+  }) as bigint;
+
+  return { maxAllowed, buyAmount };
 };
 
 export const getSellPrice = async (
@@ -543,14 +571,13 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
   return receipt.status === "success" && response.ok ? res : {};
 };
 
-export const buyChips = async (walletClient: any, clubId: string, buyAmount: string) => {
+export const buyChips = async (walletClient: any, clubId: string, amount: bigint) => {
   const [recipient] = await walletClient.getAddresses();
-  const amountWithDecimals = parseUnits(buyAmount, DECIMALS);
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amountWithDecimals, zeroAddress, recipient, zeroAddress],
+    args: [clubId, amount, zeroAddress, recipient, zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);

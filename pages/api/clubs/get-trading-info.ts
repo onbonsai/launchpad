@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     });
 
-    const marketCap = BigInt(formatUnits(club.supply, DECIMALS)) * BigInt(buyPrice.toString());
+    const marketCap = formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
     const holders = club.holders;
     const createdAt = club.createdAt;
     const graduated = club.completed;

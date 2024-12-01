@@ -2,18 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
 import { decodeEventLog, PublicClient, getAddress, formatUnits } from "viem";
 import { groupBy } from "lodash/collection";
-import { DECIMALS, publicClient, getRegisteredClubInfo } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, publicClient, getRegisteredClubInfo, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
-import { shortAddress } from "@src/utils/utils";
+import { shortAddress, roundedToFixed } from "@src/utils/utils";
 import { bToHexString } from "@src/services/lens/utils";
 import useIsMounted from "@src/hooks/useIsMounted";
 
 interface TradeBannerProps {
   handle: string;
   verb: string;
-  amount: string;
+  price: string;
   clubId: string;
   symbol: string;
 }
@@ -88,7 +88,7 @@ export const TradeBanner = () => {
       setLastTrade({
         handle: profile?.handle?.localName || ens || shortAddress(event.actor),
         verb: event.isBuy ? 'bought' : 'sold',
-        amount: formatUnits(event.amount, DECIMALS),
+        price: roundedToFixed(parseFloat(formatUnits(event.price || 0n, USDC_DECIMALS)), 2),
         clubId: event.clubId.toString(),
         symbol: tokensGrouped[event.clubId.toString()][0].symbol
       });
@@ -120,7 +120,7 @@ export const TradeBanner = () => {
   return (
     <Link key={key} href={`/token/${displayTrade.clubId}`}>
       <div className={`trade-banner py-2 px-4 rounded-lg cursor-pointer ${displayTrade.verb === 'bought' ? 'pulse-green' : 'pulse-red'}`}>
-        {`${displayTrade.handle} ${displayTrade.verb} ${displayTrade.amount} $${displayTrade.symbol}`}
+        {`${displayTrade.handle} ${displayTrade.verb} $${displayTrade.price} of $${displayTrade.symbol}`}
       </div>
     </Link>
   );

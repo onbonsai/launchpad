@@ -32,7 +32,7 @@ const Row = ({ row, supply, creator }) => (
         </span>
       </div>
     </td>
-    <td className="px-2">{roundedToFixed(parseFloat(((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString()), 2)}%</td>
+    <td className="px-2">{parseFloat(((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString())}%</td>
   </tr>
 );
 

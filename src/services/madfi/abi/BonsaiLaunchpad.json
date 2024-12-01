@@ -151,6 +151,35 @@
         },
         {
             "type": "function",
+            "name": "calculatePurchaseAllocation",
+            "inputs": [
+                {
+                    "name": "price",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "clubId",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "maxAllowed",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "excess",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "claimTokens",
             "inputs": [
                 {
@@ -295,6 +324,19 @@
         },
         {
             "type": "function",
+            "name": "finalPurchasePercent",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "getBuyPrice",
             "inputs": [
                 {
@@ -415,7 +457,31 @@
         },
         {
             "type": "function",
-            "name": "maxOwnershipPercentBps",
+            "name": "getTokensForSpend",
+            "inputs": [
+                {
+                    "name": "clubId",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "spendAmount",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "tokenAmount",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "maxInitialPurchasePercent",
             "inputs": [],
             "outputs": [
                 {
@@ -461,6 +527,19 @@
                     "name": "",
                     "type": "uint16",
                     "internalType": "uint16"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "rampUpPeriod",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
                 }
             ],
             "stateMutability": "view"
@@ -709,19 +788,6 @@
         },
         {
             "type": "function",
-            "name": "setMaxOwnershipPercentBps",
-            "inputs": [
-                {
-                    "name": "_maxOwnershipPercentBps",
-                    "type": "uint256",
-                    "internalType": "uint256"
-                }
-            ],
-            "outputs": [],
-            "stateMutability": "nonpayable"
-        },
-        {
-            "type": "function",
             "name": "setMinLiquidityThreshold",
             "inputs": [
                 {
@@ -738,6 +804,29 @@
                     "name": "_startingPrice2",
                     "type": "uint160",
                     "internalType": "uint160"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "setRampUpParameters",
+            "inputs": [
+                {
+                    "name": "_rampUpPeriod",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "_maxInitialPurchasePercent",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "_finalPurchasePercent",
+                    "type": "uint256",
+                    "internalType": "uint256"
                 }
             ],
             "outputs": [],
@@ -934,6 +1023,31 @@
         },
         {
             "type": "event",
+            "name": "RampUpParametersSet",
+            "inputs": [
+                {
+                    "name": "rampUpPeriod",
+                    "type": "uint256",
+                    "indexed": false,
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "maxInitialPurchasePercent",
+                    "type": "uint256",
+                    "indexed": false,
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "finalPurchasePercent",
+                    "type": "uint256",
+                    "indexed": false,
+                    "internalType": "uint256"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
             "name": "RegisteredClub",
             "inputs": [
                 {
@@ -1095,11 +1209,6 @@
         {
             "type": "error",
             "name": "InvalidInput",
-            "inputs": []
-        },
-        {
-            "type": "error",
-            "name": "MaxOwnership",
             "inputs": []
         },
         {

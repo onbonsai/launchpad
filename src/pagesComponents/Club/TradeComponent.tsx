@@ -17,7 +17,10 @@ export const TradeComponent = ({ club, address }) => {
     abi: erc20Abi,
     chainId: CONTRACT_CHAIN_ID,
     functionName: 'balanceOf',
-    args: [address]
+    args: [address],
+    query: {
+      refetchInterval: 5000
+    }
   });
 
   if (!club?.createdAt) return null;

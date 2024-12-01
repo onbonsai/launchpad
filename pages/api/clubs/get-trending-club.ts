@@ -15,7 +15,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const [name, symbol, image] = decodeAbiParameters([
       { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
     ], club.tokenInfo);
-    club.marketCap = BigInt(formatUnits(club.supply, DECIMALS)) * BigInt(club.currentPrice);
+    club.marketCap = formatUnits(BigInt(club.supply) * BigInt(club.currentPrice), DECIMALS).split(".")[0];
 
     club.token = {
       name,
