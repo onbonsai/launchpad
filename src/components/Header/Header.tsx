@@ -2,6 +2,7 @@ import Link from "next/link";
 // import { HomeIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useWalletClient } from "wagmi";
+
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
 import { ConnectButton } from "@components/ConnectButton";
@@ -14,9 +15,6 @@ import { TradeBanner } from "./TradeBanner";
 import { NewTokenBanner } from "./NewTokenBanner";
 import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
-import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
-import { useState } from "react";
-import { useClubs } from "@src/context/ClubsContext";
 
 const headerLinks = [
   // {
@@ -56,8 +54,6 @@ export const Header = () => {
   const { route } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated } = useLensSignIn(walletClient);
-  const { data: clubs, isLoading: isLoadingClubs } = useGetRegisterdClubs();
-  const { setFilteredClubs, setFilterBy } = useClubs();
   const isMounted = useIsMounted();
 
   if (!isMounted) return null;
@@ -108,11 +104,7 @@ export const Header = () => {
             </div> */}
           </div>
           <div className="hidden lg:block">
-            <SearchClubs
-              clubs={clubs}
-              setFilteredClubs={setFilteredClubs}
-              setFilterBy={setFilterBy}
-            />
+            <SearchClubs />
           </div>
           <div className="flex space-x-2 gap-x-2 md:pr-6">
             <CreateClub />
