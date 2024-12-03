@@ -431,30 +431,56 @@ export const getBuyPrice = async (
   };
 };
 
+const PROTOCOL_FEE = 0.06; // 6% total fees for non-NFT holders
+
 export const getBuyAmount = async (
   account: `0x${string}`,
   clubId: string,
-  price: string,
-): Promise<{ maxAllowed: bigint, buyAmount: bigint }> => {
-  const adjustedPrice = parseFloat(price) * 0.94; // HACK: account for protocol fees
-  const priceWithDecimals = parseUnits(adjustedPrice.toString(), DECIMALS);
+  spendAmount: string, // Amount in USDC user wants to spend
+  hasNft = false
+): Promise<{ 
+  maxAllowed: bigint,
+  buyAmount: bigint,
+  excess: bigint,
+  effectiveSpend: string 
+}> => {
   const client = publicClient();
-  const [maxAllowed] = await client.readContract({
+  
+  // Convert spend amount to proper decimals
+  const spendAmountBigInt = parseUnits(spendAmount, DECIMALS);
+
+  // Get maximum allowed purchase and excess amount
+  const [maxAllowed, excess] = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "calculatePurchaseAllocation",
-    args: [priceWithDecimals, clubId],
+    args: [spendAmountBigInt, clubId],
     account
-  }) as bigint[];
+  }) as [bigint, bigint];
+
+  // Calculate effective spend (maxAllowed or full amount if no excess)
+  const effectiveSpendBigInt = excess > 0n ? maxAllowed : spendAmountBigInt;
+
+  // If user has NFT, use full amount. If not, reduce by fees
+  const spendAfterFees = hasNft
+    ? effectiveSpendBigInt
+    : (effectiveSpendBigInt * BigInt(Math.floor((1 - PROTOCOL_FEE) * 10000)) / 10000n);
+
+  // Get token amount for the effective spend
   const buyAmount = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "getTokensForSpend",
-    args: [clubId, maxAllowed],
+    args: [clubId, spendAfterFees],
     account
   }) as bigint;
 
-  return { maxAllowed, buyAmount };
+  return {
+    maxAllowed,
+    buyAmount,
+    excess,
+    effectiveSpend: formatUnits(effectiveSpendBigInt, DECIMALS)
+  };
 };
 
 export const getSellPrice = async (

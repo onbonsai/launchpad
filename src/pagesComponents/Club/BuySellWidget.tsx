@@ -309,7 +309,7 @@ export const BuySellWidget = ({
                         ))}
                       </div>
                       {isBuyMax && (
-                        <div className="right-6 top-full text-secondary/70 text-xs inline-block">
+                        <div className="right-6 top-full text-secondary/70 text-xs inline-block cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
                           Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}
                           <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
                             <InformationCircleIcon
