@@ -422,3 +422,37 @@ header .bonsaiLogo {
   --color-two: hsl(40 95% 55%);
   background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
 }
+
+/* components/Ticker.module.css */
+
+.tickerContainer {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+  padding: 1rem 0;
+}
+
+.tickerContent {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.tickerItems {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.tickerItem {
+  margin-right: 3rem;
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

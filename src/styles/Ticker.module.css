@@ -1,0 +1,39 @@
+.tickerContainer {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #FED457 0%, #FF6400 135.42%);
+  height: 100%;
+  display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tickerContent {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.tickerItems {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.tickerItem {
+  margin-right: 3rem;
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Pause animation on hover */
+.tickerContainer:hover .tickerContent {
+  animation-play-state: paused;
+}

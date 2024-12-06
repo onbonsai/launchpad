@@ -31,9 +31,22 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
     return [...featuredClubs, ...nonFeaturedClubs];
   }, [sortedBy, filterBy, filteredClubs]);
 
+  const SortIcon = () => {
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M14.6 14.6958L17.1095 12.5445L17.8905 13.4555L14.3908 16.4558L14.0003 16.7906L13.6098 16.4558L10.1095 13.4555L10.8905 12.5444L13.4 14.6955L13.4 3.99998H14.6L14.6 14.6958ZM2.50004 5.39976L10.5 5.4L10.5 6.6L2.5 6.59976L2.50004 5.39976ZM2.50002 9.4H9.00002V10.6H2.50002V9.4ZM7.50002 13.4H2.50002V14.6H7.50002V13.4Z" fill="white" fill-opacity="0.6" />
+      </svg>
+
+    );
+  }
   return (
     <div className="bg-background text-secondary">
       <main className="mx-auto max-w-full">
+        {sortedClubs.length > 0 && (
+          <div className="mb-8">
+            <ClubCard data={sortedClubs[0]} minLiquidityThreshold={minLiquidityThreshold as bigint} />
+          </div>
+        )}
         {/* FILTER */}
         <div className="relative max-w-full">
           <div className="flex justify-end">
@@ -56,21 +69,32 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 </button>
               </div>
             ) : null}
-            <select
-              id="sort-select"
-              className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm md:w-[150px]"
-              onChange={(e) => setSortedBy(e.target.value)}
-            >
-              <option value="club.marketCap">Market Cap</option>
-              <option value="club.createdAt">Age</option>
-              <option value="publication.stats.comments">Replies</option>
-            </select>
+            <div className="relative bg-white/10 rounded-[10px] flex flex-row">
+              <span className="mt-[9px] ml-2">
+                <SortIcon />
+              </span>
+              <select
+                id="sort-select"
+                className="block appearance-none w-full bg-white border-transparent text-secondary rounded-[10px] focus:ring-transparent focus:border-transparent shadow-sm focus:outline-none sm:text-sm md:pl-1 md:pr-8 pr-10"
+                onChange={(e) => setSortedBy(e.target.value)}
+                style={{ background: "none" }}
+              >
+                <option value="club.marketCap">Mcap</option>
+                <option value="club.createdAt">Age</option>
+                <option value="publication.stats.comments">Replies</option>
+              </select>
+              <span className="absolute bg-card rounded-full h-[13px] w-[13px] mt-[13px] mr-[12px] inset-y-0 right-0 flex items-center justify-center pointer-events-none">
+                <svg width="6" height="5" viewBox="0 0 6 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0.5 1L3 3.5L5.5 1" stroke="white" stroke-width="1.2" />
+                </svg>
+              </span>
+            </div>
           </div>
         </div>
 
-        <section aria-labelledby="table-heading" className="max-w-full mt-4">
+        <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full whitespace-nowrap">
-            <ul role="list" className="grid group/item grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-3">
+            <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
               {sortedClubs.map((club, idx) =>
                 <li className="w-full" key={`club-${idx}`}>
                   <ClubCard data={club} minLiquidityThreshold={minLiquidityThreshold as bigint} />

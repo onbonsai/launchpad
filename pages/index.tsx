@@ -4,6 +4,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { Profile, Theme } from "@madfi/widgets-react";
 import Link from "next/link";
 import { erc20Abi, erc721Abi, formatEther } from "viem";
+import Ticker from 'react-ticker'
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -18,6 +19,7 @@ import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
+import Ticker1 from "@src/components/Ticker/Ticker";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -55,18 +57,34 @@ const IndexPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
+        <div className="w-full h-[40px] text-black mb-10">
+          <Ticker1 items={[<span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>, <span>🌱 Bonsai Time 🌱</span>]} speed={50} />
+        </div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
+          {/* <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
             <div></div>
 
             <div className="md:hidden">
               <CreateClub />
             </div>
-          </div>
+          </div> */}
+
 
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
-            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
-              <div className="lg:col-span-2 overflow-auto">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
+              <div className="lg:col-span-7 max-w-full">
+                {isLoadingClubs
+                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+                  : <ClubList
+                    clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
+                    setFilteredClubs={setFilteredClubs}
+                    filteredClubs={filteredClubs}
+                    filterBy={filterBy}
+                    setFilterBy={setFilterBy}
+                  />
+                }
+              </div>
+              <div className="lg:col-span-3 overflow-auto">
                 {/* Holdings */}
                 <div>
                   <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
@@ -147,19 +165,6 @@ const IndexPage: NextPage = () => {
                   </div>
                 )}
 
-              </div>
-
-              <div className="lg:col-span-4 max-w-full">
-                {isLoadingClubs
-                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
-                  : <ClubList
-                    clubs={clubs}
-                    setFilteredClubs={setFilteredClubs}
-                    filteredClubs={filteredClubs}
-                    filterBy={filterBy}
-                    setFilterBy={setFilterBy}
-                  />
-                }
               </div>
             </div>
           </section>
