@@ -6,6 +6,14 @@ interface TextProps {
     children: ReactNode;
 }
 
+export const Header = (props: TextProps) => {
+    return (
+        <p className={clsx("font-semibold text-secondary text-[32px] leading-[1.125] tracking-[-0.03em]", props.className)}>
+            {props.children}
+        </p>
+    );
+}
+
 export const Header2 = (props: TextProps) => {
     return (
         <p className={clsx("font-semibold text-secondary text-2xl", props.className)}>
@@ -17,6 +25,14 @@ export const Header2 = (props: TextProps) => {
 export const Subtitle = (props: TextProps) => {
     return (
         <p className={clsx("text-sm leading-4 text-footer", props.className)}>
+            {props.children}
+        </p>
+    );
+}
+
+export const SmallSubtitle = (props: TextProps) => {
+    return (
+        <p className={clsx("text-[10px] leading-[1.2] text-white/40", props.className)}>
             {props.children}
         </p>
     );

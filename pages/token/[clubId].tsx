@@ -134,7 +134,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 {`${club.token.name} ($${club.token.symbol})`}
               </h1>
               {club.featured && (
-                <span className="text-2xl font-bold font-owners tracking-wide font-bold gradient-txt mt-4">
+                <span className="text-2xl font-bold font-owners tracking-wide gradient-txt mt-4">
                   Featured
                 </span>
               )}
@@ -142,7 +142,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
             {isCreatorAdmin && (
               <div className="flex flex-col md:flex-row md:items-start md:items-center md:justify-end md:w-auto items-end">
-                <span className="text-2xl font-bold font-owners tracking-wide font-bold mt-4 gradient-txt">
+                <span className="text-2xl font-bold font-owners tracking-wide mt-4 gradient-txt">
                   {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
                 </span>
               </div>

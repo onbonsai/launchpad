@@ -1,0 +1,54 @@
+import React from 'react'
+import HoldingsHeader from './HoldingsHeader'
+import { kFormatter, roundedToFixed } from '@src/utils/utils';
+import { formatUnits } from 'viem';
+import { DECIMALS } from '@src/services/madfi/moneyClubs';
+import TokenCard from './TokenCard';
+import { SmallSubtitle, Subtitle } from '@src/styles/text';
+
+interface HoldingSectionProps {
+  holdings: any[];
+  bonsaiAmount: bigint;
+}
+
+const HoldingSection = (props: HoldingSectionProps) => {
+  const { holdings, bonsaiAmount } = props;
+  return (
+    <div className="flex flex-col rounded-sm border-zinc-700 gap-y-2 mt-8 overflow-hidden">
+      <HoldingsHeader title="Tokens" count={holdings.length + (bonsaiAmount > 0 ? 1 : 0)} />
+      <div className='flex space-x-1 w-full overflow-x-auto mt-2 scrollbar-hide'>
+        {bonsaiAmount > 0 && <TokenCard
+          key={`bonsai-row}`}
+          title={'Bonsai'}
+          count={roundedToFixed(parseFloat(formatUnits(bonsaiAmount, DECIMALS)), 2)}
+          logo={<img src='/static/images/logo.svg' alt='token-image' className='h-4' />}
+          symbol={'BONSAI'}
+          logoBg={false}
+          // TODO: Get USD conversion rate
+          price={`-`}
+        />}
+        {holdings.map((row) => (
+          <TokenCard
+            key={`row-${row.club.clubId}`}
+            title={row.token.name}
+            count={roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)}
+            logo={<img src={row.token.image} alt='token-image' className='h-4' />}
+            symbol={row.token.symbol}
+            logoBg={true}
+            // TODO: Get USD conversion rate
+            price={`-`}
+          />
+        ))}
+        {holdings.length === 0 && bonsaiAmount === 0n && (
+          <div className='flex justify-center items-center w-full h-[82px] min-w-[160px] bg-white/5 rounded-2xl'>
+            <SmallSubtitle>
+              No tokens yet, go buy some!
+            </SmallSubtitle>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default HoldingSection

@@ -20,11 +20,12 @@ import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
 import Ticker1 from "@src/components/Ticker/Ticker";
-import { Header2, Subtitle } from "@src/styles/text";
+import { Header, Header2, Subtitle } from "@src/styles/text";
 import { CheckIcon } from "@heroicons/react/outline";
 import BulletCheck from "@src/components/Icons/BulletCheck";
 import { Button } from "@src/components/Button";
 import CreatorButton from "@src/components/Creators/CreatorButton";
+import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -126,24 +127,24 @@ const IndexPage: NextPage = () => {
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
-                {/* Holdings
-                <div>
-                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                    <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
-                  </div>
-                  <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                    <Holdings address={address} />
-                  </div>
-                </div> */}
 
                 {/* Profile */}
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
-                  <div>
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between">
-                      <h2 className="text-2xl font-owners tracking-wide leading-6">Profile</h2>
-                    </div>
-                    <div className="mt-4">
+                  <div className="bg-card rounded-xl p-4">
+                    <Subtitle className="mb-2">
+                      Balance
+                    </Subtitle>
+                    <Header>
+                      {bonsaiBalanceZkSync !== undefined ? `\$${kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString()))))}` : '-'}
+                    </Header>
+                    {!!address &&
+                      <>
+                        <Holdings address={address} bonsaiAmount={bonsaiBalanceZkSync ?? 0n} />
+                        <BonsaiNFTsSection nfts={[]} />
+                      </>
+                    }
+                    {/* <div className="mt-4">
                       <Link href={`/profile/${authenticatedProfile.handle?.localName}`} passHref legacyBehavior>
                         <a style={{ cursor: "pointer" }}>
                           <Profile
@@ -159,7 +160,7 @@ const IndexPage: NextPage = () => {
                           />
                         </a>
                       </Link>
-                    </div>
+                    </div> */}
                   </div>
                 )}
 
@@ -211,7 +212,6 @@ const IndexPage: NextPage = () => {
                     </div>
                   </div>
                 )}
-
               </div>
             </div>
           </section>
