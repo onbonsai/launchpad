@@ -20,12 +20,6 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
-import {
-  widget,
-  IChartingLibraryWidget,
-  ChartingLibraryWidgetOptions,
-  ResolutionString,
-} from '../../../public/static/charting_library/charting_library';
 import { roundedToFixed } from "@src/utils/utils";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
@@ -282,10 +276,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(clubSocial.featureStartAt) + 48 * 60 * 60);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
-  return { props: {
-    club,
-    profile: { id: club.profileId || "", ownedBy: club.creator },
-    creatorInfo: { address: club.creator },
-    type: "lens",
-  } };
+  return {
+    props: {
+      club,
+      profile: { id: club.profileId || "", ownedBy: club.creator },
+      creatorInfo: { address: club.creator },
+      type: "lens",
+    }
+  };
 };

@@ -7,6 +7,8 @@ import { USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useGetClubLiquidity } from "@src/hooks/useMoneyClubs";
 import ProgressBar from "@src/components/ProgressBar";
+import { Subtitle } from "@src/styles/text";
+import CreatorButton from "@src/components/Creators/CreatorButton";
 
 interface Props {
   data: {
@@ -45,7 +47,6 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
 
   // Shared styles
   const infoTextStyle = "text-base leading-5 font-medium";
-  const labelTextStyle = "text-sm leading-4 text-footer";
 
   const BgImage = () => {
     return (
@@ -112,9 +113,9 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
             <TokenInfoHeader />
             <div className="flex flex-row justify-between items-end">
               <div className="flex flex-col gap-[2px]">
-                <p className={labelTextStyle}>
+                <Subtitle>
                   Mcap
-                </p>
+                </Subtitle>
                 <p className={infoTextStyle}>
                   ${roundedToFixed(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)), 2)}{" "}
                 </p>
@@ -124,7 +125,7 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
               </p>
             </div>
 
-            <div className="w-full bg-bonding h-3 rounded-xl mb-3">
+            <div className="w-full bg-card-light h-3 rounded-xl mb-3">
               <div
                 className="text-md w-full h-3 rounded-xl"
                 style={{
@@ -137,21 +138,10 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
             </div>
 
             <div className="flex flex-row justify-between items-center">
-              <div className="flex flex-row gap-[6px] p-[2px] pr-[8px] bg-cardLight rounded-lg">
-                <img
-                  // TODO: Do clubs have an image?
-                  src={club.token.image}
-                  alt="user"
-                  className="w-5 h-5 rounded-md"
-                />
-                <p className="text-sm leading-5 font-medium">
-                  {club.handle}
-                </p>
-              </div>
-              <p className={labelTextStyle}>
-                {/* TODO: Use the tokenCreatedAt instead */}
+              <CreatorButton text={club.handle} image={club.token.image} />
+              <Subtitle >
                 {formatRelativeDate(new Date(Number(club.createdAt) * 1000))}
-              </p>
+              </Subtitle>
             </div>
           </div>
         </div>

@@ -4,18 +4,19 @@ import Link from "next/link";
 import { ConnectButton } from "@components/ConnectButton";
 import { Modal } from "@src/components/Modal";
 import LoginWithLensModal from "./LoginWithLensModal";
+import { Header2, Subtitle } from "@src/styles/text";
 
 export default function CreatorCopy() {
   const [openSignInModal, setOpenSignInModal] = useState(false);
   return (
-    <div className="hidden lg:block">
-      <p className="text-lg text-secondary mb-4">
-        Login to create your own{" "}
-        <Link href="/help" legacyBehavior>
-          <span className="link link-hover">Token</span>
-        </Link>.
-      </p>
-      <div className="pt-4"><ConnectButton className="md:px-12" setOpenSignInModal={setOpenSignInModal} /></div>
+    <div className="hidden lg:flex flex-col gap-[2px] bg-card py-3 px-4 rounded-xl">
+      <Header2 className="text-white">
+        Log in
+      </Header2>
+      <Subtitle className="">
+        Log in to trade or create your own token
+      </Subtitle>
+      <div className="pt-[30px]"><ConnectButton setOpenSignInModal={setOpenSignInModal} /></div>
       {/* Login Modal */}
       <Modal
         onClose={() => setOpenSignInModal(false)}
