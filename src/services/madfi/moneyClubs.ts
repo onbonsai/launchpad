@@ -408,26 +408,17 @@ export const getBuyPrice = async (
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
-  const [buyPrice, buyPriceAfterFees] = await Promise.all([
-    client.readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "getBuyPrice",
-      args: [clubId, amountWithDecimals],
-      account
-    }),
-    client.readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "getBuyPriceAfterFees",
-      args: [clubId, amountWithDecimals],
-      account,
-    }),
-  ]);
+  const buyPrice = await client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "getBuyPrice",
+    args: [clubId, amountWithDecimals],
+    account
+  });
 
   return {
     buyPrice: buyPrice as bigint,
-    buyPriceAfterFees: buyPriceAfterFees as bigint,
+    buyPriceAfterFees: 0n, // HACK
   };
 };
 
@@ -438,14 +429,14 @@ export const getBuyAmount = async (
   clubId: string,
   spendAmount: string, // Amount in USDC user wants to spend
   hasNft = false
-): Promise<{ 
+): Promise<{
   maxAllowed: bigint,
   buyAmount: bigint,
   excess: bigint,
-  effectiveSpend: string 
+  effectiveSpend: string
 }> => {
   const client = publicClient();
-  
+
   // Convert spend amount to proper decimals
   const spendAmountBigInt = parseUnits(spendAmount, DECIMALS);
 
