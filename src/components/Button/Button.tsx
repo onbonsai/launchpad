@@ -3,7 +3,7 @@ import { VariantProps, cva } from "cva";
 
 const buttonStyles = cva(
   `
-  btn rounded-lg transition-colors duration-200 ease-in-out
+  btn rounded-xl transition-colors duration-200 ease-in-out
 `,
   {
     variants: {
@@ -23,7 +23,7 @@ const buttonStyles = cva(
         true: "gap-2",
       },
       size: {
-        sm: "px-4 py-1 min-h-fit h-8 text-sm",
+        sm: "px-4 py-[10px] min-h-fit h-8 text-base font-medium",
         md: "px-6 py-2 min-h-fit h-10 text-[16px] leading-5",
         compact: "px-2 py-2 min-h-fit text-[16px] leading-5",
       },

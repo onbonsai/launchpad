@@ -28,8 +28,8 @@ export const TokenCard = ({ data }: Props) => {
   const { profile, club } = data;
 
   return (
-    <div className="col-span-1 rounded-lg relative">
-      <div className="rounded-lg card card-compact bg-dark-grey shadow-md relative z-10">
+    <div className="col-span-1 rounded-3xl relative">
+      <div className="rounded-3xl card card-compact bg-dark-grey shadow-md relative z-10">
         <div className="overflow-hidden h-[150px] relative">
           <img
             src={club?.token.image}

@@ -1,9 +1,10 @@
 import { NextPage } from "next";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { Profile, Theme } from "@madfi/widgets-react";
 import Link from "next/link";
 import { erc20Abi, erc721Abi, formatEther } from "viem";
+import { HorizontalTicker } from "react-infinite-ticker";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -18,6 +19,13 @@ import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
+import Ticker1 from "@src/components/Ticker/Ticker";
+import { Header, Header2, Subtitle } from "@src/styles/text";
+import { CheckIcon } from "@heroicons/react/outline";
+import BulletCheck from "@src/components/Icons/BulletCheck";
+import { Button } from "@src/components/Button";
+import CreatorButton from "@src/components/Creators/CreatorButton";
+import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -54,39 +62,91 @@ const IndexPage: NextPage = () => {
   // fix hydration issues
   if (!isMounted) return null;
 
+  const ListItem = (props: { children: ReactNode }) => {
+    return <div className="flex items-center gap-[8px]"><BulletCheck />{props.children}</div>
+  }
+  const testStyle = "text-base leading-5 font-medium testStyle flex justify-center items-center h-10 min-w-[120px]";
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
+        <div className="w-full h-[40px] text-black mb-10" style={{
+          background: "linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 135.42%)"
+        }}>
+          <HorizontalTicker duration={40000}>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+            <p className={testStyle}>⾴ Bonsai time</p>
+          </HorizontalTicker>
+        </div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
+          {/* <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
             <div></div>
 
             <div className="md:hidden">
               <CreateClub />
             </div>
-          </div>
+          </div> */}
+
 
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
-            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
-              <div className="lg:col-span-2 overflow-auto">
-                {/* Holdings */}
-                <div>
-                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                    <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
-                  </div>
-                  <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                    <Holdings address={address} />
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
+              <div className="lg:col-span-7 max-w-full">
+                {isLoadingClubs
+                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+                  : <ClubList
+                    clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
+                    setFilteredClubs={setFilteredClubs}
+                    filteredClubs={filteredClubs}
+                    filterBy={filterBy}
+                    setFilterBy={setFilterBy}
+                  />
+                }
+              </div>
+              <div className="lg:col-span-3 overflow-auto">
 
                 {/* Profile */}
-                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <div className="mt-8"><CreatorCopy /></div>}
+                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
-                  <div className="mt-8">
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between">
-                      <h2 className="text-2xl font-owners tracking-wide leading-6">Profile</h2>
-                    </div>
-                    <div className="mt-4">
+                  <div className="bg-card rounded-xl p-4">
+                    <Subtitle className="mb-2">
+                      Balance
+                    </Subtitle>
+                    <Header>
+                      {bonsaiBalanceZkSync !== undefined ? `\$${kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString()))))}` : '-'}
+                    </Header>
+                    {!!address &&
+                      <>
+                        <Holdings address={address} bonsaiAmount={bonsaiBalanceZkSync ?? 0n} />
+                        <BonsaiNFTsSection nfts={[]} />
+                      </>
+                    }
+                    {/* <div className="mt-4">
                       <Link href={`/profile/${authenticatedProfile.handle?.localName}`} passHref legacyBehavior>
                         <a style={{ cursor: "pointer" }}>
                           <Profile
@@ -102,77 +162,64 @@ const IndexPage: NextPage = () => {
                           />
                         </a>
                       </Link>
-                    </div>
+                    </div> */}
                   </div>
                 )}
 
                 {/* Bonsai NFT Perks */}
-                {isConnected && (
-                  <div className="relative lg:col-span-3 mt-8">
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                      <h2 className="text-2xl font-owners tracking-wide leading-6 gradient-txt">Bonsai NFT Perks</h2>
-                    </div>
-
-                    <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                      <div className="flex justify-between">
-                        <p className="text-md opacity-30 mt-1">Balance on Base</p>
+                {!isConnected && (
+                  <div className="relative lg:col-span-3">
+                    <div className="rounded-xl p-6 w-full bg-card mt-1">
+                      <div className="flex justify-between flex-col gap-[2px]">
+                        <Header2>Bonsai benefits</Header2>
+                        {/* <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
                         <Tooltip message="100k tokens = 1 NFT" direction="top">
                           <p className="text-2xl font-owners tracking-wide">
                             {bonsaiBalanceZkSync !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
                             {" | "}
                             {bonsaiNftZkSync !== undefined ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
                           </p>
-                        </Tooltip>
+                        </Tooltip> */}
+                        <Subtitle>
+                          Get an edge when creating or trading tokens
+                        </Subtitle>
                       </div>
-                      <ul className="text-md pl-2">
-                        <li>✅ zero fees on creating and trading</li>
-                        <li>✅ auto-feature after creating</li>
-                        <li>✅ zero fees on uni v4 pools</li>
-                        <li>✅ access to the{" "}
+                      <span className="text-base gap-2 flex flex-col mt-6">
+                        <ListItem>zero fees on creating and trading</ListItem>
+                        <ListItem>auto-feature after creating</ListItem>
+                        <ListItem>zero fees on uni v4 pools</ListItem>
+                        <ListItem>access to the{" "}
                           <Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                            <span className="link link-hover mb-2">Rooftop Club</span>
+                            <span className="link link-hover">Rooftop Club</span>
                           </Link>
-                        </li>
-                      </ul>
-
-                      <div className="flex justify-center text-sm">
-                        <div className="absolute right-6 bottom-2">
-                          <span
-                            className="font-bold opacity-40 link link-hover mb-2"
-                            onClick={() => setOpenBuyModal(true)}
-                          >
-                            Buy more
-                          </span>
+                        </ListItem>
+                      </span>
+                      <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
+                        <Subtitle>
+                          Requirements
+                        </Subtitle>
+                        <div className="flex gap-2">
+                          <CreatorButton text="100K $BONSAI" />
+                          <p>or</p>
+                          <CreatorButton text="1 BONSAI NFT" image={'nft-example.png'} />
                         </div>
                       </div>
+                      <Button
+                        className="mt-6"
+                        size="sm"
+                        onClick={() => setOpenBuyModal(true)}
+                      >
+                        Buy $BONSAI
+                      </Button>
                     </div>
                   </div>
                 )}
-
               </div>
-
-              <div className="lg:col-span-4 max-w-full">
-                {isLoading
-                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
-                  : <ClubList
-                      clubs={clubs}
-                      page={page}
-                      setFilteredClubs={setFilteredClubs}
-                      filteredClubs={filteredClubs}
-                      filterBy={filterBy}
-                      setFilterBy={setFilterBy}
-                      setPage={setPage}
-                      isLoading={isLoading}
-                      hasMore={hasMore}
-                      refetch={refetch}
-                    />
-                }
-              </div>
-            </div>
-          </section>
+            </div >
+          </section >
 
           {/* Buy Bonsai Modal */}
-          <Modal
+          < Modal
             onClose={() => setOpenBuyModal(false)}
             open={openBuyModal}
             setOpen={setOpenBuyModal}
@@ -181,10 +228,10 @@ const IndexPage: NextPage = () => {
             <div className="p-4">
               <BuyBonsaiModal />
             </div>
-          </Modal>
-        </main>
-      </div>
-    </div>
+          </Modal >
+        </main >
+      </div >
+    </div >
   );
 };
 

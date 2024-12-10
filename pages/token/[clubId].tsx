@@ -20,12 +20,6 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
-import {
-  widget,
-  IChartingLibraryWidget,
-  ChartingLibraryWidgetOptions,
-  ResolutionString,
-} from '../../../public/static/charting_library/charting_library';
 import { roundedToFixed } from "@src/utils/utils";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
@@ -140,7 +134,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 {`${club.token.name} ($${club.token.symbol})`}
               </h1>
               {club.featured && (
-                <span className="text-2xl font-bold font-owners tracking-wide font-bold gradient-txt mt-4">
+                <span className="text-2xl font-bold font-owners tracking-wide gradient-txt mt-4">
                   Featured
                 </span>
               )}
@@ -148,7 +142,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
             {isCreatorAdmin && (
               <div className="flex flex-col md:flex-row md:items-start md:items-center md:justify-end md:w-auto items-end">
-                <span className="text-2xl font-bold font-owners tracking-wide font-bold mt-4 gradient-txt">
+                <span className="text-2xl font-bold font-owners tracking-wide mt-4 gradient-txt">
                   {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
                 </span>
               </div>
@@ -282,10 +276,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(clubSocial.featureStartAt) + 48 * 60 * 60);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
-  return { props: {
-    club,
-    profile: { id: club.profileId || "", ownedBy: club.creator },
-    creatorInfo: { address: club.creator },
-    type: "lens",
-  } };
+  return {
+    props: {
+      club,
+      profile: { id: club.profileId || "", ownedBy: club.creator },
+      creatorInfo: { address: club.creator },
+      type: "lens",
+    }
+  };
 };

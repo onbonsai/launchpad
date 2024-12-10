@@ -61,8 +61,8 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-20 bg-black border-b border-dark-grey shadow-sm">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
-        <div className="flex w-full items-center justify-between border-b border-dark-grey border-opacity-80 py-4 lg:border-none">
-          <div className="flex items-center">
+        <div className="flex w-full items-center justify-evenlyborder-b border-dark-grey border-opacity-80 py-4 lg:border-none">
+          <div className="flex items-center w-[33%]">
             <div className="pl-2 md:pl-6 w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
@@ -103,10 +103,10 @@ export const Header = () => {
               </section>
             </div> */}
           </div>
-          <div className="hidden lg:block">
+          <div className="hidden lg:flex justify-center items-center w-[33%]">
             <SearchClubs />
           </div>
-          <div className="flex space-x-2 gap-x-2 md:pr-6">
+          <div className="flex space-x-2 gap-x-2 md:pr-6 w-[33%] justify-end">
             <CreateClub />
             <ConnectButton
               setOpenSignInModal={setOpenSignInModal}

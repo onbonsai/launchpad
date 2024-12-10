@@ -15,12 +15,12 @@ export default (date: Date): string => {
   }
   const days = Math.floor(hours / 24);
   if (days < 30) {
-    return `${days}day ago`;
+    return `${days} day${days > 1 ? 's' : ''} ago`;
   }
   const months = Math.floor(days / 30);
   if (months < 12) {
-    return `${months}mo ago`;
+    return `${months}mo${months > 1 ? 's' : ''} ago`;
   }
   const years = Math.floor(months / 12);
-  return `${years}yr ago`;
+  return `${years}yr${years > 1 ? 's' : ''} ago`;
 }

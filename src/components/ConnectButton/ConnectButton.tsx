@@ -57,9 +57,9 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       <Button
         className={`${className}`}
         onClick={login}
-        size="md"
+        size="sm"
       >
-        Connect
+        Log in
       </Button>
     );
   }
