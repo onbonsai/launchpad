@@ -123,6 +123,7 @@ const REGISTERED_CLUBS = gql`
       currentPrice
       marketCap
       complete
+      tokenInfo
       tokenAddress
     }
   }
@@ -374,8 +375,6 @@ export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasM
         if (!club) return;
         club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
         const publication = gPublications[club.pubId][0];
-        console.log(`_club.supply: ${_club.supply}`)
-        console.log(`_club.currentPrice: ${_club.currentPrice}`)
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         return { publication, ..._club, ...club, marketCap };
       }).filter((c) => c);
@@ -681,4 +680,26 @@ export const releaseLiquidity = async (walletClient: any, clubId: string) => {
   });
 
   return event.args.token;
+};
+
+// for api
+export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
+  const limit = 50;
+  const skip = page * limit;
+  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip } });
+
+  if (data?.clubs?.length) {
+    const clubs = data?.clubs.map((_club) => {
+      const [name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], _club.tokenInfo);
+      const token = { name, symbol, image };
+      const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
+      return { ..._club, marketCap, token, tokenInfo: undefined, __typename: undefined };
+    })
+
+    return { clubs, hasMore: data?.clubs?.length == limit }
+  }
+
+  return { clubs: [], hasMore: false };
 };
