@@ -278,6 +278,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
+      pageName: "token",
       club,
       profile: { id: club.profileId || "", ownedBy: club.creator },
       creatorInfo: { address: club.creator },
