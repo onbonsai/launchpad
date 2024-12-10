@@ -18,7 +18,7 @@ export const trimNumber = (x: number) => `${1 * x.toFixed(9)}`;
 
 export const roundedToFixed = (input: number, digits = 4): string => {
   const rounder = Math.pow(10, digits);
-  return (Math.round(input * rounder) / rounder).toFixed(digits);
+  return parseFloat((Math.round(input * rounder) / rounder).toFixed(digits)).toLocaleString();
 };
 
 export function shortAddress(address: string, num = 5) {

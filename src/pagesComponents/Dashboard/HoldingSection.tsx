@@ -1,18 +1,19 @@
 import React from 'react'
 import HoldingsHeader from './HoldingsHeader'
 import { kFormatter, roundedToFixed } from '@src/utils/utils';
-import { formatUnits } from 'viem';
-import { DECIMALS } from '@src/services/madfi/moneyClubs';
+import { formatUnits, formatEther } from 'viem';
+import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
 import TokenCard from './TokenCard';
 import { SmallSubtitle, Subtitle } from '@src/styles/text';
 
 interface HoldingSectionProps {
   holdings: any[];
   bonsaiAmount: bigint;
+  bonsaiPriceString: string;
 }
 
 const HoldingSection = (props: HoldingSectionProps) => {
-  const { holdings, bonsaiAmount } = props;
+  const { holdings, bonsaiAmount, bonsaiPriceString } = props;
   return (
     <div className="flex flex-col rounded-sm border-zinc-700 gap-y-2 mt-8 overflow-hidden">
       <HoldingsHeader title="Tokens" count={holdings.length + (bonsaiAmount > 0 ? 1 : 0)} />
@@ -20,12 +21,11 @@ const HoldingSection = (props: HoldingSectionProps) => {
         {bonsaiAmount > 0 && <TokenCard
           key={`bonsai-row}`}
           title={'Bonsai'}
-          count={roundedToFixed(parseFloat(formatUnits(bonsaiAmount, DECIMALS)), 2)}
+          count={roundedToFixed(parseFloat(formatEther(bonsaiAmount)), 2)}
           logo={<img src='/static/images/logo.svg' alt='token-image' className='h-4' />}
           symbol={'BONSAI'}
           logoBg={false}
-          // TODO: Get USD conversion rate
-          price={`-`}
+          price={bonsaiPriceString}
         />}
         {holdings.map((row) => (
           <TokenCard
@@ -35,8 +35,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
             logo={<img src={row.token.image} alt='token-image' className='h-4' />}
             symbol={row.token.symbol}
             logoBg={true}
-            // TODO: Get USD conversion rate
-            price={`-`}
+            price={roundedToFixed(row.balance, 2)}
           />
         ))}
         {holdings.length === 0 && bonsaiAmount === 0n && (

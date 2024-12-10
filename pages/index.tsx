@@ -13,7 +13,6 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
 import { ClubList, CreateClub, Holdings } from "@src/pagesComponents/Dashboard";
-import { kFormatter } from "@src/utils/utils";
 import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
@@ -26,6 +25,7 @@ import BulletCheck from "@src/components/Icons/BulletCheck";
 import { Button } from "@src/components/Button";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
+import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -35,10 +35,10 @@ const IndexPage: NextPage = () => {
   const [page, setPage] = useState(0);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
   const { data, isLoading, refetch } = useGetRegisterdClubs(page);
+  const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const { clubs, hasMore } = data || {};
 
-  // TODO: switch after zksync sepolia deployment
-  const { data: bonsaiBalanceZkSync } = useReadContract({
+  const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
     abi: erc20Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -46,7 +46,7 @@ const IndexPage: NextPage = () => {
     args: [address!],
     query: { enabled: !!address }
   });
-  const { data: bonsaiNftZkSync } = useReadContract({
+  const { data: bonsaiNft } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
     abi: erc721Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -139,16 +139,10 @@ const IndexPage: NextPage = () => {
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
                   <div className="bg-card rounded-xl p-4">
-                    <Subtitle className="mb-2">
-                      Balance
-                    </Subtitle>
-                    <Header>
-                      {bonsaiBalanceZkSync !== undefined ? `\$${kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString()))))}` : '-'}
-                    </Header>
                     {!!address &&
                       <>
-                        <Holdings address={address} bonsaiAmount={bonsaiBalanceZkSync ?? 0n} />
-                        <BonsaiNFTsSection nfts={[]} />
+                        <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
+                        <BonsaiNFTsSection nfts={bonsaiNFTs} />
                       </>
                     }
                     {/* <div className="mt-4">
@@ -180,9 +174,9 @@ const IndexPage: NextPage = () => {
                         {/* <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
                         <Tooltip message="100k tokens = 1 NFT" direction="top">
                           <p className="text-2xl font-owners tracking-wide">
-                            {bonsaiBalanceZkSync !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
+                            {bonsaiBalance !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalance.toString())))) : '-'}
                             {" | "}
-                            {bonsaiNftZkSync !== undefined ? `${bonsaiNftZkSync.toString()} NFT${parseInt(bonsaiNftZkSync.toString()) > 1 ? 's' : ''}` : '-'}
+                            {bonsaiNft !== undefined ? `${bonsaiNft.toString()} NFT${parseInt(bonsaiNft.toString()) > 1 ? 's' : ''}` : '-'}
                           </p>
                         </Tooltip> */}
                         <Subtitle>

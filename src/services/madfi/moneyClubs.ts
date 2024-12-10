@@ -315,7 +315,12 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
     query: HOLDINGS_PAGINATED, variables: { trader: account.toLowerCase(), startOfDayUTC, skip }
   });
 
-  return { holdings: clubChips || [], hasMore: clubChips?.length == limit };
+  const holdings = clubChips?.map((chips) => {
+    const balance = parseFloat(formatUnits(chips.amount, DECIMALS)) * parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
+    return {...chips, balance };
+  }) || [];
+
+  return { holdings, hasMore: clubChips?.length == limit };
 };
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {

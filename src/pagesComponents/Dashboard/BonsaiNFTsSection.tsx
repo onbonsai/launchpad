@@ -7,15 +7,16 @@ import TokenCard from './TokenCard';
 import { SmallSubtitle, Subtitle } from '@src/styles/text';
 
 interface BonsaiNFTsSectionProps {
-  nfts: any[];
+  nfts?: any[];
 }
 
 const BonsaiNFTsSection = (props: BonsaiNFTsSectionProps) => {
   const { nfts } = props;
+  console.log(nfts);
   return (
     <div className="flex flex-col rounded-sm border-zinc-700 gap-y-2 mt-8 overflow-hidden">
-      <HoldingsHeader title="Bonsai NFTs" count={nfts.length} />
-      {nfts.length > 0
+      <HoldingsHeader title="Bonsai NFTs" count={nfts?.length || 0} />
+      {!!nfts?.length
         ? <div className='flex space-x-1 w-full overflow-x-auto mt-3 scrollbar-hide'>
           hey
         </div>

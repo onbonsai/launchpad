@@ -1,25 +1,29 @@
 import Image from "next/image";
-import { formatUnits, decodeAbiParameters } from "viem";
+import { formatUnits, decodeAbiParameters, formatEther } from "viem";
 import { useInView } from "react-intersection-observer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 
 import { roundedToFixed } from "@src/utils/utils";
-import { DECIMALS, calculatePriceDelta } from "@src/services/madfi/moneyClubs";
+import { kFormatter } from "@src/utils/utils";
+import { Header, Subtitle } from "@src/styles/text";
+import { DECIMALS, calculatePriceDelta, CONTRACT_CHAIN_ID, BONSAI_TOKEN_BASE_ADDRESS } from "@src/services/madfi/moneyClubs";
 import { useGetHoldings } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import HoldingSection from "./HoldingSection";
+import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 interface HoldingProps {
   address: `0x${string}`;
   bonsaiAmount: bigint;
 }
 
-export const Holdings = (propd: HoldingProps) => {
-  const { address, bonsaiAmount } = propd;
+export const Holdings = (props: HoldingProps) => {
+  const { address, bonsaiAmount } = props;
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
-  const [allHoldings, setAllHoldings] = useState<any[]>([]);
+  const [allHoldings, setAllHoldings] = useState<any[]>();
+  const [bonsaiPrice, setBonsaiPrice] = useState(0);
   const { data, isLoading, refetch } = useGetHoldings(address, page);
   const { holdings, hasMore } = data || {};
 
@@ -42,11 +46,27 @@ export const Holdings = (propd: HoldingProps) => {
         }
         return { ...h, token: { name, symbol, image }, priceDelta };
       })
-      setAllHoldings([...allHoldings, ..._holdings]);
+      setAllHoldings([...allHoldings || [], ..._holdings]);
     }
   }, [isLoading]);
 
-  if (isLoading && allHoldings.length === 0) {
+  useMemo(() => {
+    if (!bonsaiAmount || bonsaiAmount === BigInt(0)) {
+      setBonsaiPrice(0);
+      return;
+    }
+    const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+    const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiAmount));
+    const tokenHoldings = tokenPrice * bonsaiHoldings;
+    setBonsaiPrice(tokenHoldings);
+  }, [bonsaiAmount]);
+
+  const totalBalance = useMemo(() => {
+    if (!allHoldings) return;
+    return allHoldings!.reduce((total, holding) => total + holding.balance, bonsaiPrice || 0);
+  }, [bonsaiPrice, allHoldings]);
+
+  if (isLoading && allHoldings === undefined) {
     return (
       <div ref={ref} className="flex justify-center pt-4">
         <Spinner customClasses="h-6 w-6" color="#E42101" />
@@ -56,7 +76,17 @@ export const Holdings = (propd: HoldingProps) => {
 
   return (
     <div className="w-full">
-      <HoldingSection holdings={allHoldings} bonsaiAmount={bonsaiAmount} />
+      <Subtitle className="mb-2">
+        Balance
+      </Subtitle>
+      <Header>
+        ${!!totalBalance ? roundedToFixed(totalBalance, 2) : '-'}
+      </Header>
+      <HoldingSection
+        holdings={allHoldings || []}
+        bonsaiAmount={bonsaiAmount}
+        bonsaiPriceString={bonsaiPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      />
     </div>
   )
 }
