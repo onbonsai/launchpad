@@ -24,8 +24,10 @@ const IndexPage: NextPage = () => {
   const isMounted = useIsMounted();
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
+  const [page, setPage] = useState(0);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
-  const { data: clubs, isLoading: isLoadingClubs } = useGetRegisterdClubs();
+  const { data, isLoading, refetch } = useGetRegisterdClubs(page);
+  const { clubs, hasMore } = data || {};
 
   // TODO: switch after zksync sepolia deployment
   const { data: bonsaiBalanceZkSync } = useReadContract({
@@ -150,15 +152,20 @@ const IndexPage: NextPage = () => {
               </div>
 
               <div className="lg:col-span-4 max-w-full">
-                {isLoadingClubs
+                {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                    clubs={clubs}
-                    setFilteredClubs={setFilteredClubs}
-                    filteredClubs={filteredClubs}
-                    filterBy={filterBy}
-                    setFilterBy={setFilterBy}
-                  />
+                      clubs={clubs}
+                      page={page}
+                      setFilteredClubs={setFilteredClubs}
+                      filteredClubs={filteredClubs}
+                      filterBy={filterBy}
+                      setFilterBy={setFilterBy}
+                      setPage={setPage}
+                      isLoading={isLoading}
+                      hasMore={hasMore}
+                      refetch={refetch}
+                    />
                 }
               </div>
             </div>

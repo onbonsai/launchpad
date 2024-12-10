@@ -1,14 +1,24 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { orderBy } from "lodash/collection";
 import { get } from "lodash/object";
 import { useReadContract } from "wagmi";
+import { useInView } from "react-intersection-observer";
 import ClubCard from "./ClubCard";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
-export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy }) => {
+export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, setPage, page, refetch, isLoading, hasMore }) => {
+  const { ref, inView } = useInView()
   const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
+
+  useEffect(() => {
+    if (inView && !isLoading && hasMore) {
+      setPage(page + 1);
+      refetch();
+    }
+  }, [inView]);
 
   const { data: minLiquidityThreshold } = useReadContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
@@ -77,6 +87,11 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 </li>
               )}
             </ul>
+            {hasMore && (
+              <div ref={ref} className="flex justify-center pt-4">
+                <Spinner customClasses="h-6 w-6" color="#E42101" />
+              </div>
+            )}
           </div>
         </section>
       </main>

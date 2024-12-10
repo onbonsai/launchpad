@@ -37,13 +37,13 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
   });
 };
 
-export const useGetRegisterdClubs = () => {
+export const useGetRegisterdClubs = (page: number) => {
   return useQuery({
-    queryKey: [`registered-clubs`],
+    queryKey: [`registered-clubs`, page],
     queryFn: async () => {
-      const clubs = await getRegisteredClubs();
-      const data = clubs.map((club) => ({ publication: club.publication, club: omit(club, 'publication') }));
-      return JSON.parse(JSON.stringify(data));
+      const res = await getRegisteredClubs(page);
+      const data = res.clubs.map((club) => ({ publication: club.publication, club: omit(club, 'publication') }));
+      return { clubs: JSON.parse(JSON.stringify(data)), hasMore: res.hasMore };
     },
   });
 };

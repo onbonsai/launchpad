@@ -112,8 +112,8 @@ const CLUB_TRADES_LATEST = gql`
 `;
 
 const REGISTERED_CLUBS = gql`
-  query Clubs {
-    clubs(orderBy: supply, orderDirection: desc, first: 50) {
+  query Clubs($skip: Int!) {
+    clubs(orderBy: supply, orderDirection: desc, first: 50, skip: $skip) {
       id
       clubId
       initialSupply
@@ -123,6 +123,7 @@ const REGISTERED_CLUBS = gql`
       currentPrice
       marketCap
       complete
+      tokenAddress
     }
   }
 `;
@@ -347,9 +348,10 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
   };
 };
 
-// TODO: paginate
-export const getRegisteredClubs = async () => {
-  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS });
+export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
+  const limit = 50;
+  const skip = page * limit;
+  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip } });
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
@@ -367,7 +369,7 @@ export const getRegisteredClubs = async () => {
       });
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
-      return data?.clubs.map((_club) => {
+      const responseClubs = data?.clubs.map((_club) => {
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (!club) return;
         club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
@@ -377,12 +379,14 @@ export const getRegisteredClubs = async () => {
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         return { publication, ..._club, ...club, marketCap };
       }).filter((c) => c);
+
+      return { clubs: responseClubs, hasMore: data?.clubs?.length == limit }
     } catch (error) {
       console.log(error);
     }
   }
 
-  return [];
+  return { clubs: [], hasMore: false };
 };
 
 export const publicClient = () => {
