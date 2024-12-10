@@ -53,7 +53,7 @@ const HookFormModal = () => {
             Submit a hook to be available on the Token platform.
           </p>
           <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
-            Every submission MUST be verified on the zkSync Era block explorer and include a call to the{" "}
+            Every submission MUST be verified on the Basescan and include a call to the{" "}
             <a
               className="link link-hover"
               target="_blank"
@@ -104,7 +104,7 @@ const HookFormModal = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                  placeholder="Enter the deployed contract address on zkSync Era"
+                  placeholder="Enter the deployed contract address on Base"
                 />
               </div>
 

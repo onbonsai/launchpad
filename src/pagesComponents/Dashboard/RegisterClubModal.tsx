@@ -124,9 +124,9 @@ export const RegisterClubModal = ({
       setIsBuying(false);
 
       // toast.success("Token created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
-      toast.success("Token created! Redirecting...", { duration: 10000, id: toastId });
+      toast.success("Token created! Going to token page...", { duration: 5000, id: toastId });
       closeModal();
-      setTimeout(() => router.push(`/token/${clubId}`), 3000);
+      setTimeout(() => router.push(`/token/${clubId}`), 2000);
     } catch (error) {
       setIsBuying(false);
       console.log(error);
@@ -164,6 +164,12 @@ ${MADFI_CLUBS_URL}/token/${clubId}
       console.log(error);
     }
   };
+
+  const urlEncodedPostParams = (): string => {
+    const params = {
+      text: ``
+    }
+  }
 
   return (
     <div className="flex flex-col w-full mt-8">

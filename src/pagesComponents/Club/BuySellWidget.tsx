@@ -28,6 +28,7 @@ import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import Countdown from "@src/components/Countdown";
 import { Tooltip } from "@src/components/Tooltip";
+import { MADFI_CLUBS_URL } from "@src/constants/constants";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -61,6 +62,7 @@ export const BuySellWidget = ({
   });
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
+  const [justBought, setJustBought] = useState(false);
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
 
   const { data: bonsaiNftZkSync } = useReadContract({
@@ -131,6 +133,7 @@ export const BuySellWidget = ({
       setTimeout(refetchClubPrice, 5000);
 
       toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
+      setJustBought(true);
     } catch (error) {
       console.log(error);
       toast.error("Failed to buy", { id: toastId });
@@ -201,6 +204,16 @@ export const BuySellWidget = ({
     }
     setIsBuying(false);
   };
+
+  const urlEncodedPostParams = () => {
+    const params = {
+      text: `Just aped $${buyPrice} into this new token! The ticker is $${club.token.symbol}
+${MADFI_CLUBS_URL}/token/${club.id}
+`,
+    };
+
+    return new URLSearchParams(params).toString();
+  }
 
   if (club.complete && tokenAddress) {
     return (
@@ -327,10 +340,17 @@ export const BuySellWidget = ({
                   </div>
                 </div>
               </div>
-              <div className="pt-4 w-full flex justify-center items-center">
+              <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
                 <Button className="w-full" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="primary">
                   Buy
                 </Button>
+                {justBought && (
+                  <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="accent" className="w-full">
+                      Share to Orb
+                    </Button>
+                  </a>
+                )}
               </div>
             </div>
           </div>

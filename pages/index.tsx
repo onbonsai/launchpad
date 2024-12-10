@@ -113,7 +113,7 @@ const IndexPage: NextPage = () => {
 
                     <div className="rounded-md p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
                       <div className="flex justify-between">
-                        <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
+                        <p className="text-md opacity-30 mt-1">Balance on Base</p>
                         <Tooltip message="100k tokens = 1 NFT" direction="top">
                           <p className="text-2xl font-owners tracking-wide">
                             {bonsaiBalanceZkSync !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalanceZkSync.toString())))) : '-'}
