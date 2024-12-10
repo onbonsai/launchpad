@@ -117,15 +117,20 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-7 max-w-full">
-                {isLoadingClubs
+                {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                    clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
-                    setFilteredClubs={setFilteredClubs}
-                    filteredClubs={filteredClubs}
-                    filterBy={filterBy}
-                    setFilterBy={setFilterBy}
-                  />
+                      clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
+                      setFilteredClubs={setFilteredClubs}
+                      filteredClubs={filteredClubs}
+                      filterBy={filterBy}
+                      setFilterBy={setFilterBy}
+                      isLoading={isLoading}
+                      page={page}
+                      setPage={setPage}
+                      hasMore={hasMore}
+                      refetch={refetch}
+                    />
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
