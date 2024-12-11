@@ -165,12 +165,6 @@ ${MADFI_CLUBS_URL}/token/${clubId}
     }
   };
 
-  const urlEncodedPostParams = (): string => {
-    const params = {
-      text: ``
-    }
-  }
-
   return (
     <div className="flex flex-col w-full mt-8">
       <Dialog.Title as="h2" className="text-5xl uppercase text-center font-owners font-bold">
