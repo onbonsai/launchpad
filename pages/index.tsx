@@ -72,7 +72,7 @@ const IndexPage: NextPage = () => {
         <div className="w-full h-[40px] text-black mb-10" style={{
           background: "linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 135.42%)"
         }}>
-          <HorizontalTicker duration={40000}>
+          {/* <HorizontalTicker duration={40000}>
             <p className={testStyle}>⾴ Bonsai time</p>
             <p className={testStyle}>⾴ Bonsai time</p>
             <p className={testStyle}>⾴ Bonsai time</p>
@@ -102,7 +102,7 @@ const IndexPage: NextPage = () => {
             <p className={testStyle}>⾴ Bonsai time</p>
             <p className={testStyle}>⾴ Bonsai time</p>
             <p className={testStyle}>⾴ Bonsai time</p>
-          </HorizontalTicker>
+          </HorizontalTicker> */}
         </div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           {/* <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
@@ -120,17 +120,17 @@ const IndexPage: NextPage = () => {
                 {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                      clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
-                      setFilteredClubs={setFilteredClubs}
-                      filteredClubs={filteredClubs}
-                      filterBy={filterBy}
-                      setFilterBy={setFilterBy}
-                      isLoading={isLoading}
-                      page={page}
-                      setPage={setPage}
-                      hasMore={hasMore}
-                      refetch={refetch}
-                    />
+                    clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
+                    setFilteredClubs={setFilteredClubs}
+                    filteredClubs={filteredClubs}
+                    filterBy={filterBy}
+                    setFilterBy={setFilterBy}
+                    isLoading={isLoading}
+                    page={page}
+                    setPage={setPage}
+                    hasMore={hasMore}
+                    refetch={refetch}
+                  />
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
@@ -142,7 +142,7 @@ const IndexPage: NextPage = () => {
                     {!!address &&
                       <>
                         <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
-                        <BonsaiNFTsSection nfts={bonsaiNFTs} />
+                        <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
                       </>
                     }
                     {/* <div className="mt-4">

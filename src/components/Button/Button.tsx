@@ -23,6 +23,7 @@ const buttonStyles = cva(
         true: "gap-2",
       },
       size: {
+        xs: "px-2 py-1 !min-h-[24px] text-[14px] leading-[1.15] font-medium !rounded-lg",
         sm: "px-4 py-[10px] min-h-fit h-8 text-base font-medium",
         md: "px-6 py-2 min-h-fit h-10 text-[16px] leading-5",
         compact: "px-2 py-2 min-h-fit text-[16px] leading-5",
