@@ -8,9 +8,12 @@ import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import useGetClubCreators from "@src/hooks/useGetClubCreators";
 
 export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, setPage, page, refetch, isLoading, hasMore }) => {
   const { ref, inView } = useInView()
+  const [clubCreators, setClubCreators] = useState({});
+  const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
   const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
 
   useEffect(() => {
@@ -19,6 +22,12 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       refetch();
     }
   }, [inView]);
+
+  useEffect(() => {
+    if (!isLoadingClubCreators) {
+      setClubCreators({ ...clubCreators, ...creators });
+    }
+  }, [creators, isLoadingClubCreators]);
 
   const { data: minLiquidityThreshold } = useReadContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
@@ -49,6 +58,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
 
     );
   }
+
   return (
     <div className="bg-background text-secondary">
       <main className="mx-auto max-w-full">
@@ -107,7 +117,11 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
             <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
               {sortedClubs.map((club, idx) =>
                 <li className="w-full" key={`club-${idx}`}>
-                  <ClubCard data={club} minLiquidityThreshold={minLiquidityThreshold as bigint} />
+                  <ClubCard
+                    data={club}
+                    minLiquidityThreshold={minLiquidityThreshold as bigint}
+                    creatorProfile={clubCreators[club.club.clubId] ? clubCreators[club.club.clubId][0].profile : undefined}
+                  />
                 </li>
               )}
             </ul>

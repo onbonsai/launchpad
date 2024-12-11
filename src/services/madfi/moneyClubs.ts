@@ -116,6 +116,7 @@ const REGISTERED_CLUBS = gql`
     clubs(orderBy: supply, orderDirection: desc, first: 50, skip: $skip) {
       id
       clubId
+      creator
       initialSupply
       createdAt
       supply
@@ -687,6 +688,7 @@ export const releaseLiquidity = async (walletClient: any, clubId: string) => {
   return event.args.token;
 };
 
+// TODO: might need to enrich with creator profile
 // for api
 export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 50;
