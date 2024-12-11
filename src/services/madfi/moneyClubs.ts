@@ -710,3 +710,18 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
 
   return { clubs: [], hasMore: false };
 };
+
+export const claimTokens = async (walletClient, clubId: string) => {
+  const [recipient] = await walletClient.getAddresses();
+  const hash = await walletClient.writeContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "claimTokens",
+    args: [clubId, recipient],
+    chain: IS_PRODUCTION ? base : baseSepolia,
+  });
+  console.log(`tx: ${hash}`);
+  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+
+  if (receipt.status === "reverted") throw new Error("Reverted");
+}
