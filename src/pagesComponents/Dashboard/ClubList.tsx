@@ -8,6 +8,7 @@ import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import DropDown from "@src/components/Icons/DropDown";
 
 export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, setPage, page, refetch, isLoading, hasMore }) => {
   const { ref, inView } = useInView()
@@ -93,11 +94,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 <option value="club.createdAt">Age</option>
                 <option value="publication.stats.comments">Replies</option>
               </select>
-              <span className="absolute bg-card rounded-full h-[13px] w-[13px] mt-[13px] mr-[12px] inset-y-0 right-0 flex items-center justify-center pointer-events-none">
-                <svg width="6" height="5" viewBox="0 0 6 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.5 1L3 3.5L5.5 1" stroke="white" stroke-width="1.2" />
-                </svg>
-              </span>
+              <DropDown />
             </div>
           </div>
         </div>

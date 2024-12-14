@@ -59,7 +59,7 @@ export const Header = () => {
   if (!isMounted) return null;
 
   return (
-    <header className="sticky top-0 z-20 bg-black border-b border-dark-grey shadow-sm">
+    <header className="sticky top-0 z-[100] bg-black border-b border-dark-grey shadow-sm">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         <div className="flex w-full items-center justify-evenlyborder-b border-dark-grey border-opacity-80 py-4 lg:border-none">
           <div className="flex items-center w-[33%]">

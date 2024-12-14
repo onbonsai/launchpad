@@ -22,6 +22,14 @@ export const Header2 = (props: TextProps) => {
     );
 }
 
+export const BodySemiBold = (props: TextProps) => {
+    return (
+        <p className={clsx("text-base leading-5 font-semibold", props.className)}>
+            {props.children}
+        </p>
+    );
+}
+
 export const Subtitle = (props: TextProps) => {
     return (
         <p className={clsx("text-sm leading-4 text-footer", props.className)}>

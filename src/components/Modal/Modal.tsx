@@ -39,7 +39,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
           <div className="fixed inset-0 bg-secondary backdrop-blur-[3px] bg-opacity-10 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed z-10 inset-0 overflow-y-auto">
+        <div className="fixed z-[101] inset-0 overflow-y-auto">
           <div className="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
             <Transition.Child
               as={Fragment}
