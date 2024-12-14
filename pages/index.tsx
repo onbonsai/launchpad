@@ -120,17 +120,17 @@ const IndexPage: NextPage = () => {
                 {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                    clubs={[...clubs, ...clubs, ...clubs, ...clubs, ...clubs]}
-                    setFilteredClubs={setFilteredClubs}
-                    filteredClubs={filteredClubs}
-                    filterBy={filterBy}
-                    setFilterBy={setFilterBy}
-                    isLoading={isLoading}
-                    page={page}
-                    setPage={setPage}
-                    hasMore={hasMore}
-                    refetch={refetch}
-                  />
+                      clubs={clubs}
+                      setFilteredClubs={setFilteredClubs}
+                      filteredClubs={filteredClubs}
+                      filterBy={filterBy}
+                      setFilterBy={setFilterBy}
+                      isLoading={isLoading}
+                      page={page}
+                      setPage={setPage}
+                      hasMore={hasMore}
+                      refetch={refetch}
+                    />
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">

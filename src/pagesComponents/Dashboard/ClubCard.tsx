@@ -28,10 +28,11 @@ interface Props {
       handle: string;
     };
   };
+  creatorProfile?: { picture: string };
   minLiquidityThreshold?: bigint;
 }
 
-const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
+const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
   const { club, publication } = data;
   const { data: clubLiquidity } = useGetClubLiquidity(club.clubId);
 
@@ -138,7 +139,7 @@ const ClubCard = ({ data, minLiquidityThreshold }: Props) => {
             </div>
 
             <div className="flex flex-row justify-between items-center">
-              <CreatorButton text={club.handle} image={club.token.image} />
+              <CreatorButton text={club.handle} image={creatorProfile?.picture} />
               <Subtitle >
                 {formatRelativeDate(new Date(Number(club.createdAt) * 1000))}
               </Subtitle>

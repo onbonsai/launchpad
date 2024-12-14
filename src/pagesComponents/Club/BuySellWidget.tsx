@@ -20,6 +20,7 @@ import {
   USDC_DECIMALS,
   buyChips as buyChipsTransaction,
   sellChips as sellChipsTransaction,
+  claimTokens as claimTokensTransaction,
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
   releaseLiquidity as releaseLiquidityTransaction,
@@ -173,7 +174,30 @@ export const BuySellWidget = ({
   }
 
   const claimTokens = async () => {
+    setIsBuying(true);
+    let toastId;
 
+    if (chain!.id !== CONTRACT_CHAIN_ID) {
+      try {
+        console.log('switching to', CONTRACT_CHAIN_ID);
+        switchChain({ chainId: CONTRACT_CHAIN_ID });
+      } catch {
+        toast.error("Please switch networks");
+        setIsBuying(false);
+        return;
+      }
+    }
+
+    try {
+      toastId = toast.loading("Claiming tokens...");
+      // also triggers token swap in the backend
+      await claimTokensTransaction(walletClient, club.id);
+      toast.success('Tokens claimed!', { id: toastId });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to claim tokens", { id: toastId });
+    }
+    setIsBuying(false);
   }
 
   const releaseLiquidity = async () => {
@@ -236,7 +260,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                   onClick={claimTokens}
                   disabled
                 >
-                  [TODO] Claim Tokens
+                  Claim Tokens
                 </Button>
               </div>
             )}
