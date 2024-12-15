@@ -254,7 +254,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                     }}
                   />
                   <div className='px-4 flex flex-col justify-between items-start h-full'>
-                    <div>
+                    <div className='w-full'>
                       <div className="flex flex-col">
                         <Image
                           // @ts-expect-error picture.optimized
@@ -285,7 +285,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                       </div>
                       <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
                         <BodySemiBold>Active benefits</BodySemiBold>
-                        <span className="text-base gap-[6px] flex flex-col mt-2">
+                        <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
                           {/* TODO: What goes here? */}
                           <ListItemCard items={[
                             "This is a cool feature",
@@ -335,7 +335,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 </div> */}
               </div>
               <div className="lg:col-span-6 h-full">
-               <ProfileHoldings address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={BigInt(0)} />
+               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={BigInt(0)} nfts={[]} />
               </div>
 
               <div className="lg:col-span-3">
@@ -347,7 +347,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   hasTrades={!!moneyClub?.trades?.length}
                 /> */}
 
-                <div className="mt-4 mb-2">
+              <div className="flex flex-col flex-grow min-h-0">
                   {/* Feed - only show for Lens profiles atm */}
                   {openTab === 1 && type === "lens" && (
                     <PublicationFeed

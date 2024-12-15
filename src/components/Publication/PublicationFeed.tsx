@@ -100,7 +100,8 @@ const PublicationFeed = ({
   // }
 
   return (
-    <>
+    <div className="flex flex-col flex-grow overflow-y-auto"
+    style={{ height: 'calc(100vh - 120px)' }}>
       {/* {welcomePost && (
         <>
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
@@ -122,7 +123,7 @@ const PublicationFeed = ({
         </>
       )} */}
 
-      <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4 mb-4">
+      <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4 mb-4 mt-3">
         <h2 className="text-2xl font-sans tracking-[-0.01] font-bold leading-7">Feed</h2>
       </div>
 
@@ -151,7 +152,7 @@ const PublicationFeed = ({
           )}
         </>
       )}
-    </>
+    </div>
   )
 };
 

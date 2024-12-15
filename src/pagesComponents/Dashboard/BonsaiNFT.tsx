@@ -2,10 +2,18 @@
 import { storjGatewayURL } from '@src/utils/storj';
 import Image from 'next/image';
 
-function BonsaiNFT({ tree, index }) {
+interface BonsaiNFTProps {
+    tree: any;
+    index: number;
+    size?: string;
+}
+
+function BonsaiNFT(props: BonsaiNFTProps) {
+    const { tree, index } = props;
+    const size = props.size || "78px";
     return (
-        <div className="min-w-[78px] max-w-[78px] h-[78px]" key={`tree-${index}`}>
-            <div className="rounded-2xl overflow-hidden relative h-[78px]">
+        <div className={`min-w-[${size}] max-w-[${size}] h-[${size}]`} key={`tree-${index}`}>
+            <div className={`rounded-2xl overflow-hidden relative h-[${size}]`}>
                 <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
                     <Image
                         src={
@@ -16,7 +24,7 @@ function BonsaiNFT({ tree, index }) {
                                     : ""
                         }
                         fill={true}
-                        sizes="78px"
+                        sizes={size}
                         className="object-cover"
                         alt="bonsai tree"
                         unoptimized={true}

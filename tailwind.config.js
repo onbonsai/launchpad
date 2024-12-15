@@ -91,6 +91,8 @@ module.exports = {
         "card-light": "rgba(255, 255, 255, 0.04)",
         "card-lightest": "rgba(255, 255, 255, 0.12)",
         "orange": "#FF6400",
+        bullish: "#0B9981",
+        bearish: "#CD3030",
       },
     },
   },
