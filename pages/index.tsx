@@ -26,6 +26,7 @@ import { Button } from "@src/components/Button";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
+import ListItemCard from "@src/components/Shared/ListItemCard";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -62,9 +63,6 @@ const IndexPage: NextPage = () => {
   // fix hydration issues
   if (!isMounted) return null;
 
-  const ListItem = (props: { children: ReactNode }) => {
-    return <div className="flex items-center gap-[8px]"><BulletCheck />{props.children}</div>
-  }
   const testStyle = "text-base leading-5 font-medium testStyle flex justify-center items-center h-10 min-w-[120px]";
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -166,32 +164,26 @@ const IndexPage: NextPage = () => {
                 )}
 
                 {/* Bonsai NFT Perks */}
-                {!isConnected && (
+                {!authenticatedProfile && (
                   <div className="relative lg:col-span-3">
                     <div className="rounded-xl p-6 w-full bg-card mt-1">
                       <div className="flex justify-between flex-col gap-[2px]">
                         <Header2>Bonsai benefits</Header2>
-                        {/* <p className="text-md opacity-30 mt-1">Balance on zkSync Era</p>
-                        <Tooltip message="100k tokens = 1 NFT" direction="top">
-                          <p className="text-2xl font-owners tracking-wide">
-                            {bonsaiBalance !== undefined ? kFormatter(parseFloat(formatEther(BigInt(bonsaiBalance.toString())))) : '-'}
-                            {" | "}
-                            {bonsaiNft !== undefined ? `${bonsaiNft.toString()} NFT${parseInt(bonsaiNft.toString()) > 1 ? 's' : ''}` : '-'}
-                          </p>
-                        </Tooltip> */}
                         <Subtitle>
                           Get an edge when creating or trading tokens
                         </Subtitle>
                       </div>
                       <span className="text-base gap-2 flex flex-col mt-6">
-                        <ListItem>zero fees on creating and trading</ListItem>
-                        <ListItem>auto-feature after creating</ListItem>
-                        <ListItem>zero fees on uni v4 pools</ListItem>
-                        <ListItem>access to the{" "}
-                          <Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                      <ListItemCard items={[
+                        "zero fees on creating and trading",
+                        "auto-feature after creating",
+                        "zero fees on uni v4 pools",
+                        <>
+                          access to the<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
                             <span className="link link-hover">Rooftop Club</span>
                           </Link>
-                        </ListItem>
+                        </>
+                      ]} />
                       </span>
                       <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
                         <Subtitle>

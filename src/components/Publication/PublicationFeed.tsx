@@ -123,7 +123,7 @@ const PublicationFeed = ({
       )} */}
 
       <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4 mb-4">
-        <h2 className="text-2xl font-owners tracking-wide leading-6">Feed</h2>
+        <h2 className="text-2xl font-sans tracking-[-0.01] font-bold leading-7">Feed</h2>
       </div>
 
       {!isLoadingGatedPosts && allPosts?.length === 0 && (

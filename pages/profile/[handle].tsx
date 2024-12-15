@@ -1,5 +1,5 @@
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
-import { Subtitle, BodySemiBold } from "@src/styles/text";
+import { Subtitle, BodySemiBold, Header } from "@src/styles/text";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
@@ -30,6 +30,8 @@ import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
 import { FarcasterProfile } from "@src/services/farcaster/types";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import Image from "next/image";
+import ListItemCard from "@src/components/Shared/ListItemCard";
+import ProfileHoldings from "./ProfileHoldings";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 
@@ -218,7 +220,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
         return profile.followingCount;
       }
       const lensProfile = profile as ProfileFragment;
-      return lensProfile.followingCount;
+      return lensProfile.stats?.following;
     }
 
     const followerCount = () => {
@@ -226,19 +228,19 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
         return profile.followerCount;
       }
       const lensProfile = profile as ProfileFragment;
-      return lensProfile.followerCount;
+      return lensProfile.stats?.followers;
     } 
 
   return (
-    <div className="bg-background text-secondary min-h-[87vh]">
-        <main className="mx-auto max-w-full md:max-w-[1440px] px-4 sm:px-6 lg:px-8 h-full">
-          <section aria-labelledby="dashboard-heading" className="pt-8 max-w-full h-full">
-            <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-10 max-w-full h-full">
+    <div className="bg-background text-secondary min-h-full flex flex-col flex-grow">
+        <main className="mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
+          <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
+            <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
               <div className="lg:col-span-3 h-full">
-              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col overflow-y-auto transition-transform bg-black md:bg-cardBackground duration-300 rounded-3xl relative min-h-[87vh]`}> 
-                <div className="py-4 pt-2 h-full overflow-y-auto">
+              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground duration-300 rounded-3xl relative min-h-full flex-grow`}> 
+                <div className="py-4 h-full">
                   <div
-                    className='absolute top-0 left-0 w-full h-[112px] z-[-2]'
+                    className='absolute top-0 left-0 w-full h-[112px] z-[-2] rounded-t-3xl'
                     style={{
                       backgroundImage: `url(${coverImage() || '/bg.jpg'})`,
                       backgroundSize: 'cover',
@@ -260,7 +262,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           alt="pfp"
                           width={80}
                           height={80}
-                          className="bg-[#ffffff] rounded-[20px] mt-2"
+                          className="bg-[#ffffff] rounded-[20px]"
                           role="img"
                           aria-label="pfp"
                           unoptimized={true}
@@ -280,6 +282,18 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           <Subtitle>Followers</Subtitle>
                           <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
                         </div>
+                      </div>
+                      <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
+                        <BodySemiBold>Active benefits</BodySemiBold>
+                        <span className="text-base gap-[6px] flex flex-col mt-2">
+                          {/* TODO: What goes here? */}
+                          <ListItemCard items={[
+                            "This is a cool feature",
+                            "This is a cool feature",
+                            "This is a cool feature",
+                            "This is a cool feature",
+                          ]} />
+                        </span>
                       </div>
                     </div>
                      {isProfileAdmin && <Button
@@ -320,43 +334,11 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   </div>
                 </div> */}
               </div>
+              <div className="lg:col-span-6 h-full">
+               <ProfileHoldings address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={BigInt(0)} />
+              </div>
 
-              <div className="lg:col-span-7">
-                {/* Create a Post or Login */}
-                {isCreatorAdmin && (
-                  <>
-                    {isAuthenticated && isProfileAdmin ? (
-                      <div className="tour__create_post">
-                        <CreatePost
-                          profile={profile}
-                          fetchGatedPosts={fetchGatedPosts}
-                          authenticatedProfile={authenticatedProfile}
-                          livestreamConfig={livestreamConfig}
-                        />
-                      </div>
-                    ) : (
-                      !isAuthenticated && (
-                        <div className="mt-8 mb-8">
-                          <div className="flex md:flex-col md:items-baseline md:justify-between gap-y-4">
-                            <h2 className="text-xl md:text-2xl font-owners tracking-wide leading-6 md:pr-0 pr-8 md:mt-0 mt-8">
-                              Log in to create a post
-                            </h2>
-                            <div className="flex justify-center mt-4 mb-4">
-                              <Button
-                                className="md:px-12"
-                                onClick={() => setOpenSignInModal(true)}
-                                disabled={signingIn}
-                              >
-                                Login with Lens
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </>
-                )}
-
+              <div className="lg:col-span-3">
                 {/* <CreatorsTabs
                   type={type}
                   setOpenTab={setOpenTab}
