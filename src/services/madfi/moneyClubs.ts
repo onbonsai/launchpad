@@ -64,6 +64,7 @@ const REGISTERED_CLUB = gql`
 const REGISTERED_CLUB_INFO = gql`
   query ClubInfo($ids: [Bytes!]!) {
     clubs(where: { id_in: $ids }) {
+      id
       tokenInfo
       clubId
     }
@@ -159,6 +160,7 @@ const CLUB_HOLDINGS_PAGINATED = gql`
         id
       }
       amount
+      createdAt
     }
   }
 `;
@@ -241,7 +243,7 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
     const [name, symbol, image] = decodeAbiParameters([
       { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
     ], club.tokenInfo);
-    return { name, symbol, image, clubId: club.clubId };
+    return { name, symbol, image, clubId: club.clubId, id: club.id };
   });
 };
 

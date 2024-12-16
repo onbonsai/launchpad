@@ -4,7 +4,6 @@ import { useAccount, useReadContract } from "wagmi";
 import { Profile, Theme } from "@madfi/widgets-react";
 import Link from "next/link";
 import { erc20Abi, erc721Abi, formatEther } from "viem";
-import { HorizontalTicker } from "react-infinite-ticker";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -27,6 +26,7 @@ import CreatorButton from "@src/components/Creators/CreatorButton";
 import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import ListItemCard from "@src/components/Shared/ListItemCard";
+import { ActivityBanner } from "@src/components/Header";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -67,41 +67,7 @@ const IndexPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <div className="w-full h-[40px] text-black mb-10" style={{
-          background: "linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 135.42%)"
-        }}>
-          {/* <HorizontalTicker duration={40000}>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-            <p className={testStyle}>⾴ Bonsai time</p>
-          </HorizontalTicker> */}
-        </div>
+        <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           {/* <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
             <div></div>

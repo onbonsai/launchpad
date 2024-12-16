@@ -21,6 +21,7 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
+import { ActivityBanner } from "@src/components/Header";
 import { roundedToFixed } from "@src/utils/utils";
 import { Header, Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 
@@ -171,6 +172,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
+        <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           {/* <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-pt-12 pb-4">
             {/* <div className="flex items-center gap-x-4">
@@ -181,8 +183,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 <span className="text-2xl font-bold font-owners tracking-wide gradient-txt mt-4">
                   Featured
                 </span>
-              )} 
-            </div> 
+              )}
+            </div>
 
             {isCreatorAdmin && (
               <div className="flex flex-col md:flex-row md:items-center md:justify-end md:w-auto items-end">
@@ -226,10 +228,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <div className="flex flex-row items-center gap-2">
                         <InfoCard title='Network' subtitle={
                           <div className='flex gap-1 items-center'>
-                            <img 
+                            <img
                               src='/base.png'
                               alt={'base'}
-                              className="w-[12px] h-[12px]" 
+                              className="w-[12px] h-[12px]"
                             />
                             <Subtitle className='text-white'>
                               Base
@@ -253,7 +255,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       }/>
                         <InfoCard title='24h' subtitle={
                           <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-                        } 
+                        }
                         roundedRight
                         />
                       </div>
@@ -282,7 +284,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </div>
                 <div className='flex justify-center items-center mt-5 gap-1'>
                   <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-[2px]'>
-                    <div className='p-[2px] h-full w-[80%] rounded-[20px] py-2 px-3 flex flex-col ' 
+                    <div className='p-[2px] h-full w-[80%] rounded-[20px] py-2 px-3 flex flex-col '
                       style={{
                         background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
                       }}
