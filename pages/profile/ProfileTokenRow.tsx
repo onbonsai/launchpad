@@ -12,11 +12,10 @@ enum TokenAction {
     buy,
     sell,
 }
-
 interface ProfileTokenRowProps {
     holding: any;
     canSell: boolean;
-    pressedBuySell?: (TokenAction) => void;
+    pressedBuySell?: (action: TokenAction) => void;
 }
 
 const ProfileTokenRow = (props: ProfileTokenRowProps) => {
@@ -24,21 +23,21 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
 
     const previousTrades = holding.club.prevTrade24Hr;
     const previousPrice = previousTrades.length > 0 ? previousTrades[0].price : 0;
-    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : 0;
+    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
 
     const movementIcon = () => {
-        if (parseFloat(priceDelta) > 0) {
+        if (priceDelta.positive) {
             return <PositiveIcon />
-        } else if (parseFloat(priceDelta) < 0) {
+        } else if (priceDelta.valuePct !== 0) {
             return <NegativeIcon />
         }
         return null;
     }
 
     const priceColor = () => {
-        if (parseFloat(priceDelta) > 0) {
+        if (priceDelta.positive ) {
             return "text-bullish"
-        } else if (parseFloat(priceDelta) < 0) {
+        } else if (priceDelta.valuePct !== 0) {
             return "text-bearish"
         }
         return ""
@@ -66,7 +65,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                         "flex flex-row items-center justify-end",
                         priceColor()
                     )}>
-                        <span className='mr-1'>{movementIcon()}</span> {previousPrice} • {priceDelta}%
+                        <span className='mr-1'>{movementIcon()}</span> {previousPrice} • {priceDelta.valuePct}%
                     </Subtitle>
                 </div>
                 <Button

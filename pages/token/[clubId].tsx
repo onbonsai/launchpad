@@ -21,6 +21,7 @@ import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyC
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { roundedToFixed } from "@src/utils/utils";
+import { Header } from "@src/styles/text";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -124,44 +125,49 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
+  const BgImage = () => {
+    return (
+      <>
+        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5" />
+        <div
+          className="overflow-hidden h-[37%] absolute w-full top-0 left-0 -z-10"
+          style={{ filter: 'blur(40px)' }}
+        >
+          <img
+            src={club.token.image}
+            alt={club.token.name}
+            sizes="10vw"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
-            <div className="flex items-center gap-x-4">
-              <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
+            {/* <div className="flex items-center gap-x-4">
+               <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
                 {`${club.token.name} ($${club.token.symbol})`}
               </h1>
               {club.featured && (
                 <span className="text-2xl font-bold font-owners tracking-wide gradient-txt mt-4">
                   Featured
                 </span>
-              )}
-            </div>
+              )} 
+            </div> */}
 
             {isCreatorAdmin && (
-              <div className="flex flex-col md:flex-row md:items-start md:items-center md:justify-end md:w-auto items-end">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-end md:w-auto items-end">
                 <span className="text-2xl font-bold font-owners tracking-wide mt-4 gradient-txt">
                   {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
                 </span>
               </div>
             )}
-
-            {/* {isConnected && (
-              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-end md:w-auto">
-                {isCreatorAdmin && (
-                  <Button
-                    variant="accent"
-                    className="w-full mb-2 mr-4 md:mb-0 text-base"
-                    onClick={() => setCreateSpaceModal(true)}
-                  >
-                    <VideoCameraIcon width={20} height={20} className="text-white inline-block mr-2" />
-                    Go live
-                  </Button>
-                )}
-              </div>
-            )} */}
           </div>
 
           <section aria-labelledby="dashboard-heading" className="pt-4 max-w-full">
@@ -172,6 +178,21 @@ const TokenPage: NextPage<TokenPageProps> = ({
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
               <div className="lg:col-span-4 p-2">
                 <div className="lg:col-span-3">
+                  <div className="relative w-full h-[84px] rounded-t-3xl bg-black overflow-hidden bg-clip-border">
+                    <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
+                      <img
+                        src={club.token.image}
+                        alt={club.token.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+
+                    <div className="relative z-10 p-2">
+                      <Header className="text-white">{club.token.name}</Header>
+                    </div>
+                  </div>
                   <Script
                     src="/static/datafeeds/udf/dist/bundle.js"
                     strategy="lazyOnload"

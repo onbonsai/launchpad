@@ -4,9 +4,9 @@ import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { getAddress } from "viem";
+import { erc20Abi, getAddress } from "viem";
 import { ProfileFragment } from "@lens-protocol/client";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
@@ -32,9 +32,9 @@ import useIsFollowed from "@src/hooks/useIsFollowed";
 import Image from "next/image";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
+import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
-
 interface CreatorPageProps {
   profile: ProfileFragment | FarcasterProfile;
   type: "lens" | "farcaster" | "ens";
@@ -102,6 +102,15 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
       }
     },
   })
+
+  const { data: bonsaiBalance } = useReadContract({
+    address: BONSAI_TOKEN_BASE_ADDRESS,
+    abi: erc20Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [profile?.ownedBy.address.toLowerCase()],
+    query: { enabled: !!address }
+  });
 
   // for admin stuff unrelated to lens (ex: livestreams)
   const isCreatorAdmin = useMemo(() => {
@@ -283,7 +292,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
                         </div>
                       </div>
-                      <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
+                      {isProfileAdmin && <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
                         <BodySemiBold>Active benefits</BodySemiBold>
                         <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
                           {/* TODO: What goes here? */}
@@ -294,7 +303,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                             "This is a cool feature",
                           ]} />
                         </span>
-                      </div>
+                      </div>}
+                      {/* TODO: Add Follow Button */}
                     </div>
                      {isProfileAdmin && <Button
                         className="mt-6"
@@ -335,7 +345,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 </div> */}
               </div>
               <div className="lg:col-span-6 h-full">
-               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={BigInt(0)} nfts={[]} />
+               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={[]} />
               </div>
 
               <div className="lg:col-span-3">

@@ -6,7 +6,7 @@ import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { roundedToFixed } from "@src/utils/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { decodeAbiParameters, formatEther } from "viem";
+import { decodeAbiParameters, formatEther, formatUnits } from "viem";
 import ProfileTokenRow from "./ProfileTokenRow";
 import BonsaiNFT from "@pagesComponents/Dashboard/BonsaiNFT";
 
@@ -73,38 +73,31 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
             </div>
         )
     }
-
     return (
-        <div className={`z-20 bg-card flex h-full w-full flex-col justify-between transition-transform bg-cardBackground duration-300 rounded-3xl relative min-h-full flex-grow p-4`}>
-            <div>
-                <Subtitle className="mb-2">
-                    Balance
-                </Subtitle>
-                <Header>
-                    ${!!totalBalance ? roundedToFixed(totalBalance, 2) : '-'}
-                </Header>
-                <div className="flex flex-col mt-7 mb-3">
-                    <Subtitle className="mb-3">
-                        Tokens
-                    </Subtitle>
-                    <div className='flex space-x-1 w-full h-full overflow-y-auto scrollbar-hide'>
-                        {(allHoldings ?? []).map((holding) => <ProfileTokenRow holding={holding} canSell={isProfileAdmin}/>)}
+        <div className="z-20 bg-card flex h-full w-full flex-col justify-between rounded-3xl relative min-h-full flex-grow p-4 max-h-[87vh]">
+            <div className="flex flex-col min-h-0 h-full">
+                <Subtitle className="mb-2">Balance</Subtitle>
+                <Header>${!!totalBalance ? roundedToFixed(totalBalance, 2) : '-'}</Header>
+
+                <div className="flex flex-col mt-7 mb-3 min-h-0 flex-grow">
+                    <Subtitle className="mb-3">Tokens</Subtitle>
+                    <div className="flex flex-col w-full overflow-y-auto scrollbar-hide gap-1 min-h-0">
+                        {bonsaiAmount > 0 && <ProfileTokenRow holding={{ amount: BigInt(parseFloat(formatUnits(bonsaiAmount, 12))), balance: bonsaiPrice, club: { prevTrade24Hr: [] }, token: { image: 'https://assets.coingecko.com/coins/images/35884/large/Bonsai_BW_Coingecko-200x200.jpg?1710071621', name: 'Bonsai', symbol: 'BONSAI' } }} canSell={isProfileAdmin} />}
+                        {(allHoldings ?? []).map((holding, i) => (
+                            <ProfileTokenRow key={i} holding={holding} canSell={isProfileAdmin} />
+                        ))}
                     </div>
                 </div>
             </div>
-            <div className="flex flex-col gap-3">
-                <Subtitle className="mb-3">
-                    Bonsai NFTs
-                </Subtitle>
-                {nfts.length === 0 && <BodySemiBold className="text-white"> No NFTs yet </BodySemiBold>}
-                <div className='flex space-x-1 w-full min-h-[123px] overflow-x-auto scrollbar-hide'>
+
+            <div className="flex flex-col gap-3 mt-4">
+                <Subtitle className="mb-3">Bonsai NFTs</Subtitle>
+                {nfts.length === 0 && <BodySemiBold className="text-white">No NFTs yet</BodySemiBold>}
+                <div className="flex space-x-1 w-full min-h-[123px] overflow-x-auto scrollbar-hide">
                     {nfts.map((tree, index) => (
-                        <div className="flex flex-col items-center p-4 rounded-[20px]" key={`bonsai-nft-wrapper-${index}`}>
-                            <BonsaiNFT tree={tree} index={index} size={'91px'} key={`bonsai-nft-${index}`} />
-                            <Subtitle className="mt-1 text-white">
-                                {/* TODO: Get the real number */}
-                                #{tree.number}
-                            </Subtitle>
+                        <div className="flex flex-col items-center p-4 rounded-[20px]" key={`bonsai-nft-${index}`}>
+                            <BonsaiNFT tree={tree} index={index} size={'91px'} />
+                            <Subtitle className="mt-1 text-white">#{tree.number}</Subtitle>
                         </div>
                     ))}
                 </div>

@@ -130,7 +130,7 @@ const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
               <div
                 className="text-md w-full h-3 rounded-xl"
                 style={{
-                  width: `50%`,
+                  width: bondingCurveProgress + "%",
                   marginLeft: bondingCurveProgress === 0 ? "0px" : "0px",
                   animation: "pulse 2s infinite",
                   background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
