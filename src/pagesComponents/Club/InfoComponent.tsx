@@ -1,3 +1,5 @@
+import clsx from 'clsx';
+import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { useEffect, useMemo, useState } from "react";
 import { formatUnits } from "viem";
 import { useReadContract } from "wagmi";
@@ -94,6 +96,13 @@ export const InfoComponent = ({
   //   setClaiming(false);
   // };
 
+  const InfoLine: React.FC<{ title: string; subtitle: ReactNode }> = ({ title, subtitle }) => (
+    <div className={clsx("flex flex-col items-start justify-center gap-[2px]")}>
+      <Subtitle>{title}</Subtitle>
+      <BodySemiBold>{subtitle}</BodySemiBold>
+    </div>
+  );
+
   const handleCopy = () => {
     const frameURL = `https://frames.bonsai.meme/cashtags/club?moneyClubAddress=${club!.id}&moneyClubProfileId=${profile.id}`;
     navigator.clipboard.writeText(frameURL);
@@ -108,6 +117,15 @@ export const InfoComponent = ({
 
   if (!club?.createdAt) return null;
 
+  return (
+    <div className='flex flex-row items-center mt-3 w-full gap-[4vw]'>
+      <InfoLine title='Token Price' subtitle={`\$${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}`} />
+      <InfoLine title='Market Cap' subtitle={`\$${clubLiquidity === undefined ? '-' : roundedToFixed(parseFloat(formatUnits(clubLiquidity, USDC_DECIMALS)), 2)}`} />
+      <InfoLine title='FDV' subtitle={`todo`} />
+      <InfoLine title='Volume (24hr)' subtitle={`\$${volume === undefined ? ' -' : roundedToFixed(parseFloat(formatUnits(volume || 0n, USDC_DECIMALS)), 2)}`} />
+      <InfoLine title='Holders' subtitle={`todo`} />
+    </div>
+  );
   return (
     <>
       <div className="flex flex-col">

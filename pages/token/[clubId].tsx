@@ -1,6 +1,7 @@
+import clsx from 'clsx';
 import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
-import { useMemo, useState } from "react";
+import { useMemo, useState, ReactNode } from "react";
 import { useAccount, useWalletClient, useReadContract } from "wagmi";
 import { formatUnits, getAddress } from "viem";
 import dynamic from "next/dynamic";
@@ -21,7 +22,7 @@ import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyC
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { roundedToFixed } from "@src/utils/utils";
-import { Header } from "@src/styles/text";
+import { Header, Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -65,6 +66,13 @@ const profileAddress = (profile, creatorInfoAddress?: string) =>
   profile?.ownedBy?.address ||
   (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
   profile?.address;
+
+enum PriceChangePeriod {
+  fiveMinutes = '5m',
+  oneHour = '1h',
+  sixHours = '6h',
+  twentyFourHours = '24h',
+}
 
 const TokenPage: NextPage<TokenPageProps> = ({
   club,
@@ -125,31 +133,46 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
-  const BgImage = () => {
-    return (
-      <>
-        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5" />
-        <div
-          className="overflow-hidden h-[37%] absolute w-full top-0 left-0 -z-10"
-          style={{ filter: 'blur(40px)' }}
-        >
-          <img
-            src={club.token.image}
-            alt={club.token.name}
-            sizes="10vw"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
-        </div>
-      </>
-    );
+  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft: boolean, roundedRight: boolean }> = ({ title, subtitle, roundedLeft, roundedRight }) => (
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl')}>
+      <Subtitle className="text-xs">{title}</Subtitle>
+      <span>{subtitle}</span>
+    </div>
+  );
+
+  const InfoLine: React.FC<{ title: string; subtitle: ReactNode }> = ({ title, subtitle }) => (
+    <div className={clsx("flex flex-col items-start justify-center gap-[2px]")}>
+      <Subtitle>{title}</Subtitle>
+      <BodySemiBold>{subtitle}</BodySemiBold>
+    </div>
+  );
+
+  const tradeForPeriod = (period: PriceChangePeriod) => {
+    // TODO: fetch trade data for rest of periods
+    switch (period) {
+      default:
+        return club.prevTrade24Hr ?? [];
+    }
+  }
+
+  const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
+    const previousTrades = tradeForPeriod(period);
+    const previousPrice = previousTrades.length > 0 ? previousTrades[0].price : 0;
+    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
+    const percentChange = priceDelta.valuePct;
+    const textColor = percentChange === 0 ? 'text-white/60' : (percentChange > 0 ? "text-bullish" : "text-bearish");
+   return  (
+   <Subtitle className={clsx(textColor)}>
+      {percentChange}%
+    </Subtitle>
+   );
   }
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
+          {/* <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-pt-12 pb-4">
             {/* <div className="flex items-center gap-x-4">
                <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
                 {`${club.token.name} ($${club.token.symbol})`}
@@ -159,7 +182,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   Featured
                 </span>
               )} 
-            </div> */}
+            </div> 
 
             {isCreatorAdmin && (
               <div className="flex flex-col md:flex-row md:items-center md:justify-end md:w-auto items-end">
@@ -168,17 +191,16 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </span>
               </div>
             )}
-          </div>
+          </div> */}
 
           <section aria-labelledby="dashboard-heading" className="pt-4 max-w-full">
             <h2 id="dashboard-heading" className="sr-only">
               {profile?.metadata?.displayName}
             </h2>
 
-            <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-6 max-w-full">
-              <div className="lg:col-span-4 p-2">
-                <div className="lg:col-span-3">
-                  <div className="relative w-full h-[84px] rounded-t-3xl bg-black overflow-hidden bg-clip-border">
+            <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
+                <div className="md:col-span-3">
+                  <div className="relative w-full h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
                     <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
                       <img
                         src={club.token.image}
@@ -187,12 +209,64 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       />
                     </div>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
 
-                    <div className="relative z-10 p-2">
-                      <Header className="text-white">{club.token.name}</Header>
+                    <div className="relative z-10 p-3 pb-6 flex justify-between items-center">
+                      <div className='flex flex-row items-center'>
+                        <img
+                          src={club.token.image}
+                          alt={club.token.name}
+                          className="w-[48px] h-[48px] object-cover rounded-xl"
+                        />
+                        <div className="flex flex-col ml-2">
+                          <Header2 className="text-white">${club.token.symbol}</Header2>
+                          <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
+                        </div>
+                      </div>
+                      <div className="flex flex-row items-center gap-2">
+                        <InfoCard title='Network' subtitle={
+                          <div className='flex gap-1 items-center'>
+                            <img 
+                              src='/base.png'
+                              alt={'base'}
+                              className="w-[12px] h-[12px]" 
+                            />
+                            <Subtitle className='text-white'>
+                              Base
+                              </Subtitle>
+                              </div>
+                          }
+                          roundedRight
+                          roundedLeft
+                          />
+                          <div className="flex flex-row items-center">
+                      <InfoCard title='5m' subtitle={
+                          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+                      }
+                        roundedLeft
+                      />
+                      <InfoCard title='1h' subtitle={
+                          <PriceChangeString period={PriceChangePeriod.oneHour} />
+                      }/>
+                      <InfoCard title='6h' subtitle={
+                          <PriceChangeString period={PriceChangePeriod.sixHours} />
+                      }/>
+                        <InfoCard title='24h' subtitle={
+                          <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
+                        } 
+                        roundedRight
+                        />
+                      </div>
+                      </div>
                     </div>
                   </div>
+                  <div className='px-3'>
+                  <InfoComponent
+                      club={club}
+                      address={address}
+                      profile={{}}
+                      isCreatorAdmin={isCreatorAdmin}
+                    />
                   <Script
                     src="/static/datafeeds/udf/dist/bundle.js"
                     strategy="lazyOnload"
@@ -200,12 +274,36 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       setIsScriptReady(true);
                     }}
                   />
-                  <div className="rounded-md mt-4 p-4 w-full border-dark-grey border-2 shadow-lg">
-                    {isScriptReady && <Chart symbol={club.token.symbol} />}
+                  <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                    <div className="rounded-2xl m-2 overflow-hidden">
+                      {isScriptReady && <Chart height='500px' symbol={club.token.symbol} />}
+                    </div>
+                  </div>
+                </div>
+                <div className='flex justify-center items-center mt-5 gap-1'>
+                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-[2px]'>
+                    <div className='p-[2px] h-full w-[80%] rounded-[20px] py-2 px-3 flex flex-col ' 
+                      style={{
+                        background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
+                      }}
+                    >
+                    <Subtitle className='text-black/60'>
+                      Bonding curve
+                    </Subtitle>
+                    <BodySemiBold className='text-black'>
+                        80%
+                    </BodySemiBold>
+                    </div>
+                  </div>
+                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-2'>
+                    Bonding curve
+                  </div>
+                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-2'>
+                    Bonding curve
                   </div>
                 </div>
                 {/* Info, Trade */}
-                <div className="rounded-md md:p-10 p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-24">
+                {/* <div className="rounded-md md:p-10 p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-24">
                   <div>
                     <InfoComponent
                       club={club}
@@ -221,7 +319,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 {/* TODO: creator admin panel to claim fees, create agent with handle if club.completed */}
               </div>
 
-              <div className="lg:col-span-2">
+              <div className="md:col-span-1">
                 <div className="md:pr-6">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>

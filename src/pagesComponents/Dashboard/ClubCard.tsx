@@ -63,7 +63,7 @@ const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
             sizes="10vw"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
         </div>
       </>
     );

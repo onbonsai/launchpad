@@ -16,7 +16,7 @@ export const Header = (props: TextProps) => {
 
 export const Header2 = (props: TextProps) => {
     return (
-        <p className={clsx("font-semibold text-secondary text-2xl", props.className)}>
+        <p className={clsx("font-semibold text-secondary text-2xl leading-7", props.className)}>
             {props.children}
         </p>
     );

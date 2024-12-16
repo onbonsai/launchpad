@@ -246,7 +246,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
           <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
             <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
               <div className="lg:col-span-3 h-full">
-              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground duration-300 rounded-3xl relative min-h-full flex-grow`}> 
+              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}> 
                 <div className="py-4 h-full">
                   <div
                     className='absolute top-0 left-0 w-full h-[112px] z-[-2] rounded-t-3xl'

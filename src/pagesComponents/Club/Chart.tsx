@@ -78,7 +78,7 @@ const Chart = ({ symbol }) => {
 
   return (
     <div className="rounded-lg shadow-md">
-      <div className="h-[450px] bg-background text-secondary" ref={chartContainerRef}></div>
+      <div className="h-[60vh] min-h-[425px] bg-background text-secondary" ref={chartContainerRef}></div>
     </div>
   )
 }

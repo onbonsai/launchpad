@@ -80,6 +80,7 @@ module.exports = {
         },
         white: "#FFFFFF",
         black: "#0F1111",
+        'true-black': "#000",
         navy: "#232F3F",
         background: "#000",
         primary: "#E42101",
