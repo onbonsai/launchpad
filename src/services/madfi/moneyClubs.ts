@@ -543,7 +543,7 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
 
 export const getFeesEarned = async (account: `0x${string}`): Promise<bigint> => {
   const res = await publicClient().readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+  address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "feesEarned",
     args: [account],

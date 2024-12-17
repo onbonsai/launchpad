@@ -1,10 +1,27 @@
 import { gql } from "@apollo/client";
-import { decodeAbiParameters } from "viem";
-import { subgraphClient } from "../madfi/moneyClubs";
-import { getBondingCurveTrades } from "./getChartData";
+import { decodeAbiParameters, decodeEventLog } from "viem";
+import { subgraphClient, publicClient } from "../madfi/moneyClubs";
+import { getBondingCurveTrades, formatTrades } from "./getChartData";
+import { LAUNCHPAD_CONTRACT_ADDRESS } from "../madfi/utils";
+import BonsaiLaunchpadAbi from "./../madfi/abi/BonsaiLaunchpad.json";
 
 const EXCHANGE_BONDING_CURVE = "bonding_curve";
 const EXCHANGE_UNI_V4 = "uniswap_v4";
+
+type TradeEvent = {
+  event?: {
+    clubId: bigint;
+    amount: bigint;
+    isBuy: boolean;
+    actor: `0x${string}`;
+    price: bigint;
+    priceAfterProtocolFee: bigint;
+    complete: boolean;
+    creatorFee: bigint;
+  }
+  transactionHash?: `0x${string}`;
+  createdAt?: number;
+};
 
 const configurationData = {
   // Represents the resolutions for bars supported by your datafeed
@@ -67,6 +84,7 @@ const getAllSymbols = async () => {
   });
 };
 
+const cache = new Map();
 export const Datafeed = {
   onReady: (callback) => {
     setTimeout(() => callback(configurationData));
@@ -121,13 +139,51 @@ export const Datafeed = {
       const [_, clubId] = symbolInfo.exchange.split(":");
       // console.log('[getBars]: getBondingCurveTrades', clubId, from, to);
       const bars = await getBondingCurveTrades(clubId, from, to, countBack, resolution);
+      cache.set('close', bars[bars.length - 1] ? bars[bars.length - 1].close : undefined);
       onHistoryCallback(bars, { noData: bars.length === 0 });
     }
   },
   subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
     console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
+    if (resolution != "1S") return;
+    const [_, clubId] = symbolInfo.exchange.split(":");
+
+    const client = publicClient();
+    const unwatch = client.watchContractEvent({
+      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      abi: BonsaiLaunchpadAbi,
+      eventName: "Trade",
+      args: { clubId },
+      onLogs: (logs: any[]) => {
+        const events = logs
+          .map((l) => {
+            try {
+              const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
+              return { event: event.args, transactionHash: l.transactionHash, createdAt: Date.now() } as TradeEvent;
+            } catch { }
+          }).filter((d) => d);
+
+        const trades = events.map((event) => {
+          const res = {
+            price: event!.event!.price.toString(),
+            prevPrice: cache.get('close'),
+            createdAt: event!.createdAt!.toString(),
+          };
+
+          cache.set('close', event!.event!.price);
+
+          return res;
+        });
+
+        trades.forEach((trade) => onRealtimeCallback(formatTrades([trade], resolution)[0]));
+      }
+    });
+
+    cache.set(subscriberUID, unwatch);
   },
   unsubscribeBars: (subscriberUID) => {
     console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
+    const unwatch = cache.get(subscriberUID);
+    unwatch();
   },
 };
