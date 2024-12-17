@@ -6,7 +6,7 @@ import { providers } from 'ethers';
 import { ChainRpcs } from "@src/constants/chains";
 
 export const configureChainsConfig = createConfig({
-  chains: [polygon, base, baseSepolia],
+  chains: [baseSepolia, polygon, base],
   transports: {
     [polygon.id]: http(ChainRpcs[polygon.id]),
     [base.id]: http(ChainRpcs[base.id]),

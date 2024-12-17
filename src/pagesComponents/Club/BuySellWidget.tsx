@@ -260,7 +260,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
       <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
         <div className="text-center">
           <p className="mt-2 text-lg text-secondary/70">
-            ${club.token.symbol}/USDC pool is live!{" "}
+            ${club.token.symbol}/BONSAI pool is live!{" "}
             <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
               <span className="text-grey link-hover cursor-pointer">Trade on Uniswap here</span>
             </Link>
