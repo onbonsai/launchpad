@@ -51,13 +51,13 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel
-                className={`backdrop-blur-[40px] relative rounded-3xl px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-8 lg:max-w-6xl ${panelClassnames} bg-card overflow-auto bg-blur-[40px]`}
+                className={`backdrop-blur-[40px] relative rounded-3xl text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-4 lg:max-w-6xl ${panelClassnames} bg-card overflow-auto bg-blur-[40px]`}
               >
                 <div className="absolute top-0 right-0 mt-4 mr-4 sm:block">
                   <button
                     type="button"
                     className="cursor-pointer focus-visible:outline-none bg-card-light rounded-[10px] h-7 w-7 flex justify-center items-center"
-                    onClick={() => setOpen(false)}
+                    onClick={() => onClose()}
                   >
                     <span className="sr-only">Close</span>
                     <XIcon className="h-4 w-4" aria-hidden="true" />

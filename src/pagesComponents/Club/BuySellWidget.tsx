@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
+import { inter } from "@src/fonts/fonts";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { formatUnits, parseUnits, erc721Abi } from "viem";
 import toast from "react-hot-toast";
@@ -30,6 +31,8 @@ import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import Countdown from "@src/components/Countdown";
 import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { Header2, Subtitle } from "@src/styles/text";
+import clsx from "clsx";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -64,7 +67,12 @@ export const BuySellWidget = ({
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
+  const [buyStateFocused, setBuyStateFocused] = useState(false);
+  const [sellStateFocused, setSellStateFocused] = useState(false);
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
+
+  const inputRef = useRef(null);
+  const measureRef = useRef(null);
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -81,6 +89,14 @@ export const BuySellWidget = ({
       setClaimEnabled(isClaimEnabled);
     }
   }, [club.completedAt]);
+
+  useEffect(() => {
+    if (measureRef.current && inputRef.current) {
+      measureRef.current.textContent = buyPrice || "0.0";
+      const measureWidth = measureRef.current.offsetWidth;
+      inputRef.current.style.width = `${measureWidth + (buyPrice.length > 0 ? 10 : 4)}px`;
+    }
+  }, [buyPrice]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -304,7 +320,10 @@ ${MADFI_CLUBS_URL}/token/${club.id}
   }
 
   return (
-    <div className="flex flex-col w-full md:-mt-4">
+    <div className="flex flex-col w-full"
+    style={{
+      fontFamily: inter.style.fontFamily
+    }}>
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
         {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
@@ -322,16 +341,60 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col space-y-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          step="1"
-                          placeholder="0.0"
-                          value={buyPrice}
-                          className={`block w-full rounded-md ${isBuyMax ? 'text-primary/90' : 'text-secondary'} placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm`}
-                          onChange={(e) => setBuyPrice(e.target.value)}
-                        />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}{" "}USDC</span>
+                      <div className={clsx("relative rounded-2xl border border-card-light focus:bg-card", buyStateFocused ? "bg-card-light" : "bg-card-dark")}>
+                        <div className="flex flex-row w-full h-full items-center">
+                          <div className="relative items-center pl-4">
+                            <img
+                              src='/usdc.png'
+                              alt={'usdc'}
+                              className="min-w-[24px] min-h-[24px] max-h-[24px]"
+                            />
+                            <img
+                              src='/base.png'
+                              alt={'base'}
+                              className="absolute top-4 left-8 w-[12px] h-[12px]"
+                            />
+                          </div>
+                          <input
+                            ref={inputRef}
+                            type="number"
+                            step="1"
+                            placeholder="0.0"
+                            onFocus={() => setBuyStateFocused(true)}
+                            onBlur={() => setBuyStateFocused(false)}
+                            value={buyPrice}
+                            className={clsx(
+                              "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
+                              isBuyMax ? 'text-primary/90' : 'text-secondary',
+                              "placeholder:text-secondary/70"
+                            )}
+                            onChange={(e) => setBuyPrice(e.target.value)}
+                            style={{ width: 'auto' }}
+                          />
+                          <div className='flex flex-col h-[20px] justify-end items-end'>
+                            <Subtitle>
+                              USDC
+                            </Subtitle>
+                          </div>
+                          <span
+                            ref={measureRef}
+                            className={clsx(
+                              // Match the same classes as the input for accurate rendering
+                              "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
+                              isBuyMax ? 'text-primary/90' : 'text-secondary',
+                              "placeholder:text-secondary/70"
+                            )}
+                            style={{
+                              position: 'absolute',
+                              left: '0px',
+                              whiteSpace: 'pre',
+                              visibility: 'hidden',
+                            }}
+                          >
+                            {buyPrice || "0.0"}
+                          </span>
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}{" "}USDC</span>
+                        </div>
                       </div>
 
                       <div className="flex justify-between">
@@ -387,7 +450,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col space-y-2">
-                      <div className="relative flex-1">
+                      <div className="relative">
                         <input
                           type="number"
                           step="1"
@@ -434,7 +497,12 @@ ${MADFI_CLUBS_URL}/token/${club.id}
 
 const Tabs = ({ openTab, setOpenTab }) => {
   return (
-    <div className="flex w-full">
+    <div
+      className="flex w-full"
+      style={{
+        fontFamily: inter.style.fontFamily,
+      }}
+    >
       <ul
         className="nav nav-pills flex flex-row flex-wrap list-none w-full"
         id="pills-tab"
@@ -443,47 +511,39 @@ const Tabs = ({ openTab, setOpenTab }) => {
         <li className="nav-item" role="presentation">
           <button
             onClick={() => setOpenTab(1)}
-            className={`
+            className={clsx(`
             nav-link
             block
-            font-medium
-            text-md
-            leading-tight
             rounded
-            px-6
-            py-2
             w-full
             text-center
             md:w-auto
-            md:mr-2
-            focus:outline-none focus:ring-0
-            ${openTab === 1 ? "bg-dark-grey text-white hover:bg-dark-grey/90" : ""}
-          `}
+            mr-2
+            focus:outline-none focus:ring-0`,
+            )}
           >
-            Buy
+            <Header2 className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
+              Buy
+            </Header2>
           </button>
         </li>
         <li className="nav-item" role="presentation">
           <button
             onClick={() => setOpenTab(2)}
-            className={`
+            className={clsx(`
             nav-link
             block
-            font-medium
-            text-md
-            leading-tight
             rounded
-            px-6
-            py-2
             w-full
             text-center
             md:w-auto
-            md:mr-2
-            focus:outline-none focus:ring-0
-            ${openTab === 2 ? "bg-dark-grey text-white hover:bg-dark-grey/90" : ""}
-          `}
+            mr-2
+            focus:outline-none focus:ring-0`,
+            )}
           >
-            Sell
+            <Header2 className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
+              Sell
+            </Header2>
           </button>
         </li>
       </ul>

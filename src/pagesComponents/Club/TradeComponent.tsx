@@ -34,7 +34,7 @@ export const TradeComponent = ({ club, address }) => {
   }, [clubHoldings, isLoadingClubHoldings, club]);
 
   return (
-    <div className="flex flex-col"> {/* Use flex container with full height */}
+    <div className="flex flex-col min-w-[356px] max-w-screen"> {/* Use flex container with full height */}
       <div className="flex-grow"> {/* This div will grow to take available space, pushing the friends component to the bottom */}
         <BuySellWidget
           refetchClubBalance={refetchClubBalance}
@@ -45,12 +45,6 @@ export const TradeComponent = ({ club, address }) => {
           openTab={1}
         />
       </div>
-      {!club.complete && friendCount > 0 && (
-        <div className="mt-4 flex gap-4 bottom-0 w-full"> {/* Fixed position at the bottom of the viewport */}
-          <ProfilePics profiles={clubHoldingsFriends} />
-          <span className="text-md opacity-30 mt-2 font-bold">{`${friendCount} FRIEND${friendCount > 1 ? 'S ARE' : ' IS'} HODLING`}</span>
-        </div>
-      )}
     </div>
   )
 };
