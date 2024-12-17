@@ -473,8 +473,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         ))}
                       </div>
                       <span
-                        className={`absolute right-3 top-full mt-2 text-xs link link-hover ${sellAmountError ? 'text-primary/90' : 'text-secondary/70'}`}
-                        onClick={() => setSellAmount(formatUnits(clubBalance, DECIMALS))}
+                        className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-primary/90' : 'text-secondary/70'}`}
                       >
                         You will receive:{" $"}{sellPriceFormatted}
                       </span>

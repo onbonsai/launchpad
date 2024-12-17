@@ -17,6 +17,7 @@ import {
   USDC_DECIMALS,
   registerClub as registerClubTransaction,
   approveToken,
+  MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -47,6 +48,7 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
+  const creatorLiqMax = (MIN_LIQUIDITY_THRESHOLD / 10);
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
@@ -383,6 +385,11 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">USDC</span>
                   </div>
+                  {buyPriceFormatted && parseFloat(buyPriceFormatted) > creatorLiqMax && (
+                    <p className={`absolute left-2 top-full mt-2 text-xs text-primary/90`}>
+                      Max Allowed: {creatorLiqMax}{" USDC"}
+                    </p>
+                  )}
                   <p className={`absolute right-2 top-full mt-2 text-xs ${tokenBalance < (totalRegistrationFee || 0n) ? 'text-primary/90' : 'text-secondary/70'}`}>
                     Balance: {tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}
                   </p>
