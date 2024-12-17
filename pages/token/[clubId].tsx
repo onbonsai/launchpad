@@ -18,11 +18,12 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { calculatePriceDelta, getRegisteredClubById, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, TradeComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { roundedToFixed } from "@src/utils/utils";
 import { Header, Header2, Subtitle, BodySemiBold } from "@src/styles/text";
+import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -33,7 +34,7 @@ type Token = {
   image: string;
 };
 
-type Club = {
+export type Club = {
   __typename: 'Club';
   id: string;
   creator: string;
@@ -133,7 +134,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
-  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft: boolean, roundedRight: boolean }> = ({ title, subtitle, roundedLeft, roundedRight }) => (
+  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean }> = ({ title, subtitle, roundedLeft, roundedRight }) => (
     <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl')}>
       <Subtitle className="text-xs">{title}</Subtitle>
       <span>{subtitle}</span>
@@ -147,25 +148,25 @@ const TokenPage: NextPage<TokenPageProps> = ({
     </div>
   );
 
-  const tradeForPeriod = (period: PriceChangePeriod) => {
+  const tradeForPeriod = (period: PriceChangePeriod): any[] => {
     // TODO: fetch trade data for rest of periods
     switch (period) {
       default:
-        return club.prevTrade24Hr ?? [];
+        return (club.prevTrade24Hr ?? []) as any[];
     }
   }
 
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
     const previousTrades = tradeForPeriod(period);
     const previousPrice = previousTrades.length > 0 ? previousTrades[0].price : 0;
-    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
+    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(club.currentPrice, previousPrice) : { valuePct: 0, positive: false };
     const percentChange = priceDelta.valuePct;
     const textColor = percentChange === 0 ? 'text-white/60' : (percentChange > 0 ? "text-bullish" : "text-bearish");
-   return  (
-   <Subtitle className={clsx(textColor)}>
-      {percentChange}%
-    </Subtitle>
-   );
+    return (
+      <Subtitle className={clsx(textColor)}>
+        {percentChange}%
+      </Subtitle>
+    );
   }
 
   return (
@@ -199,74 +200,74 @@ const TokenPage: NextPage<TokenPageProps> = ({
             </h2>
 
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
-                <div className="md:col-span-3">
-                  <div className="relative w-full h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
-                    <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
+              <div className="md:col-span-3">
+                <div className="relative w-full h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+                  <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
+                    <img
+                      src={club.token.image}
+                      alt={club.token.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
+
+                  <div className="relative z-10 p-3 pb-6 flex justify-between items-center">
+                    <div className='flex flex-row items-center'>
                       <img
                         src={club.token.image}
                         alt={club.token.name}
-                        className="w-full h-full object-cover"
+                        className="w-[48px] h-[48px] object-cover rounded-xl"
                       />
-                    </div>
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
-
-                    <div className="relative z-10 p-3 pb-6 flex justify-between items-center">
-                      <div className='flex flex-row items-center'>
-                        <img
-                          src={club.token.image}
-                          alt={club.token.name}
-                          className="w-[48px] h-[48px] object-cover rounded-xl"
-                        />
-                        <div className="flex flex-col ml-2">
-                          <Header2 className="text-white">${club.token.symbol}</Header2>
-                          <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
-                        </div>
+                      <div className="flex flex-col ml-2">
+                        <Header2 className="text-white">${club.token.symbol}</Header2>
+                        <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
                       </div>
-                      <div className="flex flex-row items-center gap-2">
-                        <InfoCard title='Network' subtitle={
-                          <div className='flex gap-1 items-center'>
-                            <img 
-                              src='/base.png'
-                              alt={'base'}
-                              className="w-[12px] h-[12px]" 
-                            />
-                            <Subtitle className='text-white'>
-                              Base
-                              </Subtitle>
-                              </div>
-                          }
-                          roundedRight
-                          roundedLeft
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                      <InfoCard title='Network' subtitle={
+                        <div className='flex gap-1 items-center'>
+                          <img
+                            src='/base.png'
+                            alt={'base'}
+                            className="w-[12px] h-[12px]"
                           />
-                          <div className="flex flex-row items-center">
-                      <InfoCard title='5m' subtitle={
-                          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+                          <Subtitle className='text-white'>
+                            Base
+                          </Subtitle>
+                        </div>
                       }
+                        roundedRight
                         roundedLeft
                       />
-                      <InfoCard title='1h' subtitle={
+                      <div className="flex flex-row items-center">
+                        <InfoCard title='5m' subtitle={
+                          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+                        }
+                          roundedLeft
+                        />
+                        <InfoCard title='1h' subtitle={
                           <PriceChangeString period={PriceChangePeriod.oneHour} />
-                      }/>
-                      <InfoCard title='6h' subtitle={
+                        } />
+                        <InfoCard title='6h' subtitle={
                           <PriceChangeString period={PriceChangePeriod.sixHours} />
-                      }/>
+                        } />
                         <InfoCard title='24h' subtitle={
                           <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-                        } 
-                        roundedRight
+                        }
+                          roundedRight
                         />
-                      </div>
                       </div>
                     </div>
                   </div>
-                  <div className='px-3'>
+                </div>
+                <div className='px-3'>
                   <InfoComponent
-                      club={club}
-                      address={address}
-                      profile={{}}
-                      isCreatorAdmin={isCreatorAdmin}
-                    />
+                    club={club}
+                    address={address}
+                    profile={{}}
+                    isCreatorAdmin={isCreatorAdmin}
+                  />
                   <Script
                     src="/static/datafeeds/udf/dist/bundle.js"
                     strategy="lazyOnload"
@@ -276,32 +277,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   />
                   <div className='border border-card bg-card-light rounded-2xl mt-5'>
                     <div className="rounded-2xl m-2 overflow-hidden">
-                      {isScriptReady && <Chart height='500px' symbol={club.token.symbol} />}
+                      {isScriptReady && <Chart symbol={club.token.symbol} />}
                     </div>
                   </div>
                 </div>
-                <div className='flex justify-center items-center mt-5 gap-1'>
-                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-[2px]'>
-                    <div className='p-[2px] h-full w-[80%] rounded-[20px] py-2 px-3 flex flex-col ' 
-                      style={{
-                        background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
-                      }}
-                    >
-                    <Subtitle className='text-black/60'>
-                      Bonding curve
-                    </Subtitle>
-                    <BodySemiBold className='text-black'>
-                        80%
-                    </BodySemiBold>
-                    </div>
-                  </div>
-                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-2'>
-                    Bonding curve
-                  </div>
-                  <div className='bg-white min-w-[240px] h-[56px] rounded-[20px] p-2'>
-                    Bonding curve
-                  </div>
-                </div>
+                <BottomInfoComponent club={club} address={address} />
                 {/* Info, Trade */}
                 {/* <div className="rounded-md md:p-10 p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-24">
                   <div>

@@ -36,7 +36,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
           as={Fragment}
           {...transitionProps}
         >
-          <div className="fixed inset-0 bg-secondary backdrop-blur-[3px] bg-opacity-10 transition-opacity" />
+          <div className="fixed inset-0 bg-true-black/70 backdrop-blur-[1px] bg-opacity-10 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed z-[101] inset-0 overflow-y-auto">
@@ -51,16 +51,16 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel
-                className={`relative rounded-sm px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-8 lg:max-w-6xl ${panelClassnames} overflow-auto`}
+                className={`backdrop-blur-[40px] relative rounded-3xl px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-8 lg:max-w-6xl ${panelClassnames} bg-card overflow-auto bg-blur-[40px]`}
               >
-                <div className="absolute top-0 right-0 pt-4 pr-4 sm:block">
+                <div className="absolute top-0 right-0 mt-4 mr-4 sm:block">
                   <button
                     type="button"
-                    className="cursor-pointer focus-visible:outline-none"
+                    className="cursor-pointer focus-visible:outline-none bg-card-light rounded-[10px] h-7 w-7 flex justify-center items-center"
                     onClick={() => setOpen(false)}
                   >
                     <span className="sr-only">Close</span>
-                    <XIcon className="h-7 w-7" aria-hidden="true" />
+                    <XIcon className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
                 {children}
