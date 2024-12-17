@@ -126,7 +126,7 @@ export const RegisterClubModal = ({
       // toast.success("Token created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
       toast.success("Token created! Going to token page...", { duration: 5000, id: toastId });
       closeModal();
-      setTimeout(() => router.push(`/token/${clubId}`), 2000);
+      // setTimeout(() => router.push(`/token/${clubId}`), 2000);
     } catch (error) {
       setIsBuying(false);
       console.log(error);

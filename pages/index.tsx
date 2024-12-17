@@ -17,7 +17,6 @@ import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
-import Ticker1 from "@src/components/Ticker/Ticker";
 import { Header, Header2, Subtitle } from "@src/styles/text";
 import { CheckIcon } from "@heroicons/react/outline";
 import BulletCheck from "@src/components/Icons/BulletCheck";

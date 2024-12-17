@@ -1,39 +1,79 @@
-.tickerContainer {
-  overflow: hidden;
-  white-space: nowrap;
+.ticker {
+  display: flex;
   width: 100%;
-  box-sizing: border-box;
-  background: linear-gradient(90deg, #FED457 0%, #FF6400 135.42%);
-  height: 100%;
-  display: flex;
-    align-items: center;
-    justify-content: center;
+  overflow: hidden;
+  flex: 0 0 100%;
 }
 
-.tickerContent {
+.tickerList {
   display: flex;
-  flex-wrap: nowrap;
+  flex: 0 0 100%;
+  /* width: 100%; */
+  animation: ticker 15s infinite linear;
+  /* justify-content: space-between; */
 }
 
-.tickerItems {
+.tickerWrapper {
   display: flex;
-  flex-wrap: nowrap;
+  justify-content: space-between;
+  width: 100%;
+  align-items: flex-end;
 }
 
 .tickerItem {
-  margin-right: 3rem;
+  border-left: 1px solid transparent;
+  display: table-cell;
+  position: relative;
+  vertical-align: top;
+  color: #fff;
 }
 
-@keyframes scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+.tickerItem::after {
+  background: #2a2e39;
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -1px;
+  width: 1px;
 }
 
-/* Pause animation on hover */
-.tickerContainer:hover .tickerContent {
+.tickerItem:hover {
   animation-play-state: paused;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.newsticker {
+  min-width: 20%;
+  padding: 0.5rem;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.newsWrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: flex-end;
+}
+
+.title {
+  text-overflow: ellipsis;
+  word-wrap: none;
+  white-space: nowrap;
+  max-width: auto;
+  overflow: hidden;
 }
