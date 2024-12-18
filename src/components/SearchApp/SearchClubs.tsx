@@ -38,7 +38,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("md:w-[400px] w-full", inter.className)}>
+      <div className={clsx("md:min-w-[200px] md:w-[400px] w-full", inter.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search tokens
         </label>
