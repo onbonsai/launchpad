@@ -220,21 +220,10 @@ export const BuySellWidget = ({
     setIsBuying(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
-      try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
-      } catch {
-        toast.error("Please switch networks");
-        setIsBuying(false);
-        return;
-      }
-    }
-
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(walletClient, club.id);
+      const token = await releaseLiquidityTransaction(club.id);
       setIsReleased(true);
       setTokenAddress(token);
       toast.success('Pool created!', { id: toastId });
