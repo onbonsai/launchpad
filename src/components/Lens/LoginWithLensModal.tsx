@@ -1,3 +1,4 @@
+import { inter } from "@src/fonts/fonts";
 import { useAccount, useWalletClient } from "wagmi";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -12,6 +13,7 @@ import { Button } from "@src/components/Button";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
+import clsx from "clsx";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -56,18 +58,18 @@ const LoginWithLensModal = ({ closeModal }) => {
   }
 
   return (
-    <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-5xl uppercase text-center font-owners font-bold">
+    <div className={clsx("flex flex-col w-full mt-8", inter.className)}>
+      <Dialog.Title as="h2" className="text-3xl text-center font-bold">
         Choose a Profile
       </Dialog.Title>
-      <div className="max-w-full flex flex-col gap-4 pt-4 ">
+      <div className="max-w-full flex flex-col gap-4 pt-4">
 
         {/* PROFILE SELECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
           {profiles && profiles.length
             ? profiles.map((profile: ProfileFragment) => (
               <div className="" key={profile.id}>
-                <div className="card bg-background p-4 rounded-sm shadow-sm max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={profile.id}>
+                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={profile.id}>
                   <div className="flex w-full items-center justify-between">
                     <img
                       src={formatProfilePicture(profile).metadata.picture.url}
@@ -83,7 +85,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                       )}
                       {authenticatedProfileId !== profile.id && (
                         <Button
-                          className="md:px-12"
+                          className="md:px-12 ml-4 hover:bg-bullish"
                           onClick={() => setSelectedProfileId(profile.id)}
                           disabled={signingIn}
                         >

@@ -317,7 +317,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
         onClose={() => setCreateSpaceModal(false)}
         open={createSpaceModal}
         setOpen={setCreateSpaceModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <CreateSpaceModal
           profile={profile}
@@ -333,7 +333,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
         onClose={() => setOpenSignInModal(false)}
         open={openSignInModal}
         setOpen={setOpenSignInModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
       </Modal>
