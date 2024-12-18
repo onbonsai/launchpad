@@ -15,6 +15,7 @@ import { getEventFromReceipt } from "@src/utils/viem";
 
 import { toHexString } from "../lens/utils";
 import { lensClient } from "../lens/client";
+import axios from "axios";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
@@ -64,6 +65,7 @@ const REGISTERED_CLUB = gql`
 const REGISTERED_CLUB_INFO = gql`
   query ClubInfo($ids: [Bytes!]!) {
     clubs(where: { id_in: $ids }) {
+      id
       tokenInfo
       clubId
     }
@@ -159,6 +161,7 @@ const CLUB_HOLDINGS_PAGINATED = gql`
         id
       }
       amount
+      createdAt
     }
   }
 `;
@@ -241,7 +244,7 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
     const [name, symbol, image] = decodeAbiParameters([
       { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
     ], club.tokenInfo);
-    return { name, symbol, image, clubId: club.clubId };
+    return { name, symbol, image, clubId: club.clubId, id: club.id };
   });
 };
 
@@ -541,7 +544,7 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
 
 export const getFeesEarned = async (account: `0x${string}`): Promise<bigint> => {
   const res = await publicClient().readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+  address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "feesEarned",
     args: [account],
@@ -658,34 +661,16 @@ export const approveToken = async (
   }
 };
 
-export const releaseLiquidity = async (walletClient: any, clubId: string) => {
-  const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "releaseLiquidity",
-    args: [clubId],
-    chain: IS_PRODUCTION ? base : baseSepolia
-  });
-  console.log(`tx: ${hash}`);
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+export const releaseLiquidity = async (clubId: string) => {
+  const { data: { token, hash } } = await axios.get(`/api/clubs/release-liquidity?clubId=${clubId}`)
 
-  if (receipt.status === "reverted") throw new Error("Reverted");
-
-  const event = getEventFromReceipt({
-    contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
-    transactionReceipt: receipt,
-    abi: BonsaiLaunchpadAbi,
-    eventName: "LiquidityReleased",
-  });
-
-  console.log({ updateRecord: { clubId, liquidityReleasedTxHash: hash } });
   await fetch('/api/clubs/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash } })
   });
 
-  return event.args.token;
+  return token;
 };
 
 // TODO: might need to enrich with creator profile

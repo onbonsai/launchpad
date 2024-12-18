@@ -53,7 +53,7 @@ const getTrades = async (
 };
 
 // resolution: ['1S', '1', '5', '15', '60', '240', '1D', '1W', '1M']
-const formatTrades = (trades: Trade[], resolution: string): Bar[] => {
+export const formatTrades = (trades: Trade[], resolution: string): Bar[] => {
   const candleMap: Map<number, { open: number, high: number, low: number, close: number }> = new Map();
 
   trades.forEach((trade) => {

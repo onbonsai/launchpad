@@ -33,6 +33,11 @@
                     "internalType": "address"
                 },
                 {
+                    "name": "_bonsaiToken",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
                     "name": "_agentCreator",
                     "type": "address",
                     "internalType": "address"
@@ -49,32 +54,6 @@
                 }
             ],
             "stateMutability": "nonpayable"
-        },
-        {
-            "type": "function",
-            "name": "BONSAI_NFT",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "address",
-                    "internalType": "contract IERC721"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
-            "name": "QUOTE_TOKEN",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "address",
-                    "internalType": "contract IERC20"
-                }
-            ],
-            "stateMutability": "view"
         },
         {
             "type": "function",
@@ -182,19 +161,6 @@
         },
         {
             "type": "function",
-            "name": "clientFeeBps",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint16",
-                    "internalType": "uint16"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
             "name": "clubIdCount",
             "inputs": [],
             "outputs": [
@@ -250,19 +216,6 @@
         },
         {
             "type": "function",
-            "name": "creatorFeeBps",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint16",
-                    "internalType": "uint16"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
             "name": "feesEarned",
             "inputs": [
                 {
@@ -306,6 +259,53 @@
         },
         {
             "type": "function",
+            "name": "getFees",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint16",
+                    "internalType": "uint16"
+                },
+                {
+                    "name": "",
+                    "type": "uint16",
+                    "internalType": "uint16"
+                },
+                {
+                    "name": "",
+                    "type": "uint16",
+                    "internalType": "uint16"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "getMcap",
+            "inputs": [
+                {
+                    "name": "supply",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "curve",
+                    "type": "uint8",
+                    "internalType": "enum CURVE_TYPE"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "getRegistrationFee",
             "inputs": [
                 {
@@ -316,7 +316,7 @@
                 {
                     "name": "curve",
                     "type": "uint8",
-                    "internalType": "enum BonsaiLaunchpad.CURVE_TYPE"
+                    "internalType": "enum CURVE_TYPE"
                 }
             ],
             "outputs": [
@@ -415,19 +415,6 @@
         },
         {
             "type": "function",
-            "name": "protocolFeeBps",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint16",
-                    "internalType": "uint16"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
             "name": "registerClub",
             "inputs": [
                 {
@@ -448,10 +435,10 @@
                 {
                     "name": "curve",
                     "type": "uint8",
-                    "internalType": "enum BonsaiLaunchpad.CURVE_TYPE"
+                    "internalType": "enum CURVE_TYPE"
                 },
                 {
-                    "name": "recipient",
+                    "name": "creator",
                     "type": "address",
                     "internalType": "address"
                 }
@@ -498,7 +485,7 @@
                 {
                     "name": "curve",
                     "type": "uint8",
-                    "internalType": "enum BonsaiLaunchpad.CURVE_TYPE"
+                    "internalType": "enum CURVE_TYPE"
                 },
                 {
                     "name": "token",
@@ -521,6 +508,72 @@
                     "name": "clubId",
                     "type": "uint256",
                     "internalType": "uint256"
+                },
+                {
+                    "name": "minAmountOut",
+                    "type": "uint128",
+                    "internalType": "uint128"
+                },
+                {
+                    "name": "swapInfoV4",
+                    "type": "tuple",
+                    "internalType": "struct SwapInfoV4",
+                    "components": [
+                        {
+                            "name": "path",
+                            "type": "tuple[]",
+                            "internalType": "struct PathKey[]",
+                            "components": [
+                                {
+                                    "name": "intermediateCurrency",
+                                    "type": "address",
+                                    "internalType": "Currency"
+                                },
+                                {
+                                    "name": "fee",
+                                    "type": "uint24",
+                                    "internalType": "uint24"
+                                },
+                                {
+                                    "name": "tickSpacing",
+                                    "type": "int24",
+                                    "internalType": "int24"
+                                },
+                                {
+                                    "name": "hooks",
+                                    "type": "address",
+                                    "internalType": "contract IHooks"
+                                },
+                                {
+                                    "name": "hookData",
+                                    "type": "bytes",
+                                    "internalType": "bytes"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "router",
+                            "type": "address",
+                            "internalType": "contract IUniversalRouter"
+                        }
+                    ]
+                },
+                {
+                    "name": "swapInfoV3",
+                    "type": "tuple",
+                    "internalType": "struct SwapInfoV3",
+                    "components": [
+                        {
+                            "name": "path",
+                            "type": "bytes",
+                            "internalType": "bytes"
+                        },
+                        {
+                            "name": "router",
+                            "type": "address",
+                            "internalType": "address"
+                        }
+                    ]
                 }
             ],
             "outputs": [],
@@ -613,7 +666,7 @@
                 {
                     "name": "curve",
                     "type": "uint8",
-                    "internalType": "enum BonsaiLaunchpad.CURVE_TYPE"
+                    "internalType": "enum CURVE_TYPE"
                 }
             ],
             "outputs": [],
@@ -663,16 +716,6 @@
                     "name": "_minLiquidityThreshold",
                     "type": "uint256",
                     "internalType": "uint256"
-                },
-                {
-                    "name": "_startingPrice1",
-                    "type": "uint160",
-                    "internalType": "uint160"
-                },
-                {
-                    "name": "_startingPrice2",
-                    "type": "uint160",
-                    "internalType": "uint160"
                 }
             ],
             "outputs": [],
@@ -716,6 +759,24 @@
         },
         {
             "type": "function",
+            "name": "setRegisteredClubHookData",
+            "inputs": [
+                {
+                    "name": "clubId",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes",
+                    "internalType": "bytes"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "setRegistrationCost",
             "inputs": [
                 {
@@ -735,6 +796,16 @@
                     "name": "_univ4",
                     "type": "bool",
                     "internalType": "bool"
+                },
+                {
+                    "name": "_poolManager",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "_posm",
+                    "type": "address",
+                    "internalType": "address"
                 }
             ],
             "outputs": [],
@@ -770,32 +841,6 @@
             ],
             "outputs": [],
             "stateMutability": "nonpayable"
-        },
-        {
-            "type": "function",
-            "name": "v3factory",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "address",
-                    "internalType": "contract IUniswapV3Factory"
-                }
-            ],
-            "stateMutability": "view"
-        },
-        {
-            "type": "function",
-            "name": "v3positionManager",
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "address",
-                    "internalType": "contract INonfungiblePositionManager"
-                }
-            ],
-            "stateMutability": "view"
         },
         {
             "type": "function",
@@ -876,18 +921,6 @@
                     "type": "uint256",
                     "indexed": false,
                     "internalType": "uint256"
-                },
-                {
-                    "name": "startingPrice1",
-                    "type": "uint160",
-                    "indexed": false,
-                    "internalType": "uint160"
-                },
-                {
-                    "name": "startingPrice2",
-                    "type": "uint160",
-                    "indexed": false,
-                    "internalType": "uint160"
                 }
             ],
             "anonymous": false

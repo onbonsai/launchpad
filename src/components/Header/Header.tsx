@@ -11,8 +11,6 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
-import { TradeBanner } from "./TradeBanner";
-import { NewTokenBanner } from "./NewTokenBanner";
 import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 
@@ -75,10 +73,6 @@ export const Header = () => {
                   active={route === link.href}
                 />
               )}
-            </div>
-            <div className="flex ml-8 space-x-8">
-              <TradeBanner />
-              <NewTokenBanner />
             </div>
             {/* MOBILE NAVIGATION */}
             {/* <div className="relative z-10 lg:hidden">

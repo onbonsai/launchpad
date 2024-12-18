@@ -211,21 +211,10 @@ export const BuySellWidget = ({
     setIsBuying(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
-      try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
-      } catch {
-        toast.error("Please switch networks");
-        setIsBuying(false);
-        return;
-      }
-    }
-
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(walletClient, club.id);
+      const token = await releaseLiquidityTransaction(club.id);
       setIsReleased(true);
       setTokenAddress(token);
       toast.success('Pool created!', { id: toastId });
@@ -251,7 +240,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
       <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
         <div className="text-center">
           <p className="mt-2 text-lg text-secondary/70">
-            ${club.token.symbol}/USDC pool is live!{" "}
+            ${club.token.symbol}/BONSAI pool is live!{" "}
             <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
               <span className="text-grey link-hover cursor-pointer">Trade on Uniswap here</span>
             </Link>

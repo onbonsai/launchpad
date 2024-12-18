@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
 import { useLogout } from '@privy-io/react-auth';
+import Image from "next/image";
 
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
@@ -27,16 +28,15 @@ import CreatePost, { LivestreamConfig } from "@src/components/Creators/CreatePos
 import PublicationFeed from "@src/components/Publication/PublicationFeed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
-import { FarcasterProfile } from "@src/services/farcaster/types";
+// import { FarcasterProfile } from "@src/services/farcaster/types";
 import useIsFollowed from "@src/hooks/useIsFollowed";
-import Image from "next/image";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
 import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 interface CreatorPageProps {
-  profile: ProfileFragment | FarcasterProfile;
+  profile: ProfileFragment;
   type: "lens" | "farcaster" | "ens";
   airdrops: any[];
   creatorInfo: any;
@@ -93,7 +93,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
-  
+
   const { logout } = useLogout({
     onSuccess: () => {
       if ((!!authenticatedProfile?.id)) {
@@ -180,65 +180,65 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
       </div>
     );
 
-  function isFarcasterProfile(profile: ProfileFragment | FarcasterProfile): profile is FarcasterProfile {
-    return (profile as FarcasterProfile).profileHandle !== undefined;
-  }
+  // function isFarcasterProfile(profile: ProfileFragment | FarcasterProfile): profile is FarcasterProfile {
+  //   return (profile as FarcasterProfile).profileHandle !== undefined;
+  // }
 
     const profilePicture = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.profileImage;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.profileImage;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.metadata?.picture?.optimized?.uri;
     };
 
     const coverImage = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.coverImageURI;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.coverImageURI;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.metadata?.coverPicture?.optimized?.uri;
     }
 
     const userBio = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.profileBio;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.profileBio;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.metadata?.bio;
     }
 
     const userHandle = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.profileHandle;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.profileHandle;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.handle?.suggestedFormatted.localName;
     }
 
     const displayName = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.profileDisplayName;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.profileDisplayName;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.metadata?.displayName;
     }
 
     const followingCount = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.followingCount;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.followingCount;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.stats?.following;
     }
 
     const followerCount = () => {
-      if (isFarcasterProfile(profile)) {
-        return profile.followerCount;
-      }
+      // if (isFarcasterProfile(profile)) {
+      //   return profile.followerCount;
+      // }
       const lensProfile = profile as ProfileFragment;
       return lensProfile.stats?.followers;
-    } 
+    }
 
   return (
     <div className="bg-background text-secondary min-h-full flex flex-col flex-grow">
@@ -246,7 +246,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
           <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
             <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
               <div className="lg:col-span-3 h-full">
-              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}> 
+              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}>
                 <div className="py-4 h-full">
                   <div
                     className='absolute top-0 left-0 w-full h-[112px] z-[-2] rounded-t-3xl'
@@ -318,7 +318,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   </div>
                 </div>
               </div>
-                
+
                 {/* <ProfileLarge
                   profileData={profile}
                   profileType={type}
