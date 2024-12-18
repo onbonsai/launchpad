@@ -158,6 +158,9 @@ const CLUB_HOLDINGS_PAGINATED = gql`
   query ClubChips($club: Bytes!, $skip: Int!) {
     clubChips(where:{ club: $club }, orderBy: amount, orderDirection: desc, first: 100, skip: $skip) {
       id
+      club {
+        clubId
+      }
       trader {
         id
       }
@@ -435,6 +438,22 @@ export const getBuyPrice = async (
     buyPrice: buyPrice as bigint,
     buyPriceAfterFees: 0n, // HACK
   };
+};
+
+export const getMarketCap = async (
+  supply: string,
+  curve: number | string,
+): Promise<bigint> => {
+  console.log(supply, curve)
+  const client = publicClient();
+  const marketCap = await client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "getMcap",
+    args: [supply, curve]
+  });
+
+  return marketCap as bigint
 };
 
 const PROTOCOL_FEE = 0.06; // 6% total fees for non-NFT holders
