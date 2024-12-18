@@ -212,7 +212,7 @@ const Help = () => {
                           <p className="mt-4 text-lg text-secondary/70">
                             Bonsai Launchpad |{" "}
                             <a
-                              className="link link-hover"
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
                               href={baseScanUrl(LAUNCHPAD_CONTRACT_ADDRESS)}
@@ -223,7 +223,7 @@ const Help = () => {
                           <p className="mt-4 text-lg text-secondary/70">
                             Bonsai Token |{" "}
                             <a
-                              className="link link-hover"
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
                               href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS)}
@@ -234,7 +234,7 @@ const Help = () => {
                           <p className="mt-4 text-lg text-secondary/70">
                             Bonsai NFT |{" "}
                             <a
-                              className="link link-hover"
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
                               href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS)}

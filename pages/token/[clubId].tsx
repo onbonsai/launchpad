@@ -258,8 +258,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   <InfoComponent
                     club={club}
                     address={address}
-                    profile={{}}
-                    isCreatorAdmin={isCreatorAdmin}
                     tradingInfo={tradingInfo}
                   />
                   <Script

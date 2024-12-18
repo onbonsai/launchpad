@@ -109,9 +109,10 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   if (!connected) {
     return (
       <Button
-        className={`${className}`}
+        variant="accent"
+        className="text-base font-medium md:px-4 rounded-xl"
         onClick={login}
-        size="sm"
+        size="md" // This sets the height to 40px and padding appropriately
       >
         Log in
       </Button>
@@ -130,7 +131,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   if (!isAuthenticated && setOpenSignInModal) {
     return (
       <Button
-        className={`${className}`}
+        variant="accent"
+        className="text-base font-medium md:px-4 rounded-xl"
         onClick={() => setOpenSignInModal(true)}
         disabled={signingIn}
         size="md"

@@ -48,7 +48,7 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const creatorLiqMax = (MIN_LIQUIDITY_THRESHOLD / 10);
+  const creatorLiqMax = (MIN_LIQUIDITY_THRESHOLD / BigInt(10));
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
@@ -385,7 +385,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">USDC</span>
                   </div>
-                  {buyPriceFormatted && parseFloat(buyPriceFormatted) > creatorLiqMax && (
+                  {totalRegistrationFee && totalRegistrationFee > creatorLiqMax && (
                     <p className={`absolute left-2 top-full mt-2 text-xs text-primary/90`}>
                       Max Allowed: {creatorLiqMax}{" USDC"}
                     </p>

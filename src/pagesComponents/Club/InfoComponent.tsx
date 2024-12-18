@@ -1,13 +1,9 @@
 import clsx from 'clsx';
 import { Subtitle, BodySemiBold } from "@src/styles/text";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useMemo } from "react";
 import { formatUnits } from "viem";
+import { useGetBuyPrice } from "@src/hooks/useMoneyClubs";
 import {
-  useGetBuyPrice,
-  useGetFeesEarned,
-} from "@src/hooks/useMoneyClubs";
-import {
-  calculatePriceDelta,
   DECIMALS,
   USDC_DECIMALS,
 } from "@src/services/madfi/moneyClubs";
@@ -16,26 +12,15 @@ import { roundedToFixed } from "@src/utils/utils";
 export const InfoComponent = ({
   club,
   address,
-  profile,
-  isCreatorAdmin,
   tradingInfo,
 }) => {
   const { data: buyPriceResult } = useGetBuyPrice(address, club?.clubId, '1');
-  const { data: creatorFeesEarned } = useGetFeesEarned(isCreatorAdmin, address);
 
   const buyPriceFormatted = useMemo(() => {
     if (buyPriceResult?.buyPrice) {
       return roundedToFixed(parseFloat(formatUnits(BigInt(buyPriceResult.buyPrice.toString()), DECIMALS)), 2);
     }
   }, [buyPriceResult]);
-
-  const creatorFeesFormatted = useMemo(() => {
-    if (creatorFeesEarned) {
-      return roundedToFixed(parseFloat(formatUnits(BigInt(creatorFeesEarned.toString()), 18)));
-    }
-
-    return '0';
-  }, [creatorFeesEarned]);
 
 
   const InfoLine: React.FC<{ title: string; subtitle: ReactNode }> = ({ title, subtitle }) => (
@@ -52,7 +37,7 @@ export const InfoComponent = ({
       <InfoLine title='Token Price' subtitle={`\$${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}`} />
       <InfoLine title='Market Cap' subtitle={`\$${!tradingInfo?.marketCap ? '-' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 2)}`} />
       <InfoLine title='Volume (24hr)' subtitle={`\$${!tradingInfo?.volume24Hr ? ' -' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 2)}`} />
-      <InfoLine title='Holders' subtitle={tradingInfo.holders} />
+      <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
     </div>
   );
 };

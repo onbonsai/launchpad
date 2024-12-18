@@ -14,6 +14,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
 import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
+import { ClaimFeesEarned } from "./ClaimFeesEarned";
 
 const headerLinks = [
   // {
@@ -106,6 +107,7 @@ export const Header = () => {
           </div>
           <div className="flex space-x-2 gap-x-2 md:pr-6 w-[33%] justify-end">
             <CreateClub />
+            <ClaimFeesEarned />
             <ConnectButton
               setOpenSignInModal={setOpenSignInModal}
               autoLensLogin={!isAuthenticated}

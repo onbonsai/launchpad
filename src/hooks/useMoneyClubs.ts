@@ -165,11 +165,12 @@ export const useGetSellPrice = (account?: `0x${string}`, clubId?: string, amount
   });
 };
 
-export const useGetFeesEarned = (isCreatorAdmin: boolean, account?: `0x${string}`) => {
+export const useGetFeesEarned = (account?: `0x${string}`) => {
   return useQuery({
     queryKey: ["fees-earned", account],
     queryFn: () => getFeesEarned(account!),
-    enabled: isCreatorAdmin && !!account,
+    enabled: !!account,
+    refetchInterval: 15000, // fetch every 15seconds
   });
 };
 
@@ -197,6 +198,5 @@ export const useGetTradingInfo = (clubId?: number) => {
       return data;
     },
     enabled: !!clubId,
-    refetchInterval: 60000 // 60s
   });
 };
