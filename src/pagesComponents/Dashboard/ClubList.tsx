@@ -6,7 +6,7 @@ import { useInView } from "react-intersection-observer";
 import ClubCard from "./ClubCard";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import { CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { CONTRACT_CHAIN_ID, MIN_LIQUIDITY_THRESHOLD } from "@src/services/madfi/moneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import useGetClubCreators from "@src/hooks/useGetClubCreators";
@@ -29,13 +29,6 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       setClubCreators({ ...clubCreators, ...creators });
     }
   }, [creators, isLoadingClubCreators]);
-
-  const { data: minLiquidityThreshold } = useReadContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'minLiquidityThreshold'
-  });
 
   const sortedClubs = useMemo(() => {
     const _clubs = filterBy ? filteredClubs : clubs;
@@ -65,7 +58,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       <main className="mx-auto max-w-full">
         {sortedClubs.length > 0 && (
           <div className="mb-8">
-            <ClubCard data={sortedClubs[0]} minLiquidityThreshold={minLiquidityThreshold as bigint} />
+            <ClubCard data={sortedClubs[0]} minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD} />
           </div>
         )}
         {/* FILTER */}
@@ -116,7 +109,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 <li className="w-full" key={`club-${idx}`}>
                   <ClubCard
                     data={club}
-                    minLiquidityThreshold={minLiquidityThreshold as bigint}
+                    minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
                     creatorProfile={clubCreators[club.club.clubId] ? clubCreators[club.club.clubId][0].profile : undefined}
                   />
                 </li>
