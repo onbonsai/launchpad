@@ -289,47 +289,49 @@ export const Feed = ({ pubId }) => {
     );
 
   return (
-    <div className="flex flex-col items-center gap-y-4 overflow-hidden">
-      <div className="w-full max-w-[500px]">
-        {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
-          <div className="flex justify-center pt-8 pb-8">
-            <Spinner customClasses="h-6 w-6" color="#E42101" />
-          </div>
-        ) : publicationWithEncrypted ? (
-          <PublicationContainer
-            publication={publicationWithEncrypted}
-            onCommentButtonClick={onCommentButtonClick}
-            decryptGatedPosts={handleDecryptPosts}
-            decrypting={decrypting}
-            shouldGoToPublicationPage={false}
-            isProfileAdmin={isProfileAdmin}
-            setSubscriptionOpenModal={() => { }}
-            hideQuoteButton
+    <div className="flex flex-col items-center relative h-[calc(100vh-300px)]">
+      <div className="flex flex-col items-center gap-y-4 overflow-y-auto pb-[200px]">
+        <div className="w-full max-w-[500px]">
+          {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
+            <div className="flex justify-center pt-8 pb-8">
+              <Spinner customClasses="h-6 w-6" color="#E42101" />
+            </div>
+          ) : publicationWithEncrypted ? (
+            <PublicationContainer
+              publication={publicationWithEncrypted}
+              onCommentButtonClick={onCommentButtonClick}
+              decryptGatedPosts={handleDecryptPosts}
+              decrypting={decrypting}
+              shouldGoToPublicationPage={false}
+              isProfileAdmin={isProfileAdmin}
+              setSubscriptionOpenModal={() => { }}
+              hideQuoteButton
+              hideFollowButton={false}
+            />
+          ) : null}
+        </div>
+        <div className="w-full max-w-[500px] space-y-2">
+          <Publications
+            publications={sortedComments}
+            theme={Theme.dark}
+            environment={LENS_ENVIRONMENT}
+            authenticatedProfile={authenticatedProfile}
+            hideCommentButton={true}
+            hideQuoteButton={true}
+            hideShareButton={true}
             hideFollowButton={false}
+            hasUpvotedComment={hasUpvotedComment}
+            onLikeButtonClick={onLikeButtonClick}
+            getOperationsFor={getOperationsFor}
+            followButtonDisabled={!isConnected}
+            onFollowPress={onFollowClick}
+            onProfileClick={goToProfile}
           />
-        ) : null}
-      </div>
-      <div className="w-full max-w-[500px]">
-        <Publications
-          publications={sortedComments}
-          theme={Theme.dark}
-          environment={LENS_ENVIRONMENT}
-          authenticatedProfile={authenticatedProfile}
-          hideCommentButton={true}
-          hideQuoteButton={true}
-          hideShareButton={true}
-          hideFollowButton={false}
-          hasUpvotedComment={hasUpvotedComment}
-          onLikeButtonClick={onLikeButtonClick}
-          getOperationsFor={getOperationsFor}
-          followButtonDisabled={!isConnected}
-          onFollowPress={onFollowClick}
-          onProfileClick={goToProfile}
-        />
+        </div>
       </div>
       {isConnected && isAuthenticated && (
-        <>
-          <div className="flex items-center gap-x-6 mt-4 w-full max-w-[500px] relative">
+        <div className="w-full max-w-[500px] pt-4 pb-2 bg-background absolute bottom-0">
+          <div className="flex items-center gap-x-6 w-full relative">
             <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
             <textarea
               ref={commentInputRef}
@@ -356,8 +358,7 @@ export const Feed = ({ pubId }) => {
               />
             </div>
           </div>
-          <div className="h-14" ref={scrollPaddingRef}></div>
-        </>
+        </div>
       )}
     </div>
   );
