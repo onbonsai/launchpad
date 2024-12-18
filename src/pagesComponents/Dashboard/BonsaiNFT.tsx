@@ -16,9 +16,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         console.log('ipfshHash', fullUrl);
         if (fullUrl.startsWith('https://ipfs.io/ipfs') && fullUrl.endsWith('.svg')) {
             const parts = fullUrl.split('/');
-            console.log(JSON.stringify(parts));
             const finalUrl = storjGatewayURL(parts[parts.length - 2] + '/' + parts[parts.length - 1]);
-            console.log('finalUrl', finalUrl);
             return finalUrl;
         }
         return fullUrl;
