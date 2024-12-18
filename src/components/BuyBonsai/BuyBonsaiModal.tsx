@@ -17,10 +17,10 @@ const BuyBonsaiModal = () => {
       apiKey={process.env.NEXT_PUBLIC_DECENT_API_KEY ?? ''}
       wagmiConfig={configureChainsConfig}
       selectedDstToken={{
-        chainId: ChainId.BASE_SEPOLIA,
+        chainId: ChainId.BASE,
         tokenInfo: bonsaiToken,
       }}
-      selectedSrcToken={{ chainId: ChainId.BASE_SEPOLIA, tokenInfo: getNativeTokenInfo(ChainId.BASE_SEPOLIA)! }}
+      selectedSrcToken={{ chainId: ChainId.BASE, tokenInfo: getNativeTokenInfo(ChainId.BASE)! }}
       onConnectWallet={() => { }}
       popularTokens={[bonsaiToken]}
       chainIds={[ChainId.POLYGON, ChainId.ETHEREUM, ChainId.BASE, ChainId.ZKSYNC]}

@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.5",
-    "@decent.xyz/box-common": "^3.3.9",
-    "@decent.xyz/the-box": "^3.3.9",
+    "@decent.xyz/box-common": "^4.0.8",
+    "@decent.xyz/the-box": "^4.0.8",
     "@emotion/styled": "^11.13.0",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^1.0.6",

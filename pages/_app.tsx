@@ -31,7 +31,7 @@ const boxTheme = {
   switchBtnBgColor: '#3A3842',
   tokenDialogHoverColor: '#444444',
   boxSubtleColor1: '#999999',
-  borderColor: '#27252B',
+  borderColor: 'transparent',
   borderRadius: '0',
   loadShineColor1: "#121212",
   loadShineColor2: "#333333",

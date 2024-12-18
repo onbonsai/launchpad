@@ -141,44 +141,44 @@
     eventemitter3 "^5.0.1"
     preact "^10.24.2"
 
-"@decent.xyz/box-common@3.3.21", "@decent.xyz/box-common@^3.3.9":
-  version "3.3.21"
-  resolved "https://registry.yarnpkg.com/@decent.xyz/box-common/-/box-common-3.3.21.tgz#e51e9f6e5ad9cd0d23f6fd0c10cfd17e7336455e"
-  integrity sha512-pwTuVlfCD2t65dy9x4rOFd3xaDGDYu2dsNRaFt8Qspc05jFMqMWyrafiM57t4naNIqHkRtBaI3quwN+NVhYc4A==
+"@decent.xyz/box-common@4.0.8", "@decent.xyz/box-common@^4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@decent.xyz/box-common/-/box-common-4.0.8.tgz#7aa71add45f04785fa7d5a27d97178328e4990ae"
+  integrity sha512-RHVjutatjEn395hlkLiwvkvHbSf78iwipSAtARx6TL0eH47qQlGfYGMQenHjGmPyaIjmQ5t6AukeAu2k/BKWww==
 
-"@decent.xyz/box-evm@3.3.21":
-  version "3.3.21"
-  resolved "https://registry.yarnpkg.com/@decent.xyz/box-evm/-/box-evm-3.3.21.tgz#0c3ce156050ae4651ac6462b3a8bc950af1ebc80"
-  integrity sha512-4zNXNTt2SQGdjF/cxxCsWzriaZ/ZP2Nb6MCg+KBxydWfIPqvLe4o0Hs/MxJUo0ptt0gk+HYqCQlBDqSPIwCtOg==
+"@decent.xyz/box-evm@4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@decent.xyz/box-evm/-/box-evm-4.0.8.tgz#8fbd871c3e4b73f5cabe344648e3f3f7ec417cea"
+  integrity sha512-u8e7UcMQ/ytcsqg5QwP9lrHDWb1XegMVbXcyUPjJ8Ufjx6cYdNtLK24K1j7YxEYFbk//UeYhDqz0IZ6a0SB+xQ==
   dependencies:
-    "@decent.xyz/box-common" "3.3.21"
-    "@decent.xyz/box-hooks" "3.3.21"
+    "@decent.xyz/box-common" "4.0.8"
+    "@decent.xyz/box-hooks" "4.0.8"
 
-"@decent.xyz/box-hooks@3.3.21":
-  version "3.3.21"
-  resolved "https://registry.yarnpkg.com/@decent.xyz/box-hooks/-/box-hooks-3.3.21.tgz#50c681dd307ad435c818df836fb1c03ca1f3cc4e"
-  integrity sha512-xHRNX9jGV8i87w6z8Dji8wNIamd7+X+VwWZSO5NS9QrAQBPtjwAtptNY0KfoWSbBa9ORFjY6IPUb1AnlKTK+/A==
+"@decent.xyz/box-hooks@4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@decent.xyz/box-hooks/-/box-hooks-4.0.8.tgz#9fef97780ccee43ba01c027eca374dbf31b54a76"
+  integrity sha512-EfJlamtHw+855GA+79J+TyXV6UxF/SkEnxrjOeD3ShMbtjHF9fAClL6qE1BqekaPes4YCv0SI6erXl7uaYZY4A==
   dependencies:
-    "@decent.xyz/box-common" "3.3.21"
+    "@decent.xyz/box-common" "4.0.8"
     swr "^2.2.0"
 
-"@decent.xyz/box-ui@3.3.21":
-  version "3.3.21"
-  resolved "https://registry.yarnpkg.com/@decent.xyz/box-ui/-/box-ui-3.3.21.tgz#2b58408d0be3cb1c6516040d698b49b0ac2111dd"
-  integrity sha512-E+bfAXYya1StSjrLE+GoW8oOj4rlOE4aH1ZdjksMX/N5HVVjlfk8HePf5AY4MAII5a1E3BjUQl2uKI9DLXd9eQ==
+"@decent.xyz/box-ui@4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@decent.xyz/box-ui/-/box-ui-4.0.8.tgz#31c7cbdfe0b3bbf548a9117036141173cbabc8e5"
+  integrity sha512-XiX8xxO+tDzSq3VT31axfUQbh5CA57T8eReGBeKZM+nbp39X+zf1bI1MRrjlwwso51SFNNp9TPezShqORAwK0w==
   dependencies:
-    "@decent.xyz/box-common" "3.3.21"
-    "@decent.xyz/box-hooks" "3.3.21"
+    "@decent.xyz/box-common" "4.0.8"
+    "@decent.xyz/box-hooks" "4.0.8"
 
-"@decent.xyz/the-box@^3.3.9":
-  version "3.3.21"
-  resolved "https://registry.yarnpkg.com/@decent.xyz/the-box/-/the-box-3.3.21.tgz#095d2e02502504c95053188f2c92833796407623"
-  integrity sha512-g1wTdEqUUtPuiyHrJxjAf9MjFqN6axT1VkiUWQSPu6eumULt1kI0ufQc8Ff4CbfYuFRJrAp88M0tmbcMCRardw==
+"@decent.xyz/the-box@^4.0.8":
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/@decent.xyz/the-box/-/the-box-4.0.8.tgz#b09cdd074779af356e19fd9eb3d356350c1147fb"
+  integrity sha512-aJOF/Boi6S28oq1idZuQlq6A819lcwzqTuTVMrHfbWo9nQv8b2oayYXlW8fY5CelwpkgwlP1wGozuKvFcfPbmw==
   dependencies:
-    "@decent.xyz/box-common" "3.3.21"
-    "@decent.xyz/box-evm" "3.3.21"
-    "@decent.xyz/box-hooks" "3.3.21"
-    "@decent.xyz/box-ui" "3.3.21"
+    "@decent.xyz/box-common" "4.0.8"
+    "@decent.xyz/box-evm" "4.0.8"
+    "@decent.xyz/box-hooks" "4.0.8"
+    "@decent.xyz/box-ui" "4.0.8"
     swr "^2.2.0"
 
 "@ecies/ciphers@^0.2.1":
