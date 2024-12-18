@@ -5,10 +5,10 @@ import { getVolume, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DEC
 
 const RANDOM_ADDRESS = "0x1C111355EdE4259Fa9825AEC1f16f95ED737D62E"; // wont be holding bonsai nft
 const PREV_TRADE_KEYS = [
-  "prevTrade24Hr",
-  "prevTrade6Hr",
-  "prevTrade1Hr",
-  "prevTrade5min"
+  "24h",
+  "6h",
+  "1h",
+  "5m"
 ];
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {

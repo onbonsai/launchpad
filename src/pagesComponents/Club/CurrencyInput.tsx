@@ -1,5 +1,5 @@
 import { Divider } from '@mui/material';
-import { USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
+import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
 import { Subtitle } from '@src/styles/text';
 import { roundedToFixed } from '@src/utils/utils';
 import clsx from 'clsx'
@@ -89,7 +89,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
       </span>
       </div>
         {showMax && (
-            <div onClick={() => onPriceSet(`${formattedBalance}`)} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
+            <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
                 <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
             </div>
         )}

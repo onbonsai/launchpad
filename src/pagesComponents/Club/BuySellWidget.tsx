@@ -306,11 +306,11 @@ ${MADFI_CLUBS_URL}/token/${club.id}
     }}>
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
-        {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
+        {/* {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
           <label className="text-xs font-medium text-secondary/70 whitespace-nowrap mt-4">
             Trading Fee: $0
           </label>
-        )}
+        )} */}
       </div>
       <div className="w-full">
         {/* Buy */}
@@ -367,9 +367,11 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 </div>
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
-                  Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
-                </Button>
+                {!justBought && (
+                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
+                    Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
+                  </Button>
+                )}
                 {justBought && (
                   <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
                     <Button variant="accent" className="w-full">
@@ -444,7 +446,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                       </span> */}
                     </div>
 
-                    
+
                   </div>
                 </div>
               </div>

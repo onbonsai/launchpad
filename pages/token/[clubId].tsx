@@ -25,6 +25,7 @@ import { ActivityBanner } from "@src/components/Header";
 import { roundedToFixed } from "@src/utils/utils";
 import { Header, Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
+import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -87,6 +88,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: walletClient } = useWalletClient();
   const { ready } = usePrivy();
   const { authenticatedProfileId } = useLensSignIn(walletClient);
+  const { data: tradingInfo } = useGetTradingInfo(club.clubId);
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
@@ -149,23 +151,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
     </div>
   );
 
-  const tradeForPeriod = (period: PriceChangePeriod): any[] => {
-    // TODO: fetch trade data for rest of periods
-    switch (period) {
-      default:
-        return (club.prevTrade24Hr ?? []) as any[];
-    }
-  }
-
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
-    const previousTrades = tradeForPeriod(period);
-    const previousPrice = previousTrades.length > 0 ? previousTrades[0].price : 0;
-    const priceDelta = previousTrades.length > 0 ? calculatePriceDelta(club.currentPrice, previousPrice) : { valuePct: 0, positive: false };
-    const percentChange = priceDelta.valuePct;
-    const textColor = percentChange === 0 ? 'text-white/60' : (percentChange > 0 ? "text-bullish" : "text-bearish");
+    const priceDelta = tradingInfo ? tradingInfo.priceDeltas[period] : "0";
+    const textColor = priceDelta === "0" ? 'text-white/60' : (priceDelta.includes("+") ? "text-bullish" : "text-bearish");
     return (
       <Subtitle className={clsx(textColor)}>
-        {percentChange}%
+        {priceDelta}%
       </Subtitle>
     );
   }
@@ -269,6 +260,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     address={address}
                     profile={{}}
                     isCreatorAdmin={isCreatorAdmin}
+                    tradingInfo={tradingInfo}
                   />
                   <Script
                     src="/static/datafeeds/udf/dist/bundle.js"

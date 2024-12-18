@@ -38,22 +38,22 @@ const REGISTERED_CLUB = gql`
       tokenAddress
       creatorFees
       holders
-      prevTrade24Hr: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+      prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
         createdAt
       }
-      prevTrade6Hr: trades(where:{createdAt_gt: $sixHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+      prevTrade6h: trades(where:{createdAt_gt: $sixHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
         createdAt
       }
-      prevTrade1Hr: trades(where:{createdAt_gt: $oneHourAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+      prevTrade1h: trades(where:{createdAt_gt: $oneHourAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
         createdAt
       }
-      prevTrade5min: trades(where:{createdAt_gt: $fiveMinutesAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+      prevTrade5m: trades(where:{createdAt_gt: $fiveMinutesAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
         createdAt
@@ -169,7 +169,6 @@ const CLUB_HOLDINGS_PAGINATED = gql`
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 6;
 export const USDC_DECIMALS = 6;
-export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? 23_005 : 10; // should be in the subgraph :shrug:
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -227,17 +226,17 @@ export const getRegisteredClubById = async (clubId: string) => {
     }
   })
 
-  const prevTrade24Hr = club?.prevTrade24Hr ? club?.prevTrade24Hr[0] :  {};
-  const prevTrade6Hr = club?.prevTrade6hr ? club?.prevTrade6hr[0] : {};
-  const prevTrade1Hr = club?.prevTrade1Hr ? club?.prevTrade1Hr[0] : {};
-  const prevTrade5min = club?.prevTrade5min ? club?.prevTrade5min[0] : {};
+  const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] :  {};
+  const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
+  const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
+  const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
 
   return {
     ...club,
-    prevTrade24Hr,
-    prevTrade6Hr,
-    prevTrade1Hr,
-    prevTrade5min,
+    "24h": prevTrade24h,
+    "6h": prevTrade6h,
+    "1h": prevTrade1h,
+    "5m": prevTrade5m,
   };
 };
 

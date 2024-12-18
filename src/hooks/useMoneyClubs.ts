@@ -172,3 +172,31 @@ export const useGetFeesEarned = (isCreatorAdmin: boolean, account?: `0x${string}
     enabled: isCreatorAdmin && !!account,
   });
 };
+
+type TradingInfoResponse = {
+  name: string;
+  symbol: string;
+  image: string;
+  createdAt: string;
+  buyPrice: string;
+  volume24Hr: string;
+  liquidity: string;
+  marketCap: string;
+  holders: number;
+  graduated: boolean;
+  priceDeltas: {
+    [key: string]: string;
+  };
+};
+export const useGetTradingInfo = (clubId?: number) => {
+  return useQuery({
+    queryKey: ["trading-info", clubId],
+    queryFn: async () => {
+      const data: TradingInfoResponse = await fetch(`/api/clubs/get-trading-info?clubId=${clubId}`)
+        .then(response => response.json());
+      return data;
+    },
+    enabled: !!clubId,
+    refetchInterval: 60000 // 60s
+  });
+};

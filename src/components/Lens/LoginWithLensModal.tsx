@@ -58,10 +58,9 @@ const LoginWithLensModal = ({ closeModal }) => {
   return (
     <div className="flex flex-col w-full mt-8">
       <Dialog.Title as="h2" className="text-5xl uppercase text-center font-owners font-bold">
-        Connected
+        Choose a Profile
       </Dialog.Title>
       <div className="max-w-full flex flex-col gap-4 pt-4 ">
-        <h2 className="font-bold text-xl">Lens Profiles</h2>
 
         {/* PROFILE SELECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">

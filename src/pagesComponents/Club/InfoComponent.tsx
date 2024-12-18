@@ -5,8 +5,6 @@ import { formatUnits } from "viem";
 import {
   useGetBuyPrice,
   useGetFeesEarned,
-  useGetClubVolume,
-  useGetClubLiquidity,
 } from "@src/hooks/useMoneyClubs";
 import {
   calculatePriceDelta,
@@ -20,22 +18,14 @@ export const InfoComponent = ({
   address,
   profile,
   isCreatorAdmin,
+  tradingInfo,
 }) => {
   const { data: buyPriceResult } = useGetBuyPrice(address, club?.clubId, '1');
   const { data: creatorFeesEarned } = useGetFeesEarned(isCreatorAdmin, address);
-  const { data: clubVolume, isLoading: isLoadingVolume } = useGetClubVolume(club?.clubId);
-  const { data: clubLiquidity } = useGetClubLiquidity(club?.clubId);
-  const [volume, setVolume] = useState<bigint>();
 
   const buyPriceFormatted = useMemo(() => {
     if (buyPriceResult?.buyPrice) {
       return roundedToFixed(parseFloat(formatUnits(BigInt(buyPriceResult.buyPrice.toString()), DECIMALS)), 2);
-    }
-  }, [buyPriceResult]);
-
-  const buyPriceDelta = useMemo(() => {
-    if (buyPriceResult?.buyPrice && !!club.prevTrade24Hr) {
-      return calculatePriceDelta(buyPriceResult?.buyPrice, BigInt(club.prevTrade24Hr.prevPrice || 0n));
     }
   }, [buyPriceResult]);
 
@@ -55,20 +45,14 @@ export const InfoComponent = ({
     </div>
   );
 
-  useEffect(() => {
-    if (!isLoadingVolume) {
-      setVolume(clubVolume!);
-    }
-  }, [isLoadingVolume, clubVolume]);
-
   if (!club?.createdAt) return null;
 
   return (
     <div className='flex flex-row items-center mt-3 w-full gap-[4vw]'>
       <InfoLine title='Token Price' subtitle={`\$${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}`} />
-      <InfoLine title='Market Cap' subtitle={`\$${clubLiquidity === undefined ? '-' : roundedToFixed(parseFloat(formatUnits(clubLiquidity, USDC_DECIMALS)), 2)}`} />
-      <InfoLine title='Volume (24hr)' subtitle={`\$${volume === undefined ? ' -' : roundedToFixed(parseFloat(formatUnits(volume || 0n, USDC_DECIMALS)), 2)}`} />
-      <InfoLine title='Holders' subtitle={`todo`} />
+      <InfoLine title='Market Cap' subtitle={`\$${!tradingInfo?.marketCap ? '-' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 2)}`} />
+      <InfoLine title='Volume (24hr)' subtitle={`\$${!tradingInfo?.volume24Hr ? ' -' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 2)}`} />
+      <InfoLine title='Holders' subtitle={tradingInfo.holders} />
     </div>
   );
 };
