@@ -14,8 +14,8 @@ import useIsMounted from "@src/hooks/useIsMounted";
 interface BannerItemProps {
   handle: string;
   verb: string;
-  clubId: string;
-  symbol: string;
+  clubId?: string;
+  symbol?: string;
   image: string;
 }
 
@@ -69,6 +69,24 @@ const testItems = [
   }
 ]
 
+const defaultItems = [
+  {
+    "handle": "bons_ai",
+    "verb": "Welcome!",
+    "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
+  },
+  {
+    "handle": "bonsai",
+    "verb": "2024 only - 0 registration fees 🤑",
+    "image": "https://ik.imagekit.io/lens/media-snapshot/tr:w-1000,h-1000/f49a458ac1dd307689670bede39d03983d1938cea4b105a763206d42ccf637ad.png",
+  },
+  {
+    "handle": "bons_ai",
+    "verb": "Buy 100k $BONSAI to get an NFT",
+    "image": "https://www.storj-ipfs.com/ipfs/bafybeift4k5pgahtc3olog6zoidysxoefv7tnapruaxouetaunqsnrpoga",
+  },
+]
+
 export const ActivityBanner = () => {
   const isMounted = useIsMounted();
   // const [, setItems] = useState<BannerItemProps>({
@@ -78,7 +96,7 @@ export const ActivityBanner = () => {
   //   clubId: "1",
   //   symbol: "ASCEND"
   // });
-  const [items, setItems] = useState<BannerItemProps[]>([]);
+  const [items, setItems] = useState<BannerItemProps[]>(defaultItems);
   const [clubCache, setClubCache] = useState({});
 
   useEffect(() => {
@@ -219,21 +237,31 @@ export const ActivityBanner = () => {
         {/* testItems.map() */}
         {items?.map((item, index) => (
           <React.Fragment key={`fragment-${index}`}>
-            <Link key={`-${index}`} href={`/token/${item.clubId}`}>
+            <Link key={`-${index}`} href={item.clubId ? `/token/${item.clubId}` : '#'}>
               <div className="text-base leading-5 font-medium testStyle flex justify-center items-center h-10 min-w-[120px] cursor-pointer gap-x-2 mr-2">
                 <span className="flex flex-row items-center bg-[var(--gradient-start)] bg-opacity-80 rounded-xl py-2 px-2">
                   {item.handle}
                 </span>
                 <span>{item.verb}</span>
-                <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
-                  <img
-                    src={item.image}
-                    alt={item.symbol}
-                    sizes="1vw"
-                    className="w-[32px] h-[32px] object-cover rounded-xl"
-                  />
-                  ${item.symbol}
-                </span>
+                {item.symbol ? 
+                  <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
+                    <img
+                      src={item.image}
+                      alt={item.symbol}
+                      sizes="1vw"
+                      className="w-[32px] h-[32px] object-cover rounded-xl"
+                    />
+                    ${item.symbol}
+                  </span> : 
+                  <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
+                    <img
+                      src={item.image}
+                      alt="img"
+                      sizes="1vw"
+                      className="w-[32px] h-[32px] object-cover rounded-xl"
+                    />
+                  </span>
+                }
               </div>
             </Link>
             {index < items.length - 1 && <span className="px-4 h-2 w-2 mt-2 color-[var(--gradient-start)] opacity-80">•</span>}
