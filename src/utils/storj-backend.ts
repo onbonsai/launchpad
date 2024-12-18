@@ -1,6 +1,6 @@
 import axios from "axios";
 import FormData from "form-data";
-import { S3 } from "aws-sdk";
+// import { S3 } from "aws-sdk";
 
 import { _hash } from "./pinata";
 
@@ -50,34 +50,35 @@ export const getViaStorjGateway = async (uriOrHash: string) => {
 const storjGatewayURL = (uriOrHash: string) => `${STORJ_API_URL}/ipfs/${_hash(uriOrHash)}`;
 
 export const cacheImageStorj = async (id, imageBuffer, bucket = "temp", lifecycle = "+1d") => {
-  const s3 = new S3({
-    accessKeyId: process.env.STORJ_ACCESS_KEY,
-    secretAccessKey: process.env.STORJ_SECRET_KEY,
-    endpoint: process.env.STORJ_ENDPOINT,
-    s3ForcePathStyle: true,
-    signatureVersion: "v4",
-  });
+  // TODO: move to server
+  // const s3 = new S3({
+  //   accessKeyId: process.env.STORJ_ACCESS_KEY,
+  //   secretAccessKey: process.env.STORJ_SECRET_KEY,
+  //   endpoint: process.env.STORJ_ENDPOINT,
+  //   s3ForcePathStyle: true,
+  //   signatureVersion: "v4",
+  // });
 
-  const params = {
-    Bucket: bucket,
-    Key: id,
-    Body: imageBuffer,
-    ContentType: "image/png",
-  };
+  // const params = {
+  //   Bucket: bucket,
+  //   Key: id,
+  //   Body: imageBuffer,
+  //   ContentType: "image/png",
+  // };
 
-  if (lifecycle) {
-    params["Metadata"] = {
-      "x-amz-meta-object-expires": lifecycle,
-    };
-  }
+  // if (lifecycle) {
+  //   params["Metadata"] = {
+  //     "x-amz-meta-object-expires": lifecycle,
+  //   };
+  // }
 
-  try {
-    await s3.upload(params).promise();
-    return true;
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+  // try {
+  //   await s3.upload(params).promise();
+  //   return true;
+  // } catch (error) {
+  //   console.log(error);
+  //   return false;
+  // }
 };
 
 export const fetchImagesStorj = async (ids: string[]) => {

@@ -1,4 +1,4 @@
-import { Client } from "@xmtp/xmtp-js";
+// import { Client } from "@xmtp/xmtp-js";
 import { Wallet } from "ethers";
 import { getAddress } from "viem";
 
@@ -29,15 +29,16 @@ export const sendMessage = async (
   sender_profile_id: string = MADFI_PROFILE_ID,
 ) => {
   try {
-    const xmtp = await Client.create(new Wallet(`0x${process.env.PRIVATE_KEY!}`), { env: XMTP_ENV });
-    const conversation = await xmtp.conversations.newConversation(getAddress(address), {
-      conversationId: buildConversationId(sender_profile_id, profile_id),
-      metadata: {},
-    });
+    // TODO: deprecate
+    // const xmtp = await Client.create(new Wallet(`0x${process.env.PRIVATE_KEY!}`), { env: XMTP_ENV });
+    // const conversation = await xmtp.conversations.newConversation(getAddress(address), {
+    //   conversationId: buildConversationId(sender_profile_id, profile_id),
+    //   metadata: {},
+    // });
 
-    // @ts-ignore
-    await conversation.send(message, handle);
-    console.log(`message sent to ${handle}`);
+    // // @ts-ignore
+    // await conversation.send(message, handle);
+    // console.log(`message sent to ${handle}`);
     return true;
   } catch (error) {
     console.log(error);

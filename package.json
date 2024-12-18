@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.5",
-    "@coinbase/cbpay-js": "^2.2.1",
     "@decent.xyz/box-common": "^3.3.9",
     "@decent.xyz/the-box": "^3.3.9",
     "@emotion/styled": "^11.13.0",
@@ -33,8 +32,6 @@
     "@types/cors": "^2.8.12",
     "@vercel/analytics": "^1.0.0",
     "@wagmi/chains": "^1.8.0",
-    "@xmtp/xmtp-js": "^11.2.3",
-    "aws-sdk": "^2.1463.0",
     "axios": "^0.27.2",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
