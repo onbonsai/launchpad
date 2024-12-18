@@ -35,20 +35,38 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
 
     useEffect(() => {
         if (!isLoading && holdings?.length) {
-            const _holdings = (holdings ?? []).map((h) => {
+          try {
+            const _holdings = holdings.filter(h => h?.club).map((h) => {
+              if (!h.club?.tokenInfo) {
+                console.warn('Missing tokenInfo for club:', h);
+                return null;
+              }
+      
+              try {
                 const [name, symbol, image] = decodeAbiParameters([
-                    { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+                  { name: 'name', type: 'string' }, 
+                  { name: 'symbol', type: 'string' }, 
+                  { name: 'uri', type: 'string' }
                 ], h.club.tokenInfo);
+      
                 let priceDelta;
                 if (h.club.prevTrade24Hr?.length) {
-                    priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
+                  priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
                 }
+      
                 return { ...h, token: { name, symbol, image }, priceDelta };
-            })
-            console.log(_holdings);
-            setAllHoldings([...allHoldings || [], ..._holdings]);
+              } catch (error) {
+                console.error('Error decoding token info:', error);
+                return null;
+              }
+            }).filter(Boolean); // Remove null entries
+      
+            setAllHoldings(prev => [...(prev || []), ..._holdings]);
+          } catch (error) {
+            console.error('Error processing holdings:', error);
+          }
         }
-    }, [isLoading]);
+      }, [isLoading, holdings]);
 
     useMemo(() => {
         if (!bonsaiAmount || bonsaiAmount === BigInt(0)) {
