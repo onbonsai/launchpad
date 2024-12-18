@@ -288,8 +288,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 {/* TODO: creator admin panel to claim fees, create agent with handle if club.completed */}
               </div>
 
-              <div className="md:col-span-1">
-                <div className="md:pr-6">
+              <div className="md:col-span-1 max-h-[50vh]">
+                <div className="">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}

@@ -1,3 +1,6 @@
+import { ToggleButton } from "@mui/material";
+import { StyledToggleButtonGroup } from "@pagesComponents/Dashboard/BondingCurveSelector";
+
 const tabs = [
   { name: "Feed", id: 1 },
   { name: "Trades", id: 2 },
@@ -5,40 +8,26 @@ const tabs = [
 ];
 
 export const Tabs = ({ openTab, setOpenTab }) => {
+  const handleChange = (event, newValue) => {
+    if (newValue !== null) {
+            setOpenTab(newValue);
+    }
+};
+
   return (
-    <div className="md:flex justify-end">
-      <ul
-        className="nav nav-pills flex flex-col md:flex-row flex-wrap list-none sm:flex-nowrap"
-        id="pills-tab"
-        role="tablist"
-      >
-        {tabs.map((tab) => (
-          <li className="nav-item" role="presentation" key={tab.id}>
-            <button
-              onClick={() => setOpenTab(tab.id)}
-              className={`
-              nav-link
-              block
-              font-medium
-              text-md
-              leading-tight
-              rounded
-              px-6
-              py-2
-              w-full
-              text-center
-              md:w-auto
-              md:mr-2
-              focus:outline-none focus:ring-0
-              hover:bg-dark-grey/90
-              ${openTab === tab.id ? "bg-dark-grey text-white hover:bg-dark-grey/90" : ""}
-            `}
-            >
-              {tab.name}
-            </button>
-          </li>
+    <div className="md:flex justify-end w-full">
+      <StyledToggleButtonGroup
+        value={openTab}
+        exclusive
+        onChange={handleChange}
+        aria-label="Price tier"
+     >
+        {tabs.map((tab, index) => (
+                  <ToggleButton key={index} value={tab.id} aria-label={tab.name}>
+                          {tab.name}
+                  </ToggleButton>
         ))}
-      </ul>
+     </StyledToggleButtonGroup>
     </div>
   );
 }
