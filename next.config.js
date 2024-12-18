@@ -23,6 +23,7 @@ const defaultExports = {
     ignoreDuringBuilds: true,
   },
   images: {
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       "lh3.googleusercontent.com",
       "img.seadn.io",
@@ -39,7 +40,8 @@ const defaultExports = {
       "cdn.stamp.fyi",
       "oaidalleapiprodscus.blob.core.windows.net",
       "statics-polygon-lens.s3.*.amazonaws.com",
-      "gw.ipfs-lens.dev"
+      "gw.ipfs-lens.dev",
+      "nft-cdn.alchemy.com"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,

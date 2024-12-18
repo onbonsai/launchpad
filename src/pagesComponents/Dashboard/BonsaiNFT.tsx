@@ -13,9 +13,15 @@ function BonsaiNFT(props: BonsaiNFTProps) {
     const size = props.size || "91px";
 
     const ipfshHash = (fullUrl: string) => {
-        const parts = fullUrl.split('/');
-        console.log(JSON.stringify(parts));
-        return parts[parts.length - 2] + '/' + parts[parts.length - 1];
+        console.log('ipfshHash', fullUrl);
+        if (fullUrl.startsWith('https://ipfs.io/ipfs') && fullUrl.endsWith('.svg')) {
+            const parts = fullUrl.split('/');
+            console.log(JSON.stringify(parts));
+            const finalUrl = storjGatewayURL(parts[parts.length - 2] + '/' + parts[parts.length - 1]);
+            console.log('finalUrl', finalUrl);
+            return finalUrl;
+        }
+        return fullUrl;
     }
 
     return (
@@ -29,15 +35,14 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         }}
       >
         <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
-            <Image
+            <img
               src={
                 tree.image?.cachedUrl
-                  ? tree.image.cachedUrl
+                  ? ipfshHash(tree.image.cachedUrl)
                   : tree.metadata?.image
                   ? storjGatewayURL(tree.metadata?.image)
                   : ""
               }
-              fill
               className="object-cover"
               alt="bonsai"
               sizes={size}
