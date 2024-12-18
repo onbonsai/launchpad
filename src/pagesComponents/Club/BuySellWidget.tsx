@@ -33,6 +33,9 @@ import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { Header2, Subtitle } from "@src/styles/text";
 import clsx from "clsx";
+import { Divider } from "@mui/material";
+import CurrencyInput from "./CurrencyInput";
+import { ArrowDownIcon } from "@heroicons/react/outline";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -67,12 +70,7 @@ export const BuySellWidget = ({
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
-  const [buyStateFocused, setBuyStateFocused] = useState(false);
-  const [sellStateFocused, setSellStateFocused] = useState(false);
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
-
-  const inputRef = useRef(null);
-  const measureRef = useRef(null);
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -90,13 +88,6 @@ export const BuySellWidget = ({
     }
   }, [club.completedAt]);
 
-  useEffect(() => {
-    if (measureRef.current && inputRef.current) {
-      measureRef.current.textContent = buyPrice || "0.0";
-      const measureWidth = measureRef.current.offsetWidth;
-      inputRef.current.style.width = `${measureWidth + (buyPrice.length > 0 ? 10 : 4)}px`;
-    }
-  }, [buyPrice]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -340,76 +331,38 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
-                    <div className="relative flex flex-col space-y-2">
-                      <div className={clsx("relative rounded-2xl border border-card-light focus:bg-card", buyStateFocused ? "bg-card-light" : "bg-card-dark")}>
-                        <div className="flex flex-row w-full h-full items-center">
-                          <div className="relative items-center pl-4">
-                            <img
-                              src='/usdc.png'
-                              alt={'usdc'}
-                              className="min-w-[24px] min-h-[24px] max-h-[24px]"
-                            />
-                            <img
-                              src='/base.png'
-                              alt={'base'}
-                              className="absolute top-4 left-8 w-[12px] h-[12px]"
-                            />
-                          </div>
-                          <input
-                            ref={inputRef}
-                            type="number"
-                            step="1"
-                            placeholder="0.0"
-                            onFocus={() => setBuyStateFocused(true)}
-                            onBlur={() => setBuyStateFocused(false)}
-                            value={buyPrice}
-                            className={clsx(
-                              "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-                              isBuyMax ? 'text-primary/90' : 'text-secondary',
-                              "placeholder:text-secondary/70"
-                            )}
-                            onChange={(e) => setBuyPrice(e.target.value)}
-                            style={{ width: 'auto' }}
-                          />
-                          <div className='flex flex-col h-[20px] justify-end items-end'>
-                            <Subtitle>
-                              USDC
-                            </Subtitle>
-                          </div>
-                          <span
-                            ref={measureRef}
-                            className={clsx(
-                              // Match the same classes as the input for accurate rendering
-                              "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-                              isBuyMax ? 'text-primary/90' : 'text-secondary',
-                              "placeholder:text-secondary/70"
-                            )}
-                            style={{
-                              position: 'absolute',
-                              left: '0px',
-                              whiteSpace: 'pre',
-                              visibility: 'hidden',
-                            }}
-                          >
-                            {buyPrice || "0.0"}
-                          </span>
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}{" "}USDC</span>
-                        </div>
-                      </div>
+                    <div className="relative flex flex-col">
+                     <CurrencyInput
+                        tokenImage='/usdc.png'
+                        tokenBalance={tokenBalance}
+                        price={buyPrice}
+                        isError={isBuyMax}
+                        onPriceSet={setBuyPrice}
+                        symbol="USDC"
+                        showMax
+                      />
 
-                      <div className="flex justify-between">
-                        {[10, 25, 50, 100].map((percent) => (
-                          <Button
-                            key={percent}
-                            size="sm"
-                            onClick={() => setBuyPrice(tokenBalance ? formatUnits((tokenBalance * BigInt(percent)) / BigInt(100), USDC_DECIMALS) : '0')}
-                          >
-                            {percent}%
-                          </Button>
-                        ))}
-                      </div>
+                        <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
+                          <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
+                            <div className="flex justify-center items-center h-full">
+                              <ArrowDownIcon className="w-4 h-4 text-white"/>
+                            </div>
+                          </div>
+                        </div>
+
+                      <CurrencyInput
+                        tokenImage={club.token.image}
+                        tokenBalance={clubBalance}
+                        price={`${buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}`}
+                        isError={false}
+                        onPriceSet={() => {
+                          // TODO: Set USDC amount based on the token amount
+                        }}
+                        symbol={club.token.symbol}
+                      />
+
                       {isBuyMax && (
-                        <div className="right-6 top-full text-secondary/70 text-xs inline-block cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
+                        <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
                           Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}
                           <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
                             <InformationCircleIcon
@@ -420,16 +373,13 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                           </Tooltip>
                         </div>
                       )}
-                      <p className={`absolute right-3 top-full text-xs text-secondary/70`}>
-                        You will receive: {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` $${club.token.symbol}`}
-                      </p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
-                <Button className="w-full" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="primary">
-                  Buy
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
+                  Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
                 </Button>
                 {justBought && (
                   <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -449,8 +399,34 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
-                    <div className="relative flex flex-col space-y-2">
-                      <div className="relative">
+                    <div className="relative flex flex-col">
+                    <CurrencyInput
+                        tokenImage={club.token.image}
+                        tokenBalance={clubBalance}
+                        price={sellAmount}
+                        isError={sellAmountError}
+                        onPriceSet={setSellAmount}
+                        symbol={club.token.symbol}
+                        showMax
+                      />
+
+                        <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
+                          <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
+                            <div className="flex justify-center items-center h-full">
+                              <ArrowDownIcon className="w-4 h-4 text-white"/>
+                            </div>
+                          </div>
+                        </div>
+
+                        <CurrencyInput
+                        tokenImage='/usdc.png'
+                        tokenBalance={tokenBalance}
+                        price={sellPriceFormatted}
+                        isError={false}
+                        onPriceSet={() => {}}
+                        symbol="USDC"
+                      />
+                      {/* <div className="relative">
                         <input
                           type="number"
                           step="1"
@@ -477,14 +453,16 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         onClick={() => setSellAmount(formatUnits(clubBalance, DECIMALS))}
                       >
                         You will receive:{" $"}{sellPriceFormatted}
-                      </span>
+                      </span> */}
                     </div>
+
+                    
                   </div>
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="primary">
-                  Sell
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="accentBrand">
+                  Sell {sellPriceFormatted} {club.token.symbol}
                 </Button>
               </div>
             </div>
