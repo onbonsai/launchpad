@@ -1,3 +1,4 @@
+import { inter } from "@src/fonts/fonts";
 import { Disclosure, Transition } from "@headlessui/react";
 import Link from "next/link";
 import { useRouter } from 'next/router';
@@ -7,6 +8,7 @@ import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS } from "@src/services/madfi/moneyClubs";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import clsx from "clsx";
 
 const DisclosurePanelWithTransition = ({ children }) => {
   return (
@@ -44,10 +46,10 @@ const Help = () => {
   section = section || ANCHOR_OVERVIEW;
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh]">
+    <div className={clsx("bg-background text-secondary min-h-[90vh]", inter.className)}>
       <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-2 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
-          <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">
             Bonsai Launchpad
           </h1>
         </div>

@@ -5,8 +5,10 @@ import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { ChangeEvent, Fragment, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
+import { inter } from "@src/fonts/fonts"; 
 
 import useClubSearch from "@src/hooks/useClubSearch";
+import clsx from "clsx";
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +38,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className="md:w-[400px] w-full">
+      <div className={clsx("md:w-[400px] w-full", inter.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search tokens
         </label>
@@ -52,7 +54,7 @@ export const SearchClubs = () => {
             className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
           />
           <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
-            <kbd className="inline-flex bg-transparent items-center rounded border border-dark-grey px-2 font-sans text-sm font-medium text-secondary">
+            <kbd className="inline-flex bg-transparent items-center rounded border border-dark-grey px-2 text-sm font-medium text-secondary">
               ⌘K
             </kbd>
           </div>
@@ -83,7 +85,7 @@ export const SearchClubs = () => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-black min-w-[50%] text-left align-middle shadow-md transition-all">
+                <Dialog.Panel className={clsx("w-full max-w-md transform rounded-2xl bg-black min-w-[50%] text-left align-middle shadow-md transition-all", inter.className)}>
                   <Combobox onChange={handleSelectItem}>
                     <div className="relative py-2">
                       <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-transparent text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">

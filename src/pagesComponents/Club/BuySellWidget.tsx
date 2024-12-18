@@ -275,9 +275,9 @@ ${MADFI_CLUBS_URL}/token/${club.id}
     )
   } else if (club.complete || bonded) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
+      <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
         <div className="text-center">
-          <p className="mt-2 text-md text-secondary/70">
+          <p className="mt-12 text-md text-secondary/70">
             ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
           </p>
         </div>
@@ -285,8 +285,8 @@ ${MADFI_CLUBS_URL}/token/${club.id}
           <div className="flex justify-center space-y-2 mt-8">
             {!club.tokenAddress && (
               <Button
-                variant="accent"
-                className="mb-2 md:mb-0 text-base"
+                variant="accentBrand"
+                className="mb-2 md:mb-0 text-base hover:bg-bullish"
                 onClick={releaseLiquidity}
                 disabled={isBuying}
               >

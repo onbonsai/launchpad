@@ -1,3 +1,4 @@
+import { inter } from "@src/fonts/fonts";
 import Link from "next/link";
 // import { HomeIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
@@ -15,6 +16,8 @@ import { CreateClub } from "@src/pagesComponents/Dashboard";
 import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
+import clsx from "clsx";
+import { Header as HeaderText } from "@src/styles/text";
 
 const headerLinks = [
   // {
@@ -131,11 +134,11 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[35vw] text-secondary"
+        panelClassnames={clsx("bg-card w-screen h-screen md:h-full md:w-[35vw] text-secondary", inter.className)}
       >
-        <p className="text-4xl text-secondary text-center">
+        <HeaderText>
           Bonsai Launchpad
-        </p>
+        </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
           Tokens start as a bonding curve until they graduate ($69k mcap or ~$23k in liquidity). Creators receive 3% trading fees.
         </p>
