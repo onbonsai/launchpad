@@ -63,7 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const walletClient = createWalletClient({ account, chain, transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
-    const minAmountOut = parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString());
+    const minAmountOut = IS_PRODUCTION ? parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString()) : 0;
 
     const { swapInfoV4, swapInfoV3 } = getPath();
 
