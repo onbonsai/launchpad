@@ -2,6 +2,7 @@ import Link from "next/link";
 // import { HomeIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useWalletClient } from "wagmi";
+import { useState } from "react";
 
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
@@ -19,21 +20,17 @@ const headerLinks = [
   //   href: routesApp.hooks,
   //   label: "Uniswap Hooks"
   // },
-  {
-    href: routesApp.home,
-    label: "Trending"
-  },
-  {
-    href: routesApp.leaderboard,
-    label: "New"
-  },
+  // {
+  //   href: routesApp.home,
+  //   label: "Trending"
+  // },
+  // {
+  //   href: routesApp.leaderboard,
+  //   label: "New"
+  // },
   // {
   //   href: routesApp.clubs,
   //   label: "Graduated"
-  // },
-  // {
-  //   href: routesApp.help,
-  //   label: "How?"
   // },
 ];
 
@@ -52,6 +49,7 @@ export const Header = () => {
   const { route } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated } = useLensSignIn(walletClient);
+  const [openHelpModal, setOpenHelpModal] = useState(false);
   const isMounted = useIsMounted();
 
   if (!isMounted) return null;
@@ -73,6 +71,12 @@ export const Header = () => {
                   active={route === link.href}
                 />
               )}
+            </div>
+            {/* Help modal */}
+            <div className="h-[40px] py-[10px] px-4 flex justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer" onClick={() => setOpenHelpModal(true)}>
+              <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
+                Info
+              </span>
             </div>
             {/* MOBILE NAVIGATION */}
             {/* <div className="relative z-10 lg:hidden">
@@ -118,6 +122,35 @@ export const Header = () => {
         panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
+      </Modal>
+
+      {/* Help Modal */}
+      <Modal
+        onClose={() => setOpenHelpModal(false)}
+        open={openHelpModal}
+        setOpen={setOpenHelpModal}
+        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[35vw] text-secondary"
+      >
+        <p className="text-4xl text-secondary text-center">
+          Bonsai Launchpad
+        </p>
+        <p className="mt-4 text-xl text-secondary/70">
+          Tokens start as a bonding curve until they graduate ($69k mcap or ~$23k in liquidity). Creators receive 3% trading fees.
+        </p>
+        <p className="mt-2 text-xl text-secondary/70">
+          Built on Base. Bonding curves are priced in USDC ($).
+        </p>
+        <p className="mt-2 text-xl text-secondary/70">
+          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy Bonsai and pair with the token on Uni v3 (v4 soon).
+        </p>
+        <p className="mt-2 text-xl text-secondary/70">
+          Tokens that graduate are eligible to migrate to our Bons(ai) agent stack on Lens network in q1 2025.
+        </p>
+        <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
+          <Link href={routesApp.info} legacyBehavior target="_blank">
+            <span className="gradient-txt link-hover cursor-pointer">Learn more.</span>
+          </Link>
+        </div>
       </Modal>
     </header>
   );

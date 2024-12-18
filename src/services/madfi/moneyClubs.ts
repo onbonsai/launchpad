@@ -169,6 +169,7 @@ const CLUB_HOLDINGS_PAGINATED = gql`
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 6;
 export const USDC_DECIMALS = 6;
+export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? 23_005 : 10; // should be in the subgraph :shrug:
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"

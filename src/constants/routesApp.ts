@@ -6,7 +6,7 @@ export const routesApp = {
   advertisers: "/advertisers",
   dashboard: "/dashboard",
   createBounty: "/bounties/create",
-  help: "/help",
+  info: "/info",
   leaderboard: "/creators/leaderboard",
   referrals: "/referrals",
   points: "/points",
