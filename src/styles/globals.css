@@ -462,3 +462,32 @@ header .bonsaiLogo {
     transform: translateX(-50%);
   }
 }
+
+/* DECENT */
+
+.box-btn-primary {
+  background-color: #FF6400;
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.box-swap-modal-token-card {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.box-swap-fee-card {
+  background-color: rgba(255, 255, 255, 0.01);
+  border-radius: 16px !important;
+  font-family: 'Inter', sans-serif;
+}
+
+.box-swap-modal-icon-btn {
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+}
+
+.box-dialog-inner {
+  border-radius: 16px !important;
+}

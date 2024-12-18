@@ -179,7 +179,7 @@ const IndexPage: NextPage = () => {
             onClose={() => setOpenBuyModal(false)}
             open={openBuyModal}
             setOpen={setOpenBuyModal}
-            panelClassnames="bg-background w-screen h-screen md:h-full md:w-[30vw]"
+            panelClassnames="bg-black/70 w-screen h-screen md:h-full md:w-[30vw]"
           >
             <div className="p-4">
               <BuyBonsaiModal />

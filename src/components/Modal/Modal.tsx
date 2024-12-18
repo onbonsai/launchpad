@@ -53,7 +53,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
               <Dialog.Panel
                 className={`backdrop-blur-[40px] bg-card relative rounded-3xl text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-4 md:w-fit md:max-w-6xl lg:max-w-6xl ${panelClassnames} bg-card overflow-auto bg-blur-[40px]`}
               >
-                <div className="absolute top-0 right-0 mt-4 mr-4 sm:block">
+                <div className="absolute top-0 right-0 mt-4 mr-4 sm:block z-50">
                   <button
                     type="button"
                     className="cursor-pointer focus-visible:outline-none bg-card-light rounded-[10px] h-7 w-7 flex justify-center items-center"
