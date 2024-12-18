@@ -145,7 +145,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   return (
     <>
       <div
-        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl`}
+        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl min-w-fit`}
         onClick={handleClick}
       >
         <span className="flex items-center">
@@ -153,7 +153,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
           <span className="pl-3 pr-[6px] text-white font-medium text-base">
             {identity}
           </span>
-          <span className="bg-card rounded-full h-[13px] w-[13px] mr-[12px] inset-y-0 right-0 flex items-center justify-center pointer-events-none">
+          <span className="bg-card rounded-full h-[13px] w-[13px] mr-[12px] flex items-center justify-center pointer-events-none">
             <svg width="6" height="5" viewBox="0 0 6 5" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M0.5 1L3 3.5L5.5 1" stroke="white" stroke-width="1.2" />
             </svg>

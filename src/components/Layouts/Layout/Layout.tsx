@@ -7,6 +7,11 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+const footerLinks = [
+  {name: "Privacy Policy", href: "/"},
+  {name: "Terms & Conditions", href: "/"},
+];
+
 export const Layout: FC<LayoutProps> = ({ children }) => {
   return (
     <div className={`${inter.className} min-h-screen flex flex-col`}>
@@ -14,7 +19,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 flex flex-col bg-background text-secondary w-full max-w-full flex-grow min-h-full">
         {children}
       </main>
-      {/* <Footer /> */}
+      <Footer links={footerLinks} />
     </div>
   );
 };
