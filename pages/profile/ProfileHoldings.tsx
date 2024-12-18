@@ -113,7 +113,7 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                 {!nfts || nfts?.length === 0 && <BodySemiBold className="text-white">No NFTs yet</BodySemiBold>}
                 <div className="flex space-x-1 w-full min-h-[123px] overflow-x-auto scrollbar-hide">
                     {(nfts ?? []).map((tree, index) => (
-                        <div className="flex flex-col items-center p-4 rounded-[20px]" key={`bonsai-nft-${index}`}>
+                        <div className="flex flex-col items-center p-1 rounded-[20px] bg-card-light" key={`bonsai-nft-${index}`}>
                             <BonsaiNFT tree={tree} index={index} size={'91px'} />
                             <Subtitle className="mt-1 text-white">#{tree.tokenId}</Subtitle>
                         </div>

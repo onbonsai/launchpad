@@ -169,7 +169,8 @@ const CLUB_HOLDINGS_PAGINATED = gql`
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 6;
 export const USDC_DECIMALS = 6;
-export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? 23_005 : 10; // should be in the subgraph :shrug:
+// this isn't likely to change
+export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -187,9 +188,6 @@ export const BONSAI_NFT_BASE_ADDRESS = IS_PRODUCTION
   : "0xE9d2FA815B95A9d087862a09079549F351DaB9bd"
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
-
-// this isn't likely to change
-export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
 
 export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/ECHELoGXmU3uscig75SygTqkUhB414jNAHifd4WtpRoa`;
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/18207/bonsai-launchpad/version/latest`;

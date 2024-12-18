@@ -1,24 +1,28 @@
+
 import { storjGatewayURL } from '@src/utils/storj';
 import Image from 'next/image';
 
 interface BonsaiNFTProps {
-  tree: any;
-  index: number;
-  size?: string;
+    tree: any;
+    index: number;
+    size?: string;
 }
 
 function BonsaiNFT(props: BonsaiNFTProps) {
     const { tree, index } = props;
-    const size = props.size || "78px";
+    const size = props.size || "91px";
+
+    const ipfshHash = (fullUrl: string) => {
+        const parts = fullUrl.split('/');
+        console.log(JSON.stringify(parts));
+        return parts[parts.length - 2] + '/' + parts[parts.length - 1];
+    }
     
     const imageUrl = tree.image?.cachedUrl
-      ? tree.image.cachedUrl
+      ? storjGatewayURL(ipfshHash(tree.image.cachedUrl))
       : tree.raw?.metadata?.image
         ? storjGatewayURL(tree.raw.metadata.image)
         : "";
-  
-    const isSvg = imageUrl.toLowerCase().endsWith('.svg');
-    console.log('isSvg', isSvg);
     return (
       <div
         key={`tree-${index}`}
@@ -30,22 +34,13 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         }}
       >
         <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
-          {isSvg ? (
-            <img
-              src={imageUrl}
-              className="object-cover w-full h-full"
-              alt="bonsai"
-            />
-          ) : (
             <Image
               src={imageUrl}
               fill
               className="object-cover"
               alt="bonsai"
-              unoptimized={true}
               sizes={size}
             />
-          )}
         </a>
       </div>
     );
