@@ -32,7 +32,7 @@ const BonsaiNFTsSection = (props: BonsaiNFTsSectionProps) => {
     <div className="flex flex-col rounded-sm border-zinc-700 gap-y-2 mt-8 overflow-hidden">
       <HoldingsHeader title="Bonsai NFTs" count={nfts?.length || 0} />
       {(!!nfts && nfts.length > 0)
-        ? <div className='flex space-x-1 w-full overflow-x-auto mt-2 px-4'>
+        ? <div className='flex space-x-2 w-full overflow-x-auto mt-2'>
           {nfts.map((tree, index) => (
             <BonsaiNFT tree={tree} index={index} key={`bonsai-nft-${index}`} />
           ))}

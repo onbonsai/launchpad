@@ -17,12 +17,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         console.log(JSON.stringify(parts));
         return parts[parts.length - 2] + '/' + parts[parts.length - 1];
     }
-    
-    const imageUrl = tree.image?.cachedUrl
-      ? storjGatewayURL(ipfshHash(tree.image.cachedUrl))
-      : tree.raw?.metadata?.image
-        ? storjGatewayURL(tree.raw.metadata.image)
-        : "";
+
     return (
       <div
         key={`tree-${index}`}
@@ -35,7 +30,13 @@ function BonsaiNFT(props: BonsaiNFTProps) {
       >
         <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
             <Image
-              src={imageUrl}
+              src={
+                tree.image?.cachedUrl
+                  ? tree.image.cachedUrl
+                  : tree.metadata?.image
+                  ? storjGatewayURL(tree.metadata?.image)
+                  : ""
+              }
               fill
               className="object-cover"
               alt="bonsai"
