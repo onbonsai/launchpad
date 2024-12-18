@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import { formatUnits } from "viem";
 import toast from "react-hot-toast";
-import { CurrencyDollarIcon } from "@heroicons/react/solid";
+// import { CurrencyDollarIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
 import { USDC_DECIMALS, CONTRACT_CHAIN_ID, withdrawFeesEarned } from "@src/services/madfi/moneyClubs";
 import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
@@ -99,7 +99,7 @@ export const ClaimFeesEarned = () => {
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center">
-          <CurrencyDollarIcon className={`h-6 w-6 mr-2 ${!disabled ? 'text-white' : 'text-grey'}`} />
+          {/* <CurrencyDollarIcon className={`h-6 w-6 mr-2 ${!disabled ? 'text-white' : 'text-grey'}`} /> */}
           <span>{creatorFeesFormatted}</span>
         </div>
       </Button>
