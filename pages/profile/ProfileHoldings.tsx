@@ -35,20 +35,38 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
 
     useEffect(() => {
         if (!isLoading && holdings?.length) {
-            const _holdings = holdings.map((h) => {
+          try {
+            const _holdings = holdings.filter(h => h?.club).map((h) => {
+              if (!h.club?.tokenInfo) {
+                console.warn('Missing tokenInfo for club:', h);
+                return null;
+              }
+      
+              try {
                 const [name, symbol, image] = decodeAbiParameters([
-                    { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+                  { name: 'name', type: 'string' }, 
+                  { name: 'symbol', type: 'string' }, 
+                  { name: 'uri', type: 'string' }
                 ], h.club.tokenInfo);
+      
                 let priceDelta;
                 if (h.club.prevTrade24Hr?.length) {
-                    priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
+                  priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
                 }
+      
                 return { ...h, token: { name, symbol, image }, priceDelta };
-            })
-            console.log(_holdings);
-            setAllHoldings([...allHoldings || [], ..._holdings]);
+              } catch (error) {
+                console.error('Error decoding token info:', error);
+                return null;
+              }
+            }).filter(Boolean); // Remove null entries
+      
+            setAllHoldings(prev => [...(prev || []), ..._holdings]);
+          } catch (error) {
+            console.error('Error processing holdings:', error);
+          }
         }
-    }, [isLoading]);
+      }, [isLoading, holdings]);
 
     useMemo(() => {
         if (!bonsaiAmount || bonsaiAmount === BigInt(0)) {
@@ -94,10 +112,10 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                 <Subtitle className="mb-3">Bonsai NFTs</Subtitle>
                 {!nfts || nfts?.length === 0 && <BodySemiBold className="text-white">No NFTs yet</BodySemiBold>}
                 <div className="flex space-x-1 w-full min-h-[123px] overflow-x-auto scrollbar-hide">
-                    {nfts.map((tree, index) => (
+                    {(nfts ?? []).map((tree, index) => (
                         <div className="flex flex-col items-center p-4 rounded-[20px]" key={`bonsai-nft-${index}`}>
                             <BonsaiNFT tree={tree} index={index} size={'91px'} />
-                            <Subtitle className="mt-1 text-white">#{tree.number}</Subtitle>
+                            <Subtitle className="mt-1 text-white">#{tree.tokenId}</Subtitle>
                         </div>
                     ))}
                 </div>

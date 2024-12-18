@@ -188,6 +188,9 @@ export const BONSAI_NFT_BASE_ADDRESS = IS_PRODUCTION
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
+// this isn't likely to change
+export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
+
 export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/ECHELoGXmU3uscig75SygTqkUhB414jNAHifd4WtpRoa`;
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/18207/bonsai-launchpad/version/latest`;
 
