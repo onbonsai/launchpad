@@ -34,6 +34,7 @@ const defaultExports = {
       "www.storj-ipfs.com",
       "link.storjshare.io",
       "lens.infura-ipfs.io",
+      "gateway.storjshare.io",
       "pbs.twimg.com",
       "cdn.stamp.fyi",
       "oaidalleapiprodscus.blob.core.windows.net",
@@ -43,7 +44,7 @@ const defaultExports = {
       protocol: "https",
       hostname: domain,
       port: "",
-      pathname: "/*/**",
+      pathname: "/**",
     })),
   },
   // async headers() {
