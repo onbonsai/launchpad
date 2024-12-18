@@ -98,7 +98,7 @@ export const ClaimFeesEarned = () => {
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center">
-          <CurrencyDollarIcon className="h-6 w-6 text-white mr-2" />
+          <CurrencyDollarIcon className={`h-6 w-6 mr-2 ${!disabled ? 'text-white' : 'text-grey'}`} />
           <span>{creatorFeesFormatted}</span>
         </div>
       </Button>
