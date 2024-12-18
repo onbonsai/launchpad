@@ -28,7 +28,7 @@ export const BottomInfoComponent = ({ club, address }) => {
         <div
           className="rounded-[20px] absolute top-[2px] bottom-[2px] left-[2px]"
           style={{
-            width: `${Math.max(bondingCurveProgress, 14)}%`,
+            width: `${Math.min(Math.max(bondingCurveProgress, 14), 98)}%`,
             background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
             zIndex: 1,
           }}

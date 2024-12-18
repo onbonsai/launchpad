@@ -16,11 +16,11 @@ import {
   IS_PRODUCTION,
   BONSAI_TOKEN_BASE_ADDRESS,
   USDC_CONTRACT_ADDRESS,
+  MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 const WETH = "0x4200000000000000000000000000000000000006";
 const getPath = () => {
@@ -56,15 +56,14 @@ const getPath = () => {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { clubId } = req.query;
+    const { clubId, tokenPrice } = req.body;
 
     const account = privateKeyToAccount(process.env.OWNER_PRIVATE_KEY as `0x${string}`);
     const chain = IS_PRODUCTION ? base : baseSepolia;
     const walletClient = createWalletClient({ account, chain, transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
-    const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
-    const minAmountOut = parseEther((0.85 * 21855 * tokenPrice).toString());
+    const minAmountOut = parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString());
 
     const { swapInfoV4, swapInfoV3 } = getPath();
 

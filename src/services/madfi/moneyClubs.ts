@@ -16,6 +16,7 @@ import { getEventFromReceipt } from "@src/utils/viem";
 import { toHexString } from "../lens/utils";
 import { lensClient } from "../lens/client";
 import axios from "axios";
+import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
@@ -664,7 +665,10 @@ export const approveToken = async (
 };
 
 export const releaseLiquidity = async (clubId: string) => {
-  const { data: { token, hash } } = await axios.get(`/api/clubs/release-liquidity?clubId=${clubId}`)
+  const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+  const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
+    clubId, tokenPrice
+  })
 
   await fetch('/api/clubs/update', {
     method: 'POST',
