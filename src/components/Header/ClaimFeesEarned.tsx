@@ -1,17 +1,50 @@
-import { useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import { formatUnits } from "viem";
+import toast from "react-hot-toast";
+import { CurrencyDollarIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
-import { USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { USDC_DECIMALS, CONTRACT_CHAIN_ID, withdrawFeesEarned } from "@src/services/madfi/moneyClubs";
 import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { roundedToFixed } from "@src/utils/utils";
-import { Subtitle, SmallSubtitle } from '@src/styles/text';
+import { Subtitle, Header2 } from '@src/styles/text';
 
 export const ClaimFeesEarned = () => {
-  const { address } = useAccount();
-  const { data: creatorFeesEarned, isLoading } = useGetFeesEarned(address);
+  const { address, chain, isConnected } = useAccount();
+  const { switchChain } = useSwitchChain();
+  const { data: walletClient } = useWalletClient();
+  const { data: creatorFeesEarned, isLoading, refetch } = useGetFeesEarned(address);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const containerRef = useRef(null);
 
+  // Effect to add and remove the event listener
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setShowTooltip(false);
+      }
+    };
+
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setShowTooltip(false);
+      }
+    };
+
+
+    // If the tooltip is visible, add the event listener
+    if (showTooltip) {
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup function to remove the event listener
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showTooltip]);
 
   const creatorFeesFormatted = useMemo(() => {
     if (creatorFeesEarned) {
@@ -22,34 +55,78 @@ export const ClaimFeesEarned = () => {
   }, [creatorFeesEarned]);
 
   const claimFeesEarned = async () => {
+    setIsClaiming(true);
 
+    let toastId;
+
+    if (chain!.id !== CONTRACT_CHAIN_ID) {
+      try {
+        switchChain({ chainId: CONTRACT_CHAIN_ID });
+      } catch {
+        toast.error("Please switch networks");
+        setIsClaiming(false);
+        return;
+      }
+    }
+
+    try {
+      toastId = toast.loading("Claiming", { id: toastId });
+      await withdrawFeesEarned(walletClient);
+
+      refetch();
+
+      toast.success(`Claimed $${creatorFeesFormatted}`, { duration: 10000, id: toastId });
+
+      setShowTooltip(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to claim", { id: toastId });
+    }
+
+    setIsClaiming(false);
   }
 
+  const disabled = !isConnected || isLoading || creatorFeesEarned === 0n || isClaiming;
+
   return (
-    <div className="relative inline-block">
+    <div ref={containerRef} className="relative inline-block">
       <Button
         variant="dark-grey"
         size="md"
-        className="text-base font-medium md:px-4 rounded-xl"
-        disabled={isLoading || creatorFeesEarned === 0n}
+        className="text-base font-medium md:px-2 rounded-xl"
+        disabled={disabled}
         onClick={() => setShowTooltip(!showTooltip)}
       >
-        Earnings ${creatorFeesFormatted}
+        <div className="flex flex-row justify-center items-center">
+          <CurrencyDollarIcon className="h-6 w-6 text-white mr-2" />
+          <span>{creatorFeesFormatted}</span>
+        </div>
       </Button>
-      {showTooltip && <EarningsTooltip creatorFeesFormatted={creatorFeesFormatted} />}
+      {showTooltip && (
+        <EarningsTooltip
+          creatorFeesFormatted={creatorFeesFormatted}
+          disabled={disabled}
+          claimFeesEarned={claimFeesEarned}
+        />
+      )}
     </div>
   );
 };
 
-const EarningsTooltip = ({ creatorFeesFormatted }) => {
+const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) => {
   return (
     <div className="absolute mt-2 right-0 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px]">
-      <Subtitle>
-        Total earnings: ${creatorFeesFormatted}
+      <Header2>
+        ${creatorFeesFormatted}
+      </Header2>
+      <Subtitle className="pt-2">
+        Earned from creator & referral fees
       </Subtitle>
-      <SmallSubtitle>
-        Creator, referral, protocol fees
-      </SmallSubtitle>
+      <div className="pt-4 w-full">
+        <Button variant="accent" className="w-full" disabled={disabled} onClick={claimFeesEarned}>
+          Claim
+        </Button>
+      </div>
     </div>
   );
 };

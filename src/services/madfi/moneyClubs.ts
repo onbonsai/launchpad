@@ -712,3 +712,17 @@ export const claimTokens = async (walletClient, clubId: string) => {
 
   if (receipt.status === "reverted") throw new Error("Reverted");
 }
+
+export const withdrawFeesEarned = async (walletClient) => {
+  const hash = await walletClient.writeContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "withdrawFeesEarned",
+    args: [zeroAddress],
+    chain: IS_PRODUCTION ? base : baseSepolia,
+  });
+  console.log(`tx: ${hash}`);
+  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+
+  if (receipt.status === "reverted") throw new Error("Reverted");
+}
