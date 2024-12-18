@@ -1,3 +1,4 @@
+import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
@@ -27,6 +28,12 @@ import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import clsx from "clsx";
+import { Subtitle } from "@src/styles/text";
+import { InfoOutlined } from "@mui/icons-material";
+import BondingCurveSelector from "./BondingCurveSelector";
+import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
+
 
 export const RegisterClubModal = ({
   profile,
@@ -167,16 +174,21 @@ ${MADFI_CLUBS_URL}/token/${clubId}
     }
   };
 
+  const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
+
   return (
-    <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-5xl uppercase text-center font-owners font-bold">
-        Create a token
+    <div className={clsx("flex flex-col md:w-[448px] sm:w-screen")}
+    style={{
+      fontFamily: inter.style.fontFamily,
+    }}>
+      <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
+        Create token
       </Dialog.Title>
       <form
-        className="p-4 mx-auto max-w-fit min-w-[50%] space-y-4 divide-y divide-dark-grey"
+        className="mt-5 mx-auto md:w-[448px] sm:w-screen space-y-4 divide-y divide-dark-grey"
       >
         <div className="space-y-2">
-          <div className="grid grid-cols-1 gap-y-4 gap-x-8 sm:grid-cols-6">
+          <div className="grid grid-cols-1 gap-y-5 gap-x-8 sm:grid-cols-6">
 
             {/* Linked social profile */}
             {/* <div className="sm:col-span-6 flex flex-col">
@@ -220,16 +232,14 @@ ${MADFI_CLUBS_URL}/token/${clubId}
 
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <label className="inline-block text-sm font-medium text-secondary">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
                     Name
-                  </label>
+                  </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and symbol" direction="top">
-                      <InformationCircleIcon
-                        width={18}
-                        height={18}
-                        className="inline-block -mt-1 text-secondary mr-1"
+                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and symbol" direction="right">
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
                       />
                     </Tooltip>
                   </div>
@@ -238,7 +248,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   <input
                     type="text"
                     value={tokenName}
-                    className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                    className={clsx("w-full pr-4", sharedInputClasses)}
                     onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 6).toUpperCase()); }}
                   />
                 </div>
@@ -247,15 +257,15 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <label className="inline-block text-sm font-medium text-secondary">
-                    Token symbol
-                  </label>
+                <Subtitle className="text-white/70">
+                    Ticker
+                  </Subtitle>
                 </div>
                 <div>
                   <input
                     type="text"
                     value={tokenSymbol}
-                    className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                    className={clsx("w-full pr-4", sharedInputClasses)}
                     onChange={(e) => setTokenSymbol(e.target.value)}
                   />
                 </div>
@@ -264,14 +274,14 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <label className="inline-block text-sm font-medium text-secondary">
+                  <Subtitle className="text-white/70">
                     Description
-                  </label>
+                  </Subtitle>
                 </div>
                 <div>
                   <textarea
                     value={tokenDescription}
-                    className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                    className={clsx("w-full pr-4 resize-none", sharedInputClasses)}
                     onChange={(e) => setTokenDescription(e.target.value)}
                   />
                 </div>
@@ -281,9 +291,9 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between">
                 <div className="flex items-center">
-                  <label className="inline-block text-sm font-medium text-secondary">
+                <Subtitle className="text-white/70 mb-2">
                     Token image
-                  </label>
+                  </Subtitle>
                 </div>
                 <div>
                   <ImageUploader files={tokenImage} setFiles={setTokenImage} maxFiles={1} />
@@ -291,59 +301,38 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               </div>
             </div>
 
-            <div className="sm:col-span-3 flex flex-col justify-center items-center">
+            <div className="sm:col-span-6 flex flex-col justify-start items-start">
               <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <label className="inline-block text-sm font-medium text-secondary">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70 mb-2">
                     Bonding curve pricing
-                  </label>
+                  </Subtitle>
                   <div className="text-sm inline-block">
                     <Tooltip message="A more expensive bonding curve leads to faster pool creation" direction="top">
-                      <InformationCircleIcon
-                        width={18}
-                        height={18}
-                        className="inline-block -mt-1 text-secondary mr-1"
+                    <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
                       />
                     </Tooltip>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-4 max-w-fit flex-wrap">
-                {[{ curveType: 0, label: 'Cheap' }, { curveType: 1, label: 'Normal' }, { curveType: 2, label: 'Expensive' }].map(({ curveType: _curveType, label }) => (
-                  <label
-                    key={_curveType}
-                    htmlFor={`curve-${_curveType}`}
-                    className="mt-2 text-sm text-secondary flex items-center justify-center gap-2 bg-dark-grey rounded-md p-2 min-w-[100px]"
-                  >
-                    <input
-                      type="radio"
-                      className="h-5 w-5 border-none text-primary focus:ring-primary/70"
-                      value={_curveType}
-                      id={`curve-${_curveType}`}
-                      name="curveType"
-                      onChange={(e) => setCurveType(parseInt(e.target.value))}
-                      checked={curveType === _curveType}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
+              <div className="flex gap-4 w-full flex-wrap">
+                  <BondingCurveSelector value={curveType} onChange={(type) => setCurveType(type)} options={[{ curveType: 0, label: 'Cheap' }, { curveType: 1, label: 'Normal' }, { curveType: 2, label: 'Expensive' }]} />
               </div>
             </div>
 
-            <div className="sm:col-span-3 flex flex-col">
+            <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex justify-between">
-                  <div className="flex items-center gap-2">
-                    <label className="inline-block text-sm font-medium text-secondary">
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70 mb-2">
                       Buy initial supply
-                    </label>
+                    </Subtitle>
                     <div className="text-sm inline-block">
                       <Tooltip message="Buying the initial supply is optional, but recommended" direction="top">
-                        <InformationCircleIcon
-                          width={18}
-                          height={18}
-                          className="inline-block -mt-1 text-secondary mr-1"
-                        />
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
+                      />
                       </Tooltip>
                     </div>
                   </div>
@@ -352,62 +341,34 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   </label>
                 </div>
                 <div className="relative flex flex-col space-y-1">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      step="1"
-                      value={initialSupply}
-                      className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                      placeholder="0.0"
-                      onChange={(e) => setInitialSupply(parseFloat(e.target.value))}
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{tokenSymbol}</span>
-                  </div>
-
-                  <div className="absolute left-1/2 transform -translate-x-1/2 bg-black/70 rounded-full p-1 shadow-md top-6 z-10">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-secondary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      className={"block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"}
-                      value={buyPriceFormatted}
-                      disabled
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">USDC</span>
-                  </div>
-                  {totalRegistrationFee && totalRegistrationFee > creatorLiqMax && (
-                    <p className={`absolute left-2 top-full mt-2 text-xs text-primary/90`}>
-                      Max Allowed: {creatorLiqMax}{" USDC"}
+                  <CurrencyInput
+                      trailingAmount={`${buyPriceFormatted}`}
+                      tokenBalance={tokenBalance}
+                      price={`${initialSupply}`}
+                      isError={false}
+                      onPriceSet={(e) => setInitialSupply(parseFloat(e))}
+                      symbol={tokenSymbol}
+                  />
+                </div> 
+                {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
+                    <p className={`mt-2 text-xs text-primary/90`}>
+                      Max Allowed: {creatorLiqMax.toString()}{" USDC"}
                     </p>
                   )}
-                  <p className={`absolute right-2 top-full mt-2 text-xs ${tokenBalance < (totalRegistrationFee || 0n) ? 'text-primary/90' : 'text-secondary/70'}`}>
-                    Balance: {tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0}
-                  </p>
-                </div>
               </div>
             </div>
           </div>
           <div className="pt-8 flex flex-col gap-4 justify-center items-center">
-            <Button disabled={isBuying || !isValid} onClick={registerClub} variant="primary">
-              Create
+            <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
+              Create token
             </Button>
-            <p className="text-sm text-secondary font-light">
+            <Subtitle>
               Creating will also make a post from your profile
-            </p>
+            </Subtitle>
             {(bonsaiNftZkSync > 0n) && (
-              <p className="text-sm text-secondary font-light gradient-txt">
+              <Subtitle>
                 For being a Bonsai NFT holder, your token will be featured for 48 hours
-              </p>
+              </Subtitle>
             )}
           </div>
         </div>

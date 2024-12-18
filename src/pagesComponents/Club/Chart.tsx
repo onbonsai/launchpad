@@ -45,7 +45,7 @@ const Chart = ({ symbol }) => {
         autosize: defaultProps.autosize,
         loading_screen: { backgroundColor: "#141414" },
         overrides: {
-          "paneProperties.background": "#141414",
+          "paneProperties.background": "#000",
           "paneProperties.backgroundType": "solid",
         } // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/chart-overrides#scalesproperties
       };

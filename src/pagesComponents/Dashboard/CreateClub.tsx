@@ -47,7 +47,7 @@ export const CreateClub = () => {
         onClose={() => setRegisterClubModal(false)}
         open={registerClubModal}
         setOpen={setRegisterClubModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <RegisterClubModal
           profile={profile}

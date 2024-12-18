@@ -4,6 +4,8 @@ import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
 
 import { cx } from "@src/utils/classnames";
+import { BodySemiBold, Header2, Subtitle } from "@src/styles/text";
+import { Button } from "../Button";
 
 interface ImageUploaderProps {
   files: any[];
@@ -73,18 +75,24 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-2 pb-4">
+      ) : files.length > 0 && (
+        <div className="flex flex-col items-start rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest">
           {files.map((file: any, i: number) => (
-            <div className="reveal-on-hover relative" key={i}>
-              <img className="object-cover rounded-md w-[17.3rem] h-28" src={file.preview} alt={file.name} />
-              <button
-                className="-mt-8 bg-black/75 absolute h-8 show-on-hover w-full"
+            <div className="flex flex-row">
+              <img className="rounded-xl h-12 w-12 object-cover" src={file.preview} alt={file.name} />
+              <div className="flex flex-col ml-3 justify-between">
+              <Subtitle className="text-white">
+                {file.name}
+              </Subtitle>
+              <Button
+                className="w-fit max-h-6"
+                size="xs"
                 onClick={(e) => removeFile(e, file)}
               >
                 Remove
-              </button>
-            </div>
+              </Button>
+              </div>
+              </div>
           ))}
         </div>
       )}
@@ -94,7 +102,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             <div
               {...getRootProps()}
               className={cx(
-                "flex flex-col items-center justify-center border-4 rounded-md border-spacing-5 border-dashed rounded-xs transition-all h-40 cursor-pointer border-dark-grey",
+                "flex flex-col items-center rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
                 files.length ? "shadow-xl" : "",
               )}
             >
@@ -102,10 +110,10 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
 
               <div className="text-secondary flex items-center flex-col">
                 <PhotographIcon width={50} height={50} />
-                <p className="font-bold text-xl">
+                <BodySemiBold>
                   {/* Add {orderedPreview ? "" : "up to"} {maxFiles - files.length} {files.length === 0 ? "" : "more"}{" "} */}
                   Upload an image (max: 10mb)
-                </p>
+                </BodySemiBold>
               </div>
             </div>
           )}

@@ -1,6 +1,6 @@
 import { Divider } from '@mui/material';
 import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
-import { Subtitle } from '@src/styles/text';
+import { BodySemiBold, Subtitle } from '@src/styles/text';
 import { roundedToFixed } from '@src/utils/utils';
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
@@ -8,16 +8,17 @@ import { formatUnits } from 'viem';
 
 interface CurrencyInputProps {
     price: string;
+    trailingAmount?: string;
     isError: boolean;
     tokenBalance: bigint;
     onPriceSet: (price: string) => void;
     symbol: string;
-    tokenImage: string;
+    tokenImage?: string;
     showMax?: boolean;
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { symbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax } = props;
+    const { symbol, trailingAmount, tokenImage, tokenBalance, price, isError, onPriceSet, showMax } = props;
     const [isFocused, setIsFocused] = useState(false);
     const inputRef = useRef(null);
     const measureRef = useRef(null);
@@ -36,7 +37,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     <div onClick={() => inputRef.current?.focus()} className={clsx("rounded-2xl border border-card-light focus:bg-card flex flex-col", isFocused ? "bg-card-light" : "bg-card-dark")}>
     <div className="flex flex-row w-full h-full items-center justify-between">
         <div className='flex flex-row w-full h-full items-center'>
-      <div className="relative items-center pl-4">
+      {tokenImage && <div className="relative items-center pl-4">
         <img
           src={tokenImage}
           alt={'token image'}
@@ -47,7 +48,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
           alt={'base'}
           className="absolute top-4 left-8 w-[12px] h-[12px]"
         />
-      </div>
+      </div>}
       <input
         ref={inputRef}
         type="number"
@@ -92,6 +93,11 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
                 <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
             </div>
+        )}
+        {!showMax && trailingAmount && (
+            <BodySemiBold className='text-white/60 mr-3'>
+                {trailingAmount}
+            </BodySemiBold>
         )}
     </div>
     <Divider/>
