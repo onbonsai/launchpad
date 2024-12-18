@@ -368,7 +368,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
                 {!justBought && (
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
+                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || isBuyMax || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
                     Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
                   </Button>
                 )}
