@@ -26,6 +26,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import { Header, Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import { localizeNumber } from '@src/constants/utils';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -156,7 +157,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
     const textColor = priceDelta === "0" ? 'text-white/60' : (priceDelta.includes("+") ? "text-bullish" : "text-bearish");
     return (
       <Subtitle className={clsx(textColor)}>
-        {priceDelta}%
+        {localizeNumber(Number(priceDelta) / 100, "percent")}
       </Subtitle>
     );
   }

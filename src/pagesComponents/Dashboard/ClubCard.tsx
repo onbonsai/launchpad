@@ -9,6 +9,7 @@ import { useGetClubLiquidity } from "@src/hooks/useMoneyClubs";
 import ProgressBar from "@src/components/ProgressBar";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
+import { localizeNumber } from "@src/constants/utils";
 
 interface Props {
   data: {
@@ -118,11 +119,11 @@ const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
                   Mcap
                 </Subtitle>
                 <p className={infoTextStyle}>
-                  ${roundedToFixed(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)), 2)}{" "}
+                  {localizeNumber(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)))}{" "}
                 </p>
               </div>
               <p className={infoTextStyle}>
-                {bondingCurveProgress}%
+                {localizeNumber(bondingCurveProgress / 100, "percent")}
               </p>
             </div>
 

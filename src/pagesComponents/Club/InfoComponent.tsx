@@ -8,6 +8,7 @@ import {
   USDC_DECIMALS,
 } from "@src/services/madfi/moneyClubs";
 import { roundedToFixed } from "@src/utils/utils";
+import { localizeNumber } from '@src/constants/utils';
 
 export const InfoComponent = ({
   club,
@@ -34,9 +35,9 @@ export const InfoComponent = ({
 
   return (
     <div className='flex flex-row items-center mt-3 w-full gap-[4vw]'>
-      <InfoLine title='Token Price' subtitle={`\$${buyPriceFormatted ? `${buyPriceFormatted}` : '-'}`} />
-      <InfoLine title='Market Cap' subtitle={`\$${!tradingInfo?.marketCap ? '-' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 2)}`} />
-      <InfoLine title='Volume (24hr)' subtitle={`\$${!tradingInfo?.volume24Hr ? ' -' : roundedToFixed(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 2)}`} />
+      <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted)}` : '-'}`} />
+      <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)))}`} />
+      <InfoLine title='Volume (24hr)' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)))}`} />
       <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
     </div>
   );

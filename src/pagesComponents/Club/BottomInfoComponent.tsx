@@ -4,6 +4,7 @@ import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
 import { useMemo, useState } from "react";
 import { MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { localizeNumber } from "@src/constants/utils";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
@@ -32,15 +33,6 @@ export const BottomInfoComponent = ({ club, address }) => {
     return 0;
   }, [club]);
 
-  const formatUSD = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   return (
     <div className="flex justify-center items-center mt-5 gap-1">
       <div className="bg-white min-w-[240px] h-[56px] rounded-[20px] p-[2px] relative">
@@ -54,13 +46,13 @@ export const BottomInfoComponent = ({ club, address }) => {
         />
         <div className="flex flex-col px-3 py-2 relative z-10">
           <Subtitle className="text-black/60">Bonding curve</Subtitle>
-          <BodySemiBold className="text-black">{bondingCurveProgress}%</BodySemiBold>
+          <BodySemiBold className="text-black">{localizeNumber(bondingCurveProgress / 100, "percent")}</BodySemiBold>
         </div>
       </div>
       <div className="bg-white min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
         <div className="flex flex-col">
           <Subtitle className="text-black/60">Holding</Subtitle>
-          <BodySemiBold className="text-black">{formatUSD(balance)}</BodySemiBold>
+          <BodySemiBold className="text-black">{localizeNumber(balance)}</BodySemiBold>
         </div>
         <Button
           className="bg-bullish border-transparent max-w-[60px]"

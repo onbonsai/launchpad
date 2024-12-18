@@ -8,6 +8,7 @@ import { USDC_DECIMALS, CONTRACT_CHAIN_ID, withdrawFeesEarned } from "@src/servi
 import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { roundedToFixed } from "@src/utils/utils";
 import { Subtitle, Header2 } from '@src/styles/text';
+import { localizeNumber } from "@src/constants/utils";
 
 export const ClaimFeesEarned = () => {
   const { address, chain, isConnected } = useAccount();
@@ -48,7 +49,7 @@ export const ClaimFeesEarned = () => {
 
   const creatorFeesFormatted = useMemo(() => {
     if (creatorFeesEarned) {
-      return roundedToFixed(parseFloat(formatUnits(BigInt(creatorFeesEarned.toString()), USDC_DECIMALS)), 2);
+      return localizeNumber(parseFloat(formatUnits(BigInt(creatorFeesEarned.toString()), USDC_DECIMALS)), undefined, 2);
     }
 
     return '0.00';
@@ -117,7 +118,7 @@ const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) =>
   return (
     <div className="absolute mt-2 right-0 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px]">
       <Header2>
-        ${creatorFeesFormatted}
+        {creatorFeesFormatted}
       </Header2>
       <Subtitle className="pt-2">
         Earned from creator & referral fees
