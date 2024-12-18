@@ -33,6 +33,7 @@ import useIsFollowed from "@src/hooks/useIsFollowed";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
 import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 interface CreatorPageProps {
@@ -83,6 +84,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, profile?.id)
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
+  const { data: bonsaiNFTs } = useGetBonsaiNFTs(profileAddress(profile, creatorInfo?.address));
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
@@ -345,7 +347,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 </div> */}
               </div>
               <div className="lg:col-span-6 h-full">
-               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={[]} />
+               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
               </div>
 
               <div className="lg:col-span-3">

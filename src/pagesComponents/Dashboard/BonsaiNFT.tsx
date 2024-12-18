@@ -1,38 +1,44 @@
-
 import { storjGatewayURL } from '@src/utils/storj';
 import Image from 'next/image';
 
 interface BonsaiNFTProps {
-    tree: any;
-    index: number;
-    size?: string;
+  tree: any;
+  index: number;
+  size?: string;
 }
 
 function BonsaiNFT(props: BonsaiNFTProps) {
-    const { tree, index } = props;
-    const size = props.size || "78px";
-    return (
-        <div className={`min-w-[${size}] max-w-[${size}] h-[${size}]`} key={`tree-${index}`}>
-            <div className={`rounded-2xl overflow-hidden relative h-[${size}]`}>
-                <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
-                    <Image
-                        src={
-                            tree.image?.cachedUrl
-                                ? tree.image.cachedUrl
-                                : tree.metadata?.image
-                                    ? storjGatewayURL(tree.metadata?.image)
-                                    : ""
-                        }
-                        fill={true}
-                        sizes={size}
-                        className="object-cover"
-                        alt="bonsai tree"
-                        unoptimized={true}
-                    />
-                </a>
-            </div>
-        </div>
-    );
+  const { tree, index } = props;
+  const size = props.size || "78px";
+    console.log(tree.image);
+  const imageUrl = tree.image?.cachedUrl
+    ? tree.image.cachedUrl
+    : tree.raw?.metadata?.image
+      ? storjGatewayURL(tree.raw.metadata.image)
+      : "";
+
+  return (
+    <div
+      key={`tree-${index}`}
+      className="relative rounded-2xl overflow-hidden"
+      style={{
+        minWidth: size,
+        maxWidth: size,
+        height: size,
+      }}
+    >
+      <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
+        <Image
+          src={imageUrl}
+          fill
+          className="object-cover"
+          alt="bonsai tree"
+          unoptimized={true}
+          sizes={size}
+        />
+      </a>
+    </div>
+  );
 }
 
 export default BonsaiNFT;
