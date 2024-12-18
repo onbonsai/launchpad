@@ -1,12 +1,12 @@
 import { ChainId } from "@decent.xyz/box-common";
 
-import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_TOKEN_ZKSYNC_ADDRESS } from "@src/services/madfi/moneyClubs";
+const BONSAI_TOKEN_BASE_ADDRESS = "0x474f4cb764df9da079D94052fED39625c147C12C";
 
 // TODO: switch to zksync
 // Bonsai token on Base
 export const bonsaiToken = {
     address: BONSAI_TOKEN_BASE_ADDRESS,
-    chainId: ChainId.BASE_SEPOLIA,
+    chainId: ChainId.BASE,
     decimals: 18,
     symbol: 'BONSAI',
     name: 'Bonsai Token',
