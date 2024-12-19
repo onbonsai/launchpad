@@ -41,7 +41,7 @@ export const Header = () => {
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
             <div
-                className="hidden md:flex h-[40px] py-[10px] px-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+                className="hidden md:flex h-[40px] py-[12px] px-4 ml-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
                 onClick={() => setOpenHelpModal(true)}
               >
                 <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
@@ -57,10 +57,19 @@ export const Header = () => {
 
           {/* Right side of header */}
           <div className="flex items-center justify-end w-[100%]">
-            {/* Keep ConnectButton always visible */}
+            {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
+            {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
+            <div className="hidden sm:flex items-center space-x-2 md:mr-2">
+              <CreateClub />
+              <ClaimFeesEarned />
+              {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
+            </div>
+
+            {/* Keep ConnectButton always visible, now outside the desktop-specific div */}
             <ConnectButton
               setOpenSignInModal={setOpenSignInModal}
               autoLensLogin={!isAuthenticated}
+              className="sm:hidden" // Hide on desktop since it's included in the line above for desktop view
             />
 
             {/* Hamburger (visible on small screens only) */}
@@ -68,18 +77,12 @@ export const Header = () => {
               className="sm:hidden ml-2 text-white focus:outline-none"
               onClick={() => setOpenMobileMenu(!openMobileMenu)}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" 
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
                    viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </button>
-
-            {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
-            <div className="hidden sm:flex items-center space-x-2 ml-4">
-              <CreateClub />
-              <ClaimFeesEarned />
-            </div>
           </div>
         </div>
 
