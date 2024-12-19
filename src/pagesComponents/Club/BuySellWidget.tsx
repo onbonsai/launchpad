@@ -451,10 +451,11 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="accentBrand">
-                  Sell {sellPriceFormatted} {club.token.symbol}
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={sellChips} variant="accentBrand">
+                  Sell {sellAmount} {club.token.symbol}
                 </Button>
               </div>
+              {club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
           </div>
         )}

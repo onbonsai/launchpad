@@ -557,7 +557,7 @@ export const getRegistrationFee = async (
 export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean } => {
   if (lastTradePrice == 0n) return { valuePct: 0 };
   const priceDelta: bigint = price > lastTradePrice ? price - lastTradePrice : lastTradePrice - price;
-  const priceDeltaPercentage = parseFloat(formatEther(priceDelta)) * 100 / parseFloat(formatEther(price));
+  const priceDeltaPercentage = parseFloat(formatEther(priceDelta)) * 100 / parseFloat(formatEther(lastTradePrice));
   return {
     valuePct: parseFloat(roundedToFixed(priceDeltaPercentage, 2)),
     positive: price > lastTradePrice,
