@@ -8,6 +8,8 @@ import {
   MONGO_DB_CREATORS,
 } from "@src/constants/constants";
 
+import { IS_PRODUCTION as IS_PRODUCTION_LAUNCHPAD } from "../madfi/moneyClubs";
+
 const uri = process.env.MONGO_URI;
 
 let mongoClient: MongoClient;
@@ -110,7 +112,8 @@ export const getClientWithCreditsGhostwriter = async () => {
 export const getClientWithClubs = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("moonshot");
-  const collection = database.collection("clubs");
+  const _collection = IS_PRODUCTION_LAUNCHPAD ? "clubs-prod" : "clubs"
+  const collection = database.collection(_collection);
 
   return { collection, database };
 };
