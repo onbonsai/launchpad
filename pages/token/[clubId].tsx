@@ -286,8 +286,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
               </div>
 
               {/* Feed/Trades/Holders */}
-              <div className="md:col-span-1 max-h-[50vh] mb-[100px] relative">
-                <div className="">
+              <div className="md:col-span-1 max-h-[90vh] mb-[100px] md:mb-0 relative">
+                <div className="mb-4">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}

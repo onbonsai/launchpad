@@ -290,8 +290,8 @@ export const Feed = ({ pubId, morePadding = false }) => {
     );
 
   return (
-    <div className="flex flex-col items-center relative h-[calc(100vh-220px)]">
-      <div className="flex flex-col items-center gap-y-4 overflow-y-auto pb-[280px] md:pb-[220px]">
+    <div className="flex flex-col items-center relative h-full">
+      <div className="flex flex-col items-center gap-y-4 overflow-y-auto h-full  md:pb-0">
         <div className="w-full max-w-[500px]">
           {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
             <div className="flex justify-center pt-8 pb-8">
@@ -329,9 +329,9 @@ export const Feed = ({ pubId, morePadding = false }) => {
             onProfileClick={goToProfile}
           />
         </div>
-      </div>
+      
       {isConnected && isAuthenticated && (
-        <div className={clsx("w-full max-w-[500px] pt-4 bg-background absolute bottom-0 md:pb-2", morePadding ? 'pb-[120px]' : 'pb-[100px]')}>
+        <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
           <div className="flex items-center gap-x-6 w-full relative">
             <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
             <textarea
@@ -361,6 +361,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
