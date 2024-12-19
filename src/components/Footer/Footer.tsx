@@ -1,8 +1,4 @@
 import { useRouter } from "next/router";
-import Twitter from "@mui/icons-material/Twitter";
-import Link from "next/link";
-import { cx } from "@src/utils/classnames";
-import { routesApp } from "@src/constants/routesApp";
 import clsx from "clsx";
 
 
