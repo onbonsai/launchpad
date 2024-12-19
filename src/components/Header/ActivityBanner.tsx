@@ -233,27 +233,25 @@ export const ActivityBanner = () => {
         {items?.map((item, index) => (
           <React.Fragment key={`fragment-${index}`}>
             <Link key={`-${index}`} href={item.clubId ? `/token/${item.clubId}` : '#'}>
-              <div className="text-base leading-5 font-medium testStyle flex justify-center items-center h-10 min-w-[120px] cursor-pointer gap-x-2 mr-2">
+              <div className="text-base leading-5 font-medium testStyle flex justify-center items-center min-w-[200px] cursor-pointer gap-x-2 mr-2">
                 <span className="flex flex-row items-center bg-[var(--gradient-start)] bg-opacity-80 rounded-xl py-2 px-2">
                   {item.handle}
                 </span>
-                <span>{item.verb}</span>
+                <span className="whitespace-nowrap">{item.verb}</span>
                 {item.symbol ?
                   <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
                     <img
                       src={item.image}
                       alt={item.symbol}
-                      sizes="1vw"
                       className="w-[32px] h-[32px] object-cover rounded-xl"
                     />
                     ${item.symbol}
                   </span> :
-                  <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
+                  <span className="flex flex-row h-[40px] items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
                     <img
                       src={item.image}
                       alt="img"
-                      sizes="1vw"
-                      className="w-[32px] h-[32px] object-cover rounded-xl"
+                      className="min-w-[32px] h-[32px] object-cover rounded-xl"
                     />
                   </span>
                 }

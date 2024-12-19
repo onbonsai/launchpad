@@ -101,7 +101,7 @@ const IndexPage: NextPage = () => {
                 {/* Profile */}
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
-                  <div className="bg-card rounded-xl p-4">
+                  <div className="bg-card rounded-xl p-4 hidden lg:block">
                     {!!address &&
                       <>
                         <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
