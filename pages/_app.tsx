@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { baseSepolia, polygon } from "viem/chains";
+import { base, baseSepolia, polygon } from "viem/chains";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
@@ -61,7 +61,7 @@ export default function MyApp(props: AppProps) {
           accentColor: "#eb4d30",
           walletList: ["detected_wallets", "rainbow", "coinbase_wallet", "wallet_connect" /*'farcaster'*/],
         },
-        defaultChain: baseSepolia, // base
+        defaultChain: base,
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
           noPromptOnSignature: true,
