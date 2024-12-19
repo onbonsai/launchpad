@@ -361,18 +361,21 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                   </div>
                 </div>
               </div>
-              <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
+              <div className="w-full flex flex-col justify-center items-center space-y-2">
                 {!justBought && (
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                     Buy ${club.token.symbol}
                   </Button>
                 )}
                 {justBought && (
-                  <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
-                    <Button variant="accent" className="w-full">
-                      Share to Orb
-                    </Button>
-                  </a>
+                  <div className="w-full flex flex-col items-center">
+                    <p className="text-center mb-4 gradient-txt">{`You bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}!`}</p>
+                    <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                      <Button variant="accent" className="w-full">
+                        Share to Orb
+                      </Button>
+                    </a>
+                  </div>
                 )}
               </div>
             </div>
