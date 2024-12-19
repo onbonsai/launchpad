@@ -44,6 +44,7 @@ const Chart = ({ symbol }) => {
         fullscreen: defaultProps.fullscreen,
         autosize: defaultProps.autosize,
         loading_screen: { backgroundColor: "#141414" },
+        toolbar_bg: "#000",
         overrides: {
           "paneProperties.background": "#000",
           "paneProperties.backgroundType": "solid",
