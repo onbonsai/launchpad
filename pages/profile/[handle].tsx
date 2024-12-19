@@ -1,3 +1,4 @@
+import { MobileViewSelector } from './MobileViewSelector';
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { Subtitle, BodySemiBold, Header } from "@src/styles/text";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
@@ -92,6 +93,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [welcomeToast, setWelcomeToast] = useState(false);
+  const [mobileView, setMobileView] = useState('profile');
+
 
   const {
     fullRefetch,
@@ -245,13 +248,18 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
       return lensProfile.stats?.followers;
     }
 
+
+
   return (
-    <div className="bg-background text-secondary min-h-full flex flex-col flex-grow">
-        <main className="mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
+    <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">
+        <main className="lg:mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
+        <MobileViewSelector activeView={mobileView} setActiveView={setMobileView} />
           <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
             <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
-              <div className="lg:col-span-3 h-full">
-              <div className={`z-20 flex bottom-0 top-[135px] h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}>
+            <div className={`col-span-full lg:col-span-3 h-full ${
+              mobileView === 'profile' ? 'block' : 'hidden lg:block'
+            }`}>
+              <div className={`z-20 flex bottom-0 top-0 h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}>
                 <div className="py-4 h-full">
                   <div
                     className='absolute top-0 left-0 w-full h-[112px] z-[-2] rounded-t-3xl'
@@ -354,7 +362,9 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   </div>
                 </div> */}
               </div>
-              <div className="lg:col-span-6 h-full">
+              <div className={`lg:col-span-6 h-full ${
+            mobileView === 'holdings' ? 'block' : 'hidden lg:block'
+          }`}>
                <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
               </div>
 
@@ -368,6 +378,9 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 /> */}
 
               <div className="flex flex-col flex-grow min-h-0">
+              <div className={`lg:col-span-3 ${
+            mobileView === 'feed' ? 'mx-auto block' : 'hidden lg:block'
+          }`}>
                   {/* Feed - only show for Lens profiles atm */}
                   {openTab === 1 && type === "lens" && (
                     <PublicationFeed
@@ -378,6 +391,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                       returnToPage={`u/${profile.handle?.localName || profile.profileHandle}`}
                     />
                   )}
+                  </div>
                 </div>
               </div>
             </div>

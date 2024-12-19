@@ -225,7 +225,7 @@ export const ActivityBanner = () => {
   }
 
   return (
-    <div className="sticky w-full h-[40px] text-black mb-10" style={{
+    <div className="sticky w-full h-[40px] text-black mb-10 z-10" style={{
       background: "linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 135.42%)"
     }}>
       <Ticker slideSpeed={"30s"}>

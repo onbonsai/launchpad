@@ -116,7 +116,7 @@ export const ClaimFeesEarned = () => {
 
 const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) => {
   return (
-    <div className="absolute mt-2 right-0 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px]">
+    <div className="fixed mt-2 right-4 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]">
       <Header2>
         {creatorFeesFormatted}
       </Header2>
