@@ -125,7 +125,7 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames={clsx("bg-card w-screen h-screen md:h-full md:w-[35vw] text-secondary", inter.className)}
+        panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", inter.className)}
       >
         <HeaderText>
           Bonsai Launchpad

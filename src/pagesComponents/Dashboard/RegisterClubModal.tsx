@@ -173,7 +173,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
   return (
-    <div className={clsx("flex flex-col md:w-[448px] sm:w-screen")}
+    <div className={clsx("flex flex-col md:w-[448px] w-full")}
     style={{
       fontFamily: inter.style.fontFamily,
     }}>
@@ -181,10 +181,10 @@ ${MADFI_CLUBS_URL}/token/${clubId}
         Create token
       </Dialog.Title>
       <form
-        className="mt-5 mx-auto md:w-[448px] sm:w-screen space-y-4 divide-y divide-dark-grey"
+        className="mt-5 mx-auto md:w-[448px] w-full space-y-4 divide-y divide-dark-grey"
       >
         <div className="space-y-2">
-          <div className="grid grid-cols-1 gap-y-5 gap-x-8 sm:grid-cols-6">
+          <div className="grid grid-cols-1 gap-y-5 gap-x-8">
 
             {/* Linked social profile */}
             {/* <div className="sm:col-span-6 flex flex-col">

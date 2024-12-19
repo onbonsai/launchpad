@@ -31,7 +31,7 @@ const TRANSITION = {
 export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelClassnames, transitionProps = TRANSITION }) => {
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+      <Dialog as="div" className="relative z-150" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           {...transitionProps}
@@ -40,19 +40,21 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
         </Transition.Child>
 
         <div className="fixed z-[99999] inset-0 overflow-y-auto">
-          <div className="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel
-                className={`backdrop-blur-[40px] bg-card relative rounded-3xl text-left shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-4 md:w-fit md:max-w-6xl lg:max-w-6xl ${panelClassnames} bg-card overflow-auto bg-blur-[40px]`}
-              >
+  <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0 bg-black/70 ">
+    <Transition.Child
+      as={Fragment}
+      enter="ease-out duration-300"
+      enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      enterTo="opacity-100 translate-y-0 sm:scale-100"
+      leave="ease-in duration-200"
+      leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+      leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+    >
+      <Dialog.Panel
+        className={`backdrop-blur-[40px] bg-card relative rounded-3xl text-left shadow-xl 
+        transform transition-all sm:my-8 sm:max-w-sm w-full h-fit sm:p-4 md:w-fit 
+        md:max-w-6xl lg:max-w-6xl ${panelClassnames} overflow-auto`}
+      >
                 <div className="absolute top-0 right-0 mt-4 mr-4 sm:block z-50">
                   <button
                     type="button"
