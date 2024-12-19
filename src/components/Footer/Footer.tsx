@@ -5,36 +5,25 @@ import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
 import clsx from "clsx";
 
+
 const links = [
-  {
-    href: routesApp.hooks,
-    label: "Uniswap v4 Hooks"
-  },
-  {
-    href: routesApp.help,
-    label: "FAQ"
-  },
+  {name: "Info", href: "/info"},
+  {name: "Privacy Policy", href: "/privacy-policy"},
+  {name: "Terms & Conditions", href: "/tos"},
+  {name: "x.com", href: "https://x.com/bonsaitoken404"},
+  // {name: "Uni v4 hooks", href: "/hooks"},
 ];
 
-interface FooterProps {
-  links: {
-    name: string;
-    href: string;
-  }[]
-}
-
-export const Footer = (props: FooterProps) => {
+export const Footer = () => {
   const { route } = useRouter();
-
-  if (route.includes("post/")) return null;
 
   return (
     <footer className="flex justify-end pr-4 pb-4 bg-transparent w-full md:mt-24 gap-2">
-      {props.links.map((link, index) => (
-        <>
-          <a key={index} href={link.href} className={clsx("text-sm text-white hover:text-white/80")}>{link.name}</a>
-          {(index < (props.links.length - 1)) && <span className="text-sm text-white">|</span>}
-        </>
+      {links.map((link, index) => (
+        <div key={`footer-${index}`}>
+          <a  href={link.href} className={clsx("text-sm text-white/70 hover:text-white/80")}>{link.name}</a>
+          {(index < (links.length - 1)) && <span className="text-sm text-white ml-2 ">|</span>}
+        </div>
       ))}
     </footer>
   );

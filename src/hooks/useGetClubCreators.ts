@@ -37,9 +37,9 @@ const fetchClubCreators = async (clubs) => {
 
 export const useGetClubCreators = (clubs, clubsCached) => {
   return useQuery({
-    queryKey: ['club-creators', `${clubs[0]?.clubId}_${clubs[clubs.length - 1]?.clubId}`],
+    queryKey: ['club-creators', `${clubs?.length > 0 ? clubs[0]?.clubId : ''}_${clubs?.length > 0 ? clubs[clubs.length - 1]?.clubId : ''}`],
     queryFn: () => fetchClubCreators(clubs.filter((c) => !clubsCached[c.club.id])),
-    enabled: !!clubs.length,
+    enabled: !!clubs?.length,
   });
 };
 

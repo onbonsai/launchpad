@@ -23,6 +23,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       image
     };
 
+    // cache 60s
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate');
+
     return res.status(200).json(club);
   } catch (e) {
     console.log(e);

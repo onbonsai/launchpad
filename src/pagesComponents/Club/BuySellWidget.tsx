@@ -24,6 +24,7 @@ import {
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
   releaseLiquidity as releaseLiquidityTransaction,
+  MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
@@ -59,16 +60,12 @@ export const BuySellWidget = ({
   const { buyAmount, maxAllowed } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
-  const { data: minLiquidityThreshold } = useReadContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'minLiquidityThreshold'
-  });
+  const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
+  const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -252,7 +249,6 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                   variant="accent"
                   className="mb-2 md:mb-0 text-base"
                   onClick={claimTokens}
-                  disabled
                 >
                   Claim Tokens
                 </Button>
@@ -323,7 +319,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={isBuyMax}
+                        isError={isBuyMax || notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -350,7 +346,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
 
                       {isBuyMax && (
                         <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
-                          Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}
+                          <p className="text-bearish">Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}</p>
                           <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
                             <InformationCircleIcon
                               width={14}
@@ -366,8 +362,8 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
                 {!justBought && (
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
-                    Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
+                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
+                    Buy ${club.token.symbol}
                   </Button>
                 )}
                 {justBought && (
@@ -449,10 +445,12 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees} onClick={sellChips} variant="accentBrand">
-                  Sell {sellPriceFormatted} {club.token.symbol}
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={sellChips} variant="accentBrand">
+                  Sell {sellAmount} {club.token.symbol}
                 </Button>
               </div>
+              {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
+              {club.supply != "0" && club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs text-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
           </div>
         )}

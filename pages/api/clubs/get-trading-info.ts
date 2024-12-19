@@ -40,6 +40,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
     ], club.tokenInfo);
 
+    // cache 60s
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate');
+
     return res.status(200).json({
       name,
       symbol,

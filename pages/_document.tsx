@@ -6,7 +6,7 @@ class MyDocument extends Document {
     return (
       <Html lang="en" className="w-full h-full bg-background">
         <Head>
-          <link rel="shortcut icon" href="/favicon.png" />
+          <link rel="shortcut icon" href="/favicon.ico" />
           <link href="/webclip.png" rel="apple-touch-icon image_src" />
           <meta name="msapplication-TileColor" content="#da532c" />
           <meta name="theme-color" content="#ffffff" />
