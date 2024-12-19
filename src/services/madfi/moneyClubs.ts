@@ -180,7 +180,7 @@ export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   : "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 export const DEFAULT_HOOK_ADDRESS = IS_PRODUCTION
-  ? ""
+  ? zeroAddress // TODO: mainnet address!
   : "0xA788031C591B6824c032a0EFe74837EE5eaeC080";
 export const BONSAI_TOKEN_ZKSYNC_ADDRESS = "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82";
 export const BONSAI_TOKEN_BASE_ADDRESS = IS_PRODUCTION
@@ -194,7 +194,7 @@ export const BONSAI_NFT_BASE_ADDRESS = IS_PRODUCTION
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
 // export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway-arbitrum.network.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/ECHELoGXmU3uscig75SygTqkUhB414jNAHifd4WtpRoa`;
-export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/latest"; // DEV URL
+export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/version/latest"; // DEV URL
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/18207/bonsai-launchpad/version/latest`;
 
 export function baseScanUrl(txHash: string) {
@@ -457,7 +457,7 @@ export const getMarketCap = async (
   return marketCap as bigint
 };
 
-const PROTOCOL_FEE = 0.06; // 6% total fees for non-NFT holders
+const PROTOCOL_FEE = 0.02; // 2% total fees for non-NFT holders
 
 export const getBuyAmount = async (
   account: `0x${string}`,
@@ -588,14 +588,12 @@ type RegistrationParams = {
 };
 export const registerClub = async (walletClient, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
-  const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registerClub",
-    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType, recipient],
-    chain: IS_PRODUCTION ? base : baseSepolia,
-    gas: 2_100_000
+    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType, zeroAddress],
+    chain: IS_PRODUCTION ? base : baseSepolia
   });
   console.log(`tx: ${hash}`);
 

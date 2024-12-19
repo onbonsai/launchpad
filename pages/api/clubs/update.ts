@@ -43,12 +43,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const { collection } = await getClientWithClubs();
 
       if (liquidityReleasedTxHash) {
-        const club = await collection.findOne({ clubId });
-        if (!club || club.agentSwapTxHash != undefined)
-          return res.status(400).json({ error: "no club or liquidity released event already processed" });
-        const agentSwapTxHash = await swapAgentCreatorFee(clubId, liquidityReleasedTxHash);
-        if (!agentSwapTxHash) return res.status(500).json({ error: "failed to swap" });
-        await collection.updateOne({ clubId }, { $set: { agentSwapTxHash } });
+        // NOTE: no agent swap required
+        // const club = await collection.findOne({ clubId });
+        // if (!club || club.agentSwapTxHash != undefined)
+        //   return res.status(400).json({ error: "no club or liquidity released event already processed" });
+        // const agentSwapTxHash = await swapAgentCreatorFee(clubId, liquidityReleasedTxHash);
+        // if (!agentSwapTxHash) return res.status(500).json({ error: "failed to swap" });
+        // await collection.updateOne({ clubId }, { $set: { agentSwapTxHash } });
       } else {
         await collection.updateOne({ _id: new ObjectId(id) }, { $set: { pubId } });
       }

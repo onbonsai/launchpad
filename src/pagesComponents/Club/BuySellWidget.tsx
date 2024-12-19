@@ -25,6 +25,7 @@ import {
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
   releaseLiquidity as releaseLiquidityTransaction,
+  MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
@@ -61,12 +62,7 @@ export const BuySellWidget = ({
   const { buyAmount, maxAllowed } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
-  const { data: minLiquidityThreshold } = useReadContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'minLiquidityThreshold'
-  });
+  const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
@@ -254,7 +250,6 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                   variant="accent"
                   className="mb-2 md:mb-0 text-base"
                   onClick={claimTokens}
-                  disabled
                 >
                   Claim Tokens
                 </Button>
@@ -352,7 +347,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
 
                       {isBuyMax && (
                         <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
-                          Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}
+                          <p className="text-bearish">Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}</p>
                           <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
                             <InformationCircleIcon
                               width={14}
@@ -368,7 +363,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
                 {!justBought && (
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || isBuyMax || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
+                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
                     Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
                   </Button>
                 )}

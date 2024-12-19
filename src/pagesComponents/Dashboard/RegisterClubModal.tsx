@@ -55,11 +55,12 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const creatorLiqMax = (MIN_LIQUIDITY_THRESHOLD / BigInt(10));
+  const creatorLiqMax = ((MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** DECIMALS)) / BigInt(10));
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
-  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage;
+  // TODO: might need to check this after registration fees enabled
+  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
 
   const { data: registrationCost } = useReadContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
@@ -352,7 +353,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                 </div> 
                 {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
                     <p className={`mt-2 text-xs text-primary/90`}>
-                      Max Allowed: {creatorLiqMax.toString()}{" USDC"}
+                      Max Initial Purchase Allowed: {(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}{" USDC"}
                     </p>
                   )}
               </div>
