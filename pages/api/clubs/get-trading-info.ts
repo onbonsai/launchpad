@@ -44,6 +44,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate');
 
     return res.status(200).json({
+      id: club.id,
       name,
       symbol,
       image,
