@@ -13,7 +13,6 @@ function BonsaiNFT(props: BonsaiNFTProps) {
     const size = props.size || "91px";
 
     const ipfshHash = (fullUrl: string) => {
-        console.log('ipfshHash', fullUrl);
         if (fullUrl.startsWith('https://ipfs.io/ipfs') && fullUrl.endsWith('.svg')) {
             const parts = fullUrl.split('/');
             const finalUrl = storjGatewayURL(parts[parts.length - 2] + '/' + parts[parts.length - 1]);

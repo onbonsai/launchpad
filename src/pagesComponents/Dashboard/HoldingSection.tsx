@@ -16,9 +16,10 @@ const HoldingSection = (props: HoldingSectionProps) => {
   const { holdings, bonsaiAmount, bonsaiPriceString } = props;
   return (
     <div className="flex flex-col rounded-sm border-zinc-700 gap-y-2 mt-8 overflow-hidden">
-      <HoldingsHeader title="Tokens" count={holdings.length + (bonsaiAmount > 0 ? 1 : 0)} />
+      {/* <HoldingsHeader title="Tokens" count={holdings.length + (bonsaiAmount > 0 ? 1 : 0)} /> */}
+      <HoldingsHeader title="Tokens" count={holdings.length} />
       <div className='flex space-x-1 w-full overflow-x-auto mt-2 scrollbar-hide'>
-        {bonsaiAmount > 0 && <TokenCard
+        {/* {bonsaiAmount > 0 && <TokenCard
           key={`bonsai-row}`}
           title={'Bonsai'}
           count={roundedToFixed(parseFloat(formatEther(bonsaiAmount)), 2)}
@@ -26,7 +27,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
           symbol={'BONSAI'}
           logoBg={false}
           price={bonsaiPriceString}
-        />}
+        />} */}
         {holdings.map((row) => (
           <TokenCard
             key={`row-${row.club.clubId}`}
