@@ -11,7 +11,7 @@ const HandleSEO = ({ pageProps }) => {
     const handle = profile.handle?.localName || profile.username || profile.profileHandle;
     const title = trimText(`@${handle}`, 45);
     const image = formatProfilePicture(profile).metadata.picture.url;
-    const description = "";
+    const description = trimText("Profile on the Bonsai Launchpad", 45);
 
     return (
       <Head>
@@ -38,10 +38,9 @@ const HandleSEO = ({ pageProps }) => {
   }
 
   if (pageName === "singlePublication") {
-    const { pubId, handle, content } = pageProps;
+    const { handle, content, image } = pageProps;
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
-    let image = bucketImageLinkStorj(pubId);
 
     return (
       <Head>
@@ -51,7 +50,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description}></meta>
         <meta property="og:url" content={SITE_URL}></meta>
         <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image}></meta>
+        <meta property="og:image" content={image || ""}></meta>
         <meta property="og:image:alt" content="madfi.png"></meta>
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
@@ -61,7 +60,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image}></meta>
+        <meta name="twitter:image" content={image || ""}></meta>
         <meta name="theme-color" content="#141414"></meta>
       </Head>
     );
