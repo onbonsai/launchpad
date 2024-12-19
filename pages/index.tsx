@@ -77,7 +77,7 @@ const IndexPage: NextPage = () => {
           </div> */}
 
 
-          <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
+          <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-7 max-w-full">
                 {isLoading
@@ -101,7 +101,7 @@ const IndexPage: NextPage = () => {
                 {/* Profile */}
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
                 {isConnected && authenticatedProfile && (
-                  <div className="bg-card rounded-xl p-4">
+                  <div className="bg-card rounded-xl p-4 hidden lg:block">
                     {!!address &&
                       <>
                         <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />

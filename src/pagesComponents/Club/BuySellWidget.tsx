@@ -232,8 +232,8 @@ ${MADFI_CLUBS_URL}/token/${club.id}
 
   if (club.complete && tokenAddress) {
     return (
-      <div className={clsx("flex flex-col items-center justify-center w-full h-[150px] md:-mt-4", inter.className)}>
-        <div className="text-center">
+      <div className={clsx("flex flex-col items-center justify-center w-full md:-mt-4", inter.className)}>
+        <div className="text-center mt-12">
           <p className="mt-2 text-lg text-secondary/70">
             ${club.token.symbol}/BONSAI pool is live!{" "}
             <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
