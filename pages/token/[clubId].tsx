@@ -158,11 +158,32 @@ const TokenPage: NextPage<TokenPageProps> = ({
     );
   }
 
+  const infoCardRow = () => (
+    <>
+    <InfoCard title='5m' subtitle={
+      <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+    }
+      roundedLeft
+    />
+    <InfoCard title='1h' subtitle={
+      <PriceChangeString period={PriceChangePeriod.oneHour} />
+    } />
+    <InfoCard title='6h' subtitle={
+      <PriceChangeString period={PriceChangePeriod.sixHours} />
+    } />
+    <InfoCard title='24h' subtitle={
+      <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
+    }
+      roundedRight
+    />
+    </>
+  );
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
         <ActivityBanner />
-        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           {/* <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-pt-12 pb-4">
             {/* <div className="flex items-center gap-x-4">
                <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
@@ -184,14 +205,15 @@ const TokenPage: NextPage<TokenPageProps> = ({
             )}
           </div> */}
 
-          <section aria-labelledby="dashboard-heading" className="pt-4 max-w-full">
+          <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <h2 id="dashboard-heading" className="sr-only">
               {profile?.metadata?.displayName}
             </h2>
 
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
+              {/* Chart */}
               <div className="md:col-span-3">
-                <div className="relative w-full h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+                <div className="relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
                     <img
                       src={club.token.image}
@@ -202,7 +224,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
                   <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
 
-                  <div className="relative z-10 p-3 pb-6 flex justify-between items-center">
+                  <div className="relative z-10 p-3 pb-6 flex flex-col justify-between items-center">
+                    <div className="flex flex-row justify-between items-center w-full">
                     <div className='flex flex-row items-center'>
                       <img
                         src={club.token.image}
@@ -230,28 +253,17 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         roundedRight
                         roundedLeft
                       />
-                      <div className="flex flex-row items-center">
-                        <InfoCard title='5m' subtitle={
-                          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
-                        }
-                          roundedLeft
-                        />
-                        <InfoCard title='1h' subtitle={
-                          <PriceChangeString period={PriceChangePeriod.oneHour} />
-                        } />
-                        <InfoCard title='6h' subtitle={
-                          <PriceChangeString period={PriceChangePeriod.sixHours} />
-                        } />
-                        <InfoCard title='24h' subtitle={
-                          <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-                        }
-                          roundedRight
-                        />
+                      <div className="flex-row items-center hidden md:flex">
+                        {infoCardRow()}
+                      </div>
                       </div>
                     </div>
+                    <div className="flex-row pt-4 justify-end items-center flex md:hidden ">
+                        {infoCardRow()}
+                      </div>
                   </div>
                 </div>
-                <div className='px-3'>
+                <div className='px-0 md:px-3'>
                   <InfoComponent
                     club={club}
                     address={address}
@@ -271,24 +283,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   </div>
                 </div>
                 <BottomInfoComponent club={club} address={address} />
-                {/* Info, Trade */}
-                {/* <div className="rounded-md md:p-10 p-6 w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4 grid grid-cols-1 lg:grid-cols-2 gap-x-24">
-                  <div>
-                    <InfoComponent
-                      club={club}
-                      address={address}
-                      profile={{}}
-                      isCreatorAdmin={isCreatorAdmin}
-                    />
-                  </div>
-                  <div>
-                    <TradeComponent club={club} address={address} />
-                  </div>
-                </div>
-                {/* TODO: creator admin panel to claim fees, create agent with handle if club.completed */}
               </div>
 
-              <div className="md:col-span-1 max-h-[50vh]">
+              {/* Feed/Trades/Holders */}
+              <div className="md:col-span-1 max-h-[50vh] mb-[100px] relative">
                 <div className="">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>

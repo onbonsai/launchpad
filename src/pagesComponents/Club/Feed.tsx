@@ -290,7 +290,7 @@ export const Feed = ({ pubId }) => {
 
   return (
     <div className="flex flex-col items-center relative h-[calc(100vh-220px)]">
-      <div className="flex flex-col items-center gap-y-4 overflow-y-auto pb-[220px]">
+      <div className="flex flex-col items-center gap-y-4 overflow-y-auto pb-[280px] md:pb-[220px]">
         <div className="w-full max-w-[500px]">
           {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
             <div className="flex justify-center pt-8 pb-8">
@@ -330,14 +330,14 @@ export const Feed = ({ pubId }) => {
         </div>
       </div>
       {isConnected && isAuthenticated && (
-        <div className="w-full max-w-[500px] pt-4 pb-2 bg-background absolute bottom-0">
+        <div className="w-full max-w-[500px] pt-4  bg-background absolute bottom-0 pb-[100px] md:pb-2">
           <div className="flex items-center gap-x-6 w-full relative">
             <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
             <textarea
               ref={commentInputRef}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+              className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
               placeholder="Add a comment"
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}

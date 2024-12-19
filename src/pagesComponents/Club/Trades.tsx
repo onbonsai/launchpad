@@ -78,7 +78,7 @@ export const Trades = ({ clubId }) => {
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-xl shadow-md">
+    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-xl shadow-md mb-[100px]">
       <table className="mb-2 w-full text-center">
         <thead className="uppercase bg-card bg-dark-grey">
           <tr>
