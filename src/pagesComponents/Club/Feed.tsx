@@ -34,8 +34,9 @@ import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComme
 // import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
+import clsx from "clsx";
 
-export const Feed = ({ pubId }) => {
+export const Feed = ({ pubId, morePadding = false }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { address, isConnected, chain } = useAccount();
@@ -330,7 +331,7 @@ export const Feed = ({ pubId }) => {
         </div>
       </div>
       {isConnected && isAuthenticated && (
-        <div className="w-full max-w-[500px] pt-4  bg-background absolute bottom-0 pb-[100px] md:pb-2">
+        <div className={clsx("w-full max-w-[500px] pt-4 bg-background absolute bottom-0 md:pb-2", morePadding ? 'pb-[120px]' : 'pb-[100px]')}>
           <div className="flex items-center gap-x-6 w-full relative">
             <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
             <textarea
