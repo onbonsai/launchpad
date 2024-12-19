@@ -100,8 +100,7 @@ const PublicationFeed = ({
   // }
 
   return (
-    <div className="flex flex-col flex-grow overflow-y-auto"
-    style={{ height: 'calc(100vh - 120px)' }}>
+    <div className="flex flex-col flex-grow overflow-y-auto h-[calc(100vh-290px)] lg:h-[calc(100vh-120px)]">
       {/* {welcomePost && (
         <>
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
