@@ -100,6 +100,12 @@ const Help = () => {
                             <li>Our agent will create your token and reply with a component for you to buy</li>
                             <li>You need 10k $BONSAI tokens to join the Bonsai Club. You can buy some on the {" "}<Link href={routesApp.dashboard} legacyBehavior target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">dashboard</span></Link>{" "} or on {" "}<Link href="https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079D94052fED39625c147C12C?chain=base" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Uniswap</span></Link></li>
                           </ul>
+                          <p className="text-lg text-secondary pt-8">Fees</p>
+                          <ul className="list-disc pl-5 mt-4 text-lg/70">
+                            <li>Bonding curve fees are split between protocol/creator/client and are currently set to 1/1/1 - totaling 3%</li>
+                            <li>When tokens graduate to Uniswap, the fee is set to 1.5% and shared with the token creator at a 60/40 split</li>
+                            <li>Bonsai NFT holders pay 0% trading fees on bonding curves and 0% fees on tokens that graduate to Uniswap v4 pools</li>
+                          </ul>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>
                     </>

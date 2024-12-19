@@ -67,6 +67,7 @@ export const BuySellWidget = ({
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
+  const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
 
   const { data: bonsaiNftZkSync } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
@@ -320,7 +321,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={isBuyMax}
+                        isError={isBuyMax || notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -363,8 +364,8 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               </div>
               <div className="pt-4 w-full flex flex-col justify-center items-center space-y-2">
                 {!justBought && (
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)} onClick={buyChips} variant="accentBrand">
-                    Buy {buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}{` ${club.token.symbol}`}
+                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
+                    Buy ${club.token.symbol}
                   </Button>
                 )}
                 {justBought && (
@@ -450,7 +451,8 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                   Sell {sellAmount} {club.token.symbol}
                 </Button>
               </div>
-              {club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
+              {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
+              {club.supply != "0" && club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs text-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
           </div>
         )}

@@ -47,7 +47,7 @@ export const RegisterClubModal = ({
   const { chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
-  const [initialSupply, setInitialSupply] = useState<number>(1);
+  const [initialSupply, setInitialSupply] = useState<number>();
   const [curveType, setCurveType] = useState<number>(1);
   const [tokenName, setTokenName] = useState<string>("");
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
@@ -62,12 +62,7 @@ export const RegisterClubModal = ({
   // TODO: might need to check this after registration fees enabled
   const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
 
-  const { data: registrationCost } = useReadContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'registrationCost'
-  });
+  const registrationCost = BigInt(0);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, USDC_DECIMALS)), 4)
@@ -350,7 +345,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                       symbol={tokenSymbol}
                   />
-                </div> 
+                </div>
                 {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
                     <p className={`mt-2 text-xs text-primary/90`}>
                       Max Initial Purchase Allowed: {(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}{" USDC"}

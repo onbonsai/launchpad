@@ -71,18 +71,13 @@ const testItems = [
 
 const defaultItems = [
   {
-    "handle": "bons_ai",
-    "verb": "Welcome!",
+    "handle": "@bons_ai",
+    "verb": "Welcome to the Bonsai Launchpad",
     "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
   },
   {
-    "handle": "bonsai",
-    "verb": "2024 only - 0 registration fees 🤑",
-    "image": "https://ik.imagekit.io/lens/media-snapshot/tr:w-1000,h-1000/f49a458ac1dd307689670bede39d03983d1938cea4b105a763206d42ccf637ad.png",
-  },
-  {
-    "handle": "bons_ai",
-    "verb": "Buy 100k $BONSAI to get an NFT",
+    "handle": "@bons_ai",
+    "verb": "Buy 100k $BONSAI to get a Bonsai NFT and pay 0 trading fees",
     "image": "https://www.storj-ipfs.com/ipfs/bafybeift4k5pgahtc3olog6zoidysxoefv7tnapruaxouetaunqsnrpoga",
   },
 ]
@@ -243,7 +238,7 @@ export const ActivityBanner = () => {
                   {item.handle}
                 </span>
                 <span>{item.verb}</span>
-                {item.symbol ? 
+                {item.symbol ?
                   <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
                     <img
                       src={item.image}
@@ -252,7 +247,7 @@ export const ActivityBanner = () => {
                       className="w-[32px] h-[32px] object-cover rounded-xl"
                     />
                     ${item.symbol}
-                  </span> : 
+                  </span> :
                   <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
                     <img
                       src={item.image}

@@ -12,6 +12,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import { getAccessToken } from "@src/hooks/useLensLogin";
 import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
+import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
 
 import { toHexString } from "../lens/utils";
 import { lensClient } from "../lens/client";
@@ -457,7 +458,7 @@ export const getMarketCap = async (
   return marketCap as bigint
 };
 
-const PROTOCOL_FEE = 0.02; // 2% total fees for non-NFT holders
+const PROTOCOL_FEE = 0.03; // 3% total fees for non-NFT holders
 
 export const getBuyAmount = async (
   account: `0x${string}`,
@@ -627,7 +628,7 @@ export const buyChips = async (walletClient: any, clubId: string, amount: bigint
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amount, zeroAddress, recipient, zeroAddress],
+    args: [clubId, amount, zeroAddress, recipient, MADFI_WALLET_ADDRESS],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);
