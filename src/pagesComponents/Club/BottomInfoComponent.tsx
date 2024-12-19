@@ -15,7 +15,7 @@ export const BottomInfoComponent = ({ club, address }) => {
     if (!club?.currentPrice || !address || !clubBalance) return 0;
 
     // converting to USDC value
-    return formatUnits((clubBalance * BigInt(club.currentPrice)), 12);
+    return formatUnits(clubBalance * BigInt(club.currentPrice), 12);
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
@@ -29,7 +29,7 @@ export const BottomInfoComponent = ({ club, address }) => {
   }, [club]);
 
   return (
-    <div className="fixed left-0 right-0 bottom-0 w-full grid grid-cols-1 lg:grid-cols-4 py-4">
+    <div className="fixed bottom-0 py-4 left-1/4">
       <div className="col-span-3 flex justify-center">
         <div className="flex gap-1 mt-5">
           {/* Bonding Curve Box */}
@@ -37,11 +37,7 @@ export const BottomInfoComponent = ({ club, address }) => {
             <div
               className="rounded-[20px] absolute top-[2px] bottom-[2px] left-[2px]"
               style={{
-                width: `${
-                  bondingCurveProgress === 0
-                    ? 0
-                    : Math.min(Math.max(bondingCurveProgress, 14), 98)
-                }%`,
+                width: `${bondingCurveProgress === 0 ? 0 : Math.min(Math.max(bondingCurveProgress, 14), 98)}%`,
                 background: "linear-gradient(90deg, #FFD050 0%, #FF6400 171.13%)",
                 zIndex: 1,
               }}
