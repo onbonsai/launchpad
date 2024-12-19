@@ -22,7 +22,8 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     const { holding, canSell, pressedBuySell } = props;
 
     const previousTrades = holding?.club.prevTrade24Hr;
-    const previousPrice = (previousTrades?.length ?? 0) > 0 ? previousTrades[0].price : 0;
+    const prePreviousPrice = (previousTrades?.length ?? 0) > 0 ? (previousTrades[0].price) : 0;
+    const previousPrice = formatUnits(prePreviousPrice, DECIMALS);
     const priceDelta = (previousTrades?.length ?? 0) > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
 
     const movementIcon = () => {
