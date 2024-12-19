@@ -41,30 +41,32 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                 console.warn('Missing tokenInfo for club:', h);
                 return null;
               }
-      
+
               try {
                 const [name, symbol, image] = decodeAbiParameters([
-                  { name: 'name', type: 'string' }, 
-                  { name: 'symbol', type: 'string' }, 
+                  { name: 'name', type: 'string' },
+                  { name: 'symbol', type: 'string' },
                   { name: 'uri', type: 'string' }
                 ], h.club.tokenInfo);
-      
+
                 let priceDelta;
                 if (h.club.prevTrade24Hr?.length) {
                   priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
                 }
-      
+
                 return { ...h, token: { name, symbol, image }, priceDelta };
               } catch (error) {
                 console.error('Error decoding token info:', error);
                 return null;
               }
             }).filter(Boolean); // Remove null entries
-      
+
             setAllHoldings(prev => [...(prev || []), ..._holdings]);
           } catch (error) {
             console.error('Error processing holdings:', error);
           }
+        } else if (!isLoading && holdings?.length === 0) {
+            setAllHoldings([]);
         }
       }, [isLoading, holdings]);
 
@@ -81,7 +83,8 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
 
     const totalBalance = useMemo(() => {
         if (!allHoldings) return;
-        return allHoldings!.reduce((total, holding) => total + holding.balance, bonsaiPrice || 0);
+        if (allHoldings.length === 0) return 0;
+        return allHoldings!.reduce((total, holding) => total + holding.balance, 0);
     }, [bonsaiPrice, allHoldings]);
 
     if (isLoading && allHoldings === undefined) {
@@ -95,12 +98,12 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
         <div className="z-20 bg-card flex h-full w-full flex-col justify-between rounded-3xl relative min-h-full flex-grow p-4 max-h-[87vh]">
             <div className="flex flex-col min-h-0 h-full">
                 <Subtitle className="mb-2">Balance</Subtitle>
-                <Header>${!!totalBalance ? roundedToFixed(totalBalance, 2) : '-'}</Header>
+                <Header>${totalBalance != undefined ? roundedToFixed(totalBalance, 2) : '-'}</Header>
 
                 <div className="flex flex-col mt-7 mb-3 min-h-0 flex-grow">
                     <Subtitle className="mb-3">Tokens</Subtitle>
                     <div className="flex flex-col w-full overflow-y-auto scrollbar-hide gap-1 min-h-0">
-                        {bonsaiAmount > 0 && <ProfileTokenRow holding={{ amount: BigInt(parseFloat(formatUnits(bonsaiAmount, 12))), balance: bonsaiPrice, club: { prevTrade24Hr: [] }, token: { image: 'https://assets.coingecko.com/coins/images/35884/large/Bonsai_BW_Coingecko-200x200.jpg?1710071621', name: 'Bonsai', symbol: 'BONSAI' } }} canSell={isProfileAdmin} />}
+                        {/* {bonsaiAmount > 0 && <ProfileTokenRow holding={{ amount: BigInt(parseFloat(formatUnits(bonsaiAmount, 12))), balance: bonsaiPrice, club: { prevTrade24Hr: [] }, token: { image: 'https://assets.coingecko.com/coins/images/35884/large/Bonsai_BW_Coingecko-200x200.jpg?1710071621', name: 'Bonsai', symbol: 'BONSAI' } }} canSell={isProfileAdmin} />} */}
                         {(allHoldings ?? []).map((holding, i) => (
                             <ProfileTokenRow key={i} holding={holding} canSell={isProfileAdmin} />
                         ))}

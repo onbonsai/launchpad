@@ -47,6 +47,8 @@ export const Holdings = (props: HoldingProps) => {
         return { ...h, token: { name, symbol, image }, priceDelta };
       })
       setAllHoldings([...allHoldings || [], ..._holdings]);
+    } else if (!isLoading && holdings?.length === 0) {
+      setAllHoldings([]);
     }
   }, [isLoading]);
 
@@ -63,8 +65,9 @@ export const Holdings = (props: HoldingProps) => {
 
   const totalBalance = useMemo(() => {
     if (!allHoldings) return;
-    return allHoldings!.reduce((total, holding) => total + holding.balance, bonsaiPrice || 0);
-  }, [bonsaiPrice, allHoldings]);
+    if (allHoldings.length === 0) return 0;
+    return allHoldings!.reduce((total, holding) => total + holding.balance, 0);
+  }, [allHoldings]);
 
   if (isLoading && allHoldings === undefined) {
     return (
@@ -80,7 +83,7 @@ export const Holdings = (props: HoldingProps) => {
         Balance
       </Subtitle>
       <Header>
-        ${!!totalBalance ? roundedToFixed(totalBalance, 2) : '-'}
+        ${totalBalance !== undefined ? roundedToFixed(totalBalance, 2) : '-'}
       </Header>
       <HoldingSection
         holdings={allHoldings || []}
