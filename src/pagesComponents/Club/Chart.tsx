@@ -16,7 +16,7 @@ const Chart = ({ symbol }) => {
 
   const defaultProps = {
     symbol: `${symbol}/${BONDING_CURVE_BASE_TOKEN}`,
-    interval: '1D' as ResolutionString,
+    interval: '1H' as ResolutionString,
     libraryPath: '/static/charting_library/',
     chartsStorageApiVersion: '1.1' as AvailableSaveloadVersions,
     clientId: 'tradingview.com',
