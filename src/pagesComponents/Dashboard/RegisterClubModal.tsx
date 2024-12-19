@@ -129,9 +129,9 @@ export const RegisterClubModal = ({
       setIsBuying(false);
 
       // toast.success("Token created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
-      toast.success("Token created! Going to token page...", { duration: 5000, id: toastId });
+      toast.success("Token created! Going to page...", { duration: 5000, id: toastId });
       closeModal();
-      // setTimeout(() => router.push(`/token/${clubId}`), 2000);
+      setTimeout(() => router.push(`/token/${clubId}`), 2000);
     } catch (error) {
       setIsBuying(false);
       console.log(error);
@@ -233,7 +233,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     Name
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and symbol" direction="right">
+                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v3/v4 pool will be created with this token name and symbol" direction="right">
                       <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
                       />

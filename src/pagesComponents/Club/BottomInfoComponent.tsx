@@ -1,26 +1,22 @@
 import { Subtitle, BodySemiBold } from "@src/styles/text";
-import { useGetClubHoldings } from "@src/hooks/useMoneyClubs";
+import { useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
 import { useMemo, useState } from "react";
 import { MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
+import { formatUnits, parseUnits } from "viem";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
-  const { data } = useGetClubHoldings(club.id, 0);
+  const { data: clubBalance } = useGetClubBalance(club?.clubId, address);
 
   const balance = useMemo(() => {
-    if (!data?.holdings || !club?.currentPrice || !address) return 0;
-    const userHolding = data.holdings.find(
-      (holding) => holding.trader.id.toLowerCase() === address.toLowerCase()
-    );
-    if (!userHolding) return 0;
+    if (!club?.currentPrice || !address || !clubBalance) return 0;
 
-    const amount = BigInt(userHolding.amount);
-    const price = BigInt(club.currentPrice);
-    return Number(amount * price) / 1e12; // converting to USDC value
-  }, [data?.holdings, club?.currentPrice, address]);
+    // converting to USDC value
+    return formatUnits((clubBalance * BigInt(club.currentPrice)), 12);
+  }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
     const clubLiquidity = BigInt(club.liquidity);

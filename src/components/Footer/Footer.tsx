@@ -18,7 +18,7 @@ export const Footer = () => {
   const { route } = useRouter();
 
   return (
-    <footer className="flex justify-end pr-4 pb-4 bg-transparent w-full md:mt-24 gap-2">
+    <footer className="flex justify-end pr-4 pb-4 bg-transparent w-full md:mt-32 gap-2">
       {links.map((link, index) => (
         <div key={`footer-${index}`}>
           <a  href={link.href} className={clsx("text-sm text-white/70 hover:text-white/80")}>{link.name}</a>

@@ -25,7 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     PREV_TRADE_KEYS.forEach((key) => {
       if (club[key]?.price) {
         const res = calculatePriceDelta(buyPrice, BigInt(club[key].prevPrice));
-        priceDeltas[key] = `${res.positive ? '+' : '-'}${res.valuePct.toString()}`;
+        priceDeltas[key] = `${res.valuePct === 0 ? '' : (res.positive ? '+' : '-')}${res.valuePct.toString()}`;
       } else {
         priceDeltas[key] = "0";
       }

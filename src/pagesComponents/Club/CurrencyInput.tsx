@@ -15,10 +15,11 @@ interface CurrencyInputProps {
     symbol: string;
     tokenImage?: string;
     showMax?: boolean;
+    overridePrice?: string;
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { symbol, trailingAmount, tokenImage, tokenBalance, price, isError, onPriceSet, showMax } = props;
+    const { symbol, trailingAmount, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice } = props;
     const [isFocused, setIsFocused] = useState(false);
     const inputRef = useRef(null);
     const measureRef = useRef(null);
@@ -32,6 +33,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     }, [price]);
 
     const formattedBalance = tokenBalance ? roundedToFixed(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS)), 2) : 0.0;
+    const formattedPrice = overridePrice ? roundedToFixed(parseFloat(overridePrice), 2) : formattedBalance;
 
   return (
     <div onClick={() => inputRef.current?.focus()} className={clsx("rounded-2xl border border-card-light focus:bg-card flex flex-col", isFocused ? "bg-card-light" : "bg-card-dark")}>
@@ -104,7 +106,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     <div className="flex flex-row justify-between items-center px-3 py-2">
       <Subtitle>Balance: </Subtitle>
       <Subtitle className="ml-[2px] w-full text-white text-xs">{formattedBalance}</Subtitle>
-      <Subtitle>${formattedBalance}</Subtitle>
+      <Subtitle>${formattedPrice}</Subtitle>
     </div>
   </div>
   )

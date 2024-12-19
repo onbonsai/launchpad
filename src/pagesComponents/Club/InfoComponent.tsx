@@ -35,9 +35,10 @@ export const InfoComponent = ({
 
   return (
     <div className='flex flex-row items-center mt-3 w-full gap-[4vw]'>
-      <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted)}` : '-'}`} />
-      <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)))}`} />
-      <InfoLine title='Volume (24hr)' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)))}`} />
+      <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted, 'currency', 2)}` : '-'}`} />
+      <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 'currency', 2)}`} />
+      <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
+      <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
       <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
     </div>
   );

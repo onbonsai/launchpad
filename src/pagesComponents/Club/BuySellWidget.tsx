@@ -319,7 +319,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={isBuyMax || notEnoughFunds}
+                        isError={(!isLoadingBuyAmount && isBuyMax) || notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -342,9 +342,10 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
+                        overridePrice={formatUnits((clubBalance * BigInt(club.currentPrice)), 12)}
                       />
 
-                      {isBuyMax && (
+                      {(!isLoadingBuyAmount && isBuyMax) && (
                         <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
                           <p className="text-bearish">Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}</p>
                           <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
@@ -446,7 +447,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
                 <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={sellChips} variant="accentBrand">
-                  Sell {sellAmount} {club.token.symbol}
+                  Sell ${club.token.symbol}
                 </Button>
               </div>
               {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
