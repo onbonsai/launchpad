@@ -36,7 +36,7 @@ const Chart = ({ symbol }) => {
         library_path: defaultProps.libraryPath,
         locale: defaultProps.locale as LanguageCode,
         theme: "dark",
-        disabled_features: ["use_localstorage_for_settings"],
+        disabled_features: ["use_localstorage_for_settings", "popup_hints"],
         enabled_features: [],
         charts_storage_api_version: defaultProps.chartsStorageApiVersion,
         client_id: defaultProps.clientId,
@@ -44,6 +44,7 @@ const Chart = ({ symbol }) => {
         fullscreen: defaultProps.fullscreen,
         autosize: defaultProps.autosize,
         loading_screen: { backgroundColor: "#141414" },
+        toolbar_bg: "#000",
         overrides: {
           "paneProperties.background": "#000",
           "paneProperties.backgroundType": "solid",
