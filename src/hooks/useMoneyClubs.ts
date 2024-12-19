@@ -45,6 +45,7 @@ export const useGetRegisterdClubs = (page: number) => {
       const data = res.clubs.map((club) => ({ publication: club.publication, club: omit(club, 'publication') }));
       return { clubs: JSON.parse(JSON.stringify(data)), hasMore: res.hasMore };
     },
+    refetchInterval: 60000, // fetch every 60seconds
   });
 };
 

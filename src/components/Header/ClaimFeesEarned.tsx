@@ -76,7 +76,7 @@ export const ClaimFeesEarned = () => {
 
       refetch();
 
-      toast.success(`Claimed $${creatorFeesFormatted}`, { duration: 10000, id: toastId });
+      toast.success(`Claimed ${creatorFeesFormatted}`, { duration: 10000, id: toastId });
 
       setShowTooltip(false);
     } catch (error) {
