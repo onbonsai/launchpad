@@ -399,6 +399,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       pubId,
       handle: post?.by.handle?.localName,
       content: post?.metadata?.content,
+      image: post?.metadata?.asset?.image?.small?.uri || post?.metadata?.asset?.image?.optimized?.uri,
       pageName: "singlePublication",
       openActionData,
     },
