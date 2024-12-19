@@ -5,6 +5,7 @@ import { formatUnits, parseUnits, erc721Abi } from "viem";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { InformationCircleIcon } from "@heroicons/react/solid";
+import ConfettiExplosion from 'react-confetti-explosion';
 
 import { Button } from "@src/components/Button"
 import { roundedToFixed } from "@src/utils/utils";
@@ -54,6 +55,7 @@ export const BuySellWidget = ({
   const [isSelling, setIsSelling] = useState(false);
   const [isReleased, setIsReleased] = useState(false);
   const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.id, buyPrice);
@@ -137,6 +139,9 @@ export const BuySellWidget = ({
 
       toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
       setJustBought(true);
+      setShowConfetti(true);
+      // Remove confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
     } catch (error) {
       console.log(error);
       toast.error("Failed to buy", { id: toastId });
@@ -310,6 +315,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
         {/* Buy */}
         {openTab === 1 && (
           <div className="w-full divide-y divide-dark-grey">
+            {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" /> }
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
