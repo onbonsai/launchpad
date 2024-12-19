@@ -66,6 +66,7 @@ export const BuySellWidget = ({
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
+  const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
   const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
 
@@ -140,6 +141,7 @@ export const BuySellWidget = ({
       toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
       setJustBought(true);
       setShowConfetti(true);
+      setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));
       // Remove confetti after 5 seconds
       setTimeout(() => setShowConfetti(false), 5000);
     } catch (error) {
@@ -375,7 +377,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 )}
                 {justBought && (
                   <div className="w-full flex flex-col items-center">
-                    <p className="text-center mb-4 gradient-txt">{`You bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}!`}</p>
+                    <p className="text-center mb-4 gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
                     <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
                       <Button variant="accent" className="w-full">
                         Share to Orb
