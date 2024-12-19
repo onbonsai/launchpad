@@ -176,6 +176,7 @@ export const DECIMALS = 6;
 export const USDC_DECIMALS = 6;
 // this isn't likely to change
 export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
+export const BENEFITS_AUTO_FEATURE_HOURS = 12;
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -390,7 +391,7 @@ export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasM
       const responseClubs = data?.clubs.map((_club) => {
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (!club) return;
-        club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + 48 * 60 * 60);
+        club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
         const publication = gPublications[club.pubId][0];
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         return { publication, ..._club, ...club, marketCap };

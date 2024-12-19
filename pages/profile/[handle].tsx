@@ -13,6 +13,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
 import { useLogout } from '@privy-io/react-auth';
 import Image from "next/image";
+import Link from "next/link";
 
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
@@ -32,7 +33,7 @@ import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
-import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
@@ -105,7 +106,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     },
   })
 
-  const { data: bonsaiBalance } = useReadContract({
+  const { data: bonsaiBalance, isLoading: isLoadingBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
     abi: erc20Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -113,6 +114,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     args: [profile?.ownedBy.address.toLowerCase()],
     query: { enabled: !!address }
   });
+
+  const hasBenefits = bonsaiBalance ? bonsaiBalance > BigInt(100_000) : false;
 
   // for admin stuff unrelated to lens (ex: livestreams)
   const isCreatorAdmin = useMemo(() => {
@@ -294,18 +297,23 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
                         </div>
                       </div>
-                      {isProfileAdmin && <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
-                        <BodySemiBold>Active benefits</BodySemiBold>
+                      {isProfileAdmin && hasBenefits && !isLoadingBalance && (
+                        <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
+                        <BodySemiBold>Active Bonsai NFT Perks</BodySemiBold>
                         <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
-                          {/* TODO: What goes here? */}
                           <ListItemCard items={[
-                            "This is a cool feature",
-                            "This is a cool feature",
-                            "This is a cool feature",
-                            "This is a cool feature",
+                            "0% fees on bonding curves",
+                            "0% fees on Uni v4 pools",
+                            `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
+                            <>
+                              Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                                <span className="link link-hover">Rooftop Club</span>
+                              </Link>{" "}on Orb
+                            </>
                           ]} />
                         </span>
-                      </div>}
+                      </div>
+                      )}
                       {/* TODO: Add Follow Button */}
                     </div>
                      {isProfileAdmin && <Button

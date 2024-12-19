@@ -12,7 +12,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
 import { ClubList, CreateClub, Holdings } from "@src/pagesComponents/Dashboard";
-import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
 import { Tooltip } from "@src/components/Tooltip";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
@@ -133,20 +133,20 @@ const IndexPage: NextPage = () => {
                   <div className="relative lg:col-span-3">
                     <div className="rounded-xl p-6 w-full bg-card mt-1">
                       <div className="flex justify-between flex-col gap-[2px]">
-                        <Header2>Bonsai benefits</Header2>
+                        <Header2>Bonsai NFT Perks</Header2>
                         <Subtitle>
                           Get an edge when creating or trading tokens
                         </Subtitle>
                       </div>
                       <span className="text-base gap-2 flex flex-col mt-6">
                       <ListItemCard items={[
-                        "zero fees on creating and trading",
-                        "auto-feature after creating",
-                        "zero fees on uni v4 pools",
+                        "0% fees on bonding curves",
+                        "0% fees on Uni v4 pools",
+                        `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
                         <>
-                          access to the<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                          Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
                             <span className="link link-hover">Rooftop Club</span>
-                          </Link>
+                          </Link>{" "}on Orb
                         </>
                       ]} />
                       </span>
