@@ -109,7 +109,7 @@ const HandleSEO = ({ pageProps }) => {
       <meta property="og:type" content="website"></meta>
       <meta
         property="og:image"
-        content="https://www.bonsai.meme/i/og-image.jpg"
+        content="/opengraph-image.jpg"
       ></meta>
       <meta property="og:image:alt" content="bonsai.png"></meta>
       <meta property="og:image:width" content="1200"></meta>
@@ -122,7 +122,7 @@ const HandleSEO = ({ pageProps }) => {
       <meta name="twitter:description" content={description}></meta>
       <meta
         name="twitter:image"
-        content="https://www.bonsai.meme/i/og-image.jpg"
+        content="/twitter-image.jpg"
       ></meta>
       <meta name="theme-color" content="#141414"></meta>
     </Head>
