@@ -336,7 +336,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
                           <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
                             <div className="flex justify-center items-center h-full">
-                              <ArrowDownIcon className="w-4 h-4 text-white"/>
+                              <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(2)}/>
                             </div>
                           </div>
                         </div>
@@ -410,7 +410,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                         <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
                           <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
                             <div className="flex justify-center items-center h-full">
-                              <ArrowDownIcon className="w-4 h-4 text-white"/>
+                              <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(1)}/>
                             </div>
                           </div>
                         </div>
