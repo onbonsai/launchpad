@@ -563,7 +563,7 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   const priceDeltaPercentage = parseFloat(formatEther(priceDelta)) * 100 / parseFloat(formatEther(lastTradePrice));
   return {
     valuePct: parseFloat(roundedToFixed(priceDeltaPercentage, 2)),
-    positive: price > lastTradePrice,
+    positive: price < lastTradePrice,
   };
 };
 
