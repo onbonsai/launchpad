@@ -292,7 +292,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
-                  <Feed pubId={club.pubId} />
+                  <Feed pubId={club.pubId} morePadding={true}/>
                 )}
                 {openTab === 2 && (
                   <Trades clubId={club.clubId} />
