@@ -9,7 +9,6 @@ import { InformationCircleIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button"
 import { roundedToFixed } from "@src/utils/utils";
 import {
-  useGetBuyPrice,
   useGetSellPrice,
   useGetClubLiquidity,
   useGetBuyAmount,
@@ -33,7 +32,6 @@ import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { Header2, Subtitle } from "@src/styles/text";
 import clsx from "clsx";
-import { Divider } from "@mui/material";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 
@@ -237,7 +235,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
 
   if (club.complete && tokenAddress) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-[150px] md:-mt-4">
+      <div className={clsx("flex flex-col items-center justify-center w-full h-[150px] md:-mt-4", inter.className)}>
         <div className="text-center">
           <p className="mt-2 text-lg text-secondary/70">
             ${club.token.symbol}/BONSAI pool is live!{" "}

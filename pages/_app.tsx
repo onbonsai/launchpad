@@ -19,6 +19,7 @@ import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { configureChainsConfig } from "@utils/wagmi";
 import { ClubsProvider } from "@src/context/ClubsContext";
+import { inter } from "@src/fonts/fonts";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ export default function MyApp(props: AppProps) {
                     style: {
                       backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
                       color: "white",
+                      fontFamily: inter.style.fontFamily,
                     },
                   }}
                 >
