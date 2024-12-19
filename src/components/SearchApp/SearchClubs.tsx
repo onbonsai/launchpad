@@ -9,6 +9,7 @@ import { inter } from "@src/fonts/fonts";
 
 import useClubSearch from "@src/hooks/useClubSearch";
 import clsx from "clsx";
+import { SearchIcon } from "@heroicons/react/outline";
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +39,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("md:min-w-[200px] md:w-[400px] w-full", inter.className)}>
+      <div className={clsx("lg:min-w-[400px] w-full", inter.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search tokens
         </label>
@@ -47,16 +48,19 @@ export const SearchClubs = () => {
             type="text"
             name="finder"
             id="finder"
-            placeholder="Search tokens"
+            placeholder="Search token or wallet"
             value={query}
             autoComplete="off"
             onInput={() => openModal()}
-            className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+            className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
           />
-          <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+          <div className="hidden inset-y-0 right-0 py-1.5 pr-1.5 lg:absolute">
             <kbd className="inline-flex bg-transparent items-center rounded border border-dark-grey px-2 text-sm font-medium text-secondary">
               ⌘K
             </kbd>
+          </div>
+          <div className="inset-y-0 left-0 py-[11px] pl-3 absolute">
+            <SearchIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
           </div>
         </div>
       </div>
