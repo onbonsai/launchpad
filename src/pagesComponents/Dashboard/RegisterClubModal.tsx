@@ -33,6 +33,7 @@ import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
 import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
+import { localizeNumber } from "@src/constants/utils";
 
 
 export const RegisterClubModal = ({
@@ -339,6 +340,8 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                 <div className="relative flex flex-col space-y-1">
                   <CurrencyInput
                       trailingAmount={`${buyPriceFormatted}`}
+                      trailingAmountSymbol="USDC"
+                      trailingAmountLimit={(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}
                       tokenBalance={tokenBalance}
                       price={`${initialSupply}`}
                       isError={false}
@@ -347,8 +350,8 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   />
                 </div>
                 {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
-                    <p className={`mt-2 text-xs text-primary/90`}>
-                      Max Initial Purchase Allowed: {(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}{" USDC"}
+                    <p className={`mt-2 text-sm text-primary/90`}>
+                      Max Purchase Spend: {localizeNumber(Number(creatorLiqMax) / 10 ** DECIMALS, "decimal")} USDC
                     </p>
                   )}
               </div>

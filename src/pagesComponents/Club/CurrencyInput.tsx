@@ -9,6 +9,8 @@ import { formatUnits } from 'viem';
 interface CurrencyInputProps {
     price: string;
     trailingAmount?: string;
+    trailingAmountSymbol?: string;
+    trailingAmountLimit?: string;
     isError: boolean;
     tokenBalance: bigint;
     onPriceSet: (price: string) => void;
@@ -19,7 +21,7 @@ interface CurrencyInputProps {
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-    const { symbol, trailingAmount, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice } = props;
+    const { symbol, trailingAmount, trailingAmountSymbol, trailingAmountLimit, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice } = props;
     const [isFocused, setIsFocused] = useState(false);
     const inputRef = useRef(null);
     const measureRef = useRef(null);
@@ -97,8 +99,8 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             </div>
         )}
         {!showMax && trailingAmount && (
-            <BodySemiBold className='text-white/60 mr-3'>
-                {trailingAmount}
+            <BodySemiBold className={clsx('mr-3', Number(trailingAmount?.replace(',', '')) > Number(trailingAmountLimit) ? 'text-bearish/90' : 'text-white/60')}>
+                {`${trailingAmount} ${trailingAmountSymbol || ""}`}
             </BodySemiBold>
         )}
     </div>
