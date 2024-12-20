@@ -54,7 +54,10 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       <main className="mx-auto max-w-full">
         {sortedClubs.length > 0 && (
           <div className="mb-8">
-            <ClubCard data={sortedClubs[0]} minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD} />
+            <ClubCard data={sortedClubs[0]}
+              minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
+              creatorProfile={clubCreators[sortedClubs[0].club.clubId]?.[0]?.profile}
+            />
           </div>
         )}
         {/* FILTER */}
@@ -101,15 +104,16 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full whitespace-nowrap">
             <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
-              {sortedClubs.map((club, idx) => (
-                <li className="w-full" key={`club-${idx}`}>
+              {sortedClubs.map((club, idx) => {
+                if (idx === 0) return null;
+                return <li className="w-full" key={`club-${idx}`}>
                   <ClubCard
                     data={club}
                     minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
                     creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
                   />
                 </li>
-              ))}
+              })}
             </ul>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">
