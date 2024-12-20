@@ -392,7 +392,7 @@ export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasM
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (!club) return;
         club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
-        const publication = gPublications[club.pubId][0];
+        const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         return { publication, ..._club, ...club, marketCap };
       }).filter((c) => c);
