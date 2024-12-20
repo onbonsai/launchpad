@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     address = address.toLowerCase();
 
     const image_url = profile?.metadata?.coverPicture?.optimized?.uri ?? bucketImageLinkStorj("card-bg-tower.png");
-    const pfp = profile?.metadata?.picture?.optimized?.uri ?? bucketImageLinkStorj("anon.png", "referrals");
+    const pfp = profile?.metadata?.picture?.optimized?.uri ?? bucketImageLinkStorj("sage.webp", "referrals");
 
     // crop to seo size/ratio 512x268
     let outputBuffer;

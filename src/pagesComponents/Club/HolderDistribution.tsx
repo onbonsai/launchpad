@@ -21,7 +21,7 @@ const Row = ({ row, supply, creator }) => (
           )}
         </div>
         <span className="col-span-4 text-left overflow-ellipsis overflow-hidden whitespace-nowrap">
-          {row.profile?.handle.localName ? (
+          {row.profile?.handle && row.profile?.handle?.localName ? (
             <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
               <span className="link-hover">@{row.profile.handle.localName}</span>
             </Link>

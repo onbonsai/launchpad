@@ -328,7 +328,7 @@ function toDate(argument) {
 
 export const jsonLtoJson = (data: any) => data.split("\n").filter(Boolean).map(JSON.parse);
 
-export const getLensPfp = (profile: any) => profile?.metadata?.picture?.optimized?.uri ?? "/anon.png";
+export const getLensPfp = (profile: any) => profile?.metadata?.picture?.optimized?.uri ?? "/sage.webp";
 
 export const convertIntToHexLensId = (profileId: string) => {
   let hexProfileId = parseInt(profileId).toString(16);

@@ -26,7 +26,7 @@ const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
           key={index}
           className="inline-block h-10 w-10 rounded-full ring-2 ring-dark-grey"
           src={url}
-          alt="/anon.png"
+          alt="/sage.webp"
           height={32}
           width={32}
           quality={75}
