@@ -49,11 +49,11 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                   { name: 'name', type: 'string' },
                   { name: 'symbol', type: 'string' },
                   { name: 'uri', type: 'string' }
-                ], h.club.tokenInfo);
+                ], h.club?.tokenInfo);
       
                 let priceDelta;
-                if (h.club.prevTrade24Hr?.length) {
-                  priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
+                if (h.club?.prevTrade24Hr?.length) {
+                  priceDelta = calculatePriceDelta(h.club!.currentPrice, h.club!.prevTrade24Hr[0].price);
                 }
       
                 return { ...h, token: { name, symbol, image }, priceDelta };
@@ -118,7 +118,6 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                         {/* {bonsaiAmount > 0 && <ProfileTokenRow holding={{ amount: BigInt(parseFloat(formatUnits(bonsaiAmount, 12))), balance: bonsaiPrice, club: { prevTrade24Hr: [] }, token: { image: 'https://assets.coingecko.com/coins/images/35884/large/Bonsai_BW_Coingecko-200x200.jpg?1710071621', name: 'Bonsai', symbol: 'BONSAI' } }} canSell={isProfileAdmin} />} */}
                         {(allHoldings ?? []).map((holding, i) => (
                             <ProfileTokenRow key={i} holding={holding} canSell={isProfileAdmin} pressedBuySell={(a) => {
-                                console.log(`pressedBuySell: ${JSON.stringify(a)}`);
                                 setActiveBuySellAction(a);
                             }
                             } />
@@ -140,7 +139,7 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                 </div>
             </div>
             <BuySellModal
-                club={activeBuySellAction?.club}
+                club={activeBuySellAction ? activeBuySellAction!.club : null}
                 address={address}
                 open={!!activeBuySellAction}
                 onClose={() => setActiveBuySellAction(null)}
