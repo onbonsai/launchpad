@@ -33,10 +33,9 @@ export const TokenCard = ({ data }: Props) => {
         <div className="overflow-hidden h-[150px] relative">
           <img
             src={club?.token.image}
-            alt=""
-            fill="true"
+            alt="token image"
             sizes="10vw"
-            className="w-full h-full object-cover absolute top-0 left-0"
+            className="w-full h-full object-cover absolute top-0 left-0 rounded-full"
           />
         </div>
         <div className="flex flex-col justify-between gap-3 p-4 flex-grow">
