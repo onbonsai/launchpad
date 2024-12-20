@@ -63,6 +63,17 @@ const LoginWithLensModal = ({ closeModal }) => {
         Choose a Profile
       </Dialog.Title>
       <div className="max-w-full flex flex-col gap-4 pt-4">
+        {
+          !profiles || !profiles.length ? <div className="w-full items-center text-center">
+            <p className="mb-2">No Lens profile found. To create a token or use social features you'll need to get one.</p>
+            <p className="mb-6">You can still trade without a profile.</p>
+            <p className="text-grey link-hover cursor-pointer">
+            <a href="https://onboarding.lens.xyz/" target="_blank" className="flex">
+              Mint your profile here to use social features {"->"}
+            </a>
+            </p>
+          </div> : null
+        }
 
         {/* PROFILE SELECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
@@ -102,12 +113,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                   </div>
                 </div>
               </div>
-            ))
-            : (<div className="flex w-full items-center justify-between">No Lens profile found.{" "}
-              <Link href={`lens.xyz/mint`} passHref legacyBehavior target="_blank">
-                <span className="text-grey link-hover">Get one.</span>
-              </Link>
-            </div>)}
+            )) : null}
           <div className="flex justify-center mt-4 mb-4 text-sm gap-x-4 pb-8">
             <div className="absolute right-8 bottom-2">
               <span
