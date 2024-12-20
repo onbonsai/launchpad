@@ -384,7 +384,7 @@ export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasM
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
       const publications = await lensClient.publication.fetchAll({
-        where: { publicationIds: clubs.filter(({ strategy }) => strategy === "lens").map(({ pubId }) => pubId) }
+        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
       });
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
