@@ -32,8 +32,8 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     const previousTrades = holding?.club.prevTrade24Hr;
     const prePreviousPrice = (previousTrades?.length ?? 0) > 0 ? (previousTrades[0].price) : 0;
     const previousPrice = formatUnits(prePreviousPrice, DECIMALS);
-    const priceDelta = (previousTrades?.length ?? 0) > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
-    console.log(`holding: ${JSON.stringify(holding)}`);
+    const priceDelta = (previousTrades?.length ?? 0) > 0 ? calculatePriceDelta(holding?.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
+
     const movementIcon = () => {
         if (priceDelta.positive) {
             return <PositiveIcon />
@@ -55,14 +55,14 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.stopPropagation(); 
         e.preventDefault(); 
-        if (pressedBuySell) {
-            pressedBuySell({action: canSell ? TokenAction.sell : TokenAction.buy, club: holding.club});
+        if (pressedBuySell && !!holding?.club) {
+            pressedBuySell({action: canSell ? TokenAction.sell : TokenAction.buy, club: holding!.club!});
         }
     };
 
     return (
-        <Link href={`/token/${holding.club.clubId}`} legacyBehavior target="_blank" >
-            <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
+                <Link href={`/token/${holding?.club?.clubId}`} legacyBehavior target="_blank" >
+        <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
                 <div className="flex flex-row items-center">
                     <img src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-xl' />
                     <div className="flex flex-col justify-center ml-2 gap-[2px]">
