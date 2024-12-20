@@ -23,6 +23,8 @@ import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { localizeNumber } from '@src/constants/utils';
+import WalletButton from '@src/components/Creators/WalletButton';
+import { trimText } from '@src/utils/utils';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -52,6 +54,8 @@ export type Club = {
   pubId: string;
   featured: boolean;
   creatorFees: string;
+  complete: boolean;
+  tokenAddress?: `0x${string}`;
 };
 
 interface TokenPageProps {
@@ -211,11 +215,25 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           className="w-[48px] h-[48px] object-cover rounded-xl"
                         />
                         <div className="flex flex-col ml-2">
-                          <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                          <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
+                          <div className="flex flex-row justify-between gap-x-8 w-full">
+                            <div className="flex flex-col">
+                              <Header2 className={"text-white"}>${club.token.symbol}</Header2>
+                              <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
+                            </div>
+                            {club.complete && club.tokenAddress && (
+                              <div className="flex flex-col">
+                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress} /></p>
+                                <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                                  <BodySemiBold className="text-white/60 font-medium">
+                                    {trimText(`https://dexscreener.com/base/${club.tokenAddress}`, 35)}
+                                  </BodySemiBold>
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         {club.featured && (
-                          <span className="text-2xl font-bold gradient-txt ml-4 h-[51px] w-[110px] flex items-start italic">
+                          <span className="text-xl font-bold gradient-txt ml-4 h-[51px] w-[110px] flex items-start italic">
                             Featured
                           </span>
                         )}
