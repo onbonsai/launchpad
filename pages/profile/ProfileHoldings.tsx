@@ -7,8 +7,9 @@ import { roundedToFixed } from "@src/utils/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { decodeAbiParameters, formatEther, formatUnits } from "viem";
-import ProfileTokenRow from "./ProfileTokenRow";
+import ProfileTokenRow, { BuySellAction } from "./ProfileTokenRow";
 import BonsaiNFT from "@pagesComponents/Dashboard/BonsaiNFT";
+import BuySellModal from "@pagesComponents/Club/BuySellModal";
 
 interface ProfileHoldingsProps {
     address: `0x${string}`;
@@ -23,6 +24,7 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
     const [page, setPage] = useState(0);
     const [allHoldings, setAllHoldings] = useState<any[]>();
     const [bonsaiPrice, setBonsaiPrice] = useState(0);
+    const [activeBuySellAction, setActiveBuySellAction] = useState<BuySellAction | null>(null);
     const { data, isLoading, refetch } = useGetHoldings(address, page);
     const { holdings, hasMore } = data || {};
 
@@ -41,32 +43,37 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                 console.warn('Missing tokenInfo for club:', h);
                 return null;
               }
-
+      
               try {
                 const [name, symbol, image] = decodeAbiParameters([
                   { name: 'name', type: 'string' },
                   { name: 'symbol', type: 'string' },
                   { name: 'uri', type: 'string' }
                 ], h.club.tokenInfo);
-
+      
                 let priceDelta;
                 if (h.club.prevTrade24Hr?.length) {
                   priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
                 }
-
+      
                 return { ...h, token: { name, symbol, image }, priceDelta };
               } catch (error) {
                 console.error('Error decoding token info:', error);
                 return null;
               }
             }).filter(Boolean); // Remove null entries
-
-            setAllHoldings(prev => [...(prev || []), ..._holdings]);
+      
+            setAllHoldings(prev => {
+              const uniqueHoldings = new Map(
+                [...(prev || []), ..._holdings].map(item => [item.id, item]) // Assuming each holding has a unique `id`
+              );
+              return Array.from(uniqueHoldings.values());
+            });
           } catch (error) {
             console.error('Error processing holdings:', error);
           }
         } else if (!isLoading && holdings?.length === 0) {
-            setAllHoldings([]);
+          setAllHoldings([]);
         }
       }, [isLoading, holdings]);
 
@@ -94,6 +101,11 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
             </div>
         )
     }
+
+    const onBuySellPressed = (action: BuySellAction) => {
+
+    }
+
     return (
         <div className="z-20 bg-card flex h-full w-full flex-col justify-between rounded-3xl relative min-h-full flex-grow p-4 max-h-[87vh]">
             <div className="flex flex-col min-h-0 h-full">
@@ -105,7 +117,11 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                     <div className="flex flex-col w-full overflow-y-auto scrollbar-hide gap-1 min-h-0">
                         {/* {bonsaiAmount > 0 && <ProfileTokenRow holding={{ amount: BigInt(parseFloat(formatUnits(bonsaiAmount, 12))), balance: bonsaiPrice, club: { prevTrade24Hr: [] }, token: { image: 'https://assets.coingecko.com/coins/images/35884/large/Bonsai_BW_Coingecko-200x200.jpg?1710071621', name: 'Bonsai', symbol: 'BONSAI' } }} canSell={isProfileAdmin} />} */}
                         {(allHoldings ?? []).map((holding, i) => (
-                            <ProfileTokenRow key={i} holding={holding} canSell={isProfileAdmin} />
+                            <ProfileTokenRow key={i} holding={holding} canSell={isProfileAdmin} pressedBuySell={(a) => {
+                                console.log(`pressedBuySell: ${JSON.stringify(a)}`);
+                                setActiveBuySellAction(a);
+                            }
+                            } />
                         ))}
                     </div>
                 </div>
@@ -123,6 +139,12 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
                     ))}
                 </div>
             </div>
+            <BuySellModal
+                club={activeBuySellAction?.club}
+                address={address}
+                open={!!activeBuySellAction}
+                onClose={() => setActiveBuySellAction(null)}
+            />
         </div>
     );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import clsx from 'clsx';
 import { Button } from "@src/components/Button";
 import { DECIMALS, calculatePriceDelta } from '@src/services/madfi/moneyClubs';
@@ -7,15 +8,22 @@ import React from 'react'
 import { formatUnits } from 'viem';
 import PositiveIcon from './PositiveIcon';
 import NegativeIcon from './NegativeIcon';
+import BuySellModal from "@pagesComponents/Club/BuySellModal";
 
-enum TokenAction {
+export enum TokenAction {
     buy,
     sell,
 }
+
+export interface BuySellAction {
+    action: TokenAction;
+    club: any;
+}
+
 interface ProfileTokenRowProps {
     holding: any;
     canSell: boolean;
-    pressedBuySell?: (action: TokenAction) => void;
+    pressedBuySell: (action: BuySellAction) => void;
 }
 
 const ProfileTokenRow = (props: ProfileTokenRowProps) => {
@@ -25,7 +33,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     const prePreviousPrice = (previousTrades?.length ?? 0) > 0 ? (previousTrades[0].price) : 0;
     const previousPrice = formatUnits(prePreviousPrice, DECIMALS);
     const priceDelta = (previousTrades?.length ?? 0) > 0 ? calculatePriceDelta(holding.club.currentPrice, previousPrice) : {valuePct: 0, positive: false};
-
+    console.log(`holding: ${JSON.stringify(holding)}`);
     const movementIcon = () => {
         if (priceDelta.positive) {
             return <PositiveIcon />
@@ -44,40 +52,50 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
         return ""
     }
 
+    const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.stopPropagation(); 
+        e.preventDefault(); 
+        if (pressedBuySell) {
+            pressedBuySell({action: canSell ? TokenAction.sell : TokenAction.buy, club: holding.club});
+        }
+    };
+
     return (
-        <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow">
-            <div className="flex flex-row items-center">
-                <img src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-xl' />
-                <div className="flex flex-col justify-center ml-2 gap-[2px]">
-                    <BodySemiBold>
-                    {holding?.token.name}
-                    </BodySemiBold>
-                    <Subtitle>
-                        {roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)} {holding?.token.symbol}
-                    </Subtitle>
+        <Link href={`/token/${holding.club.clubId}`} legacyBehavior target="_blank" >
+            <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
+                <div className="flex flex-row items-center">
+                    <img src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-xl' />
+                    <div className="flex flex-col justify-center ml-2 gap-[2px]">
+                        <BodySemiBold>
+                        {holding?.token.name}
+                        </BodySemiBold>
+                        <Subtitle>
+                            {roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)} {holding?.token.symbol}
+                        </Subtitle>
+                    </div>
+                </div>
+                <div className="flex flex-row items-center justify-end gap-3">
+                    <div className="flex flex-col justify-center items-end gap-1">
+                        <Subtitle className='text-white'>
+                            ${roundedToFixed(holding?.balance ?? 0, 2)}
+                        </Subtitle>
+                        <Subtitle className={clsx(
+                            "flex flex-row items-center justify-end",
+                            priceColor()
+                        )}>
+                            <span className='mr-1'>{movementIcon()}</span> {previousPrice} • {priceDelta.valuePct}%
+                        </Subtitle>
+                    </div>
+                    <Button
+                        className={clsx(canSell ? priceColor() : 'bg-bullish')}
+                        size="sm"
+                        onClick={handleButtonClick}
+                    >
+                        {canSell ? 'Sell' : 'Buy'}
+                    </Button>
                 </div>
             </div>
-            <div className="flex flex-row items-center justify-end gap-3">
-                <div className="flex flex-col justify-center items-end gap-1">
-                    <Subtitle className='text-white'>
-                        ${roundedToFixed(holding?.balance ?? 0, 2)}
-                    </Subtitle>
-                    <Subtitle className={clsx(
-                        "flex flex-row items-center justify-end",
-                        priceColor()
-                    )}>
-                        <span className='mr-1'>{movementIcon()}</span> {previousPrice} • {priceDelta.valuePct}%
-                    </Subtitle>
-                </div>
-                <Button
-                    className={clsx(canSell ? priceColor() : 'bg-bullish')}
-                    size="sm"
-                    onClick={() => pressedBuySell?.(canSell ? TokenAction.sell : TokenAction.buy)}
-                >
-                    {canSell ? 'Sell' : 'Buy'}
-                </Button>
-            </div>
-        </div>
+        </Link>
     )
 }
 

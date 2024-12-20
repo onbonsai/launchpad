@@ -30,6 +30,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
         />} */}
         {holdings.map((row) => (
           <TokenCard
+          clubId={row.club.clubId}
             key={`row-${row.club.clubId}`}
             title={row.token.name}
             count={roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)}
