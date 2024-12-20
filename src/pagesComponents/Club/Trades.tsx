@@ -21,7 +21,7 @@ const Row = ({ row }) => (
           {row.profile?.metadata && (
             <img
               src={getLensPfp(row.profile)}
-              alt={row.profile?.handle.localName}
+              alt={row.profile?.handle?.localName}
               className="rounded-full"
               height="32"
               width="32"
@@ -29,9 +29,9 @@ const Row = ({ row }) => (
           )}
         </div>
         <span className="col-span-4 text-left overflow-ellipsis overflow-hidden whitespace-nowrap">
-          {row.profile?.handle.localName ? (
-            <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
-              <span className="link-hover">@{row.profile.handle.localName}</span>
+          {row.profile?.handle?.localName ? (
+            <Link href={`/profile/${row.profile.handle?.localName}`} target="_blank">
+              <span className="link-hover">@{row.profile.handle?.localName}</span>
             </Link>
           ) : (
             row.ens || shortAddress(row.trader?.id, 6).split("... ")[0]
