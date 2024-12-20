@@ -350,7 +350,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
-                        overridePrice={formatUnits((clubBalance * BigInt(club.currentPrice)), 12)}
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 12)}
                       />
 
                       {(!isLoadingBuyAmount && isBuyMax) && (
@@ -464,6 +464,12 @@ ${MADFI_CLUBS_URL}/token/${club.id}
               {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
               {club.supply != "0" && club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs text-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
+          </div>
+        )}
+
+        {!isConnected && (
+          <div className="flex items-center justify-center w-full h-full mt-2">
+            <p className="text-bearish">Log In with your wallet to begin trading</p>
           </div>
         )}
       </div>
