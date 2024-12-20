@@ -10,7 +10,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import CreatorCopy from "@src/components/Lens/CreatorCopy";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { useGetRegisterdClubs } from "@src/hooks/useMoneyClubs";
+import { useGetRegisteredClubs } from "@src/hooks/useMoneyClubs";
 import { ClubList, CreateClub, Holdings } from "@src/pagesComponents/Dashboard";
 import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
 import { Tooltip } from "@src/components/Tooltip";
@@ -34,9 +34,16 @@ const IndexPage: NextPage = () => {
   const [openBuyModal, setOpenBuyModal] = useState(false);
   const [page, setPage] = useState(0);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
-  const { data, isLoading, refetch } = useGetRegisterdClubs(page);
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useGetRegisteredClubs();
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
-  const { clubs, hasMore } = data || {};
+  const clubs = data?.pages.flatMap(page => page.clubs) || [];
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -62,38 +69,26 @@ const IndexPage: NextPage = () => {
   // fix hydration issues
   if (!isMounted) return null;
 
-  const testStyle = "text-base leading-5 font-medium testStyle flex justify-center items-center h-10 min-w-[120px]";
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
         <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
-          {/* <div className="flex flex-col md:flex-row items-center justify-between md:pt-6 md:pb-6 pt-2 pb-2 w-full gap-y-2">
-            <div></div>
-
-            <div className="md:hidden">
-              <CreateClub />
-            </div>
-          </div> */}
-
-
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-7 max-w-full">
                 {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                      clubs={clubs}
-                      setFilteredClubs={setFilteredClubs}
-                      filteredClubs={filteredClubs}
-                      filterBy={filterBy}
-                      setFilterBy={setFilterBy}
-                      isLoading={isLoading}
-                      page={page}
-                      setPage={setPage}
-                      hasMore={hasMore}
-                      refetch={refetch}
-                    />
+                    clubs={clubs}
+                    setFilteredClubs={setFilteredClubs}
+                    filteredClubs={filteredClubs}
+                    filterBy={filterBy}
+                    setFilterBy={setFilterBy}
+                    isLoading={isLoading || isFetchingNextPage}
+                    hasMore={hasNextPage}
+                    fetchNextPage={fetchNextPage}
+                  />
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
@@ -139,16 +134,16 @@ const IndexPage: NextPage = () => {
                         </Subtitle>
                       </div>
                       <span className="text-base gap-2 flex flex-col mt-6">
-                      <ListItemCard items={[
-                        "0% fees on bonding curves",
-                        "0% fees on Uni v4 pools",
-                        `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
-                        <>
-                          Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                            <span className="link link-hover">Rooftop Club</span>
-                          </Link>{" "}on Orb
-                        </>
-                      ]} />
+                        <ListItemCard items={[
+                          "0% fees on bonding curves",
+                          "0% fees on Uni v4 pools",
+                          `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
+                          <>
+                            Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                              <span className="link link-hover">Rooftop Club</span>
+                            </Link>{" "}on Orb
+                          </>
+                        ]} />
                       </span>
                       <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
                         <Subtitle>

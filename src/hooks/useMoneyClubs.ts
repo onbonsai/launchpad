@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
 import { getAddress, createPublicClient, http } from "viem";
 import { mainnet } from 'viem/chains'
@@ -37,15 +37,30 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
   });
 };
 
-export const useGetRegisterdClubs = (page: number) => {
-  return useQuery({
-    queryKey: [`registered-clubs`, page],
-    queryFn: async () => {
-      const res = await getRegisteredClubs(page);
-      const data = res.clubs.map((club) => ({ publication: club.publication, club: omit(club, 'publication') }));
-      return { clubs: JSON.parse(JSON.stringify(data)), hasMore: res.hasMore };
+export const useGetRegisteredClubs = () => {
+  return useInfiniteQuery({
+    queryKey: ['registered-clubs'],
+    queryFn: async ({ pageParam = 0 }) => {
+      try {
+        const res = await getRegisteredClubs(pageParam);
+        const data = res.clubs.map((club) => ({
+          publication: club.publication,
+          club: omit(club, 'publication'),
+        }));
+        return {
+          clubs: data,
+          nextPage: pageParam + 1,
+          hasMore: res.hasMore && data.length > 0
+        };
+      } catch (error) {
+        console.error('Failed to fetch clubs:', error);
+        throw error;
+      }
     },
-    refetchInterval: 60000, // fetch every 60seconds
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
+    refetchInterval: 60000,
   });
 };
 

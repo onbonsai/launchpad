@@ -146,6 +146,9 @@ export const Header = () => {
           When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon).
         </p>
         <p className="mt-2 text-xl text-secondary/70">
+          Bonding curve trading closes and chip holders will be able to claim their tokens after 72 hours.
+        </p>
+        <p className="mt-2 text-xl text-secondary/70">
           Tokens that graduate are eligible to migrate to our Bons(ai) agent stack on Lens network in q1 2025.
         </p>
         <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
