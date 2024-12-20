@@ -15,7 +15,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById} from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
@@ -160,22 +160,22 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   const infoCardRow = () => (
     <>
-    <InfoCard title='5m' subtitle={
-      <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
-    }
-      roundedLeft
-    />
-    <InfoCard title='1h' subtitle={
-      <PriceChangeString period={PriceChangePeriod.oneHour} />
-    } />
-    <InfoCard title='6h' subtitle={
-      <PriceChangeString period={PriceChangePeriod.sixHours} />
-    } />
-    <InfoCard title='24h' subtitle={
-      <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-    }
-      roundedRight
-    />
+      <InfoCard title='5m' subtitle={
+        <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+      }
+        roundedLeft
+      />
+      <InfoCard title='1h' subtitle={
+        <PriceChangeString period={PriceChangePeriod.oneHour} />
+      } />
+      <InfoCard title='6h' subtitle={
+        <PriceChangeString period={PriceChangePeriod.sixHours} />
+      } />
+      <InfoCard title='24h' subtitle={
+        <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
+      }
+        roundedRight
+      />
     </>
   );
 
@@ -184,27 +184,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
       <div>
         <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
-          {/* <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-pt-12 pb-4">
-            {/* <div className="flex items-center gap-x-4">
-               <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide">
-                {`${club.token.name} ($${club.token.symbol})`}
-              </h1>
-              {club.featured && (
-                <span className="text-2xl font-bold font-owners tracking-wide gradient-txt mt-4">
-                  Featured
-                </span>
-              )}
-            </div>
-
-            {isCreatorAdmin && (
-              <div className="flex flex-col md:flex-row md:items-center md:justify-end md:w-auto items-end">
-                <span className="text-2xl font-bold font-owners tracking-wide mt-4 gradient-txt">
-                  {`Earnings: $${roundedToFixed(parseFloat(formatUnits(BigInt(club.creatorFees), USDC_DECIMALS)), 2)}`}
-                </span>
-              </div>
-            )}
-          </div> */}
-
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <h2 id="dashboard-heading" className="sr-only">
               {profile?.metadata?.displayName}
@@ -212,8 +191,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
               {/* Chart */}
-              <div className="md:col-span-3">
-                <div className="relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+              <div className={clsx("md:col-span-3 rounded-3xl", club.featured && "animate-pulse")}>
+                <div className={"relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
                     <img
                       src={club.token.image}
@@ -221,46 +200,51 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       className="w-full h-full object-cover"
                     />
                   </div>
-
                   <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
 
                   <div className="relative z-10 p-3 pb-6 flex flex-col justify-between items-center">
                     <div className="flex flex-row justify-between items-center w-full">
-                    <div className='flex flex-row items-center'>
-                      <img
-                        src={club.token.image}
-                        alt={club.token.name}
-                        className="w-[48px] h-[48px] object-cover rounded-xl"
-                      />
-                      <div className="flex flex-col ml-2">
-                        <Header2 className="text-white">${club.token.symbol}</Header2>
-                        <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
-                      </div>
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                      <InfoCard title='Network' subtitle={
-                        <div className='flex gap-1 items-center'>
-                          <img
-                            src='/base.png'
-                            alt={'base'}
-                            className="w-[12px] h-[12px]"
-                          />
-                          <Subtitle className='text-white'>
-                            Base
-                          </Subtitle>
+                      <div className='flex flex-row items-center'>
+                        <img
+                          src={club.token.image}
+                          alt={club.token.name}
+                          className="w-[48px] h-[48px] object-cover rounded-xl"
+                        />
+                        <div className="flex flex-col ml-2">
+                          <Header2 className={"text-white"}>${club.token.symbol}</Header2>
+                          <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
                         </div>
-                      }
-                        roundedRight
-                        roundedLeft
-                      />
-                      <div className="flex-row items-center hidden md:flex">
-                        {infoCardRow()}
+                        {club.featured && (
+                          <span className="text-2xl font-bold gradient-txt ml-4 h-[51px] w-[110px] flex items-start italic">
+                            Featured
+                          </span>
+                        )}
                       </div>
+
+                      <div className="flex flex-row items-center gap-2">
+                        <InfoCard title='Network' subtitle={
+                          <div className='flex gap-1 items-center'>
+                            <img
+                              src='/base.png'
+                              alt={'base'}
+                              className="w-[12px] h-[12px]"
+                            />
+                            <Subtitle className='text-white'>
+                              Base
+                            </Subtitle>
+                          </div>
+                        }
+                          roundedRight
+                          roundedLeft
+                        />
+                        <div className="flex-row items-center hidden md:flex">
+                          {infoCardRow()}
+                        </div>
                       </div>
                     </div>
                     <div className="flex-row pt-4 justify-end items-center flex md:hidden ">
-                        {infoCardRow()}
-                      </div>
+                      {infoCardRow()}
+                    </div>
                   </div>
                 </div>
                 <div className='px-0 md:px-3'>
@@ -292,7 +276,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
-                  <Feed pubId={club.pubId} morePadding={true}/>
+                  <Feed pubId={club.pubId} morePadding={true} />
                 )}
                 {openTab === 2 && (
                   <Trades clubId={club.clubId} />
