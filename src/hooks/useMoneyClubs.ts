@@ -58,7 +58,7 @@ export const useGetRegisteredClubs = () => {
       }
     },
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => 
+    getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextPage : undefined,
     refetchInterval: 60000,
   });

@@ -41,10 +41,9 @@ const IndexPage: NextPage = () => {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useGetRegisteredClubs(); 
+  } = useGetRegisteredClubs();
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = data?.pages.flatMap(page => page.clubs) || [];
-  const hasMore = data?.pages[data.pages.length - 1].hasMore || false;
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -81,17 +80,15 @@ const IndexPage: NextPage = () => {
                 {isLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
-                      clubs={clubs}
-                      setFilteredClubs={setFilteredClubs}
-                      filteredClubs={filteredClubs}
-                      filterBy={filterBy}
-                      setFilterBy={setFilterBy}
-                      isLoading={isLoading}
-                      page={page}
-                      setPage={setPage}
-                      hasMore={hasMore}
-                      refetch={refetch}
-                    />
+                    clubs={clubs}
+                    setFilteredClubs={setFilteredClubs}
+                    filteredClubs={filteredClubs}
+                    filterBy={filterBy}
+                    setFilterBy={setFilterBy}
+                    isLoading={isLoading || isFetchingNextPage}
+                    hasMore={hasNextPage}
+                    fetchNextPage={fetchNextPage}
+                  />
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
@@ -137,16 +134,16 @@ const IndexPage: NextPage = () => {
                         </Subtitle>
                       </div>
                       <span className="text-base gap-2 flex flex-col mt-6">
-                      <ListItemCard items={[
-                        "0% fees on bonding curves",
-                        "0% fees on Uni v4 pools",
-                        `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
-                        <>
-                          Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                            <span className="link link-hover">Rooftop Club</span>
-                          </Link>{" "}on Orb
-                        </>
-                      ]} />
+                        <ListItemCard items={[
+                          "0% fees on bonding curves",
+                          "0% fees on Uni v4 pools",
+                          `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
+                          <>
+                            Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                              <span className="link link-hover">Rooftop Club</span>
+                            </Link>{" "}on Orb
+                          </>
+                        ]} />
                       </span>
                       <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
                         <Subtitle>

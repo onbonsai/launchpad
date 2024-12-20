@@ -11,18 +11,17 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import useGetClubCreators from "@src/hooks/useGetClubCreators";
 
-export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, setPage, page, refetch, isLoading, hasMore }) => {
-  const { ref, inView } = useInView()
+export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
+  const { ref, inView } = useInView();
   const [clubCreators, setClubCreators] = useState({});
   const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
   const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
-      setPage(page + 1);
-      refetch();
+      fetchNextPage();
     }
-  }, [inView]);
+  }, [inView, isLoading, hasMore, fetchNextPage]);
 
   useEffect(() => {
     if (!isLoadingClubCreators) {
@@ -42,16 +41,13 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
     const nonFeaturedClubs = orderedClubs.filter(({ club }) => !club.featured);
 
     return [...featuredClubs, ...nonFeaturedClubs];
-  }, [sortedBy, filterBy, filteredClubs]);
+  }, [sortedBy, filterBy, filteredClubs, clubs]);
 
-  const SortIcon = () => {
-    return (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fillRule="evenodd" clipRule="evenodd" d="M14.6 14.6958L17.1095 12.5445L17.8905 13.4555L14.3908 16.4558L14.0003 16.7906L13.6098 16.4558L10.1095 13.4555L10.8905 12.5444L13.4 14.6955L13.4 3.99998H14.6L14.6 14.6958ZM2.50004 5.39976L10.5 5.4L10.5 6.6L2.5 6.59976L2.50004 5.39976ZM2.50002 9.4H9.00002V10.6H2.50002V9.4ZM7.50002 13.4H2.50002V14.6H7.50002V13.4Z" fill="white" fillOpacity="0.6" />
-      </svg>
-
-    );
-  }
+  const SortIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M14.6 14.6958L17.1095 12.5445L17.8905 13.4555L14.3908 16.4558L14.0003 16.7906L13.6098 16.4558L10.1095 13.4555L10.8905 12.5444L13.4 14.6955L13.4 3.99998H14.6L14.6 14.6958ZM2.50004 5.39976L10.5 5.4L10.5 6.6L2.5 6.59976L2.50004 5.39976ZM2.50002 9.4H9.00002V10.6H2.50002V9.4ZM7.50002 13.4H2.50002V14.6H7.50002V13.4Z" fill="white" fillOpacity="0.6" />
+    </svg>
+  );
 
   return (
     <div className="bg-background text-secondary">
@@ -64,7 +60,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         {/* FILTER */}
         <div className="relative max-w-full">
           <div className="flex justify-end">
-            {filterBy ? (
+            {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
                 <span className="text-secondary text-sm pr-4">{filterBy}</span>
                 <button onClick={() => { setFilteredClubs([]); setFilterBy("") }} className="text-secondary inline-flex">
@@ -82,7 +78,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                   </svg>
                 </button>
               </div>
-            ) : null}
+            )}
             <div className="relative bg-white/10 rounded-[10px] flex flex-row">
               <span className="mt-[9px] ml-2">
                 <SortIcon />
@@ -105,15 +101,15 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full whitespace-nowrap">
             <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
-              {sortedClubs.map((club, idx) =>
+              {sortedClubs.map((club, idx) => (
                 <li className="w-full" key={`club-${idx}`}>
                   <ClubCard
                     data={club}
                     minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
-                    creatorProfile={clubCreators[club.club.clubId] ? clubCreators[club.club.clubId][0].profile : undefined}
+                    creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
                   />
                 </li>
-              )}
+              ))}
             </ul>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">
