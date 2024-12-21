@@ -33,9 +33,13 @@ const HoldingSection = (props: HoldingSectionProps) => {
             clubId={row.club.clubId}
             key={`row-${row.club.clubId}`}
             title={row.token.name}
-            count={roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)}
+            count={
+              !row.complete
+                ? roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)
+                : kFormatter(parseFloat(formatEther(row.amount)))
+            }
             logo={<img src={row.token.image} alt='token-image' className='h-4' />}
-            symbol={row.token.symbol}
+            symbol={row.complete ? row.token.symbol : 'units'}
             logoBg={true}
             price={roundedToFixed(row.balance, 2)}
           />

@@ -53,7 +53,7 @@ const IndexPage: NextPage = () => {
     args: [address!],
     query: { enabled: !!address }
   });
-  const { data: bonsaiNft } = useReadContract({
+  const { data: bonsaiBalanceNFT, isLoading: isLoadingNFT } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
     abi: erc721Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -92,10 +92,11 @@ const IndexPage: NextPage = () => {
                 }
               </div>
               <div className="lg:col-span-3 overflow-auto">
-
                 {/* Profile */}
-                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy />}
-                {isConnected && authenticatedProfile && (
+                {!isConnected && <CreatorCopy />}
+
+                {/* Token holdings */}
+                {isConnected && (
                   <div className="bg-card rounded-xl p-4 hidden lg:block">
                     {!!address &&
                       <>
@@ -124,7 +125,7 @@ const IndexPage: NextPage = () => {
                 )}
 
                 {/* Bonsai NFT Perks */}
-                {!authenticatedProfile && (
+                {!isConnected  && (
                   <div className="relative lg:col-span-3">
                     <div className="rounded-xl p-6 w-full bg-card mt-1">
                       <div className="flex justify-between flex-col gap-[2px]">
@@ -159,6 +160,7 @@ const IndexPage: NextPage = () => {
                         className="mt-6"
                         size="sm"
                         onClick={() => setOpenBuyModal(true)}
+                        disabled={!isConnected}
                       >
                         Buy $BONSAI
                       </Button>

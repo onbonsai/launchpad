@@ -1,14 +1,14 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { formatUnits, parseUnits, erc721Abi } from "viem";
+import { formatUnits, parseUnits, erc721Abi, parseEther, formatEther } from "viem";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import ConfettiExplosion from 'react-confetti-explosion';
 
 import { Button } from "@src/components/Button"
-import { roundedToFixed } from "@src/utils/utils";
+import { kFormatter, roundedToFixed } from "@src/utils/utils";
 import {
   useGetSellPrice,
   useGetClubLiquidity,
@@ -36,6 +36,7 @@ import { Header2, Subtitle } from "@src/styles/text";
 import clsx from "clsx";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
+import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -70,7 +71,7 @@ export const BuySellWidget = ({
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
   const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
 
-  const { data: bonsaiNftZkSync } = useReadContract({
+  const { data: bonsaiBalanceNFT } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
     abi: erc721Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -80,11 +81,15 @@ export const BuySellWidget = ({
   });
 
   useEffect(() => {
-    if (club.completedAt) {
-      const isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
-      setClaimEnabled(isClaimEnabled);
+    let isClaimEnabled;
+    // TODO: not present?
+    if (club.claimAt) {
+      isClaimEnabled = (Date.now() / 1000) >= club.claimAt;
+    } else if (club.completedAt) {
+      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
     }
-  }, [club.completedAt]);
+    setClaimEnabled(isClaimEnabled);
+  }, [club.completedAt, club.claimAt]);
 
 
   const sellPriceFormatted = useMemo(() => (
@@ -107,6 +112,12 @@ export const BuySellWidget = ({
   const bonded = useMemo(() => (
     clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
   ), [clubLiquidity, minLiquidityThreshold]);
+
+  const tokensToClaim = useMemo(() => {
+    if (club?.complete && clubBalance > 0n) {
+      return kFormatter(parseFloat(formatEther(clubBalance * parseEther("800000000") / BigInt(club.supply))))
+    }
+  }, [club, clubBalance]);
 
   const claimEnabledAtDate = club.completedAt
     ? new Date((club.completedAt + 72 * 60 * 60) * 1000)
@@ -240,16 +251,21 @@ ${MADFI_CLUBS_URL}/token/${club.id}
   if (club.complete && tokenAddress) {
     return (
       <div className={clsx("flex flex-col items-center justify-center w-full md:-mt-4", inter.className)}>
-        <div className="text-center mt-12">
-          <p className="mt-2 text-lg text-secondary/70">
-            ${club.token.symbol}/BONSAI pool is live!{" "}
-            <Link href={`https://app.uniswap.org/explore/tokens/base/${tokenAddress}?chain=base`} legacyBehavior target="_blank">
-              <span className="text-grey link-hover cursor-pointer">Trade on Uniswap here</span>
+        <div className="text-center pt-12">
+          <HeaderText>
+            ${club.token.symbol}/BONSAI pool is live
+          </HeaderText>
+          <Header2Text>
+            <Link href={`https://dexscreener.com/base/${tokenAddress}`} target="_blank" rel="noreferrer">
+              <span className="text-grey link-hover cursor-pointer">View on Dexscreener</span>
             </Link>
-          </p>
+          </Header2Text>
         </div>
         {clubBalance > 0n && (
-          <div className="flex flex-col items-center justify-center space-y-2 mt-8 w-full">
+          <div className="flex flex-col items-center justify-center space-y-2 mt-4 w-full">
+            <p className="text-2xl gradient-txt mb-2">
+              {`You will claim: ${tokensToClaim} $${club.token.symbol} tokens`}
+            </p>
             {claimEnabled && (
               <div className="w-full flex justify-center">
                 <Button
@@ -307,7 +323,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}
     }}>
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
-        {/* {(!!bonsaiNftZkSync && bonsaiNftZkSync > 0n) && (
+        {/* {(!!bonsaiBalanceNFT && bonsaiBalanceNFT > 0n) && (
           <label className="text-xs font-medium text-secondary/70 whitespace-nowrap mt-4">
             Trading Fee: $0
           </label>

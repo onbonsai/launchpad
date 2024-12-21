@@ -60,16 +60,16 @@ const LoginWithLensModal = ({ closeModal }) => {
   return (
     <div className={clsx("flex flex-col w-full mt-8", inter.className)}>
       <Dialog.Title as="h2" className="text-3xl text-center font-bold">
-        Choose a Profile
+        {`${!profiles || !profiles.length ? 'No Profile found' : 'Choose a Profile'}`}
       </Dialog.Title>
       <div className="max-w-full flex flex-col gap-4 pt-4">
         {
           !profiles || !profiles.length ? <div className="w-full items-center text-center">
-            <p className="mb-2">No Lens profile found. To create a token or use social features you'll need to get one.</p>
+            <p className="mb-2">To create a token or use social features you'll need a Lens profile.</p>
             <p className="mb-6">You can still trade without a profile.</p>
             <p className="text-grey link-hover cursor-pointer">
-            <a href="https://onboarding.lens.xyz/" target="_blank" className="flex">
-              Mint your profile here to use social features {"->"}
+            <a href="https://onboarding.lens.xyz/mint" target="_blank" className="flex">
+              Mint your profile here {"->"}
             </a>
             </p>
           </div> : null

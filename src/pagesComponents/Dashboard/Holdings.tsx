@@ -45,7 +45,7 @@ export const Holdings = (props: HoldingProps) => {
           priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);
         }
         return { ...h, token: { name, symbol, image }, priceDelta };
-      })
+      }).sort((a, b) => b.balance - a.balance);
       setAllHoldings([...allHoldings || [], ..._holdings]);
     } else if (!isLoading && holdings?.length === 0) {
       setAllHoldings([]);

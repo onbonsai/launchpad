@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
-import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters, formatUnits } from "viem";
+import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters, formatUnits, parseEther } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
@@ -145,6 +145,7 @@ const HOLDINGS_PAGINATED = gql`
           createdAt
         }
         complete
+        supply
         tokenAddress
         tokenInfo
         currentPrice
@@ -176,7 +177,7 @@ export const DECIMALS = 6;
 export const USDC_DECIMALS = 6;
 // this isn't likely to change
 export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
-export const BENEFITS_AUTO_FEATURE_HOURS = 12;
+export const BENEFITS_AUTO_FEATURE_HOURS = 3;
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -328,12 +329,18 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
     query: HOLDINGS_PAGINATED, variables: { trader: account.toLowerCase(), startOfDayUTC, skip }
   });
 
-  const holdings = clubChips?.map((chips) => {
-    const balance = parseFloat(formatUnits(chips.amount, DECIMALS)) * parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
-    return {...chips, balance };
-  }) || [];
+  const holdings = await Promise.all(clubChips?.map(async (chips) => {
+    const complete = chips.club.complete;
+    const amount = complete
+      ? BigInt(chips.amount) * parseEther("800000000") / BigInt(chips.club.supply)
+      : BigInt(chips.amount);
+    const balance = complete
+      ? Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(chips.club.tokenAddress))
+      : parseFloat(formatUnits(amount, DECIMALS)) * parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
+    return { ...chips, balance, amount, complete };
+  }));
 
-  return { holdings, hasMore: clubChips?.length == limit };
+  return { holdings: holdings || [], hasMore: clubChips?.length == limit };
 };
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
@@ -750,3 +757,26 @@ export const withdrawFeesEarned = async (walletClient) => {
 
   if (receipt.status === "reverted") throw new Error("Reverted");
 }
+
+export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {
+  try {
+    const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch token price');
+    }
+
+    const { tokenPrice } = await response.json();
+
+    if (tokenPrice === undefined) {
+      throw new Error('Token price not found');
+    }
+
+    return tokenPrice;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error fetching token price');
+  }
+};

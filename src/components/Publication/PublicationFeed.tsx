@@ -122,9 +122,9 @@ const PublicationFeed = ({
         </>
       )} */}
 
-      <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4 mb-4 mt-3">
+      {/* <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4 mt-3">
         <h2 className="text-2xl font-sans tracking-[-0.01] font-bold leading-7">Feed</h2>
-      </div>
+      </div> */}
 
       {!isLoadingGatedPosts && allPosts?.length === 0 && (
         <h3 className="text-lg tracking-wide leading-6 mt-4">Nothing here.</h3>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
-import { decodeEventLog, PublicClient, getAddress, decodeAbiParameters } from "viem";
+import { decodeEventLog, PublicClient, getAddress, decodeAbiParameters, createPublicClient, http } from "viem";
 import { groupBy } from "lodash/collection";
 import { Ticker } from "@src/components/Ticker";
 import { publicClient, getRegisteredClubInfo } from "@src/services/madfi/moneyClubs";
@@ -10,6 +10,7 @@ import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 import { shortAddress } from "@src/utils/utils";
 import { bToHexString } from "@src/services/lens/utils";
 import useIsMounted from "@src/hooks/useIsMounted";
+import { mainnet } from 'viem/chains';
 
 interface BannerItemProps {
   handle: string;
@@ -137,7 +138,7 @@ export const ActivityBanner = () => {
   };
 
   const initListenForClubTrades = async () => {
-    const client = publicClient();
+    const client = createPublicClient({ chain: mainnet, transport: http() })
     client.watchContractEvent({
       address: LAUNCHPAD_CONTRACT_ADDRESS,
       abi: BonsaiLaunchpadAbi,
@@ -189,11 +190,11 @@ export const ActivityBanner = () => {
     const _items = await Promise.all(events.map(async ({ event, transactionHash }) => {
       const address = getAddress(event.creator);
       const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-      let ens;
-      if (!profile) ens = await client.getEnsName({ address });
+      // let ens;
+      // if (!profile) ens = await client.getEnsName({ address });
 
       return {
-        handle: profile?.handle?.localName || ens || shortAddress(event.creator),
+        handle: profile?.handle?.localName || shortAddress(event.creator),
         verb: 'created',
         clubId: event.clubId.toString(),
         symbol: tokensGrouped[event.clubId.toString()][0].symbol,

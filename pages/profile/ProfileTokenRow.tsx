@@ -53,8 +53,8 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     }
 
     const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.stopPropagation(); 
-        e.preventDefault(); 
+        e.stopPropagation();
+        e.preventDefault();
         if (pressedBuySell && !!holding?.club) {
             pressedBuySell({action: canSell ? TokenAction.sell : TokenAction.buy, club: holding!.club!});
         }
@@ -79,20 +79,26 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                         <Subtitle className='text-white'>
                             ${roundedToFixed(holding?.balance ?? 0, 2)}
                         </Subtitle>
-                        <Subtitle className={clsx(
-                            "flex flex-row items-center justify-end",
-                            priceColor()
-                        )}>
-                            <span className='mr-1'>{movementIcon()}</span> {previousPrice} • {priceDelta.valuePct}%
-                        </Subtitle>
+                        {!holding?.club.complete && (
+                            <Subtitle className={clsx(
+                                "flex flex-row items-center justify-end",
+                                priceColor()
+                            )}>
+                                <span className='mr-1'>{movementIcon()}</span> {priceDelta.valuePct}%
+                            </Subtitle>
+                        )}
+                        {holding?.club.complete && (
+                            <Subtitle className='text-bullish'>graduated!</Subtitle>
+                        )}
                     </div>
-                    <Button
+                    {/* TODO: not working */}
+                    {/* <Button
                         className={clsx(canSell ? priceColor() : 'bg-bullish')}
                         size="sm"
                         onClick={handleButtonClick}
                     >
                         {canSell ? 'Sell' : 'Buy'}
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
         </Link>

@@ -108,7 +108,7 @@ const Help = () => {
                           </ul>
                           <p className="text-lg text-secondary pt-8">Safety Feaures</p>
                           <p className="text-lg/70 mt-4 text-secondary">The launchpad has several features to help ensure that launches are fair.</p>
-                          <p className="text-lg/70 mt-4 text-secondary">For the first 2 hours of token creation the bonding curve limits the total amount of shares that can be bought. This is a global parameter that applies to all traders and has a linear ramp up period over 2 hours.</p>
+                          <p className="text-lg/70 mt-4 text-secondary">For the first 2 hours of token creation the bonding curve has Snipe Protection, which limits the total amount of shares that can be bought. This is a global parameter that applies to all traders and has a linear ramp up period over 2 hours.</p>
                           <p className="text-lg/70 mt-4 text-secondary">Once a token graduates the Uniswap pool is created with 20% of the token supply and the remaining 80% is held for 72 hours before becoming available to claim by bonding curve holders. This claim cooldown period may be adjusted in the future.</p>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>

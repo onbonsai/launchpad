@@ -14,6 +14,7 @@ import { ProfilePictureSetFragment } from "@lens-protocol/client";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
 import { inter } from "@src/fonts/fonts";
+import useGetProfiles from "@src/hooks/useGetProfiles";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -50,6 +51,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
+  const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
   const { ready, authenticated: connected } = usePrivy();
@@ -128,7 +130,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   //   );
   // }
 
-  if (!isAuthenticated && setOpenSignInModal) {
+  if (!isAuthenticated && setOpenSignInModal && (profiles?.length && profiles?.length > 0)) {
     return (
       <Button
         variant="accent"
@@ -149,7 +151,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         onClick={handleClick}
       >
         <span className="flex items-center">
-          <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" />
+          {profilePicture && <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" />}
           <span className="pl-3 pr-[6px] text-white font-medium text-base">
             {identity}
           </span>

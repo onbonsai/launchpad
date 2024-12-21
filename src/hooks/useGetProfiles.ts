@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { getProfilesOwned, getProfilesManaged } from "@src/services/lens/getProfiles";
 
-export default function useGetProfiles(address: string) {
+export default function useGetProfiles(address?: string) {
   const [profiles, setProfiles] = useState<any[] | null>(null);
   const [farcasterProfiles, setFarcasterProfiles] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);

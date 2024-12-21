@@ -9,11 +9,11 @@ import { Header2, Subtitle } from "@src/styles/text";
 export default function CreatorCopy() {
   const [openSignInModal, setOpenSignInModal] = useState(false);
   return (
-    <div className="hidden lg:flex flex-col gap-[2px] bg-card py-3 px-4 rounded-xl">
+    <div className="hidden lg:flex flex-col gap-[2px] bg-card py-3 px-4 rounded-xl mb-1">
       <Header2 className="text-white">
         Log in
       </Header2>
-      <Subtitle className="">
+      <Subtitle className="pt-1">
         Log in to trade or create your own token
       </Subtitle>
       <div className="pt-[30px]"><ConnectButton setOpenSignInModal={setOpenSignInModal} /></div>

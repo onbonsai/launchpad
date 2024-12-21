@@ -1,7 +1,7 @@
 import { inter } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useWalletClient } from "wagmi";
+import { useWalletClient, useAccount } from "wagmi";
 import { useState } from "react";
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
@@ -134,7 +134,7 @@ export const Header = () => {
           Bonsai Launchpad
         </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
-          Tokens start on a bonding curve until they graduate ($69k mcap or ~$23k in liquidity).
+          Tokens start on a bonding curve until they graduate ($69k mcap or ~$23k in liquidity). You buy "units" which represent your portion of the total supply. Your full token allocation will be shown after graduation.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Built on Base. Bonding curves are priced in USDC ($)
@@ -143,13 +143,10 @@ export const Header = () => {
           Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate to Uniswap
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon).
+          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Holders must wait 72 hours to claim their tokens; this is to protect from rugs and put the token in buy-only mode.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          Bonding curve trading closes and chip holders will be able to claim their tokens after 72 hours.
-        </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          Tokens that graduate are eligible to migrate to our Bons(ai) agent stack on Lens network in q1 2025.
+          Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.
         </p>
         <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">

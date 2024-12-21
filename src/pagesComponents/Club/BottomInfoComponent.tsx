@@ -2,20 +2,36 @@ import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
-import { useMemo, useState } from "react";
-import { MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { useEffect, useMemo, useState } from "react";
+import { fetchTokenPrice, MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
-import { formatUnits, parseUnits } from "viem";
+import { formatEther, formatUnits, parseEther } from "viem";
+import { roundedToFixed } from "@src/utils/utils";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const { data: clubBalance } = useGetClubBalance(club?.clubId, address);
+  const [balance, setBalance] = useState<string>();
 
-  const balance = useMemo(() => {
-    if (!club?.currentPrice || !address || !clubBalance) return 0;
+  useEffect(() => {
+    const calculateBalance = async () => {
+      if (!club?.currentPrice || !address || !clubBalance) {
+        return;
+      }
 
-    // converting to USDC value
-    return formatUnits(clubBalance * BigInt(club.currentPrice), 12);
+      const amount = club.complete
+        ? clubBalance * parseEther("800000000") / BigInt(club.supply)
+        : clubBalance;
+
+      // converting to USDC value
+      const _balance = club.complete
+        ? roundedToFixed(Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(club.tokenAddress)), 2)
+        : localizeNumber(formatUnits(amount * BigInt(club.currentPrice), 12));
+
+      setBalance(_balance);
+    };
+
+    calculateBalance();
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
@@ -54,7 +70,7 @@ export const BottomInfoComponent = ({ club, address }) => {
           <div className="bg-white w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
             <div className="flex flex-col">
               <Subtitle className="text-black/60">Holding</Subtitle>
-              <BodySemiBold className="text-black">{localizeNumber(balance)}</BodySemiBold>
+              <BodySemiBold className="text-black">${balance ? balance : "-"}</BodySemiBold>
             </div>
             <Button
               className="bg-bullish border-transparent max-w-[60px]"
