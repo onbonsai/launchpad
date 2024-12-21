@@ -49,7 +49,7 @@ interface Props {
 export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin }) => {
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
   const { ready, authenticated: connected } = usePrivy();
@@ -106,7 +106,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   if (!ready && !connected) return null;
 
-  if (!connected) {
+  if (!connected || !isConnected) {
     return (
       <Button
         variant="accent"
