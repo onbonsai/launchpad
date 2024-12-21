@@ -65,13 +65,18 @@ const LoginWithLensModal = ({ closeModal }) => {
       <div className="max-w-full flex flex-col gap-4 pt-4">
         {
           !profiles || !profiles.length ? <div className="w-full items-center text-center">
-            <p className="mb-2">To create a token or use social features you'll need a Lens profile.</p>
-            <p className="mb-6">You can still trade without a profile.</p>
-            <p className="text-grey link-hover cursor-pointer">
-            <a href="https://onboarding.lens.xyz/mint" target="_blank" className="flex">
-              Mint your profile here {"->"}
-            </a>
-            </p>
+            <p className="mb-2">To create a token or use social features you'll need to get one.</p>
+            <p className="mb-8">You can still trade without a profile.</p>
+            <div>
+              <a href="https://onboarding.lens.xyz/" target="_blank">
+                <span className="text-grey link-hover cursor-pointer">Mint a profile on Lens {"->"}</span>
+              </a>
+            </div>
+            <div className="mb-4">
+              <a href="https://orb.club/" target="_blank">
+                <span className="text-grey link-hover cursor-pointer">Download Orb for mobile {"->"}</span>
+              </a>
+            </div>
           </div> : null
         }
 

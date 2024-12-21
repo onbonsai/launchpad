@@ -93,9 +93,7 @@ const IndexPage: NextPage = () => {
               </div>
               <div className="lg:col-span-3 overflow-auto">
                 {/* Profile */}
-                {!isConnected && <CreatorCopy />}
-
-                {/* Token holdings */}
+                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy isConnected={isConnected} isAuthenticatedProfile={!!authenticatedProfile} />}
                 {isConnected && (
                   <div className="bg-card rounded-xl p-4 hidden lg:block">
                     {!!address &&
