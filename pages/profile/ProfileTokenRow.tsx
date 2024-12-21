@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import { Button } from "@src/components/Button";
 import { DECIMALS, calculatePriceDelta } from '@src/services/madfi/moneyClubs';
 import { BodySemiBold, Subtitle } from '@src/styles/text';
-import { roundedToFixed } from '@src/utils/utils';
+import { kFormatter, roundedToFixed } from '@src/utils/utils';
 import React from 'react'
-import { formatUnits } from 'viem';
+import { formatEther, formatUnits } from 'viem';
 import PositiveIcon from './PositiveIcon';
 import NegativeIcon from './NegativeIcon';
 import BuySellModal from "@pagesComponents/Club/BuySellModal";
@@ -70,7 +70,12 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                         {holding?.token.name}
                         </BodySemiBold>
                         <Subtitle>
-                            {roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)} {holding?.token.symbol}
+                            {
+                                holding?.club.complete
+                                    ? kFormatter(parseFloat(formatEther(holding?.amount ?? 0n)))
+                                    : roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)
+                            }
+                            {" "}{holding?.token.symbol}
                         </Subtitle>
                     </div>
                 </div>
