@@ -17,7 +17,7 @@ export default function CreatorCopy(props: CreatorCopyProps) {
   const [openSignInModal, setOpenSignInModal] = useState(false);
 
   return (
-    <div className="hidden lg:flex flex-col gap-[2px] bg-card py-3 px-4 rounded-xl">
+    <div className="hidden lg:flex flex-col gap-[2px] bg-card py-3 px-4 rounded-xl mb-2">
       <Header2 className="text-white mb-2">Log in</Header2>
       {!isAuthenticatedProfile &&
         ((!isConnected || !connected) ? (
