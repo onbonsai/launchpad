@@ -25,7 +25,7 @@ export const BottomInfoComponent = ({ club, address }) => {
 
       // converting to USDC value
       const _balance = club.complete
-        ? roundedToFixed(Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(club.tokenAddress)), 2)
+        ? "$" + roundedToFixed(Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(club.tokenAddress)), 2)
         : localizeNumber(formatUnits(amount * BigInt(club.currentPrice), 12));
 
       setBalance(_balance);
@@ -70,7 +70,7 @@ export const BottomInfoComponent = ({ club, address }) => {
           <div className="bg-white w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
             <div className="flex flex-col">
               <Subtitle className="text-black/60">Holding</Subtitle>
-              <BodySemiBold className="text-black">${balance ? balance : "-"}</BodySemiBold>
+              <BodySemiBold className="text-black">{balance ? balance : "-"}</BodySemiBold>
             </div>
             <Button
               className="bg-bullish border-transparent max-w-[60px]"
