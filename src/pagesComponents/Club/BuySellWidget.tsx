@@ -389,12 +389,12 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {justBought && (
+                {!justBought && (
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                     Buy ${club.token.symbol}
                   </Button>
                 )}
-                {!justBought && (
+                {justBought && (
                   <div className="w-full flex flex-col items-center space-y-4">
                     <p className="text-center gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
