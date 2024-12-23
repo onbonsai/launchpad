@@ -203,22 +203,23 @@ export function baseScanUrl(txHash: string) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
 }
 
-/**
- * Converts a numeric ID to a hexadecimal string with leading zeros.
- * @param {number | string} id - The numeric ID to convert.
- * @param {number} minLength - The minimum length of the hexadecimal part (excluding the '0x' prefix).
- * @returns {string} The formatted hexadecimal string.
- */
 function toPaddedHexString(id: number | string, minLength: number = 2): string {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  if (numericId >= 128) minLength = 4; // HACK: need to figure out subgraph way of generating hexstring
-  if (numericId >= 256) minLength = 6; // HACK: need to figure out subgraph way of generating hexstring
   let hexString = numericId.toString(16);
-  if (hexString.length % 2 !== 0) {
-    hexString += '0';
-  }
-  while (hexString.length < minLength) {
-    hexString += '0';
+
+  if (numericId < 128) {
+    // Pad at the beginning for numbers less than 128
+    while (hexString.length < minLength) {
+      hexString = '0' + hexString;
+    }
+  } else {
+    // Adjust minLength for numbers greater than or equal to 128
+    if (numericId >= 128) minLength = 4;
+    if (numericId >= 256) minLength = 6;
+    // Pad at the end for numbers greater than or equal to 128
+    while (hexString.length < minLength) {
+      hexString += '0';
+    }
   }
   return `0x${hexString}`;
 }

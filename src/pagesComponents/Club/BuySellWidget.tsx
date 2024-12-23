@@ -297,6 +297,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}?ref=${address}
       </div>
     )
   } else if (club.complete || bonded) {
+    console.log(club.complete, bonded, club.tokenAddress, isReleased);
     return (
       <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
         <div className="text-center">

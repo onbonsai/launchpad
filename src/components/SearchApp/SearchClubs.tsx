@@ -5,11 +5,12 @@ import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { ChangeEvent, Fragment, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
-import { inter } from "@src/fonts/fonts"; 
+import { inter } from "@src/fonts/fonts";
 
 import useClubSearch from "@src/hooks/useClubSearch";
 import clsx from "clsx";
 import { SearchIcon } from "@heroicons/react/outline";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +28,7 @@ export const SearchClubs = () => {
   }
 
   function handleSelectItem(item) {
+    closeModal();
     push(`/token/${item.clubId}`);
   }
 
@@ -48,10 +50,10 @@ export const SearchClubs = () => {
             type="text"
             name="finder"
             id="finder"
-            placeholder="Search token or wallet"
+            placeholder="Search tokens"
             value={query}
             autoComplete="off"
-            onInput={() => openModal()}
+            onClick={() => openModal()}
             className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
           />
           <div className="hidden inset-y-0 right-0 py-1.5 pr-1.5 lg:absolute">
@@ -96,7 +98,7 @@ export const SearchClubs = () => {
                         <Combobox.Input
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
                           displayValue={(profile) => profile?.name ?? ""}
-                          placeholder="Search tokens by name, symbol or @creator"
+                          placeholder="Search tokens by name or symbol"
                           onChange={handleSelected}
                         />
                       </div>
@@ -108,6 +110,10 @@ export const SearchClubs = () => {
                         afterLeave={() => setQuery("")}
                       >
                         <Combobox.Options className="mt-1 max-h-60 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {isLoading && (
+                            <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+                          )}
+
                           {clubSearchResults?.length === 0 && debouncedQuery !== "" && !isLoading && (
                             <div className="relative cursor-default select-none py-2 px-4 text-secondary">
                               Nothing found.
@@ -118,7 +124,7 @@ export const SearchClubs = () => {
                             <Combobox.Option
                               key={data.id}
                               className={({ active }) =>
-                                `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
+                                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
                                 }`
                               }
                               value={data}

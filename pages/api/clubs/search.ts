@@ -7,14 +7,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { query } = req.body;
     const { collection } = await getClientWithClubs();
 
-    const searchQuery = {
-      $text: {
-        $search: query,
-      }
-    };
-
     const results = await collection.aggregate([
-      { $match: searchQuery },
+      {
+        $search: {
+          index: "clubs-prod-token-search-index",
+          text: {
+            query: query,
+            path: ["token.name", "token.symbol"], // fields to search
+          }
+        }
+      },
       { $project: { _id: 0, score: { $meta: "textScore" }, token: 1, handle: 1, clubId: 1 } },
       // Add a sort stage to sort by the text score
       { $sort: { score: { $meta: "textScore" } } }
