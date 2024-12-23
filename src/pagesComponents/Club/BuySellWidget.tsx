@@ -61,10 +61,10 @@ export const BuySellWidget = ({
   const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.id, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.id, buyPrice);
+  // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.clubId, buyPrice);
   const { buyAmount, maxAllowed } = buyAmountResult || {};
-  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.id, sellAmount);
+  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
   const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
@@ -216,6 +216,9 @@ export const BuySellWidget = ({
       // also triggers token swap in the backend
       await claimTokensTransaction(walletClient, club.id);
       toast.success('Tokens claimed!', { id: toastId });
+      setShowConfetti(true);
+      // Remove confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
     } catch (error) {
       console.log(error);
       toast.error("Failed to claim tokens", { id: toastId });
