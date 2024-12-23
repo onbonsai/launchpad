@@ -247,7 +247,7 @@ export const BuySellWidget = ({
   const urlEncodedPostParams = () => {
     const params = {
       text: `Just aped into $${club.token.symbol}!
-${MADFI_CLUBS_URL}/token/${club.id}
+${MADFI_CLUBS_URL}/token/${club.id}?ref=${address}
 `,
     };
 
