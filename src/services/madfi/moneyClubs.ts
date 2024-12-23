@@ -14,7 +14,6 @@ import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
 
-import { toHexString } from "../lens/utils";
 import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
@@ -204,6 +203,26 @@ export function baseScanUrl(txHash: string) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
 }
 
+/**
+ * Converts a numeric ID to a hexadecimal string with leading zeros.
+ * @param {number | string} id - The numeric ID to convert.
+ * @param {number} minLength - The minimum length of the hexadecimal part (excluding the '0x' prefix).
+ * @returns {string} The formatted hexadecimal string.
+ */
+function toPaddedHexString(id: number | string, minLength: number = 2): string {
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  if (numericId >= 128) minLength = 4; // HACK: need to figure out subgraph way of generating hexstring
+  if (numericId >= 256) minLength = 6; // HACK: need to figure out subgraph way of generating hexstring
+  let hexString = numericId.toString(16);
+  if (hexString.length % 2 !== 0) {
+    hexString += '0';
+  }
+  while (hexString.length < minLength) {
+    hexString += '0';
+  }
+  return `0x${hexString}`;
+}
+
 export const subgraphClient = () => {
   const uri = IS_PRODUCTION ? MONEY_CLUBS_SUBGRAPH_URL : MONEY_CLUBS_SUBGRAPH_TESTNET_URL;
   return new ApolloClient({
@@ -215,7 +234,8 @@ export const subgraphClient = () => {
 
 // server-side
 export const getRegisteredClubById = async (clubId: string) => {
-  const id = toHexString(parseInt(clubId));
+  const id = toPaddedHexString(parseInt(clubId));
+  console.log(clubId, `id: ${id}`);
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
@@ -259,7 +279,7 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
 };
 
 export const getVolume = async (clubId: string): Promise<bigint> => {
-  const id = toHexString(parseInt(clubId));
+  const id = toPaddedHexString(parseInt(clubId));
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
   const client = subgraphClient();
   const limit = 50;
@@ -298,7 +318,7 @@ export const getLiquidity = async (clubId: string) => {
 };
 
 export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {
-  const id = toHexString(parseInt(clubId));
+  const id = toPaddedHexString(parseInt(clubId));
   const client = subgraphClient();
   const limit = 50;
   const skip = page * limit;
@@ -344,7 +364,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
 };
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
-  const id = toHexString(parseInt(clubId));
+  const id = toPaddedHexString(parseInt(clubId));
   const limit = 100;
   const skip = page * limit;
   const client = subgraphClient();
