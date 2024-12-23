@@ -146,7 +146,7 @@ export const BuySellWidget = ({
       await approveToken(USDC_CONTRACT_ADDRESS, parseUnits(buyPrice, USDC_DECIMALS), walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.id, buyAmount!, referralAddress);
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, referralAddress);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
@@ -182,7 +182,7 @@ export const BuySellWidget = ({
 
     try {
       toastId = toast.loading("Selling...");
-      await sellChipsTransaction(walletClient, club.id, sellAmount!);
+      await sellChipsTransaction(walletClient, club.clubId, sellAmount!);
 
       refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);
@@ -214,7 +214,7 @@ export const BuySellWidget = ({
     try {
       toastId = toast.loading("Claiming tokens...");
       // also triggers token swap in the backend
-      await claimTokensTransaction(walletClient, club.id);
+      await claimTokensTransaction(walletClient, club.clubId);
       toast.success('Tokens claimed!', { id: toastId });
       setShowConfetti(true);
       // Remove confetti after 5 seconds
@@ -233,7 +233,7 @@ export const BuySellWidget = ({
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.id);
+      const token = await releaseLiquidityTransaction(club.clubId);
       setIsReleased(true);
       setTokenAddress(token);
       toast.success('Pool created!', { id: toastId });
