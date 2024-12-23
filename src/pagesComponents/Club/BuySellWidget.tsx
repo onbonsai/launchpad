@@ -402,7 +402,7 @@ ${MADFI_CLUBS_URL}/token/${club.id}?ref=${address}
                   <div className="w-full flex flex-col items-center space-y-4">
                     <p className="text-center gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
-                    <div className="flex flex-row items-center space-x-2">
+                    <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button className="w-[150px] bg-black hover:bg-black">
                           <img src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" />
