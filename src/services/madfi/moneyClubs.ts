@@ -630,13 +630,13 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
   return receipt.status === "success" && response.ok ? res : {};
 };
 
-export const buyChips = async (walletClient: any, clubId: string, amount: bigint) => {
+export const buyChips = async (walletClient: any, clubId: string, amount: bigint, referral?: `0x${string}`) => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amount, zeroAddress, recipient, MADFI_WALLET_ADDRESS],
+    args: [clubId, amount, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);

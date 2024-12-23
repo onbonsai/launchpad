@@ -225,7 +225,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                                 <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress} /></p>
                                 <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
-                                    {trimText(`https://dexscreener.com/base/${club.tokenAddress}`, 35)}
+                                    Dexscreener
                                   </BodySemiBold>
                                 </a>
                               </div>

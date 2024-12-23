@@ -99,20 +99,25 @@ export function tweetIntentUrlMinted(handle: string) {
 
 interface IntentUrlProps {
   text: string;
-  url: string;
-  ref: string;
-  tokenId: string;
+  referralAddress: string;
+  clubId: string;
 }
 
-export function tweetIntentDashboardUrl({ text, url, ref, tokenId }: IntentUrlProps) {
-  const _ref = encodeURIComponent(`${ref}|${tokenId}`);
-  return `https://twitter.com/intent/tweet?text=${text}&url=${encodeURI(`${url}?ref=${_ref}`)}`;
+export function tweetIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
+  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+  return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURI(`${url}`)}`;
 }
 
-export function lensterIntentDashboardUrl({ text, url, ref, tokenId }: IntentUrlProps) {
-  const _ref = encodeURIComponent(`${ref}|${tokenId}`);
-  return `https://${!IS_PRODUCTION ? "testnet." : ""}hey.xyz/?text=${text}&url=${encodeURI(`${url}?ref=${_ref}`)}`;
+export function castIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
+  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+  return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
+
 }
+
+// export function lensterIntentDashboardUrl({ text, url, ref, tokenId }: IntentUrlProps) {
+//   const _ref = encodeURIComponent(`${ref}|${tokenId}`);
+//   return `https://${!IS_PRODUCTION ? "testnet." : ""}hey.xyz/?text=${encodeURIComponent}&url=${encodeURI(`${url}?ref=${_ref}`)}`;
+// }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
 

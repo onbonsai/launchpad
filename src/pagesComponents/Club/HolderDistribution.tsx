@@ -5,15 +5,18 @@ import { getLensPfp, shortAddress, roundedToFixed } from "@src/utils/utils";
 import { useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
-const Row = ({ row, supply, creator }) => (
-  <tr className={`text-white h-14 bg-`}>
+const Row = ({ row, supply, creator }) => {
+  let share = ((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString();
+  if (share === "0") share = "<1";
+  return (
+    <tr className={`text-white h-14 bg-`}>
     <td className="px-2">
       <div className="grid grid-cols-5 items-center">
         <div className="col-span-1 mr-2">
           {row.profile?.metadata && (
             <img
               src={getLensPfp(row.profile)}
-              alt={row.profile?.handle.localName}
+              alt={row.profile?.handle?.localName}
               className="rounded-full"
               height="32"
               width="32"
@@ -32,9 +35,10 @@ const Row = ({ row, supply, creator }) => (
         </span>
       </div>
     </td>
-    <td className="px-2">{parseFloat(((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString())}%</td>
+    <td className="px-2">{share}%</td>
   </tr>
-);
+  )
+}
 
 export const HolderDistribution = ({ clubId, supply, creator }) => {
   const { ref, inView } = useInView()
@@ -52,7 +56,7 @@ export const HolderDistribution = ({ clubId, supply, creator }) => {
 
   useEffect(() => {
     if (!isLoading && holdings?.length) {
-      setAllHoldings([...allHoldings, ...holdings]);
+      setAllHoldings([...allHoldings, ...holdings].sort((a, b) => parseInt(b.amount) - parseInt(a.amount)));
     }
   }, [isLoading]);
 

@@ -8,7 +8,7 @@ import { InformationCircleIcon } from "@heroicons/react/solid";
 import ConfettiExplosion from 'react-confetti-explosion';
 
 import { Button } from "@src/components/Button"
-import { kFormatter, roundedToFixed } from "@src/utils/utils";
+import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
 import {
   useGetSellPrice,
   useGetClubLiquidity,
@@ -37,6 +37,7 @@ import clsx from "clsx";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
+import { useRouter } from "next/router";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -46,6 +47,8 @@ export const BuySellWidget = ({
   tokenBalance, // balance in USDC
   openTab: _openTab,
 }) => {
+  const router = useRouter();
+  const referralAddress = router.query.ref as `0x${string}`;
   const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
@@ -143,7 +146,7 @@ export const BuySellWidget = ({
       await approveToken(USDC_CONTRACT_ADDRESS, parseUnits(buyPrice, USDC_DECIMALS), walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.id, buyAmount!);
+      await buyChipsTransaction(walletClient, club.id, buyAmount!, referralAddress);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
@@ -240,7 +243,7 @@ export const BuySellWidget = ({
 
   const urlEncodedPostParams = () => {
     const params = {
-      text: `Just aped $${buyPrice} into this new token! The ticker is $${club.token.symbol}
+      text: `Just aped into $${club.token.symbol}!
 ${MADFI_CLUBS_URL}/token/${club.id}
 `,
     };
@@ -386,19 +389,41 @@ ${MADFI_CLUBS_URL}/token/${club.id}
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {!justBought && (
+                {justBought && (
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                     Buy ${club.token.symbol}
                   </Button>
                 )}
-                {justBought && (
-                  <div className="w-full flex flex-col items-center">
-                    <p className="text-center mb-4 gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
-                    <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
-                      <Button variant="accent" className="w-full">
-                        Share to Orb
-                      </Button>
-                    </a>
+                {!justBought && (
+                  <div className="w-full flex flex-col items-center space-y-4">
+                    <p className="text-center gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
+                    <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
+                    <div className="flex flex-row items-center space-x-2">
+                      <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                        <Button className="w-[150px] bg-black hover:bg-black">
+                          <img src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" />
+                          Orb
+                        </Button>
+                      </a>
+                      <a href={tweetIntentTokenReferral({
+                        text: `Just aped into $${club.token.symbol}!`,
+                        clubId: club.clubId,
+                        referralAddress: address!
+                      })} target="_blank" rel="noopener noreferrer" className="w-full">
+                        <Button variant="accent" className="w-[150px] flex items-center justify-center">
+                          <img src="/svg/X_logo_2023.svg" alt="X Logo" className="w-4 h-4" />
+                        </Button>
+                      </a>
+                      <a href={castIntentTokenReferral({
+                        text: `Just aped into $${club.token.symbol}!`,
+                        clubId: club.clubId,
+                        referralAddress: address!
+                      })} target="_blank" rel="noopener noreferrer" className="w-full">
+                        <Button className="w-[150px] bg-[#472a91] hover:bg-[#472a91] text-white">
+                          Warpcast
+                        </Button>
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>
