@@ -203,7 +203,7 @@ export function baseScanUrl(txHash: string) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
 }
 
-function toPaddedHexString(id: number | string, minLength: number = 2): string {
+export const toPaddedHexString = (id: number | string, minLength: number = 2): string => {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
   let hexString = numericId.toString(16);
 

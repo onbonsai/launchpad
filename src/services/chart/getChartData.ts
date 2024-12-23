@@ -1,7 +1,6 @@
 import { gql } from "@apollo/client";
 import { formatUnits } from "viem";
-import { toHexString } from "../lens/utils";
-import { subgraphClient, USDC_DECIMALS } from "../madfi/moneyClubs";
+import { subgraphClient, USDC_DECIMALS, toPaddedHexString } from "../madfi/moneyClubs";
 
 const CLUB_TRADES_PAGINATED = gql`
   query ClubTrades($club: Bytes!, $createdAt_gt: Int!, $createdAt_lt: Int!, $skip: Int!) {
@@ -40,7 +39,7 @@ const getTrades = async (
   createdAt_lt: any,
   page: number = 0,
 ): Promise<{ trades: any[], hasMore: boolean }> => {
-  const club = toHexString(parseInt(clubId));
+  const club = toPaddedHexString(parseInt(clubId));
   const limit = 100;
   const skip = page * limit;
 
