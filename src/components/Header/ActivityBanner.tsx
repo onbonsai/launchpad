@@ -3,7 +3,7 @@ import Link from "next/link";
 import { decodeEventLog, PublicClient, getAddress, decodeAbiParameters, createPublicClient, http } from "viem";
 import { groupBy } from "lodash/collection";
 import { Ticker } from "@src/components/Ticker";
-import { publicClient, getRegisteredClubInfo } from "@src/services/madfi/moneyClubs";
+import { publicClient, getRegisteredClubInfo, toPaddedHexString } from "@src/services/madfi/moneyClubs";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
@@ -113,7 +113,7 @@ export const ActivityBanner = () => {
 
   const prepLastTrade = async (client: PublicClient, events: TradeEvent[]) => {
     const [tokens, profiles] = await Promise.all([
-      getClubInfo(events.map(({ event: { clubId } }) => bToHexString(clubId))),
+      getClubInfo(events.map(({ event: { clubId } }) => toPaddedHexString(clubId.toString(16)))),
       getHandlesByAddresses(events.map(({ event: { actor } }) => actor))
     ]);
     const profilesGrouped = groupBy(profiles, 'ownedBy.address');
