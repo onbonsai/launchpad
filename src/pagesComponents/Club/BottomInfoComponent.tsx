@@ -13,8 +13,6 @@ export const BottomInfoComponent = ({ club, address }) => {
   const { data: clubBalance } = useGetClubBalance(club?.clubId, address);
   const [balance, setBalance] = useState<string>();
 
-  console.log("clubBalance", clubBalance)
-
   useEffect(() => {
     const calculateBalance = async () => {
       if (!club?.currentPrice || !address || !clubBalance) {
