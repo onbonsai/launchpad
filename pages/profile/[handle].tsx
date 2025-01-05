@@ -192,73 +192,72 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   //   return (profile as FarcasterProfile).profileHandle !== undefined;
   // }
 
-    const profilePicture = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.profileImage;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.metadata?.picture?.optimized?.uri;
-    };
+  const profilePicture = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.profileImage;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.metadata?.picture?.optimized?.uri;
+  };
 
-    const coverImage = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.coverImageURI;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.metadata?.coverPicture?.optimized?.uri;
-    }
+  const coverImage = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.coverImageURI;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.metadata?.coverPicture?.optimized?.uri;
+  }
 
-    const userBio = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.profileBio;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.metadata?.bio;
-    }
+  const userBio = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.profileBio;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.metadata?.bio;
+  }
 
-    const userHandle = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.profileHandle;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.handle?.suggestedFormatted.localName;
-    }
+  const userHandle = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.profileHandle;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.handle?.suggestedFormatted.localName;
+  }
 
-    const displayName = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.profileDisplayName;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.metadata?.displayName;
-    }
+  const displayName = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.profileDisplayName;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.metadata?.displayName;
+  }
 
-    const followingCount = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.followingCount;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.stats?.following;
-    }
+  const followingCount = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.followingCount;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.stats?.following;
+  }
 
-    const followerCount = () => {
-      // if (isFarcasterProfile(profile)) {
-      //   return profile.followerCount;
-      // }
-      const lensProfile = profile as ProfileFragment;
-      return lensProfile.stats?.followers;
-    }
+  const followerCount = () => {
+    // if (isFarcasterProfile(profile)) {
+    //   return profile.followerCount;
+    // }
+    const lensProfile = profile as ProfileFragment;
+    return lensProfile.stats?.followers;
+  }
 
 
 
   return (
     <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">
-        <main className="lg:mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
+      <main className="lg:mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
         <MobileViewSelector activeView={mobileView} setActiveView={setMobileView} />
-          <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
-            <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
-            <div className={`col-span-full lg:col-span-3 h-full ${
-              mobileView === 'profile' ? 'block' : 'hidden lg:block'
-            }`}>
+        <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
+          <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
+            <div className={`col-span-full lg:col-span-3 h-full ${mobileView === 'profile' ? 'block' : 'hidden lg:block'
+              }`}>
               <div className={`z-20 flex bottom-0 top-0 h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}>
                 <div className="py-4 h-full">
                   <div
@@ -307,37 +306,37 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                       </div>
                       {isProfileAdmin && hasBenefits && !isLoadingBalance && (
                         <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
-                        <BodySemiBold>Active Bonsai NFT Perks</BodySemiBold>
-                        <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
-                          <ListItemCard items={[
-                            "0% fees on bonding curves",
-                            "0% fees on Uni v4 pools",
-                            `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
-                            <>
-                              Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                                <span className="link link-hover">Rooftop Club</span>
-                              </Link>{" "}on Orb
-                            </>
-                          ]} />
-                        </span>
-                      </div>
+                          <BodySemiBold>Active Bonsai NFT Perks</BodySemiBold>
+                          <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
+                            <ListItemCard items={[
+                              "0% fees on bonding curves",
+                              "0% fees on Uni v4 pools",
+                              `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
+                              <>
+                                Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                                  <span className="link link-hover">Rooftop Club</span>
+                                </Link>{" "}on Orb
+                              </>
+                            ]} />
+                          </span>
+                        </div>
                       )}
                       {/* TODO: Add Follow Button */}
                     </div>
-                     {isProfileAdmin && <Button
-                        className="mt-6"
-                        size="sm"
-                        onClick={() => {
-                          logout();
-                          router.push(`/`);
-                        }}>
-                        Log out
-                      </Button>}
+                    {isProfileAdmin && <Button
+                      className="mt-6"
+                      size="sm"
+                      onClick={() => {
+                        logout();
+                        router.push(`/`);
+                      }}>
+                      Log out
+                    </Button>}
                   </div>
                 </div>
               </div>
 
-                {/* <ProfileLarge
+              {/* <ProfileLarge
                   profileData={profile}
                   profileType={type}
                   theme={Theme.dark}
@@ -353,7 +352,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   allSocials={allSocials?.data}
                 /> */}
 
-                {/* <div className="mt-8">
+              {/* <div className="mt-8">
                   <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
                     <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
                   </div>
@@ -361,15 +360,14 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                     <Holdings address={profileAddress(profile, creatorInfo?.address)} />
                   </div>
                 </div> */}
-              </div>
-              <div className={`lg:col-span-6 h-full ${
-            mobileView === 'holdings' ? 'block' : 'hidden lg:block'
-          }`}>
-               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
-              </div>
+            </div>
+            <div className={`lg:col-span-6 h-full ${mobileView === 'holdings' ? 'block' : 'hidden lg:block'
+              }`}>
+              <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
+            </div>
 
-              <div className="lg:col-span-3">
-                {/* <CreatorsTabs
+            <div className="lg:col-span-3">
+              {/* <CreatorsTabs
                   type={type}
                   setOpenTab={setOpenTab}
                   openTab={openTab}
@@ -378,9 +376,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 /> */}
 
               <div className="flex flex-col flex-grow min-h-0">
-              <div className={`lg:col-span-3 ${
-            mobileView === 'feed' ? 'mx-auto block' : 'hidden lg:block'
-          }`}>
+                <div className={`lg:col-span-3 ${mobileView === 'feed' ? 'mx-auto block' : 'hidden lg:block'
+                  }`}>
                   {/* Feed - only show for Lens profiles atm */}
                   {openTab === 1 && type === "lens" && (
                     <PublicationFeed
@@ -391,12 +388,12 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                       returnToPage={`u/${profile.handle?.localName || profile.profileHandle}`}
                     />
                   )}
-                  </div>
                 </div>
               </div>
             </div>
-          </section>
-        </main>
+          </div>
+        </section>
+      </main>
 
       {/* Create Space Modal */}
       <Modal

@@ -25,7 +25,9 @@ export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
     queryKey: ["registered-club-id", clubId],
     queryFn: () => getRegisteredClubById(clubId),
-    enabled: !!clubId
+    enabled: !!clubId,
+    staleTime: 10000,
+    gcTime: 60000,
   });
 };
 
@@ -34,6 +36,8 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
     queryKey: ["registered-club", handle, profileId],
     queryFn: () => getRegisteredClub(handle!, profileId),
     enabled: !!handle || !!profileId,
+    staleTime: 10000,
+    gcTime: 60000,
   });
 };
 
