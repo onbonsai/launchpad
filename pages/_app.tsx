@@ -21,7 +21,14 @@ import { configureChainsConfig } from "@utils/wagmi";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { inter } from "@src/fonts/fonts";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 3,
+    },
+  },
+});
 
 const boxTheme = {
   mainBgColor: '#141414',

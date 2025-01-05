@@ -61,6 +61,8 @@ export const useGetRegisteredClubs = () => {
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextPage : undefined,
     refetchInterval: 60000,
+    staleTime: 60000,
+    gcTime: 60000,
   });
 };
 
@@ -70,6 +72,8 @@ export const useGetClubVolume = (clubId?: string) => {
     queryFn: () => getVolume(clubId!),
     enabled: !!clubId,
     refetchInterval: 15000, // fetch every 15seconds
+    staleTime: 15000,
+    gcTime: 15000,
   });
 };
 
@@ -79,31 +83,72 @@ export const useGetClubLiquidity = (clubId?: string) => {
     queryFn: () => getLiquidity(clubId!),
     enabled: !!clubId,
     refetchInterval: 15000, // fetch every 15seconds
+    staleTime: 15000,
+    gcTime: 15000,
   });
 };
 
-// enriched with lens profile or ens
-export const useGetClubTrades = (clubId: string, page: number) => {
+const useTraderProfiles = (traders?: string[]) => {
   return useQuery({
-    queryKey: ["club-trades", clubId, page],
+    queryKey: ["trader-profiles", traders],
     queryFn: async () => {
-      const res = await getTrades(clubId!, page);
-      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
-      const profiles = await getHandlesByAddresses(res.trades?.map(({ trader }) => trader.id));
+      if (!traders?.length) return {};
+      const profiles = await getHandlesByAddresses(traders);
+      const publicClient = createPublicClient({
+        chain: mainnet,
+        transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC)
+      });
+
+      // Group profiles by address
       const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
-      const trades = await Promise.all(res.trades?.map(async (trade) => {
-        const address = getAddress(trade.trader.id);
-        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-        let ens;
-        if (!profile) ens = await publicClient.getEnsName({ address });
-        return { ...trade, profile, ens };
-      }));
+      // Fetch ENS names for addresses without profiles in parallel
+      const addresses = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
+      const ensPromises = addresses.map(addr =>
+        publicClient.getEnsName({ address: getAddress(addr) })
+          .then(ens => [addr, ens])
+      );
+      const ensNames = Object.fromEntries(
+        (await Promise.all(ensPromises))
+          .filter(([, ens]) => ens)
+      );
 
-      return { trades, hasMore: res.hasMore };
+      return { profiles: profilesGrouped, ensNames };
     },
+    enabled: !!traders?.length,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+export const useGetClubTrades = (clubId: string, page: number) => {
+  const tradesQuery = useQuery({
+    queryKey: ["club-raw-trades", clubId, page],
+    queryFn: () => getTrades(clubId!, page),
     enabled: !!clubId,
-    refetchInterval: 60000, // fetch every minute
+    staleTime: 60000,
+  });
+
+  const traders = tradesQuery.data?.trades?.map(trade => trade.trader.id);
+  const profilesQuery = useTraderProfiles(traders);
+
+  return useQuery({
+    queryKey: ["club-trades", clubId, page],
+    queryFn: () => {
+      const trades = tradesQuery.data?.trades?.map(trade => {
+        const address = getAddress(trade.trader.id);
+        const profile = profilesQuery.data?.profiles[address]?.[0];
+        const ens = profilesQuery.data?.ensNames[trade.trader.id];
+        return { ...trade, profile, ens };
+      });
+
+      return {
+        trades,
+        hasMore: tradesQuery.data?.hasMore
+      };
+    },
+    enabled: !!tradesQuery.data && !!profilesQuery.data,
+    staleTime: 60000,
   });
 };
 
@@ -126,7 +171,9 @@ export const useGetClubHoldings = (clubId: string, page: number) => {
 
       return { holdings, hasMore: res.hasMore };
     },
-    enabled: !!clubId
+    enabled: !!clubId,
+    staleTime: 20000,
+    gcTime: 60000 * 5,
   });
 };
 
@@ -136,6 +183,8 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
     queryFn: () => getHoldings(account!, page!),
     enabled: !!account,
     refetchInterval: 60000, // fetch every minute
+    staleTime: 30000,
+    gcTime: 60000,
   });
 };
 
@@ -144,6 +193,8 @@ export const useGetClubBalance = (clubId?: string, address?: `0x${string}`) => {
     queryKey: ["club-balance", clubId, address],
     queryFn: () => getBalance(clubId!, address!),
     enabled: !!clubId && !!address,
+    staleTime: 10000,
+    gcTime: 60000,
   });
 };
 
@@ -153,6 +204,8 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
     queryFn: () => getBuyPrice(account!, clubId!, amount!),
     enabled: !!clubId && !!amount && !!account,
     refetchInterval: 15000, // refetch every 15 seconds
+    staleTime: 2000,
+    gcTime: 15000,
   });
 };
 
@@ -162,6 +215,8 @@ export const useGetBuyAmount = (account?: `0x${string}`, clubId?: string, price?
     queryFn: () => getBuyAmount(account!, clubId!, price!),
     enabled: !!clubId && !!price && !!account,
     refetchInterval: 5000, // refetch every 5 seconds
+    staleTime: 1000,
+    gcTime: 5000,
   });
 };
 
@@ -170,6 +225,8 @@ export const useGetRegistrationFee = (curve: number, amount: number, account?: `
     queryKey: ["registration-fee", amount, curve, account],
     queryFn: () => getRegistrationFee(amount!, curve, account!),
     enabled: !!account,
+    staleTime: 1000,
+    gcTime: 2000,
   });
 };
 
@@ -178,6 +235,8 @@ export const useGetSellPrice = (account?: `0x${string}`, clubId?: string, amount
     queryKey: ["sell-price", clubId, amount],
     queryFn: () => getSellPrice(account!, clubId!, amount!),
     enabled: !!clubId && !!amount && !!account,
+    staleTime: 1000,
+    gcTime: 15000,
   });
 };
 
@@ -187,6 +246,8 @@ export const useGetFeesEarned = (account?: `0x${string}`) => {
     queryFn: () => getFeesEarned(account!),
     enabled: !!account,
     refetchInterval: 15000, // fetch every 15seconds
+    staleTime: 15000,
+    gcTime: 15000,
   });
 };
 
@@ -214,5 +275,7 @@ export const useGetTradingInfo = (clubId?: number) => {
       return data;
     },
     enabled: !!clubId,
+    staleTime: 60000,
+    gcTime: 60000 * 5,
   });
 };
