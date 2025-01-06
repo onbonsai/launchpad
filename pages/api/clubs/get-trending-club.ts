@@ -36,6 +36,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     ], club.tokenInfo);
     club.marketCap = formatUnits(BigInt(club.supply) * BigInt(club.currentPrice), DECIMALS).split(".")[0];
 
+    club.id = trendingClubId;
     club.token = {
       name,
       symbol,
