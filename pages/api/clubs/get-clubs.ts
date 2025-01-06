@@ -22,7 +22,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!club) return _club;
       return {
         ..._club,
-        id: _club.clubId,
         creatorStrategy: club.strategy,
         creatorPubId: club.pubId,
         creatorHandle: club.handle,
