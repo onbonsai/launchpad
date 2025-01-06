@@ -16,6 +16,8 @@ export default (publicationId?: string) => {
   return useQuery({
     queryKey: ["publication", publicationId],
     queryFn: () => fetchData(publicationId!),
-    enabled: !!publicationId
+    enabled: !!publicationId,
+    staleTime: 60000 * 5,
+    gcTime: 60000 * 10,
   });
 };

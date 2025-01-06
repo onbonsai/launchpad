@@ -14,7 +14,9 @@ export const useGetGatedPosts = (profileId: string) => {
   return useQuery({
     queryKey: ["gated-posts", profileId],
     queryFn: () => getGatedPosts(profileId),
-    enabled: !!profileId
+    enabled: !!profileId,
+    staleTime: 10000,
+    gcTime: 60000,
   });
 };
 

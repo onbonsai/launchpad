@@ -253,7 +253,7 @@ export const getRegisteredClubById = async (clubId: string) => {
     }
   })
 
-  const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] :  {};
+  const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
   const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
   const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
   const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
@@ -307,7 +307,7 @@ export const getVolume = async (clubId: string): Promise<bigint> => {
 
 export const getLiquidity = async (clubId: string) => {
   const client = publicClient();
-  const [_,__,___,____,liquidity] = await client.readContract({
+  const [_, __, ___, ____, liquidity] = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registeredClubs",
@@ -596,7 +596,7 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
 
 export const getFeesEarned = async (account: `0x${string}`): Promise<bigint> => {
   const res = await publicClient().readContract({
-  address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "feesEarned",
     args: [account],

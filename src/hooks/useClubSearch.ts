@@ -24,5 +24,7 @@ export default (query?: string) => {
     queryKey: ["search-clubs", query],
     queryFn: () => fetchClubs(query),
     enabled: !!query,
+    staleTime: 60000 * 2,
+    gcTime: 60000 * 5,
   });
 };
