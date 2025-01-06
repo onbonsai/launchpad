@@ -203,25 +203,9 @@ export function baseScanUrl(txHash: string) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
 }
 
-export const toPaddedHexString = (id: number | string, minLength: number = 2): string => {
+export const toHexString = (id: number | string, minLength: number = 2): string => {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  let hexString = numericId.toString(16);
-
-  if (numericId < 128) {
-    // Pad at the beginning for numbers less than 128
-    while (hexString.length < minLength) {
-      hexString = '0' + hexString;
-    }
-  } else {
-    // Adjust minLength for numbers greater than or equal to 128
-    if (numericId >= 128) minLength = 4;
-    if (numericId >= 256) minLength = 6;
-    // Pad at the end for numbers greater than or equal to 128
-    while (hexString.length < minLength) {
-      hexString += '0';
-    }
-  }
-  return `0x${hexString}`;
+  return `0x${numericId.toString(16) }`;
 }
 
 export const subgraphClient = () => {
@@ -235,7 +219,7 @@ export const subgraphClient = () => {
 
 // server-side
 export const getRegisteredClubById = async (clubId: string) => {
-  const id = toPaddedHexString(parseInt(clubId));
+  const id = toHexString(parseInt(clubId));
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
@@ -251,7 +235,7 @@ export const getRegisteredClubById = async (clubId: string) => {
       oneHourAgo,
       fiveMinutesAgo
     }
-  })
+  });
 
   const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
   const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
@@ -279,7 +263,7 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
 };
 
 export const getVolume = async (clubId: string): Promise<bigint> => {
-  const id = toPaddedHexString(parseInt(clubId));
+  const id = toHexString(parseInt(clubId));
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
   const client = subgraphClient();
   const limit = 50;
@@ -318,7 +302,7 @@ export const getLiquidity = async (clubId: string) => {
 };
 
 export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {
-  const id = toPaddedHexString(parseInt(clubId));
+  const id = toHexString(parseInt(clubId));
   const client = subgraphClient();
   const limit = 50;
   const skip = page * limit;
@@ -364,7 +348,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
 };
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
-  const id = toPaddedHexString(parseInt(clubId));
+  const id = toHexString(parseInt(clubId));
   const limit = 100;
   const skip = page * limit;
   const client = subgraphClient();
@@ -416,13 +400,26 @@ export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasM
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
-        const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
-        if (!club) return;
-        club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
-        const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
-        if (!publication) return;
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
-        return { publication, ..._club, ...club, marketCap };
+        const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
+        if (club?.hidden) return;
+        if (club) {
+          club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
+          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          return { publication, ..._club, ...club, marketCap };
+        } else { // not created on our app
+          const [name, symbol, image] = decodeAbiParameters([
+            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+          ], _club.tokenInfo);
+          return {
+            ..._club,
+            handle: _club.creator,
+            marketCap,
+            token: {
+              name, image, symbol
+            }
+          };
+        }
       }).filter((c) => c);
 
       return { clubs: responseClubs, hasMore: data?.clubs?.length == limit }
