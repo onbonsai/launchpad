@@ -205,7 +205,8 @@ export function baseScanUrl(txHash: string) {
 
 export const toHexString = (id: number | string, minLength: number = 2): string => {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  return `0x${numericId.toString(16) }`;
+  const stringId = numericId.toString(16);
+  return `0x${stringId.length === 3 ? stringId.padStart(4, "0") : stringId.padStart(2, "0")}`;
 }
 
 export const subgraphClient = () => {
@@ -220,6 +221,7 @@ export const subgraphClient = () => {
 // server-side
 export const getRegisteredClubById = async (clubId: string) => {
   const id = toHexString(parseInt(clubId));
+  console.log(`id: ${id}`)
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
