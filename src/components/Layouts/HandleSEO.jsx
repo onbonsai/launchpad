@@ -29,7 +29,9 @@ const HandleSEO = ({ pageProps }) => {
     const description = trimText("Profile on the Bonsai Launchpad", 45);
 
     let frameData = frameDataTemplate
+    frameData.imageUrl = image
     frameData.button.title = `View ${trimText(`@${handle}`, 12)}'s Profile`
+    frameData.button.action.url += `${SITE_URL}profile/${handle}`
 
     return (
       <Head>
@@ -57,12 +59,13 @@ const HandleSEO = ({ pageProps }) => {
   }
 
   if (pageName === "singlePublication") {
-    const { handle, content, image } = pageProps;
+    const { handle, content, image, pubId } = pageProps;
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
 
     let frameData = frameDataTemplate
     frameData.button.title = `View Post by ${trimText(`@${handle}`, 12)}`
+    frameData.button.action.url += `${SITE_URL}post/${pubId}`
 
     return (
       <Head>
@@ -98,6 +101,7 @@ const HandleSEO = ({ pageProps }) => {
     let frameData = frameDataTemplate
     frameData.imageUrl = image
     frameData.button.title = `💰 Trade $${club.token.symbol} 💰`
+    frameData.button.action.url = `${SITE_URL}token/${club.clubId}`
 
     return (
       <Head>
