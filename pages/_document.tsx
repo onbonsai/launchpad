@@ -20,6 +20,21 @@ class MyDocument extends Document {
             rel="stylesheet"
             type="text/css"
           />
+          <meta
+            name="fc:frame"
+            content={JSON.stringify({
+              // Frame spec version. Required.
+              // Example: "next"
+              version: "next",
+
+              // Frame image.
+              // Max 512 characters.
+              // Image must be 3:2 aspect ratio and less than 10 MB.
+              // Example: "https://yoink.party/img/start.png"
+              imageUrl:
+                "https://www.storj-ipfs.com/ipfs/bafkreieskef4ry2n2jexdwnspc4zirydm3swxp6drutnqkok4g23uci3aa",
+            })}
+          />
         </Head>
         <body>
           <Main />
