@@ -20,6 +20,8 @@ import { ThemeProvider } from "@src/context/ThemeContext";
 import { configureChainsConfig } from "@utils/wagmi";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { inter } from "@src/fonts/fonts";
+import { useState, useEffect } from "react";
+import sdk from "@src/utils/farcaster.mjs"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +59,18 @@ export default function MyApp(props: AppProps) {
       false,
     );
   }
+
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      sdk.actions.ready();
+    };
+    if (sdk && !isSDKLoaded) {
+      setIsSDKLoaded(true);
+      load();
+    }
+  }, [isSDKLoaded]);
 
   return (
     <PrivyProvider

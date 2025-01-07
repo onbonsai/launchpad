@@ -8,7 +8,7 @@ const defaultExports = {
   },
   reactStrictMode: true,
   swcMinify: true,
-  transpilePackages: ["@lens-protocol", "@madfi"],
+  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk"],
   experimental: {
     esmExternals: true,
   },
