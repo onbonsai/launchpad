@@ -31,8 +31,40 @@ class MyDocument extends Document {
               // Max 512 characters.
               // Image must be 3:2 aspect ratio and less than 10 MB.
               // Example: "https://yoink.party/img/start.png"
-              imageUrl:
-                "https://www.storj-ipfs.com/ipfs/bafkreieskef4ry2n2jexdwnspc4zirydm3swxp6drutnqkok4g23uci3aa",
+              imageUrl: "https://www.storj-ipfs.com/ipfs/bafkreieskef4ry2n2jexdwnspc4zirydm3swxp6drutnqkok4g23uci3aa",
+              // Button attributes
+              button: {
+                // Button text.
+                // Max length of 32 characters.
+                // Example: "Yoink Flag"
+                title: "Trade 💰",
+
+                // Action attributes
+                action: {
+                  // Action type. Must be "launch_frame".
+                  type: "launch_frame",
+
+                  // App name
+                  // Max length of 32 characters.
+                  // Example: "Yoink!"
+                  name: "Bonsai Launchpad",
+
+                  // Frame launch URL.
+                  // Max 512 characters.
+                  // Example: "https://yoink.party/"
+                  url: "https://launch.bonsai.meme/",
+
+                  // Splash image URL.
+                  // Max 512 characters.
+                  // Image must be 200x200px and less than 1MB.
+                  // Example: "https://yoink.party/img/splash.png"
+                  splashImageUrl: "https://launch.bonsai.meme/splash.jpg",
+
+                  // Hex color code.
+                  // Example: "#eeeee4"
+                  splashBackgroundColor: "#000000",
+                },
+              },
             })}
           />
         </Head>
