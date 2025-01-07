@@ -2,18 +2,18 @@ import Head from "next/head";
 import { formatProfilePicture } from "@madfi/widgets-react";
 import { bucketImageLinkStorj, trimText } from "@src/utils/utils";
 
-const SITE_URL = "https://launch.bonsai.meme/";
+const SITE_URL = "https://launch.bonsai.meme";
 
 const frameDataTemplate = {
   version: "next",
-  imageUrl: `${SITE_URL}splash.jpg`,
+  imageUrl: `${SITE_URL}/splash.jpg`,
   button: {
     title: "💰 Start Trading 💰",
     action: {
       type: "launch_frame",
       name: "Bonsai Launchpad",
       url: SITE_URL,
-      splashImageUrl: `${SITE_URL}splash.jpg`,
+      splashImageUrl: `${SITE_URL}/splash.jpg`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -28,10 +28,11 @@ const HandleSEO = ({ pageProps }) => {
     const image = formatProfilePicture(profile).metadata.picture.url;
     const description = trimText("Profile on the Bonsai Launchpad", 45);
 
-    let frameData = frameDataTemplate
-    frameData.imageUrl = image
-    frameData.button.title = `View ${trimText(`@${handle}`, 12)}'s Profile`
-    frameData.button.action.url += `${SITE_URL}profile/${handle}`
+    let frameData = frameDataTemplate;
+    frameData.imageUrl = image;
+    frameData.button.title = `View ${trimText(`@${handle}`, 12)}'s Profile`;
+    frameData.button.action.name = `${trimText(`@${handle}`, 12)}'s Profile`;
+    frameData.button.action.url = `${SITE_URL}/profile/${handle}`;
 
     return (
       <Head>
@@ -63,9 +64,10 @@ const HandleSEO = ({ pageProps }) => {
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
 
-    let frameData = frameDataTemplate
-    frameData.button.title = `View Post by ${trimText(`@${handle}`, 12)}`
-    frameData.button.action.url += `${SITE_URL}post/${pubId}`
+    let frameData = frameDataTemplate;
+    frameData.button.title = `View Post by ${trimText(`@${handle}`, 12)}`;
+    frameData.button.action.name = `${trimText(`@${handle}`, 12)}'s Post`;
+    frameData.button.action.url = `${SITE_URL}/post/${pubId}`;
 
     return (
       <Head>
@@ -98,10 +100,11 @@ const HandleSEO = ({ pageProps }) => {
     const description = trimText(`Buy $${club.token.symbol} on the Bonsai Launchpad`, 45);
     let image = club.token.image;
 
-    let frameData = frameDataTemplate
-    frameData.imageUrl = image
-    frameData.button.title = `💰 Trade $${club.token.symbol} 💰`
-    frameData.button.action.url = `${SITE_URL}token/${club.clubId}`
+    let frameData = frameDataTemplate;
+    frameData.imageUrl = image;
+    frameData.button.title = `💰 Trade $${club.token.symbol} 💰`;
+    frameData.button.action.name = `Trade $${club.token.symbol}`;
+    frameData.button.action.url = `${SITE_URL}/token/${club.clubId}`;
 
     return (
       <Head>
@@ -138,10 +141,7 @@ const HandleSEO = ({ pageProps }) => {
       <meta property="og:description" content={description}></meta>
       <meta property="og:url" content={SITE_URL}></meta>
       <meta property="og:type" content="website"></meta>
-      <meta
-        property="og:image"
-        content="/opengraph-image.jpg"
-      ></meta>
+      <meta property="og:image" content="/opengraph-image.jpg"></meta>
       <meta property="og:image:alt" content="bonsai.png"></meta>
       <meta property="og:image:width" content="1200"></meta>
       <meta property="og:image:height" content="630"></meta>
@@ -151,10 +151,7 @@ const HandleSEO = ({ pageProps }) => {
       <meta name="twitter:card" content="summary_large_image"></meta>
       <meta name="twitter:title" content="Launchpad | bonsai.meme"></meta>
       <meta name="twitter:description" content={description}></meta>
-      <meta
-        name="twitter:image"
-        content="/twitter-image.jpg"
-      ></meta>
+      <meta name="twitter:image" content="/twitter-image.jpg"></meta>
       <meta name="theme-color" content="#141414"></meta>
       <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
     </Head>
