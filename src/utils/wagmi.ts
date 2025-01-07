@@ -4,6 +4,7 @@ import { createConfig } from '@privy-io/wagmi';
 import { providers } from 'ethers';
 
 import { ChainRpcs } from "@src/constants/chains";
+import { frameConnector } from './connector';
 
 export const configureChainsConfig = createConfig({
   chains: [baseSepolia, polygon, base, mainnet],
@@ -12,7 +13,8 @@ export const configureChainsConfig = createConfig({
     [base.id]: http(ChainRpcs[base.id]),
     [baseSepolia.id]: http(ChainRpcs[baseSepolia.id]),
     [mainnet.id]: http(),
-  }
+  },
+  connectors: [frameConnector()],
 });
 
 export function walletClientToSigner(walletClient: any) {

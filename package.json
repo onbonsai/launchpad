@@ -14,6 +14,7 @@
     "@decent.xyz/box-common": "^4.0.8",
     "@decent.xyz/the-box": "^4.0.8",
     "@emotion/styled": "^11.13.0",
+    "@farcaster/frame-sdk": "^0.0.26",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^1.0.6",
     "@lens-protocol/client": "2.2.0",
