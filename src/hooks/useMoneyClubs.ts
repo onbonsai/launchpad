@@ -100,7 +100,7 @@ const useTraderProfiles = (traders?: string[]) => {
       const profiles = await getHandlesByAddresses(traders);
       const publicClient = createPublicClient({
         chain: mainnet,
-        transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC)
+        transport: http()
       });
 
       // Group profiles by address
