@@ -94,7 +94,6 @@ export const BuySellWidget = ({
     setClaimEnabled(isClaimEnabled);
   }, [club.completedAt, club.claimAt]);
 
-
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
   ), [sellPrice, isLoadingSellPrice]);
@@ -108,7 +107,6 @@ export const BuySellWidget = ({
     //   toast.error('Cannot sell the last $cashtag; choose a smaller amount');
     //   return true;
     // }
-
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
 
