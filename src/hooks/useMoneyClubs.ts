@@ -187,8 +187,8 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
     queryFn: () => getHoldings(account!, page!),
     enabled: !!account,
     refetchInterval: 60000, // fetch every minute
-    staleTime: 30000,
-    gcTime: 60000,
+    staleTime: 120000,
+    gcTime: 120000,
   });
 };
 

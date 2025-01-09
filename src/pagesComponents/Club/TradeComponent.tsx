@@ -34,7 +34,7 @@ export const TradeComponent = ({ club, address }) => {
   }, [clubHoldings, isLoadingClubHoldings, club]);
 
   return (
-    <div className="flex flex-col min-w-[356px] max-w-screen"> {/* Use flex container with full height */}
+    <div className="flex flex-col sm:min-w-[350px] max-w-screen"> {/* Use flex container with full height */}
       <div className="flex-grow pb-2"> {/* This div will grow to take available space, pushing the friends component to the bottom */}
         <BuySellWidget
           refetchClubBalance={refetchClubBalance}

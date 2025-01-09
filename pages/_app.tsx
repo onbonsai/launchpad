@@ -8,7 +8,7 @@ import { HotkeysProvider } from "react-hotkeys-hook";
 import { Analytics } from "@vercel/analytics/react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { keepPreviousData, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { base, baseSepolia, polygon } from "viem/chains";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
@@ -28,6 +28,7 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 3,
+      placeholderData: keepPreviousData,
     },
   },
 });
