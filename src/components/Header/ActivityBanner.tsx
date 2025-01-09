@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Link from "next/link";
 import { decodeEventLog, PublicClient, getAddress, decodeAbiParameters, createPublicClient, http } from "viem";
 import { groupBy } from "lodash/collection";
-import { Ticker } from "@src/components/Ticker";
 import { publicClient, getRegisteredClubInfo, toHexString } from "@src/services/madfi/moneyClubs";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
@@ -11,6 +10,7 @@ import { shortAddress } from "@src/utils/utils";
 import { bToHexString } from "@src/services/lens/utils";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { mainnet } from 'viem/chains';
+import Marquee from "react-fast-marquee";
 
 interface BannerItemProps {
   handle: string;
@@ -45,28 +45,28 @@ type TradeEvent = {
 
 const testItems = [
   {
-      "handle": "carlosbeltran",
-      "verb": "created",
-      "clubId": "3",
-      "symbol": "SAGE",
-      "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
-      "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
+    "handle": "carlosbeltran",
+    "verb": "created",
+    "clubId": "3",
+    "symbol": "SAGE",
+    "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
+    "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
   },
   {
-      "handle": "carlosbeltran",
-      "verb": "created",
-      "clubId": "3",
-      "symbol": "SAGE",
-      "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
-      "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
+    "handle": "carlosbeltran",
+    "verb": "created",
+    "clubId": "3",
+    "symbol": "SAGE",
+    "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
+    "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
   },
   {
-      "handle": "carlosbeltran",
-      "verb": "created",
-      "clubId": "3",
-      "symbol": "SAGE",
-      "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
-      "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
+    "handle": "carlosbeltran",
+    "verb": "created",
+    "clubId": "3",
+    "symbol": "SAGE",
+    "image": "https://www.storj-ipfs.com/ipfs/bafybeihcdn4b2d7bg3razrigperej4gj2nqd3grc3m4ty5jb2aezbk26xa",
+    "transactionHash": "0xe06bc0cd5f17f83b6abb710b015fcc0673e6f151ba941f2161aaca0465e427f3"
   }
 ]
 
@@ -85,13 +85,6 @@ const defaultItems = [
 
 export const ActivityBanner = () => {
   const isMounted = useIsMounted();
-  // const [, setItems] = useState<BannerItemProps>({
-  //   handle: "carlosbeltran",
-  //   verb: "bought",
-  //   amount: "1",
-  //   clubId: "1",
-  //   symbol: "ASCEND"
-  // });
   const [items, setItems] = useState<BannerItemProps[]>(defaultItems);
   const [clubCache, setClubCache] = useState({});
 
@@ -167,7 +160,7 @@ export const ActivityBanner = () => {
         functionName: "registeredClubs",
         args: [clubId]
       }) as unknown[];
-      const [n,symbol,image] = decodeAbiParameters([
+      const [n, symbol, image] = decodeAbiParameters([
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
       ], tokenInfo as `0x${string}`);
 
@@ -229,7 +222,7 @@ export const ActivityBanner = () => {
     <div className="sticky w-full h-[40px] text-black mb-10 z-10" style={{
       background: "linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 135.42%)"
     }}>
-      <Ticker slideSpeed={"30s"}>
+      <Marquee style={{ maxHeight: '40px' }} speed={40}>
         {/* testItems.map() */}
         {items?.map((item, index) => (
           <React.Fragment key={`fragment-${index}`}>
@@ -258,10 +251,10 @@ export const ActivityBanner = () => {
                 }
               </div>
             </Link>
-            {index < items.length - 1 && <span className="px-4 h-2 w-2 mt-2 color-[var(--gradient-start)] opacity-80">•</span>}
+            {/* {index < items.length - 1 && <span className="px-4 h-2 w-2 mt-2 color-[var(--gradient-start)] opacity-80">•</span>} */}
           </React.Fragment>
         ))}
-      </Ticker>
+      </Marquee>
     </div>
   );
 };
