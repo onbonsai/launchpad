@@ -89,7 +89,7 @@ export const BuySellWidget = ({
     if (club.claimAt) {
       isClaimEnabled = (Date.now() / 1000) >= club.claimAt;
     } else if (club.completedAt) {
-      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
+      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 2 * 60 * 60;
     }
     setClaimEnabled(isClaimEnabled);
   }, [club.completedAt, club.claimAt]);
@@ -123,8 +123,8 @@ export const BuySellWidget = ({
   }, [club, clubBalance]);
 
   const claimEnabledAtDate = club.completedAt
-    ? new Date((club.completedAt + 72 * 60 * 60) * 1000)
-    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 72 * 60 * 60) * 1000) : null);
+    ? new Date((club.completedAt + 2 * 60 * 60) * 1000)
+    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 2 * 60 * 60) * 1000) : null);
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -301,7 +301,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
       <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
         <div className="text-center">
           <p className="mt-12 text-md text-secondary/70">
-            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
+            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 2 hours, token claims will be enabled.
           </p>
         </div>
         {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
