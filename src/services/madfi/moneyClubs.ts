@@ -561,7 +561,6 @@ export const getSellPrice = async (
       account,
     }),
   ]);
-
   return {
     sellPrice: sellPrice as bigint,
     sellPriceAfterFees: sellPriceAfterFees as bigint,

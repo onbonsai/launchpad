@@ -143,7 +143,7 @@ export const Header = () => {
           Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate to Uniswap
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Holders must wait 72 hours to claim their tokens; this is to protect from rugs and put the token in buy-only mode.
+          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Holders must wait 2 hours to claim their tokens; this is to protect from rugs and put the token in buy-only mode.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.

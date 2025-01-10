@@ -1,8 +1,8 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjQyMDQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhlQ0JGQTBDNjE4ODY5ZTU2M2RiNWQ0OTUwMWNlNWRDNEVjOGQ0YTc3In0",
+    "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
     "payload": "eyJkb21haW4iOiJsYXVuY2guYm9uc2FpLm1lbWUifQ",
-    "signature": "MHgxMjZlNGI4NWNjNDhhODRkZjAwZmUyYWExYTg1ODZkZjdmODY2Nzk0ZmNlNjk1N2M5OGMxZjllMjVkZTU1YzEyMzlhZmM4YWE0ODJjNTg1MTg1YjliZjVmZmJiMGIxNWQwZGIyNjdhOTAxNWVhZjIyN2MxN2RkZDVmOThlMWQ4MzFi"
+    "signature": "MHg1ZWMyZTI0ZmZlNGE0NDFlMWJkYzM2ZDk5ODI1OTE0MmVjM2NkMzhiZmJmMDY4NTBmNTA1NDFlMTA4ZmRkMWY4MDdlMDAyYTViODM0YTlmNDI2MzdlNDYzYmY1NWZkNzNlZGZiNjc4OWI4MjVmNjA1NTM0N2RjYTQ4YmMwZWNmZjFj"
   },
   "frame": {
     "version": "1",
@@ -10,7 +10,7 @@
     "iconUrl": "https://launch.bonsai.meme/icon.jpg",
     "homeUrl": "https://launch.bonsai.meme",
     "imageUrl": "https://launch.bonsai.meme/icon.jpg",
-    "buttonTitle": "Trade 💰",
+    "buttonTitle": "💰 Start Trading 💰",
     "splashBackgroundColor": "#000000",
     "splashImageUrl": "https://launch.bonsai.meme/splash.jpg"
   }

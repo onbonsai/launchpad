@@ -66,9 +66,8 @@ export function polygonScanUrl(address: string, chainId?: string | number | unde
 
 export function openSeaUrl(address: string, tokenId: string, chainId?: string | number) {
   chainId = Number(chainId || process.env.NEXT_PUBLIC_CHAIN_ID);
-  return `https://${chainId === 80001 ? "testnets." : ""}opensea.io/assets/${
-    chainId === 137 ? "matic" : "mumbai"
-  }/${address}/${parseInt(tokenId)}`;
+  return `https://${chainId === 80001 ? "testnets." : ""}opensea.io/assets/${chainId === 137 ? "matic" : "mumbai"
+    }/${address}/${parseInt(tokenId)}`;
 }
 
 export const SUPPORTED_MIMETYPES = [

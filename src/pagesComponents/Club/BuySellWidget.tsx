@@ -89,11 +89,10 @@ export const BuySellWidget = ({
     if (club.claimAt) {
       isClaimEnabled = (Date.now() / 1000) >= club.claimAt;
     } else if (club.completedAt) {
-      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 72 * 60 * 60;
+      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 2 * 60 * 60;
     }
     setClaimEnabled(isClaimEnabled);
   }, [club.completedAt, club.claimAt]);
-
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -108,7 +107,6 @@ export const BuySellWidget = ({
     //   toast.error('Cannot sell the last $cashtag; choose a smaller amount');
     //   return true;
     // }
-
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
 
@@ -123,8 +121,8 @@ export const BuySellWidget = ({
   }, [club, clubBalance]);
 
   const claimEnabledAtDate = club.completedAt
-    ? new Date((club.completedAt + 72 * 60 * 60) * 1000)
-    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 72 * 60 * 60) * 1000) : null);
+    ? new Date((club.completedAt + 2 * 60 * 60) * 1000)
+    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 2 * 60 * 60) * 1000) : null);
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -301,7 +299,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
       <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
         <div className="text-center">
           <p className="mt-12 text-md text-secondary/70">
-            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 72 hours, token claims will be enabled.
+            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 2 hours, token claims will be enabled.
           </p>
         </div>
         {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
@@ -323,10 +321,11 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
   }
 
   return (
-    <div className="flex flex-col w-full"
-    style={{
-      fontFamily: inter.style.fontFamily
-    }}>
+    <div className="flex flex-col w-[calc(100vw-65px)] sm:w-full"
+      style={{
+        fontFamily: inter.style.fontFamily
+      }
+      }>
       <div className="flex items-center justify-between mb-4">
         <Tabs openTab={openTab} setOpenTab={setOpenTab} />
         {/* {(!!bonsaiBalanceNFT && bonsaiBalanceNFT > 0n) && (
@@ -339,13 +338,13 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
         {/* Buy */}
         {openTab === 1 && (
           <div className="w-full divide-y divide-dark-grey">
-            {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" /> }
+            {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
-                     <CurrencyInput
+                      <CurrencyInput
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
@@ -355,13 +354,13 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         showMax
                       />
 
-                        <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
-                          <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
-                            <div className="flex justify-center items-center h-full">
-                              <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(2)}/>
-                            </div>
+                      <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
+                        <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
+                          <div className="flex justify-center items-center h-full">
+                            <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(2)} />
                           </div>
                         </div>
+                      </div>
 
                       <CurrencyInput
                         tokenImage={club.token.image}
@@ -441,7 +440,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                 <div className="flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
-                    <CurrencyInput
+                      <CurrencyInput
                         tokenImage={club.token.image}
                         tokenBalance={clubBalance}
                         price={sellAmount}
@@ -451,20 +450,20 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         showMax
                       />
 
-                        <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
-                          <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
-                            <div className="flex justify-center items-center h-full">
-                              <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(1)}/>
-                            </div>
+                      <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
+                        <div className='backdrop-blur-[40px] absolute min-h-[28px] h-7 w-7 rounded-[10px] bg-[#333]  border-card border top-1/2 transform -translate-y-1/2 text-xs text-secondary/70'>
+                          <div className="flex justify-center items-center h-full">
+                            <ArrowDownIcon className="w-4 h-4 text-white" onClick={() => setOpenTab(1)} />
                           </div>
                         </div>
+                      </div>
 
-                        <CurrencyInput
+                      <CurrencyInput
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={sellPriceFormatted}
                         isError={false}
-                        onPriceSet={() => {}}
+                        onPriceSet={() => { }}
                         symbol="USDC"
                       />
                       {/* <div className="relative">
@@ -517,7 +516,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

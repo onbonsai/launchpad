@@ -100,7 +100,7 @@ const useTraderProfiles = (traders?: string[]) => {
       const profiles = await getHandlesByAddresses(traders);
       const publicClient = createPublicClient({
         chain: mainnet,
-        transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC)
+        transport: http()
       });
 
       // Group profiles by address
@@ -187,8 +187,8 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
     queryFn: () => getHoldings(account!, page!),
     enabled: !!account,
     refetchInterval: 60000, // fetch every minute
-    staleTime: 30000,
-    gcTime: 60000,
+    staleTime: 120000,
+    gcTime: 120000,
   });
 };
 
