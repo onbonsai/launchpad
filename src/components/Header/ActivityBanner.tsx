@@ -95,12 +95,12 @@ export const ActivityBanner = () => {
   const [items, setItems] = useState<BannerItemProps[]>(defaultItems);
   const [clubCache, setClubCache] = useState({});
 
-  useEffect(() => {
-    if (isMounted) {
-      initListenForClubTrades();
-      initListenForRegisteredClubs();
-    }
-  }, [isMounted]);
+  // useEffect(() => {
+  //   if (isMounted) {
+  //     initListenForClubTrades();
+  //     initListenForRegisteredClubs();
+  //   }
+  // }, [isMounted]);
 
   const getClubInfo = async (clubIds: string[]) => {
     const nonCached = clubIds.filter((clubId) => !clubCache[clubId]);
@@ -224,6 +224,11 @@ export const ActivityBanner = () => {
       }
     });
   }
+
+  // DISABLING FOR NOW
+  return (
+    <div className="sticky w-full h-[40px] text-black mb-10 z-10"></div>
+  );
 
   return (
     <div className="sticky w-full h-[40px] text-black mb-10 z-10" style={{
