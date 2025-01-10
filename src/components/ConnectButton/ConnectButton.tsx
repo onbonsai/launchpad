@@ -80,7 +80,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
       const basePicture: ProfilePictureSetFragment | undefined = authenticatedProfile?.metadata?.picture as ProfilePictureSetFragment;
-      return basePicture.thumbnail?.uri || basePicture.optimized?.uri;
+      return basePicture?.thumbnail?.uri || basePicture?.optimized?.uri || "";
     }
     // TODO: Default image
     return null;
