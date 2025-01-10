@@ -16,7 +16,7 @@ interface BonsaiNFTsSectionProps {
   onBuyBonsai: () => void;
 }
 
-const BonsaiNFTsSection = (props: BonsaiNFTsSectionProps) => {
+const BonsaiNFTsSection = React.memo((props: BonsaiNFTsSectionProps) => {
   const { nfts, bonsaiAmount, onBuyBonsai } = props;
   const [amountUntilNFT, setAmountUntilNFT] = useState<number>(0);
   useMemo(() => {
@@ -56,6 +56,6 @@ const BonsaiNFTsSection = (props: BonsaiNFTsSectionProps) => {
       </SmallSubtitle>
     </div>
   );
-}
+});
 
 export default BonsaiNFTsSection
