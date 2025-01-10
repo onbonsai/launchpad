@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { formatUnits, decodeAbiParameters, formatEther } from "viem";
 import { useInView } from "react-intersection-observer";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
 
 import { roundedToFixed } from "@src/utils/utils";
@@ -18,7 +18,7 @@ interface HoldingProps {
   bonsaiAmount: bigint;
 }
 
-export const Holdings = (props: HoldingProps) => {
+export const Holdings = React.memo((props: HoldingProps) => {
   const { address, bonsaiAmount } = props;
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
@@ -92,4 +92,4 @@ export const Holdings = (props: HoldingProps) => {
       />
     </div>
   )
-}
+});

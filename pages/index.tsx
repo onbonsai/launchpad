@@ -68,7 +68,7 @@ const IndexPage: NextPage = () => {
 
   // fix hydration issues
   if (!isMounted) return null;
-
+  console.log('rerendering');
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
@@ -123,7 +123,7 @@ const IndexPage: NextPage = () => {
                 )}
 
                 {/* Bonsai NFT Perks */}
-                {!isConnected  && (
+                {!isConnected && (
                   <div className="relative lg:col-span-3">
                     <div className="rounded-xl p-6 w-full bg-card mt-1">
                       <div className="flex justify-between flex-col gap-[2px]">
