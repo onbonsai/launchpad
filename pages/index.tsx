@@ -68,7 +68,6 @@ const IndexPage: NextPage = () => {
 
   // fix hydration issues
   if (!isMounted) return null;
-  console.log('rerendering');
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>

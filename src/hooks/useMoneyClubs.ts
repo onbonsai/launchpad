@@ -3,6 +3,8 @@ import { omit } from "lodash/object";
 import { getAddress, createPublicClient, http } from "viem";
 import { mainnet } from 'viem/chains'
 import { groupBy } from "lodash/collection";
+import { createEnsPublicClient } from '@ensdomains/ensjs'
+import { getName } from '@ensdomains/ensjs/public'
 import {
   getRegisteredClub,
   getRegisteredClubById,
@@ -98,24 +100,30 @@ const useTraderProfiles = (traders?: string[]) => {
     queryFn: async () => {
       if (!traders?.length) return {};
       const profiles = await getHandlesByAddresses(traders);
-      const publicClient = createPublicClient({
+      const publicClient = createEnsPublicClient({
         chain: mainnet,
-        transport: http()
-      });
+        transport: http(),
+      })
 
       // Group profiles by address
       const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
       // Fetch ENS names for addresses without profiles in parallel
-      const addresses = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
-      const ensPromises = addresses.map(addr =>
-        publicClient.getEnsName({ address: getAddress(addr) })
-          .then(ens => [addr, ens])
-      );
-      const ensNames = Object.fromEntries(
-        (await Promise.all(ensPromises))
-          .filter(([, ens]) => ens)
-      );
+      const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
+
+      const ensQueries = addressesWithoutProfiles.map((addr) => {
+        return getName.batch({ address: (addr as `0x${string}`) });
+      });
+
+      // Filter out addresses without an ENS name
+      const ensNameResults = await publicClient.ensBatch(...ensQueries);
+      const pairedResults = addressesWithoutProfiles.map((addr, index) => {
+        const result = ensNameResults[index];
+        // If there's no result or no name, return null so that we can filter it out
+        return result && result.name ? [addr, result.name] : null;
+      }).filter((entry): entry is [string, string] => entry !== null);
+
+      const ensNames = Object.fromEntries(pairedResults);
 
       return { profiles: profilesGrouped, ensNames };
     },
@@ -142,7 +150,7 @@ export const useGetClubTrades = (clubId: string, page: number) => {
       const trades = tradesQuery.data?.trades?.map(trade => {
         const address = getAddress(trade.trader.id);
         const profile = profilesQuery.data?.profiles[address]?.[0];
-        const ens = profilesQuery.data?.ensNames[trade.trader.id];
+        const ens = profilesQuery.data?.ensNames?.[trade.trader.id] ?? null;
         return { ...trade, profile, ens };
       });
 
