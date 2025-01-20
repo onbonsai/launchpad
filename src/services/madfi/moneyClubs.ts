@@ -240,7 +240,6 @@ export const subgraphClient = () => {
 // server-side
 export const getRegisteredClubById = async (clubId: string) => {
   const id = toHexString(parseInt(clubId));
-  console.log(`id: ${id}`)
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
