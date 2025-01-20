@@ -11,11 +11,10 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import useGetClubCreators from "@src/hooks/useGetClubCreators";
 
-export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
+export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
   const [clubCreators, setClubCreators] = useState({});
   const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
-  const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
@@ -94,7 +93,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
               >
                 <option value="club.marketCap">Mcap</option>
                 <option value="club.createdAt">Age</option>
-                <option value="publication.stats.comments">Replies</option>
+                {/* <option value="publication.stats.comments">Replies</option> */}
               </select>
               <DropDown />
             </div>

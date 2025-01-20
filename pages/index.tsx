@@ -30,7 +30,7 @@ import { ActivityBanner } from "@src/components/Header";
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
   const isMounted = useIsMounted();
-  const { filteredClubs, setFilteredClubs, filterBy, setFilterBy } = useClubs();
+  const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
   const [page, setPage] = useState(0);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
@@ -41,7 +41,7 @@ const IndexPage: NextPage = () => {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useGetRegisteredClubs();
+  } = useGetRegisteredClubs(sortedBy);
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = data?.pages.flatMap(page => page.clubs) || [];
 
@@ -87,6 +87,8 @@ const IndexPage: NextPage = () => {
                     isLoading={isLoading || isFetchingNextPage}
                     hasMore={hasNextPage}
                     fetchNextPage={fetchNextPage}
+                    sortedBy={sortedBy}
+                    setSortedBy={setSortedBy}
                   />
                 }
               </div>

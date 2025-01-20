@@ -5,6 +5,8 @@ interface ClubsContextProps {
     setFilteredClubs: React.Dispatch<React.SetStateAction<any[]>>;
     filterBy: string;
     setFilterBy: React.Dispatch<React.SetStateAction<string>>;
+    sortedBy: string;
+    setSortedBy: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ClubsContext = createContext<ClubsContextProps | undefined>(undefined);
@@ -12,9 +14,10 @@ const ClubsContext = createContext<ClubsContextProps | undefined>(undefined);
 export const ClubsProvider = ({ children }: { children: ReactNode }) => {
     const [filteredClubs, setFilteredClubs] = useState<any[]>([]);
     const [filterBy, setFilterBy] = useState<string>("");
+    const [sortedBy, setSortedBy] = useState<string>("club.marketCap");
 
     return (
-        <ClubsContext.Provider value={{ filteredClubs, setFilteredClubs, filterBy, setFilterBy }}>
+        <ClubsContext.Provider value={{ filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy }}>
             {children}
         </ClubsContext.Provider>
     );

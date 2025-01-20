@@ -43,12 +43,12 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
   });
 };
 
-export const useGetRegisteredClubs = () => {
+export const useGetRegisteredClubs = (sortedBy: string) => {
   return useInfiniteQuery({
-    queryKey: ['registered-clubs'],
+    queryKey: ['registered-clubs', sortedBy],
     queryFn: async ({ pageParam = 0 }) => {
       try {
-        const res = await getRegisteredClubs(pageParam);
+        const res = await getRegisteredClubs(pageParam, sortedBy);
         const data = res.clubs.map((club) => ({
           publication: club.publication,
           club: omit(club, 'publication'),

@@ -116,7 +116,26 @@ const CLUB_TRADES_LATEST = gql`
 
 const REGISTERED_CLUBS = gql`
   query Clubs($skip: Int!) {
-    clubs(orderBy: supply, orderDirection: desc, first: 50, skip: $skip) {
+    clubs(orderBy: marketCap, orderDirection: desc, first: 50, skip: $skip, where: {complete:false}) {
+      id
+      clubId
+      creator
+      initialSupply
+      createdAt
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      complete
+      tokenInfo
+      tokenAddress
+    }
+  }
+`;
+
+const REGISTERED_CLUBS_BY_AGE = gql`
+  query Clubs($skip: Int!) {
+    clubs(orderBy: createdAt, orderDirection: desc, first: 50, skip: $skip, where: {complete:false}) {
       id
       clubId
       creator
@@ -380,10 +399,11 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
   };
 };
 
-export const getRegisteredClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
+export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 50;
   const skip = page * limit;
-  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip } });
+  const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
+  const { data } = await subgraphClient().query({ query, variables: { skip } });
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
