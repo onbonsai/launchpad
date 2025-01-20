@@ -25,6 +25,7 @@ import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { trimText } from '@src/utils/utils';
+import { Button } from '@src/components/Button';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -271,20 +272,34 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     address={address}
                     tradingInfo={tradingInfo}
                   />
-                  <Script
-                    src="/static/datafeeds/udf/dist/bundle.js"
-                    strategy="lazyOnload"
-                    onReady={() => {
-                      setIsScriptReady(true);
-                    }}
-                  />
-                  <div className='border border-card bg-card-light rounded-2xl mt-5'>
-                    <div className="rounded-2xl m-2 overflow-hidden">
-                      {isScriptReady && <Chart symbol={club.token.symbol} />}
+                  {club.complete ?
+                    <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                      <Header2 className="text-white font-medium">
+                        ${club.token.symbol}/BONSAI pool is live
+                      </Header2>
+                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                        <Button variant="accentBrand" className="text-white mt-4">
+                          View on Dexscreener
+                        </Button>
+                      </a>
                     </div>
-                  </div>
+                    : <>
+                      <Script
+                        src="/static/datafeeds/udf/dist/bundle.js"
+                        strategy="lazyOnload"
+                        onReady={() => {
+                          setIsScriptReady(true);
+                        }}
+                      />
+                      <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                        <div className="rounded-2xl m-2 overflow-hidden">
+                          {isScriptReady && <Chart symbol={club.token.symbol} />}
+                        </div>
+                      </div>
+                    </>
+                  }
                 </div>
-                <BottomInfoComponent club={club} address={address} />
+                {!club.complete && <BottomInfoComponent club={club} address={address} />}
               </div>
 
               {/* Feed/Trades/Holders */}
