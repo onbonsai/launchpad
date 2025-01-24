@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatUnits } from "viem";
 
 import { roundedToFixed } from "@src/utils/utils";
-import { USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useGetClubLiquidity } from "@src/hooks/useMoneyClubs";
 import ProgressBar from "@src/components/ProgressBar";
@@ -27,6 +27,7 @@ interface Props {
       marketCap: string;
       featured?: boolean;
       handle: string;
+      v2: boolean;
     };
   };
   creatorProfile?: { picture: string };
@@ -101,8 +102,12 @@ const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
     );
   }
 
+  const link = club.v2
+    ? `/token/${club?.clubId}`
+    : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
+
   return (
-    <Link href={`/token/${club?.clubId}`} legacyBehavior target="_blank">
+    <Link href={link} legacyBehavior target="_blank">
       <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-primary">
         <canvas
           className={`absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl ${club?.featured ? "bg-gradient opacity-20 group-hover:opacity-50" : "bg-red-400 opacity-0 group-hover:opacity-40"

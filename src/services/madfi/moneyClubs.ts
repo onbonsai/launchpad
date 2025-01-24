@@ -19,6 +19,7 @@ import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
+export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
 const REGISTERED_CLUB = gql`
   query Club($id: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
@@ -39,6 +40,8 @@ const REGISTERED_CLUB = gql`
       tokenAddress
       creatorFees
       holders
+      v2
+      hook
       prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
@@ -129,6 +132,7 @@ const REGISTERED_CLUBS = gql`
       complete
       tokenInfo
       tokenAddress
+      v2
     }
   }
 `;
@@ -148,6 +152,7 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       complete
       tokenInfo
       tokenAddress
+      v2
     }
   }
 `;
@@ -167,6 +172,7 @@ const HOLDINGS_PAGINATED = gql`
         tokenAddress
         tokenInfo
         currentPrice
+        v2
       }
       amount
       createdAt

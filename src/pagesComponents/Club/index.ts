@@ -1,4 +1,3 @@
-export * from "./TokenCard";
 export * from "./Feed";
 export * from "./Tabs";
 export * from "./BuySellWidget";

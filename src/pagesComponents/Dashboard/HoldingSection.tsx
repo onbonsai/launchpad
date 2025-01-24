@@ -31,6 +31,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
         {holdings.map((row) => (
           <TokenCard
             clubId={row.club.clubId}
+            v2={row.club.v2}
             key={`row-${row.club.clubId}`}
             title={row.token.name}
             count={

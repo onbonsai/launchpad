@@ -1,11 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import HoldingsHeader from './HoldingsHeader'
-import { kFormatter, roundedToFixed } from '@src/utils/utils';
 import { formatUnits } from 'viem';
 import { DECIMALS } from '@src/services/madfi/moneyClubs';
-import TokenCard from './TokenCard';
 import { SmallSubtitle, Subtitle } from '@src/styles/text';
-import { am } from '@lens-protocol/metadata/dist/index-eeb4b240';
 import { Button } from '@src/components/Button';
 import BonsaiNFT from './BonsaiNFT';
 

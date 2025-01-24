@@ -1,6 +1,6 @@
-import { kFormatter } from "@src/utils/utils";
 import Link from "next/link";
 import type { ReactNode } from 'react'
+import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 
 interface TokenCardProps {
     title: string;
@@ -10,13 +10,17 @@ interface TokenCardProps {
     logoBg?: boolean;
     price: string;
     clubId: string;
+    v2: boolean;
 }
 
 
 const TokenCard = (props: TokenCardProps) => {
-    const { title, count, logo, symbol, logoBg, price, clubId } = props;
+    const { title, count, logo, symbol, logoBg, price, clubId, v2 } = props;
+    const link = v2
+        ? `/token/${clubId}`
+        : `${V1_LAUNCHPAD_URL}/token/${clubId}`;
     return (
-        <Link href={`/token/${clubId}`} legacyBehavior target="_blank" >
+        <Link href={link} legacyBehavior target="_blank" >
             <div className='flex flex-col items-start justify-start text-white bg-white/5 h-[100px] min-w-[160px] py-2 px-3 rounded-2xl cursor-pointer hover:opacity-90'>
                 <div className='flex justify-between items-center w-full'>
                     <p className='text-[16px] leading-tight font-semibold'>{title}</p>
