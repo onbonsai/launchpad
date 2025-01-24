@@ -19,6 +19,7 @@ import {
   registerClub as registerClubTransaction,
   approveToken,
   MIN_LIQUIDITY_THRESHOLD,
+  BENEFITS_AUTO_FEATURE_HOURS,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -52,6 +53,9 @@ export const RegisterClubModal = ({
   const [curveType, setCurveType] = useState<number>(1);
   const [tokenName, setTokenName] = useState<string>("");
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
+  const [vestingCliff, setVestingCliff] = useState<number>(10);
+  const [vestingDuration, setVestingDuration] = useState<number>(2);
+  const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("hours");
   const [tokenDescription, setTokenDescription] = useState<string>("");
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
@@ -59,7 +63,7 @@ export const RegisterClubModal = ({
   const creatorLiqMax = ((MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** DECIMALS)) / BigInt(10));
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
   const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
 
@@ -72,6 +76,19 @@ export const RegisterClubModal = ({
   const registrationFee = useMemo(() => (
     bonsaiNftZkSync > 0n ? '0' : (registrationCost?.toString() || '-')
   ), [registrationCost]);
+
+  const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
+    switch (unit) {
+      case 'hours':
+        return duration * 3600;
+      case 'days':
+        return duration * 3600 * 24;
+      case 'weeks':
+        return duration * 3600 * 24 * 7;
+      default:
+        return 0; // Default case to handle unexpected units
+    }
+  };
 
   const registerClub = async () => {
     setIsBuying(true);
@@ -93,15 +110,17 @@ export const RegisterClubModal = ({
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
       const featureStartAt = bonsaiNftZkSync > 0n ? Math.floor(Date.now() / 1000) : undefined;
+
       const { objectId, clubId } = await registerClubTransaction(walletClient, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        curveType,
         strategy,
         tokenName,
         tokenSymbol,
         tokenImage: _tokenImage,
         tokenDescription,
-        featureStartAt
+        featureStartAt,
+        cliffPercent: vestingCliff * 100,
+        vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit)
       });
       if (!(objectId && clubId)) throw new Error("failed");
 
@@ -298,14 +317,14 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               </div>
             </div>
 
-            <div className="sm:col-span-6 flex flex-col justify-start items-start">
+            <div className="sm:col-span-3 flex flex-col justify-start items-start">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
                   <Subtitle className="text-white/70 mb-2">
-                    Bonding curve pricing
+                    Vesting Cliff Unlock %
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="A more expensive bonding curve leads to faster pool creation" direction="top">
+                    <Tooltip message="The % of tokens that are unlocked and immediately available after graduation" direction="top">
                     <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
                       />
@@ -314,7 +333,51 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                 </div>
               </div>
               <div className="flex gap-4 w-full flex-wrap">
-                  <BondingCurveSelector value={curveType} onChange={(type) => setCurveType(type)} options={[{ curveType: 0, label: 'Cheap' }, { curveType: 1, label: 'Normal' }, { curveType: 2, label: 'Expensive' }]} />
+                <BondingCurveSelector
+                  value={vestingCliff}
+                  onChange={(type) => setVestingCliff(type)}
+                  options={[{ vestingCliff: 10, label: '10' }, { vestingCliff: 25, label: '25' }, { vestingCliff: 50, label: '50' }, { vestingCliff: 100, label: '100' }]}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-3 flex flex-col justify-start items-start">
+              <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70 mb-2">
+                    Vesting Duration
+                  </Subtitle>
+                  <div className="text-sm inline-block">
+                    <Tooltip message="How long after graduation are tokens fully unlocked" direction="left">
+                    <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-5 gap-4">
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={vestingDuration}
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setVestingDuration(parseInt(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <select
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setVestingDurationUnit(e.target.value)}
+                    value={vestingDurationUnit}
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -322,7 +385,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-1">
-                    <Subtitle className="text-white/70 mb-2">
+                    <Subtitle className="text-white/70">
                       Buy initial supply
                     </Subtitle>
                     <div className="text-sm inline-block">
@@ -366,7 +429,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             </Subtitle>
             {(bonsaiNftZkSync > 0n) && (
               <Subtitle>
-                For being a Bonsai NFT holder, your token will be featured for 48 hours
+                As a Bonsai NFT holder, your token will be featured for {BENEFITS_AUTO_FEATURE_HOURS} hours
               </Subtitle>
             )}
           </div>

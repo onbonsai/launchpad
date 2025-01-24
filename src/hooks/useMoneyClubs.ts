@@ -232,10 +232,10 @@ export const useGetBuyAmount = (account?: `0x${string}`, clubId?: string, price?
   });
 };
 
-export const useGetRegistrationFee = (curve: number, amount: number, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (amount: number, account?: `0x${string}`) => {
   return useQuery({
-    queryKey: ["registration-fee", amount, curve, account],
-    queryFn: () => getRegistrationFee(amount!, curve, account!),
+    queryKey: ["registration-fee", amount, account],
+    queryFn: () => getRegistrationFee(amount!, account!),
     enabled: !!account,
     staleTime: 1000,
     gcTime: 2000,

@@ -594,7 +594,6 @@ export const getSellPrice = async (
 
 export const getRegistrationFee = async (
   amount: number,
-  curve: number,
   account?: `0x${string}`
 ): Promise<bigint> => {
   const amountWithDecimals = parseUnits(amount.toString(), DECIMALS);
@@ -603,7 +602,7 @@ export const getRegistrationFee = async (
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "getRegistrationFee",
-    args: [amountWithDecimals, curve],
+    args: [amountWithDecimals],
     account
   }) as bigint;
 };
@@ -635,9 +634,10 @@ type RegistrationParams = {
   tokenDescription: string;
   tokenImage: string;
   initialSupply: string;
-  curveType: number;
   strategy: string;
   featureStartAt?: number;
+  cliffPercent: number; // bps
+  vestingDuration: number; // seconds
 };
 export const registerClub = async (walletClient, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
@@ -645,7 +645,7 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registerClub",
-    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, params.curveType, zeroAddress],
+    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration],
     chain: IS_PRODUCTION ? base : baseSepolia
   });
   console.log(`tx: ${hash}`);
