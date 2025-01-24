@@ -224,6 +224,13 @@ export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${proc
 // export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/version/latest"; // DEV URL
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/18207/bonsai-launchpad/version/latest`;
 
+export const WHITELISTED_UNI_HOOKS = {
+  "BONSAI_NFT_ZERO_FEES": {
+    label: "0% trading fees for Bonsai NFT holders",
+    contractAddress: "0xA788031C591B6824c032a0EFe74837EE5eaeC080"
+  }
+};
+
 export function baseScanUrl(txHash: string) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
 }
@@ -629,6 +636,7 @@ export const getFeesEarned = async (account: `0x${string}`): Promise<bigint> => 
 };
 
 type RegistrationParams = {
+  hook: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
   tokenDescription: string;
@@ -645,7 +653,7 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registerClub",
-    args: [DEFAULT_HOOK_ADDRESS, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration],
+    args: [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration],
     chain: IS_PRODUCTION ? base : baseSepolia
   });
   console.log(`tx: ${hash}`);

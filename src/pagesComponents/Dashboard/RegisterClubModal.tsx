@@ -20,6 +20,7 @@ import {
   approveToken,
   MIN_LIQUIDITY_THRESHOLD,
   BENEFITS_AUTO_FEATURE_HOURS,
+  WHITELISTED_UNI_HOOKS,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -50,7 +51,7 @@ export const RegisterClubModal = ({
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [initialSupply, setInitialSupply] = useState<number>();
-  const [curveType, setCurveType] = useState<number>(1);
+  const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES");
   const [tokenName, setTokenName] = useState<string>("");
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
   const [vestingCliff, setVestingCliff] = useState<number>(10);
@@ -119,6 +120,7 @@ export const RegisterClubModal = ({
         tokenImage: _tokenImage,
         tokenDescription,
         featureStartAt,
+        hook: WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}`,
         cliffPercent: vestingCliff * 100,
         vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit)
       });
@@ -253,7 +255,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     Name
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v3/v4 pool will be created with this token name and symbol" direction="right">
+                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker" direction="right">
                       <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
                       />
@@ -272,10 +274,11 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             </div>
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-2">
-                <Subtitle className="text-white/70">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
                     Ticker
                   </Subtitle>
+                  <div className="text-sm inline-block text-white/40">$</div>
                 </div>
                 <div>
                   <input
@@ -383,6 +386,34 @@ ${MADFI_CLUBS_URL}/token/${clubId}
 
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
+                    Uniswap v4 Hook
+                  </Subtitle>
+                  <div className="text-sm inline-block">
+                    <Tooltip message="Choose a Uni v4 hook to attach custom logic to your token once it graduates" direction="top">
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <select
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setUniHook(e.target.value)}
+                    value={uniHook}
+                  >
+                    {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
+                      <option value={key}>{WHITELISTED_UNI_HOOKS[uniHook].label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="sm:col-span-6 flex flex-col">
+              <div className="flex flex-col justify-between gap-2">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">
@@ -396,7 +427,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       </Tooltip>
                     </div>
                   </div>
-                  <label className="inline-block text-xs font-medium text-secondary/70">
+                  <label className="inline-block text-xs font-medium text-secondary/70 mr-4">
                     Fee: ${registrationFee}
                   </label>
                 </div>
