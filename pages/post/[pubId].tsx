@@ -39,6 +39,7 @@ import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComme
 import { getPost } from "@src/services/lens/getPost";
 import { IS_PRODUCTION, ZERO_ADDRESS } from "@src/constants/constants";
 import { ChainRpcs } from "@src/constants/chains";
+import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 
 const SinglePublicationPage: NextPage = () => {
   const isMounted = useIsMounted();
@@ -289,7 +290,7 @@ const SinglePublicationPage: NextPage = () => {
                   decrypting={decrypting}
                   shouldGoToPublicationPage={false}
                   isProfileAdmin={isProfileAdmin}
-                  setSubscriptionOpenModal={() => {}}
+                  setSubscriptionOpenModal={() => { }}
                 />
               ) : null}
             </div>
@@ -305,6 +306,22 @@ const SinglePublicationPage: NextPage = () => {
                 hasUpvotedComment={hasUpvotedComment}
                 onLikeButtonClick={onLikeButtonClick}
                 getOperationsFor={getOperationsFor}
+                profilePictureStyleOverride={publicationProfilePictureStyle}
+                containerBorderRadius={'24px'}
+                containerPadding={'12px'}
+                profilePadding={'0 0 0 0'}
+                textContainerStyleOverride={textContainerStyleOverrides}
+                backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                mediaImageStyleOverride={mediaImageStyleOverride}
+                imageContainerStyleOverride={imageContainerStyleOverride}
+                reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                reactionContainerStyleOverride={reactionContainerStyleOverride}
+                publicationContainerStyleOverride={publicationContainerStyleOverride}
+                shareContainerStyleOverride={shareContainerStyleOverride}
+                markdownStyleBottomMargin={'0px'}
+                heartIconOverride={true}
+                messageIconOverride={true}
+                shareIconOverride={true}
               />
             </div>
             {(!isConnected || !walletClient) && (
@@ -366,7 +383,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   let post;
   try {
     post = await getPost(pubId);
-  } catch {}
+  } catch { }
 
   if (!post) return { notFound: true };
 

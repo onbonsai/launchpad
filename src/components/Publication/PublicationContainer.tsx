@@ -18,6 +18,7 @@ import publicationBody from "@src/services/lens/publicationBody";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import { polygon } from "viem/chains";
+import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "./PublicationStyleOverrides";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -281,6 +282,21 @@ const PublicationContainer = ({
         followButtonDisabled={!isConnected}
         isFollowed={_isFollowed || isFollowed}
         hideQuoteButton={hideQuoteButton}
+        profilePictureStyleOverride={publicationProfilePictureStyle}
+        containerBorderRadius={'24px'}
+        containerPadding={'12px'}
+        profilePadding={'0 0 0 0'}
+        textContainerStyleOverride={textContainerStyleOverrides}
+        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+        mediaImageStyleOverride={mediaImageStyleOverride}
+        imageContainerStyleOverride={imageContainerStyleOverride}
+        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+        reactionContainerStyleOverride={reactionContainerStyleOverride}
+        shareContainerStyleOverride={shareContainerStyleOverride}
+        markdownStyleBottomMargin={'0'}
+        heartIconOverride={true}
+        messageIconOverride={true}
+        shareIconOverride={true}
       />
       {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
@@ -312,5 +328,6 @@ const PublicationContainer = ({
     </div>
   )
 };
+
 
 export default PublicationContainer;
