@@ -4,39 +4,60 @@ import { useState, useEffect } from "react";
 import { getLensPfp, shortAddress, roundedToFixed } from "@src/utils/utils";
 import { useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import CreatorButton from "@src/components/Creators/CreatorButton";
+
+const CreatorPill = () => {
+  return (
+    <div className="flex h-[18px] items-center justify-center bg-orange text-white px-1 rounded-lg font-semibold text-xs leading-4">
+      CTO
+    </div>
+  )
+}
+
+interface InfoPillProps {
+  text: string;
+}
+
+const InfoPill = (props: InfoPillProps) => {
+  return (
+    <div className="flex items-center justify-center bg-card text-white px-[10px] py-1 rounded-[10px] text-base leading-5">
+      {props.text}
+    </div>
+  )
+}
 
 const Row = ({ row, supply, creator }) => {
   let share = ((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString();
   if (share === "0") share = "<1";
+  const creatorName = row.profile?.handle && row.profile?.handle?.localName ? row.profile.handle.localName : shortAddress(row.trader?.id, 6).split("... ")[0];
+
+  const holdingAmount = Number(row.amount);
+  let formattedNumber = "";
+  if (!isNaN(holdingAmount)) {
+    formattedNumber = holdingAmount.toLocaleString();
+  } else {
+    console.error("Invalid number string");
+  }
   return (
-    <tr className={`text-white h-14 bg-`}>
-    <td className="px-2">
-      <div className="grid grid-cols-5 items-center">
-        <div className="col-span-1 mr-2">
-          {row.profile?.metadata && (
-            <img
-              src={getLensPfp(row.profile)}
-              alt={row.profile?.handle?.localName}
-              className="rounded-full"
-              height="32"
-              width="32"
-            />
-          )}
+    <tr className={`text-white`}>
+      <td className="bg-card rounded-2xl">
+        <div className="flex flex-col justify-between items-start p-3 gap-5">
+          <div className="mr-2 flex items-center gap-2">
+            {row.profile?.metadata &&
+              <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
+                <CreatorButton text={creatorName} image={getLensPfp(row.profile)} />
+              </Link>
+            }
+            {creator === row.trader.id && <CreatorPill />}
+          </div>
+          <div className="flex gap-1">
+            <InfoPill text={`${share}%`} />
+            <InfoPill text={formattedNumber} />
+          </div>
         </div>
-        <span className="col-span-4 text-left overflow-ellipsis overflow-hidden whitespace-nowrap">
-          {row.profile?.handle && row.profile?.handle?.localName ? (
-            <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
-              <span className="link-hover">@{row.profile.handle.localName}</span>
-            </Link>
-          ) : (
-            row.ens || shortAddress(row.trader?.id, 6).split("... ")[0]
-          )}
-          {creator === row.trader.id && <span className="ml-2">(creator)</span>}
-        </span>
-      </div>
-    </td>
-    <td className="px-2">{share}%</td>
-  </tr>
+      </td>
+      {/* <td className="px-2 bg-card rounded-tr-2xl rounded-br-2xl">{share}%</td> */}
+    </tr>
   )
 }
 
@@ -70,13 +91,7 @@ export const HolderDistribution = ({ clubId, supply, creator }) => {
 
   return (
     <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-xl shadow-md">
-      <table className="mb-2 w-full text-center">
-        <thead className="uppercase bg-card bg-dark-grey">
-          <tr>
-            <th className="px-2">User</th>
-            <th className="px-2"></th>
-          </tr>
-        </thead>
+      <table className="mb-2 w-full text-center border-separate [border-spacing:0_4px]">
         <tbody>
           {allHoldings.map((row, index) => (
             <Row key={index} row={row} supply={supply} creator={creator} />
