@@ -18,9 +18,9 @@ interface InfoPillProps {
   text: string;
 }
 
-const InfoPill = (props: InfoPillProps) => {
+export const InfoPill = (props: InfoPillProps) => {
   return (
-    <div className="flex items-center justify-center bg-card text-white px-[10px] py-1 rounded-[10px] text-base leading-5">
+    <div className="flex items-center justify-center bg-card-light text-white px-[10px] py-1 rounded-[10px] text-base leading-5">
       {props.text}
     </div>
   )
