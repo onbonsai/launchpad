@@ -39,7 +39,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
           <div className="fixed inset-0 bg-true-black/70 backdrop-blur-[1px] bg-opacity-10 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed z-[99999] inset-0 overflow-y-auto">
+        <div className="fixed z-[1000] inset-0 overflow-y-auto">
   <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0 bg-black/70 ">
     <Transition.Child
       as={Fragment}
@@ -51,8 +51,8 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
       leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
     >
       <Dialog.Panel
-        className={`backdrop-blur-[40px] bg-card relative rounded-3xl text-left shadow-xl 
-        transform transition-all sm:my-8 sm:max-w-sm w-full h-fit sm:p-4 md:w-fit 
+        className={`backdrop-blur-[40px] bg-card relative rounded-3xl text-left shadow-xl
+        transform transition-all sm:my-8 sm:max-w-sm w-full h-fit sm:p-4 md:w-fit
         md:max-w-6xl lg:max-w-6xl ${panelClassnames} overflow-auto`}
       >
                 <div className="absolute top-0 right-0 mt-4 mr-4 sm:block z-50">

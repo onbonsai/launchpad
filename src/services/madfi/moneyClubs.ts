@@ -371,7 +371,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
     const amount = complete
       ? BigInt(chips.amount) * parseEther("800000000") / BigInt(chips.club.supply)
       : BigInt(chips.amount);
-    const balance = complete
+    const balance = complete && IS_PRODUCTION
       ? Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(chips.club.tokenAddress))
       : parseFloat(formatUnits(amount, DECIMALS)) * parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
     return { ...chips, balance, amount, complete };
