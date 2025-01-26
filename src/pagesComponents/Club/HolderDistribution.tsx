@@ -43,11 +43,9 @@ const Row = ({ row, supply, creator }) => {
       <td className="bg-card rounded-2xl">
         <div className="flex flex-col justify-between items-start p-3 gap-5">
           <div className="mr-2 flex items-center gap-2">
-            {row.profile?.metadata &&
-              <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
-                <CreatorButton text={creatorName} image={getLensPfp(row.profile)} />
-              </Link>
-            }
+            <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
+              <CreatorButton text={creatorName} image={getLensPfp(row.profile)} />
+            </Link>
             {creator === row.trader.id && <CreatorPill />}
           </div>
           <div className="flex gap-1">
