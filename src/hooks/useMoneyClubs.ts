@@ -10,6 +10,7 @@ import {
   getRegisteredClubById,
   getVolume,
   getBalance,
+  getAvailableBalance,
   getBuyPrice,
   getSellPrice,
   getFeesEarned,
@@ -289,5 +290,15 @@ export const useGetTradingInfo = (clubId?: number) => {
     enabled: !!clubId,
     staleTime: 60000,
     gcTime: 60000 * 5,
+  });
+};
+
+export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0x${string}`) => {
+  return useQuery({
+    queryKey: ["club-available-balance", tokenAddress, account],
+    queryFn: () => getAvailableBalance(tokenAddress!, account!),
+    enabled: !!account,
+    staleTime: 10000,
+    gcTime: 60000,
   });
 };

@@ -1,11 +1,12 @@
 import { inter } from "@src/fonts/fonts";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { formatUnits, parseUnits, erc721Abi, parseEther, formatEther } from "viem";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import ConfettiExplosion from 'react-confetti-explosion';
+import clsx from "clsx";
 
 import { Button } from "@src/components/Button"
 import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
@@ -13,6 +14,7 @@ import {
   useGetSellPrice,
   useGetClubLiquidity,
   useGetBuyAmount,
+  useGetAvailableBalance,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -21,22 +23,16 @@ import {
   USDC_DECIMALS,
   buyChips as buyChipsTransaction,
   sellChips as sellChipsTransaction,
-  claimTokens as claimTokensTransaction,
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
   releaseLiquidity as releaseLiquidityTransaction,
   MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import Countdown from "@src/components/Countdown";
 import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
-import { Header2, Subtitle } from "@src/styles/text";
-import clsx from "clsx";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
-import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
+import { Header as HeaderText, Header2 as Header2Text, BodySemiBold } from "@src/styles/text";
 import { useRouter } from "next/router";
 
 export const BuySellWidget = ({
@@ -66,9 +62,9 @@ export const BuySellWidget = ({
   const { buyAmount, maxAllowed } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
+  const { data: availableBalance } = useGetAvailableBalance(club.tokenAddress, address);
   const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
-  const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
   const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
@@ -82,17 +78,6 @@ export const BuySellWidget = ({
     args: [address!],
     query: { enabled: !!address }
   });
-
-  useEffect(() => {
-    let isClaimEnabled;
-    // TODO: not present?
-    if (club.claimAt) {
-      isClaimEnabled = (Date.now() / 1000) >= club.claimAt;
-    } else if (club.completedAt) {
-      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 2 * 60 * 60;
-    }
-    setClaimEnabled(isClaimEnabled);
-  }, [club.completedAt, club.claimAt]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -114,15 +99,22 @@ export const BuySellWidget = ({
     clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
   ), [clubLiquidity, minLiquidityThreshold]);
 
-  const tokensToClaim = useMemo(() => {
-    if (club?.complete && clubBalance > 0n) {
+  const fullTokenBalance = useMemo(() => {
+    if (club.completedAt && clubBalance > 0n) {
       return kFormatter(parseFloat(formatEther(clubBalance * parseEther("800000000") / BigInt(club.supply))))
     }
   }, [club, clubBalance]);
 
-  const claimEnabledAtDate = club.completedAt
-    ? new Date((club.completedAt + 2 * 60 * 60) * 1000)
-    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 2 * 60 * 60) * 1000) : null);
+  const availableTokenBalance = useMemo(() => {
+    if (club.completedAt && availableBalance && availableBalance > 0n) {
+      return kFormatter(parseFloat(formatEther(availableBalance)))
+    }
+  }, [club, clubBalance, availableBalance]);
+
+  // when tokens are fully vested
+  const fullTokenBalanceVestedAt = club.completedAt && club.claimAt
+    ? new Date(club.claimAt * 1000).toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })
+    : null;
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -194,36 +186,6 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
-  const claimTokens = async () => {
-    setIsBuying(true);
-    let toastId;
-
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
-      try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
-      } catch {
-        toast.error("Please switch networks");
-        setIsBuying(false);
-        return;
-      }
-    }
-
-    try {
-      toastId = toast.loading("Claiming tokens...");
-      // also triggers token swap in the backend
-      await claimTokensTransaction(walletClient, club.clubId);
-      toast.success('Tokens claimed!', { id: toastId });
-      setShowConfetti(true);
-      // Remove confetti after 5 seconds
-      setTimeout(() => setShowConfetti(false), 5000);
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to claim tokens", { id: toastId });
-    }
-    setIsBuying(false);
-  }
-
   const releaseLiquidity = async () => {
     setIsBuying(true);
     let toastId;
@@ -251,7 +213,8 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
     return new URLSearchParams(params).toString();
   }
 
-  if (club.complete && tokenAddress) {
+  // after liquidity released
+  if (!!club.completedAt) {
     return (
       <div className={clsx("flex flex-col items-center justify-center w-full md:-mt-4", inter.className)}>
         <div className="text-center pt-12">
@@ -266,29 +229,8 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
         </div>
         {clubBalance > 0n && (
           <div className="flex flex-col items-center justify-center space-y-2 mt-4 w-full">
-            <p className="text-2xl gradient-txt mb-2">
-              {`You will claim: ${tokensToClaim} $${club.token.symbol} tokens`}
-            </p>
-            {claimEnabled && (
-              <div className="w-full flex justify-center">
-                <Button
-                  variant="accent"
-                  className="mb-2 md:mb-0 text-base"
-                  onClick={claimTokens}
-                >
-                  Claim Tokens
-                </Button>
-              </div>
-            )}
-            {!claimEnabled && claimEnabledAtDate && (
-              <div className="w-full flex justify-center">
-                <Countdown
-                  date={claimEnabledAtDate}
-                  onComplete={() => setClaimEnabled(true)}
-                  label={"Claim tokens in"}
-                />
-              </div>
-            )}
+            <Header2Text className={"text-white"}>{`Tokens vested and available to trade: ${availableTokenBalance}`}</Header2Text>
+            <BodySemiBold className="text-white/60 font-medium">{`Total tokens available: ${fullTokenBalance} (on ${fullTokenBalanceVestedAt})`}</BodySemiBold>
           </div>
         )}
       </div>
@@ -547,9 +489,9 @@ const Tabs = ({ openTab, setOpenTab }) => {
             focus:outline-none focus:ring-0`,
             )}
           >
-            <Header2 className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
+            <Header2Text className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
               Buy
-            </Header2>
+            </Header2Text>
           </button>
         </li>
         <li className="nav-item" role="presentation">
@@ -566,9 +508,9 @@ const Tabs = ({ openTab, setOpenTab }) => {
             focus:outline-none focus:ring-0`,
             )}
           >
-            <Header2 className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
+            <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
               Sell
-            </Header2>
+            </Header2Text>
           </button>
         </li>
       </ul>

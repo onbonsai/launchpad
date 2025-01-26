@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 import { ChainRpcs } from "@src/constants/chains";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import { roundedToFixed } from "@src/utils/utils";
@@ -481,6 +482,17 @@ export const getBalance = async (clubId: string, account: `0x${string}`): Promis
   return res as bigint;
 };
 
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<bigint> => {
+  const res = await publicClient().readContract({
+    address: tokenAddress,
+    abi: VestingERC20Abi,
+    functionName: "getAvailableBalance",
+    args: [account],
+  });
+
+  return res as bigint;
+};
+
 export const getBuyPrice = async (
   account: `0x${string}`,
   clubId: string,
@@ -780,21 +792,6 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
 
   return { clubs: [], hasMore: false };
 };
-
-export const claimTokens = async (walletClient, clubId: string) => {
-  const [recipient] = await walletClient.getAddresses();
-  const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "claimTokens",
-    args: [clubId, recipient],
-    chain: IS_PRODUCTION ? base : baseSepolia,
-  });
-  console.log(`tx: ${hash}`);
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
-
-  if (receipt.status === "reverted") throw new Error("Reverted");
-}
 
 export const withdrawFeesEarned = async (walletClient) => {
   const hash = await walletClient.writeContract({
