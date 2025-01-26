@@ -325,7 +325,7 @@ export const getVolume = async (clubId: string): Promise<bigint> => {
 
 export const getLiquidity = async (clubId: string) => {
   const client = publicClient();
-  const [_, __, ___, ____, liquidity] = await client.readContract({
+  const [_, __, liquidity] = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "registeredClubs",
