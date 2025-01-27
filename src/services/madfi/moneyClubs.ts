@@ -197,6 +197,31 @@ const CLUB_HOLDINGS_PAGINATED = gql`
   }
 `;
 
+const CLUB_BALANCE = gql`
+  query ClubChips($trader: Bytes!, $club: Bytes!) {
+    clubChips(
+      where: {trader: $trader, club: $club}
+    ) {
+      id
+      amount
+      club {
+        id
+        tokenAddress
+      }
+    }
+  }
+`
+
+const GET_CREATOR_NFTS = gql`
+  query CreatorNFTs($trader: Bytes!) {
+    creatorNFTs(where: {trader: $trader}) {
+      club {
+        clubId
+      }
+    }
+  }
+`
+
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 18;
 export const USDC_DECIMALS = 6;
@@ -223,7 +248,7 @@ export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
 export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
 // export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/version/latest"; // DEV URL
-export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/18207/bonsai-launchpad/version/latest`;
+export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
 
 export const WHITELISTED_UNI_HOOKS = {
   "BONSAI_NFT_ZERO_FEES": {
@@ -472,14 +497,10 @@ export const publicClient = () => {
 };
 
 export const getBalance = async (clubId: string, account: `0x${string}`): Promise<bigint> => {
-  const res = await publicClient().readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "balances",
-    args: [clubId, account],
-  });
-
-  return res as bigint;
+  const id = toHexString(parseInt(clubId));
+  const client = subgraphClient();
+  const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account, club: id } });
+  return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
 export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<bigint> => {
@@ -495,19 +516,32 @@ export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: 
 
 export const getBuyPrice = async (
   account: `0x${string}`,
-  supply: string,
+  clubId: string,
   amount: string,
+  supply?: string
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
-  const supplyWithDecimals = parseUnits(supply, DECIMALS);
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
-  const buyPrice = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "getBuyPrice",
-    args: [supplyWithDecimals, amountWithDecimals],
-    account
-  });
+  let buyPrice
+  try {
+    buyPrice = !!supply ?  
+      await client.readContract({
+        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "getBuyPrice",
+        args: [parseUnits(supply, DECIMALS), amountWithDecimals],
+        account
+      })
+      : await client.readContract({
+        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "getBuyPriceByClub",
+        args: [clubId, amountWithDecimals],
+        account
+      });
+    } catch {
+      buyPrice = 1n
+    }
 
   return {
     buyPrice: buyPrice as bigint,
@@ -637,26 +671,19 @@ export const getBuyAmount = async (
 
 export const getSellPrice = async (
   account: `0x${string}`,
-  tokenAddress: `0x${string}`,
+  clubId: string,
   amount: string,
   hasNft = false
 ): Promise<{ sellPrice: bigint; sellPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
-  const currentSupply = await client.readContract({
-    address: tokenAddress,
-    abi: erc20Abi,
-    functionName: "totalSupply",
-    args: [],
-    account
-  }) as bigint;
-  const sellPrice = await client.readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "getSellPrice",
-      args: [currentSupply, amountWithDecimals],
-      account,
-    })
+  const sellPrice = await     client.readContract({
+    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    abi: BonsaiLaunchpadAbi,
+    functionName: "getSellPriceByClub",
+    args: [clubId, amountWithDecimals],
+    account,
+  })
   return {
     sellPrice: sellPrice as bigint,
     sellPriceAfterFees: hasNft ? sellPrice as bigint : (sellPrice as bigint) * BigInt(97) / BigInt(100),
@@ -664,11 +691,10 @@ export const getSellPrice = async (
 };
 
 export const getRegistrationFee = async (
-  supply: string,
   amount: string,
   account?: `0x${string}`
 ): Promise<bigint> => {
-  const initialBuyPrice = await getBuyPrice(account || zeroAddress, supply, amount)
+  const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
   console.log("initialBuyPrice", initialBuyPrice)
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
@@ -684,15 +710,39 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   };
 };
 
-export const getFeesEarned = async (account: `0x${string}`): Promise<bigint> => {
-  const res = await publicClient().readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "feesEarned",
-    args: [account],
-  });
+export const getFeesEarned = async (account: `0x${string}`): Promise<{feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[]}> => {
+  const client = subgraphClient();
+  const [creatorNFTsResponse, feesEarnedResponse] = await Promise.all([
+    client.query({ query: GET_CREATOR_NFTS, variables: { trader: account } }),
+    publicClient().readContract({
+      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      abi: BonsaiLaunchpadAbi,
+      functionName: "feesEarned",
+      args: [account],
+    })
+  ]);
+  const creatorNFTList = creatorNFTsResponse.data.creatorNFTs.map(nft => nft.club.clubId);
 
-  return res as bigint;
+  const clubFees = await Promise.all(
+    creatorNFTList.map(async (id) => {
+      const fees = await publicClient().readContract({
+        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "clubFeesEarned",
+        args: [id],
+      });
+      return {
+        id: parseInt(id),
+        amount: fees as bigint
+      };
+    })
+  );
+
+  return {
+    feesEarned: feesEarnedResponse as bigint, 
+    clubFeesTotal: clubFees.reduce((sum, fee) => sum + fee.amount, 0n),
+    clubFees,
+  }
 };
 
 type RegistrationParams = {
@@ -842,7 +892,8 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
   return { clubs: [], hasMore: false };
 };
 
-export const withdrawFeesEarned = async (walletClient) => {
+// TODO: multicall?
+export const withdrawFeesEarned = async (walletClient, clubIds: bigint[]) => {
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
@@ -850,7 +901,19 @@ export const withdrawFeesEarned = async (walletClient) => {
     args: [zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
+
+  let hash2
+  if (clubIds && clubIds.length > 0) {
+    hash2 = await walletClient.writeContract({
+      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      abi: BonsaiLaunchpadAbi,
+      functionName: "withdrawClubFeesEarned",
+      args: [clubIds],
+      chain: IS_PRODUCTION ? base : baseSepolia,
+    });
+  }
   console.log(`tx: ${hash}`);
+  console.log(`tx 2: ${hash2}`);
   const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
 
   if (receipt.status === "reverted") throw new Error("Reverted");

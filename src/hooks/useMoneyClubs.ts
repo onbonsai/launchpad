@@ -236,7 +236,7 @@ export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${str
 export const useGetRegistrationFee = (amount: number | string, account?: `0x${string}`) => {
   return useQuery({
     queryKey: ["registration-fee", amount, account],
-    queryFn: () => getRegistrationFee("0", amount.toString()!, account!),
+    queryFn: () => getRegistrationFee(amount.toString()!, account!),
     enabled: !!account,
     staleTime: 1000,
     gcTime: 2000,

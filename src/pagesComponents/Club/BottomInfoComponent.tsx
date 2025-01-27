@@ -5,7 +5,7 @@ import BuySellModal from "./BuySellModal";
 import { useEffect, useMemo, useState } from "react";
 import { fetchTokenPrice, MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
-import { formatEther, formatUnits, parseEther } from "viem";
+import { formatEther, formatUnits, parseEther, parseUnits } from "viem";
 import { roundedToFixed } from "@src/utils/utils";
 
 export const BottomInfoComponent = ({ club, address }) => {
@@ -20,14 +20,10 @@ export const BottomInfoComponent = ({ club, address }) => {
         return;
       }
 
-      const amount = club.complete
-        ? clubBalance * parseEther("800000000") / BigInt(club.supply)
-        : clubBalance;
-
       // converting to USDC value
       const _balance = club.complete
-        ? "$" + roundedToFixed(Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(club.tokenAddress)), 2)
-        : localizeNumber(formatUnits(amount * BigInt(club.currentPrice), 12));
+        ? "$" + roundedToFixed(Number.parseFloat(formatEther(clubBalance)) * (await fetchTokenPrice(club.tokenAddress)), 2)
+        : localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24));
 
       setBalance(_balance);
     };
@@ -36,10 +32,9 @@ export const BottomInfoComponent = ({ club, address }) => {
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
-    const clubLiquidity = BigInt(club.liquidity);
-    if (MIN_LIQUIDITY_THRESHOLD && clubLiquidity) {
-      const scaledMinLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** USDC_DECIMALS);
-      const fraction = (clubLiquidity * BigInt(100)) / scaledMinLiquidityThreshold;
+    const clubSupply = BigInt(club.supply);
+    if (clubSupply) {
+      const fraction = clubSupply / parseUnits("800000000", 18)
       return Math.min(parseInt(fraction.toString()), 100);
     }
     return 0;

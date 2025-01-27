@@ -312,7 +312,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
-                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 12)}
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
                       />
                     </div>
                   </div>

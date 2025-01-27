@@ -49,7 +49,7 @@ export const ClaimFeesEarned = () => {
 
   const creatorFeesFormatted = useMemo(() => {
     if (creatorFeesEarned) {
-      return localizeNumber(parseFloat(formatUnits(BigInt(creatorFeesEarned.toString()), USDC_DECIMALS)), undefined, 2);
+      return localizeNumber(parseFloat(formatUnits(BigInt((creatorFeesEarned.feesEarned + creatorFeesEarned.clubFeesTotal).toString()), USDC_DECIMALS)), undefined, 2);
     }
 
     return '0.00';
@@ -72,7 +72,7 @@ export const ClaimFeesEarned = () => {
 
     try {
       toastId = toast.loading("Claiming", { id: toastId });
-      await withdrawFeesEarned(walletClient);
+      await withdrawFeesEarned(walletClient, creatorFeesEarned?.clubFees ? creatorFeesEarned?.clubFees.map(club => BigInt(club.id)) : []);
 
       refetch();
 
@@ -87,7 +87,7 @@ export const ClaimFeesEarned = () => {
     setIsClaiming(false);
   }
 
-  const disabled = !isConnected || isLoading || creatorFeesEarned === 0n || isClaiming;
+  const disabled = !isConnected || isLoading || (creatorFeesEarned?.feesEarned === 0n && creatorFeesEarned?.clubFeesTotal === 0n ) || isClaiming;
 
   return (
     <div ref={containerRef} className="relative inline-block">
