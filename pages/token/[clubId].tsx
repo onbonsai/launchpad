@@ -25,6 +25,7 @@ import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyCl
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
+import { ShareClub } from '@src/pagesComponents/Club';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -222,6 +223,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             <div className="flex flex-col">
                               <div className="flex flex-row space-x-4">
                                 <Header2 className={"text-white"}>${club.token.symbol}</Header2>
+                                <div className="absolute pl-12 -mt-[6px]">
+                                  <ShareClub clubId={club.clubId} symbol={club.token.name} />
+                                </div>
                               </div>
                               <BodySemiBold className="text-white/60">{club.token.name}</BodySemiBold>
                             </div>

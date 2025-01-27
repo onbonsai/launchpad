@@ -6,3 +6,4 @@ export * from "./Trades";
 export * from "./HolderDistribution";
 export * from "./InfoComponent";
 export * from "./Chart";
+export * from "./ShareClub";
