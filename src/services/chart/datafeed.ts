@@ -71,11 +71,7 @@ const getAllSymbols = async () => {
     }
   }
   return symbols.map((club) => {
-    const [_, _symbol, __] = decodeAbiParameters([
-      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-    ], club.tokenInfo);
-
-    const symbol = `${_symbol}/${BONDING_CURVE_BASE_TOKEN}`;
+    const symbol = `${club.symbol}/${BONDING_CURVE_BASE_TOKEN}`;
 
     return {
       symbol,

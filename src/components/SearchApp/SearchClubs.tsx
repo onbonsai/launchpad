@@ -51,7 +51,7 @@ export const SearchClubs = () => {
             name="finder"
             id="finder"
             placeholder="Search tokens"
-            value={query}
+            defaultValue={query}
             autoComplete="off"
             onClick={() => openModal()}
             className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"

@@ -11,6 +11,7 @@ import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
 import { roundedToFixed } from "@src/utils/utils";
 import { useGetRegistrationFee } from "@src/hooks/useMoneyClubs";
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import {
   DECIMALS,
   CONTRACT_CHAIN_ID,
@@ -26,7 +27,6 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import publicationBody from "@src/services/lens/publicationBody";
 import { createPostMomoka } from "@src/services/lens/createPost";
-import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
@@ -39,12 +39,11 @@ import { localizeNumber } from "@src/constants/utils";
 
 
 export const RegisterClubModal = ({
-  profile,
   closeModal,
   refetchRegisteredClub,
   refetchClubBalance,
   tokenBalance, // balance in USDC
-  bonsaiNftZkSync, // bonsai nft balance
+  bonsaiNftBalance, // bonsai nft balance
 }) => {
   const router = useRouter();
   const { chain, address } = useAccount();
@@ -75,7 +74,7 @@ export const RegisterClubModal = ({
   ), [totalRegistrationFee, isLoadingRegistrationFee]);
 
   const registrationFee = useMemo(() => (
-    bonsaiNftZkSync > 0n ? '0' : (registrationCost?.toString() || '-')
+    bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
   ), [registrationCost]);
 
   const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
@@ -106,13 +105,15 @@ export const RegisterClubModal = ({
     }
 
     try {
-      await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
+      if (totalRegistrationFee && totalRegistrationFee > 0n) {
+        await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
+      }
 
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
-      const featureStartAt = bonsaiNftZkSync > 0n ? Math.floor(Date.now() / 1000) : undefined;
+      const featureStartAt = bonsaiNftBalance > 0n ? Math.floor(Date.now() / 1000) : undefined;
 
-      const { objectId, clubId } = await registerClubTransaction(walletClient, {
+      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
         strategy,
         tokenName,
@@ -131,7 +132,7 @@ export const RegisterClubModal = ({
         item: _tokenImage,
         type: tokenImage[0].type,
         altTag: tokenImage[0].name,
-      });
+      }, txHash!);
       if (!pubId) throw new Error("Failed to create post");
 
       const response = await fetch('/api/clubs/update', {
@@ -161,7 +162,8 @@ export const RegisterClubModal = ({
     }
   };
 
-  const createPost = async (clubId: string, attachment: any) => {
+  // create a post from the authenticated profile _or_ from Sage (@bons_ai)
+  const createPost = async (clubId: string, attachment: any, txHash: string) => {
     try {
       const publicationMetadata = publicationBody(
         `${tokenName} ($${tokenSymbol})
@@ -169,24 +171,40 @@ ${tokenDescription}
 ${MADFI_CLUBS_URL}/token/${clubId}
 `,
         [attachment],
-        profile.metadata?.displayName || profile.handle!.suggestedFormatted.localName
+        authenticatedProfile?.metadata?.displayName || authenticatedProfile?.handle!.suggestedFormatted.localName || "Sage"
       );
 
       // creating a post on momoka
       const { data: postIpfsHash } = await pinJson(publicationMetadata);
-      const broadcastResult = await createPostMomoka(
-        walletClient,
-        storjGatewayURL(`ipfs://${postIpfsHash}`),
-        authenticatedProfile,
-      );
 
-      // broadcastResult might be the `pubId` if it was a wallet tx
-      if (broadcastResult) {
-        // create seo image
-        return typeof broadcastResult === "string"
-          ? broadcastResult
-          : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
+      if (authenticatedProfile?.id) {
+        const broadcastResult = await createPostMomoka(
+          walletClient,
+          storjGatewayURL(`ipfs://${postIpfsHash}`),
+          authenticatedProfile,
+        );
+
+        // broadcastResult might be the `pubId` if it was a wallet tx
+        if (broadcastResult) {
+          // create seo image
+          return typeof broadcastResult === "string"
+            ? broadcastResult
+            : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
+        }
       }
+
+      const response = await fetch('/api/clubs/sage-create-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txHash,
+          postIpfsHash
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to create post");
+      const data = await response.json();
+      return data?.pubId;
     } catch (error) {
       console.log(error);
     }
@@ -405,7 +423,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     value={uniHook}
                   >
                     {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
-                      <option value={key}>{WHITELISTED_UNI_HOOKS[uniHook].label}</option>
+                      <option key={`hook-${key}`} value={key}>{WHITELISTED_UNI_HOOKS[uniHook].label}</option>
                     ))}
                   </select>
                 </div>
@@ -456,9 +474,9 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               Create token
             </Button>
             <Subtitle>
-              Creating will also make a post from your profile
+              Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
             </Subtitle>
-            {(bonsaiNftZkSync > 0n) && (
+            {(bonsaiNftBalance > 0n) && (
               <Subtitle>
                 As a Bonsai NFT holder, your token will be featured for {BENEFITS_AUTO_FEATURE_HOURS} hours
               </Subtitle>

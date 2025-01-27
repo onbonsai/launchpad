@@ -5,13 +5,11 @@ import { erc20Abi, erc721Abi } from 'viem'
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
 import { USDC_CONTRACT_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
-import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
 import { RegisterClubModal } from "./RegisterClubModal";
 
 export const CreateClub = () => {
   const { address } = useAccount();
-  const { data: profile } = useAuthenticatedLensProfile();
   const { data: tokenBalance } = useReadContract({
     address: USDC_CONTRACT_ADDRESS,
     abi: erc20Abi,
@@ -19,7 +17,7 @@ export const CreateClub = () => {
     functionName: 'balanceOf',
     args: [address as `0x${string}`]
   });
-  const { data: bonsaiNftZkSync } = useReadContract({
+  const { data: bonsaiNftBalance } = useReadContract({
     address: BONSAI_NFT_BASE_ADDRESS,
     abi: erc721Abi,
     chainId: CONTRACT_CHAIN_ID,
@@ -36,7 +34,6 @@ export const CreateClub = () => {
         variant="accent"
         size="md" // This sets the height to 40px and padding appropriately
         className="text-base font-medium md:px-4 bg-white rounded-xl"
-        disabled={!profile?.id}
         onClick={() => setRegisterClubModal(true)}
       >
         Create Token
@@ -50,12 +47,11 @@ export const CreateClub = () => {
         panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <RegisterClubModal
-          profile={profile}
           tokenBalance={tokenBalance}
           closeModal={() => setRegisterClubModal(false)}
           refetchRegisteredClub={() => { }}
           refetchClubBalance={() => { }}
-          bonsaiNftZkSync={bonsaiNftZkSync}
+          bonsaiNftBalance={bonsaiNftBalance}
         />
       </Modal>
     </>

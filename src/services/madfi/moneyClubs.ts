@@ -555,8 +555,8 @@ export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: 
   ]);
 
   return {
-    availableBalance: availableBalance as bigint, 
-    vestingBalance: (totalBalance as bigint) - (availableBalance as bigint), 
+    availableBalance: availableBalance as bigint,
+    vestingBalance: (totalBalance as bigint) - (availableBalance as bigint),
     totalBalance: totalBalance as bigint
   };
 };
@@ -571,7 +571,7 @@ export const getBuyPrice = async (
   const client = publicClient();
   let buyPrice
   try {
-    buyPrice = !!supply ?  
+    buyPrice = !!supply ?
       await client.readContract({
         address: LAUNCHPAD_CONTRACT_ADDRESS,
         abi: BonsaiLaunchpadAbi,
@@ -672,7 +672,7 @@ function calculateTokensForUSDC(
   while (low <= high) {
       mid = (low + high) / 2n;
       price = getPrice(currentSupply, mid) / parseUnits("1", 18);
-      
+
       // Track closest value below target
       if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
           bestGuess = mid;
@@ -762,7 +762,6 @@ export const getRegistrationFee = async (
   account?: `0x${string}`
 ): Promise<bigint> => {
   const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
-  console.log("initialBuyPrice", initialBuyPrice)
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
 };
@@ -806,7 +805,7 @@ export const getFeesEarned = async (account: `0x${string}`): Promise<{feesEarned
   );
 
   return {
-    feesEarned: feesEarnedResponse as bigint, 
+    feesEarned: feesEarnedResponse as bigint,
     clubFeesTotal: clubFees.reduce((sum, fee) => sum + fee.amount, 0n),
     clubFees,
   }
@@ -824,9 +823,8 @@ type RegistrationParams = {
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
 };
-export const registerClub = async (walletClient, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string }> => {
+export const registerClub = async (walletClient, isAuthenticated: boolean, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string, txHash?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
-  console.log("args", [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration])
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
@@ -836,7 +834,8 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
   });
   console.log(`tx: ${hash}`);
 
-  const identityToken = await getAccessToken();
+  const identityToken = isAuthenticated ? await getAccessToken() : undefined;
+  const [creator] = await walletClient.getAddresses();
   const response = await fetch('/api/clubs/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -845,7 +844,8 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
       identityToken,
       txHash: hash,
       token: { name: params.tokenName, symbol: params.tokenSymbol, image: params.tokenImage, description: params.tokenDescription },
-      featureStartAt: params.featureStartAt
+      featureStartAt: params.featureStartAt,
+      handle: creator,
     })
   });
 
@@ -856,7 +856,7 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
     abi: BonsaiLaunchpadAbi,
     eventName: "RegisteredClub",
   });
-  const res = { objectId: (await response.json()).id as string, clubId: event.args.clubId.toString() };
+  const res = { objectId: (await response.json()).id as string, clubId: event.args.clubId.toString(), txHash: hash };
   return receipt.status === "success" && response.ok ? res : {};
 };
 

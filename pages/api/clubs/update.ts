@@ -36,7 +36,7 @@ const swapAgentCreatorFee = async (_clubId: `0x${string}`, txHash: `0x${string}`
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { txHash, strategy, identityToken, token, featureStartAt, updateRecord } = req.body;
+    const { txHash, strategy, identityToken, token, featureStartAt, updateRecord, handle: _handle } = req.body;
 
     if (updateRecord) {
       const { id, pubId, liquidityReleasedTxHash, clubId } = updateRecord;
@@ -59,13 +59,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let profileId;
     let handle;
-    if (strategy === "lens") {
+    if (strategy === "lens" && identityToken) {
       const { id } = parseJwt(identityToken);
       if (!id) return res.status(403).end();
       profileId = id;
 
       const profile = await lensClient.profile.fetch({ forProfileId: profileId });
       handle = profile?.handle?.localName;
+    } else {
+      handle = _handle;
     }
 
     const client = publicClient();
