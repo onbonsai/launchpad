@@ -24,7 +24,6 @@ import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
-import { trimText } from '@src/utils/utils';
 import { Button } from '@src/components/Button';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
@@ -33,6 +32,7 @@ const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: fa
 type Token = {
   name: string;
   symbol: string;
+  description: string;
   image: string;
 };
 
@@ -215,13 +215,15 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <img
                           src={club.token.image}
                           alt={club.token.name}
-                          className="w-[48px] h-[48px] object-cover rounded-xl"
+                          className="w-[64px] h-[64px] object-cover rounded-xl"
                         />
                         <div className="flex flex-col ml-2">
                           <div className="flex flex-row justify-between gap-x-8 w-full">
                             <div className="flex flex-col">
-                              <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                              <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
+                              <div className="flex flex-row space-x-4">
+                                <Header2 className={"text-white"}>${club.token.symbol}</Header2>
+                              </div>
+                              <BodySemiBold className="text-white/60">{club.token.name}</BodySemiBold>
                             </div>
                             {club.complete && club.tokenAddress && (
                               <div className="flex flex-col">
@@ -235,11 +237,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             )}
                           </div>
                         </div>
-                        {club.featured && (
-                          <span className="text-xl font-bold gradient-txt ml-4 h-[51px] w-[110px] flex items-start italic">
-                            Featured
-                          </span>
-                        )}
                       </div>
 
                       <div className="flex flex-row items-center gap-2">
@@ -267,6 +264,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       {infoCardRow()}
                     </div>
                   </div>
+                </div>
+                <div className='px-4 md:px-3 mt-2'>
+                  <Subtitle className="items-start">
+                    {club.token.description}
+                  </Subtitle>
                 </div>
                 <div className='px-0 md:px-3'>
                   <InfoComponent
@@ -312,7 +314,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
               </div>
 
               {/* Feed/Trades/Holders */}
-              <div className="md:col-span-1 max-h-[90vh] mb-[100px] md:mb-0 relative">
+              <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative">
                 <div className="mb-4">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>

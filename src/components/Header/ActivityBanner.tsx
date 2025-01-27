@@ -220,7 +220,7 @@ export const ActivityBanner = () => {
 
   // DISABLING FOR NOW
   return (
-    <div className="sticky w-full h-[40px] text-black mb-10 z-10"></div>
+    <div className="sticky w-full h-[40px] text-black mb-2 z-10"></div>
   );
 
   return (

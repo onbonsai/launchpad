@@ -329,7 +329,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
             onProfileClick={goToProfile}
           />
         </div>
-      
+
       {isConnected && isAuthenticated && (
         <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
           <div className="flex items-center gap-x-6 w-full relative">
@@ -347,7 +347,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
               <GenericUploader files={files} setFiles={setFiles} />
             </div>
           </div>
-          <div className="flex justify-between gap-y-2 -mt-4">
+          <div className="flex justify-between gap-y-2 -mt-2">
             <div className="mt-3">
               <ActionButton
                 label="Comment"

@@ -28,7 +28,6 @@ import {
   releaseLiquidity as releaseLiquidityTransaction,
   MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
-import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
