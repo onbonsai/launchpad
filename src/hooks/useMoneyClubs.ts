@@ -222,21 +222,21 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, clubId?: string, price?: string) => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string) => {
   return useQuery({
-    queryKey: ["buy-amount", clubId, price],
-    queryFn: () => getBuyAmount(account!, clubId!, price!),
-    enabled: !!clubId && !!price && !!account,
+    queryKey: ["buy-amount", tokenAddress, spendAmount],
+    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!),
+    enabled: !!tokenAddress && !!spendAmount && !!account,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,
     gcTime: 5000,
   });
 };
 
-export const useGetRegistrationFee = (amount: number, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (amount: number | string, account?: `0x${string}`) => {
   return useQuery({
     queryKey: ["registration-fee", amount, account],
-    queryFn: () => getRegistrationFee(amount!, account!),
+    queryFn: () => getRegistrationFee("0", amount.toString()!, account!),
     enabled: !!account,
     staleTime: 1000,
     gcTime: 2000,

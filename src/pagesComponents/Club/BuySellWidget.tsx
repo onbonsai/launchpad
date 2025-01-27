@@ -59,7 +59,7 @@ export const BuySellWidget = ({
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.clubId, buyPrice);
-  const { buyAmount, maxAllowed } = buyAmountResult || {};
+  const { buyAmount } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
   const { data: availableBalance } = useGetAvailableBalance(club.tokenAddress, address);
@@ -67,7 +67,6 @@ export const BuySellWidget = ({
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
-  const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
   const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
 
   const { data: bonsaiBalanceNFT } = useReadContract({
@@ -290,7 +289,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={(!isLoadingBuyAmount && isBuyMax) || notEnoughFunds}
+                        isError={!isLoadingBuyAmount || notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -315,19 +314,6 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         symbol={club.token.symbol}
                         overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 12)}
                       />
-
-                      {(!isLoadingBuyAmount && isBuyMax) && (
-                        <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
-                          <p className="text-bearish">Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}</p>
-                          <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
-                            <InformationCircleIcon
-                              width={14}
-                              height={14}
-                              className="inline-block -mt-1 text-secondary ml-2"
-                            />
-                          </Tooltip>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -198,7 +198,7 @@ const CLUB_HOLDINGS_PAGINATED = gql`
 `;
 
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
-export const DECIMALS = 6;
+export const DECIMALS = 18;
 export const USDC_DECIMALS = 6;
 // this isn't likely to change
 export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
@@ -495,16 +495,17 @@ export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: 
 
 export const getBuyPrice = async (
   account: `0x${string}`,
-  clubId: string,
+  supply: string,
   amount: string,
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
+  const supplyWithDecimals = parseUnits(supply, DECIMALS);
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
   const buyPrice = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "getBuyPrice",
-    args: [clubId, amountWithDecimals],
+    args: [supplyWithDecimals, amountWithDecimals],
     account
   });
 
@@ -530,17 +531,82 @@ export const getMarketCap = async (
   return marketCap as bigint
 };
 
+function calculateTokensForUSDC(
+  usdcAmount: bigint,
+  currentSupply: bigint,
+): bigint {
+  const BPS_MAX = BigInt("10000");
+  const initialPrice = BigInt("12384118034062500000")
+  const targetPrice = BigInt(5) * initialPrice;
+  const decimals = 18
+  const flatThreshold = parseUnits("200_000_000", decimals)
+  const maxSupply = parseUnits("800_000_000", decimals)
+
+  function getPrice(supply: bigint, amount: bigint): bigint {
+      if (supply < flatThreshold) {
+          if (supply + amount <= flatThreshold) {
+              return (amount * initialPrice) / BigInt(10 ** decimals);
+          }
+
+          const flatAmount = flatThreshold - supply;
+          const curveAmount = amount - flatAmount;
+
+          return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount);
+      }
+
+      const endSupply = supply + amount;
+      const slope = ((targetPrice - initialPrice) * BPS_MAX) / (maxSupply / BigInt(10 ** decimals));
+
+      return calculateDeltaArea(supply, endSupply, slope, initialPrice);
+  }
+
+  function calculateDeltaArea(
+      startSupply: bigint,
+      endSupply: bigint,
+      slope: bigint,
+      initialPrice: bigint
+  ): bigint {
+      const normalizedStart = startSupply / BigInt(10 ** decimals);
+      const normalizedEnd = endSupply / BigInt(10 ** decimals);
+      const normalizedFlat = flatThreshold / BigInt(10 ** decimals);
+
+      const x1 = normalizedStart - normalizedFlat;
+      const x2 = normalizedEnd - normalizedFlat;
+
+      const area1 = (slope * x1 * x1) / BigInt(2) + (initialPrice * BPS_MAX * x1);
+      const area2 = (slope * x2 * x2) / BigInt(2) + (initialPrice * BPS_MAX * x2);
+
+      return (area2 - area1) / BPS_MAX;
+  }
+
+  let low = BigInt(0);
+  let high = BigInt(maxSupply - currentSupply);
+  let mid: bigint;
+  let price: bigint;
+
+  while (low < high) {
+      mid = BigInt(Math.floor(Number(low + high) / (2)));
+      price = getPrice(currentSupply, mid);
+
+      if (price < usdcAmount) {
+          low = mid + BigInt(1);
+      } else {
+          high = mid;
+      }
+  }
+
+  return low;
+}
+
 const PROTOCOL_FEE = 0.03; // 3% total fees for non-NFT holders
 
 export const getBuyAmount = async (
   account: `0x${string}`,
-  clubId: string,
+  tokenAddress: `0x${string}`,
   spendAmount: string, // Amount in USDC user wants to spend
   hasNft = false
 ): Promise<{
-  maxAllowed: bigint,
   buyAmount: bigint,
-  excess: bigint,
   effectiveSpend: string
 }> => {
   const client = publicClient();
@@ -548,82 +614,64 @@ export const getBuyAmount = async (
   // Convert spend amount to proper decimals
   const spendAmountBigInt = parseUnits(spendAmount, DECIMALS);
 
-  // Get maximum allowed purchase and excess amount
-  const [maxAllowed, excess] = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "calculatePurchaseAllocation",
-    args: [spendAmountBigInt, clubId],
-    account
-  }) as [bigint, bigint];
-
-  // Calculate effective spend (maxAllowed or full amount if no excess)
-  const effectiveSpendBigInt = excess > 0n ? maxAllowed : spendAmountBigInt;
-
   // If user has NFT, use full amount. If not, reduce by fees
   const spendAfterFees = hasNft
-    ? effectiveSpendBigInt
-    : (effectiveSpendBigInt * BigInt(Math.floor((1 - PROTOCOL_FEE) * 10000)) / 10000n);
+    ? spendAmountBigInt
+    : (spendAmountBigInt * BigInt(Math.floor((1 - PROTOCOL_FEE) * 10000)) / 10000n);
 
-  // Get token amount for the effective spend
-  const buyAmount = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "getTokensForSpend",
-    args: [clubId, spendAfterFees],
+  const currentSupply = await client.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "totalSupply",
+    args: [],
     account
   }) as bigint;
 
+  const buyAmount = calculateTokensForUSDC(spendAfterFees, currentSupply)
+
   return {
-    maxAllowed,
     buyAmount,
-    excess,
-    effectiveSpend: formatUnits(effectiveSpendBigInt, DECIMALS)
+    effectiveSpend: formatUnits(spendAfterFees, DECIMALS)
   };
 };
 
 export const getSellPrice = async (
   account: `0x${string}`,
-  clubId: string,
+  tokenAddress: `0x${string}`,
   amount: string,
+  hasNft = false
 ): Promise<{ sellPrice: bigint; sellPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
-  const [sellPrice, sellPriceAfterFees] = await Promise.all([
-    client.readContract({
+  const currentSupply = await client.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "totalSupply",
+    args: [],
+    account
+  }) as bigint;
+  const sellPrice = await client.readContract({
       address: LAUNCHPAD_CONTRACT_ADDRESS,
       abi: BonsaiLaunchpadAbi,
       functionName: "getSellPrice",
-      args: [clubId, amountWithDecimals],
+      args: [currentSupply, amountWithDecimals],
       account,
-    }),
-    client.readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "getSellPriceAfterFees",
-      args: [clubId, amountWithDecimals],
-      account,
-    }),
-  ]);
+    })
   return {
     sellPrice: sellPrice as bigint,
-    sellPriceAfterFees: sellPriceAfterFees as bigint,
+    sellPriceAfterFees: hasNft ? sellPrice as bigint : (sellPrice as bigint) * BigInt(97) / BigInt(100),
   };
 };
 
 export const getRegistrationFee = async (
-  amount: number,
+  supply: string,
+  amount: string,
   account?: `0x${string}`
 ): Promise<bigint> => {
-  const amountWithDecimals = parseUnits(amount.toString(), DECIMALS);
-  const client = publicClient();
-  return await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "getRegistrationFee",
-    args: [amountWithDecimals],
-    account
-  }) as bigint;
+  const initialBuyPrice = await getBuyPrice(account || zeroAddress, supply, amount)
+  console.log("initialBuyPrice", initialBuyPrice)
+  // TODO: if registration fee is turned on do something here
+  return initialBuyPrice.buyPrice as bigint
 };
 
 export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean } => {
@@ -661,6 +709,7 @@ type RegistrationParams = {
 };
 export const registerClub = async (walletClient, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
+  console.log("args", [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration])
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,

@@ -134,7 +134,10 @@ export const Header = () => {
           Bonsai Launchpad
         </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
-          Tokens start on a bonding curve until they graduate ($69k mcap or ~$23k in liquidity). You buy "units" which represent your portion of the total supply. Your full token allocation will be shown after graduation.
+          Tokens start on a bonding curve until they graduate ($100k mcap or ~$21k in liquidity). 
+        </p>
+        <p className="mt-4 text-xl text-secondary/70">
+          The first 200 million tokens are available at a flat price to reduce the effect of snipers and then the bonding curve kicks in, increasing the price until the full supply is minted.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Built on Base. Bonding curves are priced in USDC ($)
@@ -143,7 +146,7 @@ export const Header = () => {
           Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate to Uniswap
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Holders must wait 2 hours to claim their tokens; this is to protect from rugs and put the token in buy-only mode.
+          When a token reaches $100k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Tokens vest linearly becoming available to transfer over a period of time in order to reduce the power of rugs and snipers. The length of vesting is set by the token creator.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.
