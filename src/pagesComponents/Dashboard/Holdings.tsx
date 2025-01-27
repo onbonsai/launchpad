@@ -37,9 +37,15 @@ export const Holdings = React.memo((props: HoldingProps) => {
   useEffect(() => {
     if (!isLoading && holdings?.length) {
       const _holdings = holdings.map((h) => {
-        const [name, symbol, image] = decodeAbiParameters([
-          { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-        ], h.club.tokenInfo);
+        let { name, symbol, image } = h.club
+
+        if (!h.club.name || !h.club.symbol || !h.club.uri){
+          // backup for v1 clubs
+          ;[name, symbol, image] = decodeAbiParameters([
+            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+          ], h.club.tokenInfo);
+        }
+
         let priceDelta;
         if (h.club.prevTrade24Hr?.length) {
           priceDelta = calculatePriceDelta(h.club.currentPrice, h.club.prevTrade24Hr[0].price);

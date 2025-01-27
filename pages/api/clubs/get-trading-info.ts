@@ -36,9 +36,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const createdAt = club.createdAt;
     const graduated = club.completed;
 
-    const [name, symbol, image] = decodeAbiParameters([
-      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-    ], club.tokenInfo);
+    let { name, symbol, image } = club
+
+    if (!club.name || !club.symbol || !club.uri){
+      // backup for v1 clubs
+      ;[name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
 
     // cache 15s
     res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate');

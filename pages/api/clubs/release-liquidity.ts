@@ -44,14 +44,7 @@ const getPath = () => {
     // TODO: Update Universal Router address in v4?
     router: IS_PRODUCTION ? "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD" : "0x050E797f3625EC8785265e1d9BDd4799b97528A1",
   };
-  const swapInfoV3 = {
-    path: encodePacked(
-      ["address", "uint24", "address", "uint24", "address"],
-      [USDC_CONTRACT_ADDRESS, 500, WETH, 10000, BONSAI_TOKEN_BASE_ADDRESS],
-    ),
-    router: IS_PRODUCTION ? "0x2626664c2603336E57B271c5C0b26F421741e481" : "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4",
-  };
-  return { swapInfoV4, swapInfoV3 };
+  return swapInfoV4;
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -63,15 +56,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const walletClient = createWalletClient({ account, chain, transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
-    const minAmountOut = IS_PRODUCTION ? parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString()) : 0;
+    const minAmountOut = IS_PRODUCTION
+      ? parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString())
+      : 0;
 
-    const { swapInfoV4, swapInfoV3 } = getPath();
+    const swapInfoV4 = getPath();
 
     const hash = await walletClient.writeContract({
       address: LAUNCHPAD_CONTRACT_ADDRESS,
       abi: BonsaiLaunchpadAbi,
       functionName: "releaseLiquidity",
-      args: [clubId, minAmountOut, swapInfoV4, swapInfoV3],
+      args: [clubId, minAmountOut, swapInfoV4],
       chain: IS_PRODUCTION ? base : baseSepolia,
     });
 

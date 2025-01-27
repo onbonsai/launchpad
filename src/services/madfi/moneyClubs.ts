@@ -42,6 +42,11 @@ const REGISTERED_CLUB = gql`
       creatorFees
       holders
       v2
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
       hook
       prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
@@ -72,6 +77,11 @@ const REGISTERED_CLUB_INFO = gql`
     clubs(where: { id_in: $ids }) {
       id
       tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
       clubId
     }
   }
@@ -132,6 +142,11 @@ const REGISTERED_CLUBS = gql`
       marketCap
       complete
       tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
       tokenAddress
       v2
     }
@@ -152,6 +167,11 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       marketCap
       complete
       tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
       tokenAddress
       v2
     }
@@ -172,6 +192,11 @@ const HOLDINGS_PAGINATED = gql`
         supply
         tokenAddress
         tokenInfo
+        name
+        symbol
+        uri
+        cliffPercent
+        vestingDuration
         currentPrice
         v2
       }
@@ -314,9 +339,14 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
   const client = subgraphClient();
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
   return clubs?.map((club) => {
-    const [name, symbol, image] = decodeAbiParameters([
-      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-    ], club.tokenInfo);
+    let { name, symbol, image } = club
+
+    if (!club.name || !club.symbol || !club.uri){
+      // backup for v1 clubs
+      ;[name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
     return { name, symbol, image, clubId: club.clubId, id: club.id };
   });
 };
@@ -468,9 +498,14 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
           const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
           return { publication, ..._club, ...club, marketCap };
         } else { // not created on our app
-          const [name, symbol, image] = decodeAbiParameters([
-            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-          ], _club.tokenInfo);
+          let { name, symbol, image } = club
+
+          if (!club.name || !club.symbol || !club.uri){
+            // backup for v1 clubs
+            ;[name, symbol, image] = decodeAbiParameters([
+              { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+            ], club.tokenInfo);
+          }
           return {
             ..._club,
             handle: _club.creator,
@@ -910,9 +945,14 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
 
   if (data?.clubs?.length) {
     const clubs = data?.clubs.map((_club) => {
-      const [name, symbol, image] = decodeAbiParameters([
-        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-      ], _club.tokenInfo);
+      let { name, symbol, image } = _club
+
+      if (!_club.name || !_club.symbol || !_club.uri){
+        // backup for v1 clubs
+        ;[name, symbol, image] = decodeAbiParameters([
+          { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+        ], _club.tokenInfo);
+      }
       const token = { name, symbol, image };
       const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
       return { ..._club, marketCap, token, tokenInfo: undefined, __typename: undefined };

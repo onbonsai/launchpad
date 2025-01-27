@@ -41,6 +41,11 @@ const getAllSymbols = async () => {
         id
         clubId
         tokenInfo
+        name
+        symbol
+        uri
+        cliffPercent
+        vestingDuration
         tokenAddress
       }
     }
