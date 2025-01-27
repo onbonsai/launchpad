@@ -19,8 +19,6 @@ export const ClaimFeesEarned = () => {
   const [isClaiming, setIsClaiming] = useState(false);
   const containerRef = useRef(null);
 
-  console.log(creatorFeesEarned)
-
   // Effect to add and remove the event listener
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -108,6 +106,7 @@ export const ClaimFeesEarned = () => {
       {showTooltip && (
         <EarningsTooltip
           creatorFeesFormatted={creatorFeesFormatted}
+          creatorFeesEarned={creatorFeesEarned}
           disabled={disabled}
           claimFeesEarned={claimFeesEarned}
         />
@@ -116,7 +115,10 @@ export const ClaimFeesEarned = () => {
   );
 };
 
-const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) => {
+const EarningsTooltip = ({ creatorFeesFormatted, creatorFeesEarned, disabled, claimFeesEarned }) => {
+  const formatFee = (value: bigint) => 
+    localizeNumber(parseFloat(formatUnits(value, USDC_DECIMALS)), undefined, 2);
+
   return (
     <div className="fixed mt-2 right-4 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]">
       <Header2>
@@ -125,6 +127,18 @@ const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) =>
       <Subtitle className="pt-2">
         Earned from creator & referral fees
       </Subtitle>
+
+      <div className="pt-4 space-y-2">
+        <div className="flex justify-between text-sm text-secondary/70">
+          <span>Creator fees:</span>
+          <span>{formatFee(creatorFeesEarned?.feesEarned || 0n)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-secondary/70">
+          <span>Club referrals:</span>
+          <span>{formatFee(creatorFeesEarned?.clubFeesTotal || 0n)}</span>
+        </div>
+      </div>
+
       <div className="pt-4 w-full">
         <Button variant="accent" className="w-full" disabled={disabled} onClick={claimFeesEarned}>
           Claim
