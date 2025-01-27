@@ -131,10 +131,12 @@ export const BuySellWidget = ({
     }
 
     try {
-      await approveToken(USDC_CONTRACT_ADDRESS, parseUnits(buyPrice, USDC_DECIMALS), walletClient, toastId);
+      const buyPriceBigInt = parseUnits(buyPrice, USDC_DECIMALS)
+      const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
+      await approveToken(USDC_CONTRACT_ADDRESS, maxPrice, walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, referralAddress);
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
@@ -170,7 +172,8 @@ export const BuySellWidget = ({
 
     try {
       toastId = toast.loading("Selling...");
-      await sellChipsTransaction(walletClient, club.clubId, sellAmount!);
+      const minAmountOut = (sellPriceAfterFees || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
+      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
 
       refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);

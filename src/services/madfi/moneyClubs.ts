@@ -709,7 +709,7 @@ export const getSellPrice = async (
 ): Promise<{ sellPrice: bigint; sellPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
-  const sellPrice = await     client.readContract({
+  const sellPrice = await client.readContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "getSellPriceByClub",
@@ -825,13 +825,13 @@ export const registerClub = async (walletClient, params: RegistrationParams): Pr
   return receipt.status === "success" && response.ok ? res : {};
 };
 
-export const buyChips = async (walletClient: any, clubId: string, amount: bigint, referral?: `0x${string}`) => {
+export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`) => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amount, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
+    args: [clubId, amount, maxPrice, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);
@@ -840,13 +840,13 @@ export const buyChips = async (walletClient: any, clubId: string, amount: bigint
   if (receipt.status === "reverted") throw new Error("Reverted");
 };
 
-export const sellChips = async (walletClient: any, clubId: string, sellAmount: string) => {
+export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint) => {
   const amountWithDecimals = parseUnits(sellAmount, DECIMALS);
   const hash = await walletClient.writeContract({
     address: LAUNCHPAD_CONTRACT_ADDRESS,
     abi: BonsaiLaunchpadAbi,
     functionName: "sellChips",
-    args: [clubId, amountWithDecimals, zeroAddress],
+    args: [clubId, amountWithDecimals, minAmountOut, zeroAddress],
     chain: IS_PRODUCTION ? base : baseSepolia,
   });
   console.log(`tx: ${hash}`);
