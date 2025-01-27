@@ -43,9 +43,12 @@ const Row = ({ row }) => {
     </div>
 
     <div className="flex justify-between items-center">
-      <Link href={`/profile/${row.profile.handle?.localName}`} target="_blank" className="hover:opacity-80">
-        <CreatorButton text={row.profile?.handle?.localName || shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
-      </Link>
+      {!!(row.profile?.handle?.localName)
+        ? <Link href={`/profile/${row.profile?.handle?.localName}`} target="_blank" className="hover:opacity-80">
+          <CreatorButton text={row.profile?.handle?.localName || shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
+        </Link>
+        : <CreatorButton text={shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
+      }
       <Link href={baseScanUrl(row.txHash)} target="_blank" className="opacity-100">
         <img src="/svg/external.svg" alt="X Logo" className="bg-card p-[5px] rounded-[10px]" />
       </Link>
