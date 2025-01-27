@@ -925,30 +925,40 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
 };
 
 // TODO: multicall?
-export const withdrawFeesEarned = async (walletClient, clubIds: bigint[]) => {
-  const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "withdrawFeesEarned",
-    args: [zeroAddress],
-    chain: IS_PRODUCTION ? base : baseSepolia,
-  });
+export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[]) => {
+  let hash;
+  const receipts: any[] = [];
 
-  let hash2
+  if (feesEarned > 0n) {
+    hash = await walletClient.writeContract({
+      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      abi: BonsaiLaunchpadAbi,
+      functionName: "withdrawFeesEarned",
+      args: [zeroAddress],
+      chain: IS_PRODUCTION ? base : baseSepolia,
+    });
+    console.log(`tx: ${hash}`);
+    receipts.push(publicClient().waitForTransactionReceipt({ hash }));
+  }
+
   if (clubIds && clubIds.length > 0) {
-    hash2 = await walletClient.writeContract({
+    hash = await walletClient.writeContract({
       address: LAUNCHPAD_CONTRACT_ADDRESS,
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawClubFeesEarned",
       args: [clubIds],
       chain: IS_PRODUCTION ? base : baseSepolia,
     });
+    console.log(`tx 2: ${hash}`);
+    receipts.push(publicClient().waitForTransactionReceipt({ hash }));
   }
-  console.log(`tx: ${hash}`);
-  console.log(`tx 2: ${hash2}`);
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
 
-  if (receipt.status === "reverted") throw new Error("Reverted");
+  if (receipts.length > 0) {
+    const results: TransactionReceipt[] = await Promise.all(receipts);
+    if (results.some(receipt => receipt.status === "reverted")) {
+      throw new Error("Reverted");
+    }
+  }
 }
 
 export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {

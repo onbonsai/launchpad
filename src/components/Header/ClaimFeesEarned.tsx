@@ -19,6 +19,8 @@ export const ClaimFeesEarned = () => {
   const [isClaiming, setIsClaiming] = useState(false);
   const containerRef = useRef(null);
 
+  console.log(creatorFeesEarned)
+
   // Effect to add and remove the event listener
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -72,7 +74,7 @@ export const ClaimFeesEarned = () => {
 
     try {
       toastId = toast.loading("Claiming", { id: toastId });
-      await withdrawFeesEarned(walletClient, creatorFeesEarned?.clubFees ? creatorFeesEarned?.clubFees.map(club => BigInt(club.id)) : []);
+      await withdrawFeesEarned(walletClient, creatorFeesEarned?.feesEarned || 0n, creatorFeesEarned?.clubFees ? creatorFeesEarned?.clubFees.map(club => BigInt(club.id)) : []);
 
       refetch();
 
