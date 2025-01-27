@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
-import { getAddress, createPublicClient, http } from "viem";
+import { getAddress, createPublicClient, http, zeroAddress } from "viem";
 import { mainnet } from 'viem/chains'
 import { groupBy } from "lodash/collection";
 import { createEnsPublicClient } from '@ensdomains/ensjs'
@@ -293,11 +293,11 @@ export const useGetTradingInfo = (clubId?: number) => {
   });
 };
 
-export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0x${string}`) => {
+export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0x${string}`, complete = false) => {
   return useQuery({
     queryKey: ["club-available-balance", tokenAddress, account],
     queryFn: () => getAvailableBalance(tokenAddress!, account!),
-    enabled: !!account,
+    enabled: !!account && complete && tokenAddress !== zeroAddress,
     staleTime: 10000,
     gcTime: 60000,
   });

@@ -58,7 +58,7 @@ export const BuySellWidget = ({
   const [showConfetti, setShowConfetti] = useState(false);
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.clubId, buyPrice);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
   const { buyAmount } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
@@ -105,8 +105,8 @@ export const BuySellWidget = ({
   }, [club, clubBalance]);
 
   const availableTokenBalance = useMemo(() => {
-    if (club.completedAt && availableBalance && availableBalance > 0n) {
-      return kFormatter(parseFloat(formatEther(availableBalance)))
+    if (club.completedAt && availableBalance && availableBalance.availableBalance > 0n) {
+      return kFormatter(parseFloat(formatEther(availableBalance.availableBalance)))
     }
   }, [club, clubBalance, availableBalance]);
 
@@ -240,7 +240,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
       <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
         <div className="text-center">
           <p className="mt-12 text-md text-secondary/70">
-            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 2 hours, token claims will be enabled.
+            ${club.token.symbol} has bonded & anyone can create the pool.<br /> Tokens will begin linear vesting immediately.
           </p>
         </div>
         {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
@@ -289,7 +289,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={!isLoadingBuyAmount || notEnoughFunds}
+                        isError={isLoadingBuyAmount || notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax

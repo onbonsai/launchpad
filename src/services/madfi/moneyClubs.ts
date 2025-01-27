@@ -503,15 +503,27 @@ export const getBalance = async (clubId: string, account: `0x${string}`): Promis
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
-export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<bigint> => {
-  const res = await publicClient().readContract({
-    address: tokenAddress,
-    abi: VestingERC20Abi,
-    functionName: "getAvailableBalance",
-    args: [account],
-  });
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint}> => {
+  const [availableBalance, totalBalance] = await Promise.all([
+    publicClient().readContract({
+      address: tokenAddress,
+      abi: VestingERC20Abi,
+      functionName: "getAvailableBalance",
+      args: [account],
+    }),
+    publicClient().readContract({
+      address: tokenAddress,
+      abi: VestingERC20Abi,
+      functionName: "balanceOf",
+      args: [account],
+    })
+  ]);
 
-  return res as bigint;
+  return {
+    availableBalance: availableBalance as bigint, 
+    vestingBalance: (totalBalance as bigint) - (availableBalance as bigint), 
+    totalBalance: totalBalance as bigint
+  };
 };
 
 export const getBuyPrice = async (
@@ -570,11 +582,11 @@ function calculateTokensForUSDC(
   currentSupply: bigint,
 ): bigint {
   const BPS_MAX = BigInt("10000");
-  const initialPrice = BigInt("12384118034062500000")
+  const initialPrice = IS_PRODUCTION ? BigInt("12384118034062500000") : BigInt("1000000000000000")
   const targetPrice = BigInt(5) * initialPrice;
   const decimals = 18
-  const flatThreshold = parseUnits("200_000_000", decimals)
-  const maxSupply = parseUnits("800_000_000", decimals)
+  const flatThreshold = parseUnits("200000000", decimals)
+  const maxSupply = parseUnits("800000000", decimals)
 
   function getPrice(supply: bigint, amount: bigint): bigint {
       if (supply < flatThreshold) {
@@ -618,18 +630,38 @@ function calculateTokensForUSDC(
   let mid: bigint;
   let price: bigint;
 
-  while (low < high) {
-      mid = BigInt(Math.floor(Number(low + high) / (2)));
-      price = getPrice(currentSupply, mid);
+  const TOLERANCE = 0n; // Acceptable difference in wei (1e-8 USD for USDC)
+  let bestGuess = 0n;
+  let loopCounter = 0;
+
+  while (low <= high) {
+      mid = (low + high) / 2n;
+      price = getPrice(currentSupply, mid) / parseUnits("1", 18);
+      
+      // Track closest value below target
+      if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
+          bestGuess = mid;
+      }
+
+      // Early exit if within tolerance
+      if (price > usdcAmount - TOLERANCE && price < usdcAmount + TOLERANCE) {
+          break;
+      }
 
       if (price < usdcAmount) {
-          low = mid + BigInt(1);
+          low = mid + 1n;
       } else {
-          high = mid;
+          high = mid - 1n;
+      }
+
+      // Final fallback to best guess if we exit loop
+      if (loopCounter++ > 100) {
+          mid = bestGuess;
+          break;
       }
   }
 
-  return low;
+  return low
 }
 
 const PROTOCOL_FEE = 0.03; // 3% total fees for non-NFT holders
@@ -646,7 +678,7 @@ export const getBuyAmount = async (
   const client = publicClient();
 
   // Convert spend amount to proper decimals
-  const spendAmountBigInt = parseUnits(spendAmount, DECIMALS);
+  const spendAmountBigInt = parseUnits(spendAmount, 6);
 
   // If user has NFT, use full amount. If not, reduce by fees
   const spendAfterFees = hasNft

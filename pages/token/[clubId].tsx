@@ -3,7 +3,7 @@ import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
 import { useMemo, useState, ReactNode } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { getAddress } from "viem";
+import { formatUnits, getAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
@@ -21,7 +21,7 @@ import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesCompo
 import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
-import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { trimText } from '@src/utils/utils';
@@ -56,6 +56,7 @@ export type Club = {
   featured: boolean;
   creatorFees: string;
   complete: boolean;
+  claimAt: number;
   tokenAddress?: `0x${string}`;
 };
 
@@ -91,6 +92,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { ready } = usePrivy();
   const { authenticatedProfileId } = useLensSignIn(walletClient);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
+  const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
@@ -277,11 +279,18 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
                         <Button variant="accentBrand" className="text-white mt-4">
                           View on Dexscreener
                         </Button>
                       </a>
+                      <div className='mt-6'>
+                      <p className='text-xl'>Available balance: {localizeNumber(formatUnits(vestingData?.availableBalance || 0n, 18), "decimal")}</p>
+                        <p className='text-xl'>Vesting balance: {localizeNumber(formatUnits(vestingData?.vestingBalance || 0n, 18), "decimal")}</p>
+                        <p className='text-xl'>Total balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
+                        <hr className='my-4 opacity-70' />
+                        <p className='mt-4 text-md'>Vesting Complete: {new Date(club.claimAt * 1000).toLocaleString()}</p>
+                      </div>
                     </div>
                     : <>
                       <Script
