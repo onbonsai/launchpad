@@ -35,6 +35,8 @@ import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComme
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
 import clsx from "clsx";
+import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+;
 
 export const Feed = ({ pubId, morePadding = false }) => {
   const isMounted = useIsMounted();
@@ -291,7 +293,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
   return (
     <div className="flex flex-col items-center relative h-full">
-      <div className="flex flex-col items-center gap-y-4 overflow-y-auto h-full  md:pb-0">
+      <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full  md:pb-0">
         <div className="w-full max-w-[500px]">
           {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
             <div className="flex justify-center pt-8 pb-8">
@@ -311,7 +313,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
             />
           ) : null}
         </div>
-        <div className="w-full max-w-[500px] space-y-2">
+        <div className="w-full max-w-[500px] space-y-1">
           <Publications
             publications={sortedComments}
             theme={Theme.dark}
@@ -327,40 +329,56 @@ export const Feed = ({ pubId, morePadding = false }) => {
             followButtonDisabled={!isConnected}
             onFollowPress={onFollowClick}
             onProfileClick={goToProfile}
+            profilePictureStyleOverride={publicationProfilePictureStyle}
+            containerBorderRadius={'24px'}
+            containerPadding={'12px 12px 0 12px'}
+            profilePadding={'0 0 0 0'}
+            textContainerStyleOverride={textContainerStyleOverrides}
+            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+            mediaImageStyleOverride={mediaImageStyleOverride}
+            imageContainerStyleOverride={imageContainerStyleOverride}
+            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+            reactionContainerStyleOverride={reactionContainerStyleOverride}
+            publicationContainerStyleOverride={publicationContainerStyleOverride}
+            shareContainerStyleOverride={shareContainerStyleOverride}
+            markdownStyleBottomMargin={'0'}
+            heartIconOverride={true}
+            messageIconOverride={true}
+            shareIconOverride={true}
           />
         </div>
 
-      {isConnected && isAuthenticated && (
-        <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
-          <div className="flex items-center gap-x-6 w-full relative">
-            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-            <textarea
-              ref={commentInputRef}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-              placeholder="Add a comment"
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-            />
-            <div className="absolute right-2 top-2">
-              <GenericUploader files={files} setFiles={setFiles} />
-            </div>
-          </div>
-          <div className="flex justify-between gap-y-2 -mt-2">
-            <div className="mt-3">
-              <ActionButton
-                label="Comment"
-                disabled={isCommenting || !comment}
-                onClick={submitComment}
-                theme={Theme.dark}
-                backgroundColor={comment ? "#EEEDED" : "transparent"}
-                textColor={comment ? undefined : "#EEEDED"}
+        {isConnected && isAuthenticated && (
+          <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
+            <div className="flex items-center gap-x-6 w-full relative">
+              <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+              <textarea
+                ref={commentInputRef}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                placeholder="Add a comment"
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
               />
+              <div className="absolute right-2 top-2">
+                <GenericUploader files={files} setFiles={setFiles} />
+              </div>
+            </div>
+            <div className="flex justify-between gap-y-2 -mt-4">
+              <div className="mt-3">
+                <ActionButton
+                  label="Comment"
+                  disabled={isCommenting || !comment}
+                  onClick={submitComment}
+                  theme={Theme.dark}
+                  backgroundColor={comment ? "#EEEDED" : "transparent"}
+                  textColor={comment ? undefined : "#EEEDED"}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
