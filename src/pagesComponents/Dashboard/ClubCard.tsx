@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
-import { formatUnits } from "viem";
+import { formatEther, formatUnits } from "viem";
 
 import { roundedToFixed } from "@src/utils/utils";
-import { USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
+import { MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useGetClubLiquidity } from "@src/hooks/useMoneyClubs";
 import ProgressBar from "@src/components/ProgressBar";
@@ -39,14 +39,13 @@ const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
   const { data: clubLiquidity } = useGetClubLiquidity(club.clubId);
 
   const bondingCurveProgress = useMemo(() => {
-    if (minLiquidityThreshold && clubLiquidity) {
-      const scaledMinLiquidityThreshold = (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS);
-      const fraction = (clubLiquidity * BigInt(100)) / scaledMinLiquidityThreshold;
-      return Math.min(parseInt(fraction.toString()), 100);
+    const clubSupply = Number(formatEther(BigInt(club.supply)));
+    if (clubSupply) {
+      const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
+      return Math.round(fraction * 100 * 100) / 100
     }
-
     return 0;
-  }, [minLiquidityThreshold, club, clubLiquidity]);
+  }, [club]);
 
   // Shared styles
   const infoTextStyle = "text-base leading-5 font-medium";

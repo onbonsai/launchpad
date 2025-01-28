@@ -262,7 +262,8 @@ export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 18;
 export const USDC_DECIMALS = 6;
 // this isn't likely to change
-export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(23005) : BigInt(10);
+export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(21054) : BigInt(2);
+export const MAX_MINTABLE_SUPPLY = parseEther("800000000")
 export const BENEFITS_AUTO_FEATURE_HOURS = 3;
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
@@ -693,7 +694,7 @@ function calculateTokensForUSDC(
   const targetPrice = BigInt(5) * initialPrice;
   const decimals = 18
   const flatThreshold = parseUnits("200000000", decimals)
-  const maxSupply = parseUnits("800000000", decimals)
+  const maxSupply = MAX_MINTABLE_SUPPLY
 
   function getPrice(supply: bigint, amount: bigint): bigint {
       if (supply < flatThreshold) {

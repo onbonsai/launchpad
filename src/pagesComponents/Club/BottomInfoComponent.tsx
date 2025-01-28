@@ -3,10 +3,10 @@ import { useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
 import { useEffect, useMemo, useState } from "react";
-import { fetchTokenPrice, MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
 import { formatEther, formatUnits, parseEther, parseUnits } from "viem";
 import { roundedToFixed } from "@src/utils/utils";
+import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
@@ -30,10 +30,10 @@ export const BottomInfoComponent = ({ club, address }) => {
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
-    const clubSupply = BigInt(club.supply);
+    const clubSupply = Number(formatEther(BigInt(club.supply)));
     if (clubSupply) {
-      const fraction = clubSupply / parseUnits("800000000", 18)
-      return Math.min(parseInt(fraction.toString()), 100);
+      const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
+      return Math.round(fraction * 100 * 100) / 100
     }
     return 0;
   }, [club]);
