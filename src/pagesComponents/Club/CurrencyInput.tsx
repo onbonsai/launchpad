@@ -35,7 +35,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     }
   }, [price]);
 
-  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18))) : localizeNumber('0.0');
+  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" ? "currency" : "decimal", 0) : localizeNumber('0.0');
   const formattedPrice = overridePrice ? localizeNumber(parseFloat(overridePrice)) : formattedBalance;
 
   return (
