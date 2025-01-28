@@ -37,7 +37,7 @@ export const Holdings = React.memo((props: HoldingProps) => {
   useEffect(() => {
     if (!isLoading && holdings?.length) {
       const _holdings = holdings.map((h) => {
-        let { name, symbol, image } = h.club
+        let { name, symbol, uri: image } = h.club
 
         if (!h.club.name || !h.club.symbol || !h.club.uri){
           // backup for v1 clubs

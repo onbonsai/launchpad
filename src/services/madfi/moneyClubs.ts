@@ -212,6 +212,8 @@ const CLUB_HOLDINGS_PAGINATED = gql`
       id
       club {
         clubId
+        tokenAddress
+        complete
       }
       trader {
         id
@@ -421,19 +423,26 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   const { data: { clubChips } } = await client.query({
     query: HOLDINGS_PAGINATED, variables: { trader: account.toLowerCase(), startOfDayUTC, skip }
   });
+  const _publicClient = publicClient();
 
   const holdings = await Promise.all(clubChips?.map(async (chips) => {
-    const complete = chips.club.complete;
+    const complete = chips.club.complete && chips.club.tokenAddress;
+    // override with erc20 balance of in case of transfers post-graduation
     const amount = complete
-      ? BigInt(chips.amount) * parseEther("800000000") / BigInt(chips.club.supply)
-      : BigInt(chips.amount);
-    const balance = complete && IS_PRODUCTION
-      ? Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(chips.club.tokenAddress))
-      : parseFloat(formatUnits(amount, DECIMALS)) * parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
+      ? formatEther(await _publicClient.readContract({
+        address: chips.club.tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "balanceOf",
+        args: [account],
+      }) as bigint)
+      : (chips.club.v2 ? formatEther(BigInt(chips.amount)) : formatUnits(BigInt(chips.amount), 6));
+    const balance = complete
+      ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club.tokenAddress))
+      : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
     return { ...chips, balance, amount, complete };
   }));
 
-  return { holdings: holdings || [], hasMore: clubChips?.length == limit };
+  return { holdings, hasMore: clubChips?.length == limit };
 };
 
 export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
@@ -441,8 +450,22 @@ export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdi
   const limit = 100;
   const skip = page * limit;
   const client = subgraphClient();
+  const _publicClient = publicClient();
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
-  return { holdings: clubChips || [], hasMore: clubChips?.length == limit };
+  let holdings = clubChips || [];
+  // override with erc20 balance of in case of transfers post-graduation
+  if (clubChips.length && clubChips[0].club.complete) {
+    holdings = await Promise.all(holdings.map(async(data) => {
+      const amount = await _publicClient.readContract({
+        address: data.club.tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "balanceOf",
+        args: [data.trader.id],
+      });
+      return { ...data, amount };
+    }));
+  }
+  return { holdings, hasMore: clubChips?.length == limit };
 };
 
 export const getRegisteredClub = async (handle: string, profileId?: string) => {
@@ -498,13 +521,13 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
           const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
           return { publication, ..._club, ...club, marketCap };
         } else { // not created on our app
-          let { name, symbol, image } = club
+          let { name, symbol, uri: image } = _club;
 
-          if (!club.name || !club.symbol || !club.uri){
+          if (!name || !symbol || !image){
             // backup for v1 clubs
-            ;[name, symbol, image] = decodeAbiParameters([
+            [name, symbol, image] = decodeAbiParameters([
               { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-            ], club.tokenInfo);
+            ], _club.tokenInfo);
           }
           return {
             ..._club,
@@ -539,14 +562,15 @@ export const getBalance = async (clubId: string, account: `0x${string}`): Promis
 };
 
 export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint}> => {
+  const client = publicClient();
   const [availableBalance, totalBalance] = await Promise.all([
-    publicClient().readContract({
+    client.readContract({
       address: tokenAddress,
       abi: VestingERC20Abi,
       functionName: "getAvailableBalance",
       args: [account],
     }),
-    publicClient().readContract({
+    client.readContract({
       address: tokenAddress,
       abi: VestingERC20Abi,
       functionName: "balanceOf",

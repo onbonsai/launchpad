@@ -45,11 +45,11 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
           }
 
           try {
-            let { name, symbol, image } = h.club
+            let { name, symbol, uri: image } = h.club
 
             if (!h.club.name || !h.club.symbol || !h.club.uri){
               // backup for v1 clubs
-              ;[name, symbol, image] = decodeAbiParameters([
+              [name, symbol, image] = decodeAbiParameters([
                 { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
               ], h.club.tokenInfo);
             }
