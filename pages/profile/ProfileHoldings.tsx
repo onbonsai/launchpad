@@ -39,7 +39,7 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
     if (!isLoading && holdings?.length) {
       try {
         const _holdings = holdings.filter(h => h?.club).map((h) => {
-          if (!h.club?.tokenInfo) {
+          if (!h.club?.tokenInfo && !h.club?.name) {
             console.warn('Missing tokenInfo for club:', h);
             return null;
           }

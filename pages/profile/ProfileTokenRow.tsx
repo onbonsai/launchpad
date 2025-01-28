@@ -76,8 +76,8 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                         <Subtitle>
                             {
                                 holding?.club.complete
-                                    ? kFormatter(parseFloat(formatEther(holding?.amount ?? 0n)))
-                                    : roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)
+                                    ? kFormatter(parseFloat(holding?.amount ?? 0n))
+                                    : roundedToFixed(parseFloat(holding?.amount ?? 0n), 2)
                             }
                             {" "}{holding?.token.symbol}
                         </Subtitle>

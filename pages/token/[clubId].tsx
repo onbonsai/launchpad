@@ -327,10 +327,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol} is ready to graduate!
                       </Header2>
-                        <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
-                          Release liquidity
-                        </Button>
+                      <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
+                        Release liquidity
+                      </Button>
                       <div className='mt-6 text-center'>
+                        <p>${club.token.symbol} will be released to Uniswap where it will be live for trading and existing token balances will begin to unlock.</p>
                         <p className='text-xl mb-4'>Your balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
                         <p>{Number(club.cliffPercent) / 100}% will be available immediately</p>
                         <p>The remainder will vest over {
