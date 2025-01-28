@@ -366,7 +366,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
               </div>
             </div>
             <div className="flex justify-between gap-y-2 -mt-4">
-              <div className="mt-3">
+              <div className="mt-4">
                 <ActionButton
                   label="Comment"
                   disabled={isCommenting || !comment}

@@ -230,39 +230,28 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         symbol={club.token.symbol}
                         overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
                       />
-
-                      {notEnoughFunds && (
-                        <div className="w-full flex justify-center items-center">
-                          <Button
-                            variant={"primary"}
-                            size='md'
-                            className="mt-[16px] w-[50%]"
-                            onClick={() => {
-                              const buyPriceSmallest = parseUnits(buyPrice || '0', USDC_DECIMALS);
-                              // Add 5% to buffer for fees
-                              const buyPriceWithBuffer = (buyPriceSmallest * 105n) / 100n;
-                              const balanceNeededSmallest = buyPriceWithBuffer - tokenBalance;
-                              if (balanceNeededSmallest < 0n) {
-                                throw new Error("Insufficient balance. Token balance exceeds buy price.");
-                              }
-                              const balanceNeeded = formatUnits(balanceNeededSmallest, USDC_DECIMALS);
-                              onBuyUSDC(buyPrice, balanceNeeded);
-                            }}
-                          >
-                            Buy more USDC
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) > MAX_SUPPLY && <p className="mb-4 max-w-md text-center text-sm text-primary/90">This USDC amount would go over the max liquidity threshold so the price will be adjusted down automatically.</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) > MAX_SUPPLY && <p className="mb-4 max-w-sm text-center text-sm text-primary/90">This USDC amount would go over the max liquidity threshold so the price will be adjusted down automatically.</p>}
                 {!justBought && (
+                  <>
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                     Buy ${club.token.symbol}
                   </Button>
+                    <Button
+                      variant={"primary"}
+                      size='md'
+                      className="w-full"
+                      onClick={() => {
+                        onBuyUSDC(buyPrice, "100");
+                      }}
+                    >
+                      Buy more USDC
+                    </Button>
+                  </>
                 )}
                 {justBought && (
                   <div className="w-full flex flex-col items-center space-y-4">
@@ -372,8 +361,6 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                   Sell ${club.token.symbol}
                 </Button>
               </div>
-              {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
-              {club.supply != "0" && club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs text-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
           </div>
         )}

@@ -429,7 +429,7 @@ export const getLatestTrades = async (): Promise<any[]> => {
 export const getTokenBalances = async (account: `0x${string}`, tokenAddresses: `0x${string}`[]): Promise<{ address: `0x${string}`; balance: bigint }[]> => {
   try {
     const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-    const baseURL = IS_PRODUCTION 
+    const baseURL = IS_PRODUCTION
       ? `https://base-mainnet.g.alchemy.com/v2/${apiKey}`
       : `https://base-sepolia.g.alchemy.com/v2/${apiKey}`;
 
@@ -470,7 +470,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   const completeTokens = clubChips
     ?.filter(chips => chips.club.complete && chips.club.tokenAddress)
     .map(chips => chips.club.tokenAddress);
-  const tokenBalances = completeTokens?.length 
+  const tokenBalances = completeTokens?.length
     ? await getTokenBalances(account, completeTokens)
     : [];
   const balanceMap = new Map(tokenBalances.map(b => [b.address.toLowerCase(), b.balance]));
@@ -478,13 +478,13 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   const holdings = await Promise.all(clubChips?.map(async (chips) => {
     const complete = chips.club.complete && chips.club.tokenAddress;
     const tokenAddress = chips.club.tokenAddress?.toLowerCase();
-    
+
     // Get balance from batch results or fallback to individual fetch
     const amount = complete
       ? formatEther(balanceMap.get(tokenAddress) || 0n)
       : (chips.club.v2 ? formatEther(BigInt(chips.amount)) : formatUnits(BigInt(chips.amount), 6));
 
-    const balance = complete
+    const balance = complete && IS_PRODUCTION
       ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club.tokenAddress))
       : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
 
