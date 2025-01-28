@@ -2,6 +2,7 @@ import clsx from "clsx";
 
 const links = [
   { name: "Info", href: "/info" },
+  { name: "Hooks", href: "/hooks" },
   { name: "Orb", href: "https://orb.club/c/bonsai" },
   { name: "x.com", href: "https://x.com/bonsaitoken404" },
   // { name: "Uni v4 hooks", href: "/hooks" },

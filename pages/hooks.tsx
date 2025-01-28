@@ -9,7 +9,7 @@ import HookFormModal from "../src/pagesComponents/Dashboard/HookFormModal";
 const hooksList = [
   {
     name: "Default Hook",
-    description: "Zero swap fees for Bonsai NFT holders",
+    description: "0% trading fees for Bonsai NFT holders",
     address: "0x44848340f8E663FB569568dfA4cFd345fBeAa38A", // TODO: base sepolia deployment, update with prod deployment
     source: "https://github.com/mad-finance/univ4-hooks",
   },
@@ -26,16 +26,15 @@ const Hooks = () => {
             <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">Hooks</h1>
           </div>
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
-            <div className="md:pl-12 md:pr-12 md:pb-12 pl-2 pr-2 pb-2">
+            <div className="md:pl-14 md:pr-4 md:pb-12 pb-2">
               <section className="mt-4 max-w-screen-lg">
                 {/* Top */}
                 <h3 className="text-xl leading-6">
-                  Every Token has a hook associated with it. If the Token crosses the liquidity threshold and is
-                  launched as a pool on Uniswap then the pool will be created with the selected hook. If no hook is
-                  selected then the Default Hook will be used.
+                  Every Token has a hook associated with it. When a token graduates, the Uniswap v4 pool will be created with the selected hook. If no hook is
+                  selected, then the Default Hook will be used.
                 </h3>
                 <h3 className="text-xl leading-6 mt-4">
-                  If you are a hook developer you can submit your own hook for review and if it is approved it will be
+                  If you are a hook developer you can submit your own hook for review and if it is approved, it will be
                   added as an option.
                 </h3>
 
@@ -50,7 +49,7 @@ const Hooks = () => {
                       <div key={index} className="bg-black/20 rounded-lg p-6 border border-dark-grey ">
                         <h3 className="text-xl font-semibold mb-2">{hook.name}</h3>
                         <a
-                          href={`https://explorer.zksync.io/address/${hook.address}`}
+                          href={`https://basescan.org/address/${hook.address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-secondary/50 hover:text-secondary/80 text-sm block mb-4"
