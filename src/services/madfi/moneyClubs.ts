@@ -37,6 +37,7 @@ const REGISTERED_CLUB = gql`
       liquidity
       complete
       completedAt
+      liquidityReleasedAt
       tokenInfo
       tokenAddress
       creatorFees
@@ -141,6 +142,8 @@ const REGISTERED_CLUBS = gql`
       currentPrice
       marketCap
       complete
+      completedAt
+      liquidityReleasedAt
       tokenInfo
       name
       symbol
@@ -166,6 +169,8 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       currentPrice
       marketCap
       complete
+      completedAt
+      liquidityReleasedAt
       tokenInfo
       name
       symbol
@@ -189,6 +194,8 @@ const HOLDINGS_PAGINATED = gql`
           createdAt
         }
         complete
+        completedAt
+        liquidityReleasedAt
         supply
         tokenAddress
         tokenInfo
@@ -214,6 +221,8 @@ const CLUB_HOLDINGS_PAGINATED = gql`
         clubId
         tokenAddress
         complete
+        completedAt
+        liquidityReleasedAt
       }
       trader {
         id

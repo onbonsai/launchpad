@@ -21,9 +21,7 @@ export const BottomInfoComponent = ({ club, address }) => {
       }
 
       // converting to USDC value
-      const _balance = club.complete
-        ? "$" + roundedToFixed(Number.parseFloat(formatEther(clubBalance)) * (await fetchTokenPrice(club.tokenAddress)), 2)
-        : localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24));
+      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24));
 
       setBalance(_balance);
     };

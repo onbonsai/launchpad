@@ -25,14 +25,15 @@ import {
   sellChips as sellChipsTransaction,
   approveToken,
   BONSAI_NFT_BASE_ADDRESS,
-  releaseLiquidity as releaseLiquidityTransaction,
-  MIN_LIQUIDITY_THRESHOLD,
 } from "@src/services/madfi/moneyClubs";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text, BodySemiBold } from "@src/styles/text";
 import { useRouter } from "next/router";
+import { localizeNumber } from "@src/constants/utils";
+
+const MAX_SUPPLY = parseEther("800000000")
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -62,7 +63,6 @@ export const BuySellWidget = ({
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
   const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
   const { data: availableBalance } = useGetAvailableBalance(club.tokenAddress, address);
-  const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
@@ -92,27 +92,6 @@ export const BuySellWidget = ({
     // }
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
-
-  const bonded = useMemo(() => (
-    clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
-  ), [clubLiquidity, minLiquidityThreshold]);
-
-  const fullTokenBalance = useMemo(() => {
-    if (club.completedAt && clubBalance > 0n) {
-      return kFormatter(parseFloat(formatEther(clubBalance * parseEther("800000000") / BigInt(club.supply))))
-    }
-  }, [club, clubBalance]);
-
-  const availableTokenBalance = useMemo(() => {
-    if (club.completedAt && availableBalance && availableBalance.availableBalance > 0n) {
-      return kFormatter(parseFloat(formatEther(availableBalance.availableBalance)))
-    }
-  }, [club, clubBalance, availableBalance]);
-
-  // when tokens are fully vested
-  const fullTokenBalanceVestedAt = club.completedAt && club.claimAt
-    ? new Date(club.claimAt * 1000).toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })
-    : null;
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -187,24 +166,6 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
-  const releaseLiquidity = async () => {
-    setIsBuying(true);
-    let toastId;
-
-    try {
-      toastId = toast.loading("Creating pool...");
-      // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.clubId);
-      setIsReleased(true);
-      setTokenAddress(token);
-      toast.success('Pool created!', { id: toastId });
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to create the pool", { id: toastId });
-    }
-    setIsBuying(false);
-  };
-
   const urlEncodedPostParams = () => {
     const params = {
       text: `Just aped into $${club.token.symbol}!
@@ -212,55 +173,6 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();
-  }
-
-  // after liquidity released
-  if (!!club.completedAt) {
-    return (
-      <div className={clsx("flex flex-col items-center justify-center w-full md:-mt-4", inter.className)}>
-        <div className="text-center pt-12">
-          <HeaderText>
-            ${club.token.symbol}/BONSAI pool is live
-          </HeaderText>
-          <Header2Text>
-            <Link href={`https://dexscreener.com/base/${tokenAddress}`} target="_blank" rel="noreferrer">
-              <span className="text-grey link-hover cursor-pointer">View on Dexscreener</span>
-            </Link>
-          </Header2Text>
-        </div>
-        {clubBalance > 0n && (
-          <div className="flex flex-col items-center justify-center space-y-2 mt-4 w-full">
-            <Header2Text className={"text-white"}>{`Tokens vested and available to trade: ${availableTokenBalance}`}</Header2Text>
-            <BodySemiBold className="text-white/60 font-medium">{`Total tokens available: ${fullTokenBalance} (on ${fullTokenBalanceVestedAt})`}</BodySemiBold>
-          </div>
-        )}
-      </div>
-    )
-  } else if (club.complete || bonded) {
-    console.log(club.complete, bonded, club.tokenAddress, isReleased);
-    return (
-      <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
-        <div className="text-center">
-          <p className="mt-12 text-md text-secondary/70">
-            ${club.token.symbol} has bonded & anyone can create the pool.<br /> Tokens will begin linear vesting immediately.
-          </p>
-        </div>
-        {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
-          <div className="flex justify-center space-y-2 mt-8">
-            {!club.tokenAddress && (
-              <Button
-                variant="accentBrand"
-                className="mb-2 md:mb-0 text-base hover:bg-bullish"
-                onClick={releaseLiquidity}
-                disabled={isBuying}
-              >
-                Create Pool
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -321,6 +233,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) > MAX_SUPPLY && <p className="mb-4 max-w-md text-center text-sm text-primary/90">This USDC amount would go over the max liquidity threshold so the price will be adjusted down automatically.</p>}
                 {!justBought && (
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                     Buy ${club.token.symbol}
@@ -328,7 +241,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                 )}
                 {justBought && (
                   <div className="w-full flex flex-col items-center space-y-4">
-                    <p className="text-center gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
+                    <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
                     <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">

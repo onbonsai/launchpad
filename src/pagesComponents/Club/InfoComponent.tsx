@@ -44,6 +44,7 @@ export const InfoComponent = ({
       <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
       <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
       <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
+      <InfoLine title='Total Supply' subtitle={localizeNumber(Math.floor(Number(formatUnits(club?.supply, 18))), "decimal") || "-"} />
       </div>
       </div>
     </div>

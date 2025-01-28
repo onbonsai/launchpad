@@ -22,10 +22,12 @@ import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import {releaseLiquidity as releaseLiquidityTransaction} from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
 import { ShareClub } from '@src/pagesComponents/Club';
+import toast from 'react-hot-toast';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -57,7 +59,11 @@ export type Club = {
   featured: boolean;
   creatorFees: string;
   complete: boolean;
+  completedAt?: number
+  liquidityReleasedAt?: number
   claimAt: number;
+  cliffPercent: string
+  vestingDuration: string
   tokenAddress?: `0x${string}`;
 };
 
@@ -100,6 +106,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
+  const [isReleasing, setIsReleasing] = useState(false);
   // const [canFollow, setCanFollow] = useState(false);
   // const [isFollowed, setIsFollowed] = useState(false);
 
@@ -130,6 +137,23 @@ const TokenPage: NextPage<TokenPageProps> = ({
   // };
 
   if (!isMounted) return null;
+
+  const releaseLiquidity = async () => {
+    let toastId;
+    setIsReleasing(true)
+
+    try {
+      toastId = toast.loading("Creating pool...");
+      // also triggers token swap in the backend
+      const token = await releaseLiquidityTransaction(club.clubId.toString());
+      toast.success('Pool created!', { id: toastId });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create the pool", { id: toastId });
+      setIsReleasing(false)
+    }
+    setIsReleasing(false)
+  };
 
   if (!ready)
     return (
@@ -229,9 +253,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
                               </div>
                               <BodySemiBold className="text-white/60">{club.token.name}</BodySemiBold>
                             </div>
-                            {club.complete && club.tokenAddress && (
-                              <div className="flex flex-col">
-                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress} /></p>
+                            {!!club.liquidityReleasedAt && (
+                              <div className="flex flex-col ml-20">
+                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress!} /></p>
                                 <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
                                     Dexscreener
@@ -280,7 +304,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     address={address}
                     tradingInfo={tradingInfo}
                   />
-                  {club.complete ?
+                  {club.completedAt && club.liquidityReleasedAt ?
                     <div className="flex flex-col w-[100%] justify-center items-center mt-20">
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
@@ -298,7 +322,25 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <p className='mt-4 text-md'>Vesting Complete: {new Date(club.claimAt * 1000).toLocaleString()}</p>
                       </div>
                     </div>
-                    : <>
+                    : club.complete ? 
+                    <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                      <Header2 className="text-white font-medium">
+                        ${club.token.symbol} is ready to graduate!
+                      </Header2>
+                        <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
+                          Release liquidity
+                        </Button>
+                      <div className='mt-6 text-center'>
+                        <p className='text-xl mb-4'>Your balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
+                        <p>{Number(club.cliffPercent) / 100}% will be available immediately</p>
+                        <p>The remainder will vest over {
+                          Math.floor(Number(club.vestingDuration) / 86400) > 0 
+                            ? `${Math.floor(Number(club.vestingDuration) / 86400)} days and `
+                            : ''
+                        }{Math.floor((Number(club.vestingDuration) % 86400) / 3600)} hours</p>
+                      </div>
+                    </div> : 
+                    <>
                       <Script
                         src="/static/datafeeds/udf/dist/bundle.js"
                         strategy="lazyOnload"
