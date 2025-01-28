@@ -23,3 +23,13 @@ export const matic = {
     isNative: true,
     logo: 'https://assets.coingecko.com/coins/images/4713/large/polygon.png?1698233745',
 };
+
+export const usdc = {
+    address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    chainId: ChainId.BASE,
+    decimals: 6,
+    symbol: 'USDC',
+    name: 'USD Coin',
+    isNative: false,
+    logo: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png?1547042389',
+}

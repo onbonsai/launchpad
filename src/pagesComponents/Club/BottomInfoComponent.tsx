@@ -7,9 +7,16 @@ import { fetchTokenPrice, MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/se
 import { localizeNumber } from "@src/constants/utils";
 import { formatEther, formatUnits, parseEther } from "viem";
 import { roundedToFixed } from "@src/utils/utils";
+import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
+import BuyUSDCWidget from "./BuyUSDCWidget";
+import { set } from "lodash";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
+  const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
+  const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
+  const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
+
   const { data: clubBalance } = useGetClubBalance(club?.clubId, address);
   const [balance, setBalance] = useState<string>();
 
@@ -84,7 +91,26 @@ export const BottomInfoComponent = ({ club, address }) => {
               club={club}
               address={address}
               open={buyClubModalOpen}
-              onClose={() => setBuyClubModalOpen(false)}
+              onClose={() => {
+                setBuyClubModalOpen(false);
+                setUsdcBuyAmount('');
+                setUsdcAmountNeeded(0);
+              }}
+              buyAmount={usdcBuyAmount}
+              onBuyUSDC={(amount: string, amountNeeded: number) => {
+                setUsdcBuyAmount(amount)
+                setUsdcAmountNeeded(amountNeeded)
+                setBuyClubModalOpen(false)
+                setBuyUSDCModalOpen(true)
+              }}
+            />
+            <BuyUSDCWidget
+              open={BuyUSDCModalOpen}
+              buyAmount={usdcAmountNeeded}
+              onClose={() => {
+                setBuyUSDCModalOpen(false);
+                setBuyClubModalOpen(true);
+              }}
             />
           </div>
         </div>

@@ -2,18 +2,16 @@ import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
 import React, { useState } from 'react'
 import { TradeComponent } from "./TradeComponent";
+import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
 
 interface BuySellModalProps {
-    club: any;
-    address: string;
     open: boolean;
-    buyAmount?: string;
+    buyAmount: number;
     onClose: () => void;
-    onBuyUSDC?: (amount: string, amountNeeded: number) => void;
 }
 
-const BuySellModal = (props: BuySellModalProps) => {
-    const { club, buyAmount, address, open, onClose, onBuyUSDC } = props;
+const BuyUSDCWidget = (props: BuySellModalProps) => {
+    const { open, buyAmount, onClose } = props;
     return (
         <Modal
             onClose={() => onClose()}
@@ -21,9 +19,9 @@ const BuySellModal = (props: BuySellModalProps) => {
             setOpen={() => { }}
             panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary"
         >
-            <TradeComponent defaultBuyAmount={buyAmount ?? ''} club={club} address={address} onBuyUSDC={onBuyUSDC} />
+            <BuyUSDCModal buyAmount={buyAmount} />
         </Modal>
     )
 }
 
-export default BuySellModal;
+export default BuyUSDCWidget;

@@ -46,6 +46,8 @@ export const BuySellWidget = ({
   clubBalance,
   tokenBalance, // balance in USDC
   openTab: _openTab,
+  onBuyUSDC,
+  defaultBuyAmount,
 }) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -53,7 +55,7 @@ export const BuySellWidget = ({
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
-  const [buyPrice, setBuyPrice] = useState<string>('');
+  const [buyPrice, setBuyPrice] = useState<string>(defaultBuyAmount ?? '');
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
@@ -373,6 +375,29 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         symbol={club.token.symbol}
                         overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 12)}
                       />
+
+                      {notEnoughFunds && (
+                        <div className="w-full flex justify-center items-center">
+                          <Button
+                            variant={"primary"}
+                            size='md'
+                            className="mt-[16px] w-[50%]"
+                            onClick={() => {
+                              const buyPriceSmallest = parseUnits(buyPrice || '0', USDC_DECIMALS);
+                              // Add 5% to buffer for fees
+                              const buyPriceWithBuffer = (buyPriceSmallest * 105n) / 100n;
+                              const balanceNeededSmallest = buyPriceWithBuffer - tokenBalance;
+                              if (balanceNeededSmallest < 0n) {
+                                throw new Error("Insufficient balance. Token balance exceeds buy price.");
+                              }
+                              const balanceNeeded = formatUnits(balanceNeededSmallest, USDC_DECIMALS);
+                              onBuyUSDC(buyPrice, balanceNeeded);
+                            }}
+                          >
+                            Buy more USDC
+                          </Button>
+                        </div>
+                      )}
 
                       {(!isLoadingBuyAmount && isBuyMax) && (
                         <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>

@@ -7,7 +7,7 @@ import { USDC_CONTRACT_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/mo
 import ProfilePics from "@src/components/ProfilePics/ProfilePics";
 import { BuySellWidget } from "./BuySellWidget";
 
-export const TradeComponent = ({ club, address }) => {
+export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount }) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0); // get only the first page, to see which friends holding
@@ -43,6 +43,8 @@ export const TradeComponent = ({ club, address }) => {
           clubBalance={clubBalance}
           tokenBalance={tokenBalance}
           openTab={1}
+          onBuyUSDC={onBuyUSDC}
+          defaultBuyAmount={defaultBuyAmount}
         />
       </div>
     </div>
