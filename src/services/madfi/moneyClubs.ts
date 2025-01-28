@@ -454,7 +454,7 @@ export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdi
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
   let holdings = clubChips || [];
   // override with erc20 balance of in case of transfers post-graduation
-  if (clubChips.length && clubChips[0].club.complete) {
+  if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
     holdings = await Promise.all(holdings.map(async(data) => {
       const amount = await _publicClient.readContract({
         address: data.club.tokenAddress,
