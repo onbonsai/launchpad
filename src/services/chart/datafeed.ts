@@ -5,7 +5,7 @@ import { getBondingCurveTrades, formatTrades } from "./getChartData";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "../madfi/utils";
 import BonsaiLaunchpadAbi from "./../madfi/abi/BonsaiLaunchpad.json";
 
-const EXCHANGE_BONDING_CURVE = "bonding_curve";
+const EXCHANGE_BONDING_CURVE = "Bonsai";
 const EXCHANGE_UNI_V4 = "uniswap_v4";
 
 type TradeEvent = {
@@ -39,13 +39,9 @@ const getAllSymbols = async () => {
     query Clubs($skip: Int!) {
       clubs(first: 100, skip: $skip) {
         id
-        clubId
         tokenInfo
-        name
+        clubId
         symbol
-        uri
-        cliffPercent
-        vestingDuration
         tokenAddress
       }
     }
@@ -70,15 +66,21 @@ const getAllSymbols = async () => {
       skip += limit;
     }
   }
+
   return symbols.map((club) => {
-    const symbol = `${club.symbol}/${BONDING_CURVE_BASE_TOKEN}`;
+    let _symbol = club.symbol;
+
+    if (!_symbol) { // v1 tokens
+      [, _symbol] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
+    const symbol = `${_symbol}/${BONDING_CURVE_BASE_TOKEN}:${club.clubId}`;
 
     return {
       symbol,
-      ticker: symbol,
-      description: symbol,
-      // if we want to enable uniswap trades in the app
-      // exchange: !!club.tokenAddress ? EXCHANGE_UNI_V4 : `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
+      ticker: _symbol,
+      description: `${_symbol}/${BONDING_CURVE_BASE_TOKEN}`,
       exchange: `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
       type: 'crypto',
     }
@@ -104,16 +106,16 @@ export const Datafeed = {
   },
   resolveSymbol: async (symbolName, onSymbolResolvedCallback, onResolveErrorCallback, extension) => {
     const symbols = await getAllSymbols();
-    const symbolItem = symbols.find(({ ticker }) => ticker === symbolName);
+    const symbolItem = symbols.find(({ symbol }) => symbol === symbolName);
     if (!symbolItem) {
-      // console.log('[resolveSymbol]: Cannot resolve symbol', symbolName);
+      console.log('[resolveSymbol]: Cannot resolve symbol', symbolName);
       onResolveErrorCallback('Cannot resolve symbol');
       return;
     }
     // Symbol information object
     const symbolInfo = {
-      ticker: symbolItem.ticker,
-      name: symbolItem.symbol,
+      ticker: symbolItem.ticker.split("/")[0],
+      name: symbolItem.symbol.split(":")[0],
       description: symbolItem.description,
       type: symbolItem.type,
       session: '24x7',
@@ -135,7 +137,6 @@ export const Datafeed = {
     const { from, to, countBack } = periodParams;
     // console.log('[getBars]: Method call', symbolInfo, resolution, from, to, countBack);
 
-    // TODO: handle parsedSymbol.exchange === EXCHANGE_UNI_V4
     if (symbolInfo.exchange.includes(EXCHANGE_BONDING_CURVE)) {
       const [_, clubId] = symbolInfo.exchange.split(":");
       // console.log('[getBars]: getBondingCurveTrades', clubId, from, to);

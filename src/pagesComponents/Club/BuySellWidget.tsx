@@ -123,7 +123,7 @@ export const BuySellWidget = ({
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refetchClubPrice, 5000);
 
-      toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
+      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
       setJustBought(true);
       setShowConfetti(true);
       setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));

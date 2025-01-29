@@ -1,16 +1,15 @@
 import clsx from 'clsx';
 import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
-import { useMemo, useState, ReactNode } from "react";
-import { useAccount, useWalletClient } from "wagmi";
-import { formatUnits, getAddress, zeroAddress } from "viem";
+import { useState, ReactNode, useMemo } from "react";
+import { useAccount } from "wagmi";
+import { formatUnits, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
 
 import { Modal } from "@src/components/Modal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
@@ -19,7 +18,7 @@ import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById } from "@src/service
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
-import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
+import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { releaseLiquidity as releaseLiquidityTransaction } from "@src/services/madfi/moneyClubs";
@@ -94,10 +93,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
   type,
 }: TokenPageProps) => {
   const isMounted = useIsMounted();
-  const { address, isConnected } = useAccount();
-  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
   const { ready } = usePrivy();
-  const { authenticatedProfileId } = useLensSignIn(walletClient);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
 
@@ -107,34 +104,22 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
-  // const [canFollow, setCanFollow] = useState(false);
-  // const [isFollowed, setIsFollowed] = useState(false);
 
-  // for admin stuff unrelated to lens (ex: livestreams, claim fees)
-  const isCreatorAdmin = useMemo(() => (
-    address && getAddress(creatorInfo?.address) === getAddress(address)
-  ), [creatorInfo, address]);
+  const vestingInfo = useMemo(() => {
+    const vestingDurationInHours = parseInt(club.vestingDuration) / 3600;
+    const vestingDurationInDays = vestingDurationInHours / 24;
+    const vestingDurationInWeeks = vestingDurationInDays / 7;
 
-  // const onFollowClick = async (e: React.MouseEvent) => {
-  //   e.preventDefault();
+    let vestingDurationString = `${vestingDurationInHours} hours`;
 
-  //   if (type === "farcaster") {
-  //     window.open(`https://warpcast.com/${profile.username}`, "_blank");
-  //     return;
-  //   }
+    if (vestingDurationInWeeks >= 1) {
+      vestingDurationString = `${vestingDurationInWeeks} weeks`;
+    } else if (vestingDurationInDays >= 1) {
+      vestingDurationString = `${vestingDurationInDays} days`;
+    }
 
-  //   if (!isAuthenticated) return;
-
-  //   const toastId = toast.loading("Following...");
-  //   try {
-  //     await followProfile(walletClient, (profile as ProfileFragment).id);
-  //     setIsFollowed(true);
-  //     toast.success("Followed", { id: toastId });
-  //   } catch (error) {
-  //     console.log(error);
-  //     toast.error("Unable to follow", { id: toastId });
-  //   }
-  // };
+    return `${parseInt(club.cliffPercent) / 100}% cliff; linear vesting over ${vestingDurationString}`;
+  }, [club]);
 
   if (!isMounted) return null;
 
@@ -247,11 +232,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             <div className="flex flex-col">
                               <div className="flex flex-row space-x-4">
                                 <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                                <div className="absolute pl-12 -mt-[6px]">
+                                <div className="ml-4 -mt-[6px]">
                                   <ShareClub clubId={club.clubId} symbol={club.token.name} />
                                 </div>
                               </div>
-                              <BodySemiBold className="text-white/60">{club.token.name}</BodySemiBold>
+                              <BodySemiBold className="text-white/60 -mt-2">{club.token.name}</BodySemiBold>
                             </div>
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
@@ -293,10 +278,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className='px-4 md:px-3 mt-2'>
-                  <Subtitle className="items-start">
-                    {club.token.description}
-                  </Subtitle>
+                <div className='px-4 md:px-3 mt-2 space-y-1'>
+                  <Subtitle className="items-start">{club.token.description}</Subtitle>
+                  <SmallSubtitle className="items-start text-[12px]">{vestingInfo}</SmallSubtitle>
                 </div>
                 <div className='px-0'>
                   <InfoComponent
@@ -351,7 +335,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         />
                         <div className='border border-card bg-card-light rounded-2xl mt-5'>
                           <div className="rounded-2xl m-2 overflow-hidden">
-                            {isScriptReady && <Chart symbol={club.token.symbol} />}
+                            {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
                           </div>
                         </div>
                       </>

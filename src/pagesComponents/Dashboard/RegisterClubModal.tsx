@@ -369,10 +369,10 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     Vesting Duration
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="How long after graduation when tokens are 100% unlocked" direction="left">
+                    <Tooltip message="How long after graduation when the remaining tokens are 100% unlocked" direction="left">
                     <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
-                      />
+                      className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
+                    />
                     </Tooltip>
                   </div>
                 </div>

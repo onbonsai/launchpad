@@ -30,7 +30,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}?ref=${address}`,
       </Dialog.Title>
       <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">
         <div className="flex flex-col w-full my-8 space-y-4">
-          <BodySemiBold className="text-center">Earn Referral Rewards on each trade from your link</BodySemiBold>
+          <BodySemiBold className="text-center text-xl">Earn Referral Rewards on each<br/> trade from your link</BodySemiBold>
           <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
             <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
               <Button className="w-[150px] bg-black hover:bg-black">

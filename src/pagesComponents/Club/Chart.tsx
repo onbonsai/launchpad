@@ -10,12 +10,12 @@ import {
 } from "../../../public/static/charting_library";
 import { Datafeed, BONDING_CURVE_BASE_TOKEN } from '@src/services/chart/datafeed';
 
-const Chart = ({ symbol }) => {
+const Chart = ({ symbol, clubId }) => {
   const chartContainerRef = useRef(null);
   const chartRef = useRef<IChartingLibraryWidget | null>();
 
   const defaultProps = {
-    symbol: `${symbol}/${BONDING_CURVE_BASE_TOKEN}`,
+    symbol: `${symbol}/${BONDING_CURVE_BASE_TOKEN}:${clubId}`,
     interval: '1H' as ResolutionString,
     libraryPath: '/static/charting_library/',
     chartsStorageApiVersion: '1.1' as AvailableSaveloadVersions,
