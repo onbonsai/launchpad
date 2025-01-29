@@ -20,8 +20,10 @@ import {
   registerClub as registerClubTransaction,
   approveToken,
   MIN_LIQUIDITY_THRESHOLD,
+  MAX_INITIAL_SUPPLY,
   BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
+  MAX_MINTABLE_SUPPLY,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -473,14 +475,19 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
               Create token
             </Button>
-            <Subtitle>
-              Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
-            </Subtitle>
-            {(bonsaiNftBalance > 0n) && (
-              <Subtitle>
-                As a Bonsai NFT holder, your token will be featured for {BENEFITS_AUTO_FEATURE_HOURS} hours
-              </Subtitle>
-            )}
+            {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
+              ? <Subtitle className="text-primary/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
+              : <>
+                  <Subtitle>
+                    Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
+                  </Subtitle>
+                  {(bonsaiNftBalance > 0n) && (
+                    <Subtitle>
+                      As a Bonsai NFT holder, your token will be featured for {BENEFITS_AUTO_FEATURE_HOURS} hours
+                    </Subtitle>
+                  )}
+                </>
+            }
           </div>
         </div>
       </form>

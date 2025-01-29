@@ -264,6 +264,7 @@ export const USDC_DECIMALS = 6;
 // this isn't likely to change
 export const MIN_LIQUIDITY_THRESHOLD = IS_PRODUCTION ? BigInt(21054) : BigInt(2);
 export const MAX_MINTABLE_SUPPLY = parseEther("800000000")
+export const MAX_INITIAL_SUPPLY = 80_000_000; // 10% of the mintable supply
 export const BENEFITS_AUTO_FEATURE_HOURS = 3;
 
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
