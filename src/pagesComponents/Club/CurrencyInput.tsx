@@ -29,7 +29,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
 
   useEffect(() => {
     if (measureRef.current && inputRef.current) {
-      measureRef.current.textContent = price || "0.0";
+      measureRef.current.textContent = parseInt(price || "0.0");
       const measureWidth = measureRef.current.offsetWidth;
       inputRef.current.style.width = `${measureWidth + (price.length > 0 ? 10 : 4)}px`;
     }
@@ -61,7 +61,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             placeholder="0.0"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            value={price}
+            value={parseInt(price)}
             className={clsx(
               "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
               isError ? 'text-primary/90' : 'text-secondary',
@@ -93,7 +93,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               visibility: 'hidden',
             }}
           >
-            {price || "0.0"}
+            {parseInt(price || "0.0")}
           </span>
         </div>
         {showMax && (
