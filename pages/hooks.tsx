@@ -23,7 +23,7 @@ const Hooks = () => {
       <div className="bg-background text-secondary min-h-[90vh]">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-2 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
-            <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">Hooks</h1>
+            <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">Hooks</h1>
           </div>
           <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
             <div className="md:pl-14 md:pr-4 md:pb-12 pb-2">
