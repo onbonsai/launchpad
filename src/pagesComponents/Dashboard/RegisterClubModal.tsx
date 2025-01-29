@@ -2,7 +2,7 @@ import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { formatUnits, parseUnits } from "viem";
+import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { Dialog } from "@headlessui/react";
 import toast from "react-hot-toast"
@@ -66,6 +66,17 @@ export const RegisterClubModal = ({
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
   const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
+
+  const { data: usdcBalance } = useReadContract({
+    address: USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address || zeroAddress],
+    query: {
+      refetchInterval: 5000
+    }
+  });
 
   const registrationCost = BigInt(0);
 
@@ -449,7 +460,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     Fee: ${registrationFee}
                   </label>
                 </div>
-                <div className="relative flex flex-col space-y-1">
+                <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
                       trailingAmount={`${buyPriceFormatted}`}
                       trailingAmountSymbol="USDC"
@@ -459,7 +470,10 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       isError={false}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                       symbol={tokenSymbol}
-                  />
+                  />                
+                  <Subtitle className="text-white/70">
+                    USDC Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
+                  </Subtitle>
                 </div>
                 {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
                     <p className={`mt-2 text-sm text-primary/90`}>
