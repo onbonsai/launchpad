@@ -122,7 +122,7 @@ export const Datafeed = {
       timezone: 'Etc/UTC',
       exchange: symbolItem.exchange,
       minmov: 1,
-      pricescale: 100,
+      pricescale: 100000,
       visible_plots_set: 'ohlc',
       has_weekly_and_monthly: false,
       // has_daily: false,

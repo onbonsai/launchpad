@@ -101,32 +101,34 @@ const useTraderProfiles = (traders?: string[]) => {
     queryFn: async () => {
       if (!traders?.length) return {};
       const profiles = await getHandlesByAddresses(traders);
-      const publicClient = createEnsPublicClient({
-        chain: mainnet,
-        transport: http(),
-      })
+      // const publicClient = createEnsPublicClient({
+      //   chain: mainnet,
+      //   transport: http(),
+      // })
 
       // Group profiles by address
       const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
-      // Fetch ENS names for addresses without profiles in parallel
-      const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
+      // TODO: no viem batch function for ens!
 
-      const ensQueries = addressesWithoutProfiles.map((addr) => {
-        return getName.batch({ address: (addr as `0x${string}`) });
-      });
+      // // Fetch ENS names for addresses without profiles in parallel
+      // const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
 
-      // Filter out addresses without an ENS name
-      const ensNameResults = await publicClient.ensBatch(...ensQueries);
-      const pairedResults = addressesWithoutProfiles.map((addr, index) => {
-        const result = ensNameResults[index];
-        // If there's no result or no name, return null so that we can filter it out
-        return result && result.name ? [addr, result.name] : null;
-      }).filter((entry): entry is [string, string] => entry !== null);
+      // const ensQueries = addressesWithoutProfiles.map((addr) => {
+      //   return getName.batch({ address: (addr as `0x${string}`) });
+      // });
 
-      const ensNames = Object.fromEntries(pairedResults);
+      // // Filter out addresses without an ENS name
+      // const ensNameResults = await publicClient.ensBatch(...ensQueries);
+      // const pairedResults = addressesWithoutProfiles.map((addr, index) => {
+      //   const result = ensNameResults[index];
+      //   // If there's no result or no name, return null so that we can filter it out
+      //   return result && result.name ? [addr, result.name] : null;
+      // }).filter((entry): entry is [string, string] => entry !== null);
 
-      return { profiles: profilesGrouped, ensNames };
+      // const ensNames = Object.fromEntries(pairedResults);
+
+      return { profiles: profilesGrouped };
     },
     enabled: !!traders?.length,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -160,7 +162,7 @@ export const useGetClubTrades = (clubId: string, page: number) => {
         hasMore: tradesQuery.data?.hasMore
       };
     },
-    enabled: !!tradesQuery.data && !!profilesQuery.data,
+    enabled: !tradesQuery.isLoading && !profilesQuery.isLoading,
     staleTime: 60000,
   });
 };
