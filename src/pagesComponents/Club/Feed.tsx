@@ -292,8 +292,8 @@ export const Feed = ({ pubId, morePadding = false }) => {
     );
 
   return (
-    <div className="flex flex-col items-center relative h-full">
-      <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full  md:pb-0">
+    <div className="flex flex-col items-center relative h-full w-full">
+      <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full w-full md:pb-0">
         <div className="w-full max-w-[500px]">
           {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
             <div className="flex justify-center pt-8 pb-8">

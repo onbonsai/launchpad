@@ -22,7 +22,7 @@ import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
-import {releaseLiquidity as releaseLiquidityTransaction} from "@src/services/madfi/moneyClubs";
+import { releaseLiquidity as releaseLiquidityTransaction } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
@@ -298,7 +298,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     {club.token.description}
                   </Subtitle>
                 </div>
-                <div className='px-0 md:px-3'>
+                <div className='px-0'>
                   <InfoComponent
                     club={club}
                     address={address}
@@ -322,46 +322,46 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <p className='mt-4 text-md'>Vesting Complete: {new Date(club.claimAt * 1000).toLocaleString()}</p>
                       </div>
                     </div>
-                    : club.complete ? 
-                    <div className="flex flex-col w-[100%] justify-center items-center mt-20">
-                      <Header2 className="text-white font-medium">
-                        ${club.token.symbol} is ready to graduate!
-                      </Header2>
-                      <p className='mt-4 max-w-lg text-center'>${club.token.symbol} will be released to Uniswap where it will be live for trading and existing token balances will begin to unlock.</p>
-                      <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
-                        Release liquidity
-                      </Button>
-                      <div className='mt-6 text-center'>
-                        <p className='text-xl mb-4'>Your balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
-                        <p>{Number(club.cliffPercent) / 100}% will be available immediately</p>
-                        <p>The remainder will vest over {
-                          Math.floor(Number(club.vestingDuration) / 86400) > 0 
-                            ? `${Math.floor(Number(club.vestingDuration) / 86400)} days and `
-                            : ''
-                        }{Math.floor((Number(club.vestingDuration) % 86400) / 3600)} hours</p>
-                      </div>
-                    </div> : 
-                    <>
-                      <Script
-                        src="/static/datafeeds/udf/dist/bundle.js"
-                        strategy="lazyOnload"
-                        onReady={() => {
-                          setIsScriptReady(true);
-                        }}
-                      />
-                      <div className='border border-card bg-card-light rounded-2xl mt-5'>
-                        <div className="rounded-2xl m-2 overflow-hidden">
-                          {isScriptReady && <Chart symbol={club.token.symbol} />}
+                    : club.complete ?
+                      <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                        <Header2 className="text-white font-medium">
+                          ${club.token.symbol} is ready to graduate!
+                        </Header2>
+                        <p className='mt-4 max-w-lg text-center'>${club.token.symbol} will be released to Uniswap where it will be live for trading and existing token balances will begin to unlock.</p>
+                        <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
+                          Release liquidity
+                        </Button>
+                        <div className='mt-6 text-center'>
+                          <p className='text-xl mb-4'>Your balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
+                          <p>{Number(club.cliffPercent) / 100}% will be available immediately</p>
+                          <p>The remainder will vest over {
+                            Math.floor(Number(club.vestingDuration) / 86400) > 0
+                              ? `${Math.floor(Number(club.vestingDuration) / 86400)} days and `
+                              : ''
+                          }{Math.floor((Number(club.vestingDuration) % 86400) / 3600)} hours</p>
                         </div>
-                      </div>
-                    </>
+                      </div> :
+                      <>
+                        <Script
+                          src="/static/datafeeds/udf/dist/bundle.js"
+                          strategy="lazyOnload"
+                          onReady={() => {
+                            setIsScriptReady(true);
+                          }}
+                        />
+                        <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                          <div className="rounded-2xl m-2 overflow-hidden">
+                            {isScriptReady && <Chart symbol={club.token.symbol} />}
+                          </div>
+                        </div>
+                      </>
                   }
                 </div>
                 {!club.complete && <BottomInfoComponent club={club} address={address} />}
               </div>
 
               {/* Feed/Trades/Holders */}
-              <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative">
+              <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                 <div className="mb-4">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>

@@ -34,18 +34,18 @@ export const InfoComponent = ({
   if (!club?.createdAt) return null;
 
   return (
-    <div className='flex flex-col md:flex-row items-center mt-4 w-full justify-center md:justify-start '>
+    <div className='flex flex-col md:flex-row items-center mt-4 w-full justify-center md:justify-start md:px-3'>
       <div className="flex flex-col md:flex-row items-center gap-4 md:gap-14 w-full md:w-auto">
-      <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
-      <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted, 'currency', 2)}` : '-'}`} />
-      <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 'currency', 2)}`} />
-      </div>
-      <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
-      <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
-      <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
-      <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
-      <InfoLine title='Total Supply' subtitle={localizeNumber(Math.floor(Number(formatUnits(club?.supply, 18))), "decimal") || "-"} />
-      </div>
+        <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
+          <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted, 'currency', 2)}` : '-'}`} />
+          <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 'currency', 2)}`} />
+        </div>
+        <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
+          <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
+          <InfoLine title='Total Supply' subtitle={localizeNumber(Math.floor(Number(formatUnits(club?.supply, 18))), "decimal") || "-"} />
+        </div>
       </div>
     </div>
   );
