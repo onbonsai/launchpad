@@ -1,20 +1,16 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { formatUnits, parseUnits, erc721Abi, parseEther, formatEther } from "viem";
+import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
+import { formatUnits, parseUnits } from "viem";
 import toast from "react-hot-toast";
-import Link from "next/link";
-import { InformationCircleIcon } from "@heroicons/react/solid";
 import ConfettiExplosion from 'react-confetti-explosion';
 import clsx from "clsx";
 
 import { Button } from "@src/components/Button"
-import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
+import { castIntentTokenReferral, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
 import {
   useGetSellPrice,
-  useGetClubLiquidity,
   useGetBuyAmount,
-  useGetAvailableBalance,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -24,16 +20,14 @@ import {
   buyChips as buyChipsTransaction,
   sellChips as sellChipsTransaction,
   approveToken,
-  BONSAI_NFT_BASE_ADDRESS,
+  MAX_MINTABLE_SUPPLY,
 } from "@src/services/madfi/moneyClubs";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
-import { Header as HeaderText, Header2 as Header2Text, BodySemiBold } from "@src/styles/text";
+import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
-
-const MAX_SUPPLY = parseEther("800000000")
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -55,29 +49,16 @@ export const BuySellWidget = ({
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
-  const [isReleased, setIsReleased] = useState(false);
-  const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
-  const { buyAmount } = buyAmountResult || {};
+  const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
-  const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
-  const { data: availableBalance } = useGetAvailableBalance(club.tokenAddress, address);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
   const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
-
-  const { data: bonsaiBalanceNFT } = useReadContract({
-    address: BONSAI_NFT_BASE_ADDRESS,
-    abi: erc721Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address!],
-    query: { enabled: !!address }
-  });
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -121,7 +102,7 @@ export const BuySellWidget = ({
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
-      setTimeout(refetchClubPrice, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
       setJustBought(true);
@@ -156,9 +137,8 @@ export const BuySellWidget = ({
       const minAmountOut = (sellPriceAfterFees || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
       await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
 
-      refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);
-      setTimeout(refetchClubPrice, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Sold ${sellAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
     } catch (error) {
@@ -235,7 +215,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) > MAX_SUPPLY && <p className="mb-4 max-w-sm text-center text-sm text-primary/90">This USDC amount would go over the max liquidity threshold so the price will be adjusted down automatically.</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="mb-4 max-w-sm text-center text-sm text-primary/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
                 {!justBought && (
                   <>
                   <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">

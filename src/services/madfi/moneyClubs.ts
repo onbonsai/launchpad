@@ -774,6 +774,16 @@ function calculateTokensForUSDC(
 
 const PROTOCOL_FEE = 0.03; // 3% total fees for non-NFT holders
 
+function cleanupTrailingOne(amount: bigint): bigint {
+  // Convert to string to check last digit
+  const amountStr = amount.toString();
+  // Only clean up if the number is large enough and ends in 1
+  if (amountStr.length > 20 && amountStr.endsWith('1')) {
+    return BigInt(amountStr.slice(0, -1) + '0');
+  }
+  return amount;
+}
+
 export const getBuyAmount = async (
   account: `0x${string}`,
   tokenAddress: `0x${string}`,
@@ -801,11 +811,18 @@ export const getBuyAmount = async (
     account
   }) as bigint;
 
-  const buyAmount = calculateTokensForUSDC(spendAfterFees, currentSupply)
+  const rawBuyAmount = calculateTokensForUSDC(spendAfterFees, currentSupply);
+  const buyAmount = cleanupTrailingOne(rawBuyAmount);
+
+  let effectiveSpend = spendAfterFees
+  if (BigInt(buyAmount || 0n) + BigInt(currentSupply) >= MAX_MINTABLE_SUPPLY) {
+    const adjustedAmount = formatUnits(MAX_MINTABLE_SUPPLY - BigInt(currentSupply), DECIMALS)
+    effectiveSpend  = (await getBuyPrice(account, "0", adjustedAmount, formatUnits(currentSupply, DECIMALS))).buyPriceAfterFees
+  }
 
   return {
     buyAmount,
-    effectiveSpend: formatUnits(spendAfterFees, DECIMALS)
+    effectiveSpend: formatUnits(effectiveSpend, 6)
   };
 };
 
