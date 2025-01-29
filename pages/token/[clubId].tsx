@@ -99,7 +99,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
     // Refresh data every 5 seconds
     const interval = setInterval(() => {
       router.replace(router.asPath);
-    }, 5000);
+    }, 10_000);
 
     return () => clearInterval(interval);
   }, [router]);

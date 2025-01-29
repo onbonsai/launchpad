@@ -12,12 +12,12 @@ export const getUserLocale = () => {
   return "en-US"; // Default fallback
 };
 
-export const localizeNumber = (value: number | string, style = "currency", minimumFractionDigits = 0) => {
+export const localizeNumber = (value: number | string, style = "currency", minimumFractionDigits = 0, maximumFractionDigits = 2) => {
   return new Intl.NumberFormat(getUserLocale(), {
     // @ts-ignore
     style,
     currency: "USD",
     minimumFractionDigits,
-    maximumFractionDigits: 2,
+    maximumFractionDigits,
   }).format(Number(value));
 };

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { formatUnits, decodeAbiParameters } from "viem";
 
-import { getVolume, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS } from "@src/services/madfi/moneyClubs";
+import { getVolume, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS, FLAT_THRESHOLD } from "@src/services/madfi/moneyClubs";
 
 const RANDOM_ADDRESS = "0x1C111355EdE4259Fa9825AEC1f16f95ED737D62E"; // wont be holding bonsai nft
 const PREV_TRADE_KEYS = [
@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     });
 
-    const marketCap = formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
+    const marketCap = BigInt(club.supply) <=  FLAT_THRESHOLD ? BigInt(club.liquidity) : formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
     const holders = club.holders;
     const createdAt = club.createdAt;
     const graduated = club.completed;

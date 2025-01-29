@@ -298,7 +298,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       <CurrencyInput
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
-                        price={sellPriceFormatted}
+                        price={sellPriceFormatted.replaceAll(",", "")}
                         isError={false}
                         onPriceSet={() => { }}
                         symbol="USDC"
