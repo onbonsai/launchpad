@@ -4,12 +4,9 @@ import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
 import { useEffect, useMemo, useState } from "react";
 import { localizeNumber } from "@src/constants/utils";
-import { formatEther, formatUnits, parseEther, parseUnits } from "viem";
-import { roundedToFixed } from "@src/utils/utils";
+import { formatEther, formatUnits } from "viem";
 import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
-import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
 import BuyUSDCWidget from "./BuyUSDCWidget";
-import { set } from "lodash";
 
 export const BottomInfoComponent = ({ club, address }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
@@ -28,7 +25,7 @@ export const BottomInfoComponent = ({ club, address }) => {
       }
 
       // converting to USDC value
-      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24));
+      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24), undefined, 2);
 
       setBalance(_balance);
     };

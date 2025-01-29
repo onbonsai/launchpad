@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
-import { useMemo, useState, ReactNode } from "react";
+import { useMemo, useState, ReactNode, useEffect } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { formatUnits, getAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
@@ -28,6 +28,7 @@ import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
 import { ShareClub } from '@src/pagesComponents/Club';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -93,6 +94,17 @@ const TokenPage: NextPage<TokenPageProps> = ({
   creatorInfo,
   type,
 }: TokenPageProps) => {
+  const router = useRouter();
+  
+  useEffect(() => {
+    // Refresh data every 5 seconds
+    const interval = setInterval(() => {
+      router.replace(router.asPath);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [router]);
+  
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
