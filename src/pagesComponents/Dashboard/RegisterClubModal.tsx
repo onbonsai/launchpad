@@ -67,7 +67,7 @@ export const RegisterClubModal = ({
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
-  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
+  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
 
   const { data: usdcBalance } = useReadContract({
     address: USDC_CONTRACT_ADDRESS,
@@ -458,30 +458,27 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       </Tooltip>
                     </div>
                   </div>
-                  <label className="inline-block text-xs font-medium text-secondary/70 mr-4">
+                  {/* <label className="inline-block text-xs font-medium text-secondary/70 mr-4">
                     Fee: ${registrationFee}
-                  </label>
+                  </label> */}
                 </div>
                 <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
                       trailingAmount={`${buyPriceFormatted}`}
                       trailingAmountSymbol="USDC"
-                      trailingAmountLimit={(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}
                       tokenBalance={tokenBalance}
                       price={`${initialSupply}`}
-                      isError={false}
+                      isError={!isValid}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                       symbol={tokenSymbol}
-                  />                
-                  <Subtitle className="text-white/70">
-                    USDC Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
-                  </Subtitle>
+                      hideBalance
+                  />
+                  <div className="flex justify-end">
+                    <Subtitle className="text-xs text-white/70 mr-4">
+                      Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
+                    </Subtitle>
+                  </div>
                 </div>
-                {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
-                    <p className={`mt-2 text-sm text-primary/90`}>
-                      Max Purchase Spend: {localizeNumber(Number(creatorLiqMax) / 10 ** DECIMALS, "decimal")} USDC
-                    </p>
-                  )}
               </div>
             </div>
           </div>
@@ -495,11 +492,6 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   <Subtitle>
                     Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
                   </Subtitle>
-                  {(bonsaiNftBalance > 0n) && (
-                    <Subtitle>
-                      As a Bonsai NFT holder, your token will be featured for {BENEFITS_AUTO_FEATURE_HOURS} hours
-                    </Subtitle>
-                  )}
                 </>
             }
           </div>

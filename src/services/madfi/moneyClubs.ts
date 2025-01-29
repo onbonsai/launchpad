@@ -691,7 +691,8 @@ function calculateTokensForUSDC(
   currentSupply: bigint,
 ): bigint {
   const BPS_MAX = BigInt("10000");
-  const initialPrice = IS_PRODUCTION ? BigInt("12384118034062500000") : BigInt("1000000000000000")
+  // const initialPrice = IS_PRODUCTION ? BigInt("12384118034062500000") : BigInt("1000000000000000")
+  const initialBuyPrice = BigInt("12384118034062500000");
   const targetPrice = BigInt(5) * initialPrice;
   const decimals = 18
   const flatThreshold = parseUnits("200000000", decimals)

@@ -218,9 +218,9 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                 {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-primary/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
                 {!justBought && (
                   <>
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
-                    Buy ${club.token.symbol}
-                  </Button>
+                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
+                      Buy ${club.token.symbol}
+                    </Button>
                     <Button
                       variant={"primary"}
                       size='md'

@@ -11,7 +11,6 @@ interface CurrencyInputProps {
   price: string;
   trailingAmount?: string;
   trailingAmountSymbol?: string;
-  trailingAmountLimit?: string;
   isError: boolean;
   tokenBalance: bigint;
   onPriceSet: (price: string) => void;
@@ -19,10 +18,11 @@ interface CurrencyInputProps {
   tokenImage?: string;
   showMax?: boolean;
   overridePrice?: string;
+  hideBalance?: boolean;
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-  const { symbol, trailingAmount, trailingAmountSymbol, trailingAmountLimit, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice } = props;
+  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance } = props;
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const measureRef = useRef(null);
@@ -102,17 +102,21 @@ const CurrencyInput = (props: CurrencyInputProps) => {
           </div>
         )}
         {!showMax && trailingAmount && (
-          <BodySemiBold className={clsx('mr-3', Number(trailingAmount?.replace(',', '')) > Number(trailingAmountLimit) ? 'text-bearish/90' : 'text-white/60')}>
+          <BodySemiBold className={clsx('mr-3', isError ? 'text-bearish/90' : 'text-white/60')}>
             {`${trailingAmount} ${trailingAmountSymbol || ""}`}
           </BodySemiBold>
         )}
       </div>
-      <Divider />
-      <div className="flex flex-row justify-between items-center px-3 py-2">
-        <Subtitle>Balance: </Subtitle>
-        <Subtitle className="ml-[2px] w-full text-white text-xs">{formattedBalance}</Subtitle>
-        <Subtitle>{formattedPrice}</Subtitle>
-      </div>
+      {!hideBalance && (
+        <>
+          <Divider />
+          <div className="flex flex-row justify-between items-center px-3 py-2">
+            <Subtitle>Balance: </Subtitle>
+            <Subtitle className="ml-[2px] w-full text-white text-xs">{formattedBalance}</Subtitle>
+            <Subtitle>{formattedPrice}</Subtitle>
+          </div>
+        </>
+      )}
     </div>
   )
 }
