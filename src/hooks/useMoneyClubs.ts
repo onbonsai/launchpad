@@ -21,6 +21,7 @@ import {
   getClubHoldings,
   getSupply,
   getBuyAmount,
+  getFeaturedClubs,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
@@ -40,6 +41,22 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
     queryFn: () => getRegisteredClub(handle!, profileId),
     enabled: !!handle || !!profileId,
     staleTime: 10000,
+    gcTime: 60000,
+  });
+};
+
+export const useGetFeaturedClubs = () => {
+  return useQuery({
+    queryKey: ["featured-clubs"],
+    queryFn: async () => {
+      const clubs = await getFeaturedClubs();
+      return clubs.map((club) => ({
+        publication: club.publication,
+        club: omit(club, 'publication'),
+      }));
+    },
+    refetchInterval: 60000,
+    staleTime: 60000,
     gcTime: 60000,
   });
 };

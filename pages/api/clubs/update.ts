@@ -36,7 +36,7 @@ const swapAgentCreatorFee = async (_clubId: `0x${string}`, txHash: `0x${string}`
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { txHash, strategy, identityToken, token, featureStartAt, updateRecord, handle: _handle } = req.body;
+    const { txHash, strategy, identityToken, token, featureEndAt, updateRecord, handle: _handle } = req.body;
 
     if (updateRecord) {
       const { id, pubId, liquidityReleasedTxHash, clubId } = updateRecord;
@@ -88,7 +88,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       strategy,
       handle,
       token,
-      featureStartAt
+      featureEndAt
     });
 
     res.status(200).json({ id: result.insertedId.toString() });

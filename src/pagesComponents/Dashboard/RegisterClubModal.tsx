@@ -124,7 +124,9 @@ export const RegisterClubModal = ({
 
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
-      const featureStartAt = bonsaiNftBalance > 0n ? Math.floor(Date.now() / 1000) : undefined;
+      const featureEndAt = bonsaiNftBalance > 0n
+        ? Math.floor(Date.now() / 1000) + (BENEFITS_AUTO_FEATURE_HOURS * 3600)
+        : undefined;
 
       const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
@@ -133,7 +135,7 @@ export const RegisterClubModal = ({
         tokenSymbol,
         tokenImage: _tokenImage,
         tokenDescription,
-        featureStartAt,
+        featureEndAt,
         hook: WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}`,
         cliffPercent: vestingCliff * 100,
         vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit)

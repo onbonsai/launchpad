@@ -183,6 +183,33 @@ const REGISTERED_CLUBS_BY_AGE = gql`
   }
 `;
 
+const REGISTERED_CLUBS_BY_ID = gql`
+  query Clubs($ids: [ID!]) {
+    clubs(orderBy: createdAt, orderDirection: desc, where: {liquidityReleasedAt:null, id_in: $ids}) {
+      id
+      clubId
+      creator
+      initialSupply
+      createdAt
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      complete
+      completedAt
+      liquidityReleasedAt
+      tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      tokenAddress
+      v2
+    }
+  }
+`;
+
 const HOLDINGS_PAGINATED = gql`
   query ClubChips($trader: Bytes!, $skip: Int!, $startOfDayUTC: Int!) {
     clubChips(where:{ trader: $trader }, orderBy: amount, orderDirection: desc, first: 50, skip: $skip) {
@@ -540,6 +567,62 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
   };
 };
 
+export const getFeaturedClubs = async (): Promise<any[]> => {
+  const response = await fetch('/api/clubs/get-enriched-clubs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ featured: true }),
+  });
+  const { clubs } = await response.json();
+
+  if (clubs?.length) {
+    const ids = clubs.map(({ clubId }) => toHexString(clubId));
+    const { data: { clubs: _clubs } } = await subgraphClient().query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
+
+    try {
+      // TODO: fetch for other strategies (ie orb_club, farcaster)
+      const publications = await lensClient.publication.fetchAll({
+        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
+      });
+      const gPublications = groupBy(publications.items || [], "id");
+      const groupedClubs = groupBy(clubs || [], "clubId");
+      const responseClubs = _clubs.map((_club) => {
+        const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
+        const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
+        if (club?.hidden) return; // db forced hide
+        if (club) {
+          club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
+          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          return { publication, ..._club, ...club, marketCap };
+        } else { // not created on our app
+          let { name, symbol, uri: image } = _club;
+
+          if (!name || !symbol || !image) {
+            // backup for v1 clubs
+            [name, symbol, image] = decodeAbiParameters([
+              { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+            ], _club.tokenInfo);
+          }
+          return {
+            ..._club,
+            handle: _club.creator,
+            marketCap,
+            token: {
+              name, image, symbol
+            }
+          };
+        }
+      }).filter((c) => c);
+
+      return responseClubs;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  return { clubs: [] };
+};
+
 export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 50;
   const skip = page * limit;
@@ -548,7 +631,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
-    const response = await fetch('/api/clubs/get-linked-socials', {
+    const response = await fetch('/api/clubs/get-enriched-clubs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clubIds }),
@@ -565,9 +648,10 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
       const responseClubs = data?.clubs.map((_club) => {
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
-        if (club?.hidden) return;
+        if (club?.hidden) return; // db forced hide
         if (club) {
-          club.featured = !!club?.featureStartAt && (Date.now() / 1000) < (parseInt(club.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
+          club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
+          if (club.featured) return; // featured clubs are queried elsewhere
           const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
           return { publication, ..._club, ...club, marketCap };
         } else { // not created on our app
@@ -910,7 +994,7 @@ type RegistrationParams = {
   tokenImage: string;
   initialSupply: string;
   strategy: string;
-  featureStartAt?: number;
+  featureEndAt?: number;
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
 };
@@ -935,7 +1019,7 @@ export const registerClub = async (walletClient, isAuthenticated: boolean, param
       identityToken,
       txHash: hash,
       token: { name: params.tokenName, symbol: params.tokenSymbol, image: params.tokenImage, description: params.tokenDescription },
-      featureStartAt: params.featureStartAt,
+      featureEndAt: params.featureEndAt,
       handle: creator,
     })
   });
