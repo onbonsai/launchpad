@@ -89,6 +89,23 @@ const REGISTERED_CLUB_INFO = gql`
   }
 `;
 
+const SEARCH_CLUBS = gql`
+  query SearchClubs($query: String!) {
+    clubs(where:{or:[{symbol_contains_nocase:$query}, {name_contains_nocase:$query}]}){
+      id
+      tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      clubId
+      v2
+      tokenAddress
+    }
+  }
+`;
+
 const CLUB_TRADES_TODAY = gql`
   query ClubTrades($club: Bytes!, $startOfDayUTC: Int!, $skip: Int!) {
     trades(where: {club:$club,createdAt_gt: $startOfDayUTC}, orderBy: createdAt, orderDirection: desc, first: 50, skip: $skip) {
@@ -393,6 +410,16 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
       ], club.tokenInfo);
     }
     return { name, symbol, image, clubId: club.clubId, id: club.id };
+  });
+};
+
+export const searchClubs = async (query: string) => {
+  const client = subgraphClient();
+  const { data: { clubs } } = await client.query({ query: SEARCH_CLUBS, variables: { query } })
+  return clubs?.map((club) => {
+    const { name, symbol, image } = club
+
+    return { token: { name, symbol, image }, ...club };
   });
 };
 

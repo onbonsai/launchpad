@@ -147,12 +147,13 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   return (
     <>
       <div
-        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl min-w-fit`}
+        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl min-w-fit justify-end overflow-hidden`}
         onClick={handleClick}
+        style={{ maxWidth: 'calc(100vw - 20px)' }} // Ensure the container does not exceed the viewport width
       >
-        <span className="flex items-center">
+        <span className="flex items-center shrink min-w-0">
           {profilePicture && <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" />}
-          <span className="pl-3 pr-[6px] text-white font-medium text-base">
+          <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
             {identity}
           </span>
           <span className="bg-card rounded-full h-[13px] w-[13px] mr-[12px] flex items-center justify-center pointer-events-none">

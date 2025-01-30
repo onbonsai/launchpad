@@ -181,20 +181,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const infoCardRow = () => {
     if (fairLaunchMode) {
       return (
-        <InfoCard title="Phase" className="animate-pulse" subtitle={
-          <div className='flex items-center'>
-            <div className="text-sm inline-block">
-              <Tooltip message="Price remains the same while token supply is under 200mil, after which the bonding curve is activated." direction="left">
-                <InfoOutlined
-                  className="max-w-4 max-h-4 -mt-[2px] -ml-[2px] inline-block text-white/40"
-                />
-              </Tooltip>
-            </div>
-            <Subtitle className='text-white'>
-              Fair Launch
-            </Subtitle>
-          </div>
-        }
+        <InfoCard title="Phase" className="animate-pulse ml-2" subtitle="Fair Launch"
           roundedRight
           roundedLeft
         />
@@ -370,7 +357,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           </>
                         : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
                             <Header2 className="text-white font-medium">
-                              ${club.token.symbol} is still in the Fair Launch phase!
+                              ${club.token.symbol} is still in Fair Launch!
                             </Header2>
                             <Subtitle className="mt-2">
                               Token price will not change until 200mil tokens are minted.

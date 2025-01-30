@@ -22,6 +22,7 @@ import {
   getSupply,
   getBuyAmount,
   getFeaturedClubs,
+  searchClubs,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
@@ -319,5 +320,15 @@ export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0
     enabled: !!account && complete && tokenAddress !== zeroAddress,
     staleTime: 10000,
     gcTime: 60000,
+  });
+};
+
+export const useSearchClubs = (query?: string) => {
+  return useQuery({
+    queryKey: ["search-clubs", query],
+    queryFn: () => searchClubs(query!),
+    enabled: !!query,
+    staleTime: 120000,
+    gcTime: 300000,
   });
 };

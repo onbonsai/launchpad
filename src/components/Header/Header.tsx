@@ -16,6 +16,7 @@ import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { Header as HeaderText } from "@src/styles/text";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 const headerLinks = [
   // add any top-level nav links here
@@ -28,6 +29,7 @@ export const Header = () => {
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
 
   if (!isMounted) return null;
 
@@ -35,8 +37,8 @@ export const Header = () => {
     <header className="sticky top-0 z-[100] bg-black border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         {/* Top row */}
-        <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6">
-          <div className="flex items-center w-[33%]">
+        <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6 justify-between">
+          <div className="flex items-center justify-start w-[33%]">
             <div className="w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
@@ -51,12 +53,14 @@ export const Header = () => {
           </div>
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}
-          <div className="hidden lg:flex justify-center items-center w-[33%]">
-            <SearchClubs />
-          </div>
+          {!isMobile && (
+            <div className="flex justify-center items-center w-[25%]">
+              <SearchClubs />
+            </div>
+          )}
 
           {/* Right side of header */}
-          <div className="flex items-center justify-end w-[100%]">
+          <div className="flex items-center justify-end md:w-[33%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
@@ -87,9 +91,11 @@ export const Header = () => {
         </div>
 
         {/* Mobile-only: Search bar on second line */}
-        <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-          <SearchClubs />
-        </div>
+        {isMobile && (
+          <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
+            <SearchClubs />
+          </div>
+        )}
       </nav>
 
       {/* Mobile Menu Dropdown */}
