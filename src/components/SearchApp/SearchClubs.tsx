@@ -29,7 +29,11 @@ export const SearchClubs = () => {
 
   function handleSelectItem(item) {
     setIsOpen(false);
-    push(`/token/${item.clubId}`);
+    if (!item.v2) {
+      push(`https://launch-v1.bonsai.meme/token/${item.clubId}`);
+    } else {
+      push(`/token/${item.clubId}`);
+    }
   }
 
   function handleSelected(event: ChangeEvent<HTMLInputElement>) {

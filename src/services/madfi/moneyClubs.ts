@@ -93,7 +93,6 @@ const SEARCH_CLUBS = gql`
   query SearchClubs($query: String!) {
     clubs(where:{or:[{symbol_contains_nocase:$query}, {name_contains_nocase:$query}]}){
       id
-      tokenInfo
       name
       symbol
       uri
