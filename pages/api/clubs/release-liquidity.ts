@@ -24,7 +24,7 @@ import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 
 const WETH = "0x4200000000000000000000000000000000000006";
 const getPath = () => {
-  const swapInfoV4 = {
+  const swapInfoV4 = IS_PRODUCTION ? {
     path: [
       {
         intermediateCurrency: zeroAddress,
@@ -37,12 +37,29 @@ const getPath = () => {
         intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
         fee: 10000,
         tickSpacing: 60,
-        hooks: zeroAddress,
+        hooks: zeroAddress, // TODO: mainnet hook deployment
         hookData: "0x",
       },
     ],
-    // TODO: Update Universal Router address in v4?
-    router: IS_PRODUCTION ? "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD" : "0x050E797f3625EC8785265e1d9BDd4799b97528A1",
+    router: "0x6ff5693b99212da76ad316178a184ab56d299b43"
+  } : {
+    path: [
+      {
+        intermediateCurrency: "0x1d3C6386F05ed330c1a53A31Bb11d410AeD094dF",
+        fee: 500,
+        tickSpacing: 60,
+        hooks: zeroAddress,
+        hookData: "0x",
+      },
+      {
+        intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
+        fee: 10000,
+        tickSpacing: 60,
+        hooks: "0xCED5Aa78A6568597883336E575FbA83D8750c080",
+        hookData: "0x",
+      },
+    ],
+    router: "0x492e6456d9528771018deb9e87ef7750ef184104"
   };
   return swapInfoV4;
 };
@@ -77,6 +94,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       abi: BonsaiLaunchpadAbi,
       eventName: "LiquidityReleased",
     });
+
+    // TODO: do we need token? doesn't seem to be getting used when returned
     const { token } = releaseLiquidityEvent.args;
 
     res.status(200).json({ token, hash });
