@@ -84,6 +84,7 @@ const REGISTERED_CLUB_INFO = gql`
       cliffPercent
       vestingDuration
       clubId
+      v2
     }
   }
 `;
@@ -123,7 +124,10 @@ const CLUB_TRADES_PAGINATED = gql`
 const CLUB_TRADES_LATEST = gql`
   query {
     trades(where:{isBuy: true}, orderBy: createdAt, orderDirection: desc, first: 100) {
-        club { clubId }
+        club {
+          clubId
+          v2
+        }
         createdAt
     }
   }
@@ -869,9 +873,10 @@ function cleanupTrailingOne(amount: bigint): bigint {
   return amount;
 }
 
+// returns the amount of tokens a user will receive for `spendAmount` - use the returned `buyAmount` to call buyChips
 export const getBuyAmount = async (
   account: `0x${string}`,
-  tokenAddress: `0x${string}`,
+  tokenAddress: `0x${string}`, // club.tokenAddress
   spendAmount: string, // Amount in USDC user wants to spend
   hasNft = false
 ): Promise<{
@@ -907,7 +912,7 @@ export const getBuyAmount = async (
 
   return {
     buyAmount,
-    effectiveSpend: formatUnits(effectiveSpend, 6)
+    effectiveSpend: formatUnits(effectiveSpend, USDC_DECIMALS)
   };
 };
 
