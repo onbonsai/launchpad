@@ -6,28 +6,30 @@ import { useAccount } from "wagmi";
 import { formatUnits, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
-import { last } from "lodash/array";
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
 
 import { Modal } from "@src/components/Modal";
+import { Tooltip } from "@src/components/Tooltip";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById } from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
-import { useGetAvailableBalance, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import { FairLaunchModeComponent } from '@pagesComponents/Club/FairLaunchModeComponent';
+import { useGetAvailableBalance, useGetClubSupply, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
 import { releaseLiquidity as releaseLiquidityTransaction } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
 import { ShareClub } from '@src/pagesComponents/Club';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/router';
+import { InfoOutlined } from '@mui/icons-material';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -74,12 +76,6 @@ interface TokenPageProps {
   type: string // lens
 }
 
-const profileAddress = (profile, creatorInfoAddress?: string) =>
-  creatorInfoAddress ||
-  profile?.ownedBy?.address ||
-  (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
-  profile?.address;
-
 enum PriceChangePeriod {
   fiveMinutes = '5m',
   oneHour = '1h',
@@ -109,6 +105,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { ready } = usePrivy();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
+  const { data: totalSupply } = useGetClubSupply(club.tokenAddress);
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
@@ -116,6 +113,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
+  const fairLaunchMode = totalSupply && totalSupply < FLAT_THRESHOLD;
 
   const vestingInfo = useMemo(() => {
     const vestingDurationInHours = parseInt(club.vestingDuration) / 3600;
@@ -163,17 +161,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
-  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean }> = ({ title, subtitle, roundedLeft, roundedRight }) => (
-    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl')}>
+  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
       <Subtitle className="text-xs">{title}</Subtitle>
       <span>{subtitle}</span>
-    </div>
-  );
-
-  const InfoLine: React.FC<{ title: string; subtitle: ReactNode }> = ({ title, subtitle }) => (
-    <div className={clsx("flex flex-col items-start justify-center gap-[2px]")}>
-      <Subtitle>{title}</Subtitle>
-      <BodySemiBold>{subtitle}</BodySemiBold>
     </div>
   );
 
@@ -187,26 +178,50 @@ const TokenPage: NextPage<TokenPageProps> = ({
     );
   }
 
-  const infoCardRow = () => (
-    <>
-      <InfoCard title='5m' subtitle={
-        <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
-      }
-        roundedLeft
-      />
-      <InfoCard title='1h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.oneHour} />
-      } />
-      <InfoCard title='6h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.sixHours} />
-      } />
-      <InfoCard title='24h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-      }
-        roundedRight
-      />
-    </>
-  );
+  const infoCardRow = () => {
+    if (fairLaunchMode) {
+      return (
+        <InfoCard title="Phase" className="animate-pulse" subtitle={
+          <div className='flex items-center'>
+            <div className="text-sm inline-block">
+              <Tooltip message="Price remains the same while token supply is under 200mil, after which the bonding curve is activated." direction="left">
+                <InfoOutlined
+                  className="max-w-4 max-h-4 -mt-[2px] -ml-[2px] inline-block text-white/40"
+                />
+              </Tooltip>
+            </div>
+            <Subtitle className='text-white'>
+              Fair Launch
+            </Subtitle>
+          </div>
+        }
+          roundedRight
+          roundedLeft
+        />
+      )
+    }
+
+    return (
+      <>
+        <InfoCard title='5m' subtitle={
+          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+        }
+          roundedLeft
+        />
+        <InfoCard title='1h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.oneHour} />
+        } />
+        <InfoCard title='6h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.sixHours} />
+        } />
+        <InfoCard title='24h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
+        }
+          roundedRight
+        />
+      </>
+    )
+  }
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -299,6 +314,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     club={club}
                     address={address}
                     tradingInfo={tradingInfo}
+                    totalSupply={totalSupply}
                   />
                   {club.completedAt && club.liquidityReleasedAt ?
                     <div className="flex flex-col w-[100%] justify-center items-center mt-20">
@@ -336,24 +352,34 @@ const TokenPage: NextPage<TokenPageProps> = ({
                               : ''
                           }{Math.floor((Number(club.vestingDuration) % 86400) / 3600)} hours</p>
                         </div>
-                      </div> :
-                      <>
-                        <Script
-                          src="/static/datafeeds/udf/dist/bundle.js"
-                          strategy="lazyOnload"
-                          onReady={() => {
-                            setIsScriptReady(true);
-                          }}
-                        />
-                        <div className='border border-card bg-card-light rounded-2xl mt-5'>
-                          <div className="rounded-2xl m-2 overflow-hidden">
-                            {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
+                      </div>
+                      : !fairLaunchMode ?
+                          <>
+                            <Script
+                              src="/static/datafeeds/udf/dist/bundle.js"
+                              strategy="lazyOnload"
+                              onReady={() => {
+                                setIsScriptReady(true);
+                              }}
+                            />
+                            <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                              <div className="rounded-2xl m-2 overflow-hidden">
+                                {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
+                              </div>
+                            </div>
+                          </>
+                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                            <Header2 className="text-white font-medium">
+                              ${club.token.symbol} is still in the Fair Launch phase!
+                            </Header2>
+                            <Subtitle className="mt-2">
+                              Token price will not change until 200mil tokens are minted.
+                            </Subtitle>
+                            <FairLaunchModeComponent club={club} totalSupply={totalSupply} />
                           </div>
-                        </div>
-                      </>
                   }
                 </div>
-                {!club.complete && <BottomInfoComponent club={club} address={address} />}
+                {!club.complete && <BottomInfoComponent club={club} address={address} totalSupply={totalSupply} />}
               </div>
 
               {/* Feed/Trades/Holders */}

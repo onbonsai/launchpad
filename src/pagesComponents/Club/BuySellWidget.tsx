@@ -1,13 +1,13 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, parseEther, parseUnits } from "viem";
 import toast from "react-hot-toast";
 import ConfettiExplosion from 'react-confetti-explosion';
 import clsx from "clsx";
 
 import { Button } from "@src/components/Button"
-import { castIntentTokenReferral, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
+import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
 import {
   useGetSellPrice,
   useGetBuyAmount,
@@ -150,7 +150,7 @@ export const BuySellWidget = ({
 
   const urlEncodedPostParams = () => {
     const params = {
-      text: `Just aped into $${club.token.symbol}!
+      text: `Just aped into $${club.token.symbol} on Launch @bonsai
 ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
     };
 
@@ -185,7 +185,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={isLoadingBuyAmount || notEnoughFunds}
+                        isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -202,13 +202,14 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       <CurrencyInput
                         tokenImage={club.token.image}
                         tokenBalance={clubBalance}
-                        price={`${buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}`}
+                        price={`${buyPrice && buyAmount ? formatUnits(buyAmount, DECIMALS) : 0}`}
                         isError={false}
                         onPriceSet={() => {
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
                         overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
+                        disabled
                       />
                     </div>
                   </div>
@@ -229,7 +230,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      Buy more USDC
+                      Get USDC
                     </Button>
                   </>
                 )}
@@ -245,7 +246,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={tweetIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol}!`,
+                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -254,7 +255,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol}!`,
+                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -298,10 +299,11 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       <CurrencyInput
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
-                        price={sellPriceFormatted.replaceAll(",", "")}
+                        price={sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
                         isError={false}
                         onPriceSet={() => { }}
                         symbol="USDC"
+                        disabled
                       />
                       {/* <div className="relative">
                         <input

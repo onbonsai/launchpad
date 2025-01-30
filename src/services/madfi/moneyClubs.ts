@@ -392,16 +392,15 @@ export const getVolume = async (clubId: string): Promise<bigint> => {
   return volume;
 };
 
-export const getLiquidity = async (clubId: string) => {
+export const getSupply = async (tokenAddress: `0x${string}`) => {
   const client = publicClient();
-  const [_, __, liquidity] = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "registeredClubs",
-    args: [clubId],
+  const supply = await client.readContract({
+    address: tokenAddress,
+    abi: VestingERC20Abi,
+    functionName: "totalSupply",
   }) as any[];
 
-  return liquidity;
+  return supply as unknown as bigint;
 };
 
 export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {

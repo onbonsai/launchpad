@@ -19,7 +19,7 @@ import {
   getTrades,
   getHoldings,
   getClubHoldings,
-  getLiquidity,
+  getSupply,
   getBuyAmount,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
@@ -84,11 +84,11 @@ export const useGetClubVolume = (clubId?: string) => {
   });
 };
 
-export const useGetClubLiquidity = (clubId?: string) => {
+export const useGetClubSupply = (tokenAddress?: string) => {
   return useQuery({
-    queryKey: ["club-liquidity", clubId],
-    queryFn: () => getLiquidity(clubId!),
-    enabled: !!clubId,
+    queryKey: ["club-supply", tokenAddress],
+    queryFn: () => getSupply(tokenAddress! as `0x${string}`),
+    enabled: !!tokenAddress,
     refetchInterval: 15000, // fetch every 15seconds
     staleTime: 15000,
     gcTime: 15000,

@@ -8,7 +8,7 @@ import { formatEther, formatUnits } from "viem";
 import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 import BuyUSDCWidget from "./BuyUSDCWidget";
 
-export const BottomInfoComponent = ({ club, address }) => {
+export const BottomInfoComponent = ({ club, address, totalSupply }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
@@ -34,13 +34,10 @@ export const BottomInfoComponent = ({ club, address }) => {
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
-    const clubSupply = Number(formatEther(BigInt(club.supply)));
-    if (clubSupply) {
-      const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
-      return Math.round(fraction * 100 * 100) / 100
-    }
-    return 0;
-  }, [club]);
+    const clubSupply = Number(formatEther(totalSupply || BigInt(club.supply)));
+    const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
+    return Math.round(fraction * 100 * 100) / 100
+  }, [club, totalSupply]);
 
   return (
     <div className="fixed bottom-8 md:bottom-0 py-4 left-4 right-4 md:right-auto md:left-1/4 z-50">

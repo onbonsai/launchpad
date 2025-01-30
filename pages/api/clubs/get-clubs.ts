@@ -22,6 +22,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!club) return _club;
       return {
         ..._club,
+        token: {
+          name: _club.name,
+          symbol: _club.symbol,
+          image: _club.uri
+        },
         creatorStrategy: club.strategy,
         creatorPubId: club.pubId,
         creatorHandle: club.handle,

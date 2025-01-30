@@ -2,11 +2,8 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { formatEther, formatUnits } from "viem";
 
-import { roundedToFixed } from "@src/utils/utils";
 import { MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
-import { useGetClubLiquidity } from "@src/hooks/useMoneyClubs";
-import ProgressBar from "@src/components/ProgressBar";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import { localizeNumber } from "@src/constants/utils";
@@ -31,12 +28,10 @@ interface Props {
     };
   };
   creatorProfile?: { picture: string };
-  minLiquidityThreshold?: bigint;
 }
 
-const ClubCard = ({ data, minLiquidityThreshold, creatorProfile }: Props) => {
-  const { club, publication } = data;
-  const { data: clubLiquidity } = useGetClubLiquidity(club.clubId);
+const ClubCard = ({ data, creatorProfile }: Props) => {
+  const { club } = data;
 
   const bondingCurveProgress = useMemo(() => {
     const clubSupply = Number(formatEther(BigInt(club.supply)));
