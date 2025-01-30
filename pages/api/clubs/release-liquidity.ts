@@ -55,7 +55,7 @@ const getPath = () => {
         intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
         fee: 10000,
         tickSpacing: 60,
-        hooks: "0xCED5Aa78A6568597883336E575FbA83D8750c080",
+        hooks: "0xCED5Aa78A6568597883336E575FbA83D8750c080", // old hook address, dont feel like migrating the bonsai pool
         hookData: "0x",
       },
     ],

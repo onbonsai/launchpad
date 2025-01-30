@@ -5,12 +5,13 @@ import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
 
 import HookFormModal from "../src/pagesComponents/Dashboard/HookFormModal";
+import { DEFAULT_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
 
 const hooksList = [
   {
     name: "Default Hook",
     description: "0% trading fees for Bonsai NFT holders",
-    address: "0x44848340f8E663FB569568dfA4cFd345fBeAa38A", // TODO: base sepolia deployment, update with prod deployment
+    address: DEFAULT_HOOK_ADDRESS,
     source: "https://github.com/mad-finance/univ4-hooks",
   },
 ];
