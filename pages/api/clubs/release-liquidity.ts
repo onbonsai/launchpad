@@ -3,10 +3,8 @@ import { privateKeyToAccount } from "viem/accounts";
 import {
   http,
   createWalletClient,
-  PublicClient,
   TransactionReceipt,
   zeroAddress,
-  encodePacked,
   parseEther,
 } from "viem";
 import { base, baseSepolia } from "viem/chains";
@@ -17,12 +15,15 @@ import {
   BONSAI_TOKEN_BASE_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   MIN_LIQUIDITY_THRESHOLD,
+  DEFAULT_HOOK_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 
 const WETH = "0x4200000000000000000000000000000000000006";
+
+// TODO: verify swap path
 const getPath = () => {
   const swapInfoV4 = IS_PRODUCTION ? {
     path: [
@@ -35,9 +36,9 @@ const getPath = () => {
       },
       {
         intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
-        fee: 10000,
+        fee: "0x800000",
         tickSpacing: 60,
-        hooks: zeroAddress, // TODO: mainnet hook deployment
+        hooks: DEFAULT_HOOK_ADDRESS,
         hookData: "0x",
       },
     ],
