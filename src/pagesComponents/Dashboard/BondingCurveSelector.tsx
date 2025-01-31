@@ -39,10 +39,10 @@ export const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => 
 
 interface BondingCurveSelectorProps {
         options: {
-                curveType: number, 
+                vestingCliff: number,
                 label: string
         }[];
-        onChange: (curveType: number) => void;
+        onChange: (vestingCliff: number) => void;
         value: number;
 }
 
@@ -65,7 +65,7 @@ export default function BondingCurveSelector(props: BondingCurveSelectorProps) {
             aria-label="Price tier"
         >
                 {options.map((option, index) => (
-                        <ToggleButton key={index} value={option.curveType} aria-label={option.label}>
+                        <ToggleButton key={index} value={option.vestingCliff} aria-label={option.label}>
                                 {option.label}
                         </ToggleButton>
                 ))}

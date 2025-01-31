@@ -1,12 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { orderBy } from "lodash/collection";
 import { get } from "lodash/object";
-import { useReadContract } from "wagmi";
 import { useInView } from "react-intersection-observer";
 import ClubCard from "./ClubCard";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import { CONTRACT_CHAIN_ID, MIN_LIQUIDITY_THRESHOLD } from "@src/services/madfi/moneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import useGetClubCreators from "@src/hooks/useGetClubCreators";
@@ -54,7 +50,6 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         {sortedClubs.length > 0 && (
           <div className="mb-8">
             <ClubCard data={sortedClubs[0]}
-              minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
               creatorProfile={clubCreators[sortedClubs[0].club.clubId]?.[0]?.profile}
             />
           </div>
@@ -108,7 +103,6 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 return <li className="w-full" key={`club-${idx}`}>
                   <ClubCard
                     data={club}
-                    minLiquidityThreshold={MIN_LIQUIDITY_THRESHOLD}
                     creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
                   />
                 </li>

@@ -464,7 +464,10 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
   try {
     const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
     const promises: any[] = [];
-    const accessToken = await getAccessToken();
+    let accessToken;
+    try {
+      accessToken = await getAccessToken();
+    } catch {}
 
     for (let i = 0; i < ownedBy.length; i += _limit) {
       const _ownedBy = ownedBy.slice(i, i + _limit);
@@ -473,10 +476,10 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
           query: gql(GET_PROFILE_HANDLES),
           variables: { request: { where: { ownedBy: _ownedBy }, limit } },
           context: {
-            headers: {
+            headers: accessToken ? {
               'x-access-token': accessToken,
               authorization: `Bearer: ${accessToken}`
-            }
+            } : undefined
           }
         }),
       );

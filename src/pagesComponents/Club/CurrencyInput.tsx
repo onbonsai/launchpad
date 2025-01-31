@@ -11,7 +11,6 @@ interface CurrencyInputProps {
   price: string;
   trailingAmount?: string;
   trailingAmountSymbol?: string;
-  trailingAmountLimit?: string;
   isError: boolean;
   tokenBalance: bigint;
   onPriceSet: (price: string) => void;
@@ -19,23 +18,25 @@ interface CurrencyInputProps {
   tokenImage?: string;
   showMax?: boolean;
   overridePrice?: string;
+  hideBalance?: boolean; // for register club modal
+  disabled?: boolean; // no input on buy / sell price
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-  const { symbol, trailingAmount, trailingAmountSymbol, trailingAmountLimit, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice } = props;
+  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled } = props;
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const measureRef = useRef(null);
 
   useEffect(() => {
     if (measureRef.current && inputRef.current) {
-      measureRef.current.textContent = price || "0.0";
+      measureRef.current.textContent = parseFloat(price || "0");
       const measureWidth = measureRef.current.offsetWidth;
       inputRef.current.style.width = `${measureWidth + (price.length > 0 ? 10 : 4)}px`;
     }
   }, [price]);
 
-  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, USDC_DECIMALS))) : localizeNumber('0.0');
+  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" ? "currency" : "decimal", 0) : "0";
   const formattedPrice = overridePrice ? localizeNumber(parseFloat(overridePrice)) : formattedBalance;
 
   return (
@@ -46,7 +47,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             <img
               src={tokenImage}
               alt={'token image'}
-              className="min-w-[24px] min-h-[24px] max-h-[24px] rounded-lg"
+              className="w-[24px] h-[24px] object-cover rounded-lg"
             />
             <img
               src='/base.png'
@@ -54,25 +55,37 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               className="absolute top-4 left-8 w-[12px] h-[12px]"
             />
           </div>}
-          <input
-            ref={inputRef}
-            type="number"
-            step="1"
-            placeholder="0.0"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            value={price}
-            className={clsx(
-              "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-              isError ? 'text-primary/90' : 'text-secondary',
-              "placeholder:text-secondary/70"
-            )}
-            onChange={(e) => {
-              onPriceSet(e.target.value)
-            }}
-            style={{ width: 'auto' }}
-          />
-          <div className='flex flex-col h-[20px] justify-end items-end'>
+          {disabled ? (
+            <span
+              className={clsx(
+                "flex-shrink border-transparent bg-transparent shadow-sm md:text-2xl text-white sm:text-sm pt-2 pr-0 pb-2 pl-2 rounded-2xl",
+                isError ? 'text-primary/90' : 'text-secondary',
+              )}
+            >
+              {localizeNumber(parseFloat(price), symbol === "USDC" ? "currency" : "decimal", symbol === "USDC" ? 2 : undefined)}
+            </span>
+          ) : (
+            <input
+              ref={inputRef}
+              type="number"
+              step="1"
+              placeholder="0"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              value={parseFloat(price)}
+              className={clsx(
+                "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
+                isError ? 'text-primary/90' : 'text-secondary',
+                "placeholder:text-secondary/70"
+              )}
+              onChange={(e) => {
+                onPriceSet(e.target.value)
+              }}
+              style={{ width: 'auto' }}
+              disabled={disabled}
+            />
+          )}
+          <div className='flex flex-col h-[20px] justify-end items-end pl-2'>
             <Subtitle>
               {symbol}
             </Subtitle>
@@ -93,7 +106,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               visibility: 'hidden',
             }}
           >
-            {price || "0.0"}
+            {parseInt(price || "0")}
           </span>
         </div>
         {showMax && (
@@ -102,17 +115,21 @@ const CurrencyInput = (props: CurrencyInputProps) => {
           </div>
         )}
         {!showMax && trailingAmount && (
-          <BodySemiBold className={clsx('mr-3', Number(trailingAmount?.replace(',', '')) > Number(trailingAmountLimit) ? 'text-bearish/90' : 'text-white/60')}>
+          <BodySemiBold className={clsx('mr-3', isError ? 'text-bearish/90' : 'text-white/60')}>
             {`${trailingAmount} ${trailingAmountSymbol || ""}`}
           </BodySemiBold>
         )}
       </div>
-      <Divider />
-      <div className="flex flex-row justify-between items-center px-3 py-2">
-        <Subtitle>Balance: </Subtitle>
-        <Subtitle className="ml-[2px] w-full text-white text-xs">{formattedBalance}</Subtitle>
-        <Subtitle>{formattedPrice}</Subtitle>
-      </div>
+      {!hideBalance && (
+        <>
+          <Divider />
+          <div className="flex flex-row justify-between items-center px-3 py-2">
+            <Subtitle>Balance: </Subtitle>
+            <Subtitle className="ml-[2px] w-full text-white text-xs">{formattedBalance}</Subtitle>
+            <Subtitle>{formattedPrice}</Subtitle>
+          </div>
+        </>
+      )}
     </div>
   )
 }

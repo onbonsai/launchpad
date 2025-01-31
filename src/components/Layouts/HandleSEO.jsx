@@ -131,7 +131,7 @@ const HandleSEO = ({ pageProps }) => {
     );
   }
 
-  const description = "Launch a token with built-in community features and your own onchain agent.";
+  const description = "Launch a token with social features, vesting, and Uni v4 hooks. Agents soon.";
 
   return (
     <Head>

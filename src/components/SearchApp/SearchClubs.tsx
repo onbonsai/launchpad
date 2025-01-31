@@ -7,7 +7,7 @@ import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
 import { inter } from "@src/fonts/fonts";
 
-import useClubSearch from "@src/hooks/useClubSearch";
+import { useSearchClubs } from "@src/hooks/useMoneyClubs";
 import clsx from "clsx";
 import { SearchIcon } from "@heroicons/react/outline";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -17,7 +17,7 @@ export const SearchClubs = () => {
   const [query, setQuery] = useState("");
   const [debouncedQuery] = useDebounce(query, 500);
   const { push } = useRouter();
-  const { data: clubSearchResults, isLoading }  = useClubSearch(debouncedQuery);
+  const { data: clubSearchResults, isLoading } = useSearchClubs(debouncedQuery);
 
   function closeModal() {
     setIsOpen(false);
@@ -28,8 +28,12 @@ export const SearchClubs = () => {
   }
 
   function handleSelectItem(item) {
-    closeModal();
-    push(`/token/${item.clubId}`);
+    setIsOpen(false);
+    if (!item.v2) {
+      push(`https://launch-v1.bonsai.meme/token/${item.clubId}`);
+    } else {
+      push(`/token/${item.clubId}`);
+    }
   }
 
   function handleSelected(event: ChangeEvent<HTMLInputElement>) {
@@ -37,7 +41,7 @@ export const SearchClubs = () => {
   }
   // meta is the ⌘ key on mac and ctrl on windows/linux
   // @see: https://react-hotkeys-hook.vercel.app/docs/documentation/useHotkeys/basic-usage#modifiers--special-keys
-  useHotkeys("meta+k", () => openModal(), [isOpen]);
+  useHotkeys("meta+k", () => { if (!isOpen) openModal(); }, [isOpen]);
 
   return (
     <>
@@ -51,17 +55,17 @@ export const SearchClubs = () => {
             name="finder"
             id="finder"
             placeholder="Search tokens"
-            value={query}
+            defaultValue={query}
             autoComplete="off"
             onClick={() => openModal()}
             className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
           />
-          <div className="hidden inset-y-0 right-0 py-1.5 pr-1.5 lg:absolute">
-            <kbd className="inline-flex bg-transparent items-center rounded border border-dark-grey px-2 text-sm font-medium text-secondary">
-              ⌘K
+          <div className="inset-y-0 right-0 py-1.5 pr-1.5 absolute">
+            <kbd className="inline-flex bg-transparent items-center border border-gray-400 px-2 text-sm font-medium text-gray-400 rounded-lg mr-2">
+              ⌘ K
             </kbd>
           </div>
-          <div className="inset-y-0 left-0 py-[11px] pl-3 absolute">
+          <div className="inset-y-0 left-0 md:py-[10px] py-[11px] pl-3 absolute">
             <SearchIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
           </div>
         </div>
@@ -81,7 +85,7 @@ export const SearchClubs = () => {
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-fit justify-center mt-32 p-4 text-center">
+            <div className="flex min-h-fit justify-center mt-20 p-4 text-center">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -130,11 +134,18 @@ export const SearchClubs = () => {
                               value={data}
                             >
                               {({ selected }) => (
-                                <>
+                                <div className='flex flex-row w-full h-full items-center'>
+                                  {data.token.image && <div className="relative items-center pl-4">
+                                      <img
+                                        src={data.token.image}
+                                        alt={'token image'}
+                                        className="w-[12px] h-[12px] object-cover rounded-lg"
+                                      />
+                                  </div>}
                                   <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
-                                    {data.token.name} (${data.token.symbol}) by @{data.handle}
+                                    {data.token.name} (${data.token.symbol})
                                   </span>
-                                </>
+                                </div>
                               )}
                             </Combobox.Option>
                           ))}

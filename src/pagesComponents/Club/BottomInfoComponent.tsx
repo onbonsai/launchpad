@@ -3,15 +3,12 @@ import { useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import { Button } from "@src/components/Button";
 import BuySellModal from "./BuySellModal";
 import { useEffect, useMemo, useState } from "react";
-import { fetchTokenPrice, MIN_LIQUIDITY_THRESHOLD, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
-import { formatEther, formatUnits, parseEther } from "viem";
-import { roundedToFixed } from "@src/utils/utils";
-import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
+import { formatEther, formatUnits } from "viem";
+import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 import BuyUSDCWidget from "./BuyUSDCWidget";
-import { set } from "lodash";
 
-export const BottomInfoComponent = ({ club, address }) => {
+export const BottomInfoComponent = ({ club, address, totalSupply }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
@@ -27,14 +24,8 @@ export const BottomInfoComponent = ({ club, address }) => {
         return;
       }
 
-      const amount = club.complete
-        ? clubBalance * parseEther("800000000") / BigInt(club.supply)
-        : clubBalance;
-
       // converting to USDC value
-      const _balance = club.complete
-        ? "$" + roundedToFixed(Number.parseFloat(formatEther(amount)) * (await fetchTokenPrice(club.tokenAddress)), 2)
-        : localizeNumber(formatUnits(amount * BigInt(club.currentPrice), 12));
+      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24), undefined, 2);
 
       setBalance(_balance);
     };
@@ -43,14 +34,10 @@ export const BottomInfoComponent = ({ club, address }) => {
   }, [club?.currentPrice, address, clubBalance]);
 
   const bondingCurveProgress = useMemo(() => {
-    const clubLiquidity = BigInt(club.liquidity);
-    if (MIN_LIQUIDITY_THRESHOLD && clubLiquidity) {
-      const scaledMinLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** USDC_DECIMALS);
-      const fraction = (clubLiquidity * BigInt(100)) / scaledMinLiquidityThreshold;
-      return Math.min(parseInt(fraction.toString()), 100);
-    }
-    return 0;
-  }, [club]);
+    const clubSupply = Number(formatEther(totalSupply || BigInt(club.supply)));
+    const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
+    return Math.round(fraction * 100 * 100) / 100
+  }, [club, totalSupply]);
 
   return (
     <div className="fixed bottom-8 md:bottom-0 py-4 left-4 right-4 md:right-auto md:left-1/4 z-50">

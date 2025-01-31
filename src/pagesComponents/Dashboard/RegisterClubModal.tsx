@@ -2,7 +2,7 @@ import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { formatUnits, parseUnits } from "viem";
+import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { Dialog } from "@headlessui/react";
 import toast from "react-hot-toast"
@@ -11,6 +11,7 @@ import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
 import { roundedToFixed } from "@src/utils/utils";
 import { useGetRegistrationFee } from "@src/hooks/useMoneyClubs";
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import {
   DECIMALS,
   CONTRACT_CHAIN_ID,
@@ -19,12 +20,15 @@ import {
   registerClub as registerClubTransaction,
   approveToken,
   MIN_LIQUIDITY_THRESHOLD,
+  MAX_INITIAL_SUPPLY,
+  BENEFITS_AUTO_FEATURE_HOURS,
+  WHITELISTED_UNI_HOOKS,
+  MAX_MINTABLE_SUPPLY,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import publicationBody from "@src/services/lens/publicationBody";
 import { createPostMomoka } from "@src/services/lens/createPost";
-import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
@@ -37,21 +41,23 @@ import { localizeNumber } from "@src/constants/utils";
 
 
 export const RegisterClubModal = ({
-  profile,
   closeModal,
   refetchRegisteredClub,
   refetchClubBalance,
   tokenBalance, // balance in USDC
-  bonsaiNftZkSync, // bonsai nft balance
+  bonsaiNftBalance, // bonsai nft balance
 }) => {
   const router = useRouter();
   const { chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [initialSupply, setInitialSupply] = useState<number>();
-  const [curveType, setCurveType] = useState<number>(1);
+  const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES");
   const [tokenName, setTokenName] = useState<string>("");
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
+  const [vestingCliff, setVestingCliff] = useState<number>(10);
+  const [vestingDuration, setVestingDuration] = useState<number>(2);
+  const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("hours");
   const [tokenDescription, setTokenDescription] = useState<string>("");
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
@@ -59,9 +65,20 @@ export const RegisterClubModal = ({
   const creatorLiqMax = ((MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** DECIMALS)) / BigInt(10));
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(curveType, initialSupply || 0, address);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
-  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && (totalRegistrationFee || 0) < creatorLiqMax;
+  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
+
+  const { data: usdcBalance } = useReadContract({
+    address: USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: CONTRACT_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address || zeroAddress],
+    query: {
+      refetchInterval: 5000
+    }
+  });
 
   const registrationCost = BigInt(0);
 
@@ -70,8 +87,21 @@ export const RegisterClubModal = ({
   ), [totalRegistrationFee, isLoadingRegistrationFee]);
 
   const registrationFee = useMemo(() => (
-    bonsaiNftZkSync > 0n ? '0' : (registrationCost?.toString() || '-')
+    bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
   ), [registrationCost]);
+
+  const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
+    switch (unit) {
+      case 'hours':
+        return duration * 3600;
+      case 'days':
+        return duration * 3600 * 24;
+      case 'weeks':
+        return duration * 3600 * 24 * 7;
+      default:
+        return 0; // Default case to handle unexpected units
+    }
+  };
 
   const registerClub = async () => {
     setIsBuying(true);
@@ -88,20 +118,27 @@ export const RegisterClubModal = ({
     }
 
     try {
-      await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
+      if (totalRegistrationFee && totalRegistrationFee > 0n) {
+        await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
+      }
 
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
-      const featureStartAt = bonsaiNftZkSync > 0n ? Math.floor(Date.now() / 1000) : undefined;
-      const { objectId, clubId } = await registerClubTransaction(walletClient, {
+      const featureEndAt = bonsaiNftBalance > 0n
+        ? Math.floor(Date.now() / 1000) + (BENEFITS_AUTO_FEATURE_HOURS * 3600)
+        : undefined;
+
+      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        curveType,
         strategy,
         tokenName,
         tokenSymbol,
         tokenImage: _tokenImage,
         tokenDescription,
-        featureStartAt
+        featureEndAt,
+        hook: WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}`,
+        cliffPercent: vestingCliff * 100,
+        vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit)
       });
       if (!(objectId && clubId)) throw new Error("failed");
 
@@ -110,7 +147,7 @@ export const RegisterClubModal = ({
         item: _tokenImage,
         type: tokenImage[0].type,
         altTag: tokenImage[0].name,
-      });
+      }, txHash!);
       if (!pubId) throw new Error("Failed to create post");
 
       const response = await fetch('/api/clubs/update', {
@@ -140,7 +177,8 @@ export const RegisterClubModal = ({
     }
   };
 
-  const createPost = async (clubId: string, attachment: any) => {
+  // create a post from the authenticated profile _or_ from Sage (@bons_ai)
+  const createPost = async (clubId: string, attachment: any, txHash: string) => {
     try {
       const publicationMetadata = publicationBody(
         `${tokenName} ($${tokenSymbol})
@@ -148,24 +186,40 @@ ${tokenDescription}
 ${MADFI_CLUBS_URL}/token/${clubId}
 `,
         [attachment],
-        profile.metadata?.displayName || profile.handle!.suggestedFormatted.localName
+        authenticatedProfile?.metadata?.displayName || authenticatedProfile?.handle!.suggestedFormatted.localName || "Sage"
       );
 
       // creating a post on momoka
       const { data: postIpfsHash } = await pinJson(publicationMetadata);
-      const broadcastResult = await createPostMomoka(
-        walletClient,
-        storjGatewayURL(`ipfs://${postIpfsHash}`),
-        authenticatedProfile,
-      );
 
-      // broadcastResult might be the `pubId` if it was a wallet tx
-      if (broadcastResult) {
-        // create seo image
-        return typeof broadcastResult === "string"
-          ? broadcastResult
-          : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
+      if (authenticatedProfile?.id) {
+        const broadcastResult = await createPostMomoka(
+          walletClient,
+          storjGatewayURL(`ipfs://${postIpfsHash}`),
+          authenticatedProfile,
+        );
+
+        // broadcastResult might be the `pubId` if it was a wallet tx
+        if (broadcastResult) {
+          // create seo image
+          return typeof broadcastResult === "string"
+            ? broadcastResult
+            : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
+        }
       }
+
+      const response = await fetch('/api/clubs/sage-create-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txHash,
+          postIpfsHash
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to create post");
+      const data = await response.json();
+      return data?.pubId;
     } catch (error) {
       console.log(error);
     }
@@ -234,7 +288,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     Name
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v3/v4 pool will be created with this token name and symbol" direction="right">
+                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker" direction="right">
                       <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
                       />
@@ -253,10 +307,11 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             </div>
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-2">
-                <Subtitle className="text-white/70">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
                     Ticker
                   </Subtitle>
+                  <div className="text-sm inline-block text-white/40">$</div>
                 </div>
                 <div>
                   <input
@@ -298,14 +353,14 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               </div>
             </div>
 
-            <div className="sm:col-span-6 flex flex-col justify-start items-start">
+            <div className="sm:col-span-3 flex flex-col justify-start items-start">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
                   <Subtitle className="text-white/70 mb-2">
-                    Bonding curve pricing
+                    Vesting Cliff Unlock %
                   </Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="A more expensive bonding curve leads to faster pool creation" direction="top">
+                    <Tooltip message="The % of tokens that are unlocked and immediately available after graduation" direction="top">
                     <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
                       />
@@ -314,7 +369,79 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                 </div>
               </div>
               <div className="flex gap-4 w-full flex-wrap">
-                  <BondingCurveSelector value={curveType} onChange={(type) => setCurveType(type)} options={[{ curveType: 0, label: 'Cheap' }, { curveType: 1, label: 'Normal' }, { curveType: 2, label: 'Expensive' }]} />
+                <BondingCurveSelector
+                  value={vestingCliff}
+                  onChange={(type) => setVestingCliff(type)}
+                  options={[{ vestingCliff: 10, label: '10' }, { vestingCliff: 25, label: '25' }, { vestingCliff: 50, label: '50' }, { vestingCliff: 100, label: '100' }]}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-3 flex flex-col justify-start items-start">
+              <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70 mb-2">
+                    Vesting Duration
+                  </Subtitle>
+                  <div className="text-sm inline-block">
+                    <Tooltip message="How long after graduation when the remaining tokens are 100% unlocked" direction="left">
+                    <InfoOutlined
+                      className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
+                    />
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-5 gap-4">
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={vestingDuration}
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setVestingDuration(parseInt(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <select
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setVestingDurationUnit(e.target.value)}
+                    value={vestingDurationUnit}
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="sm:col-span-6 flex flex-col">
+              <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
+                    Uniswap v4 Hook
+                  </Subtitle>
+                  <div className="text-sm inline-block">
+                    <Tooltip message="Choose a Uni v4 hook to attach custom logic to your token once it graduates" direction="top">
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <select
+                    className={clsx("w-full pr-4", sharedInputClasses)}
+                    onChange={(e) => setUniHook(e.target.value)}
+                    value={uniHook}
+                  >
+                    {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
+                      <option key={`hook-${key}`} value={key}>{WHITELISTED_UNI_HOOKS[uniHook].label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -322,7 +449,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-1">
-                    <Subtitle className="text-white/70 mb-2">
+                    <Subtitle className="text-white/70">
                       Buy initial supply
                     </Subtitle>
                     <div className="text-sm inline-block">
@@ -333,27 +460,27 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       </Tooltip>
                     </div>
                   </div>
-                  <label className="inline-block text-xs font-medium text-secondary/70">
+                  {/* <label className="inline-block text-xs font-medium text-secondary/70 mr-4">
                     Fee: ${registrationFee}
-                  </label>
+                  </label> */}
                 </div>
-                <div className="relative flex flex-col space-y-1">
+                <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
                       trailingAmount={`${buyPriceFormatted}`}
                       trailingAmountSymbol="USDC"
-                      trailingAmountLimit={(Number(creatorLiqMax) / 10 ** DECIMALS).toString()}
                       tokenBalance={tokenBalance}
                       price={`${initialSupply}`}
-                      isError={false}
+                      isError={!isValid}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                       symbol={tokenSymbol}
+                      hideBalance
                   />
+                  <div className="flex justify-end">
+                    <Subtitle className="text-xs text-white/70 mr-4">
+                      Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
+                    </Subtitle>
+                  </div>
                 </div>
-                {(!!totalRegistrationFee && (totalRegistrationFee > creatorLiqMax)) && (
-                    <p className={`mt-2 text-sm text-primary/90`}>
-                      Max Purchase Spend: {localizeNumber(Number(creatorLiqMax) / 10 ** DECIMALS, "decimal")} USDC
-                    </p>
-                  )}
               </div>
             </div>
           </div>
@@ -361,14 +488,14 @@ ${MADFI_CLUBS_URL}/token/${clubId}
             <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
               Create token
             </Button>
-            <Subtitle>
-              Creating will also make a post from your profile
-            </Subtitle>
-            {(bonsaiNftZkSync > 0n) && (
-              <Subtitle>
-                For being a Bonsai NFT holder, your token will be featured for 48 hours
-              </Subtitle>
-            )}
+            {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
+              ? <Subtitle className="text-primary/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
+              : <>
+                  <Subtitle>
+                    Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
+                  </Subtitle>
+                </>
+            }
           </div>
         </div>
       </form>

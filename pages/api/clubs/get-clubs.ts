@@ -20,13 +20,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const clubs = data?.clubs.map((_club) => {
       const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
       if (!club) return _club;
-      return {
+      const res = {
         ..._club,
         creatorStrategy: club.strategy,
         creatorPubId: club.pubId,
         creatorHandle: club.handle,
         creatorProfileId: club.profileId
       };
+
+      if (_club.v2) { // backwards-compatibility
+        res.token = {
+          name: _club.name,
+          symbol: _club.symbol,
+          image: _club.uri
+        };
+      }
     });
 
     // cache 60s

@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { useInView } from "react-intersection-observer";
 import { useState, useEffect } from "react";
-import { getLensPfp, shortAddress, roundedToFixed } from "@src/utils/utils";
+import { getLensPfp, shortAddress, roundedToFixed, kFormatter } from "@src/utils/utils";
 import { useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import CreatorButton from "@src/components/Creators/CreatorButton";
+import { formatEther } from "viem";
 
 const CreatorPill = () => {
   return (
     <div className="flex h-[18px] items-center justify-center bg-orange text-white px-1 rounded-lg font-semibold text-xs leading-4">
-      CTO
+      CREATOR
     </div>
   )
 }
@@ -31,13 +32,7 @@ const Row = ({ row, supply, creator }) => {
   if (share === "0") share = "<1";
   const creatorName = row.profile?.handle && row.profile?.handle?.localName ? row.profile.handle.localName : shortAddress(row.trader?.id, 6).split("... ")[0];
 
-  const holdingAmount = Number(row.amount);
-  let formattedNumber = "";
-  if (!isNaN(holdingAmount)) {
-    formattedNumber = holdingAmount.toLocaleString();
-  } else {
-    console.error("Invalid number string");
-  }
+  const formattedNumber = kFormatter(parseFloat(formatEther(row.amount.toString())));
   return (
     <tr className={`text-white`}>
       <td className="bg-card rounded-2xl">

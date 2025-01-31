@@ -78,14 +78,13 @@ const Help = () => {
                           <p className="text-lg text-secondary">The most consumer-friendly memecoin launchpad, with a focus on crypto social and agentic integrations</p>
                           <ul className="list-disc pl-5 mt-4 text-lg/70">
                             <li>Bonding curves are priced in USDC for easier fiat onramp</li>
-                            <li>Snipe protection on recently created tokens</li>
-                            <li>Value accrual for $BONSAI holders: graduated token liquidity is swapped into $BONSAI for the Uniswap pool</li>
-                            <li>Utility for Bonsai NFT holders: no trading fees on bonding curves and tokens that graduate to Uniswap v4 (soon)</li>
+                            <li>Sniper protection through early flat pricing and creator-defined vesting</li>
+                            <li>Value accrual for $BONSAI holders: graduated tokens are paired with $BONSAI</li>
+                            <li>Utility for Bonsai NFT holders: no trading fees on bonding curves and tokens that graduate to Uniswap v4</li>
                             <li>Social features with profiles, posts, comments</li>
                           </ul>
                           <p className="text-lg text-secondary pt-8">Creating a token</p>
                           <ul className="list-disc pl-5 mt-4 text-lg/70">
-                            <li>You will need a Lens profile. Mint one {" "}<Link href="https://onboarding.lens.xyz/mint" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">here</span></Link></li>
                             <li>Click on the "Create Token" button on the top right and fill out the form</li>
                             <li>There is a registration fee to prevent spam. On launch, this will be $0 but will soon be increased</li>
                           </ul>
@@ -104,12 +103,15 @@ const Help = () => {
                           <ul className="list-disc pl-5 mt-4 text-lg/70">
                             <li>Bonding curve fees are split between protocol/creator/client and are currently set to 1/1/1 - totaling 3%</li>
                             <li>When tokens graduate to Uniswap, the fee is set to 1.5% and shared with the token creator at a 60/40 split</li>
-                            <li>Bonsai NFT holders pay 0% trading fees on bonding curves and 0% fees on tokens that graduate to Uniswap v4 pools</li>
+                            <li>Bonsai NFT holders pay 0% trading fees on bonding curves and 0% fees on tokens that graduate</li>
                           </ul>
-                          <p className="text-lg text-secondary pt-8">Safety Feaures</p>
-                          <p className="text-lg/70 mt-4 text-secondary">The launchpad has several features to help ensure that launches are fair.</p>
-                          <p className="text-lg/70 mt-4 text-secondary">For the first 2 hours of token creation the bonding curve has Snipe Protection, which limits the total amount of shares that can be bought. This is a global parameter that applies to all traders and has a linear ramp up period over 2 hours.</p>
-                          <p className="text-lg/70 mt-4 text-secondary">Once a token graduates the Uniswap pool is created with 20% of the token supply and the remaining 80% is held for 2 hours before becoming available to claim by bonding curve holders. This claim cooldown period may be adjusted in the future.</p>
+                          <p className="text-lg text-secondary pt-8">Hooks</p>
+                          <p className="text-lg/70 mt-4 text-secondary">Uniswap v4 allows for token pools to be instantiated with Hooks - smart contracts that execute custom logic before or after transfers</p>
+                          <li>Our default hook removes trading fees for Bonsai NFT holders</li>
+                          <li>Hook developers can {" "}
+                            <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
+                              <span className="link-hover cursor-pointer">submit their hook</span>
+                            </Link>{" "}so Bonsai Launchpad users can use it</li>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>
                     </>

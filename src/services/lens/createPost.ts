@@ -9,6 +9,7 @@ import { lensClient, handleBroadcastResult } from "./client";
 import { LENSHUB_PROXY } from "./utils";
 import { LensHubProxy } from "./abi";
 import { Events } from "./events";
+import { Account } from "viem";
 
 const MODULES_ALLOWED_API = !IS_PRODUCTION; // need lens to enable on mainnet
 
@@ -75,6 +76,32 @@ export const createPostMomoka = async (
   const [account] = await walletClient.getAddresses();
   const signedTypedData = await walletClient.signTypedData({
     account,
+    domain: omit(typedData.domain, "__typename"),
+    types: omit(typedData.types, "__typename"),
+    primaryType: "Post",
+    message: omit(typedData.value, "__typename"),
+  });
+
+  const broadcastResult = await lensClient.transaction.broadcastOnMomoka({ id, signature: signedTypedData });
+  return handleBroadcastResult(broadcastResult);
+};
+
+export const createPostMomokaWithAccount = async (
+  account: Account,
+  contentURI: string,
+  authenticatedProfile?: any,
+) => {
+  // gasless + signless if they enabled the lens profile manager
+  if (authenticatedProfile?.signless) {
+    const broadcastResult = await lensClient.publication.postOnMomoka({ contentURI });
+    return handleBroadcastResult(broadcastResult);
+  }
+
+  // gasless with signed type data
+  const typedDataResult = await lensClient.publication.createMomokaPostTypedData({ contentURI });
+  const { id, typedData } = typedDataResult.unwrap();
+
+  const signedTypedData = await account.signTypedData!({
     domain: omit(typedData.domain, "__typename"),
     types: omit(typedData.types, "__typename"),
     primaryType: "Post",

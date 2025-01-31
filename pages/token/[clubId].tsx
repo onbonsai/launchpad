@@ -1,31 +1,35 @@
 import clsx from 'clsx';
 import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
-import { useMemo, useState, ReactNode } from "react";
-import { useAccount, useWalletClient } from "wagmi";
-import { getAddress } from "viem";
+import { useMemo, useState, ReactNode, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { formatUnits, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
-import { last } from "lodash/array";
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
 
 import { Modal } from "@src/components/Modal";
+import { Tooltip } from "@src/components/Tooltip";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById } from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
-import { Header2, Subtitle, BodySemiBold } from "@src/styles/text";
+import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
-import { useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import { FairLaunchModeComponent } from '@pagesComponents/Club/FairLaunchModeComponent';
+import { useGetAvailableBalance, useGetClubSupply, useGetTradingInfo } from '@src/hooks/useMoneyClubs';
+import { releaseLiquidity as releaseLiquidityTransaction } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
-import { trimText } from '@src/utils/utils';
 import { Button } from '@src/components/Button';
+import { ShareClub } from '@src/pagesComponents/Club';
+import { InfoOutlined } from '@mui/icons-material';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -33,6 +37,7 @@ const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: fa
 type Token = {
   name: string;
   symbol: string;
+  description: string;
   image: string;
 };
 
@@ -56,6 +61,11 @@ export type Club = {
   featured: boolean;
   creatorFees: string;
   complete: boolean;
+  completedAt?: number
+  liquidityReleasedAt?: number
+  claimAt: number;
+  cliffPercent: string
+  vestingDuration: string
   tokenAddress?: `0x${string}`;
 };
 
@@ -65,12 +75,6 @@ interface TokenPageProps {
   creatorInfo: any;
   type: string // lens
 }
-
-const profileAddress = (profile, creatorInfoAddress?: string) =>
-  creatorInfoAddress ||
-  profile?.ownedBy?.address ||
-  (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
-  profile?.address;
 
 enum PriceChangePeriod {
   fiveMinutes = '5m',
@@ -85,48 +89,66 @@ const TokenPage: NextPage<TokenPageProps> = ({
   creatorInfo,
   type,
 }: TokenPageProps) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Refresh data every 5 seconds
+    const interval = setInterval(() => {
+      router.replace(router.asPath);
+    }, 10_000);
+
+    return () => clearInterval(interval);
+  }, [router]);
+
   const isMounted = useIsMounted();
-  const { address, isConnected } = useAccount();
-  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
   const { ready } = usePrivy();
-  const { authenticatedProfileId } = useLensSignIn(walletClient);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
+  const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
+  const { data: totalSupply } = useGetClubSupply(club.tokenAddress);
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
-  // const [canFollow, setCanFollow] = useState(false);
-  // const [isFollowed, setIsFollowed] = useState(false);
+  const [isReleasing, setIsReleasing] = useState(false);
+  const fairLaunchMode = totalSupply && totalSupply < FLAT_THRESHOLD;
 
-  // for admin stuff unrelated to lens (ex: livestreams, claim fees)
-  const isCreatorAdmin = useMemo(() => (
-    address && getAddress(creatorInfo?.address) === getAddress(address)
-  ), [creatorInfo, address]);
+  const vestingInfo = useMemo(() => {
+    const vestingDurationInHours = parseInt(club.vestingDuration) / 3600;
+    const vestingDurationInDays = vestingDurationInHours / 24;
+    const vestingDurationInWeeks = vestingDurationInDays / 7;
 
-  // const onFollowClick = async (e: React.MouseEvent) => {
-  //   e.preventDefault();
+    let vestingDurationString = `${vestingDurationInHours} hours`;
 
-  //   if (type === "farcaster") {
-  //     window.open(`https://warpcast.com/${profile.username}`, "_blank");
-  //     return;
-  //   }
+    if (vestingDurationInWeeks >= 1) {
+      vestingDurationString = `${vestingDurationInWeeks} weeks`;
+    } else if (vestingDurationInDays >= 1) {
+      vestingDurationString = `${vestingDurationInDays} days`;
+    }
 
-  //   if (!isAuthenticated) return;
-
-  //   const toastId = toast.loading("Following...");
-  //   try {
-  //     await followProfile(walletClient, (profile as ProfileFragment).id);
-  //     setIsFollowed(true);
-  //     toast.success("Followed", { id: toastId });
-  //   } catch (error) {
-  //     console.log(error);
-  //     toast.error("Unable to follow", { id: toastId });
-  //   }
-  // };
+    return `${parseInt(club.cliffPercent) / 100}% cliff; linear vesting over ${vestingDurationString}`;
+  }, [club]);
 
   if (!isMounted) return null;
+
+  const releaseLiquidity = async () => {
+    let toastId;
+    setIsReleasing(true)
+
+    try {
+      toastId = toast.loading("Creating pool...");
+      // also triggers token swap in the backend
+      const token = await releaseLiquidityTransaction(club.clubId.toString());
+      toast.success('Pool created!', { id: toastId });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create the pool", { id: toastId });
+      setIsReleasing(false)
+    }
+    setIsReleasing(false)
+  };
 
   if (!ready)
     return (
@@ -139,17 +161,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
-  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean }> = ({ title, subtitle, roundedLeft, roundedRight }) => (
-    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl')}>
+  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
       <Subtitle className="text-xs">{title}</Subtitle>
       <span>{subtitle}</span>
-    </div>
-  );
-
-  const InfoLine: React.FC<{ title: string; subtitle: ReactNode }> = ({ title, subtitle }) => (
-    <div className={clsx("flex flex-col items-start justify-center gap-[2px]")}>
-      <Subtitle>{title}</Subtitle>
-      <BodySemiBold>{subtitle}</BodySemiBold>
     </div>
   );
 
@@ -163,26 +178,39 @@ const TokenPage: NextPage<TokenPageProps> = ({
     );
   }
 
-  const infoCardRow = () => (
-    <>
-      <InfoCard title='5m' subtitle={
-        <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
-      }
-        roundedLeft
-      />
-      <InfoCard title='1h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.oneHour} />
-      } />
-      <InfoCard title='6h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.sixHours} />
-      } />
-      <InfoCard title='24h' subtitle={
-        <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
-      }
-        roundedRight
-      />
-    </>
-  );
+  const infoCardRow = () => {
+    if (fairLaunchMode) {
+      return (
+        <InfoCard title="Phase" className="animate-pulse ml-2" subtitle="Fair Launch"
+          roundedRight
+          roundedLeft
+        />
+      )
+    }
+
+    return (
+      <>
+        <InfoCard title='5m' subtitle={
+          <PriceChangeString period={PriceChangePeriod.fiveMinutes} />
+        }
+          roundedLeft
+        />
+        <InfoCard title='1h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.oneHour} />
+        } />
+        <InfoCard title='6h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.sixHours} />
+        } />
+        <InfoCard title='24h' subtitle={
+          <PriceChangeString period={PriceChangePeriod.twentyFourHours} />
+        }
+          roundedRight
+        />
+      </>
+    )
+  }
+
+  console.log(club)
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -213,17 +241,22 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <img
                           src={club.token.image}
                           alt={club.token.name}
-                          className="w-[48px] h-[48px] object-cover rounded-xl"
+                          className="w-[64px] h-[64px] object-cover rounded-xl"
                         />
                         <div className="flex flex-col ml-2">
                           <div className="flex flex-row justify-between gap-x-8 w-full">
                             <div className="flex flex-col">
-                              <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                              <BodySemiBold className="text-white/60 font-medium">{club.token.name}</BodySemiBold>
+                              <div className="flex flex-row space-x-4">
+                                <Header2 className={"text-white"}>${club.token.symbol}</Header2>
+                                <div className="ml-4 -mt-[6px]">
+                                  <ShareClub clubId={club.clubId} symbol={club.token.name} />
+                                </div>
+                              </div>
+                              <BodySemiBold className="text-white/60 -mt-2">{club.token.name}</BodySemiBold>
                             </div>
-                            {club.complete && club.tokenAddress && (
-                              <div className="flex flex-col">
-                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress} /></p>
+                            {!!club.liquidityReleasedAt && (
+                              <div className="flex flex-col ml-20">
+                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress!} /></p>
                                 <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
                                     Dexscreener
@@ -233,11 +266,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             )}
                           </div>
                         </div>
-                        {club.featured && (
-                          <span className="text-xl font-bold gradient-txt ml-4 h-[51px] w-[110px] flex items-start italic">
-                            Featured
-                          </span>
-                        )}
                       </div>
 
                       <div className="flex flex-row items-center gap-2">
@@ -266,44 +294,86 @@ const TokenPage: NextPage<TokenPageProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className='px-0 md:px-3'>
+                <div className='px-4 md:px-3 mt-2 space-y-1'>
+                  <Subtitle className="items-start">{club.token.description}</Subtitle>
+                  <SmallSubtitle className="items-start text-[12px]">{vestingInfo}</SmallSubtitle>
+                </div>
+                <div className='px-0'>
                   <InfoComponent
                     club={club}
                     address={address}
                     tradingInfo={tradingInfo}
+                    totalSupply={totalSupply}
                   />
-                  {club.complete ?
+                  {club.completedAt && club.liquidityReleasedAt ?
                     <div className="flex flex-col w-[100%] justify-center items-center mt-20">
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
                         <Button variant="accentBrand" className="text-white mt-4">
                           View on Dexscreener
                         </Button>
                       </a>
+                      <div className='mt-6 text-center'>
+                        <p className='text-xl'>Available balance: {localizeNumber(formatUnits(vestingData?.availableBalance || 0n, 18), "decimal")}</p>
+                        <p className='text-xl'>Vesting balance: {localizeNumber(formatUnits(vestingData?.vestingBalance || 0n, 18), "decimal")}</p>
+                        <p className='text-xl'>Total balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
+                        <hr className='my-4 opacity-70' />
+                        <p className='mt-4 text-md'>Vesting Complete: {new Date((club.liquidityReleasedAt + Number(club.vestingDuration)) * 1000).toLocaleString()}</p>
+                      </div>
                     </div>
-                    : <>
-                      <Script
-                        src="/static/datafeeds/udf/dist/bundle.js"
-                        strategy="lazyOnload"
-                        onReady={() => {
-                          setIsScriptReady(true);
-                        }}
-                      />
-                      <div className='border border-card bg-card-light rounded-2xl mt-5'>
-                        <div className="rounded-2xl m-2 overflow-hidden">
-                          {isScriptReady && <Chart symbol={club.token.symbol} />}
+                    : club.complete ?
+                      <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                        <Header2 className="text-white font-medium">
+                          ${club.token.symbol} is ready to graduate!
+                        </Header2>
+                        <p className='mt-4 max-w-lg text-center'>${club.token.symbol} will be released shortly to Uniswap where it will be live for trading and existing token balances will begin to unlock.</p>
+                        {/* <Button variant="accentBrand" className="text-white mt-8 mb-4" onClick={releaseLiquidity} disabled={isReleasing}>
+                          Release liquidity
+                        </Button> */}
+
+                        <div className='mt-6 text-center'>
+                          <p className='text-xl mb-4'>Your balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
+                          <p>{Number(club.cliffPercent) / 100}% will be available immediately</p>
+                          <p>The remainder will vest over {
+                            Math.floor(Number(club.vestingDuration) / 86400) > 0
+                              ? `${Math.floor(Number(club.vestingDuration) / 86400)} days and `
+                              : ''
+                          }{Math.floor((Number(club.vestingDuration) % 86400) / 3600)} hours</p>
                         </div>
                       </div>
-                    </>
+                      : !fairLaunchMode ?
+                          <>
+                            <Script
+                              src="/static/datafeeds/udf/dist/bundle.js"
+                              strategy="lazyOnload"
+                              onReady={() => {
+                                setIsScriptReady(true);
+                              }}
+                            />
+                            <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                              <div className="rounded-2xl m-2 overflow-hidden">
+                                {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
+                              </div>
+                            </div>
+                          </>
+                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                            <Header2 className="text-white font-medium">
+                              ${club.token.symbol} is still in Fair Launch!
+                            </Header2>
+                            <Subtitle className="mt-2">
+                              Token price will not change until 200mil tokens are minted.
+                            </Subtitle>
+                            <FairLaunchModeComponent club={club} totalSupply={totalSupply} />
+                          </div>
                   }
                 </div>
-                {!club.complete && <BottomInfoComponent club={club} address={address} />}
+                {!club.complete && <BottomInfoComponent club={club} address={address} totalSupply={totalSupply} />}
               </div>
 
               {/* Feed/Trades/Holders */}
-              <div className="md:col-span-1 max-h-[90vh] mb-[100px] md:mb-0 relative">
+              <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                 <div className="mb-4">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} />
                 </div>
@@ -376,7 +446,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })()
   ]);
 
-  clubSocial.featured = !!clubSocial?.featureStartAt && (Date.now() / 1000) < (parseInt(clubSocial.featureStartAt) + BENEFITS_AUTO_FEATURE_HOURS * 60 * 60);
+  clubSocial.featured = !!clubSocial?.featureEndAt && (Date.now() / 1000) < parseInt(clubSocial.featureEndAt);
   const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
 
   return {

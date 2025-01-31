@@ -20,7 +20,7 @@ const STAGING_URLS = {
   ethExplorer: "https://mumbai.polygonscan.com",
   lensAPI: "https://api-v2-mumbai-live.lens.dev/",
   madfiSubgraph: "https://api.thegraph.com/subgraphs/name/mad-finance/testnet-madfi-subgraph",
-  madfiSubgraphBase: "https://api.studio.thegraph.com/query/18207/madfi-subgraph-base/version/latest",
+  madfiSubgraphBase: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest",
   storjGateway: "https://www.storj-ipfs.com",
 };
 
@@ -35,7 +35,7 @@ const DEV_URLS = {
   lensAPIv2: "https://api-v2-mumbai.lens.dev",
   // @TODO: replace with mumbai
   madfiSubgraph: "http://localhost:8000/subgraphs/name/imthatcarlos/madfi-subgraph",
-  madfiSubgraphBase: "",
+  madfiSubgraphBase: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest",
   storjGateway: "https://www.storj-ipfs.com",
 };
 

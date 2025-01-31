@@ -49,7 +49,7 @@ export const ClaimFeesEarned = () => {
 
   const creatorFeesFormatted = useMemo(() => {
     if (creatorFeesEarned) {
-      return localizeNumber(parseFloat(formatUnits(BigInt(creatorFeesEarned.toString()), USDC_DECIMALS)), undefined, 2);
+      return localizeNumber(parseFloat(formatUnits(BigInt((creatorFeesEarned.feesEarned + creatorFeesEarned.clubFeesTotal).toString()), USDC_DECIMALS)), undefined, 2);
     }
 
     return '0.00';
@@ -72,7 +72,7 @@ export const ClaimFeesEarned = () => {
 
     try {
       toastId = toast.loading("Claiming", { id: toastId });
-      await withdrawFeesEarned(walletClient);
+      await withdrawFeesEarned(walletClient, creatorFeesEarned?.feesEarned || 0n, creatorFeesEarned?.clubFees ? creatorFeesEarned?.clubFees.map(club => BigInt(club.id)) : []);
 
       refetch();
 
@@ -87,7 +87,7 @@ export const ClaimFeesEarned = () => {
     setIsClaiming(false);
   }
 
-  const disabled = !isConnected || isLoading || creatorFeesEarned === 0n || isClaiming;
+  const disabled = !isConnected || isLoading || (creatorFeesEarned?.feesEarned === 0n && creatorFeesEarned?.clubFeesTotal === 0n ) || isClaiming;
 
   return (
     <div ref={containerRef} className="relative inline-block">
@@ -106,6 +106,7 @@ export const ClaimFeesEarned = () => {
       {showTooltip && (
         <EarningsTooltip
           creatorFeesFormatted={creatorFeesFormatted}
+          creatorFeesEarned={creatorFeesEarned}
           disabled={disabled}
           claimFeesEarned={claimFeesEarned}
         />
@@ -114,7 +115,10 @@ export const ClaimFeesEarned = () => {
   );
 };
 
-const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) => {
+const EarningsTooltip = ({ creatorFeesFormatted, creatorFeesEarned, disabled, claimFeesEarned }) => {
+  const formatFee = (value: bigint) => 
+    localizeNumber(parseFloat(formatUnits(value, USDC_DECIMALS)), undefined, 2);
+
   return (
     <div className="fixed mt-2 right-4 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]">
       <Header2>
@@ -123,6 +127,18 @@ const EarningsTooltip = ({ creatorFeesFormatted, disabled, claimFeesEarned }) =>
       <Subtitle className="pt-2">
         Earned from creator & referral fees
       </Subtitle>
+
+      <div className="pt-4 space-y-2">
+        <div className="flex justify-between text-sm text-secondary/70">
+          <span>Creator fees:</span>
+          <span>{formatFee(creatorFeesEarned?.feesEarned || 0n)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-secondary/70">
+          <span>Club referrals:</span>
+          <span>{formatFee(creatorFeesEarned?.clubFeesTotal || 0n)}</span>
+        </div>
+      </div>
+
       <div className="pt-4 w-full">
         <Button variant="accent" className="w-full" disabled={disabled} onClick={claimFeesEarned}>
           Claim

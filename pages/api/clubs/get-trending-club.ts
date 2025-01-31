@@ -31,9 +31,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       })()
     ]);
 
-    const [name, symbol, image] = decodeAbiParameters([
-      { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-    ], club.tokenInfo);
+    let { name, symbol, uri: image } = club
+
+    if (!club.name || !club.symbol || !club.uri){
+      // backup for v1 clubs
+      [name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
     club.marketCap = formatUnits(BigInt(club.supply) * BigInt(club.currentPrice), DECIMALS).split(".")[0];
 
     club.token = {

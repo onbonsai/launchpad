@@ -1,17 +1,15 @@
 import { inter } from "@src/fonts/fonts";
-import { useMemo, useState, useEffect, useRef } from "react";
-import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { formatUnits, parseUnits, erc721Abi, parseEther, formatEther } from "viem";
+import { useMemo, useState } from "react";
+import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
+import { formatUnits, parseEther, parseUnits } from "viem";
 import toast from "react-hot-toast";
-import Link from "next/link";
-import { InformationCircleIcon } from "@heroicons/react/solid";
 import ConfettiExplosion from 'react-confetti-explosion';
+import clsx from "clsx";
 
 import { Button } from "@src/components/Button"
 import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
 import {
   useGetSellPrice,
-  useGetClubLiquidity,
   useGetBuyAmount,
 } from "@src/hooks/useMoneyClubs";
 import {
@@ -21,23 +19,15 @@ import {
   USDC_DECIMALS,
   buyChips as buyChipsTransaction,
   sellChips as sellChipsTransaction,
-  claimTokens as claimTokensTransaction,
   approveToken,
-  BONSAI_NFT_BASE_ADDRESS,
-  releaseLiquidity as releaseLiquidityTransaction,
-  MIN_LIQUIDITY_THRESHOLD,
+  MAX_MINTABLE_SUPPLY,
 } from "@src/services/madfi/moneyClubs";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import Countdown from "@src/components/Countdown";
-import { Tooltip } from "@src/components/Tooltip";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
-import { Header2, Subtitle } from "@src/styles/text";
-import clsx from "clsx";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
+import { localizeNumber } from "@src/constants/utils";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -59,42 +49,16 @@ export const BuySellWidget = ({
   const [sellAmount, setSellAmount] = useState<string>('');
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
-  const [isReleased, setIsReleased] = useState(false);
-  const [tokenAddress, setTokenAddress] = useState(club.tokenAddress);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.clubId, buyPrice);
-  const { buyAmount, maxAllowed } = buyAmountResult || {};
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
+  const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
-  const { data: clubLiquidity, refetch: refetchClubLiquidity } = useGetClubLiquidity(club?.clubId);
-  const minLiquidityThreshold = MIN_LIQUIDITY_THRESHOLD;
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
-  const [claimEnabled, setClaimEnabled] = useState(false);
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
-  const isBuyMax = parseFloat(buyPrice) > parseFloat(formatUnits(maxAllowed || 0n, USDC_DECIMALS));
   const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
-
-  const { data: bonsaiBalanceNFT } = useReadContract({
-    address: BONSAI_NFT_BASE_ADDRESS,
-    abi: erc721Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address!],
-    query: { enabled: !!address }
-  });
-
-  useEffect(() => {
-    let isClaimEnabled;
-    // TODO: not present?
-    if (club.claimAt) {
-      isClaimEnabled = (Date.now() / 1000) >= club.claimAt;
-    } else if (club.completedAt) {
-      isClaimEnabled = (Date.now() / 1000) - club.completedAt > 2 * 60 * 60;
-    }
-    setClaimEnabled(isClaimEnabled);
-  }, [club.completedAt, club.claimAt]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
@@ -111,20 +75,6 @@ export const BuySellWidget = ({
     // }
     return !!sellAmount && parseUnits(sellAmount, DECIMALS) > clubBalance!;
   }, [club, sellAmount, clubBalance]);
-
-  const bonded = useMemo(() => (
-    clubLiquidity && minLiquidityThreshold && clubLiquidity >= (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS)
-  ), [clubLiquidity, minLiquidityThreshold]);
-
-  const tokensToClaim = useMemo(() => {
-    if (club?.complete && clubBalance > 0n) {
-      return kFormatter(parseFloat(formatEther(clubBalance * parseEther("800000000") / BigInt(club.supply))))
-    }
-  }, [club, clubBalance]);
-
-  const claimEnabledAtDate = club.completedAt
-    ? new Date((club.completedAt + 2 * 60 * 60) * 1000)
-    : (bonded ? new Date((Math.floor(Date.now() / 1000) + 2 * 60 * 60) * 1000) : null);
 
   const buyChips = async (e) => {
     e.preventDefault();
@@ -143,16 +93,18 @@ export const BuySellWidget = ({
     }
 
     try {
-      await approveToken(USDC_CONTRACT_ADDRESS, parseUnits(buyPrice, USDC_DECIMALS), walletClient, toastId);
+      const buyPriceBigInt = parseUnits(buyPrice, USDC_DECIMALS)
+      const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
+      await approveToken(USDC_CONTRACT_ADDRESS, maxPrice, walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, referralAddress);
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
-      setTimeout(refetchClubPrice, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Bought ${formatUnits(buyAmount!, DECIMALS)} $${club.token.symbol}`, { duration: 10000, id: toastId });
+      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
       setJustBought(true);
       setShowConfetti(true);
       setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));
@@ -182,11 +134,11 @@ export const BuySellWidget = ({
 
     try {
       toastId = toast.loading("Selling...");
-      await sellChipsTransaction(walletClient, club.clubId, sellAmount!);
+      const minAmountOut = (sellPriceAfterFees || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
+      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
 
-      refetchClubLiquidity();
       setTimeout(refetchClubBalance, 5000);
-      setTimeout(refetchClubPrice, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Sold ${sellAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
     } catch (error) {
@@ -196,130 +148,13 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
-  const claimTokens = async () => {
-    setIsBuying(true);
-    let toastId;
-
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
-      try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
-      } catch {
-        toast.error("Please switch networks");
-        setIsBuying(false);
-        return;
-      }
-    }
-
-    try {
-      toastId = toast.loading("Claiming tokens...");
-      // also triggers token swap in the backend
-      await claimTokensTransaction(walletClient, club.clubId);
-      toast.success('Tokens claimed!', { id: toastId });
-      setShowConfetti(true);
-      // Remove confetti after 5 seconds
-      setTimeout(() => setShowConfetti(false), 5000);
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to claim tokens", { id: toastId });
-    }
-    setIsBuying(false);
-  }
-
-  const releaseLiquidity = async () => {
-    setIsBuying(true);
-    let toastId;
-
-    try {
-      toastId = toast.loading("Creating pool...");
-      // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.clubId);
-      setIsReleased(true);
-      setTokenAddress(token);
-      toast.success('Pool created!', { id: toastId });
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to create the pool", { id: toastId });
-    }
-    setIsBuying(false);
-  };
-
   const urlEncodedPostParams = () => {
     const params = {
-      text: `Just aped into $${club.token.symbol}!
+      text: `Just aped into $${club.token.symbol} on Launch @bonsai
 ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();
-  }
-
-  if (club.complete && tokenAddress) {
-    return (
-      <div className={clsx("flex flex-col items-center justify-center w-full md:-mt-4", inter.className)}>
-        <div className="text-center pt-12">
-          <HeaderText>
-            ${club.token.symbol}/BONSAI pool is live
-          </HeaderText>
-          <Header2Text>
-            <Link href={`https://dexscreener.com/base/${tokenAddress}`} target="_blank" rel="noreferrer">
-              <span className="text-grey link-hover cursor-pointer">View on Dexscreener</span>
-            </Link>
-          </Header2Text>
-        </div>
-        {clubBalance > 0n && (
-          <div className="flex flex-col items-center justify-center space-y-2 mt-4 w-full">
-            <p className="text-2xl gradient-txt mb-2">
-              {`You will claim: ${tokensToClaim} $${club.token.symbol} tokens`}
-            </p>
-            {claimEnabled && (
-              <div className="w-full flex justify-center">
-                <Button
-                  variant="accent"
-                  className="mb-2 md:mb-0 text-base"
-                  onClick={claimTokens}
-                >
-                  Claim Tokens
-                </Button>
-              </div>
-            )}
-            {!claimEnabled && claimEnabledAtDate && (
-              <div className="w-full flex justify-center">
-                <Countdown
-                  date={claimEnabledAtDate}
-                  onComplete={() => setClaimEnabled(true)}
-                  label={"Claim tokens in"}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    )
-  } else if (club.complete || bonded) {
-    console.log(club.complete, bonded, club.tokenAddress, isReleased);
-    return (
-      <div className={clsx("flex flex-col items-center justify-center w-full h-[190px] md:-mt-4", inter.className)}>
-        <div className="text-center">
-          <p className="mt-12 text-md text-secondary/70">
-            ${club.token.symbol} has bonded & anyone can create the pool.<br /> After 2 hours, token claims will be enabled.
-          </p>
-        </div>
-        {(club.complete || bonded) && !club.tokenAddress && !isReleased && (
-          <div className="flex justify-center space-y-2 mt-8">
-            {!club.tokenAddress && (
-              <Button
-                variant="accentBrand"
-                className="mb-2 md:mb-0 text-base hover:bg-bullish"
-                onClick={releaseLiquidity}
-                disabled={isBuying}
-              >
-                Create Pool
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -350,7 +185,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
                         price={buyPrice}
-                        isError={(!isLoadingBuyAmount && isBuyMax) || notEnoughFunds}
+                        isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
                         symbol="USDC"
                         showMax
@@ -367,63 +202,41 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       <CurrencyInput
                         tokenImage={club.token.image}
                         tokenBalance={clubBalance}
-                        price={`${buyAmount ? formatUnits(buyAmount, DECIMALS) : 0.0}`}
+                        price={`${buyPrice && buyAmount ? formatUnits(buyAmount, DECIMALS) : 0}`}
                         isError={false}
                         onPriceSet={() => {
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
-                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 12)}
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
+                        disabled
                       />
-
-                      {notEnoughFunds && (
-                        <div className="w-full flex justify-center items-center">
-                          <Button
-                            variant={"primary"}
-                            size='md'
-                            className="mt-[16px] w-[50%]"
-                            onClick={() => {
-                              const buyPriceSmallest = parseUnits(buyPrice || '0', USDC_DECIMALS);
-                              // Add 5% to buffer for fees
-                              const buyPriceWithBuffer = (buyPriceSmallest * 105n) / 100n;
-                              const balanceNeededSmallest = buyPriceWithBuffer - tokenBalance;
-                              if (balanceNeededSmallest < 0n) {
-                                throw new Error("Insufficient balance. Token balance exceeds buy price.");
-                              }
-                              const balanceNeeded = formatUnits(balanceNeededSmallest, USDC_DECIMALS);
-                              onBuyUSDC(buyPrice, balanceNeeded);
-                            }}
-                          >
-                            Buy more USDC
-                          </Button>
-                        </div>
-                      )}
-
-                      {(!isLoadingBuyAmount && isBuyMax) && (
-                        <div className="mt-3 flex justify-start text-secondary/70 text-xs cursor-pointer" onClick={() => setBuyPrice(formatUnits(maxAllowed || 0n, USDC_DECIMALS))}>
-                          <p className="text-bearish">Max Allowed: {formatUnits(maxAllowed || 0n, USDC_DECIMALS)}{" USDC"}</p>
-                          <Tooltip message="The first 2 hours of a token launch has snipe protection to limit buy orders" direction="top">
-                            <InformationCircleIcon
-                              width={14}
-                              height={14}
-                              className="inline-block -mt-1 text-secondary ml-2"
-                            />
-                          </Tooltip>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-primary/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
                 {!justBought && (
-                  <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
-                    Buy ${club.token.symbol}
-                  </Button>
+                  <>
+                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
+                      Buy ${club.token.symbol}
+                    </Button>
+                    <Button
+                      variant={"primary"}
+                      size='md'
+                      className="w-full"
+                      onClick={() => {
+                        onBuyUSDC(buyPrice, "100");
+                      }}
+                    >
+                      Get USDC
+                    </Button>
+                  </>
                 )}
                 {justBought && (
                   <div className="w-full flex flex-col items-center space-y-4">
-                    <p className="text-center gradient-txt">{`You bought ${justBoughtAmount} $${club.token.symbol}!`}</p>
+                    <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
                     <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -433,7 +246,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={tweetIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol}!`,
+                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -442,7 +255,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol}!`,
+                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -486,10 +299,11 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       <CurrencyInput
                         tokenImage='/usdc.png'
                         tokenBalance={tokenBalance}
-                        price={sellPriceFormatted}
+                        price={sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
                         isError={false}
                         onPriceSet={() => { }}
                         symbol="USDC"
+                        disabled
                       />
                       {/* <div className="relative">
                         <input
@@ -529,8 +343,6 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                   Sell ${club.token.symbol}
                 </Button>
               </div>
-              {/* TODO: use custom hook to fetch this supply and refetch every 15s */}
-              {club.supply != "0" && club.supply == (Number(sellAmount) * 1e6) && <p className="mt-2 text-bearish max-w-xs text-xs">You can't sell the last chip from the club. Decrease your input by 0.000001</p>}
             </div>
           </div>
         )}
@@ -572,9 +384,9 @@ const Tabs = ({ openTab, setOpenTab }) => {
             focus:outline-none focus:ring-0`,
             )}
           >
-            <Header2 className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
+            <Header2Text className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
               Buy
-            </Header2>
+            </Header2Text>
           </button>
         </li>
         <li className="nav-item" role="presentation">
@@ -591,9 +403,9 @@ const Tabs = ({ openTab, setOpenTab }) => {
             focus:outline-none focus:ring-0`,
             )}
           >
-            <Header2 className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
+            <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
               Sell
-            </Header2>
+            </Header2Text>
           </button>
         </li>
       </ul>

@@ -1,4 +1,3 @@
-export * from "./TokenCard";
 export * from "./Feed";
 export * from "./Tabs";
 export * from "./BuySellWidget";
@@ -7,3 +6,4 @@ export * from "./Trades";
 export * from "./HolderDistribution";
 export * from "./InfoComponent";
 export * from "./Chart";
+export * from "./ShareClub";

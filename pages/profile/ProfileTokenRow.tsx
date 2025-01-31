@@ -1,7 +1,7 @@
 import Link from "next/link";
 import clsx from 'clsx';
 import { Button } from "@src/components/Button";
-import { DECIMALS, calculatePriceDelta } from '@src/services/madfi/moneyClubs';
+import { DECIMALS, V1_LAUNCHPAD_URL, calculatePriceDelta } from '@src/services/madfi/moneyClubs';
 import { BodySemiBold, Subtitle } from '@src/styles/text';
 import { kFormatter, roundedToFixed } from '@src/utils/utils';
 import React from 'react'
@@ -60,9 +60,13 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
         }
     };
 
+    const link = holding?.club.v2
+        ? `/token/${holding?.club?.clubId}`
+        : `${V1_LAUNCHPAD_URL}/token/${holding?.club?.clubId}`;
+
     return (
-                <Link href={`/token/${holding?.club?.clubId}`} legacyBehavior target="_blank" >
-        <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
+        <Link href={link} legacyBehavior target="_blank">
+            <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
                 <div className="flex flex-row items-center">
                     <img src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-xl' />
                     <div className="flex flex-col justify-center ml-2 gap-[2px]">
@@ -72,8 +76,8 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                         <Subtitle>
                             {
                                 holding?.club.complete
-                                    ? kFormatter(parseFloat(formatEther(holding?.amount ?? 0n)))
-                                    : roundedToFixed(parseFloat(formatUnits(holding?.amount ?? 0n, DECIMALS)), 2)
+                                    ? kFormatter(parseFloat(holding?.amount ?? 0n))
+                                    : roundedToFixed(parseFloat(holding?.amount ?? 0n), 2)
                             }
                             {" "}{holding?.token.symbol}
                         </Subtitle>

@@ -1,26 +1,20 @@
 import { NextPage } from "next";
-import { ReactNode, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import { Profile, Theme } from "@madfi/widgets-react";
 import Link from "next/link";
-import { erc20Abi, erc721Abi, formatEther } from "viem";
+import { erc20Abi } from "viem";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
 import CreatorCopy from "@src/components/Lens/CreatorCopy";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { useGetRegisteredClubs } from "@src/hooks/useMoneyClubs";
-import { ClubList, CreateClub, Holdings } from "@src/pagesComponents/Dashboard";
-import { BONSAI_TOKEN_BASE_ADDRESS, BONSAI_NFT_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
-import { Tooltip } from "@src/components/Tooltip";
+import { useGetRegisteredClubs, useGetFeaturedClubs } from "@src/hooks/useMoneyClubs";
+import { ClubList, Holdings } from "@src/pagesComponents/Dashboard";
+import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
-import { Header, Header2, Subtitle } from "@src/styles/text";
-import { CheckIcon } from "@heroicons/react/outline";
-import BulletCheck from "@src/components/Icons/BulletCheck";
-import { Button } from "@src/components/Button";
+import { Header2, Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
@@ -32,7 +26,6 @@ const IndexPage: NextPage = () => {
   const isMounted = useIsMounted();
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
-  const [page, setPage] = useState(0);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
   const {
     data,
@@ -40,10 +33,10 @@ const IndexPage: NextPage = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
   } = useGetRegisteredClubs(sortedBy);
+  const { data: featuredClubs, isLoading: isLoadingFeaturedClubs } = useGetFeaturedClubs();
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
-  const clubs = data?.pages.flatMap(page => page.clubs) || [];
+  const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -53,18 +46,6 @@ const IndexPage: NextPage = () => {
     args: [address!],
     query: { enabled: !!address }
   });
-  const { data: bonsaiBalanceNFT, isLoading: isLoadingNFT } = useReadContract({
-    address: BONSAI_NFT_BASE_ADDRESS,
-    abi: erc721Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address!],
-    query: { enabled: !!address }
-  });
-
-  // const isDesktopOrLaptop = useMediaQuery({
-  //   query: "(min-width: 1024px)",
-  // });
 
   // fix hydration issues
   if (!isMounted) return null;
@@ -76,7 +57,8 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-7 max-w-full">
-                {isLoading
+                {/* return the featured clubs asap, then load the rest */}
+                {isLoadingFeaturedClubs
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <ClubList
                     clubs={clubs}
@@ -103,23 +85,6 @@ const IndexPage: NextPage = () => {
                         <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
                       </>
                     }
-                    {/* <div className="mt-4">
-                      <Link href={`/profile/${authenticatedProfile.handle?.localName}`} passHref legacyBehavior>
-                        <a style={{ cursor: "pointer" }}>
-                          <Profile
-                            profileData={authenticatedProfile}
-                            theme={Theme.dark}
-                            onClick={() => { }}
-                            environment={LENS_ENVIRONMENT}
-                            hideFollowButton={true}
-                            containerStyle={{ width: "100%" }}
-                            followButtonDisabled={true}
-                            renderMadFiBadge={false}
-                            skipFetchFollowers={true}
-                          />
-                        </a>
-                      </Link>
-                    </div> */}
                   </div>
                 )}
 

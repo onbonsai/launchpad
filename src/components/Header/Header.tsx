@@ -16,6 +16,7 @@ import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { Header as HeaderText } from "@src/styles/text";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 const headerLinks = [
   // add any top-level nav links here
@@ -28,6 +29,7 @@ export const Header = () => {
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
 
   if (!isMounted) return null;
 
@@ -35,8 +37,8 @@ export const Header = () => {
     <header className="sticky top-0 z-[100] bg-black border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         {/* Top row */}
-        <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6">
-          <div className="flex items-center w-[33%]">
+        <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6 justify-between">
+          <div className="flex items-center justify-start w-[33%]">
             <div className="w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
@@ -51,12 +53,14 @@ export const Header = () => {
           </div>
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}
-          <div className="hidden lg:flex justify-center items-center w-[33%]">
-            <SearchClubs />
-          </div>
+          {!isMobile && (
+            <div className="flex justify-center items-center w-[25%]">
+              <SearchClubs />
+            </div>
+          )}
 
           {/* Right side of header */}
-          <div className="flex items-center justify-end w-[100%]">
+          <div className="flex items-center justify-end md:w-[33%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
@@ -87,9 +91,11 @@ export const Header = () => {
         </div>
 
         {/* Mobile-only: Search bar on second line */}
-        <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-          <SearchClubs />
-        </div>
+        {isMobile && (
+          <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
+            <SearchClubs />
+          </div>
+        )}
       </nav>
 
       {/* Mobile Menu Dropdown */}
@@ -134,16 +140,19 @@ export const Header = () => {
           Bonsai Launchpad
         </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
-          Tokens start on a bonding curve until they graduate ($69k mcap or ~$23k in liquidity). You buy "units" which represent your portion of the total supply. Your full token allocation will be shown after graduation.
+          Tokens start on a bonding curve until they graduate ($100k mcap or ~$21k in liquidity).
+        </p>
+        <p className="mt-4 text-xl text-secondary/70">
+          The first 200 million tokens are available at a flat price to reduce the effect of snipers and then the bonding curve kicks in, increasing the price until the full supply is minted.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Built on Base. Bonding curves are priced in USDC ($)
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate to Uniswap
+          Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $69k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uni v3 (v4 soon). Holders must wait 2 hours to claim their tokens; this is to protect from rugs and put the token in buy-only mode.
+          When a token reaches $100k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uniswap v4. Tokens vest linearly becoming available to transfer over a period of time in order to reduce the power of rugs and snipers. Vesting parameters are set by the token creator.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.

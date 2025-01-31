@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
-import { getAddress, createPublicClient, http } from "viem";
+import { getAddress, createPublicClient, http, zeroAddress } from "viem";
 import { mainnet } from 'viem/chains'
 import { groupBy } from "lodash/collection";
 import { createEnsPublicClient } from '@ensdomains/ensjs'
@@ -10,6 +10,7 @@ import {
   getRegisteredClubById,
   getVolume,
   getBalance,
+  getAvailableBalance,
   getBuyPrice,
   getSellPrice,
   getFeesEarned,
@@ -18,8 +19,10 @@ import {
   getTrades,
   getHoldings,
   getClubHoldings,
-  getLiquidity,
+  getSupply,
   getBuyAmount,
+  getFeaturedClubs,
+  searchClubs,
 } from "@src/services/madfi/moneyClubs";
 import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
@@ -39,6 +42,22 @@ export const useRegisteredClub = (handle?: string, profileId?: string) => {
     queryFn: () => getRegisteredClub(handle!, profileId),
     enabled: !!handle || !!profileId,
     staleTime: 10000,
+    gcTime: 60000,
+  });
+};
+
+export const useGetFeaturedClubs = () => {
+  return useQuery({
+    queryKey: ["featured-clubs"],
+    queryFn: async () => {
+      const clubs = await getFeaturedClubs();
+      return clubs.map((club) => ({
+        publication: club.publication,
+        club: omit(club, 'publication'),
+      }));
+    },
+    refetchInterval: 60000,
+    staleTime: 60000,
     gcTime: 60000,
   });
 };
@@ -83,11 +102,11 @@ export const useGetClubVolume = (clubId?: string) => {
   });
 };
 
-export const useGetClubLiquidity = (clubId?: string) => {
+export const useGetClubSupply = (tokenAddress?: string) => {
   return useQuery({
-    queryKey: ["club-liquidity", clubId],
-    queryFn: () => getLiquidity(clubId!),
-    enabled: !!clubId,
+    queryKey: ["club-supply", tokenAddress],
+    queryFn: () => getSupply(tokenAddress! as `0x${string}`),
+    enabled: !!tokenAddress,
     refetchInterval: 15000, // fetch every 15seconds
     staleTime: 15000,
     gcTime: 15000,
@@ -100,32 +119,34 @@ const useTraderProfiles = (traders?: string[]) => {
     queryFn: async () => {
       if (!traders?.length) return {};
       const profiles = await getHandlesByAddresses(traders);
-      const publicClient = createEnsPublicClient({
-        chain: mainnet,
-        transport: http(),
-      })
+      // const publicClient = createEnsPublicClient({
+      //   chain: mainnet,
+      //   transport: http(),
+      // })
 
       // Group profiles by address
       const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
-      // Fetch ENS names for addresses without profiles in parallel
-      const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
+      // TODO: no viem batch function for ens!
 
-      const ensQueries = addressesWithoutProfiles.map((addr) => {
-        return getName.batch({ address: (addr as `0x${string}`) });
-      });
+      // // Fetch ENS names for addresses without profiles in parallel
+      // const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
 
-      // Filter out addresses without an ENS name
-      const ensNameResults = await publicClient.ensBatch(...ensQueries);
-      const pairedResults = addressesWithoutProfiles.map((addr, index) => {
-        const result = ensNameResults[index];
-        // If there's no result or no name, return null so that we can filter it out
-        return result && result.name ? [addr, result.name] : null;
-      }).filter((entry): entry is [string, string] => entry !== null);
+      // const ensQueries = addressesWithoutProfiles.map((addr) => {
+      //   return getName.batch({ address: (addr as `0x${string}`) });
+      // });
 
-      const ensNames = Object.fromEntries(pairedResults);
+      // // Filter out addresses without an ENS name
+      // const ensNameResults = await publicClient.ensBatch(...ensQueries);
+      // const pairedResults = addressesWithoutProfiles.map((addr, index) => {
+      //   const result = ensNameResults[index];
+      //   // If there's no result or no name, return null so that we can filter it out
+      //   return result && result.name ? [addr, result.name] : null;
+      // }).filter((entry): entry is [string, string] => entry !== null);
 
-      return { profiles: profilesGrouped, ensNames };
+      // const ensNames = Object.fromEntries(pairedResults);
+
+      return { profiles: profilesGrouped };
     },
     enabled: !!traders?.length,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -159,7 +180,7 @@ export const useGetClubTrades = (clubId: string, page: number) => {
         hasMore: tradesQuery.data?.hasMore
       };
     },
-    enabled: !!tradesQuery.data && !!profilesQuery.data,
+    enabled: !tradesQuery.isLoading && !profilesQuery.isLoading,
     staleTime: 60000,
   });
 };
@@ -221,21 +242,21 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, clubId?: string, price?: string) => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string) => {
   return useQuery({
-    queryKey: ["buy-amount", clubId, price],
-    queryFn: () => getBuyAmount(account!, clubId!, price!),
-    enabled: !!clubId && !!price && !!account,
+    queryKey: ["buy-amount", tokenAddress, spendAmount],
+    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!),
+    enabled: !!tokenAddress && !!spendAmount && !!account,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,
     gcTime: 5000,
   });
 };
 
-export const useGetRegistrationFee = (curve: number, amount: number, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (amount: number | string, account?: `0x${string}`) => {
   return useQuery({
-    queryKey: ["registration-fee", amount, curve, account],
-    queryFn: () => getRegistrationFee(amount!, curve, account!),
+    queryKey: ["registration-fee", amount, account],
+    queryFn: () => getRegistrationFee(amount.toString()!, account!),
     enabled: !!account,
     staleTime: 1000,
     gcTime: 2000,
@@ -289,5 +310,25 @@ export const useGetTradingInfo = (clubId?: number) => {
     enabled: !!clubId,
     staleTime: 60000,
     gcTime: 60000 * 5,
+  });
+};
+
+export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0x${string}`, complete = false) => {
+  return useQuery({
+    queryKey: ["club-available-balance", tokenAddress, account],
+    queryFn: () => getAvailableBalance(tokenAddress!, account!),
+    enabled: !!account && complete && tokenAddress !== zeroAddress,
+    staleTime: 10000,
+    gcTime: 60000,
+  });
+};
+
+export const useSearchClubs = (query?: string) => {
+  return useQuery({
+    queryKey: ["search-clubs", query],
+    queryFn: () => searchClubs(query!),
+    enabled: !!query,
+    staleTime: 120000,
+    gcTime: 300000,
   });
 };

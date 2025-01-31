@@ -106,6 +106,7 @@ export default function MyApp(props: AppProps) {
                       backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
                       color: "white",
                       fontFamily: inter.style.fontFamily,
+                      zIndex: 1001,
                     },
                   }}
                 >
