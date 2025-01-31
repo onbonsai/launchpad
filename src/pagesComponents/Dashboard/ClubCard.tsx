@@ -24,6 +24,7 @@ interface Props {
       marketCap: string;
       featured?: boolean;
       handle: string;
+      liquidity: string;
       v2: boolean;
     };
   };
@@ -34,10 +35,19 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
   const { club } = data;
 
   const bondingCurveProgress = useMemo(() => {
-    const clubSupply = Number(formatEther(BigInt(club.supply)));
-    if (clubSupply) {
-      const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
-      return Math.round(fraction * 100 * 100) / 100
+    if (club.v2){
+      const clubSupply = Number(formatEther(BigInt(club.supply)));
+      if (clubSupply) {
+        const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
+        return Math.round(fraction * 100 * 100) / 100
+      }
+    } else {
+      if (club.liquidity) {
+        const minLiquidityThreshold = BigInt(23005)
+        const scaledMinLiquidityThreshold = (minLiquidityThreshold as bigint) * BigInt(10 ** USDC_DECIMALS);
+        const fraction = (BigInt(club.liquidity) * BigInt(100)) / scaledMinLiquidityThreshold;
+        return Math.min(parseInt(fraction.toString()), 100);
+      }
     }
     return 0;
   }, [club]);
