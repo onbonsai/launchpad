@@ -163,6 +163,7 @@ const REGISTERED_CLUBS = gql`
       marketCap
       complete
       completedAt
+      liquidity
       liquidityReleasedAt
       tokenInfo
       name
@@ -190,6 +191,7 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       marketCap
       complete
       completedAt
+      liquidity
       liquidityReleasedAt
       tokenInfo
       name
@@ -217,6 +219,7 @@ const REGISTERED_CLUBS_BY_ID = gql`
       marketCap
       complete
       completedAt
+      liquidity
       liquidityReleasedAt
       tokenInfo
       name
