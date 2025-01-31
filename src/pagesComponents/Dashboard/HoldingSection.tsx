@@ -39,7 +39,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
                 ? roundedToFixed(parseFloat(row.amount), 2)
                 : kFormatter(parseFloat(row.amount))
             }
-            logo={<img src={row.token.image || row.token.uri} alt='token-image' className='h-4' />}
+            logo={<img src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' />}
             symbol={row.token.symbol}
             logoBg={true}
             price={roundedToFixed(row.balance, 2)}
