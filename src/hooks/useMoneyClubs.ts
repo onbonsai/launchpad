@@ -56,9 +56,9 @@ export const useGetFeaturedClubs = () => {
         club: omit(club, 'publication'),
       }));
     },
-    refetchInterval: 60000,
-    staleTime: 60000,
-    gcTime: 60000,
+    // refetchInterval: 60000,
+    // staleTime: 60000,
+    // gcTime: 60000,
   });
 };
 
