@@ -52,7 +52,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET = {
   "MoneyClubs": "0x1C111355EdE4259Fa9825AEC1f16f95ED737D62E",
   "Bonsai": "0x3d2bd0e15829aa5c362a4144fdf4a1112fa29b5c",
   "BlackjackAction": "",
-  "BonsaiLaunchpad": "0xf63cfD357DdC03ecb6d26efac5E8d46ff795675E" // v2
+  "BonsaiLaunchpad": "0x717138EbACFbbD9787b84c220E7BDA230C93dfB8" // v2
 };
 
 const PROTOCOL_DEPLOYMENT_MAINNET = {
