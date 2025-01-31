@@ -91,14 +91,14 @@ const TokenPage: NextPage<TokenPageProps> = ({
 }: TokenPageProps) => {
   const router = useRouter();
 
-  useEffect(() => {
-    // Refresh data every 5 seconds
-    const interval = setInterval(() => {
-      router.replace(router.asPath);
-    }, 10_000);
+  // useEffect(() => {
+  //   // Refresh data every 5 seconds
+  //   const interval = setInterval(() => {
+  //     router.replace(router.asPath);
+  //   }, 10_000);
 
-    return () => clearInterval(interval);
-  }, [router]);
+  //   return () => clearInterval(interval);
+  // }, [router]);
 
   const isMounted = useIsMounted();
   const { address } = useAccount();

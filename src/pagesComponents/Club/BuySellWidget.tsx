@@ -11,6 +11,7 @@ import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenRe
 import {
   useGetSellPrice,
   useGetBuyAmount,
+  useGetTradingInfo,
 } from "@src/hooks/useMoneyClubs";
 import {
   DECIMALS,
@@ -55,6 +56,7 @@ export const BuySellWidget = ({
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
+  const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
@@ -102,6 +104,7 @@ export const BuySellWidget = ({
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
+      setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
@@ -138,6 +141,7 @@ export const BuySellWidget = ({
       await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
 
       setTimeout(refetchClubBalance, 5000);
+      setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Sold ${sellAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
