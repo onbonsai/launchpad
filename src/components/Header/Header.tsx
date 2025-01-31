@@ -64,7 +64,7 @@ export const Header = () => {
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
-              {/* <CreateClub /> */}
+              <CreateClub />
               <ClaimFeesEarned />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
             </div>
