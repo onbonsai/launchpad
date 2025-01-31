@@ -676,7 +676,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
-        const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
+        const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), _club.v2 ? DECIMALS : 6).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (club?.hidden) return; // db forced hide
         if (club) {
