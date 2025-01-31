@@ -210,6 +210,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
     )
   }
 
+  console.log(club)
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
@@ -318,7 +320,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <p className='text-xl'>Vesting balance: {localizeNumber(formatUnits(vestingData?.vestingBalance || 0n, 18), "decimal")}</p>
                         <p className='text-xl'>Total balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
                         <hr className='my-4 opacity-70' />
-                        <p className='mt-4 text-md'>Vesting Complete: {new Date(club.claimAt * 1000).toLocaleString()}</p>
+                        <p className='mt-4 text-md'>Vesting Complete: {new Date((club.liquidityReleasedAt + Number(club.vestingDuration)) * 1000).toLocaleString()}</p>
                       </div>
                     </div>
                     : club.complete ?
