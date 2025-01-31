@@ -470,7 +470,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       trailingAmountSymbol="USDC"
                       tokenBalance={tokenBalance}
                       price={`${initialSupply}`}
-                      isError={!isValid}
+                      isError={false}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                       symbol={tokenSymbol}
                       hideBalance
