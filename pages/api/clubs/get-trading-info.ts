@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     });
 
-    const marketCap = BigInt(club.supply) <=  FLAT_THRESHOLD ? BigInt(club.liquidity) : formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
+    const marketCap = (BigInt(club.supply) <=  FLAT_THRESHOLD && club.v2) ? BigInt(club.liquidity) : formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
     const holders = club.holders;
     const createdAt = club.createdAt;
     const graduated = club.completed;
