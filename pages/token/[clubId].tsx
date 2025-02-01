@@ -7,7 +7,6 @@ import { formatUnits, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/router';
 
 import { Modal } from "@src/components/Modal";
 import { Tooltip } from "@src/components/Tooltip";
@@ -83,29 +82,72 @@ enum PriceChangePeriod {
   twentyFourHours = '24h',
 }
 
+// creates the ticking effect for vesting balances
+const useVestingProgress = (
+  availableBalance: bigint,
+  vestingBalance: bigint,
+  liquidityReleasedAt: number,
+  vestingDuration: string
+) => {
+  const [current, setCurrent] = useState({
+    available: availableBalance,
+    vesting: vestingBalance
+  });
+
+  useEffect(() => {
+    if (!liquidityReleasedAt) {
+      return;
+    }
+
+    const calculateProgress = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const timeElapsed = now - liquidityReleasedAt;
+      const totalDuration = Number(vestingDuration);
+      
+      if (timeElapsed >= totalDuration) {
+        setCurrent({
+          available: availableBalance + vestingBalance,
+          vesting: 0n
+        });
+        return;
+      }
+
+      const progress = timeElapsed / totalDuration;
+      const vestedAmount = vestingBalance * BigInt(Math.floor(progress * 1e18)) / BigInt(1e18);
+      
+      setCurrent({
+        available: availableBalance + vestedAmount,
+        vesting: vestingBalance - vestedAmount
+      });
+    };
+
+    calculateProgress();
+    const interval = setInterval(calculateProgress, 1000);
+    return () => clearInterval(interval);
+  }, [availableBalance, vestingBalance, liquidityReleasedAt, vestingDuration]);
+
+  return current;
+};
+
 const TokenPage: NextPage<TokenPageProps> = ({
   club,
   profile,
   creatorInfo,
   type,
 }: TokenPageProps) => {
-  const router = useRouter();
-
-  // useEffect(() => {
-  //   // Refresh data every 5 seconds
-  //   const interval = setInterval(() => {
-  //     router.replace(router.asPath);
-  //   }, 10_000);
-
-  //   return () => clearInterval(interval);
-  // }, [router]);
-
   const isMounted = useIsMounted();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { ready } = usePrivy();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
   const { data: totalSupply } = useGetClubSupply(club.tokenAddress);
+
+  const vestingProgress = useVestingProgress(
+    vestingData?.availableBalance || 0n,
+    vestingData?.vestingBalance || 0n,
+    club.liquidityReleasedAt || 0,
+    club.vestingDuration
+  );
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
@@ -133,6 +175,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   if (!isMounted) return null;
 
+  // TODO: re-enable once path is verified
   const releaseLiquidity = async () => {
     let toastId;
     setIsReleasing(true)
@@ -210,8 +253,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
     )
   }
 
-  console.log(club)
-
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
@@ -252,7 +293,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                                   <ShareClub clubId={club.clubId} symbol={club.token.name} />
                                 </div>
                               </div>
-                              <BodySemiBold className="text-white/60 -mt-2">{club.token.name}</BodySemiBold>
+                              <BodySemiBold className={`text-white/60 ${isConnected && "-mt-2"}`}>{club.token.name}</BodySemiBold>
                             </div>
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
@@ -316,11 +357,30 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         </Button>
                       </a>
                       <div className='mt-6 text-center'>
-                        <p className='text-xl'>Available balance: {localizeNumber(formatUnits(vestingData?.availableBalance || 0n, 18), "decimal")}</p>
-                        <p className='text-xl'>Vesting balance: {localizeNumber(formatUnits(vestingData?.vestingBalance || 0n, 18), "decimal")}</p>
-                        <p className='text-xl'>Total balance: {localizeNumber(formatUnits(vestingData?.totalBalance || 0n, 18), "decimal")}</p>
-                        <hr className='my-4 opacity-70' />
-                        <p className='mt-4 text-md'>Vesting Complete: {new Date((club.liquidityReleasedAt + Number(club.vestingDuration)) * 1000).toLocaleString()}</p>
+                        {club.liquidityReleasedAt && vestingData && (
+                          <>
+                            <div className='flex justify-center items-center space-x-2'>
+                              <span className='text-xl'>Available balance:</span>
+                              <span className='text-xl font-mono min-w-[120px] text-left'>
+                                {localizeNumber(formatUnits(vestingProgress.available, 18), "decimal", 2)}
+                              </span>
+                            </div>
+                            <div className='flex justify-center items-center space-x-2'>
+                              <span className='text-xl'>Vesting balance:</span>
+                              <span className='text-xl font-mono min-w-[120px] text-left'>
+                                {localizeNumber(formatUnits(vestingProgress.vesting, 18), "decimal", 2)}
+                              </span>
+                            </div>
+                            <div className='flex justify-center items-center space-x-2'>
+                              <span className='text-xl'>Total balance:</span>
+                              <span className='text-xl font-mono min-w-[120px] text-left'>
+                                {localizeNumber(formatUnits(vestingData.totalBalance || 0n, 18), "decimal", 2)}
+                              </span>
+                            </div>
+                            <hr className='my-4 opacity-70' />
+                            <p className='mt-4 text-md'>Vesting Complete: {new Date((club.liquidityReleasedAt + Number(club.vestingDuration)) * 1000).toLocaleString()}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     : club.complete ?

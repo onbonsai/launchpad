@@ -89,9 +89,16 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">
               {`$${club.token.symbol}`}
             </p>
-            <p className="text-footer text-[16px] leading-5 font-medium overflow-hidden overflow-ellipsis">
-              {club.token.name}
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="text-footer text-[16px] leading-5 font-medium overflow-hidden overflow-ellipsis">
+                {club.token.name}
+              </p>
+              {!club.v2 && (
+                <span className="bg-white/10 text-footer text-xs px-2 py-1 rounded-full">
+                  V1
+                </span>
+              )}
+            </div>
           </div>
         </div>
         {/* <div className="flex flex-col">

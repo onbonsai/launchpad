@@ -86,8 +86,8 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >
-                <option value="club.marketCap">Mcap</option>
                 <option value="club.createdAt">Age</option>
+                <option value="club.marketCap">Market Cap</option>
                 {/* <option value="publication.stats.comments">Replies</option> */}
               </select>
               <DropDown />

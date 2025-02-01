@@ -346,8 +346,8 @@ export const WHITELISTED_UNI_HOOKS = {
   }
 };
 
-export function baseScanUrl(txHash: string) {
-  return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/tx/${txHash}`;
+export function baseScanUrl(txHash: string, tx=true) {
+  return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
 }
 
 export const toHexString = (id: number | string, minLength: number = 2): string => {

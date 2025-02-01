@@ -229,7 +229,7 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(LAUNCHPAD_CONTRACT_ADDRESS)}
+                              href={baseScanUrl(LAUNCHPAD_CONTRACT_ADDRESS, false)}
                             >
                               {LAUNCHPAD_CONTRACT_ADDRESS}
                             </a>
@@ -240,7 +240,7 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS)}
+                              href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS, false)}
                             >
                               {BONSAI_TOKEN_BASE_ADDRESS}
                             </a>
@@ -251,7 +251,7 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS)}
+                              href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS, false)}
                             >
                               {BONSAI_NFT_BASE_ADDRESS}
                             </a>
