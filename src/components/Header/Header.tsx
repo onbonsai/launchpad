@@ -157,6 +157,9 @@ export const Header = () => {
         <p className="mt-2 text-xl text-secondary/70">
           Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.
         </p>
+        <p className="mt-2 text-xl text-secondary/70">
+          Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">https://launch-v1.bonsai.meme/</a>
+        </p>
         <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
             <span className="gradient-txt link-hover cursor-pointer">Learn more.</span>
