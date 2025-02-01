@@ -8,7 +8,7 @@ import { getClientWithClubs } from "@src/services/mongo/client";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { txHash, pubId } = req.body;
+    const { txHash, pubId, profileId, handle } = req.body;
 
     const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
@@ -25,7 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // only update where pubId does not exist
     await collection.updateOne(
       { clubId: clubId.toNumber(), pubId: { $exists: false } },
-      { $set: { pubId } }
+      { $set: { pubId, profileId, handle } }
     );
 
     res.status(200);
