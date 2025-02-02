@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { groupBy } from "lodash/collection";
 import { getClubs } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
+import { isAddress } from "viem";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -28,7 +29,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         };
       }
       const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
-      if (!club) return _club;
+      // skip enriching with creator profile if the handle is an address
+      if (!club || isAddress(club.handle)) return {
+        ..._club,
+        ...res,
+        creatorPubId: club?.pubId,
+      };
       res = {
         ..._club,
         ...res,
