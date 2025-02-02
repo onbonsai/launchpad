@@ -50,6 +50,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     return res.status(200).json({
       id: club.id,
+      v2: club.v2,
+      complete: club.complete,
       name,
       symbol,
       image,
@@ -60,7 +62,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       marketCap: marketCap.toString(),
       holders,
       graduated,
-      priceDeltas
+      priceDeltas,
+      cliffPercent: Math.floor(parseInt(club.cliffPercent) / 100),
+      vestingDurationSeconds: club.vestingDuration,
+      hook: club.hook,
+      tokenAddress: club.tokenAddress,
+      liquidityReleasedAt: club.liquidityReleasedAt,
     });
   } catch (e) {
     console.log(e);

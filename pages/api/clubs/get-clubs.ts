@@ -18,23 +18,27 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     ).toArray();
     const groupedClubs = groupBy(_clubs || [], "clubId");
     const clubs = data?.clubs.map((_club) => {
-      const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
-      if (!club) return _club;
-      const res = {
-        ..._club,
-        creatorStrategy: club.strategy,
-        creatorPubId: club.pubId,
-        creatorHandle: club.handle,
-        creatorProfileId: club.profileId
-      };
-
+      let res = {};
       if (_club.v2) { // backwards-compatibility
+        // @ts-ignore
         res.token = {
           name: _club.name,
           symbol: _club.symbol,
           image: _club.uri
         };
       }
+      const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
+      if (!club) return _club;
+      res = {
+        ..._club,
+        ...res,
+        creatorStrategy: club.strategy,
+        creatorPubId: club.pubId,
+        creatorHandle: club.handle,
+        creatorProfileId: club.profileId
+      };
+
+      return res;
     });
 
     // cache 60s
