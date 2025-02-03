@@ -140,7 +140,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { ready } = usePrivy();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
-  const { data: totalSupply } = useGetClubSupply(club.tokenAddress);
+  const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress);
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -155,7 +155,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
-  const fairLaunchMode = totalSupply && totalSupply < FLAT_THRESHOLD;
+  const fairLaunchMode = !isLoadingTotalSupply && (totalSupply! < FLAT_THRESHOLD);
 
   const vestingInfo = useMemo(() => {
     const vestingDurationInHours = parseInt(club.vestingDuration) / 3600;
