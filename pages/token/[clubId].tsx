@@ -103,7 +103,7 @@ const useVestingProgress = (
       const now = Math.floor(Date.now() / 1000);
       const timeElapsed = now - liquidityReleasedAt;
       const totalDuration = Number(vestingDuration);
-      
+
       if (timeElapsed >= totalDuration) {
         setCurrent({
           available: availableBalance + vestingBalance,
@@ -114,7 +114,7 @@ const useVestingProgress = (
 
       const progress = timeElapsed / totalDuration;
       const vestedAmount = vestingBalance * BigInt(Math.floor(progress * 1e18)) / BigInt(1e18);
-      
+
       setCurrent({
         available: availableBalance + vestedAmount,
         vesting: vestingBalance - vestedAmount
@@ -298,9 +298,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
                                 <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress!} /></p>
-                                <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                                <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
-                                    Dexscreener
+                                    Kyberswap
                                   </BodySemiBold>
                                 </a>
                               </div>
@@ -351,9 +351,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      <a href={`https://dexscreener.com/base/${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
+                      <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
                         <Button variant="accentBrand" className="text-white mt-4">
-                          View on Dexscreener
+                          Trade on Kyberswap
                         </Button>
                       </a>
                       <div className='mt-6 text-center'>
