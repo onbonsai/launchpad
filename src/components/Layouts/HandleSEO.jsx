@@ -131,7 +131,7 @@ const HandleSEO = ({ pageProps }) => {
     );
   }
 
-  const description = "Launch a token with social features, vesting, and Uni v4 hooks. Agents soon.";
+  const description = "Launch a token with social features, vesting, and Uni v4 hooks. AGI needs a token platform.";
 
   return (
     <Head>
@@ -151,7 +151,7 @@ const HandleSEO = ({ pageProps }) => {
       <meta name="twitter:card" content="summary_large_image"></meta>
       <meta name="twitter:title" content="Launchpad | bonsai.meme"></meta>
       <meta name="twitter:description" content={description}></meta>
-      <meta name="twitter:image" content="/twitter-image.jpg"></meta>
+      <meta name="twitter:image" content="/opengraph-image.jpg"></meta>
       <meta name="theme-color" content="#141414"></meta>
       <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
     </Head>
