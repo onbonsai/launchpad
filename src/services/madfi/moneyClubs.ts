@@ -562,6 +562,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
       ? formatEther(balanceMap.get(tokenAddress) || 0n)
       : (chips.club.v2 ? formatEther(BigInt(chips.amount)) : formatUnits(BigInt(chips.amount), 6));
 
+    // TODO: enable once birdeye returns v4 token prices
     const balance = false // complete && IS_PRODUCTION
       ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club.tokenAddress))
       : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
