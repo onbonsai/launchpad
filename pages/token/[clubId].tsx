@@ -298,7 +298,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
                                 <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress!} /></p>
-                                <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                                <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
                                     Kyberswap
                                   </BodySemiBold>
@@ -351,7 +351,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
+                      <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
                         <Button variant="accentBrand" className="text-white mt-4">
                           Trade on Kyberswap
                         </Button>
