@@ -308,6 +308,23 @@ const GET_CREATOR_NFTS = gql`
   }
 `
 
+const GET_TRADER = gql`
+  query GetTrader($id: ID!, $isBuy: Boolean!, $createdAt_gt: Int!) {
+    trader(id: $id) {
+      trades(where:{isBuy: $isBuy, createdAt_gt: $createdAt_gt}, orderBy: txPrice, orderDirection: desc, first: 100) {
+        club {
+          clubId
+          v2
+        }
+        amount
+        txPrice
+        txHash
+        createdAt
+      }
+    }
+  }
+`;
+
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 18;
 export const USDC_DECIMALS = 6;
@@ -1232,3 +1249,9 @@ export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => 
     throw new Error('Error fetching token price');
   }
 };
+
+export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, createdAt_gt: number }) => {
+  const { data } = await subgraphClient().query({ query: GET_TRADER, variables });
+
+  return data.trader;
+}
