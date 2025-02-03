@@ -154,7 +154,7 @@ export const BuySellWidget = ({
 
   const urlEncodedPostParams = () => {
     const params = {
-      text: `Just aped into $${club.token.symbol} on Launch @bonsai
+      text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
 ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
     };
 
@@ -250,7 +250,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={tweetIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
+                        text: `Just aped into $${club.token.symbol} on the Launchpad @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -259,7 +259,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol} on Launch @bonsaitoken404`,
+                        text: `Just aped into $${club.token.symbol} on the Launchpad @bonsaitoken404`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
