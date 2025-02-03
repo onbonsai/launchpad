@@ -537,7 +537,7 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   const balanceMap = new Map(tokenBalances.map(b => [b.address.toLowerCase(), b.balance]));
 
   const holdings = await Promise.all(clubChips?.map(async (chips) => {
-    const complete = chips.club.complete && chips.club.tokenAddress;
+    const complete = chips.club.complete && chips.club.tokenAddress && chips.club.liquidityReleasedAt;
     const tokenAddress = chips.club.tokenAddress?.toLowerCase();
 
     // Get balance from batch results or fallback to individual fetch
