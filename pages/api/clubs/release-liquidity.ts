@@ -21,23 +21,20 @@ import { getEventFromReceipt } from "@src/utils/viem";
 import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 
-const WETH = "0x4200000000000000000000000000000000000006";
-
-// TODO: verify swap path
 const getPath = () => {
   const swapInfoV4 = IS_PRODUCTION ? {
     path: [
       {
         intermediateCurrency: zeroAddress,
         fee: 500,
-        tickSpacing: 60,
+        tickSpacing: 10,
         hooks: zeroAddress,
         hookData: "0x",
       },
       {
         intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
         fee: "0x800000",
-        tickSpacing: 60,
+        tickSpacing: 200,
         hooks: DEFAULT_HOOK_ADDRESS,
         hookData: "0x",
       },
@@ -79,6 +76,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       : 0;
 
     const swapInfoV4 = getPath();
+
+    // console.log(clubId, minAmountOut, swapInfoV4)
+
+    // const result = await publicClient().simulateContract({
+    //   account,
+    //   address: LAUNCHPAD_CONTRACT_ADDRESS,
+    //   abi: BonsaiLaunchpadAbi,
+    //   functionName: "releaseLiquidity", 
+    //   args: [clubId, minAmountOut, swapInfoV4],
+    //   chain: IS_PRODUCTION ? base : baseSepolia,
+    // });
+
+    // console.log('Simulation result:', result);
 
     const hash = await walletClient.writeContract({
       address: LAUNCHPAD_CONTRACT_ADDRESS,
