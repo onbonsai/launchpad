@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { formatUnits, decodeAbiParameters } from "viem";
+import { formatUnits, decodeAbiParameters, parseUnits } from "viem";
 
 import { getVolume, getRegisteredClubById, getBuyPrice, calculatePriceDelta, DECIMALS, FLAT_THRESHOLD } from "@src/services/madfi/moneyClubs";
 
@@ -31,7 +31,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     });
 
-    const marketCap = (BigInt(club.supply) <=  FLAT_THRESHOLD && club.v2) ? BigInt(club.liquidity) : formatUnits(BigInt(club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
+    const marketCap = (BigInt(club.supply) <=  FLAT_THRESHOLD && club.v2) ? BigInt(club.liquidity) : formatUnits(BigInt(club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) :club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0];
     const holders = club.holders;
     const createdAt = club.createdAt;
     const graduated = club.completed;
