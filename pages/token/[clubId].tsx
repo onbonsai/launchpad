@@ -151,7 +151,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
-  const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
+  const [openTab, setOpenTab] = useState<number>(type === "lens" && !!club.pubId ? 1 : 2);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
@@ -435,7 +435,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
               {/* Feed/Trades/Holders */}
               <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                 <div className="mb-4">
-                  <Tabs openTab={openTab} setOpenTab={setOpenTab} />
+                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
@@ -498,7 +498,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
-  const [_club, clubSocial] = await Promise.all([
+  const [_club, dbRecord] = await Promise.all([
     getRegisteredClubById(clubId! as string),
     (async () => {
       const { collection } = await getClientWithClubs();
@@ -506,8 +506,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })()
   ]);
 
-  clubSocial.featured = !!clubSocial?.featureEndAt && (Date.now() / 1000) < parseInt(clubSocial.featureEndAt);
-  const club = JSON.parse(JSON.stringify({ ..._club, ...clubSocial }));
+  const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
+
+  if (!dbRecord) {
+    _club.token = {
+      name: _club.name,
+      symbol: _club.symbol,
+      image: _club.uri
+    };
+  }
+
+  const club = JSON.parse(JSON.stringify({ ..._club, ...dbRecord, featured }));
 
   return {
     props: {

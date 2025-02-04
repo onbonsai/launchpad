@@ -348,7 +348,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
           />
         </div>
 
-        {isConnected && isAuthenticated && (
+        {isConnected && isAuthenticated && publicationWithEncrypted && (
           <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
             <div className="flex items-center gap-x-6 w-full relative">
               <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />

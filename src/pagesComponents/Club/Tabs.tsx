@@ -1,5 +1,6 @@
 import { ToggleButton } from "@mui/material";
 import { StyledToggleButtonGroup } from "@pagesComponents/Dashboard/BondingCurveSelector";
+import { useMemo } from "react";
 
 const tabs = [
   { name: "Feed", id: 1 },
@@ -7,12 +8,23 @@ const tabs = [
   { name: "Holders", id: 3 },
 ];
 
-export const Tabs = ({ openTab, setOpenTab }) => {
+export const Tabs = ({ openTab, setOpenTab, withFeed }) => {
   const handleChange = (event, newValue) => {
-    if (newValue !== null) {
-            setOpenTab(newValue);
+      if (newValue !== null) {
+              setOpenTab(newValue);
+      }
+  };
+
+  const _tabs = useMemo(() => {
+    if (withFeed) {
+      return tabs;
     }
-};
+
+    return [
+      { name: "Trades", id: 2 },
+      { name: "Holders", id: 3 },
+    ];
+  }, [withFeed])
 
   return (
     <div className="md:flex justify-end w-full">
@@ -22,7 +34,7 @@ export const Tabs = ({ openTab, setOpenTab }) => {
         onChange={handleChange}
         aria-label="Price tier"
      >
-        {tabs.map((tab, index) => (
+        {_tabs.map((tab, index) => (
                   <ToggleButton key={index} value={tab.id} aria-label={tab.name}>
                           {tab.name}
                   </ToggleButton>
