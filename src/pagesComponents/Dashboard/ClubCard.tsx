@@ -14,6 +14,7 @@ interface Props {
       stats: { comments: number };
     };
     club: {
+      creator: string;
       id: string;
       clubId: string;
       initialSupply: string;
@@ -156,7 +157,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
             </div>
 
             <div className="flex flex-row justify-between items-center">
-              <CreatorButton text={club.handle} image={creatorProfile?.picture} />
+              <CreatorButton text={club.handle || club.creator} image={creatorProfile?.picture} />
               <Subtitle >
                 {formatRelativeDate(new Date(Number(club.createdAt) * 1000))}
               </Subtitle>

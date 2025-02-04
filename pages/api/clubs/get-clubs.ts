@@ -30,7 +30,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
       // skip enriching with creator profile if the handle is an address
-      if (!club || isAddress(club.handle)) return {
+      if (!club || !club.handle || isAddress(club.handle)) return {
         ..._club,
         ...res,
         creatorPubId: club?.pubId,
