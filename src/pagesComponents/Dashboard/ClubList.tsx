@@ -34,10 +34,10 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
   const sortedClubs = useMemo(() => {
     const _clubs = filterBy ? filteredClubs : clubs;
     const direction = "desc";
-    
+
     // Filter out completed clubs if showCompleted is false
-    const filteredByCompletion = showCompleted 
-      ? _clubs 
+    const filteredByCompletion = showCompleted
+      ? _clubs
       : _clubs.filter(({ club }) => !club.liquidityReleasedAt);
 
     const orderedClubs = orderBy(filteredByCompletion, [club => {
@@ -100,6 +100,9 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 />
                 <span className="text-secondary text-sm">Completed</span>
               </label>
+              <div className="h-full flex align-center items-center">
+                <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
+              </div>
               <span className="mt-[9px] ml-2">
                 <SortIcon />
               </span>
