@@ -17,14 +17,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",
     });
-    const { clubId } = registeredClubEvent.args;
+    const { clubId }: { clubId: bigint } = registeredClubEvent.args;
     if (!clubId) throw new Error("No registered club");
 
     const { collection } = await getClientWithClubs();
 
     // only update where pubId does not exist
     await collection.updateOne(
-      { clubId: clubId.toNumber(), pubId: { $exists: false } },
+      { clubId: parseInt(clubId.toString()), pubId: { $exists: false } },
       { $set: { pubId, profileId, handle } }
     );
 
