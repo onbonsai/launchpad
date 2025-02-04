@@ -52,7 +52,7 @@ const IndexPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <ActivityBanner />
+        {/* <ActivityBanner /> */}
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">

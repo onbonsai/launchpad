@@ -11,6 +11,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
   const { ref, inView } = useInView();
   const [clubCreators, setClubCreators] = useState({});
   const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
+  const [showCompleted, setShowCompleted] = useState(sortedBy === "club.marketCap");
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
@@ -24,10 +25,22 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
     }
   }, [creators, isLoadingClubCreators]);
 
+  useEffect(() => {
+    if (sortedBy === "club.marketCap") {
+      setShowCompleted(true);
+    }
+  }, [sortedBy]);
+
   const sortedClubs = useMemo(() => {
     const _clubs = filterBy ? filteredClubs : clubs;
     const direction = "desc";
-    const orderedClubs = orderBy(_clubs, [club => {
+    
+    // Filter out completed clubs if showCompleted is false
+    const filteredByCompletion = showCompleted 
+      ? _clubs 
+      : _clubs.filter(({ club }) => !club.liquidityReleasedAt);
+
+    const orderedClubs = orderBy(filteredByCompletion, [club => {
       const value = get(club, sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
@@ -36,7 +49,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
     const nonFeaturedClubs = orderedClubs.filter(({ club }) => !club.featured);
 
     return [...featuredClubs, ...nonFeaturedClubs];
-  }, [sortedBy, filterBy, filteredClubs, clubs]);
+  }, [sortedBy, filterBy, filteredClubs, clubs, showCompleted]);
 
   const SortIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +90,16 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
               </div>
             )}
             <div className="relative bg-white/10 rounded-[10px] flex flex-row">
+              <label className="mr-6 pl-4 flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showCompleted}
+                  onChange={(e) => setShowCompleted(e.target.checked)}
+                  className="form-checkbox h-4 w-4 text-primary bg-gray-800 rounded border-gray-600 focus:ring-primary focus:ring-offset-gray-900"
+                  aria-label="completed"
+                />
+                <span className="text-secondary text-sm">Completed</span>
+              </label>
               <span className="mt-[9px] ml-2">
                 <SortIcon />
               </span>

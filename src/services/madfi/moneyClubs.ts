@@ -151,7 +151,7 @@ const CLUB_TRADES_LATEST = gql`
 
 const REGISTERED_CLUBS = gql`
   query Clubs($skip: Int!) {
-    clubs(orderBy: marketCap, orderDirection: desc, first: 50, skip: $skip, where: {liquidityReleasedAt:null}) {
+    clubs(orderBy: marketCap, orderDirection: desc, first: 50, skip: $skip) {
       id
       clubId
       creator
@@ -179,7 +179,7 @@ const REGISTERED_CLUBS = gql`
 
 const REGISTERED_CLUBS_BY_AGE = gql`
   query Clubs($skip: Int!) {
-    clubs(orderBy: createdAt, orderDirection: desc, first: 50, skip: $skip, where: {liquidityReleasedAt:null}) {
+    clubs(orderBy: createdAt, orderDirection: desc, first: 50, skip: $skip) {
       id
       clubId
       creator
