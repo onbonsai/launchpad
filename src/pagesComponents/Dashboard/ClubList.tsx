@@ -100,7 +100,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 />
                 <span className="text-secondary text-sm">Completed</span>
               </label>
-              <div className="h-full flex align-center items-center">
+              <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
               </div>
               <span className="mt-[9px] ml-2">
