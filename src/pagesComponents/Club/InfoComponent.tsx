@@ -37,9 +37,9 @@ export const InfoComponent = ({
         <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
           <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted, "currency", 6, 6)}` : '-'}`} />
           <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
         </div>
         <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
-          <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
           <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
           <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
           <InfoLine title='Total Supply' subtitle={localizeNumber(Math.floor(Number(formatUnits(totalSupply || BigInt(club.supply), 18))), "decimal") || "-"} />
