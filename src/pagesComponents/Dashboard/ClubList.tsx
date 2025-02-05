@@ -98,7 +98,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                   className="form-checkbox h-4 w-4 text-primary bg-gray-800 rounded border-gray-600 focus:ring-primary focus:ring-offset-gray-900"
                   aria-label="completed"
                 />
-                <span className="text-secondary text-sm">Completed</span>
+                <span className="text-secondary text-sm">Graduated</span>
               </label>
               <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
