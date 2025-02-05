@@ -51,6 +51,7 @@ export const useGetFeaturedClubs = () => {
     queryKey: ["featured-clubs"],
     queryFn: async () => {
       const clubs = await getFeaturedClubs();
+      if (!clubs) return [];
       return clubs.map((club) => ({
         publication: club.publication,
         club: omit(club, 'publication'),
@@ -68,6 +69,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     queryFn: async ({ pageParam = 0 }) => {
       try {
         const res = await getRegisteredClubs(pageParam, sortedBy);
+        console.log(`Fetched: ${res.clubs?.length || 0} clubs`);
         const data = res.clubs.map((club) => ({
           publication: club.publication,
           club: omit(club, 'publication'),

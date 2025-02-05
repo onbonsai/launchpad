@@ -150,8 +150,8 @@ const CLUB_TRADES_LATEST = gql`
 `;
 
 const REGISTERED_CLUBS = gql`
-  query Clubs($skip: Int!) {
-    clubs(orderBy: marketCap, orderDirection: desc, first: 50, skip: $skip) {
+  query Clubs($pageSize: Int!, $skip: Int!) {
+    clubs(orderBy: marketCap, orderDirection: desc, first: $pageSize, skip: $skip) {
       id
       clubId
       creator
@@ -178,8 +178,8 @@ const REGISTERED_CLUBS = gql`
 `;
 
 const REGISTERED_CLUBS_BY_AGE = gql`
-  query Clubs($skip: Int!) {
-    clubs(orderBy: createdAt, orderDirection: desc, first: 50, skip: $skip) {
+  query Clubs($pageSize: Int!, $skip: Int!) {
+    clubs(orderBy: createdAt, orderDirection: desc, first: $pageSize, skip: $skip) {
       id
       clubId
       creator
@@ -363,7 +363,7 @@ export const WHITELISTED_UNI_HOOKS = {
   }
 };
 
-export function baseScanUrl(txHash: string, tx=true) {
+export function baseScanUrl(txHash: string, tx = true) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
 }
 
@@ -422,7 +422,7 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
   return clubs?.map((club) => {
     let { name, symbol, image } = club
 
-    if (!club.name || !club.symbol || !club.uri){
+    if (!club.name || !club.symbol || !club.uri) {
       // backup for v1 clubs
       ;[name, symbol, image] = decodeAbiParameters([
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -583,7 +583,7 @@ export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdi
   let holdings = clubChips || [];
   // override with erc20 balance of in case of transfers post-graduation
   if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
-    holdings = await Promise.all(holdings.map(async(data) => {
+    holdings = await Promise.all(holdings.map(async (data) => {
       const amount = await _publicClient.readContract({
         address: data.club.tokenAddress,
         abi: VestingERC20Abi,
@@ -625,7 +625,7 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
     body: JSON.stringify({ featured: true }),
   });
   const { clubs } = await response.json();
-
+  console.log(`Fetched ${clubs.length} featured clubs`);
   if (clubs?.length) {
     const ids = clubs.map(({ clubId }) => toHexString(clubId));
     const { data: { clubs: _clubs } } = await subgraphClient().query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
@@ -671,14 +671,14 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
     }
   }
 
-  return { clubs: [] };
+  return [];
 };
 
 export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ clubs: any[], hasMore: boolean }> => {
-  const limit = 50;
+  const limit = 30;
   const skip = page * limit;
   const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
-  const { data } = await subgraphClient().query({ query, variables: { skip } });
+  const { data } = await subgraphClient().query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
@@ -708,7 +708,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
         } else { // not created on our app
           let { name, symbol, uri: image } = _club;
 
-          if (!name || !symbol || !image){
+          if (!name || !symbol || !image) {
             // backup for v1 clubs
             [name, symbol, image] = decodeAbiParameters([
               { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -746,7 +746,7 @@ export const getBalance = async (clubId: string, account: `0x${string}`): Promis
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
-export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint}> => {
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
   const client = publicClient();
   const [availableBalance, totalBalance] = await Promise.all([
     client.readContract({
@@ -795,9 +795,9 @@ export const getBuyPrice = async (
         args: [clubId, amountWithDecimals],
         account
       });
-    } catch {
-      buyPrice = 1n
-    }
+  } catch {
+    buyPrice = 1n
+  }
 
   return {
     buyPrice: buyPrice as bigint,
@@ -833,40 +833,40 @@ function calculateTokensForUSDC(
   const maxSupply = MAX_MINTABLE_SUPPLY
 
   function getPrice(supply: bigint, amount: bigint): bigint {
-      if (supply < flatThreshold) {
-          if (supply + amount <= flatThreshold) {
-              return (amount * initialPrice) / BigInt(10 ** decimals);
-          }
-
-          const flatAmount = flatThreshold - supply;
-          const curveAmount = amount - flatAmount;
-
-          return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount);
+    if (supply < flatThreshold) {
+      if (supply + amount <= flatThreshold) {
+        return (amount * initialPrice) / BigInt(10 ** decimals);
       }
 
-      const endSupply = supply + amount;
-      const slope = ((targetPrice - initialPrice) * BPS_MAX) / (maxSupply / BigInt(10 ** decimals));
+      const flatAmount = flatThreshold - supply;
+      const curveAmount = amount - flatAmount;
 
-      return calculateDeltaArea(supply, endSupply, slope, initialPrice);
+      return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount);
+    }
+
+    const endSupply = supply + amount;
+    const slope = ((targetPrice - initialPrice) * BPS_MAX) / (maxSupply / BigInt(10 ** decimals));
+
+    return calculateDeltaArea(supply, endSupply, slope, initialPrice);
   }
 
   function calculateDeltaArea(
-      startSupply: bigint,
-      endSupply: bigint,
-      slope: bigint,
-      initialPrice: bigint
+    startSupply: bigint,
+    endSupply: bigint,
+    slope: bigint,
+    initialPrice: bigint
   ): bigint {
-      const normalizedStart = startSupply / BigInt(10 ** decimals);
-      const normalizedEnd = endSupply / BigInt(10 ** decimals);
-      const normalizedFlat = flatThreshold / BigInt(10 ** decimals);
+    const normalizedStart = startSupply / BigInt(10 ** decimals);
+    const normalizedEnd = endSupply / BigInt(10 ** decimals);
+    const normalizedFlat = flatThreshold / BigInt(10 ** decimals);
 
-      const x1 = normalizedStart - normalizedFlat;
-      const x2 = normalizedEnd - normalizedFlat;
+    const x1 = normalizedStart - normalizedFlat;
+    const x2 = normalizedEnd - normalizedFlat;
 
-      const area1 = (slope * x1 * x1) / BigInt(2) + (initialPrice * BPS_MAX * x1);
-      const area2 = (slope * x2 * x2) / BigInt(2) + (initialPrice * BPS_MAX * x2);
+    const area1 = (slope * x1 * x1) / BigInt(2) + (initialPrice * BPS_MAX * x1);
+    const area2 = (slope * x2 * x2) / BigInt(2) + (initialPrice * BPS_MAX * x2);
 
-      return (area2 - area1) / BPS_MAX;
+    return (area2 - area1) / BPS_MAX;
   }
 
   let low = BigInt(0);
@@ -879,30 +879,30 @@ function calculateTokensForUSDC(
   let loopCounter = 0;
 
   while (low <= high) {
-      mid = (low + high) / 2n;
-      price = getPrice(currentSupply, mid) / parseUnits("1", 18);
+    mid = (low + high) / 2n;
+    price = getPrice(currentSupply, mid) / parseUnits("1", 18);
 
-      // Track closest value below target
-      if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
-          bestGuess = mid;
-      }
+    // Track closest value below target
+    if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
+      bestGuess = mid;
+    }
 
-      // Early exit if within tolerance
-      if (price > usdcAmount - TOLERANCE && price < usdcAmount + TOLERANCE) {
-          break;
-      }
+    // Early exit if within tolerance
+    if (price > usdcAmount - TOLERANCE && price < usdcAmount + TOLERANCE) {
+      break;
+    }
 
-      if (price < usdcAmount) {
-          low = mid + 1n;
-      } else {
-          high = mid - 1n;
-      }
+    if (price < usdcAmount) {
+      low = mid + 1n;
+    } else {
+      high = mid - 1n;
+    }
 
-      // Final fallback to best guess if we exit loop
-      if (loopCounter++ > 100) {
-          mid = bestGuess;
-          break;
-      }
+    // Final fallback to best guess if we exit loop
+    if (loopCounter++ > 100) {
+      mid = bestGuess;
+      break;
+    }
   }
 
   return low
@@ -954,7 +954,7 @@ export const getBuyAmount = async (
   let effectiveSpend = spendAfterFees
   if (BigInt(buyAmount || 0n) + BigInt(currentSupply) >= MAX_MINTABLE_SUPPLY) {
     const adjustedAmount = formatUnits(MAX_MINTABLE_SUPPLY - BigInt(currentSupply), DECIMALS)
-    effectiveSpend  = (await getBuyPrice(account, "0", adjustedAmount, formatUnits(currentSupply, DECIMALS))).buyPriceAfterFees
+    effectiveSpend = (await getBuyPrice(account, "0", adjustedAmount, formatUnits(currentSupply, DECIMALS))).buyPriceAfterFees
   }
 
   return {
@@ -1003,7 +1003,7 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   };
 };
 
-export const getFeesEarned = async (account: `0x${string}`): Promise<{feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[]}> => {
+export const getFeesEarned = async (account: `0x${string}`): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
   const client = subgraphClient();
   const [creatorNFTsResponse, feesEarnedResponse] = await Promise.all([
     client.query({ query: GET_CREATOR_NFTS, variables: { trader: account } }),
@@ -1174,7 +1174,7 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
     const clubs = data?.clubs.map((_club) => {
       let { name, symbol, image } = _club
 
-      if (!_club.name || !_club.symbol || !_club.uri){
+      if (!_club.name || !_club.symbol || !_club.uri) {
         // backup for v1 clubs
         ;[name, symbol, image] = decodeAbiParameters([
           { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
