@@ -36,6 +36,7 @@
     "@vercel/analytics": "^1.0.0",
     "@wagmi/chains": "^1.8.0",
     "axios": "^0.27.2",
+    "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
