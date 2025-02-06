@@ -1166,9 +1166,9 @@ export const releaseLiquidity = async (clubId: string) => {
 // TODO: might need to enrich with creator profile
 // for api
 export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
-  const limit = 50;
+  const limit = 25;
   const skip = page * limit;
-  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip } });
+  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
 
   if (data?.clubs?.length) {
     const clubs = data?.clubs.map((_club) => {
