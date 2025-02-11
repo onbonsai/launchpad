@@ -88,6 +88,12 @@ const Help = () => {
                             <li>Click on the "Create Token" button on the top right and fill out the form</li>
                             <li>There is a registration fee to prevent spam. On launch, this will be $0 but will soon be increased</li>
                           </ul>
+                          <p className="text-lg text-secondary pt-8">Trading tokens</p>
+                          <ul className="list-disc pl-5 mt-4 text-lg/70">
+                            <li>The first 200 million tokens are sold at a flat price. After that, the price is set by the bonding curve formula</li>
+                            <li>The price increases along the curve until 800m tokens in total have been sold (~21k USDC in liquidity raised)</li>
+                            <li>The USDC is swapped into $BONSAI and paired with 200m newly minted tokens on Uniswap v4 for a total supply of 1 billion tokens</li>
+                          </ul>
                           <p className="text-lg text-secondary pt-8">
                             Creating from the{" "}
                             <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
