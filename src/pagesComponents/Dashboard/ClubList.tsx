@@ -11,7 +11,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
   const { ref, inView } = useInView();
   const [clubCreators, setClubCreators] = useState({});
   const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
-  const [showCompleted, setShowCompleted] = useState(sortedBy === "club.marketCap");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
@@ -24,12 +24,6 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       setClubCreators({ ...clubCreators, ...creators });
     }
   }, [creators, isLoadingClubCreators]);
-
-  useEffect(() => {
-    if (sortedBy === "club.marketCap") {
-      setShowCompleted(true);
-    }
-  }, [sortedBy]);
 
   const sortedClubs = useMemo(() => {
     const _clubs = filterBy ? filteredClubs : clubs;
@@ -112,8 +106,8 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >
-                <option value="club.createdAt">Age</option>
                 <option value="club.marketCap">Market Cap</option>
+                <option value="club.createdAt">Age</option>
                 {/* <option value="publication.stats.comments">Replies</option> */}
               </select>
               <DropDown />
