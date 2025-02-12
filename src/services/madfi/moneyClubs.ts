@@ -352,7 +352,7 @@ export const DEFAULT_HOOK_ADDRESS = IS_PRODUCTION
   : "0xA788031C591B6824c032a0EFe74837EE5eaeC080";
 
 export const TRADING_DAYS_HOOK_ADDRESS = "0xCb6f8E5c03A0F141D764D4323cE248A00e5d2080";
-export const LOTTERY_HOOK_ADDRESS = "";
+export const LOTTERY_HOOK_ADDRESS = "0xF4f7D5160E378dc1ED2dA493E3fD314C2b412088";
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
@@ -361,12 +361,12 @@ export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${proc
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
 
 export const WHITELISTED_UNI_HOOKS = {
-  // "LOTTERY_HOOK": {
-  //   label: "Growing jackpot that goes to one lucky trader",
-  //   contractAddress: LOTTERY_HOOK_ADDRESS,
-  //   icon: "local-atm",
-  //   iconLabel: "Winner every 72h"
-  // },
+  "LOTTERY_HOOK": {
+    label: "Growing jackpot that goes to one lucky trader",
+    contractAddress: LOTTERY_HOOK_ADDRESS,
+    icon: "local-atm",
+    iconLabel: "Winner every 72h"
+  },
   "TRADING_DAYS_HOOK": {
     label: "NYSE trading hours for swaps, no weekends",
     contractAddress: TRADING_DAYS_HOOK_ADDRESS,
