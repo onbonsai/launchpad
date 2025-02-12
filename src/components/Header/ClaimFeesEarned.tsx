@@ -2,11 +2,10 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import { formatUnits } from "viem";
 import toast from "react-hot-toast";
-import { CurrencyDollarIcon } from "@heroicons/react/solid";
+import { GiftIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
 import { USDC_DECIMALS, CONTRACT_CHAIN_ID, withdrawFeesEarned } from "@src/services/madfi/moneyClubs";
 import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
-import { roundedToFixed } from "@src/utils/utils";
 import { Subtitle, Header2 } from '@src/styles/text';
 import { localizeNumber } from "@src/constants/utils";
 
@@ -89,17 +88,18 @@ export const ClaimFeesEarned = () => {
 
   const disabled = !isConnected || isLoading || (creatorFeesEarned?.feesEarned === 0n && creatorFeesEarned?.clubFeesTotal === 0n ) || isClaiming;
 
+  if ((isLoading || disabled) && !isClaiming) return null;
+
   return (
     <div ref={containerRef} className="relative inline-block">
       <Button
         variant="dark-grey"
         size="md"
         className="text-base font-medium md:px-2 rounded-xl"
-        disabled={disabled}
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center">
-          <CurrencyDollarIcon className={`h-6 w-6 mr-2 ${!disabled ? 'text-white' : 'text-grey'}`} />
+          <GiftIcon className="h-5 w-5 mr-2 text-white" />
           <span>{creatorFeesFormatted}</span>
         </div>
       </Button>
@@ -107,7 +107,6 @@ export const ClaimFeesEarned = () => {
         <EarningsTooltip
           creatorFeesFormatted={creatorFeesFormatted}
           creatorFeesEarned={creatorFeesEarned}
-          disabled={disabled}
           claimFeesEarned={claimFeesEarned}
         />
       )}
@@ -115,8 +114,8 @@ export const ClaimFeesEarned = () => {
   );
 };
 
-const EarningsTooltip = ({ creatorFeesFormatted, creatorFeesEarned, disabled, claimFeesEarned }) => {
-  const formatFee = (value: bigint) => 
+const EarningsTooltip = ({ creatorFeesFormatted, creatorFeesEarned, claimFeesEarned }) => {
+  const formatFee = (value: bigint) =>
     localizeNumber(parseFloat(formatUnits(value, USDC_DECIMALS)), undefined, 2);
 
   return (
@@ -140,7 +139,7 @@ const EarningsTooltip = ({ creatorFeesFormatted, creatorFeesEarned, disabled, cl
       </div>
 
       <div className="pt-4 w-full">
-        <Button variant="accent" className="w-full" disabled={disabled} onClick={claimFeesEarned}>
+        <Button variant="accent" className="w-full" onClick={claimFeesEarned}>
           Claim
         </Button>
       </div>

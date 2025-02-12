@@ -17,6 +17,7 @@ import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
+import { Balance } from "./Balance";
 
 const headerLinks = [
   // add any top-level nav links here
@@ -54,17 +55,18 @@ export const Header = () => {
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
-            <div className="flex justify-center items-center w-[25%]">
+            <div className="flex justify-center items-center w-[15%]">
               <SearchClubs />
             </div>
           )}
 
           {/* Right side of header */}
-          <div className="flex items-center justify-end md:w-[33%] w-full">
+          <div className="flex items-center justify-end md:w-[38%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
               <CreateClub />
+              <Balance />
               <ClaimFeesEarned />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
             </div>
