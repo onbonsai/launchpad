@@ -5,7 +5,7 @@ import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
 
 import HookFormModal from "../src/pagesComponents/Dashboard/HookFormModal";
-import { DEFAULT_HOOK_ADDRESS, TRADING_DAYS_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
+import { DEFAULT_HOOK_ADDRESS, LOTTERY_HOOK_ADDRESS, TRADING_DAYS_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
 
 const hooksList = [
   {
@@ -20,6 +20,13 @@ const hooksList = [
       "Need a break from the 24/7 crypto markets? This Uniswap v4 hook reverts when markets are closed in New York, the greatest city in the world and the only place where financial markets exist.",
     address: TRADING_DAYS_HOOK_ADDRESS,
     source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/TradingDaysHook.sol",
+  },
+  {
+    name: "Lottery Hook",
+    description:
+      "Growing jackpot that goes to one lucky trader. The jackpot grows on every swap and the lottery starts after 72 hours or after 1000 swaps.",
+    address: LOTTERY_HOOK_ADDRESS,
+    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/LotteryHook.sol",
   },
 ];
 
