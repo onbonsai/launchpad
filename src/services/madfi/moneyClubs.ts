@@ -361,12 +361,12 @@ export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${proc
 export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
 
 export const WHITELISTED_UNI_HOOKS = {
-  "LOTTERY_HOOK": {
-    label: "Growing jackpot that goes to one lucky trader",
-    contractAddress: LOTTERY_HOOK_ADDRESS,
-    icon: "local-atm",
-    iconLabel: "Winner every 72h"
-  },
+  // "LOTTERY_HOOK": {
+  //   label: "Growing jackpot that goes to one lucky trader",
+  //   contractAddress: LOTTERY_HOOK_ADDRESS,
+  //   icon: "local-atm",
+  //   iconLabel: "Winner every 72h"
+  // },
   "TRADING_DAYS_HOOK": {
     label: "NYSE trading hours for swaps, no weekends",
     contractAddress: TRADING_DAYS_HOOK_ADDRESS,
