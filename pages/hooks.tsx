@@ -5,7 +5,7 @@ import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
 
 import HookFormModal from "../src/pagesComponents/Dashboard/HookFormModal";
-import { DEFAULT_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
+import { DEFAULT_HOOK_ADDRESS, TRADING_DAYS_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
 
 const hooksList = [
   {
@@ -13,6 +13,13 @@ const hooksList = [
     description: "0% trading fees for Bonsai NFT holders",
     address: DEFAULT_HOOK_ADDRESS,
     source: "https://github.com/mad-finance/univ4-hooks",
+  },
+  {
+    name: "Trading Days Hook",
+    description:
+      "Need a break from the 24/7 crypto markets? This Uniswap v4 hook reverts when markets are closed in New York, the greatest city in the world and the only place where financial markets exist.",
+    address: TRADING_DAYS_HOOK_ADDRESS,
+    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/TradingDaysHook.sol",
   },
 ];
 
@@ -31,8 +38,8 @@ const Hooks = () => {
               <section className="mt-4 max-w-screen-lg">
                 {/* Top */}
                 <h3 className="text-xl leading-6">
-                  Every Token has a hook associated with it. When a token graduates, the Uniswap v4 pool will be created with the selected hook. If no hook is
-                  selected, then the Default Hook will be used.
+                  Every Token has a hook associated with it. When a token graduates, the Uniswap v4 pool will be created
+                  with the selected hook. If no hook is selected, then the Default Hook will be used.
                 </h3>
                 <h3 className="text-xl leading-6 mt-4">
                   If you are a hook developer you can submit your own hook for review and if it is approved, it will be
