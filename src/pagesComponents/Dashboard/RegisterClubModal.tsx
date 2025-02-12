@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
-import { InformationCircleIcon } from "@heroicons/react/solid";
 import { Dialog } from "@headlessui/react";
+import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined } from "@mui/icons-material";
 import toast from "react-hot-toast"
 
 import { Button } from "@src/components/Button"
@@ -34,7 +34,6 @@ import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
-import { InfoOutlined } from "@mui/icons-material";
 import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
@@ -431,16 +430,37 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                     </Tooltip>
                   </div>
                 </div>
-                <div>
-                  <select
-                    className={clsx("w-full pr-4", sharedInputClasses)}
-                    onChange={(e) => setUniHook(e.target.value)}
-                    value={uniHook}
-                  >
-                    {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
-                      <option key={`hook-${key}`} value={key}>{WHITELISTED_UNI_HOOKS[uniHook].label}</option>
-                    ))}
-                  </select>
+                <div className="flex overflow-x-auto space-x-4 py-2">
+                  {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
+                    <div
+                      key={`hook-${key}`}
+                      className={clsx(
+                        "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
+                        uniHook === key ? "" : "border-card-lightest"
+                      )}
+                      onClick={() => setUniHook(key)}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="text-center">
+                          <h3 className="text-sm font-semibold">{WHITELISTED_UNI_HOOKS[key].label}</h3>
+                        </div>
+                        <div className="flex justify-center items-center mt-2">
+                          <span>
+                            {WHITELISTED_UNI_HOOKS[key].icon === "schedule" && (
+                              <ScheduleOutlined className="max-w-5 max-h-5 inline-block text-white/40 -mt-1" />
+                            )}
+                            {WHITELISTED_UNI_HOOKS[key].icon === "swap-horiz" && (
+                              <SwapHoriz className="max-w-6 max-h-6 inline-block text-white/40" />
+                            )}
+                            {WHITELISTED_UNI_HOOKS[key].icon === "local-atm" && (
+                              <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                            )}
+                          </span>
+                          <span className="ml-1 text-white/40 text-sm">{WHITELISTED_UNI_HOOKS[key].iconLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
