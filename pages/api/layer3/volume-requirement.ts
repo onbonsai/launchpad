@@ -23,8 +23,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // console.log(`totalVolume: ${formatUnits(totalVolume, USDC_DECIMALS)}`);
 
-    // at least $10 in volume in the last 24 hours
-    const VOLUME_REQUIREMENT = parseUnits("10", USDC_DECIMALS);
+    // at least $1 in volume in the last 24 hours
+    const VOLUME_REQUIREMENT = parseUnits("1", USDC_DECIMALS);
     if (totalVolume < VOLUME_REQUIREMENT) {
       return res.status(200).json({ status: "failed" });
     }
