@@ -15,7 +15,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD } from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
@@ -66,6 +66,7 @@ export type Club = {
   cliffPercent: string
   vestingDuration: string
   tokenAddress?: `0x${string}`;
+  hook: `0x${string}`;
 };
 
 interface TokenPageProps {
@@ -172,6 +173,16 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
     return `${parseInt(club.cliffPercent) / 100}% cliff; linear vesting over ${vestingDurationString}`;
   }, [club]);
+
+  const hookInfo = useMemo(() => {
+    return Object.keys(WHITELISTED_UNI_HOOKS).reduce((acc, key) => {
+      acc[WHITELISTED_UNI_HOOKS[key].contractAddress.toLowerCase()] = {
+        ...WHITELISTED_UNI_HOOKS[key],
+        name: key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+      };
+      return acc;
+    }, {});
+  }, [WHITELISTED_UNI_HOOKS]);
 
   if (!isMounted) return null;
 
@@ -337,7 +348,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </div>
                 <div className='px-4 md:px-3 mt-2 space-y-1'>
                   <Subtitle className="items-start">{club.token.description}</Subtitle>
-                  <SmallSubtitle className="items-start text-[12px]">{vestingInfo}</SmallSubtitle>
+                  <SmallSubtitle className="items-start text-[12px]">{vestingInfo} | {`${hookInfo[club.hook].name}: ${hookInfo[club.hook].label}`}</SmallSubtitle>
                 </div>
                 <div className='px-0'>
                   <InfoComponent

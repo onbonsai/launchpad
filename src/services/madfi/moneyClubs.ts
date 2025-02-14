@@ -373,7 +373,7 @@ export const WHITELISTED_UNI_HOOKS = {
     icon: "schedule",
     iconLabel: "9am-4:30pm EST"
   },
-  "BONSAI_NFT_ZERO_FEES": {
+  "BONSAI_NFT_ZERO_FEES_HOOK": {
     label: "0% trading fees for Bonsai NFT holders",
     contractAddress: DEFAULT_HOOK_ADDRESS,
     icon: "swap-horiz",

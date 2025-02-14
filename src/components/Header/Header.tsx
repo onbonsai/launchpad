@@ -157,9 +157,6 @@ export const Header = () => {
           When a token reaches $100k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uniswap v4. Tokens vest linearly becoming available to transfer over a period of time in order to reduce the power of rugs and snipers. Vesting parameters are set by the token creator.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          Tokens that graduate are eligible to migrate to our Bons(ai) agent stack in q1 2025.
-        </p>
-        <p className="mt-2 text-xl text-secondary/70">
           Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">https://launch-v1.bonsai.meme/</a>
         </p>
         <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
