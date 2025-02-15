@@ -19,7 +19,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet }) => {
   }, [wallet]);
 
   const formattedAddress = useMemo(() => {
-    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+    return `${wallet.slice(0, 6)}...`;
   }, [wallet]);
 
   return (

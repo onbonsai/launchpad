@@ -303,12 +303,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
                                 <div className="ml-4 -mt-[6px]">
                                   <ShareClub clubId={club.clubId} symbol={club.token.name} />
                                 </div>
+                                <p className="text-white text-md"><WalletButton wallet={club.tokenAddress!} /></p>
                               </div>
                               <BodySemiBold className={`text-white/60 ${isConnected && "-mt-2"}`}>{club.token.name}</BodySemiBold>
                             </div>
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
-                                <p className={"text-white text-lg flex flex-row"}>CA:{" "}<WalletButton wallet={club.tokenAddress!} /></p>
                                 <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
                                   <BodySemiBold className="text-white/60 font-medium">
                                     Kyberswap
