@@ -353,6 +353,7 @@ export const DEFAULT_HOOK_ADDRESS = IS_PRODUCTION
 
 export const TRADING_DAYS_HOOK_ADDRESS = "0xCb6f8E5c03A0F141D764D4323cE248A00e5d2080";
 export const LOTTERY_HOOK_ADDRESS = "0xF4f7D5160E378dc1ED2dA493E3fD314C2b412088";
+export const BUYBACK_AND_BURN_HOOK_ADDRESS = "0xD4E2efCE3De32de13407298d224ee7e7d483a0cc";
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
@@ -366,6 +367,12 @@ export const WHITELISTED_UNI_HOOKS = {
     contractAddress: LOTTERY_HOOK_ADDRESS,
     icon: "local-atm",
     iconLabel: "Winner every 72h"
+  },
+  "BUYBACK_AND_BURN_HOOK": {
+    label: "Buyback and burn from trading fees",
+    contractAddress: BUYBACK_AND_BURN_HOOK_ADDRESS,
+    icon: "local-atm",
+    iconLabel: "Buyback and burn"
   },
   "TRADING_DAYS_HOOK": {
     label: "NYSE trading hours for swaps, no weekends",

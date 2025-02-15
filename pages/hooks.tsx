@@ -5,7 +5,7 @@ import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
 
 import HookFormModal from "../src/pagesComponents/Dashboard/HookFormModal";
-import { DEFAULT_HOOK_ADDRESS, LOTTERY_HOOK_ADDRESS, TRADING_DAYS_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
+import { BUYBACK_AND_BURN_HOOK_ADDRESS, DEFAULT_HOOK_ADDRESS, LOTTERY_HOOK_ADDRESS, TRADING_DAYS_HOOK_ADDRESS } from "@src/services/madfi/moneyClubs";
 
 const hooksList = [
   {
@@ -27,6 +27,12 @@ const hooksList = [
       "Growing jackpot that goes to one lucky trader. The jackpot grows on every swap and the lottery starts after 72 hours or after 1000 swaps.",
     address: LOTTERY_HOOK_ADDRESS,
     source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/LotteryHook.sol",
+  },
+  {
+    name: "Buyback and Burn Hook",
+    description: "Collect 5% trading fee on every swap, only in $BONSAI, and perform a buyback and burn of the paired token every 500 swaps.",
+    address: BUYBACK_AND_BURN_HOOK_ADDRESS,
+    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/BuybackAndBurn.sol",
   },
 ];
 
