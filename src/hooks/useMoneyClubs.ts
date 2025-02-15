@@ -237,7 +237,7 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   return useQuery({
     queryKey: ["buy-price", clubId, amount],
     queryFn: () => getBuyPrice(account!, clubId!, amount!),
-    enabled: !!clubId && !!amount && !!account,
+    enabled: !!clubId && !!amount,
     refetchInterval: 15000, // refetch every 15 seconds
     staleTime: 2000,
     gcTime: 15000,

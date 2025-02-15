@@ -367,6 +367,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           Trade on Kyberswap
                         </Button>
                       </a>
+                      <p>{`${hookInfo[club.hook].name}: ${hookInfo[club.hook].label}`}</p>
                       <div className='mt-6 text-center'>
                         {club.liquidityReleasedAt && vestingData && (
                           <>

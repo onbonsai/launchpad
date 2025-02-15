@@ -715,7 +715,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
-        const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), _club.v2 ? DECIMALS : 6).split(".")[0];
+        const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (club?.hidden) return; // db forced hide
         if (club) {
@@ -803,15 +803,13 @@ export const getBuyPrice = async (
         address: LAUNCHPAD_CONTRACT_ADDRESS,
         abi: BonsaiLaunchpadAbi,
         functionName: "getBuyPrice",
-        args: [parseUnits(supply, DECIMALS), amountWithDecimals],
-        account
+        args: [parseUnits(supply, DECIMALS), amountWithDecimals]
       })
       : await client.readContract({
         address: LAUNCHPAD_CONTRACT_ADDRESS,
         abi: BonsaiLaunchpadAbi,
         functionName: "getBuyPriceByClub",
-        args: [clubId, amountWithDecimals],
-        account
+        args: [clubId, amountWithDecimals]
       });
   } catch {
     buyPrice = 1n
