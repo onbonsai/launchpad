@@ -58,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         gasLimit: _rawData.gas.toString(),
       };
     } catch (error) {
-      console.log(`simulation failed`, error);
+      // console.log(`simulation failed`, error);
     }
 
     return res.status(200).json({
