@@ -33,9 +33,9 @@ const getPath = () => {
       },
       {
         intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
-        fee: "0x800000",
+        fee: "10000", // "0x800000",
         tickSpacing: 200,
-        hooks: DEFAULT_HOOK_ADDRESS,
+        hooks: zeroAddress, // DEFAULT_HOOK_ADDRESS,
         hookData: "0x",
       },
     ],
