@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { keepPreviousData, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { base, baseSepolia, polygon } from "viem/chains";
+import { base, baseSepolia, Chain } from "viem/chains";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
@@ -21,7 +21,8 @@ import { configureChainsConfig } from "@utils/wagmi";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { inter } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
-import sdk from "@src/utils/farcaster.mjs"
+import sdk from "@src/utils/farcaster.mjs";
+import { IS_PRODUCTION } from "@src/constants/constants.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,19 +35,36 @@ const queryClient = new QueryClient({
 });
 
 const boxTheme = {
-  mainBgColor: '#141414',
-  mainTextColor: '#ffffff',
-  tokenSwapCardBgColor: '#1B1B1B',
-  buyBtnBgColor: '#e42101',
-  buyBtnTextColor: '#ffffff',
-  switchBtnBgColor: '#3A3842',
-  tokenDialogHoverColor: '#444444',
-  boxSubtleColor1: '#999999',
-  borderColor: 'transparent',
-  borderRadius: '0',
+  mainBgColor: "#141414",
+  mainTextColor: "#ffffff",
+  tokenSwapCardBgColor: "#1B1B1B",
+  buyBtnBgColor: "#e42101",
+  buyBtnTextColor: "#ffffff",
+  switchBtnBgColor: "#3A3842",
+  tokenDialogHoverColor: "#444444",
+  boxSubtleColor1: "#999999",
+  borderColor: "transparent",
+  borderRadius: "0",
   loadShineColor1: "#121212",
   loadShineColor2: "#333333",
-}
+};
+
+// TODO: mainnet
+const lens: Chain = {
+  id: 37111,
+  name: "Lens Testnet",
+  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
+  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
+};
+
+const lensTestnet: Chain = {
+  id: 37111,
+  name: "Lens Testnet",
+  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
+  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
+};
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
@@ -83,7 +101,8 @@ export default function MyApp(props: AppProps) {
           accentColor: "#eb4d30",
           walletList: ["detected_wallets", "rainbow", "coinbase_wallet", "wallet_connect" /*'farcaster'*/],
         },
-        defaultChain: base,
+        defaultChain: IS_PRODUCTION ? lens : lensTestnet,
+        supportedChains: IS_PRODUCTION ? [lens, base] : [lensTestnet, baseSepolia],
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
           noPromptOnSignature: true,
