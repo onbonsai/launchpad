@@ -608,18 +608,26 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
   const _publicClient = publicClient();
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
   let holdings = clubChips || [];
+  
   // override with erc20 balance of in case of transfers post-graduation
   if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
-    holdings = await Promise.all(holdings.map(async (data) => {
-      const amount = await _publicClient.readContract({
-        address: data.club.tokenAddress,
-        abi: VestingERC20Abi,
-        functionName: "balanceOf",
-        args: [data.trader.id],
-      });
-      return { ...data, amount };
+    const contracts = holdings.map(data => ({
+      address: data.club.tokenAddress,
+      abi: VestingERC20Abi,
+      functionName: "balanceOf",
+      args: [data.trader.id],
+    }));
+
+    const balances = await _publicClient.multicall({
+      contracts
+    });
+
+    holdings = holdings.map((data, i) => ({
+      ...data,
+      amount: balances[i].result
     }));
   }
+  
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
@@ -775,25 +783,27 @@ export const getBalance = async (clubId: string, account: `0x${string}`, chain =
 
 export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
   const client = publicClient();
-  const [availableBalance, totalBalance] = await Promise.all([
-    client.readContract({
-      address: tokenAddress,
-      abi: VestingERC20Abi,
-      functionName: "getAvailableBalance",
-      args: [account],
-    }),
-    client.readContract({
-      address: tokenAddress,
-      abi: VestingERC20Abi,
-      functionName: "balanceOf",
-      args: [account],
-    })
-  ]);
+  const [availableBalance, totalBalance] = await client.multicall({
+    contracts: [
+      {
+        address: tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "getAvailableBalance",
+        args: [account],
+      },
+      {
+        address: tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "balanceOf", 
+        args: [account],
+      }
+    ]
+  });
 
   return {
-    availableBalance: availableBalance as bigint,
-    vestingBalance: (totalBalance as bigint) - (availableBalance as bigint),
-    totalBalance: totalBalance as bigint
+    availableBalance: availableBalance.result as bigint,
+    vestingBalance: (totalBalance.result as bigint) - (availableBalance.result as bigint),
+    totalBalance: totalBalance.result as bigint
   };
 };
 
@@ -1019,34 +1029,47 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
 
 export const getFeesEarned = async (account: `0x${string}`, chain = "base"): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
   const client = subgraphClient(chain);
-  const [creatorNFTsResponse, feesEarnedResponse] = await Promise.all([
-    client.query({ query: GET_CREATOR_NFTS, variables: { trader: account } }),
-    publicClient().readContract({
+  const publicC = publicClient();
+
+  // Get creator NFTs
+  const { data: { creatorNFTs } } = await client.query({ 
+    query: GET_CREATOR_NFTS, 
+    variables: { trader: account } 
+  });
+  const creatorNFTList = creatorNFTs.map(nft => nft.club.clubId);
+
+  // Prepare multicall contracts array
+  const contracts = [
+    // Get total fees earned
+    {
       address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "feesEarned",
       args: [account],
-    })
-  ]);
-  const creatorNFTList = creatorNFTsResponse.data.creatorNFTs.map(nft => nft.club.clubId);
+    },
+    // Get fees earned for each club
+    ...creatorNFTList.map(id => ({
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      abi: BonsaiLaunchpadAbi,
+      functionName: "clubFeesEarned",
+      args: [id],
+    }))
+  ];
 
-  const clubFees = await Promise.all(
-    creatorNFTList.map(async (id) => {
-      const fees = await publicClient().readContract({
-        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-        abi: BonsaiLaunchpadAbi,
-        functionName: "clubFeesEarned",
-        args: [id],
-      });
-      return {
-        id: parseInt(id),
-        amount: fees as bigint
-      };
-    })
-  );
+  // Execute multicall
+  const [feesEarned, ...clubFeesResults] = await publicC.multicall({
+    contracts,
+    allowFailure: false
+  });
+
+  // Map club fees results to original format
+  const clubFees = clubFeesResults.map((fees, index) => ({
+    id: parseInt(creatorNFTList[index]),
+    amount: fees as bigint
+  }));
 
   return {
-    feesEarned: feesEarnedResponse as bigint,
+    feesEarned: feesEarned as bigint,
     clubFeesTotal: clubFees.reduce((sum, fee) => sum + fee.amount, 0n),
     clubFees,
   }
@@ -1206,7 +1229,6 @@ export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[]
   return { clubs: [], hasMore: false };
 };
 
-// TODO: multicall?
 export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[], chain = "base") => {
   let hash;
   const receipts: any[] = [];
