@@ -4,8 +4,9 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT, lens, lensTestnet } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
 import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 import { ChainRpcs } from "@src/constants/chains";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
@@ -19,7 +20,6 @@ import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
-export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
 const REGISTERED_CLUB = gql`
@@ -357,9 +357,11 @@ export const BUYBACK_AND_BURN_HOOK_ADDRESS = "0xD4E2efCE3De32de13407298d224ee7e7
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
-export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
-// export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/version/latest"; // DEV URL
-export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
+export const BASE_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
+export const BASE_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
+// TODO
+export const LENS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
+export const LENS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
 
 export const WHITELISTED_UNI_HOOKS = {
   "LOTTERY_HOOK": {
@@ -398,8 +400,8 @@ export const toHexString = (id: number | string, minLength: number = 2): string 
   return `0x${stringId.length === 3 ? stringId.padStart(4, "0") : stringId.padStart(2, "0")}`;
 }
 
-export const subgraphClient = () => {
-  const uri = IS_PRODUCTION ? MONEY_CLUBS_SUBGRAPH_URL : MONEY_CLUBS_SUBGRAPH_TESTNET_URL;
+export const subgraphClient = (chain = "base") => {
+  const uri = IS_PRODUCTION ? (chain === "base" ? BASE_SUBGRAPH_URL : LENS_SUBGRAPH_URL) : (chain === "base" ? BASE_SUBGRAPH_TESTNET_URL : LENS_SUBGRAPH_TESTNET_URL);
   return new ApolloClient({
     ssrMode: typeof window === "undefined", // set to true for server-side rendering
     link: new HttpLink({ uri }),
@@ -408,14 +410,14 @@ export const subgraphClient = () => {
 };
 
 // server-side
-export const getRegisteredClubById = async (clubId: string) => {
+export const getRegisteredClubById = async (clubId: string, chain = "base") => {
   const id = toHexString(parseInt(clubId));
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
   const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
   const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const { data: { club } } = await client.query({
     query: REGISTERED_CLUB,
     variables: {
@@ -441,8 +443,8 @@ export const getRegisteredClubById = async (clubId: string) => {
   };
 };
 
-export const getRegisteredClubInfo = async (ids: string[]) => {
-  const client = subgraphClient();
+export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
+  const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
   return clubs?.map((club) => {
     let { name, symbol, image } = club
@@ -457,8 +459,8 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
   });
 };
 
-export const searchClubs = async (query: string) => {
-  const client = subgraphClient();
+export const searchClubs = async (query: string, chain = "base") => {
+  const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: SEARCH_CLUBS, variables: { query } })
   return clubs?.map((club) => {
     const { name, symbol, image } = club
@@ -467,10 +469,10 @@ export const searchClubs = async (query: string) => {
   });
 };
 
-export const getVolume = async (clubId: string): Promise<bigint> => {
+export const getVolume = async (clubId: string, chain = "base"): Promise<bigint> => {
   const id = toHexString(parseInt(clubId));
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const limit = 50;
   let skip = 0;
   let volume = 0n;
@@ -505,9 +507,9 @@ export const getSupply = async (tokenAddress: `0x${string}`) => {
   return supply as unknown as bigint;
 };
 
-export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {
+export const getTrades = async (clubId: string, page = 0, chain = "base"): Promise<{ trades: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const limit = 50;
   const skip = page * limit;
 
@@ -519,8 +521,8 @@ export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any
   return { trades: trades || [], hasMore: trades?.length == limit };
 };
 
-export const getLatestTrades = async (): Promise<any[]> => {
-  const client = subgraphClient();
+export const getLatestTrades = async (chain = "base"): Promise<any[]> => {
+  const client = subgraphClient(chain);
   const { data: { trades } } = await client.query({
     query: CLUB_TRADES_LATEST
   });
@@ -560,11 +562,11 @@ export const getTokenBalances = async (account: `0x${string}`, tokenAddresses: `
   }
 };
 
-export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
+export const getHoldings = async (account: `0x${string}`, page = 0, chain = "base"): Promise<{ holdings: any[], hasMore: boolean }> => {
   const limit = 50;
   const skip = page * limit;
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const { data: { clubChips } } = await client.query({
     query: HOLDINGS_PAGINATED, variables: { trader: account.toLowerCase(), startOfDayUTC, skip }
   });
@@ -598,11 +600,11 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
-export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
+export const getClubHoldings = async (clubId: string, page = 0, chain = "base"): Promise<{ holdings: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
   const limit = 100;
   const skip = page * limit;
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const _publicClient = publicClient();
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
   let holdings = clubChips || [];
@@ -621,14 +623,14 @@ export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdi
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
-export const getRegisteredClub = async (handle: string, profileId?: string) => {
+export const getRegisteredClub = async (handle: string, profileId?: string, chain = "base") => {
   if (!profileId) {
     const profile = await getProfileByHandle(`lens/${handle}`);
     profileId = profile?.id;
   }
 
   const twentyFourHoursAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
-  const { data } = await subgraphClient().query({
+  const { data } = await subgraphClient(chain).query({
     query: REGISTERED_CLUB,
     variables: { id: profileId, twentyFourHoursAgo }
   });
@@ -643,7 +645,7 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
   };
 };
 
-export const getFeaturedClubs = async (): Promise<any[]> => {
+export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
   const response = await fetch('/api/clubs/get-enriched-clubs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -653,7 +655,7 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
   console.log(`Fetched ${clubs.length} featured clubs`);
   if (clubs?.length) {
     const ids = clubs.map(({ clubId }) => toHexString(clubId));
-    const { data: { clubs: _clubs } } = await subgraphClient().query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
+    const { data: { clubs: _clubs } } = await subgraphClient(chain).query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
 
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
@@ -699,11 +701,11 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
   return [];
 };
 
-export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ clubs: any[], hasMore: boolean }> => {
+export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 30;
   const skip = page * limit;
   const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
-  const { data } = await subgraphClient().query({ query, variables: { pageSize: limit, skip } });
+  const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
@@ -759,14 +761,14 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
   return { clubs: [], hasMore: false };
 };
 
-export const publicClient = () => {
-  const chain = IS_PRODUCTION ? base : baseSepolia;
-  return createPublicClient({ chain, transport: http(ChainRpcs[chain.id]) });
+export const publicClient = (chain = "base") => {
+  const _chain = IS_PRODUCTION ? chain == "base" ? base : lens : chain == "base" ? baseSepolia : lensTestnet;
+  return createPublicClient({ chain: _chain, transport: http(ChainRpcs[_chain.id]) });
 };
 
-export const getBalance = async (clubId: string, account: `0x${string}`): Promise<bigint> => {
+export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base"): Promise<bigint> => {
   const id = toHexString(parseInt(clubId));
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account, club: id } });
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
@@ -799,7 +801,8 @@ export const getBuyPrice = async (
   account: `0x${string}`,
   clubId: string,
   amount: string,
-  supply?: string
+  supply?: string,
+  chain = "base"
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
@@ -807,14 +810,14 @@ export const getBuyPrice = async (
   try {
     buyPrice = !!supply ?
       await client.readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
         abi: BonsaiLaunchpadAbi,
         functionName: "getBuyPrice",
         args: [parseUnits(supply, DECIMALS), amountWithDecimals]
       })
       : await client.readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
-        abi: BonsaiLaunchpadAbi,
+        address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+        abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
         functionName: "getBuyPriceByClub",
         args: [clubId, amountWithDecimals]
       });
@@ -828,31 +831,18 @@ export const getBuyPrice = async (
   };
 };
 
-export const getMarketCap = async (
-  supply: string,
-  curve: number | string,
-): Promise<bigint> => {
-  console.log(supply, curve)
-  const client = publicClient();
-  const marketCap = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "getMcap",
-    args: [supply, curve]
-  });
-
-  return marketCap as bigint
-};
-
+// optional params: initialPrice, targetPriceMultiplier, flatThreshold
+// not needed for Base deployment, but needed for Lens deployment
 function calculateTokensForUSDC(
   usdcAmount: bigint,
   currentSupply: bigint,
+  initialPrice = BigInt("12384118034062500000"),
+  targetPriceMultiplier = 5n,
+  flatThreshold = FLAT_THRESHOLD
 ): bigint {
   const BPS_MAX = BigInt("10000");
-  const initialPrice = BigInt("12384118034062500000")
-  const targetPrice = BigInt(5) * initialPrice;
+  const targetPrice = initialPrice * targetPriceMultiplier;
   const decimals = 18
-  const flatThreshold = FLAT_THRESHOLD
   const maxSupply = MAX_MINTABLE_SUPPLY
 
   function getPrice(supply: bigint, amount: bigint): bigint {
@@ -990,13 +980,14 @@ export const getSellPrice = async (
   account: `0x${string}`,
   clubId: string,
   amount: string,
-  hasNft = false
+  hasNft = false,
+  chain = "base"
 ): Promise<{ sellPrice: bigint; sellPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient();
   const sellPrice = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
+    address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+    abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
     functionName: "getSellPriceByClub",
     args: [clubId, amountWithDecimals],
     account,
@@ -1026,12 +1017,12 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   };
 };
 
-export const getFeesEarned = async (account: `0x${string}`): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
-  const client = subgraphClient();
+export const getFeesEarned = async (account: `0x${string}`, chain = "base"): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
+  const client = subgraphClient(chain);
   const [creatorNFTsResponse, feesEarnedResponse] = await Promise.all([
     client.query({ query: GET_CREATOR_NFTS, variables: { trader: account } }),
     publicClient().readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "feesEarned",
       args: [account],
@@ -1042,7 +1033,7 @@ export const getFeesEarned = async (account: `0x${string}`): Promise<{ feesEarne
   const clubFees = await Promise.all(
     creatorNFTList.map(async (id) => {
       const fees = await publicClient().readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
         abi: BonsaiLaunchpadAbi,
         functionName: "clubFeesEarned",
         args: [id],
@@ -1073,10 +1064,10 @@ type RegistrationParams = {
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
 };
-export const registerClub = async (walletClient, isAuthenticated: boolean, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string, txHash?: string }> => {
+export const registerClub = async (walletClient, isAuthenticated: boolean, params: RegistrationParams, chain = "base"): Promise<{ objectId?: string, clubId?: string, txHash?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "registerClub",
     args: [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration],
@@ -1101,7 +1092,7 @@ export const registerClub = async (walletClient, isAuthenticated: boolean, param
 
   const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
   const event = getEventFromReceipt({
-    contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+    contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     transactionReceipt: receipt,
     abi: BonsaiLaunchpadAbi,
     eventName: "RegisteredClub",
@@ -1110,10 +1101,10 @@ export const registerClub = async (walletClient, isAuthenticated: boolean, param
   return receipt.status === "success" && response.ok ? res : {};
 };
 
-export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`) => {
+export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`, chain = "base") => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
     args: [clubId, amount, maxPrice, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
@@ -1125,10 +1116,10 @@ export const buyChips = async (walletClient: any, clubId: string, amount: bigint
   if (receipt.status === "reverted") throw new Error("Reverted");
 };
 
-export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint) => {
+export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint, chain = "base") => {
   const amountWithDecimals = parseUnits(sellAmount, DECIMALS);
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "sellChips",
     args: [clubId, amountWithDecimals, minAmountOut, zeroAddress],
@@ -1146,6 +1137,7 @@ export const approveToken = async (
   walletClient: any,
   toastId?,
   approveMessage = "Approving tokens...",
+  chain = "base"
 ) => {
   const [user] = await walletClient.getAddresses();
   const client = publicClient();
@@ -1153,7 +1145,7 @@ export const approveToken = async (
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [user, LAUNCHPAD_CONTRACT_ADDRESS],
+    args: [user, PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad],
   });
 
   if (allowance < amount) {
@@ -1162,7 +1154,7 @@ export const approveToken = async (
       address: token,
       abi: erc20Abi,
       functionName: "approve",
-      args: [LAUNCHPAD_CONTRACT_ADDRESS, maxUint256],
+      args: [PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad, maxUint256],
     });
     console.log(`hash: ${hash}`)
     await client.waitForTransactionReceipt({ hash });
@@ -1188,10 +1180,10 @@ export const releaseLiquidity = async (clubId: string) => {
 
 // TODO: might need to enrich with creator profile
 // for api
-export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
+export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 25;
   const skip = page * limit;
-  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
+  const { data } = await subgraphClient(chain).query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
 
   if (data?.clubs?.length) {
     const clubs = data?.clubs.map((_club) => {
@@ -1215,13 +1207,13 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
 };
 
 // TODO: multicall?
-export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[]) => {
+export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[], chain = "base") => {
   let hash;
   const receipts: any[] = [];
 
   if (feesEarned > 0n) {
     hash = await walletClient.writeContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawFeesEarned",
       args: [zeroAddress],
@@ -1233,7 +1225,7 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
 
   if (clubIds && clubIds.length > 0) {
     hash = await walletClient.writeContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawClubFeesEarned",
       args: [clubIds],
@@ -1274,8 +1266,8 @@ export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => 
   }
 };
 
-export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, createdAt_gt: number }) => {
-  const { data } = await subgraphClient().query({ query: GET_TRADER, variables });
+export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, createdAt_gt: number }, chain = "base") => {
+  const { data } = await subgraphClient(chain).query({ query: GET_TRADER, variables });
 
   return data.trader;
 }

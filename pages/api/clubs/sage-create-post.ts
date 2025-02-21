@@ -3,7 +3,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { TransactionReceipt } from "viem";
 import { publicClient } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { createPostMomokaWithAccount } from "@src/services/lens/createPost";
 import { storjGatewayURL } from "@src/utils/storj";
@@ -12,11 +12,12 @@ import { lensClient } from "@src/services/lens/client";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { txHash, postIpfsHash } = req.body;
+    let { txHash, postIpfsHash, chain } = req.body;
+    chain = chain || "base";
 
     const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
-      contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       transactionReceipt,
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",

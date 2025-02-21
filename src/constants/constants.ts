@@ -1,7 +1,4 @@
-import { chainIdNumber } from "./validChainId";
-import { Chains } from "./chains";
-
-export const IS_PRODUCTION = chainIdNumber === Chains.POLYGON;
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -101,8 +98,10 @@ export const CUSTOM_BID_HEADERS = {
     "The Block retains all intellectual property rights and otherwise for the podcast episode clips, including all derivative works made by members of The Block Community.",
 };
 
-export const MEDIA_SERVER_URL = process.env.NEXT_PUBLIC_MEDIA_SERVER_URL || "https://madfi-media-server-af3d6b164e42.herokuapp.com";
+export const MEDIA_SERVER_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_URL || "https://madfi-media-server-af3d6b164e42.herokuapp.com";
 
 export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
   ? ``
   : `https://bundler.biconomy.io/api/v2/168587773/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`;
+export { IS_PRODUCTION };

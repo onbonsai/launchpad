@@ -2,8 +2,8 @@ import { gql } from "@apollo/client";
 import { decodeAbiParameters, decodeEventLog } from "viem";
 import { subgraphClient, publicClient } from "../madfi/moneyClubs";
 import { getBondingCurveTrades, formatTrades } from "./getChartData";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "../madfi/utils";
 import BonsaiLaunchpadAbi from "./../madfi/abi/BonsaiLaunchpad.json";
+import { PROTOCOL_DEPLOYMENT } from "../madfi/utils";
 
 const EXCHANGE_BONDING_CURVE = "Bonsai";
 const EXCHANGE_UNI_V4 = "uniswap_v4";
@@ -145,14 +145,14 @@ export const Datafeed = {
       onHistoryCallback(bars, { noData: bars.length === 0 });
     }
   },
-  subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
+  subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback, chain = "base") => {
     console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
     if (resolution != "1S") return;
     const [_, clubId] = symbolInfo.exchange.split(":");
 
     const client = publicClient();
     const unwatch = client.watchContractEvent({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       eventName: "Trade",
       args: { clubId },

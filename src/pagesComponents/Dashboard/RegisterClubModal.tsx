@@ -23,15 +23,12 @@ import {
   MAX_INITIAL_SUPPLY,
   BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
-  MAX_MINTABLE_SUPPLY,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import publicationBody from "@src/services/lens/publicationBody";
 import { createPostMomoka } from "@src/services/lens/createPost";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
 import BondingCurveSelector from "./BondingCurveSelector";

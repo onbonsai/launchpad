@@ -7,7 +7,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS } from "@src/services/madfi/moneyClubs";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import clsx from "clsx";
 
 const DisclosurePanelWithTransition = ({ children }) => {
@@ -235,9 +235,17 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(LAUNCHPAD_CONTRACT_ADDRESS, false)}
+                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad, false)}
                             >
-                              {LAUNCHPAD_CONTRACT_ADDRESS}
+                              Base: {PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad}
+                            </a>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad, false)}
+                            >
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad}
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
@@ -248,7 +256,15 @@ const Help = () => {
                               rel="noreferrer"
                               href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS, false)}
                             >
-                              {BONSAI_TOKEN_BASE_ADDRESS}
+                              Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
+                            </a>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS, false)}
+                            >
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
@@ -259,7 +275,15 @@ const Help = () => {
                               rel="noreferrer"
                               href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS, false)}
                             >
-                              {BONSAI_NFT_BASE_ADDRESS}
+                              Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
+                            </a>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS, false)}
+                            >
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
                             </a>
                           </p>
                         </Disclosure.Panel>

@@ -11,14 +11,13 @@ import { base, baseSepolia } from "viem/chains";
 
 import {
   publicClient,
-  IS_PRODUCTION,
   BONSAI_TOKEN_BASE_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   MIN_LIQUIDITY_THRESHOLD,
   DEFAULT_HOOK_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 
 const getPath = () => {
@@ -64,10 +63,10 @@ const getPath = () => {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { clubId, tokenPrice } = req.body;
+    let { clubId, tokenPrice, chain } = req.body;
+    chain = chain || "base";
 
     const account = privateKeyToAccount(process.env.OWNER_PRIVATE_KEY as `0x${string}`);
-    const chain = IS_PRODUCTION ? base : baseSepolia;
     const walletClient = createWalletClient({ account, chain, transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
@@ -77,21 +76,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const swapInfoV4 = getPath();
 
-    // console.log(clubId, minAmountOut, swapInfoV4)
-
-    // const result = await publicClient().simulateContract({
-    //   account,
-    //   address: LAUNCHPAD_CONTRACT_ADDRESS,
-    //   abi: BonsaiLaunchpadAbi,
-    //   functionName: "releaseLiquidity", 
-    //   args: [clubId, minAmountOut, swapInfoV4],
-    //   chain: IS_PRODUCTION ? base : baseSepolia,
-    // });
-
-    // console.log('Simulation result:', result);
-
     const hash = await walletClient.writeContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "releaseLiquidity",
       args: [clubId, minAmountOut, swapInfoV4],
@@ -100,7 +86,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
     const releaseLiquidityEvent = getEventFromReceipt({
-      contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       transactionReceipt,
       abi: BonsaiLaunchpadAbi,
       eventName: "LiquidityReleased",

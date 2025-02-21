@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { keepPreviousData, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { base, baseSepolia, Chain } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
@@ -23,6 +23,7 @@ import { inter } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
 import { IS_PRODUCTION } from "@src/constants/constants.js";
+import { lens, lensTestnet } from "@src/services/madfi/utils.js";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,23 +48,6 @@ const boxTheme = {
   borderRadius: "0",
   loadShineColor1: "#121212",
   loadShineColor2: "#333333",
-};
-
-// TODO: mainnet
-const lens: Chain = {
-  id: 37111,
-  name: "Lens Testnet",
-  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
-  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
-};
-
-const lensTestnet: Chain = {
-  id: 37111,
-  name: "Lens Testnet",
-  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
-  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
 };
 
 export default function MyApp(props: AppProps) {

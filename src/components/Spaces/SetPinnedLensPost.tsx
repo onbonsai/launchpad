@@ -6,7 +6,6 @@ import { alpha, styled } from "@mui/material/styles";
 import { red } from "@mui/material/colors";
 import { XIcon } from "@heroicons/react/solid";
 
-import { IS_PRODUCTION } from "@src/constants/constants";
 import { Tooltip } from "@src/components/Tooltip";
 import { Chains } from "@src/constants/chains";
 import { BONSAI_TOKEN_ADDRESS } from "@src/services/madfi/utils";
