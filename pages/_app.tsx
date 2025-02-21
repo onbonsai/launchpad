@@ -22,8 +22,7 @@ import { ClubsProvider } from "@src/context/ClubsContext";
 import { inter } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
-import { IS_PRODUCTION } from "@src/constants/constants.js";
-import { lens, lensTestnet } from "@src/services/madfi/utils.js";
+import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 
 const queryClient = new QueryClient({
   defaultOptions: {

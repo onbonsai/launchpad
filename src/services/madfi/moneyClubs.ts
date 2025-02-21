@@ -357,11 +357,17 @@ export const BUYBACK_AND_BURN_HOOK_ADDRESS = "0xD4E2efCE3De32de13407298d224ee7e7
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
-export const BASE_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
-export const BASE_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
-// TODO
-export const LENS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
-export const LENS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
+export const SUBGRAPH_CONFIG = {
+  base: {
+    mainnet: `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`,
+    testnet: `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`
+  },
+  // TODO: add lens subgraph
+  lens: {
+    mainnet: `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`,
+    testnet: `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`
+  }
+};
 
 export const WHITELISTED_UNI_HOOKS = {
   "LOTTERY_HOOK": {
@@ -401,7 +407,7 @@ export const toHexString = (id: number | string, minLength: number = 2): string 
 }
 
 export const subgraphClient = (chain = "base") => {
-  const uri = IS_PRODUCTION ? (chain === "base" ? BASE_SUBGRAPH_URL : LENS_SUBGRAPH_URL) : (chain === "base" ? BASE_SUBGRAPH_TESTNET_URL : LENS_SUBGRAPH_TESTNET_URL);
+  const uri = IS_PRODUCTION ? SUBGRAPH_CONFIG[chain].mainnet : SUBGRAPH_CONFIG[chain].testnet;
   return new ApolloClient({
     ssrMode: typeof window === "undefined", // set to true for server-side rendering
     link: new HttpLink({ uri }),
@@ -436,6 +442,7 @@ export const getRegisteredClubById = async (clubId: string, chain = "base") => {
 
   return {
     ...club,
+    chain,
     "24h": prevTrade24h,
     "6h": prevTrade6h,
     "1h": prevTrade1h,

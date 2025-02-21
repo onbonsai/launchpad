@@ -104,4 +104,3 @@ export const MEDIA_SERVER_URL =
 export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
   ? ``
   : `https://bundler.biconomy.io/api/v2/168587773/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`;
-export { IS_PRODUCTION };

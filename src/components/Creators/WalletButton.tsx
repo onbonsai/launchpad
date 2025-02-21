@@ -3,9 +3,10 @@ import { toast } from 'react-hot-toast';
 
 interface WalletButtonProps {
   wallet: string;
+  chain: string;
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ wallet }) => {
+const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain }) => {
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard
@@ -28,7 +29,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet }) => {
         onClick={copyToClipboard}
         className="flex items-center pl-2 pr-[10px] py-1 rounded-[10px] bg-backgroundAccent text-[#ffffff] text-sm transition-colors hover:text-[#e5e7eb]"
       >
-        <img src="/svg/base.svg" alt="Base Logo" className="flex mr-2 h-4 w-4" />
+        <img src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" />
         {formattedAddress}
       </button>
   );

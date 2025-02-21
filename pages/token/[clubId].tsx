@@ -29,6 +29,7 @@ import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
 import { ShareClub } from '@src/pagesComponents/Club';
 import { InfoOutlined } from '@mui/icons-material';
+import { capitalizeFirstLetter } from '@src/utils/utils';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
@@ -67,6 +68,7 @@ export type Club = {
   vestingDuration: string
   tokenAddress?: `0x${string}`;
   hook: `0x${string}`;
+  chain: string;
 };
 
 interface TokenPageProps {
@@ -175,18 +177,29 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }, [club]);
 
   const hookInfo = useMemo(() => {
-    return Object.keys(WHITELISTED_UNI_HOOKS).reduce((acc, key) => {
+    const defaultHookInfo = {
+      name: 'No Hook',
+      label: 'Standard trading enabled'
+    };
+
+    const hooks = Object.keys(WHITELISTED_UNI_HOOKS).reduce((acc, key) => {
       acc[WHITELISTED_UNI_HOOKS[key].contractAddress.toLowerCase()] = {
         ...WHITELISTED_UNI_HOOKS[key],
         name: key.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
       };
       return acc;
-    }, {});
+    }, {} as Record<string, any>);
+
+    // Add handling for zero address and unknown hooks
+    hooks[zeroAddress] = defaultHookInfo;
+    
+    return new Proxy(hooks, {
+      get: (target, prop) => target[prop] || defaultHookInfo
+    });
   }, [WHITELISTED_UNI_HOOKS]);
 
   if (!isMounted) return null;
 
-  // TODO: re-enable once path is verified
   const releaseLiquidity = async () => {
     let toastId;
     setIsReleasing(true)
@@ -303,7 +316,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                                 <div className="ml-4 -mt-[6px]">
                                   <ShareClub clubId={club.clubId} symbol={club.token.name} />
                                 </div>
-                                <p className="text-white text-md"><WalletButton wallet={club.tokenAddress!} /></p>
+                                <p className="text-white text-md"><WalletButton wallet={club.tokenAddress!} chain={club.chain} /></p>
                               </div>
                               <BodySemiBold className={`text-white/60 ${isConnected && "-mt-2"}`}>{club.token.name}</BodySemiBold>
                             </div>
@@ -324,12 +337,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <InfoCard title='Network' subtitle={
                           <div className='flex gap-1 items-center'>
                             <img
-                              src='/base.png'
-                              alt={'base'}
-                              className="w-[12px] h-[12px]"
+                              src={`/${club.chain}.png`}
+                              alt={club.chain}
+                              className="h-[12px]"
                             />
                             <Subtitle className='text-white'>
-                              Base
+                              {capitalizeFirstLetter(club.chain)}
                             </Subtitle>
                           </div>
                         }
