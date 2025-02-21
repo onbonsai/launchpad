@@ -955,12 +955,13 @@ export const getBuyAmount = async (
   account: `0x${string}`,
   tokenAddress: `0x${string}`, // club.tokenAddress
   spendAmount: string, // Amount in USDC user wants to spend
-  hasNft = false
+  hasNft = false,
+  chain = "base"
 ): Promise<{
   buyAmount: bigint,
   effectiveSpend: string
 }> => {
-  const client = publicClient();
+  const client = publicClient(chain);
 
   // Convert spend amount to proper decimals
   const spendAmountBigInt = parseUnits(spendAmount, 6);

@@ -53,9 +53,9 @@ export const BuySellWidget = ({
   const [showConfetti, setShowConfetti] = useState(false);
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
-  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
+  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
   const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
@@ -100,7 +100,7 @@ export const BuySellWidget = ({
       await approveToken(USDC_CONTRACT_ADDRESS, maxPrice, walletClient, toastId);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress);
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
@@ -138,7 +138,7 @@ export const BuySellWidget = ({
     try {
       toastId = toast.loading("Selling...");
       const minAmountOut = (sellPriceAfterFees || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
-      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
+      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut, club.chain);
 
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refreshTradingInfo, 5000);

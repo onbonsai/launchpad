@@ -1,12 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { privateKeyToAccount } from "viem/accounts";
-import {
-  http,
-  createWalletClient,
-  TransactionReceipt,
-  zeroAddress,
-  parseEther,
-} from "viem";
+import { http, createWalletClient, TransactionReceipt, zeroAddress, parseEther, encodePacked } from "viem";
 import { base, baseSepolia } from "viem/chains";
 
 import {
@@ -17,48 +11,61 @@ import {
   DEFAULT_HOOK_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 
+const WETH = "0x4200000000000000000000000000000000000006";
+
 const getPath = () => {
-  const swapInfoV4 = IS_PRODUCTION ? {
-    path: [
-      {
-        intermediateCurrency: zeroAddress,
-        fee: 500,
-        tickSpacing: 10,
-        hooks: zeroAddress,
-        hookData: "0x",
-      },
-      {
-        intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
-        fee: "10000", // "0x800000",
-        tickSpacing: 200,
-        hooks: zeroAddress, // DEFAULT_HOOK_ADDRESS,
-        hookData: "0x",
-      },
-    ],
-    router: "0x6ff5693b99212da76ad316178a184ab56d299b43"
-  } : {
-    path: [
-      {
-        intermediateCurrency: "0x1d3C6386F05ed330c1a53A31Bb11d410AeD094dF",
-        fee: 500,
-        tickSpacing: 60,
-        hooks: zeroAddress,
-        hookData: "0x",
-      },
-      {
-        intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
-        fee: 10000,
-        tickSpacing: 60,
-        hooks: "0xCED5Aa78A6568597883336E575FbA83D8750c080", // old hook address, dont feel like migrating the bonsai pool
-        hookData: "0x",
-      },
-    ],
-    router: "0x492e6456d9528771018deb9e87ef7750ef184104"
+  const swapInfoV4 = IS_PRODUCTION
+    ? {
+        path: [
+          {
+            intermediateCurrency: zeroAddress,
+            fee: 500,
+            tickSpacing: 10,
+            hooks: zeroAddress,
+            hookData: "0x",
+          },
+          {
+            intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
+            fee: "10000", // "0x800000",
+            tickSpacing: 200,
+            hooks: zeroAddress, // DEFAULT_HOOK_ADDRESS,
+            hookData: "0x",
+          },
+        ],
+        router: "0x6ff5693b99212da76ad316178a184ab56d299b43",
+      }
+    : {
+        path: [
+          {
+            intermediateCurrency: "0x1d3C6386F05ed330c1a53A31Bb11d410AeD094dF",
+            fee: 500,
+            tickSpacing: 60,
+            hooks: zeroAddress,
+            hookData: "0x",
+          },
+          {
+            intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
+            fee: 10000,
+            tickSpacing: 60,
+            hooks: "0xCED5Aa78A6568597883336E575FbA83D8750c080", // old hook address, dont feel like migrating the bonsai pool
+            hookData: "0x",
+          },
+        ],
+        router: "0x492e6456d9528771018deb9e87ef7750ef184104",
+      };
+
+  const swapInfoV3 = {
+    path: encodePacked(
+      ["address", "uint24", "address", "uint24", "address"],
+      [USDC_CONTRACT_ADDRESS, 500, WETH, 10000, BONSAI_TOKEN_BASE_ADDRESS],
+    ),
+    router: IS_PRODUCTION ? "0x2626664c2603336E57B271c5C0b26F421741e481" : "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4",
   };
-  return swapInfoV4;
+
+  return { swapInfoV4, swapInfoV3 };
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -74,14 +81,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ? parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString())
       : 0;
 
-    const swapInfoV4 = getPath();
+    const { swapInfoV3, swapInfoV4 } = getPath();
 
+    let args = [clubId, minAmountOut, swapInfoV4];
+    if (chain === "lens") {
+      // TODO: add lens args
+      args = [clubId, minAmountOut, swapInfoV3, swapInfoV4];
+    }
     const hash = await walletClient.writeContract({
       address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "releaseLiquidity",
-      args: [clubId, minAmountOut, swapInfoV4],
-      chain: IS_PRODUCTION ? base : baseSepolia,
+      args,
+      chain: chain === "base" ? (IS_PRODUCTION ? base : baseSepolia) : IS_PRODUCTION ? lens : lensTestnet,
     });
 
     const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });

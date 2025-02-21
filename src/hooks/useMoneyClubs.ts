@@ -244,10 +244,10 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string) => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base") => {
   return useQuery({
     queryKey: ["buy-amount", tokenAddress, spendAmount],
-    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!),
+    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!, undefined, chain),
     enabled: !!tokenAddress && !!spendAmount && !!account,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,
@@ -265,10 +265,10 @@ export const useGetRegistrationFee = (amount: number | string, account?: `0x${st
   });
 };
 
-export const useGetSellPrice = (account?: `0x${string}`, clubId?: string, amount?: string) => {
+export const useGetSellPrice = (account?: `0x${string}`, clubId?: string, amount?: string, chain = "base") => {
   return useQuery({
     queryKey: ["sell-price", clubId, amount],
-    queryFn: () => getSellPrice(account!, clubId!, amount!),
+    queryFn: () => getSellPrice(account!, clubId!, amount!, false, chain),
     enabled: !!clubId && !!amount && !!account,
     staleTime: 1000,
     gcTime: 15000,
