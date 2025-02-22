@@ -1158,6 +1158,7 @@ export const registerClub = async (walletClient, isAuthenticated: boolean, param
       token: { name: params.tokenName, symbol: params.tokenSymbol, image: params.tokenImage, description: params.tokenDescription },
       featureEndAt: params.featureEndAt,
       handle: creator,
+      chain
     })
   });
 

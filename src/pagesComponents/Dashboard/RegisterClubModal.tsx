@@ -20,12 +20,10 @@ import {
   USDC_DECIMALS,
   registerClub as registerClubTransaction,
   approveToken,
-  MIN_LIQUIDITY_THRESHOLD,
   MAX_INITIAL_SUPPLY,
   BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
   PricingTier,
-  IS_PRODUCTION
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -37,6 +35,7 @@ import { Subtitle } from "@src/styles/text";
 import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -105,7 +104,7 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const [selectedNetwork, setSelectedNetwork] = useState<string>('lens');
+  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">('lens');
   const [pricingTier, setPricingTier] = useState<string>("SMALL");
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -532,7 +531,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       <div
                         key={`hook-${key}`}
                         className={clsx(
-                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
+                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
                           uniHook === key ? "" : "border-card-lightest"
                         )}
                         onClick={() => setUniHook(key)}
@@ -581,7 +580,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                       <div
                         key={`tier-${key}`}
                         className={clsx(
-                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
+                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
                           pricingTier === key ? "" : "border-card-lightest"
                         )}
                         onClick={() => setPricingTier(key)}
