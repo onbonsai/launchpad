@@ -10,7 +10,7 @@ import { Subtitle, Header2 } from '@src/styles/text';
 import { localizeNumber } from "@src/constants/utils";
 
 export const ClaimFeesEarned = () => {
-  const { address, chain, isConnected } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { data: creatorFeesEarned, isLoading, refetch } = useGetFeesEarned(address);
@@ -59,7 +59,7 @@ export const ClaimFeesEarned = () => {
 
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
+    if (chainId !== CONTRACT_CHAIN_ID) {
       try {
         switchChain({ chainId: CONTRACT_CHAIN_ID });
       } catch {

@@ -4,8 +4,9 @@ import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
-import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined } from "@mui/icons-material";
+import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
 import toast from "react-hot-toast"
+import Image from "next/image";
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
@@ -23,6 +24,8 @@ import {
   MAX_INITIAL_SUPPLY,
   BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
+  PricingTier,
+  IS_PRODUCTION
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -35,6 +38,50 @@ import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 
+type NetworkOption = {
+  value: 'base' | 'lens';
+  label: string;
+  icon: string;
+};
+
+const NETWORK_OPTIONS: NetworkOption[] = [
+  {
+    value: 'lens',
+    label: 'Lens',
+    icon: '/lens.png'
+  },
+  {
+    value: 'base',
+    label: 'Base',
+    icon: '/base.png'
+  }
+];
+
+const LENS_PRICING_TIERS = {
+  [PricingTier.SMALL]: {
+    label: 'Small',
+    value: 6000,
+    icon: 'local-atm',
+    iconLabel: '$6k to graduate'
+  },
+  [PricingTier.MEDIUM]: {
+    label: 'Medium',
+    value: 11000,
+    icon: 'local-atm',
+    iconLabel: '$11k to graduate'
+  },
+  [PricingTier.LARGE]: {
+    label: 'Large',
+    value: 21000,
+    icon: 'local-atm',
+    iconLabel: '$21k to graduate'
+  }
+};
+
+const NETWORK_CHAIN_IDS = {
+  'base': CONTRACT_CHAIN_ID,
+  'lens': IS_PRODUCTION ? 167004 : 37111
+} as const;
 
 export const RegisterClubModal = ({
   closeModal,
@@ -44,11 +91,11 @@ export const RegisterClubModal = ({
   bonsaiNftBalance, // bonsai nft balance
 }) => {
   const router = useRouter();
-  const { chain, address } = useAccount();
+  const { chainId, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [initialSupply, setInitialSupply] = useState<number>();
-  const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES");
+  const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>("");
   const [tokenSymbol, setTokenSymbol] = useState<string>("");
   const [vestingCliff, setVestingCliff] = useState<number>(10);
@@ -58,12 +105,13 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const creatorLiqMax = ((MIN_LIQUIDITY_THRESHOLD * BigInt(10 ** DECIMALS)) / BigInt(10));
+  const [selectedNetwork, setSelectedNetwork] = useState<string>('lens');
+  const [pricingTier, setPricingTier] = useState<string>("SMALL");
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
-  const isValid = tokenName && tokenSymbol && tokenBalance > (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
+  const isValid = tokenName && tokenSymbol && tokenBalance >= (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
 
   const { data: usdcBalance } = useReadContract({
     address: USDC_CONTRACT_ADDRESS,
@@ -103,11 +151,13 @@ export const RegisterClubModal = ({
     setIsBuying(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
+    const targetChainId = NETWORK_CHAIN_IDS[selectedNetwork];
+
+    if (chainId !== targetChainId) {
       try {
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
+        switchChain({ chainId: targetChainId });
       } catch {
-        toast.error("Please switch networks");
+        toast.error(`Please switch to ${selectedNetwork}`);
         setIsBuying(false);
       }
       return;
@@ -132,10 +182,11 @@ export const RegisterClubModal = ({
         tokenImage: _tokenImage,
         tokenDescription,
         featureEndAt,
-        hook: WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}`,
+        hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
         cliffPercent: vestingCliff * 100,
-        vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit)
-      });
+        vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit),
+        pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined
+      }, selectedNetwork);
       if (!(objectId && clubId)) throw new Error("failed");
 
       toastId = toast.loading("Preparing post...", { id: toastId });
@@ -228,14 +279,61 @@ ${MADFI_CLUBS_URL}/token/${clubId}
     style={{
       fontFamily: inter.style.fontFamily,
     }}>
-      <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
-        Create token
-      </Dialog.Title>
+      <div className="flex items-center justify-between">
+        <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
+          Create token
+        </Dialog.Title>
+      </div>
       <form
         className="mt-5 mx-auto md:w-[448px] w-full space-y-4 divide-y divide-dark-grey"
       >
         <div className="space-y-2">
           <div className="grid grid-cols-1 gap-y-5 gap-x-8">
+            {/* Network Selector */}
+            <div className="sm:col-span-6 flex flex-col">
+              <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">
+                    Network
+                  </Subtitle>
+                  <div className="text-sm inline-block">
+                    <Tooltip message="Select the network where you want to create your token. Different networks may have different options." direction="right">
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="relative">
+                  <select
+                    value={selectedNetwork}
+                    onChange={(e) => {
+                      const network = e.target.value as 'base' | 'lens';
+                      setSelectedNetwork(network);
+                      if (network === 'lens') {
+                        setUniHook(''); // or some default value
+                      }
+                    }}
+                    className={clsx("w-full pl-10 pr-8", sharedInputClasses)}
+                  >
+                    {NETWORK_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <Image 
+                      src={NETWORK_OPTIONS.find(opt => opt.value === selectedNetwork)?.icon || ''}
+                      alt={selectedNetwork}
+                      width={20}
+                      height={20}
+                    />
+                  </div>
+                  <KeyboardArrowDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 pointer-events-none" />
+                </div>
+              </div>
+            </div>
 
             {/* Linked social profile */}
             {/* <div className="sm:col-span-6 flex flex-col">
@@ -413,54 +511,98 @@ ${MADFI_CLUBS_URL}/token/${clubId}
               </div>
             </div>
 
-            <div className="sm:col-span-6 flex flex-col">
-              <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Uniswap v4 Hook
-                  </Subtitle>
-                  <div className="text-sm inline-block">
-                    <Tooltip message="Choose a Uni v4 hook to attach custom logic to your token once it graduates" direction="top">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                      />
-                    </Tooltip>
+            {/* Uniswap v4 Hook - Only show for Base network */}
+            {selectedNetwork === 'base' ? (
+              <div className="sm:col-span-6 flex flex-col">
+                <div className="flex flex-col justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70">
+                      Uniswap v4 Hook
+                    </Subtitle>
+                    <div className="text-sm inline-block">
+                      <Tooltip message="Choose a Uni v4 hook to attach custom logic to your token once it graduates" direction="top">
+                        <InfoOutlined
+                          className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
+                        />
+                      </Tooltip>
+                    </div>
                   </div>
-                </div>
-                <div className="flex overflow-x-auto space-x-4 py-2">
-                  {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
-                    <div
-                      key={`hook-${key}`}
-                      className={clsx(
-                        "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
-                        uniHook === key ? "" : "border-card-lightest"
-                      )}
-                      onClick={() => setUniHook(key)}
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="text-center">
-                          <h3 className="text-sm font-semibold">{WHITELISTED_UNI_HOOKS[key].label}</h3>
-                        </div>
-                        <div className="flex justify-center items-center mt-2">
-                          <span>
-                            {WHITELISTED_UNI_HOOKS[key].icon === "schedule" && (
-                              <ScheduleOutlined className="max-w-5 max-h-5 inline-block text-white/40 -mt-1" />
-                            )}
-                            {WHITELISTED_UNI_HOOKS[key].icon === "swap-horiz" && (
-                              <SwapHoriz className="max-w-6 max-h-6 inline-block text-white/40" />
-                            )}
-                            {WHITELISTED_UNI_HOOKS[key].icon === "local-atm" && (
-                              <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
-                            )}
-                          </span>
-                          <span className="ml-1 text-white/40 text-sm">{WHITELISTED_UNI_HOOKS[key].iconLabel}</span>
+                  <div className="flex overflow-x-auto space-x-4 py-2">
+                    {Object.keys(WHITELISTED_UNI_HOOKS).map((key) => (
+                      <div
+                        key={`hook-${key}`}
+                        className={clsx(
+                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
+                          uniHook === key ? "" : "border-card-lightest"
+                        )}
+                        onClick={() => setUniHook(key)}
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="text-center">
+                            <h3 className="text-sm font-semibold">{WHITELISTED_UNI_HOOKS[key].label}</h3>
+                          </div>
+                          <div className="flex justify-center items-center mt-2">
+                            <span>
+                              {WHITELISTED_UNI_HOOKS[key].icon === "schedule" && (
+                                <ScheduleOutlined className="max-w-5 max-h-5 inline-block text-white/40 -mt-1" />
+                              )}
+                              {WHITELISTED_UNI_HOOKS[key].icon === "swap-horiz" && (
+                                <SwapHoriz className="max-w-6 max-h-6 inline-block text-white/40" />
+                              )}
+                              {WHITELISTED_UNI_HOOKS[key].icon === "local-atm" && (
+                                <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                              )}
+                            </span>
+                            <span className="ml-1 text-white/40 text-sm">{WHITELISTED_UNI_HOOKS[key].iconLabel}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="sm:col-span-6 flex flex-col">
+                <div className="flex flex-col justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70">
+                      Pricing Options
+                    </Subtitle>
+                    <div className="text-sm inline-block">
+                      <Tooltip message="Select the liquidity threshold required for your token to graduate" direction="top">
+                        <InfoOutlined
+                          className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
+                        />
+                      </Tooltip>
+                    </div>
+                  </div>
+                  <div className="flex overflow-x-auto space-x-4 py-2">
+                    {Object.keys(LENS_PRICING_TIERS).map((key) => (
+                      <div
+                        key={`tier-${key}`}
+                        className={clsx(
+                          "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all cursor-pointer p-3",
+                          pricingTier === key ? "" : "border-card-lightest"
+                        )}
+                        onClick={() => setPricingTier(key)}
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="text-center">
+                            <h3 className="text-sm font-semibold">{LENS_PRICING_TIERS[key].label}</h3>
+                          </div>
+                          <div className="flex justify-center items-center mt-2">
+                            <span>
+                              <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                            </span>
+                            <span className="ml-1 text-white/40 text-sm">{LENS_PRICING_TIERS[key].iconLabel}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">

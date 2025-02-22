@@ -41,7 +41,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 export const Feed = ({ pubId, morePadding = false }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { address, isConnected, chain } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
@@ -256,7 +256,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
     if (!isAuthenticated) return;
 
-    if (chain!.id !== polygon.id && switchChain) {
+    if (chainId !== polygon.id && switchChain) {
       try {
         await switchChain({ chainId: polygon.id });
       } catch {

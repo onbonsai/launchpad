@@ -42,7 +42,7 @@ export const BuySellWidget = ({
 }) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
-  const { chain, address, isConnected } = useAccount();
+  const { chainId, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
@@ -83,7 +83,7 @@ export const BuySellWidget = ({
     setIsBuying(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
+    if (chainId !== CONTRACT_CHAIN_ID) {
       try {
         console.log('switching to', CONTRACT_CHAIN_ID);
         switchChain({ chainId: CONTRACT_CHAIN_ID });

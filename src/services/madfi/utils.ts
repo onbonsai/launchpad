@@ -1,6 +1,16 @@
 import { Chain, zeroAddress } from "viem";
+import { baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
+
+export const getChain = (chain: string) => {
+  if (IS_PRODUCTION) {
+    return chain == "base" ? base : chain == "lens" ? lens : baseSepolia;
+  } else {
+    return chain == "base" ? baseSepolia : chain == "lens" ? lensTestnet : baseSepolia;
+  }
+}
 
 const PROTOCOL_DEPLOYMENT_TESTNET = {
   base: {

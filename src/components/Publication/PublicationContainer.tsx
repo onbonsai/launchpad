@@ -63,7 +63,7 @@ const PublicationContainer = ({
   hideFollowButton,
 }: PublicationContainerProps) => {
   const router = useRouter();
-  const { isConnected, chain } = useAccount();
+  const { isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const {
@@ -228,7 +228,7 @@ const PublicationContainer = ({
 
     if (!isAuthenticated) return;
 
-    if (chain!.id !== polygon.id && switchChain) {
+    if (chainId !== polygon.id && switchChain) {
       try {
         await switchChain({ chainId: polygon.id });
       } catch {
