@@ -63,28 +63,51 @@ export const useGetFeaturedClubs = () => {
   });
 };
 
+// ... existing code ...
+
 export const useGetRegisteredClubs = (sortedBy: string) => {
   return useInfiniteQuery({
     queryKey: ['registered-clubs', sortedBy],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam = { base: 0, lens: 0 } }) => {
       try {
-        const res = await getRegisteredClubs(pageParam, sortedBy);
-        console.log(`Fetched: ${res.clubs?.length || 0} clubs`);
-        const data = res.clubs.map((club) => ({
+        // Fetch from both chains in parallel
+        const [baseRes, lensRes] = await Promise.all([
+          getRegisteredClubs(pageParam.base, sortedBy, 'base'),
+          getRegisteredClubs(pageParam.lens, sortedBy, 'lens')
+        ]);
+
+        // Transform and combine the results
+        const baseClubs = (baseRes.clubs || []).map(club => ({
+          ...club,
           publication: club.publication,
           club: omit(club, 'publication'),
+          chain: 'base'
         }));
+
+        const lensClubs = (lensRes.clubs || []).map(club => ({
+          ...club,
+          publication: club.publication,
+          club: omit(club, 'publication'),
+          chain: 'lens'
+        }));
+
+        // Combine and sort the clubs according to sortedBy parameter
+        const combinedClubs = [...baseClubs, ...lensClubs];
+        
         return {
-          clubs: data,
-          nextPage: pageParam + 1,
-          hasMore: res.hasMore && data.length > 0
+          clubs: combinedClubs,
+          nextPage: {
+            base: baseRes.hasMore ? pageParam.base + 1 : pageParam.base,
+            lens: lensRes.hasMore ? pageParam.lens + 1 : pageParam.lens,
+          },
+          hasMore: (baseRes.hasMore || lensRes.hasMore) && combinedClubs.length > 0
         };
       } catch (error) {
         console.error('Failed to fetch clubs:', error);
         throw error;
       }
     },
-    initialPageParam: 0,
+    initialPageParam: { base: 0, lens: 0 },
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextPage : undefined,
     refetchInterval: 60000,
@@ -92,6 +115,8 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     gcTime: 60000,
   });
 };
+
+// ... existing code ...
 
 export const useGetClubVolume = (clubId?: string) => {
   return useQuery({
@@ -104,10 +129,10 @@ export const useGetClubVolume = (clubId?: string) => {
   });
 };
 
-export const useGetClubSupply = (tokenAddress?: string) => {
+export const useGetClubSupply = (tokenAddress: `0x${string}` | undefined, chain = "base") => {
   return useQuery({
-    queryKey: ["club-supply", tokenAddress],
-    queryFn: () => getSupply(tokenAddress! as `0x${string}`),
+    queryKey: ["club-supply", tokenAddress, chain],
+    queryFn: () => getSupply(tokenAddress! as `0x${string}`, chain),
     enabled: !!tokenAddress,
     refetchInterval: 15000, // fetch every 15seconds
     staleTime: 15000,
@@ -301,11 +326,11 @@ type TradingInfoResponse = {
     [key: string]: string;
   };
 };
-export const useGetTradingInfo = (clubId?: number) => {
+export const useGetTradingInfo = (clubId?: number, chain = "base") => {
   return useQuery({
     queryKey: ["trading-info", clubId],
     queryFn: async () => {
-      const data: TradingInfoResponse = await fetch(`/api/clubs/get-trading-info?clubId=${clubId}`)
+      const data: TradingInfoResponse = await fetch(`/api/clubs/get-trading-info?clubId=${clubId}&chain=${chain}`)
         .then(response => response.json());
       return data;
     },
@@ -315,11 +340,16 @@ export const useGetTradingInfo = (clubId?: number) => {
   });
 };
 
-export const useGetAvailableBalance = (tokenAddress: `0x${string}`, account?: `0x${string}`, complete = false) => {
+export const useGetAvailableBalance = (
+  tokenAddress: `0x${string}`, 
+  address: `0x${string}` | undefined, 
+  complete: boolean,
+  chain = "base"
+) => {
   return useQuery({
-    queryKey: ["club-available-balance", tokenAddress, account],
-    queryFn: () => getAvailableBalance(tokenAddress!, account!),
-    enabled: !!account && complete && tokenAddress !== zeroAddress,
+    queryKey: ["club-available-balance", tokenAddress, address],
+    queryFn: () => getAvailableBalance(tokenAddress!, address!, complete, chain),
+    enabled: !!address && complete && tokenAddress !== zeroAddress,
     staleTime: 10000,
     gcTime: 60000,
   });

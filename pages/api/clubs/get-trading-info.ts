@@ -13,12 +13,12 @@ const PREV_TRADE_KEYS = [
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { clubId } = req.query;
+    const { clubId, chain } = req.query;
 
     const [{ buyPrice }, volume, club] = await Promise.all([
-      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1"),
-      getVolume(clubId as string),
-      getRegisteredClubById(clubId as string)
+      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1", chain as string),
+      getVolume(clubId as string, chain as string),
+      getRegisteredClubById(clubId as string, chain as string)
     ]);
 
     const priceDeltas = {};

@@ -14,6 +14,7 @@ interface Props {
       stats: { comments: number };
     };
     club: {
+      chain?: string;
       creator: string;
       id: string;
       clubId: string;
@@ -115,7 +116,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
   }
 
   const link = club.v2
-    ? `/token/${club?.clubId}`
+    ? `/token/${club?.chain}-${club?.clubId}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
 
   return (

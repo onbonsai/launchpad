@@ -47,6 +47,8 @@ const IndexPage: NextPage = () => {
     query: { enabled: !!address }
   });
 
+  console.log("clubs", data)
+
   // fix hydration issues
   if (!isMounted) return null;
   return (

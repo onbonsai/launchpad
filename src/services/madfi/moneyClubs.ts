@@ -792,7 +792,7 @@ export const getBalance = async (clubId: string, account: `0x${string}`, chain =
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
-export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`, chain = "base"): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`, complete: boolean, chain = "base"): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
   const client = publicClient(chain);
   const [availableBalance, totalBalance] = await client.multicall({
     contracts: [
@@ -1024,6 +1024,7 @@ export const getRegistrationFee = async (
   amount: string,
   account?: `0x${string}`
 ): Promise<bigint> => {
+  if (amount == "0") return BigInt(0);
   const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
@@ -1234,7 +1235,7 @@ export const approveToken = async (
   }
 };
 
-export const releaseLiquidity = async (clubId: string) => {
+export const releaseLiquidity = async (clubId: string, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
     clubId, tokenPrice
@@ -1243,7 +1244,7 @@ export const releaseLiquidity = async (clubId: string) => {
   await fetch('/api/clubs/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash } })
+    body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash, chain } })
   });
 
   return token;

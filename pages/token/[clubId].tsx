@@ -141,9 +141,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { ready } = usePrivy();
-  const { data: tradingInfo } = useGetTradingInfo(club.clubId);
-  const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete)
-  const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress);
+  const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
+  const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
+  const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -514,7 +514,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     query: { clubId },
   } = context;
 
-  if (!clubId) {
+  if (!clubId || typeof clubId !== 'string') {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/dashboard",
+      },
+    };
+  }
+
+  // Parse the chain-specific clubId format
+  const [chain, numericId] = clubId.split('-');
+  if (!chain || !numericId) {
     return {
       redirect: {
         permanent: false,
@@ -524,10 +535,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   const [_club, dbRecord] = await Promise.all([
-    getRegisteredClubById(clubId! as string),
+    getRegisteredClubById(numericId, chain), // Update function signature to accept chain
     (async () => {
       const { collection } = await getClientWithClubs();
-      return await collection.findOne({ clubId: parseInt(clubId! as string) }, { projection: { _id: 0 } });
+      return await collection.findOne(
+        { 
+          clubId: parseInt(numericId),
+          chain: chain // Add chain to the query
+        }, 
+        { projection: { _id: 0 } }
+      );
     })()
   ]);
 
