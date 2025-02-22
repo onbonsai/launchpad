@@ -1094,6 +1094,7 @@ export enum PricingTier {
   LARGE = "LARGE",
 }
 
+// NOTE: initialPrice values assume 18 decimals in quote token (WGHO)
 const LENS_PRICING_TIERS = {
   [PricingTier.SMALL]: {
     initialPrice: "3529508034062500000000000000000",
