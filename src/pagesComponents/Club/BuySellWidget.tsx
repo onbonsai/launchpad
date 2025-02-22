@@ -58,11 +58,11 @@ export const BuySellWidget = ({
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, {
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
     initialPrice: club.initialPrice,
     targetPriceMultiplier: club.targetPriceMultiplier,
     flatThreshold: club.flatThreshold
-  });
+  } : undefined);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
   const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
