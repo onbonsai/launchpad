@@ -212,11 +212,11 @@ export const useGetClubTrades = (clubId: string, page: number) => {
   });
 };
 
-export const useGetClubHoldings = (clubId: string, page: number) => {
+export const useGetClubHoldings = (clubId: string, page: number, chain = "base") => {
   return useQuery({
     queryKey: ["club-holdings", clubId, page],
     queryFn: async () => {
-      const res = await getClubHoldings(clubId!, page);
+      const res = await getClubHoldings(clubId!, page, chain);
       const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
       const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
       const profilesGrouped = groupBy(profiles, 'ownedBy.address');
@@ -248,20 +248,20 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
   });
 };
 
-export const useGetClubBalance = (clubId?: string, address?: `0x${string}`) => {
+export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chain = "base") => {
   return useQuery({
     queryKey: ["club-balance", clubId, address],
-    queryFn: () => getBalance(clubId!, address!),
+    queryFn: () => getBalance(clubId!, address!, chain),
     enabled: !!clubId && !!address,
     staleTime: 10000,
     gcTime: 60000,
   });
 };
 
-export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?: string) => {
+export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?: string, chain = "base") => {
   return useQuery({
     queryKey: ["buy-price", clubId, amount],
-    queryFn: () => getBuyPrice(account!, clubId!, amount!),
+    queryFn: () => getBuyPrice(account!, clubId!, amount!, undefined, chain),
     enabled: !!clubId && !!amount,
     refetchInterval: 15000, // refetch every 15 seconds
     staleTime: 2000,
@@ -269,10 +269,10 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base") => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base", options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string }) => {
   return useQuery({
     queryKey: ["buy-amount", tokenAddress, spendAmount],
-    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!, undefined, chain),
+    queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!, undefined, chain, options),
     enabled: !!tokenAddress && !!spendAmount && !!account,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,

@@ -50,6 +50,12 @@ const REGISTERED_CLUB = gql`
       cliffPercent
       vestingDuration
       hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
       prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
@@ -86,6 +92,12 @@ const REGISTERED_CLUB_INFO = gql`
       vestingDuration
       clubId
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -174,6 +186,12 @@ const REGISTERED_CLUBS = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -202,6 +220,12 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -230,6 +254,12 @@ const REGISTERED_CLUBS_BY_ID = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -857,7 +887,7 @@ export const getBuyPrice = async (
 function calculateTokensForUSDC(
   usdcAmount: bigint,
   currentSupply: bigint,
-  initialPrice = BigInt("12384118034062500000"),
+  initialPrice = BigInt("12384118034062500000000000000000"),
   targetPriceMultiplier = 5n,
   flatThreshold = FLAT_THRESHOLD
 ): bigint {
@@ -866,7 +896,7 @@ function calculateTokensForUSDC(
   const decimals = 18
   const maxSupply = MAX_MINTABLE_SUPPLY
 
-  function getPrice(supply: bigint, amount: bigint): bigint {
+  function getPrice(supply: bigint, amount: bigint, initialPrice: bigint, targetPriceMultiplier: bigint, flatThreshold: bigint): bigint {
     if (supply < flatThreshold) {
       if (supply + amount <= flatThreshold) {
         return (amount * initialPrice) / BigInt(10 ** decimals);
@@ -875,7 +905,7 @@ function calculateTokensForUSDC(
       const flatAmount = flatThreshold - supply;
       const curveAmount = amount - flatAmount;
 
-      return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount);
+      return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount, initialPrice, targetPriceMultiplier, flatThreshold);
     }
 
     const endSupply = supply + amount;
@@ -914,7 +944,7 @@ function calculateTokensForUSDC(
 
   while (low <= high) {
     mid = (low + high) / 2n;
-    price = getPrice(currentSupply, mid) / parseUnits("1", 18);
+    price = getPrice(currentSupply, mid, initialPrice, targetPriceMultiplier, flatThreshold) / parseUnits("1", 18);
 
     // Track closest value below target
     if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
@@ -960,15 +990,17 @@ export const getBuyAmount = async (
   tokenAddress: `0x${string}`, // club.tokenAddress
   spendAmount: string, // Amount in USDC user wants to spend
   hasNft = false,
-  chain = "base"
+  chain = "base",
+  options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string }
 ): Promise<{
   buyAmount: bigint,
   effectiveSpend: string
 }> => {
   const client = publicClient(chain);
 
-  // Convert spend amount to proper decimals
-  const spendAmountBigInt = parseUnits(spendAmount, 6);
+  // Convert spend amount to proper decimals. Assuming WGHO for Lens
+  const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;
+  const spendAmountBigInt = parseUnits(spendAmount, _DECIMALS);
 
   // If user has NFT, use full amount. If not, reduce by fees
   const spendAfterFees = hasNft
@@ -983,7 +1015,7 @@ export const getBuyAmount = async (
     account
   }) as bigint;
 
-  const rawBuyAmount = calculateTokensForUSDC(spendAfterFees, currentSupply);
+  const rawBuyAmount = options ? calculateTokensForUSDC(spendAfterFees, currentSupply, BigInt(options.initialPrice!), BigInt(options.targetPriceMultiplier!), BigInt(options.flatThreshold!)) : calculateTokensForUSDC(spendAfterFees, currentSupply);
   const buyAmount = cleanupTrailingOne(rawBuyAmount);
 
   let effectiveSpend = spendAfterFees

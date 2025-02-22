@@ -20,10 +20,11 @@ interface CurrencyInputProps {
   overridePrice?: string;
   hideBalance?: boolean; // for register club modal
   disabled?: boolean; // no input on buy / sell price
+  chain?: string;
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled } = props;
+  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled, chain } = props;
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const measureRef = useRef(null);
@@ -50,9 +51,9 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               className="w-[24px] h-[24px] object-cover rounded-lg"
             />
             <img
-              src='/base.png'
-              alt={'base'}
-              className="absolute top-4 left-8 w-[12px] h-[12px]"
+              src={chain === "lens" ? '/lens.png' : '/base.png'}
+              alt={chain}
+              className="absolute top-4 left-8 h-[12px]"
             />
           </div>}
           {disabled ? (

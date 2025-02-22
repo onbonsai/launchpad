@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { formatEther, formatUnits } from "viem";
 
-import { MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
@@ -119,6 +119,8 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
     ? `/token/${club?.chain}-${club?.clubId}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
 
+  const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
+
   return (
     <Link href={link} legacyBehavior target="_blank">
       <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-primary">
@@ -137,7 +139,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
                   Mcap
                 </Subtitle>
                 <p className={infoTextStyle}>
-                  {localizeNumber(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)))}{" "}
+                  {localizeNumber(parseFloat(formatUnits(BigInt(club.marketCap), _DECIMALS)))}{" "}
                 </p>
               </div>
               <p className={infoTextStyle}>

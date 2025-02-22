@@ -3,7 +3,7 @@ import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { ReactNode, useMemo } from "react";
 import { formatUnits } from "viem";
 import { useGetBuyPrice } from "@src/hooks/useMoneyClubs";
-import { USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { roundedToFixed } from "@src/utils/utils";
 import { localizeNumber } from '@src/constants/utils';
 
@@ -13,11 +13,13 @@ export const InfoComponent = ({
   tradingInfo,
   totalSupply,
 }) => {
-  const { data: buyPriceResult } = useGetBuyPrice(address, club?.clubId, '1');
+  const { data: buyPriceResult } = useGetBuyPrice(address, club?.clubId, '1', club.chain);
+
+  const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const buyPriceFormatted = useMemo(() => {
     if (buyPriceResult?.buyPrice) {
-      return roundedToFixed(parseFloat(formatUnits(BigInt(buyPriceResult.buyPrice.toString()), 6)), 6);
+      return roundedToFixed(parseFloat(formatUnits(BigInt(buyPriceResult.buyPrice.toString()), _DECIMALS)), 6);
     }
   }, [buyPriceResult]);
 
@@ -36,11 +38,11 @@ export const InfoComponent = ({
       <div className="flex flex-col md:flex-row items-center gap-4 md:gap-14 w-full md:w-auto">
         <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
           <InfoLine title='Token Price' subtitle={`${buyPriceFormatted ? `${localizeNumber(buyPriceFormatted, "currency", 6, 6)}` : '-'}`} />
-          <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), USDC_DECIMALS)), 'currency', 2)}`} />
-          <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), USDC_DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Market Cap' subtitle={`${!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Liquidity' subtitle={`${!tradingInfo?.liquidity ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.liquidity), _DECIMALS)), 'currency', 2)}`} />
         </div>
         <div className='flex flex-row w-full gap-[4vw] justify-center md:justify-start'>
-          <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), USDC_DECIMALS)), 'currency', 2)}`} />
+          <InfoLine title='Volume 24h' subtitle={`${!tradingInfo?.volume24Hr ? ' -' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.volume24Hr), _DECIMALS)), 'currency', 2)}`} />
           <InfoLine title='Holders' subtitle={tradingInfo?.holders || "-"} />
           <InfoLine title='Total Supply' subtitle={localizeNumber(Math.floor(Number(formatUnits(totalSupply || BigInt(club.supply), 18))), "decimal") || "-"} />
         </div>

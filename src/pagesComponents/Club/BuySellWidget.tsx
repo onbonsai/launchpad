@@ -22,6 +22,7 @@ import {
   sellChips as sellChipsTransaction,
   approveToken,
   MAX_MINTABLE_SUPPLY,
+  WGHO_CONTRACT_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
@@ -29,6 +30,8 @@ import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
+import { getChain, lens } from "@src/services/madfi/utils";
+import { base } from "viem/chains";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -52,18 +55,24 @@ export const BuySellWidget = ({
   const [isSelling, setIsSelling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
+
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, {
+    initialPrice: club.initialPrice,
+    targetPriceMultiplier: club.targetPriceMultiplier,
+    flatThreshold: club.flatThreshold
+  });
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
   const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
-  const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
+  const notEnoughFunds = parseUnits(buyPrice || '0', _DECIMALS) > (tokenBalance || 0n)
 
   const sellPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
+    roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, _DECIMALS)), 4)
   ), [sellPrice, isLoadingSellPrice]);
 
   const sellAmountError: boolean = useMemo(() => {
@@ -83,10 +92,11 @@ export const BuySellWidget = ({
     setIsBuying(true);
     let toastId;
 
-    if (chainId !== CONTRACT_CHAIN_ID) {
+    const targetChainId = getChain(club.chain).id;
+    if (chainId !== targetChainId) {
       try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
+        console.log('switching to', targetChainId);
+        switchChain({ chainId: targetChainId });
       } catch {
         toast.error("Please switch networks");
         setIsBuying(false);
@@ -95,9 +105,10 @@ export const BuySellWidget = ({
     }
 
     try {
-      const buyPriceBigInt = parseUnits(buyPrice, USDC_DECIMALS)
+      const buyPriceBigInt = parseUnits(buyPrice, _DECIMALS)
       const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
-      await approveToken(USDC_CONTRACT_ADDRESS, maxPrice, walletClient, toastId);
+      const quoteTokenAddress = club.chain === "lens" ? WGHO_CONTRACT_ADDRESS : USDC_CONTRACT_ADDRESS;
+      await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
       await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain);
@@ -125,7 +136,8 @@ export const BuySellWidget = ({
     setIsSelling(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID && switchChain) {
+    const targetChainId = getChain(club.chain).id;
+    if (chainId !== targetChainId) {
       try {
         await switchChain({ chainId: CONTRACT_CHAIN_ID });
       } catch {
@@ -186,13 +198,14 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
                       <CurrencyInput
-                        tokenImage='/usdc.png'
+                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
                         tokenBalance={tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol="USDC"
+                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
                         showMax
+                        chain={club.chain}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -212,8 +225,10 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
-                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
+                        // NOTE: as long as lens only uses wgho for quote token then the decimal factor is 36
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), club.chain === "lens" ? 36 : 24)}
                         disabled
+                        chain={club.chain}
                       />
                     </div>
                   </div>
@@ -234,7 +249,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      Get USDC
+                      Get {club.chain === "lens" ? "Wrapped GHO" : "USDC"}
                     </Button>
                   </>
                 )}
@@ -290,6 +305,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         onPriceSet={setSellAmount}
                         symbol={club.token.symbol}
                         showMax
+                        chain={club.chain}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -301,13 +317,14 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       </div>
 
                       <CurrencyInput
-                        tokenImage='/usdc.png'
+                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
                         tokenBalance={tokenBalance}
                         price={sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
                         isError={false}
                         onPriceSet={() => { }}
-                        symbol="USDC"
+                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
                         disabled
+                        chain={club.chain}
                       />
                       {/* <div className="relative">
                         <input
