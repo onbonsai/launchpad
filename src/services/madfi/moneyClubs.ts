@@ -1072,52 +1072,110 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   };
 };
 
-export const getFeesEarned = async (account: `0x${string}`, chain = "base"): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
-  const client = subgraphClient(chain);
-  const publicC = publicClient(chain);
+export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "lens"): Promise<{
+  base: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
+  lens: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
+  totalFeesEarned: bigint,
+  totalClubFees: bigint,
+  grandTotal: bigint
+}> => {
+  // Helper function to get fees for a specific chain
+  const getChainFees = async (chainName: "base" | "lens") => {
+    const client = subgraphClient(chainName);
+    const publicC = publicClient(chainName);
 
-  // Get creator NFTs
-  const { data: { creatorNFTs } } = await client.query({ 
-    query: GET_CREATOR_NFTS, 
-    variables: { trader: account } 
-  });
-  const creatorNFTList = creatorNFTs.map(nft => nft.club.clubId);
+    // Get creator NFTs
+    const { data: { creatorNFTs } } = await client.query({ 
+      query: GET_CREATOR_NFTS, 
+      variables: { trader: account } 
+    });
+    const creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
 
-  // Prepare multicall contracts array
-  const contracts = [
-    // Get total fees earned
-    {
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "feesEarned",
-      args: [account],
-    },
-    // Get fees earned for each club
-    ...creatorNFTList.map(id => ({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "clubFeesEarned",
-      args: [id],
-    }))
-  ];
+    // Prepare multicall contracts array
+    let feesEarnedArgs = [account]
+    if (chainName === "lens") {
+      feesEarnedArgs.push(WGHO_CONTRACT_ADDRESS)
+    }
+    const contracts = [
+      // Get total fees earned
+      {
+        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
+        abi: chainName === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
+        functionName: "feesEarned",
+        args: feesEarnedArgs,
+      },
+      // Get fees earned for each club
+      ...creatorNFTList.map(id => ({
+        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "clubFeesEarned",
+        args: [id],
+      }))
+    ];
 
-  // Execute multicall
-  const [feesEarned, ...clubFeesResults] = await publicC.multicall({
-    contracts,
-    allowFailure: false
-  });
+    try {
+      // Execute multicall
+      const [feesEarned, ...clubFeesResults] = await publicC.multicall({
+        contracts,
+        allowFailure: false
+      });
 
-  // Map club fees results to original format
-  const clubFees = clubFeesResults.map((fees, index) => ({
-    id: parseInt(creatorNFTList[index]),
-    amount: fees as bigint
-  }));
+      // Map club fees results to original format
+      const clubFees = clubFeesResults.map((fees, index) => ({
+        id: parseInt(creatorNFTList[index]),
+        amount: chainName === "lens" 
+          ? (fees as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
+          : fees as bigint
+      }));
+
+      const clubFeesTotal = clubFees.reduce((sum, fee) => sum + fee.amount, 0n);
+      const normalizedFeesEarned = chainName === "lens" 
+        ? (feesEarned as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
+        : feesEarned as bigint;
+
+      return {
+        feesEarned: normalizedFeesEarned,
+        clubFeesTotal,
+        clubFees,
+      };
+    } catch (error) {
+      console.error(`Error fetching fees for ${chainName}:`, error);
+      return {
+        feesEarned: 0n,
+        clubFeesTotal: 0n,
+        clubFees: [],
+      };
+    }
+  };
+
+  // If chain is specified, only get fees for that chain
+  if (chain) {
+    const fees = await getChainFees(chain);
+    return {
+      base: chain === "base" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
+      lens: chain === "lens" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
+      totalFeesEarned: fees.feesEarned,
+      totalClubFees: fees.clubFeesTotal,
+      grandTotal: fees.feesEarned + fees.clubFeesTotal
+    };
+  }
+
+  // Get fees for both chains in parallel
+  const [baseFees, lensFees] = await Promise.all([
+    getChainFees("base"),
+    getChainFees("lens")
+  ]);
+
+  const totalFeesEarned = baseFees.feesEarned + lensFees.feesEarned;
+  const totalClubFees = baseFees.clubFeesTotal + lensFees.clubFeesTotal;
 
   return {
-    feesEarned: feesEarned as bigint,
-    clubFeesTotal: clubFees.reduce((sum, fee) => sum + fee.amount, 0n),
-    clubFees,
-  }
+    base: baseFees,
+    lens: lensFees,
+    totalFeesEarned,
+    totalClubFees,
+    grandTotal: totalFeesEarned + totalClubFees
+  };
 };
 
 export enum PricingTier {

@@ -1,6 +1,7 @@
 import { Chain, zeroAddress } from "viem";
 import { baseSepolia } from "viem/chains";
 import { base } from "viem/chains";
+import { chains } from "@lens-network/sdk/viem";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
@@ -49,18 +50,13 @@ export const PROTOCOL_DEPLOYMENT = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET :
 // NETWORKS
 
 // TODO: mainnet
-export const lens: Chain = {
-  id: 37111,
-  name: "Lens Testnet",
-  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
-  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
-};
+export const lens: Chain = chains.testnet
+export const lensTestnet: Chain = chains.testnet
 
-export const lensTestnet: Chain = {
-  id: 37111,
-  name: "Lens Testnet",
-  nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
-  blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
-};
+// {
+//   id: 37111,
+//   name: "Lens Testnet",
+//   nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
+//   rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
+//   blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
+// };
