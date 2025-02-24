@@ -11,6 +11,7 @@ import { useSearchClubs } from "@src/hooks/useMoneyClubs";
 import clsx from "clsx";
 import { SearchIcon } from "@heroicons/react/outline";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +31,7 @@ export const SearchClubs = () => {
   function handleSelectItem(item) {
     setIsOpen(false);
     if (!item.v2) {
-      push(`https://launch-v1.bonsai.meme/token/${item.clubId}`);
+      push(`${V1_LAUNCHPAD_URL}/token/${item.clubId}`);
     } else {
       push(`/token/${item.clubId}`);
     }

@@ -7,6 +7,7 @@ import { formatUnits, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
+import { IS_PRODUCTION, V1_LAUNCHPAD_URL, getRegisteredClubById } from "@src/services/madfi/moneyClubs";
 
 import { Modal } from "@src/components/Modal";
 import { Tooltip } from "@src/components/Tooltip";
@@ -15,7 +16,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS } from "@src/services/madfi/moneyClubs";
+import { BENEFITS_AUTO_FEATURE_HOURS, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
@@ -506,6 +507,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       redirect: {
         permanent: false,
         destination: "/dashboard",
+      },
+    };
+  }
+
+  // Redirect to v1 if clubId < 170 and IS_PRODUCTION is true
+  if (IS_PRODUCTION && parseInt(clubId as string) < 170) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `${V1_LAUNCHPAD_URL}/token/${clubId}`,
       },
     };
   }
