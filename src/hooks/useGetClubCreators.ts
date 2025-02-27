@@ -4,7 +4,6 @@ import { getProfileByHandle } from '@src/services/lens/getProfiles';
 import { getBasenameAvatar } from '@src/services/base/basename';
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
-import { formatProfilePicture } from '@madfi/widgets-react';
 import { ProfileFragment } from '@lens-protocol/client';
 
 const fetchClubCreators = async (clubs) => {
@@ -12,8 +11,8 @@ const fetchClubCreators = async (clubs) => {
     let profile;
     switch (strategy) {
       case 'lens':
-        profile = await getProfileByHandle(`lens/${handle}`) as ProfileFragment;
-        profile = { picture: formatProfilePicture(profile).metadata?.picture?.url };
+        profile = await getProfileByHandle(`lens/${handle}`) as any;
+        profile = { picture: profile.metadata.picture };
         break;
       case 'basename':
         profile = { picture: await getBasenameAvatar(handle) };

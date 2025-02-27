@@ -4,7 +4,7 @@ import { ProfileFragment } from "@lens-protocol/client";
 import { getDefaultProfile } from "@src/services/lens/getDefaultProfile";
 import { getProfilesOwned, getProfileById } from "@src/services/lens/getProfiles";
 
-import { getAuthenticatedProfileId } from "./useLensLogin";
+import { getAuthenticatedProfile } from "./useLensLogin";
 
 export const fetchLensProfile = async (address: string | `0x${string}` | undefined): Promise<ProfileFragment> => {
   const [
@@ -30,8 +30,8 @@ export const useAuthenticatedLensProfile = () => {
   return useQuery({
     queryKey: ["lensProfile-authenticated"],
     queryFn: async () => {
-      const profileId = await getAuthenticatedProfileId();
-      return profileId ? await getProfileById(profileId) : null;
+      const profile = await getAuthenticatedProfile();
+      return profile;
     },
   });
 };

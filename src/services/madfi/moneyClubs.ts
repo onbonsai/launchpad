@@ -20,6 +20,7 @@ import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
 import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
+import { getPosts } from "../lens/getPost";
 
 export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
@@ -767,10 +768,8 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
 
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
-      const publications = await lensClient.publication.fetchAll({
-        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
-      });
-      const gPublications = groupBy(publications.items || [], "id");
+      const publications = await getPosts(clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== "")).map(({ postId }) => postId));
+      const gPublications = groupBy(publications || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
         const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];

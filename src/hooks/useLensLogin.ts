@@ -1,32 +1,78 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
-import { getProfilesOwned } from "@src/services/lens/getProfiles";
 import { lensClient } from "@src/services/lens/client";
 
-export const getAccessToken = async () => {
-  const accessTokenResult = await lensClient.authentication.getAccessToken();
-  return accessTokenResult.unwrap();
+import { evmAddress } from "@lens-protocol/client";
+import { currentSession, fetchAccountsAvailable } from "@lens-protocol/client/actions";
+import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
+import { WalletClient } from "viem";
+
+export const fetchAvailableAccounts = async (address: string) => {
+  return await fetchAccountsAvailable(lensClient, {
+    managedBy: evmAddress(address),
+    includeOwned: true,
+  });
+};
+
+// returns a session client if available
+export const resumeSession = async () => {
+  const resumed = await lensClient.resumeSession();
+  if (resumed.isErr()) {
+    return console.error(resumed.error);
+  }
+  // SessionClient: { ... }
+  const sessionClient = resumed.value;
+  return sessionClient;
+};
+
+export const getAuthenticatedProfile = async () => {
+  const sessionClient = await resumeSession();
+  if (!sessionClient) return null;
+
+  const result = await currentSession(sessionClient);
+
+  if (result.isErr()) {
+    return console.error(result.error);
+  }
+
+  // AuthenticatedSession: { authenticationId: UUID, app: EvmAddress, ... }
+  const session = result.value;
+
+  const users = await fetchAvailableAccounts(session.signer);
+
+  // TODO: just returns first account for authenticated user
+  return users.value.items[0].account;
 };
 
 export const getAuthenticatedProfileId = async () => {
-  return await lensClient.authentication.getProfileId();
+  const profile = await getAuthenticatedProfile();
+  return profile?.id;
+}
+
+export const getAuthenticatedSession = async () => {
+  const sessionClient = await resumeSession();
+  if (!sessionClient) return null;
+
+  const result = await currentSession(sessionClient);
+
+  if (result.isErr()) {
+    return console.error(result.error);
+  }
+
+  // AuthenticatedSession: { authenticationId: UUID, app: EvmAddress, ... }
+  const session = result.value;
+
+  // signer is the address of the authenticated account
+  return session.signer;
 };
 
 export const logout = async () => {
-  await lensClient.authentication.logout();
-};
+  const sessionClient = await resumeSession();
+  if (!sessionClient) return null;
 
-export const useAuthenticatedAccessToken = () => {
-  return useQuery({
-    queryKey: ["lens-authenticated-access-token"],
-    queryFn: async () => {
-      const res = await getAccessToken();
-      return res || null;
-    },
-    enabled: true,
-  });
-}
+  await sessionClient.logout();
+};
 
 export const useAuthenticatedProfileId = () => {
   const result = useQuery({
@@ -39,48 +85,51 @@ export const useAuthenticatedProfileId = () => {
   });
 
   return result;
-}
+};
 
 export const useIsAuthenticated = () => {
   return useQuery({
     queryKey: ["lens-authenticated"],
     queryFn: async () => {
-      return await lensClient.authentication.isAuthenticated();
+      const sessionClient = await resumeSession();
+      if (!sessionClient) return false;
+
+      const result = await fetchAuthenticatedSessions(sessionClient);
+      return result.isOk() && result.value.items.length > 0;
     },
     enabled: true,
   });
 };
 
 // basic login, for more functionality. see `useLensSignIn`
-export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: any) => {
+export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: WalletClient) => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | undefined>();
 
   const query = useQuery({
     queryKey: ["lens-login"],
     queryFn: async ({ queryKey }) => {
       const [_, _selectedProfileId] = queryKey;
-      if (!(walletClient)) return false;
+      if (!walletClient) return false;
 
       const [address] = await walletClient.getAddresses();
 
-      let loginWithId = _selectedProfileId || selectedProfileId;
-      if (!loginWithId) {
-        const [defaultProfile] = await getProfilesOwned(address);
-        if (!defaultProfile) throw new Error('No profiles');
-        loginWithId = defaultProfile.id;
-      }
-
-      // TODO: handle sign in with tba
-      const { id, text } = await lensClient.authentication.generateChallenge({
-        signedBy: address,
-        for: loginWithId,
+      const authenticated = await lensClient.login({
+        onboardingUser: {
+          // app: "0xaC19aa2402b3AC3f9Fe471D4783EC68595432465",
+          wallet: address,
+        },
+        signMessage: (message) => walletClient.signMessage({ account: address, message }),
       });
 
-      const signature = await walletClient.signMessage({ account: address, message: text });
+      let loginWithId = _selectedProfileId || selectedProfileId;
+      if (!loginWithId) {
+        const result = await fetchAvailableAccounts(address);
+        const profiles = result.value.items
+        if (!profiles) throw new Error("No profiles");
+        loginWithId = profiles[0].id;
+      }
 
-      await lensClient.authentication.authenticate({ id, signature });
-
-      return true;
+      return authenticated;
     },
     ...(options as any),
     enabled: false,

@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { formatProfilePicture } from "@madfi/widgets-react";
 import { bucketImageLinkStorj, trimText } from "@src/utils/utils";
 
 const SITE_URL = "https://launch.bonsai.meme";
@@ -23,9 +22,9 @@ const HandleSEO = ({ pageProps }) => {
   const { profile, pageName } = pageProps;
 
   if (profile && pageName === "profile") {
-    const handle = profile.handle?.localName || profile.username || profile.profileHandle;
+    const handle = profile.username?.localName || profile.username || profile.metadata.name;
     const title = trimText(`@${handle}`, 45);
-    const image = formatProfilePicture(profile).metadata.picture.url;
+    const image = profile.metadata.picture;
     const description = trimText("Profile on the Bonsai Launchpad", 45);
 
     let frameData = frameDataTemplate;

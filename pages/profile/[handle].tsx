@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { erc20Abi, getAddress } from "viem";
-import { ProfileFragment } from "@lens-protocol/client";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
@@ -22,24 +21,23 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { followProfile } from "@src/services/lens/follow";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { IS_PRODUCTION } from "@src/constants/constants";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { useGetGatedPosts } from "@src/hooks/useGetGatedPosts";
 import { getClientWithCreatorInfo } from "@src/services/mongo/client";
 import CreatePost, { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import PublicationFeed from "@src/components/Publication/PublicationFeed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { useRegisteredClub } from "@src/hooks/useMoneyClubs";
 // import { FarcasterProfile } from "@src/services/farcaster/types";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
 import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
+import { useGetPostsByAuthor } from '@src/services/lens/getPost';
+import { IS_PRODUCTION } from '@src/services/madfi/utils';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 interface CreatorPageProps {
-  profile: ProfileFragment;
+  profile: any;
   type: "lens" | "farcaster" | "ens";
   airdrops: any[];
   creatorInfo: any;
@@ -48,7 +46,7 @@ interface CreatorPageProps {
 
 const profileAddress = (profile, creatorInfoAddress?: string) =>
   creatorInfoAddress ||
-  profile?.ownedBy?.address ||
+  profile?.owner ||
   (profile?.userAssociatedAddresses?.length ? last(profile?.userAssociatedAddresses) : null) ||
   profile?.address;
 
@@ -79,20 +77,13 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     authenticatedProfile,
     // authenticatedLensClient,
   } = useLensSignIn(walletClient);
-  const { refetch: fetchGatedPosts } = useGetGatedPosts(profile?.id);
-  const { data: moneyClub, isLoading: isLoadingMoneyClub } = useRegisteredClub(
-    profile?.handle?.localName || profile.profileHandle,
-  );
+  const { data: posts } = useGetPostsByAuthor(profile?.id);
   const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, profile?.id)
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
-  const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(profileAddress(profile, creatorInfo?.address));
 
-  const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
-  const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
-  const [welcomeToast, setWelcomeToast] = useState(false);
   const [mobileView, setMobileView] = useState('profile');
 
 
@@ -114,18 +105,11 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     abi: erc20Abi,
     chainId: CONTRACT_CHAIN_ID,
     functionName: 'balanceOf',
-    args: [profile?.ownedBy.address.toLowerCase()],
+    args: [profile?.owner.toLowerCase()],
     query: { enabled: !!address }
   });
 
   const hasBenefits = bonsaiBalance ? bonsaiBalance > BigInt(100_000) : false;
-
-  // for admin stuff unrelated to lens (ex: livestreams)
-  const isCreatorAdmin = useMemo(() => {
-    if (!(profile?.ownedBy && address)) return false;
-
-    return getAddress(profileAddress(profile, creatorInfo?.address)) === getAddress(address);
-  }, [profile, address]);
 
   // for admin stuff directly related to lens (create post, decrypt)
   const isProfileAdmin = useMemo(() => {
@@ -133,47 +117,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
     return profile?.id === authenticatedProfileId;
   }, [profile, authenticatedProfileId]);
-
-  const onFollowClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (type === "farcaster") {
-      window.open(`https://warpcast.com/${profile.username}`, "_blank");
-      return;
-    }
-
-    if (!isAuthenticated) return;
-
-    const toastId = toast.loading("Following...");
-    try {
-      await followProfile(walletClient, (profile as ProfileFragment).id);
-      setIsFollowed(true);
-      toast.success("Followed", { id: toastId });
-    } catch (error) {
-      console.log(error);
-      toast.error("Unable to follow", { id: toastId });
-    }
-  };
-
-  const isLoadingPage = useMemo(() => {
-    return !ready;
-  }, [isConnected, ready]);
-
-  useEffect(() => {
-    if (isMounted && !isLoadingPage && !welcomeToast) {
-      if (referralSource === "p00ls") {
-        toast(
-          `Welcome! As a P00LS token creator, you can create gated posts so only your token holders can view it.${!isAuthenticated ? " Connect & Login with Lens to get started." : ""
-          }`,
-          {
-            duration: 10000,
-            icon: "🚀",
-          },
-        );
-        setWelcomeToast(true);
-      }
-    }
-  }, [isMounted, isLoadingPage]);
 
   if (!isMounted) return null;
 
@@ -196,23 +139,23 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileImage;
     // }
-    const lensProfile = profile as ProfileFragment;
-    return lensProfile.metadata?.picture?.optimized?.uri;
+    const lensProfile = profile as any;
+    return lensProfile.metadata?.picture
   };
 
   const coverImage = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.coverImageURI;
     // }
-    const lensProfile = profile as ProfileFragment;
-    return lensProfile.metadata?.coverPicture?.optimized?.uri;
+    const lensProfile = profile as any;
+    return lensProfile.metadata?.coverPicture
   }
 
   const userBio = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileBio;
     // }
-    const lensProfile = profile as ProfileFragment;
+    const lensProfile = profile as any;
     return lensProfile.metadata?.bio;
   }
 
@@ -220,23 +163,23 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileHandle;
     // }
-    const lensProfile = profile as ProfileFragment;
-    return lensProfile.handle?.suggestedFormatted.localName;
+    const lensProfile = profile as any;
+    return lensProfile.username.localName;
   }
 
   const displayName = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileDisplayName;
     // }
-    const lensProfile = profile as ProfileFragment;
-    return lensProfile.metadata?.displayName;
+    const lensProfile = profile as any;
+    return lensProfile.metadata?.name;
   }
 
   const followingCount = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.followingCount;
     // }
-    const lensProfile = profile as ProfileFragment;
+    const lensProfile = profile as any;
     return lensProfile.stats?.following;
   }
 
@@ -244,11 +187,11 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.followerCount;
     // }
-    const lensProfile = profile as ProfileFragment;
+    const lensProfile = profile as any;
     return lensProfile.stats?.followers;
   }
 
-
+  console.log("profile", profile);
 
   return (
     <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">
@@ -278,7 +221,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                     <div className='w-full'>
                       <div className="flex flex-col">
                         <Image
-                          // @ts-expect-error picture.optimized
                           src={profilePicture()}
                           alt="pfp"
                           width={80}
@@ -395,22 +337,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
         </section>
       </main>
 
-      {/* Create Space Modal */}
-      <Modal
-        onClose={() => setCreateSpaceModal(false)}
-        open={createSpaceModal}
-        setOpen={setCreateSpaceModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
-      >
-        <CreateSpaceModal
-          profile={profile}
-          livestreamConfig={livestreamConfig}
-          setLivestreamConfig={setLivestreamConfig}
-          closeModal={() => setCreateSpaceModal(false)}
-          moneyClubId={moneyClub?.id}
-        />
-      </Modal>
-
       {/* Login Modal */}
       <Modal
         onClose={() => setOpenSignInModal(false)}
@@ -437,14 +363,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   if (handle) {
     try {
-      const namespace = IS_PRODUCTION ? "lens" : "test";
-      const fullHandle = `${namespace}/${handle}`;
-      const profile = await getProfileByHandle(fullHandle);
+      const profile = await getProfileByHandle(handle);
 
-      if (profile?.id) {
+      if (profile?.owner) {
         const { collection } = await getClientWithCreatorInfo();
         const creatorInfo = await collection.findOne(
-          { address: profile.ownedBy.address.toLowerCase() },
+          { address: profile.owner.toLowerCase() },
           { projection: { _id: 0 } },
         );
 

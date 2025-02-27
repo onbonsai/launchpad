@@ -3,32 +3,20 @@ import { useWalletClient, useAccount, useSwitchChain } from "wagmi";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { ProfileFragment } from "@lens-protocol/client";
-import { formatProfilePicture } from "@madfi/widgets-react";
 import { useDebounce } from "use-debounce";
 import axios from "axios";
 import { Disclosure, Transition } from "@headlessui/react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 
 import { Tooltip } from "@src/components/Tooltip";
-import { Modal } from "@src/components/Modal";
 import { UploaderLite } from "@src/components/ImageUploader/UploaderLite";
-import { useBrowserEncryptionConfig } from "@src/hooks/useBrowserEncryptionConfig";
-import useGatedClient from "@src/hooks/useGatedClient";
 import useParsedTokenFromURL from "@src/hooks/useParsedTokenFromURL";
 import publicationBody from "@src/services/lens/publicationBody";
-import createGatedPost from "@src/services/lens/createGatedPost";
 import { createPostMomoka, createPostOnchain } from "@src/services/lens/createPost";
 import { chainIdNumber } from "@src/constants/validChainId";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
 import { enableSignless } from "@src/services/lens/profileManagers";
-import { PUBLICATION_BOUNTY_ACTION_MODULE, ZORA_LZ_MINT_ACTION_MODULE } from "@src/services/madfi/utils";
-import { encodeAbi } from "@src/utils/viem";
-import { approveToken } from "@src/services/madfi/bountyContract";
-
-import SelectGatedPostCondition from "./SelectGatedPostCondition";
-import SelectActionModule from "./SelectActionModule";
-import BountyActionModal from "./BountyActionModal";
 
 type ActionModuleWithInitData = {
   actionModule?: string;
@@ -57,8 +45,6 @@ const CreatePost = ({
   livestreamConfig,
 }: CreatePostProps) => {
   const { query: { source } } = useRouter();
-  const lensGatedClientEncryption = useBrowserEncryptionConfig();
-  const { gatedClient, createGatedClient } = useGatedClient();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const { chain } = useAccount();
@@ -68,31 +54,11 @@ const CreatePost = ({
   const [isPosting, setIsPosting] = useState(false);
   const [gatedCondition, setGatedCondition] = useState();
   const [actionModuleWithInitData, setActionModuleWithInitData] = useState<ActionModuleWithInitData>({});
-  const [openCollectionMintModal, setOpenCollectionMintModal] = useState(false);
-  const [openZoraMintModal, setOpenZoraMintModal] = useState(false);
-  const [openBountyActionModal, setOpenBountyActionModal] = useState(false);
   const [isEnablingSignless, setIsEnablingSignless] = useState(false);
   const [bounty, setBounty] = useState<{ cost?: bigint, paymentToken?: string }>({});
 
   const [debouncedPostContent] = useDebounce(postContent, 500);
   const { parsedToken, clearToken } = useParsedTokenFromURL(debouncedPostContent, setPostContent);
-
-  const openActionConfigModal = useMemo(() => {
-    return openCollectionMintModal || openZoraMintModal || openBountyActionModal;
-  }, [openCollectionMintModal, openZoraMintModal, openBountyActionModal]);
-
-  useEffect(() => {
-    if (parsedToken?.invalid) {
-      toast.error("Parsed NFT is not valid for the Cross-chain Zora Mint Action");
-    } else if (parsedToken?.id) {
-      // TODO: should be pulling from the widgets sdk
-      const actionModuleInitData = encodeAbi(
-        ["address", "uint256", "uint256", "uint96", "uint64", "uint16", "string"],
-        [parsedToken.address, parsedToken.id, 0, parsedToken.priceWei, 0, parsedToken.lzChainId, ""],
-      );
-      setActionModuleWithInitData({ actionModule: ZORA_LZ_MINT_ACTION_MODULE, actionModuleInitData });
-    }
-  }, [parsedToken?.id, parsedToken?.invalid]);
 
   const _createPost = async () => {
     if (!authenticatedProfile?.id) return; // sanity check
@@ -110,11 +76,6 @@ const CreatePost = ({
       toast.dismiss(toastId);
       setIsPosting(false);
       return;
-    }
-
-    // handle tokens for bounties
-    if (bounty?.cost && bounty?.paymentToken) {
-      await approveToken(bounty.paymentToken, bounty.cost.toString(), walletClient, PUBLICATION_BOUNTY_ACTION_MODULE, toastId);
     }
 
     try {
@@ -148,17 +109,7 @@ const CreatePost = ({
 
       let broadcastResult;
       if (gatedCondition) {
-        broadcastResult = await createGatedPost(
-          gatedClient || createGatedClient(lensGatedClientEncryption, walletClient)!,
-          walletClient,
-          authenticatedProfile,
-          publicationMetadata,
-          '', // [DEPRECATED] collectionId
-          toastId,
-          gatedCondition,
-          actionModule,
-          actionModuleInitData,
-        );
+        // TODO: implement gated condition
       } else if (actionModule && actionModuleInitData) {
         // create a post onchain with our module
         const { data: postIpfsHash } = await pinJson(publicationMetadata);
@@ -248,7 +199,7 @@ const CreatePost = ({
                 <div className="flex p-6 rounded-[18px] bg-[#1C1D1C]">
                   <div className="flex-shrink-0">
                     <img
-                      src={formatProfilePicture(profile).metadata.picture.url}
+                      src={profile.metadata.picture}
                       alt={profile?.id || "avatar"}
                       className="rounded-full w-12 h-12"
                     />

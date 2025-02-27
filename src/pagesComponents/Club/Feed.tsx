@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import {
   Publications,
   Theme,
-  formatProfilePicture,
   ActionButton,
 } from "@madfi/widgets-react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
@@ -11,15 +10,11 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
 import {
   PostFragment,
-  CommentBaseFragment,
-  PublicationReactionType,
-  PublicationOperationsFragment,
 } from "@lens-protocol/client";
 
 import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
-import { REWARD_ENGAGEMENT_ACTION_MODULE } from "@src/services/madfi/utils";
+// import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
@@ -36,9 +31,12 @@ import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
 import clsx from "clsx";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
-;
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { addReaction } from "@lens-protocol/client/actions";
+import { postId as formatPostId } from "@lens-protocol/client";
+import { sendLike } from "@src/services/lens/getReactions";
 
-export const Feed = ({ pubId, morePadding = false }) => {
+export const Feed = ({ postId, morePadding = false }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { address, isConnected, chainId } = useAccount();
@@ -46,24 +44,24 @@ export const Feed = ({ pubId, morePadding = false }) => {
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(pubId as string);
+  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
   const { publication, comments } =
-    publicationWithComments || ({} as { publication: PostFragment; comments: CommentBaseFragment[] });
-  const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
-  const {
-    isLoadingCanDecrypt,
-    canDecrypt,
-    query: { data: decryptedGatedPosts, isLoading: isLoadingDecryptedGatedPosts, refetch: decryptGatedPosts },
-  } = useDecryptedGatedPosts(walletClient, publication?.metadata?.encryptedWith ? [publication] : []);
+    publicationWithComments || ({} as { publication: any; comments: any[] });
+  const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
+  // const {
+  //   isLoadingCanDecrypt,
+  //   canDecrypt,
+  //   query: { data: decryptedGatedPosts, isLoading: isLoadingDecryptedGatedPosts, refetch: decryptGatedPosts },
+  // } = useDecryptedGatedPosts(walletClient, publication?.metadata?.encryptedWith ? [publication] : []);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [decrypting, setDecrypting] = useState(false);
-  const [publicationWithEncrypted, setPublicationWithEncrypted] = useState<
-    PostFragmentPotentiallyDecrypted | undefined
-  >(publication);
+  // const [publicationWithEncrypted, setPublicationWithEncrypted] = useState<
+  //   PostFragmentPotentiallyDecrypted | undefined
+  // >(publication);
   const [contentURI, setContentURI] = useState("");
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
 
@@ -75,7 +73,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
     return comment?.operations?.hasUpvoted || localHasUpvoted.has(publicationId) || false;
   };
 
-  const getOperationsFor = (publicationId: string): PublicationOperationsFragment | undefined => {
+  const getOperationsFor = (publicationId: string): any | undefined => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
     if (!comment) return;
 
@@ -86,12 +84,12 @@ export const Feed = ({ pubId, morePadding = false }) => {
   };
 
   const isLoadingPage = useMemo(() => {
-    return isLoading && (!isConnected || !isLoadingCanDecrypt);
-  }, [isLoading, isConnected, isLoadingCanDecrypt]);
+    return isLoading && (!isConnected);
+  }, [isLoading, isConnected]);
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
-      return formatProfilePicture(authenticatedProfile).metadata.picture.url;
+      return authenticatedProfile.metadata.picture
     }
   }, [authenticatedProfile]);
 
@@ -110,22 +108,22 @@ export const Feed = ({ pubId, morePadding = false }) => {
       }
 
       // If upvoteReactions are equal, sort by createdAt ascending
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
     });
   }, [freshComments, comments]);
 
-  useEffect(() => {
-    if ((decrypting || canDecrypt) && decryptedGatedPosts?.posts?.length) {
-      const decryptedPublication = decryptedGatedPosts.posts[0];
-      const final = { ...publication, metadata: decryptedPublication.metadata, isDecrypted: true };
-      delete final.metadata.encryptedWith; // no longer needed
+  // useEffect(() => {
+  //   if ((decrypting || canDecrypt) && decryptedGatedPosts?.posts?.length) {
+  //     const decryptedPublication = decryptedGatedPosts.posts[0];
+  //     const final = { ...publication, metadata: decryptedPublication.metadata, isDecrypted: true };
+  //     delete final.metadata.encryptedWith; // no longer needed
 
-      setDecrypting(false);
-      setPublicationWithEncrypted(final);
-    } else if (!decryptedGatedPosts?.posts?.length) {
-      setPublicationWithEncrypted(publication);
-    }
-  }, [publication, decryptedGatedPosts, decrypting]);
+  //     setDecrypting(false);
+  //     setPublicationWithEncrypted(final);
+  //   } else if (!decryptedGatedPosts?.posts?.length) {
+  //     setPublicationWithEncrypted(publication);
+  //   }
+  // }, [publication, decryptedGatedPosts, decrypting]);
 
   // TODO: any new modules
   // const isRewardAction = useMemo(() => {
@@ -232,7 +230,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
   const handleDecryptPosts = () => {
     setDecrypting(true);
-    decryptGatedPosts();
+    // decryptGatedPosts();
   };
 
   const onLikeButtonClick = async (e: React.MouseEvent, publicationId: string) => {
@@ -241,10 +239,10 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
     if (!isAuthenticated || hasUpvotedComment(publicationId)) return;
 
-    await lensClient.publication.reactions.add({
-      for: publicationId,
-      reaction: PublicationReactionType.Upvote,
-    });
+    const sessionClient = await resumeSession();
+    if (!sessionClient) return;
+
+    await sendLike(publication.slug);
 
     setLocalHasUpvoted(new Set([...localHasUpvoted, publicationId]));
     toast.success("Liked", { duration: 2000 });
@@ -295,13 +293,13 @@ export const Feed = ({ pubId, morePadding = false }) => {
     <div className="flex flex-col items-center relative h-full w-full">
       <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full w-full md:pb-0">
         <div className="w-full max-w-[500px]">
-          {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
+          {isConnected && isLoading ? (
             <div className="flex justify-center pt-8 pb-8">
               <Spinner customClasses="h-6 w-6" color="#E42101" />
             </div>
-          ) : publicationWithEncrypted ? (
+          ) : publication ? (
             <PublicationContainer
-              publication={publicationWithEncrypted}
+              publication={publication}
               onCommentButtonClick={onCommentButtonClick}
               decryptGatedPosts={handleDecryptPosts}
               decrypting={decrypting}
@@ -348,7 +346,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
           />
         </div>
 
-        {isConnected && isAuthenticated && publicationWithEncrypted && (
+        {/* {isConnected && isAuthenticated && publicationWithEncrypted && (
           <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
             <div className="flex items-center gap-x-6 w-full relative">
               <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
@@ -378,7 +376,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

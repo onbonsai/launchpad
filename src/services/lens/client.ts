@@ -1,24 +1,29 @@
-import { LensClient, development, production } from "@lens-protocol/client";
+import { PublicClient, testnet, staging } from "@lens-protocol/client";
+import { IS_PRODUCTION } from "../madfi/utils";
 
-import { IS_PRODUCTION } from "@src/constants/constants";
-
-export const LENS_ENVIRONMENT = IS_PRODUCTION ? production : development;
+// TODO: update to production
+export const LENS_ENVIRONMENT = IS_PRODUCTION ? staging : staging;
 
 // TODO: something cleaner
 let storage;
 if (typeof window !== 'undefined') {
   storage = window.localStorage;
 }
-export const lensClient = new LensClient({ environment: LENS_ENVIRONMENT, storage });
+export const lensClient = PublicClient.create({
+  environment: LENS_ENVIRONMENT,
+  origin: "https://launch.bonsai.meme",
+  storage,
+});
 
 export const handleBroadcastResult = (broadcastResult: any) => {
   const broadcastValue = broadcastResult.unwrap();
 
-  if ('id' in broadcastValue || 'txId' in broadcastValue) { // TODO: success?
+  if ("id" in broadcastValue || "txId" in broadcastValue) {
+    // TODO: success?
     console.log(broadcastValue);
     return broadcastValue;
   } else {
     console.log(broadcastValue);
     throw new Error();
   }
-}
+};

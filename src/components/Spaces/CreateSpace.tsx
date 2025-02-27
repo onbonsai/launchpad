@@ -2,7 +2,6 @@ import { FormEvent, useState, useMemo } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useChainId } from "wagmi";
 import toast from "react-hot-toast";
 import { DocumentDuplicateIcon, CheckCircleIcon } from "@heroicons/react/solid";
-import { formatProfilePicture } from "@madfi/widgets-react";
 import { TipAction } from "@madfi/lens-oa-client";
 import { formatEther, parseEther } from "viem";
 
@@ -147,7 +146,7 @@ const CreateSpace = ({ livestreamConfig, setLivestreamConfig, closeModal, profil
         body: JSON.stringify({
           creatorAddress: address,
           creatorLensHandle: authenticatedProfile?.handle?.localName,
-          creatorAvatar: formatProfilePicture(authenticatedProfile!).metadata.picture.url,
+          creatorAvatar: authenticatedProfile!.metadata.picture,
           creatorBanner: authenticatedProfile?.metadata?.coverPicture?.optimized?.uri || ipfsOrNotWithDefaultGateway(authenticatedProfile?.metadata?.coverPicture?.raw?.uri),
           handle,
           creatorLensProfileId: authenticatedProfile?.id,

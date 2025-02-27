@@ -1,11 +1,8 @@
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { ProfileFragment } from '@lens-protocol/client';
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { ProfileFragment } from "@lens-protocol/client";
 
-import { useBrowserEncryptionConfig } from "@src/hooks/useBrowserEncryptionConfig";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
-import useGatedClient from "@src/hooks/useGatedClient";
-import { ExtendedGatedClient } from "@src/services/lens/createGatedClient";
 
 import { useLensLogin, useIsAuthenticated, useAuthenticatedProfileId } from "./useLensLogin";
 
@@ -17,7 +14,7 @@ type LensSignInReturnType = {
   isAuthenticated?: boolean;
   authenticatedProfileId?: string | null;
   authenticatedProfile?: ProfileFragment | null;
-  authenticatedLensClient?: ExtendedGatedClient | null;
+  authenticatedLensClient?: any | null;
   setSelectedProfileId: (profileId: string) => void;
   selectedProfileId?: string;
   fullRefetch: () => void;
@@ -28,9 +25,7 @@ type LensSignInReturnType = {
 export default (walletClient: any): LensSignInReturnType => {
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
-  const [authenticatedLensClient, setAuthenticatedLensClient] = useState<ExtendedGatedClient>();
-  const lensGatedClientEncryption = useBrowserEncryptionConfig();
-  const { createGatedClient } = useGatedClient();
+  const [authenticatedLensClient, setAuthenticatedLensClient] = useState<any>();
   const { refetch: loginWithLens, setSelectedProfileId, selectedProfileId } = useLensLogin({}, walletClient);
   const { data: isAuthenticated, refetch: fetchIsAuthenticated } = useIsAuthenticated();
   const { data: authenticatedProfileId, refetch: fetchAuthenticatedProfileId } = useAuthenticatedProfileId();
@@ -40,7 +35,7 @@ export default (walletClient: any): LensSignInReturnType => {
     fetchIsAuthenticated();
     fetchAuthenticatedProfileId();
     fetchAuthenticatedProfile();
-  }
+  };
 
   const signInWithLens = async (selectedProfileId?: string) => {
     setSigningIn(true);
@@ -50,9 +45,6 @@ export default (walletClient: any): LensSignInReturnType => {
       if (!connected) throw new Error();
 
       fullRefetch();
-
-      // to be used for encrypting / decrypting
-      setAuthenticatedLensClient(createGatedClient(lensGatedClientEncryption, walletClient));
 
       toast.success("Signed in with Lens", { id: toastId });
     } catch {

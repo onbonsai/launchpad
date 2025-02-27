@@ -57,7 +57,8 @@ export type Club = {
   strategy: string;
   handle: string;
   token: Token;
-  pubId: string;
+  postId: string;
+  pubId?: string;
   featured: boolean;
   creatorFees: string;
   complete: boolean;
@@ -460,11 +461,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
               {/* Feed/Trades/Holders */}
               <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                 <div className="mb-4">
-                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
+                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.postId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
-                  <Feed pubId={club.pubId} morePadding={true} />
+                  <Feed postId={club.postId} morePadding={true} />
                 )}
                 {openTab === 2 && (
                   <Trades clubId={club.clubId} />

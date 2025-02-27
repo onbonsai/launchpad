@@ -1,8 +1,10 @@
 import { gql } from "@apollo/client";
-import { CommentFragment } from "@lens-protocol/client";
 
 import { apolloClient } from "./apolloClient";
 import { lensClient } from "./client";
+import { addReaction, fetchPostReferences } from "@lens-protocol/client/actions";
+import { postId, PostReferenceType } from "@lens-protocol/client";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 // v2 complete
 const GET_REACTIONS = `
@@ -85,6 +87,20 @@ query GetReactions($publicationId: PublicationId!) {
 }
 `;
 
+/**
+ * Sends a like to a publication
+ * @param publicationId - The ID or slug of the publication to like
+ */
+export const sendLike = async (publicationId: string) => {
+  const sessionClient = await resumeSession();
+  if (!sessionClient) return;
+
+  await addReaction(sessionClient, {
+    post: postId(publicationId),
+    reaction: "UPVOTE",
+  });
+};
+
 export const getReactions = async (pubIds: string[]) => {
   // Fetch the reactions for each winning publication
   const reactions = await Promise.all(
@@ -97,7 +113,7 @@ export const getReactions = async (pubIds: string[]) => {
         return response;
       } catch (error) {
         console.error(`ApolloError: Publication ${publicationId} does not exist`);
-        return { publicationId,  data: null };
+        return { publicationId, data: null };
       }
     }),
   );
@@ -105,11 +121,19 @@ export const getReactions = async (pubIds: string[]) => {
   return reactions;
 };
 
-export const getComments = async (publicationId: string): Promise<CommentFragment[]> => {
-  // Fetch the comments for a given publication
-  const result = await lensClient.publication.fetchAll({
-    where: { commentOn: { id: publicationId } },
+export const getComments = async (slug: string): Promise<any> => {
+  const result = await fetchPostReferences(lensClient, {
+    referencedPost: postId(slug),
+    referenceTypes: [PostReferenceType.CommentOn],
   });
 
-  return (result?.items as CommentFragment[]) || [];
+  if (result.isErr()) {
+    console.error(result.error);
+    return [];
+  }
+
+  // items: Array<AnyPost>
+  const { items, pageInfo } = result.value;
+
+  return items;
 };

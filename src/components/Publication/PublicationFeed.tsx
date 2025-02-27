@@ -6,11 +6,9 @@ import { useInView } from "react-intersection-observer";
 
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { parsePublicationLink } from "@src/utils/utils";
-import { useDecryptedGatedPosts, useGetGatedPosts } from "@src/hooks/useGetGatedPosts";
-import { getGatedPostsWithNext } from "@src/services/lens/getPosts";
 
 import PublicationContainer, { PostFragmentPotentiallyDecrypted } from "./PublicationContainer";
-
+import { useGetPostsByAuthor } from "@src/services/lens/getPost";
 const PublicationFeed = ({
   welcomePostUrl,
   isAuthenticated,
@@ -20,22 +18,9 @@ const PublicationFeed = ({
 }) => {
   const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const [allPosts, setAllPosts] = useState();
-  const [gatedPosts, setGatedPosts] = useState();
+  const [allPosts, setAllPosts] = useState<any[]>([]);
   const [cursorPostsNext, setCursorPostsNext] = useState();
-  const { data: getGatedPostsResult, isLoading: isLoadingGatedPosts } = useGetGatedPosts(creatorProfile.id);
-  const {
-    isLoadingCanDecrypt,
-    canDecrypt,
-    query: {
-      data: decryptedGatedPosts,
-      isLoading: isLoadingDecryptedGatedPosts,
-      refetch: decryptGatedPosts,
-    },
-  } = useDecryptedGatedPosts(walletClient, gatedPosts);
-
-  const [decrypting, setDecrypting] = useState(false);
-  const [allPostsWithEncrypted, setAllPostsWithEncrypted] = useState<PostFragmentPotentiallyDecrypted[]>([]);
+  const { data: getPostsResult, isLoading: isLoadingPosts } = useGetPostsByAuthor(creatorProfile.address);
   const { ref, inView } = useInView()
 
   const welcomePostPublicationId = welcomePostUrl
@@ -45,51 +30,20 @@ const PublicationFeed = ({
   // const { data: welcomePost } = useGetPost(welcomePostPublicationId);
 
   useEffect(() => {
-    if (!isLoadingGatedPosts && getGatedPostsResult?.allPosts?.length) {
-      setAllPosts(getGatedPostsResult.allPosts);
-      setGatedPosts(getGatedPostsResult.gatedPosts);
-      setCursorPostsNext(getGatedPostsResult.next);
+    if (!isLoadingPosts && getPostsResult?.length) {
+      setAllPosts(getPostsResult);
     }
-  }, [isLoadingGatedPosts]);
+  }, [isLoadingPosts]);
 
-  useEffect(() => {
-    if ((decrypting || canDecrypt) && !isLoadingDecryptedGatedPosts && decryptedGatedPosts?.posts?.length) {
-      const grouped = groupBy(decryptedGatedPosts!.posts, 'id');
-      const newPosts: PostFragmentPotentiallyDecrypted[] = allPosts?.map((publication: PostFragment) => {
-        if (publication.metadata?.encryptedWith) {
-          if (grouped[publication.id]?.length && grouped[publication.id][0].metadata) {
-            const final = { ...publication, metadata: grouped[publication.id][0].metadata, isDecrypted: true };
-            delete final.metadata.encryptedWith; // no longer needed
-            return final;
-          }
-        }
-
-        return publication;
-      }) || [];
-
-      setAllPostsWithEncrypted(newPosts);
-    } else if (!isConnected || !isAuthenticated || (!isLoadingCanDecrypt && !isLoadingDecryptedGatedPosts && !decryptedGatedPosts?.posts?.length && !canDecrypt)) {
-      setAllPostsWithEncrypted(allPosts || []);
-    } else if (decryptedGatedPosts?.posts?.length === 0 && !isLoadingDecryptedGatedPosts) { // TODO: this should be the catch-all when we could not decrypt any
-      setAllPostsWithEncrypted(allPosts || []);
-      setDecrypting(false);
-    }
-  }, [allPosts, decrypting, isLoadingDecryptedGatedPosts, isLoadingCanDecrypt, canDecrypt, decryptedGatedPosts]);
-
-  useEffect(() => {
-    if (inView && !isLoadingGatedPosts && !!cursorPostsNext) {
-      getGatedPostsWithNext(cursorPostsNext).then((data) => {
-        setAllPosts([...allPosts!, ...data.allPosts!]);
-        setGatedPosts([...gatedPosts!, ...data.gatedPosts!]);
-        setCursorPostsNext(data.next!);
-      });
-    }
-  }, [inView, isLoadingGatedPosts]);
-
-  const handleDecryptPosts = async () => {
-    setDecrypting(true);
-    await decryptGatedPosts();
-  };
+  // TODO: enable pagination
+  // useEffect(() => {
+  //   if (inView && !isLoadingPosts && !!cursorPostsNext) {
+  //     getGatedPostsWithNext(cursorPostsNext).then((data) => {
+  //       setAllPosts([...allPosts!, ...data.allPosts!]);
+  //       setCursorPostsNext(data.next!);
+  //     });
+  //   }
+  // }, [inView, isLoadingPosts]);
 
   // if (isConnected && isAuthenticated && (isLoadingCanDecrypt || (isLoadingDecryptedGatedPosts && isAuthenticated) || isLoadingGatedPosts) && !decrypting) {
   //   return (
@@ -126,29 +80,27 @@ const PublicationFeed = ({
         <h2 className="text-2xl font-sans tracking-[-0.01] font-bold leading-7">Feed</h2>
       </div> */}
 
-      {!isLoadingGatedPosts && allPosts?.length === 0 && (
+      {!isLoadingPosts && allPosts?.length === 0 && (
         <h3 className="text-lg tracking-wide leading-6 mt-4">Nothing here.</h3>
       )}
 
-      {!isLoadingGatedPosts && (!isLoadingCanDecrypt || !canDecrypt) && (
+      {!isLoadingPosts && allPosts?.length > 0 && (
         <>
-          {allPostsWithEncrypted?.map((publication: PostFragment) => (
+          {allPosts?.map((publication: any) => (
             <PublicationContainer
               key={`pub-${publication.id}`}
               publication={publication}
               isProfileAdmin={isProfileAdmin}
               hasMintedBadge={''}
-              decryptGatedPosts={handleDecryptPosts}
-              decrypting={isConnected && isAuthenticated && (isLoadingCanDecrypt || isLoadingDecryptedGatedPosts || decrypting)}
               shouldGoToPublicationPage={true}
               returnToPage={returnToPage}
             />
           ))}
-          {!!cursorPostsNext && !decrypting && allPostsWithEncrypted?.length > 0 && (
+          {/* {!!cursorPostsNext && !decrypting && allPostsWithEncrypted?.length > 0 && (
             <div ref={ref} className="flex justify-center pt-4">
               <Spinner customClasses="h-6 w-6" color="#E42101" />
             </div>
-          )}
+          )} */}
         </>
       )}
     </div>

@@ -11,18 +11,9 @@ import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
-import {
-  PostFragment,
-  CommentBaseFragment,
-  PublicationReactionType,
-  PublicationOperationsFragment,
-  production,
-  development,
-} from "@lens-protocol/client";
 
 import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
 import { ConnectButton } from "@src/components/ConnectButton";
@@ -37,9 +28,10 @@ import PublicationContainer, {
 } from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 import { getPost } from "@src/services/lens/getPost";
-import { IS_PRODUCTION, ZERO_ADDRESS } from "@src/constants/constants";
+import { ZERO_ADDRESS } from "@src/constants/constants";
 import { ChainRpcs } from "@src/constants/chains";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 const SinglePublicationPage: NextPage = () => {
   const isMounted = useIsMounted();
@@ -51,36 +43,21 @@ const SinglePublicationPage: NextPage = () => {
     useLensSignIn(walletClient);
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(pubId as string);
   const { publication, comments } =
-    publicationWithComments || ({} as { publication: PostFragment; comments: CommentBaseFragment[] });
+    publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
-  const {
-    isLoadingCanDecrypt,
-    canDecrypt,
-    query: { data: decryptedGatedPosts, isLoading: isLoadingDecryptedGatedPosts, refetch: decryptGatedPosts },
-  } = useDecryptedGatedPosts(walletClient, publication?.metadata?.encryptedWith ? [publication] : []);
-  const creatorPageRoute = `/profile/${publication?.by.handle!.localName}`;
-  const lensBountyRoute = `/bounties/lens/${publication?.id}`;
+  const creatorPageRoute = `/profile/${publication?.author.name}`;
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
-  const [decrypting, setDecrypting] = useState(false);
-  const [publicationWithEncrypted, setPublicationWithEncrypted] = useState<
-    PostFragmentPotentiallyDecrypted | undefined
-  >(publication);
-  const [contentURI, setContentURI] = useState("");
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
 
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
 
   const goToCreatorPage = () => {
-    if (returnTo === "bounty") {
-      router.push(lensBountyRoute);
-    } else {
-      router.push(creatorPageRoute);
-    }
+    router.push(creatorPageRoute);
   };
 
   const hasUpvotedComment = (publicationId: string): boolean => {
@@ -88,7 +65,7 @@ const SinglePublicationPage: NextPage = () => {
     return comment?.operations?.hasUpvoted || localHasUpvoted.has(publicationId) || false;
   };
 
-  const getOperationsFor = (publicationId: string): PublicationOperationsFragment | undefined => {
+  const getOperationsFor = (publicationId: string): any | undefined => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
     if (!comment) return;
 
@@ -99,12 +76,12 @@ const SinglePublicationPage: NextPage = () => {
   };
 
   const isLoadingPage = useMemo(() => {
-    return isLoading && (!isConnected || !isLoadingCanDecrypt);
-  }, [isLoading, isConnected, isLoadingCanDecrypt]);
+    return isLoading
+  }, [isLoading, isConnected]);
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
-      return formatProfilePicture(authenticatedProfile).metadata.picture.url;
+      return authenticatedProfile.metadata.picture
     }
   }, [authenticatedProfile]);
 
@@ -119,19 +96,6 @@ const SinglePublicationPage: NextPage = () => {
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
   }, [freshComments, comments]);
-
-  useEffect(() => {
-    if ((decrypting || canDecrypt) && decryptedGatedPosts?.posts?.length) {
-      const decryptedPublication = decryptedGatedPosts.posts[0];
-      const final = { ...publication, metadata: decryptedPublication.metadata, isDecrypted: true };
-      delete final.metadata.encryptedWith; // no longer needed
-
-      setDecrypting(false);
-      setPublicationWithEncrypted(final);
-    } else if (!decryptedGatedPosts?.posts?.length) {
-      setPublicationWithEncrypted(publication);
-    }
-  }, [publication, decryptedGatedPosts, decrypting]);
 
   // TODO: handle our other modules
   // const isRewardAction = useMemo(() => {
@@ -236,21 +200,17 @@ const SinglePublicationPage: NextPage = () => {
     signInWithLens();
   };
 
-  const handleDecryptPosts = () => {
-    setDecrypting(true);
-    decryptGatedPosts();
-  };
-
   const onLikeButtonClick = async (e: React.MouseEvent, publicationId: string) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isAuthenticated || hasUpvotedComment(publicationId)) return;
 
-    await lensClient.publication.reactions.add({
-      for: publicationId,
-      reaction: PublicationReactionType.Upvote,
-    });
+    // TODO: add like
+    // await lensClient.publication.reactions.add({
+    //   for: publicationId,
+    //   reaction: PublicationReactionType.Upvote,
+    // });
 
     setLocalHasUpvoted(new Set([...localHasUpvoted, publicationId]));
     toast.success("Liked", { duration: 2000 });
@@ -278,21 +238,19 @@ const SinglePublicationPage: NextPage = () => {
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center">
           <div className="flex flex-col gap-y-4">
             <div className="min-w-[500px]">
-              {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
+              {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
                   <Spinner customClasses="h-6 w-6" color="#E42101" />
                 </div>
-              ) : publicationWithEncrypted ? (
+              ) :  (
                 <PublicationContainer
-                  publication={publicationWithEncrypted}
+                  publication={publication}
                   onCommentButtonClick={onCommentButtonClick}
-                  decryptGatedPosts={handleDecryptPosts}
-                  decrypting={decrypting}
                   shouldGoToPublicationPage={false}
                   isProfileAdmin={isProfileAdmin}
                   setSubscriptionOpenModal={() => { }}
                 />
-              ) : null}
+              )}
             </div>
             <div>
               <Publications
@@ -389,34 +347,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   // get action module data for a hey portal
   let openActionData = null;
-  if (post.openActionModules?.length) {
-    const environment = IS_PRODUCTION ? production : development;
-    const handlers = await fetchActionModuleHandlers(environment, post.openActionModules);
-    if (handlers?.length) {
-      const ActionModuleHandler = handlers[0].handler;
-      const handler = new ActionModuleHandler(environment, post.by.id, pubId.split("-")[1], undefined, ChainRpcs);
-      await handler.fetchActionModuleData({ connectedWalletAddress: ZERO_ADDRESS });
-      openActionData = handler.getActionModuleConfig();
-
-      // TODO: more gracefully
-      if (handler.collectionId) {
-        openActionData.custom = {
-          collectionId: handler.collectionId.toString(),
-          handle: post.by.handle.localName,
-          image: handler.mintableNFTMetadata.image
-        };
-      }
-
-      // console.log(openActionData)
-    }
-  }
 
   return {
     props: {
       pubId,
-      handle: post?.by.handle?.localName,
+      handle: post?.author.username.localName,
       content: post?.metadata?.content,
-      image: post?.metadata?.asset?.image?.small?.uri || post?.metadata?.asset?.image?.optimized?.uri,
+      image: post?.metadata?.asset?.image?.small?.uri || post?.metadata?.asset?.image?.optimized?.uri || null,
       pageName: "singlePublication",
       openActionData,
     },

@@ -3,7 +3,6 @@ import { useAccount, useWalletClient } from "wagmi";
 import Link from "next/link";
 import { useEffect } from "react";
 import { ProfileFragment } from "@lens-protocol/client";
-import { formatProfilePicture } from "@madfi/widgets-react";
 import { Dialog } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
 import { useLogout } from '@privy-io/react-auth';
@@ -17,7 +16,7 @@ import clsx from "clsx";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
-  const { profiles, farcasterProfiles, isLoading } = useGetProfiles(address);
+  const { profiles, isLoading } = useGetProfiles(address);
   const { data: walletClient } = useWalletClient();
   const {
     signInWithLens,
@@ -83,26 +82,26 @@ const LoginWithLensModal = ({ closeModal }) => {
         {/* PROFILE SELECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
           {profiles && profiles.length
-            ? profiles.map((profile: ProfileFragment) => (
-              <div className="" key={profile.id}>
-                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={profile.id}>
+            ? profiles.map(({account}) => (
+              <div className="" key={account.address}>
+                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={account.address}>
                   <div className="flex w-full items-center justify-between">
                     <img
-                      src={formatProfilePicture(profile).metadata.picture.url}
-                      alt={profile?.id}
+                      src={account.metadata.picture}
+                      alt={account.address}
                       className="rounded-sm w-20 h-20"
                     />
                     <div className="flex flex-col">
-                      {authenticatedProfileId === profile.id && (
+                      {authenticatedProfileId === account.address && (
                         <div className="flex flex-col justify-center items-center">
                           <CheckCircleIcon className="h-8 w-8 text-white" />
                           <span>Logged in</span>
                         </div>
                       )}
-                      {authenticatedProfileId !== profile.id && (
+                      {authenticatedProfileId !== account.address && (
                         <Button
                           className="md:px-12 ml-4 hover:bg-bullish"
-                          onClick={() => setSelectedProfileId(profile.id)}
+                          onClick={() => setSelectedProfileId(account.address)}
                           disabled={signingIn}
                         >
                           Login
@@ -112,9 +111,9 @@ const LoginWithLensModal = ({ closeModal }) => {
                   </div>
                   <div className="flex w-full justify-between items-center">
                     <h3 className="font-bold">
-                      {profile?.metadata?.displayName || ""}
+                      {account.metadata.name || ""}
                     </h3>
-                    <span className="text-sm">{profile?.handle?.suggestedFormatted?.full}</span>
+                    <span className="text-sm">{account.username.localName || `${account.metadata.name}`}</span>
                   </div>
                 </div>
               </div>

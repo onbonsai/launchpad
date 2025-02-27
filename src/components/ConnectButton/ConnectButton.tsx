@@ -71,7 +71,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
-      return authenticatedProfile!.handle?.suggestedFormatted?.localName || authenticatedProfile!.handle?.localName
+      return authenticatedProfile.username.localName || authenticatedProfile.metadata.name
     if (!loadingENS && ensName) return ensName;
 
     return transformTextToWithDots(address);
@@ -79,8 +79,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
-      const basePicture: ProfilePictureSetFragment | undefined = authenticatedProfile?.metadata?.picture as ProfilePictureSetFragment;
-      return basePicture?.thumbnail?.uri || basePicture?.optimized?.uri || "";
+      return authenticatedProfile.metadata.picture
     }
     // TODO: Default image
     return null;

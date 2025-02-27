@@ -3,13 +3,13 @@ import { LockClosedIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useSwitchChain } from "wagmi";
-import { PostFragment, PublicationReactionType } from "@lens-protocol/client"
+import { PostFragment, postId, PublicationReactionType } from "@lens-protocol/client"
 import { Publication, Theme } from "@madfi/widgets-react";
 
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
-import { MADFI_POST_URL, MADFI_BANNER_IMAGE_SMALL } from "@src/constants/constants";
+import { MADFI_POST_URL, MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
 import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
 import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/createMirror";
 import { ChainRpcs } from "@src/constants/chains";
@@ -19,6 +19,9 @@ import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import { polygon } from "viem/chains";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "./PublicationStyleOverrides";
+import { addReaction } from "@lens-protocol/client/actions";
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { sendLike } from "@src/services/lens/getReactions";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -80,13 +83,13 @@ const PublicationContainer = ({
   if (!(publicationId || publication)) throw new Error('Need publicationId or publication');
   if (publication?.metadata?.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
 
-  const _publicationId = publication?.id || publicationId!;
+  const _publicationId = publication?.slug || publicationId!;
 
   const onShareButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    navigator.clipboard.writeText(`${MADFI_POST_URL}/${_publicationId}`);
+    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${_publicationId}`);
 
     toast("Link copied", { position: "bottom-center", icon: "🔗", duration: 2000 });
   };
@@ -102,7 +105,7 @@ const PublicationContainer = ({
     e.preventDefault();
     e.stopPropagation();
     // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
-    router.push(`/profile/${publication?.by?.handle?.localName}`);
+    router.push(`/profile/${publication.author.username.localName}`);
   };
 
   // stub the encrypted pub metadata to render something nicer
@@ -130,10 +133,7 @@ const PublicationContainer = ({
 
     if (!isAuthenticated || hasUpvoted) return;
 
-    await lensClient.publication.reactions.add({
-      for: _publicationId,
-      reaction: PublicationReactionType.Upvote,
-    });
+    await sendLike(publication.slug);
 
     setHasUpvoted(true);
     toast.success("Liked", { duration: 3000 });

@@ -1,200 +1,10 @@
 import { gql } from "@apollo/client";
-import { LimitType } from "@lens-protocol/client";
+import { evmAddress, LimitType } from "@lens-protocol/client";
 
 import { apolloClient, apolloClientReadOnly } from "./apolloClient";
 import { lensClient } from "./client";
-import { getAccessToken } from "@src/hooks/useLensLogin";
-
-const GET_PROFILES_BY_HANDLES = `
-query($handles: [Handle!]) {
-  profiles(request: { where: { handles: $handles } }) {
-    items {
-      id
-      metadata {
-        displayName
-        bio
-        coverPicture {
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-        picture {
-          ... on NftImage {
-            image {
-              optimized {
-                uri
-              }
-            }
-          }
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-      }
-      handle {
-        fullHandle
-        namespace
-        localName
-        ownedBy
-      }
-      stats {
-        followers
-      }
-      followModule {
-        ... on FeeFollowModuleSettings {
-          type
-        }
-      }
-    }
-  }
-}
-`;
-
-const GET_PROFILES_OWNED = `
-query($ownedBy: EvmAddress!) {
-  profiles(request: { where: { ownedBy: [$ownedBy] } }) {
-    items {
-      id
-      metadata {
-        displayName
-        bio
-        coverPicture {
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-        picture {
-          ... on NftImage {
-            image {
-              optimized {
-                uri
-              }
-            }
-          }
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-      }
-      interests
-      handle {
-        id
-        fullHandle
-        namespace
-        localName
-      }
-      ownedBy {
-        address
-        chainId
-      }
-      stats {
-        followers
-        following
-        comments
-        posts
-        mirrors
-        publications
-        countOpenActions
-      }
-      followModule {
-        ... on FeeFollowModuleSettings {
-          type
-          contract {
-            address
-            chainId
-          }
-          amount {
-            asset {
-              ... on Erc20 {
-                name
-                decimals
-                symbol
-              }
-            }
-            value
-          }
-          recipient
-        }
-        ... on RevertFollowModuleSettings {
-          type
-        }
-      }
-    }
-  }
-}
-
-`;
-
-const GET_PROFILE_HANDLES_BY_ID = `
-query($ids: [ProfileId!]) {
-  profiles(request: { where: { profileIds: $ids } }) {
-    items {
-      handle {
-        namespace
-        fullHandle
-        localName
-      }
-    }
-  }
-}
-`;
-
-const GET_PROFILES_LIGHT_BY_ID = `
-query($ids: [ProfileId!]) {
-  profiles(request: { where: { profileIds: $ids } }) {
-    items {
-      id
-      ownedBy {
-        address
-      }
-      metadata {
-        displayName
-        bio
-        coverPicture {
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-        picture {
-          ... on NftImage {
-            image {
-              optimized {
-                uri
-              }
-            }
-          }
-          ... on ImageSet {
-            optimized {
-              uri
-            }
-          }
-        }
-      }
-      handle {
-        id
-        fullHandle
-        namespace
-        localName
-      }
-      stats {
-        followers
-        posts
-        mirrors
-      }
-    }
-  }
-}
-`;
+import { fetchAvailableAccounts, getAccessToken } from "@src/hooks/useLensLogin";
+import { fetchAccount } from "@lens-protocol/client/actions";
 
 const GET_PROFILE_AND_FOLLOWERS = `
 query($request: ProfilesRequest!) {
@@ -286,108 +96,45 @@ query($request: ProfilesRequest!) {
 }
 `;
 
-const GET_INTERESTS = `
-query profileInterestsOptions {
-  profileInterestsOptions
-}
-`;
-
-// ex: lens/lensprotocol
 export const getProfileByHandle = async (forHandle: string) => {
-  try {
-    return await lensClient.profile.fetch({ forHandle });
-  } catch (error) {
-    console.log(error);
+  const result = await fetchAccount(lensClient, {
+    username: {
+      localName: forHandle,
+    },
+  });
+
+  if (result.isErr()) {
+    return console.error(result.error);
   }
-};
 
-export const getProfilesByHandles = async (handles?: string[], filterFollowModule = false) => {
-  try {
-    if (!handles) return null;
-    handles = handles.map((handle) => {
-      if (process.env.NEXT_PUBLIC_CHAIN_ID === "137") {
-        return handle.startsWith("lens/") ? handle : "lens/" + handle;
-      } else {
-        return handle.startsWith("test/") ? handle : "test/" + handle;
-      }
-    });
-
-    const profiles: any[] = [];
-    const invalidProfiles: string[] = [];
-
-    // Split handles into chunks of 50
-    for (let i = 0; i < handles.length; i += 50) {
-      const handleChunk = handles.slice(i, i + 50);
-      const response = await lensClient.profile.fetchAll({ where: { handles: handleChunk } });
-
-      profiles.push(...response.items);
-
-      while (response.pageInfo.next) {
-        const nextPage = await response.next();
-        if (nextPage) profiles.push(...nextPage.items);
-      }
-
-      invalidProfiles.push(
-        ...handleChunk.filter(
-          (handle) => !profiles?.find((item: any) => item.handle.fullHandle === handle),
-        )
-      );
-
-      if (filterFollowModule) {
-        profiles.forEach((item: any) => {
-          if (item.followModule !== null) {
-            invalidProfiles.push(item.handle);
-          }
-        });
-      }
-    }
-
-    return {
-      profiles: profiles?.flatMap((item: any) =>
-        invalidProfiles.includes(item.handle)
-          ? []
-          : { id: item.id, handle: item.handle, ownedBy: item.handle.ownedBy, metadata: item.metadata, stats: item.stats },
-      ),
-      invalidProfiles,
-    };
-  } catch (error) {
-    console.log(error);
-  }
+  const account = result.value;
+  return account;
 };
 
 export const getProfilesOwned = async (ownedBy: string) => {
   try {
-    const _profiles = await lensClient.profile.fetchAll({
-      where: { ownedBy: [ownedBy] },
-    });
-
-    return _profiles?.items || [];
+    const _profiles = await fetchAvailableAccounts(ownedBy);
+    // @ts-ignore
+    return _profiles.value.items;
   } catch (error) {
     console.log(error);
   }
 };
 
-export const getProfilesManaged = async (ownedBy: string) => {
-  try {
-    const _profiles = await lensClient.wallet.profilesManaged({ for: ownedBy });
+export const getProfileByAddress = async (address: string) => {
+  const result = await fetchAccount(lensClient, {
+    address: evmAddress(address),
+  });
 
-    return _profiles?.items || [];
-  } catch (error) {
-    console.log(error);
+  if (result.isErr()) {
+    return console.error(result.error);
   }
+
+  const account = result.value;
+  return account;
 };
 
-export const getProfileById = async (forProfileId: string | null) => {
-  try {
-    if (!forProfileId) return null;
-
-    return await lensClient.profile.fetch({ forProfileId });
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
+// TODO: outdated
 export const getIsFollowedBy = async (forProfileId: string) => {
   try {
     const isFollowedByMe = await lensClient.profile.fetch({ forProfileId });
@@ -401,40 +148,7 @@ export const getIsFollowedBy = async (forProfileId: string) => {
   }
 };
 
-export const getHandlesById = async (ids?: string[]) => {
-  try {
-    if (!ids) return null;
-
-    const {
-      data: { profiles },
-    } = await apolloClient.query({
-      query: gql(GET_PROFILE_HANDLES_BY_ID),
-      variables: { ids },
-    });
-
-    return profiles?.items;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export const getProfilesLightById = async (ids?: string[]) => {
-  try {
-    if (!ids) return null;
-
-    const {
-      data: { profiles },
-    } = await apolloClient.query({
-      query: gql(GET_PROFILES_LIGHT_BY_ID),
-      variables: { ids },
-    });
-
-    return profiles?.items;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
+// TODO: outdated
 export const getHandleAndFollowersByAddresses = async (ownedBy: string[], limit = LimitType.Fifty) => {
   try {
     const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
@@ -456,10 +170,11 @@ export const getHandleAndFollowersByAddresses = async (ownedBy: string[], limit 
     return items.flat();
   } catch (error) {
     console.log(error);
-    return []
+    return [];
   }
 };
 
+// TODO: outdated
 export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType.Fifty) => {
   try {
     const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
@@ -476,11 +191,13 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
           query: gql(GET_PROFILE_HANDLES),
           variables: { request: { where: { ownedBy: _ownedBy }, limit } },
           context: {
-            headers: accessToken ? {
-              'x-access-token': accessToken,
-              authorization: `Bearer: ${accessToken}`
-            } : undefined
-          }
+            headers: accessToken
+              ? {
+                  "x-access-token": accessToken,
+                  authorization: `Bearer: ${accessToken}`,
+                }
+              : undefined,
+          },
         }),
       );
     }
@@ -491,46 +208,6 @@ export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType
     return items.flat();
   } catch (error) {
     console.log(error);
-    return []
-  }
-};
-
-export const getProfilesByIds = async (ids: string[], limit = "Fifty") => {
-  try {
-    const items: any[] = [];
-
-    while (ids.length > 0) {
-      const _ids = ids.slice(0, 50);
-
-      const {
-        data: { profiles },
-      } = await apolloClientReadOnly.query({
-        query: gql(GET_PROFILE_AND_FOLLOWERS),
-        variables: { request: { where: { profileIds: _ids }, limit } },
-      });
-
-      items.push(profiles!.items);
-
-      ids = ids.slice(50);
-    }
-
-    return items.flat();
-  } catch (error) {
-    console.error(error);
     return [];
-  }
-};
-
-export const getInterests = async () => {
-  try {
-    const {
-      data: { profileInterestsOptions },
-    } = await apolloClient.query({
-      query: gql(GET_INTERESTS),
-    });
-
-    return profileInterestsOptions;
-  } catch (error) {
-    console.log(error);
   }
 };
