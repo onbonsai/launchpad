@@ -15,6 +15,7 @@ import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
 import { inter } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
+import { getProfileImage } from "@src/services/lens/utils";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -79,7 +80,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
-      return authenticatedProfile.metadata.picture
+      return getProfileImage(authenticatedProfile)
     }
     // TODO: Default image
     return null;

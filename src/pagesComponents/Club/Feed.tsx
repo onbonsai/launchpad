@@ -10,9 +10,10 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
 import {
   PostFragment,
+  uri,
 } from "@lens-protocol/client";
 
-import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
+import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 // import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
@@ -32,9 +33,11 @@ import { polygon } from "viem/chains";
 import clsx from "clsx";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { addReaction } from "@lens-protocol/client/actions";
+import { addReaction, post } from "@lens-protocol/client/actions";
 import { postId as formatPostId } from "@lens-protocol/client";
 import { sendLike } from "@src/services/lens/getReactions";
+import { getProfileImage } from "@src/services/lens/utils";
+import { handleOperationWith } from "@lens-protocol/client/viem";
 
 export const Feed = ({ postId, morePadding = false }) => {
   const isMounted = useIsMounted();
@@ -89,7 +92,7 @@ export const Feed = ({ postId, morePadding = false }) => {
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
-      return authenticatedProfile.metadata.picture
+      return getProfileImage(authenticatedProfile)
     }
   }, [authenticatedProfile]);
 
@@ -165,48 +168,29 @@ export const Feed = ({ postId, morePadding = false }) => {
         // can only be one
         const file = files[0];
         attachment = {
-          item: storjGatewayURL(await pinFile(file)), // momoka requires fast resolving
+          item: storjGatewayURL(await pinFile(file)),
           type: file.type,
           license: MetadataLicenseType.CCO,
           altTag: file.name ?? "comment_img",
         };
       }
 
-      const publicationMetadata = publicationBody(
+      const metadata = publicationBody(
         comment,
         [attachment],
-        authenticatedProfile.metadata?.displayName || authenticatedProfile.handle!.localName,
+        authenticatedProfile.username.localName
       );
-      const { data: postIpfsHash } = await pinJson(publicationMetadata);
+      const { uri: contentUri } = await storageClient.uploadAsJson(metadata);
 
-      // handle as act() if necessary
-      // if (isRewardAction) {
-      //   // handle this mirror as an act to get the points (should've been a ref module :shrug:)
-      //   const handler = new RewardEngagementAction(LENS_ENVIRONMENT, publication?.by?.id, publication?.id.split("-")[1], authenticatedProfile?.id);
-      //   const { hasClaimed } = await handler.fetchActionModuleData({ authenticatedProfileId: authenticatedProfile?.id, connectedWalletAddress: address });
-      //   // TODO: add check for limit reached (once enabled in the composer)
-      //   if (!hasClaimed && handler.publicationRewarded?.actionType === "COMMENT") {
-      //     await actWithActionHandler(handler, walletClient, authenticatedProfile, `ipfs://${postIpfsHash}`);
-      //     setComment("");
-      //     setFiles([]);
+      const sessionClient = await resumeSession();
+      if (!sessionClient) return;
 
-      //     toast.success("Commented", { id: toastId, duration: 3000 });
-
-      //     setTimeout(fetchComments, 6000); // give the api some time
-      //     return;
-      //   }
-      // }
-
-      if (publication?.momoka) {
-        await createCommentMomoka(
-          walletClient,
-          publication?.id,
-          storjGatewayURL(`ipfs://${postIpfsHash}`), // momoka requires fast resolving
-          authenticatedProfile,
-        );
-      } else {
-        await createCommentOnchain(walletClient, publication?.id, `ipfs://${postIpfsHash}`, authenticatedProfile);
-      }
+      const result = await post(sessionClient, {
+        contentUri: uri(contentUri),
+        commentOn: {
+          post: postId(publication.slug),
+        },
+      }).andThen(handleOperationWith(walletClient));
 
       setComment("");
       setFiles([]);

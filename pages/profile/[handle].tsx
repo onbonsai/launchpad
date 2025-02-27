@@ -1,13 +1,12 @@
 import { MobileViewSelector } from './MobileViewSelector';
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
-import { Subtitle, BodySemiBold, Header } from "@src/styles/text";
+import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
-import { toast } from "react-hot-toast";
-import { erc20Abi, getAddress } from "viem";
+import { erc20Abi } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
@@ -23,7 +22,6 @@ import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { getClientWithCreatorInfo } from "@src/services/mongo/client";
-import CreatePost, { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import PublicationFeed from "@src/components/Publication/PublicationFeed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 // import { FarcasterProfile } from "@src/services/farcaster/types";
@@ -32,8 +30,6 @@ import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
 import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
-import { useGetPostsByAuthor } from '@src/services/lens/getPost';
-import { IS_PRODUCTION } from '@src/services/madfi/utils';
 
 const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 interface CreatorPageProps {
@@ -77,7 +73,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     authenticatedProfile,
     // authenticatedLensClient,
   } = useLensSignIn(walletClient);
-  const { data: posts } = useGetPostsByAuthor(profile?.id);
   const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, profile?.id)
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(profileAddress(profile, creatorInfo?.address));
@@ -139,59 +134,50 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileImage;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.metadata?.picture
+    return profile.metadata?.picture
   };
 
   const coverImage = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.coverImageURI;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.metadata?.coverPicture
+    return profile.metadata?.coverPicture
   }
 
   const userBio = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileBio;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.metadata?.bio;
+    return profile.metadata?.bio;
   }
 
   const userHandle = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileHandle;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.username.localName;
+    return profile.username.localName;
   }
 
   const displayName = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileDisplayName;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.metadata?.name;
+    return profile.metadata?.name;
   }
 
   const followingCount = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.followingCount;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.stats?.following;
+    return profile.stats?.following;
   }
 
   const followerCount = () => {
     // if (isFarcasterProfile(profile)) {
     //   return profile.followerCount;
     // }
-    const lensProfile = profile as any;
-    return lensProfile.stats?.followers;
+    return profile.stats?.followers;
   }
-
-  console.log("profile", profile);
 
   return (
     <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">

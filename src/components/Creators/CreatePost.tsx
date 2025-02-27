@@ -17,6 +17,7 @@ import { chainIdNumber } from "@src/constants/validChainId";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
 import { enableSignless } from "@src/services/lens/profileManagers";
+import { getProfileImage } from "@src/services/lens/utils";
 
 type ActionModuleWithInitData = {
   actionModule?: string;
@@ -199,7 +200,7 @@ const CreatePost = ({
                 <div className="flex p-6 rounded-[18px] bg-[#1C1D1C]">
                   <div className="flex-shrink-0">
                     <img
-                      src={profile.metadata.picture}
+                      src={getProfileImage(profile)}
                       alt={profile?.id || "avatar"}
                       className="rounded-full w-12 h-12"
                     />

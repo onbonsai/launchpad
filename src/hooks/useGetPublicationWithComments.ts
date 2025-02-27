@@ -6,9 +6,6 @@ import { getComments } from "@src/services/lens/getReactions";
 const fetchData = async (postId: string) => {
   const [publication, comments] = await Promise.all([getPost(postId), getComments(postId)]);
 
-  console.log("publication", publication);
-  console.log("comments", comments);
-
   return { publication, comments };
 };
 

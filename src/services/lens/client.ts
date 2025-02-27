@@ -1,4 +1,5 @@
 import { PublicClient, testnet, staging } from "@lens-protocol/client";
+import { StorageClient } from "@lens-chain/storage-client";
 import { IS_PRODUCTION } from "../madfi/utils";
 
 // TODO: update to production
@@ -14,6 +15,8 @@ export const lensClient = PublicClient.create({
   origin: "https://launch.bonsai.meme",
   storage,
 });
+
+export const storageClient = StorageClient.create();
 
 export const handleBroadcastResult = (broadcastResult: any) => {
   const broadcastValue = broadcastResult.unwrap();
