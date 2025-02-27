@@ -1,7 +1,7 @@
 import axios from "axios";
 import FormData from "form-data";
 
-import { MEDIA_SERVER_URL, IS_PRODUCTION } from "@src/constants/constants";
+import { MEDIA_SERVER_URL } from "@src/constants/constants";
 
 import { _hash } from "./pinata";
 

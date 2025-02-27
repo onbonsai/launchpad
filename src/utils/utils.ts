@@ -56,7 +56,7 @@ export const kFormatter = (num) => {
     return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k";
   }
 
-  return Math.sign(num) * Math.abs(num);
+  return Number((Math.sign(num) * Math.abs(num)).toFixed(2)).toFixed(2);
 };
 
 export function polygonScanUrl(address: string, chainId?: string | number | undefined, route?: string) {

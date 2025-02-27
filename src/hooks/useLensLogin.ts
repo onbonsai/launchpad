@@ -3,7 +3,7 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 import { lensClient } from "@src/services/lens/client";
 
-import { evmAddress } from "@lens-protocol/client";
+import { type Account, evmAddress } from "@lens-protocol/client";
 import { currentSession, fetchAccountsAvailable } from "@lens-protocol/client/actions";
 import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
 import { WalletClient } from "viem";
@@ -26,14 +26,15 @@ export const resumeSession = async () => {
   return sessionClient;
 };
 
-export const getAuthenticatedProfile = async () => {
+export const getAuthenticatedProfile = async (): Promise<Account | null> => {
   const sessionClient = await resumeSession();
   if (!sessionClient) return null;
 
   const result = await currentSession(sessionClient);
 
   if (result.isErr()) {
-    return console.error(result.error);
+    console.error(result.error);
+    return null;
   }
 
   // AuthenticatedSession: { authenticationId: UUID, app: EvmAddress, ... }
@@ -41,11 +42,17 @@ export const getAuthenticatedProfile = async () => {
 
   const users = await fetchAvailableAccounts(session.signer);
 
+  if (users.isErr()) {
+    console.log("failed to fetch available accounts");
+    return null;
+  }
+
   // TODO: just returns first account for authenticated user
   return users.value.items[0].account;
 };
 
-export const getAuthenticatedProfileId = async () => {
+// TODO: profile id should be deprecated throughout
+export const getAuthenticatedProfileId = async (): Promise<string | undefined> => {
   const profile = await getAuthenticatedProfile();
   return profile?.id;
 }

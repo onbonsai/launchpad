@@ -1,18 +1,16 @@
 import { inter } from "@src/fonts/fonts";
 import { useAccount, useWalletClient } from "wagmi";
-import Link from "next/link";
 import { useEffect } from "react";
-import { ProfileFragment } from "@lens-protocol/client";
 import { Dialog } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
 import { useLogout } from '@privy-io/react-auth';
+import clsx from "clsx";
 
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { Button } from "@src/components/Button";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
-import clsx from "clsx";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();

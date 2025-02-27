@@ -56,12 +56,12 @@ export const Balance = () => {
   return (
     <div className="relative inline-block">
       <div
-        className="bg-dark-grey text-white text-base font-medium rounded-xl md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-28 cursor-pointer relative"
+        className="bg-dark-grey text-white text-base font-medium rounded-xl md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-32 cursor-pointer relative"
         onMouseEnter={() => setShowDropdown(true)}
         onMouseLeave={() => setShowDropdown(false)}
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
-          <div className="relative items-center">
+          <div className="relative items-center ml-2">
             <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-3" />
             <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg relative z-10" />
           </div>
@@ -70,7 +70,7 @@ export const Balance = () => {
 
         {showDropdown && (
           <div
-            className="fixed mt-3 right-[92px] bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]"
+            className="fixed mt-4 right-[92px] bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]"
             style={{
               boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
               transform: "translateY(0)",
@@ -79,18 +79,18 @@ export const Balance = () => {
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-x-2">
                 <div className="relative">
-                  <img src="/gho.webp" alt="gho" className="w-[20px] h-[20px] object-cover rounded-lg" />
-                  <img src="/lens.png" alt={"lens"} className="absolute top-3 left-3 h-[9px]" />
+                  <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg" />
+                  {/* <img src="/lens.png" alt={"lens"} className="absolute top-3 left-3 h-[12px]" /> */}
                 </div>
                 <span className="text-sm text-white">WGHO on Lens</span>
               </div>
               <span className="text-sm text-white">{ghoFormatted}</span>
             </div>
-            <div className="flex items-center justify-between mb-2 py-1">
+            <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-x-2">
                 <div className="relative">
-                  <img src="/usdc.png" alt="usdc" className="w-[20px] h-[20px] object-cover rounded-lg" />
-                  <img src="/base.png" alt={"base"} className="absolute top-3 left-3 w-[10px] h-[10px]" />
+                  <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
+                  {/* <img src="/base.png" alt={"base"} className="absolute top-3 left-3 w-[14px] h-[14px]" /> */}
                 </div>
                 <span className="text-sm text-white">USDC on Base</span>
               </div>
