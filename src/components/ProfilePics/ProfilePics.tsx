@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react";
 import Image from "next/image";
-
+import { getProfileImage } from "@src/services/lens/utils";
 const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
   if (!profiles?.length) return null;
 
@@ -9,7 +9,7 @@ const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
       .map((profile) => {
         // using lens profile object
         if (profile.__typename === "Profile" || profile.id?.includes("0x")) {
-          return profile.metadata.picture;
+          return getProfileImage(profile);
         }
 
         // basic usage

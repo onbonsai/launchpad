@@ -14,7 +14,7 @@ import publicationBody from "@src/services/lens/publicationBody";
 import { pinJson, storjGatewayURL } from "@src/utils/storj";
 import { createPostMomoka, createPostOnchain } from "@src/services/lens/createPost";
 import readLensHub from "@src/services/lens/readLensHub";
-import { bToHexString } from "@src/services/lens/utils";
+import { bToHexString, getProfileImage } from "@src/services/lens/utils";
 import { chainIdNumber } from "@src/constants/validChainId";
 import { encodeAbi } from "@src/utils/viem";
 import { BLACKJACK_ACTION_MODULE, BONSAI_TOKEN_ADDRESS } from "@src/services/madfi/utils";
@@ -146,7 +146,7 @@ const CreateSpace = ({ livestreamConfig, setLivestreamConfig, closeModal, profil
         body: JSON.stringify({
           creatorAddress: address,
           creatorLensHandle: authenticatedProfile?.handle?.localName,
-          creatorAvatar: authenticatedProfile!.metadata.picture,
+          creatorAvatar: getProfileImage(authenticatedProfile),
           creatorBanner: authenticatedProfile?.metadata?.coverPicture?.optimized?.uri || ipfsOrNotWithDefaultGateway(authenticatedProfile?.metadata?.coverPicture?.raw?.uri),
           handle,
           creatorLensProfileId: authenticatedProfile?.id,

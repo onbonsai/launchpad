@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
 
-import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
+import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
@@ -32,6 +32,12 @@ import { ZERO_ADDRESS } from "@src/constants/constants";
 import { ChainRpcs } from "@src/constants/chains";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { sendLike } from "@src/services/lens/getReactions";
+import { postId, uri } from "@lens-protocol/client";
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { post } from "@lens-protocol/client/actions";
+import { handleOperationWith } from "@lens-protocol/client/viem";
+import { getProfileImage } from "@src/services/lens/utils";
 
 const SinglePublicationPage: NextPage = () => {
   const isMounted = useIsMounted();
@@ -81,7 +87,7 @@ const SinglePublicationPage: NextPage = () => {
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
-      return authenticatedProfile.metadata.picture
+      return getProfileImage(authenticatedProfile)
     }
   }, [authenticatedProfile]);
 
@@ -137,48 +143,31 @@ const SinglePublicationPage: NextPage = () => {
         // can only be one
         const file = files[0];
         attachment = {
-          item: `ipfs://${await pinFile(file)}`,
+          item: storjGatewayURL(await pinFile(file)),
           type: file.type,
           license: MetadataLicenseType.CCO,
           altTag: file.name ?? "MadFi",
         };
       }
 
-      const publicationMetadata = publicationBody(
+      const metadata = publicationBody(
         comment,
         [attachment],
-        authenticatedProfile.metadata?.displayName || authenticatedProfile.handle!.localName,
+        authenticatedProfile.username.localName
       );
-      const { data: postIpfsHash } = await pinJson(publicationMetadata);
+      const { uri: contentUri } = await storageClient.uploadAsJson(metadata);
 
-      // // handle as act() if necessary
-      // if (isRewardAction) {
-      //   // handle this mirror as an act to get the points (should've been a ref module :shrug:)
-      //   const handler = new RewardEngagementAction(LENS_ENVIRONMENT, publication?.by?.id, publication?.id.split("-")[1], authenticatedProfile?.id);
-      //   const { hasClaimed } = await handler.fetchActionModuleData({ authenticatedProfileId: authenticatedProfile?.id, connectedWalletAddress: address });
-      //   // TODO: add check for limit reached (once enabled in the composer)
-      //   if (!hasClaimed && handler.publicationRewarded?.actionType === "COMMENT") {
-      //     await actWithActionHandler(handler, walletClient, authenticatedProfile, `ipfs://${postIpfsHash}`);
-      //     setComment("");
-      //     setFiles([]);
+      const sessionClient = await resumeSession();
+      if (!sessionClient) return;
 
-      //     toast.success("Commented", { id: toastId, duration: 3000 });
+      const result = await post(sessionClient, {
+        contentUri: uri(contentUri),
+        commentOn: {
+          post: postId(publication.slug),
+        },
+      }).andThen(handleOperationWith(walletClient));
 
-      //     setTimeout(fetchComments, 6000); // give the api some time
-      //     return;
-      //   }
-      // }
-
-      if (publication?.momoka) {
-        await createCommentMomoka(
-          walletClient,
-          publication?.id,
-          storjGatewayURL(`ipfs://${postIpfsHash}`), // momoka requires fast resolving
-          authenticatedProfile,
-        );
-      } else {
-        await createCommentOnchain(walletClient, publication?.id, `ipfs://${postIpfsHash}`, authenticatedProfile);
-      }
+      console.log("result", result);
 
       setComment("");
       setFiles([]);
@@ -206,11 +195,7 @@ const SinglePublicationPage: NextPage = () => {
 
     if (!isAuthenticated || hasUpvotedComment(publicationId)) return;
 
-    // TODO: add like
-    // await lensClient.publication.reactions.add({
-    //   for: publicationId,
-    //   reaction: PublicationReactionType.Upvote,
-    // });
+    await sendLike(publication.slug);
 
     setLocalHasUpvoted(new Set([...localHasUpvoted, publicationId]));
     toast.success("Liked", { duration: 2000 });

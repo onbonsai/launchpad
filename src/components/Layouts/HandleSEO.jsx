@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { bucketImageLinkStorj, trimText } from "@src/utils/utils";
-
+import { getProfileImage } from "@src/services/lens/utils";
 const SITE_URL = "https://launch.bonsai.meme";
 
 const frameDataTemplate = {
@@ -24,7 +24,7 @@ const HandleSEO = ({ pageProps }) => {
   if (profile && pageName === "profile") {
     const handle = profile.username?.localName || profile.username || profile.metadata.name;
     const title = trimText(`@${handle}`, 45);
-    const image = profile.metadata.picture;
+    const image = getProfileImage(profile);
     const description = trimText("Profile on the Bonsai Launchpad", 45);
 
     let frameData = frameDataTemplate;

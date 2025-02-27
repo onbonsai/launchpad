@@ -19,6 +19,7 @@
     "@farcaster/frame-sdk": "^0.0.26",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^1.0.6",
+    "@lens-chain/storage-client": "0.0.0-next-20250227110209",
     "@lens-network/sdk": "canary",
     "@lens-protocol/client": "0.0.0-canary-20250224183812",
     "@lens-protocol/gated-content": "^0.5.1",

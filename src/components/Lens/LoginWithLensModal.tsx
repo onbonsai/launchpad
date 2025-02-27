@@ -11,6 +11,7 @@ import { Button } from "@src/components/Button";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
+import { getProfileImage } from "@src/services/lens/utils";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -85,7 +86,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                 <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={account.address}>
                   <div className="flex w-full items-center justify-between">
                     <img
-                      src={account.metadata.picture}
+                      src={getProfileImage(account)}
                       alt={account.address}
                       className="rounded-sm w-20 h-20"
                     />
