@@ -120,21 +120,27 @@ export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: Walle
 
       const [address] = await walletClient.getAddresses();
 
-      const authenticated = await lensClient.login({
-        onboardingUser: {
-          // app: "0xaC19aa2402b3AC3f9Fe471D4783EC68595432465",
-          wallet: address,
-        },
-        signMessage: (message) => walletClient.signMessage({ account: address, message }),
-      });
+      console.log("address", address);
+      console.log("selectedProfileId", _selectedProfileId);
+      console.log("selectedProfileId", selectedProfileId);
 
       let loginWithId = _selectedProfileId || selectedProfileId;
       if (!loginWithId) {
-        const result = await fetchAvailableAccounts(address);
-        const profiles = result.value.items
-        if (!profiles) throw new Error("No profiles");
-        loginWithId = profiles[0].id;
+        const availableAccounts = await fetchAvailableAccounts(address);
+        if (availableAccounts.isErr()) return false;
+        loginWithId = availableAccounts.value.items[0].account;
       }
+
+      console.log("loginWithId", loginWithId);
+
+      const authenticated = await lensClient.login({
+        accountOwner: {
+          // app: "", // TODO: add app
+          owner: address,
+          account: loginWithId,
+        },
+        signMessage: (message) => walletClient.signMessage({ account: address, message }),
+      });
 
       return authenticated;
     },

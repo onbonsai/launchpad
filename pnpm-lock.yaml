@@ -8551,19 +8551,19 @@ snapshots:
 
   '@floating-ui/utils@0.2.8': {}
 
-  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)':
+  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.7.2))(graphql@16.10.0)(typescript@5.7.2)':
     dependencies:
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.1.6)
-      '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
-      graphql: 16.10.0
-      typescript: 5.1.6
-
-  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.7.2)':
-    dependencies:
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.1.6)
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.7.2)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.7.2)
       graphql: 16.10.0
       typescript: 5.7.2
+
+  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.5.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)':
+    dependencies:
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.7.2)
+      '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
+      graphql: 16.10.0
+      typescript: 5.1.6
 
   '@gql.tada/internal@1.0.8(graphql@16.10.0)(typescript@5.1.6)':
     dependencies:
@@ -12768,7 +12768,7 @@ snapshots:
     dependencies:
       '@0no-co/graphql.web': 1.1.1(graphql@16.10.0)
       '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.1.6)
-      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)
+      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.5.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
       typescript: 5.1.6
     transitivePeerDependencies:
@@ -12780,7 +12780,7 @@ snapshots:
     dependencies:
       '@0no-co/graphql.web': 1.1.1(graphql@16.10.0)
       '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.7.2)
-      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.7.2)
+      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.7.2))(graphql@16.10.0)(typescript@5.7.2)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.7.2)
       typescript: 5.7.2
     transitivePeerDependencies:
