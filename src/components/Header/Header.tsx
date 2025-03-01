@@ -43,14 +43,17 @@ export const Header = () => {
             <div className="w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
+            {/* <Link href={"/studio"} className="ml-4 font-medium text-white text-[16px]">
+              Studio
+            </Link> */}
             <div
-                className="hidden md:flex h-[40px] py-[12px] px-4 ml-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
-                onClick={() => setOpenHelpModal(true)}
-              >
-                <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
-                  Info
-                </span>
-              </div>
+              className="hidden md:flex h-[40px] py-[12px] px-4 ml-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+              onClick={() => setOpenHelpModal(true)}
+            >
+              <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
+                Info
+              </span>
+            </div>
           </div>
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}

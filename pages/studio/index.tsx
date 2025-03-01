@@ -1,14 +1,13 @@
 import { NextPage } from "next"
 import Image from "next/image"
+import { useRouter } from "next/router";
 import { useMemo, useState } from "react"
-import { CATEGORIES, TemplateCategory, TEMPLATES } from "@src/services/madfi/studio";
-import { Modal } from "@src/components/Modal";
-import CreatePostModal from "@pagesComponents/Studio/CreatePostModal";
+import { CATEGORIES, TemplateCategory, TEMPLATES} from "@src/services/madfi/studio";
+import Sidebar from "@pagesComponents/Studio/Sidebar";
 
 const StudioCreatePage: NextPage = () => {
+  const router = useRouter();
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
-  const [createPostModal, setCreatePostModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | undefined>();
 
   const templatesFiltered = useMemo(() => {
     if (!categoryFilter) {
@@ -22,9 +21,8 @@ const StudioCreatePage: NextPage = () => {
     return [{ key: undefined, label: "All" }, ...CATEGORIES]
   }, [CATEGORIES]);
 
-  const selectTemplate = (t: (typeof TEMPLATES)[number]) => {
-    setSelectedTemplate(t);
-    setCreatePostModal(true);
+  const selectTemplate = (template: string) => {
+    router.push(`/studio/create?template=${template}`);
   }
 
   return (
@@ -32,24 +30,8 @@ const StudioCreatePage: NextPage = () => {
       <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
           <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
-            {/* Sidebar */}
             <div className="lg:col-span-2">
-              <div className="bg-card rounded-xl p-4">
-                <h2 className="text-xl font-semibold mb-6 text-primary">My posts?</h2>
-                <div className="space-y-4">
-                  <div className="cursor-pointer">
-                    <p className="text-secondary hover:text-primary transition-colors">
-                      Post Title 1
-                    </p>
-                  </div>
-                  <div className="cursor-pointer">
-                    <p className="text-secondary hover:text-primary transition-colors">Post Title 2</p>
-                  </div>
-                  <div>
-                    <p className="text-secondary/60">... or mini publication component?</p>
-                  </div>
-                </div>
-              </div>
+              <Sidebar />
             </div>
 
             {/* Main Content */}
@@ -94,7 +76,7 @@ const StudioCreatePage: NextPage = () => {
                       <div className="flex items-center mt-4 text-xs text-secondary/60">
                         <button
                           className="ml-auto bg-primary text-white px-4 py-1 rounded-full text-sm"
-                          onClick={() => selectTemplate(template)}
+                          onClick={() => selectTemplate(template.name)}
                         >
                           Create
                         </button>
@@ -107,17 +89,6 @@ const StudioCreatePage: NextPage = () => {
           </div>
         </section>
       </main>
-
-      <Modal
-        onClose={() => setCreatePostModal(false)}
-        open={createPostModal}
-        setOpen={setCreatePostModal}
-        panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
-      >
-        <CreatePostModal
-          template={selectedTemplate}
-        />
-      </Modal>
     </div>
   )
 }

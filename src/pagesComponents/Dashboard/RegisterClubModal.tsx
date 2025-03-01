@@ -36,6 +36,7 @@ import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import SelectDropdown from "@src/components/Select/SelectDropdown";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -273,6 +274,23 @@ ${MADFI_CLUBS_URL}/token/${clubId}
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
+  const networkOptions = useMemo(() => [{
+    // label: "Networks",
+    options: NETWORK_OPTIONS.map(option => ({
+      value: option.value,
+      label: option.label
+    }))
+  }], []);
+
+  const vestingDurationOptions = useMemo(() => [{
+    label: "",
+    options: [
+      { value: "hours", label: "Hours" },
+      { value: "days", label: "Days" },
+      { value: "weeks", label: "Weeks" }
+    ]
+  }], []);
+
   return (
     <div className={clsx("flex flex-col md:w-[448px] w-full")}
     style={{
@@ -304,31 +322,27 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   </div>
                 </div>
                 <div className="relative">
-                  <select
-                    value={selectedNetwork}
-                    onChange={(e) => {
-                      const network = e.target.value as 'base' | 'lens';
+                  <SelectDropdown
+                    options={networkOptions}
+                    value={networkOptions[0].options.find(opt => opt.value === selectedNetwork) || networkOptions[0].options[0]}
+                    onChange={(option) => {
+                      const network = option.value as 'base' | 'lens';
                       setSelectedNetwork(network);
                       if (network === 'lens') {
                         setUniHook(''); // or some default value
                       }
                     }}
-                    className={clsx("w-full pl-10 pr-8", sharedInputClasses)}
-                  >
-                    {NETWORK_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <Image 
+                    isMulti={false}
+                    zIndex={1001}
+                  />
+                  {/* <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <Image
                       src={NETWORK_OPTIONS.find(opt => opt.value === selectedNetwork)?.icon || ''}
                       alt={selectedNetwork}
                       width={20}
                       height={20}
                     />
-                  </div>
+                  </div> */}
                   <KeyboardArrowDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 pointer-events-none" />
                 </div>
               </div>
@@ -497,15 +511,13 @@ ${MADFI_CLUBS_URL}/token/${clubId}
                   />
                 </div>
                 <div className="col-span-3">
-                  <select
-                    className={clsx("w-full pr-4", sharedInputClasses)}
-                    onChange={(e) => setVestingDurationUnit(e.target.value)}
-                    value={vestingDurationUnit}
-                  >
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                  </select>
+                  <SelectDropdown
+                    options={vestingDurationOptions}
+                    value={vestingDurationOptions[0].options.find(opt => opt.value === vestingDurationUnit) || vestingDurationOptions[0].options[0]}
+                    onChange={(option) => setVestingDurationUnit(option.value)}
+                    isMulti={false}
+                    zIndex={1001}
+                  />
                 </div>
               </div>
             </div>
