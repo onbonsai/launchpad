@@ -298,7 +298,7 @@ ${MADFI_CLUBS_URL}/token/${clubId}
     }}>
       <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
-          Create token
+          Create a token
         </Dialog.Title>
       </div>
       <form

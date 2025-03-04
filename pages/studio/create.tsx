@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { Preview, TEMPLATES, type Template} from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
-import { Subtitle } from "@src/styles/text";
+import { BodySemiBold, Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
@@ -12,6 +12,7 @@ import { Publication, Theme } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
+import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -20,6 +21,7 @@ const StudioCreatePage: NextPage = () => {
   const [openTab, setOpenTab] = useState<number>(1);
   const [preview, setPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
+  const [finalTokenData, setFinalTokenData] = useState({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
 
   const selectedTemplate = useMemo(() => {
@@ -34,8 +36,11 @@ const StudioCreatePage: NextPage = () => {
     return res;
   }, [template, isMounted]);
 
-  const onCreateToken = () => {
+  const onCreate = (collectAmount: number) => {
+    // 1. create lens post with metadata and ACL
 
+    // 2. create token + db record
+    // 3. create smart media
   }
 
   return (
@@ -51,7 +56,8 @@ const StudioCreatePage: NextPage = () => {
             <div className="lg:col-span-8">
               <div className="bg-card rounded-xl p-6">
                 <h2 className="text-2xl font-semibold mb-2 text-secondary">{selectedTemplate?.label}</h2>
-                <Subtitle className="items-start">{selectedTemplate?.description}</Subtitle>
+                <Subtitle className="items-start text-lg leading-tight">{selectedTemplate?.description}</Subtitle>
+                <Subtitle className="items-start mt-2">Fill out the details for the media and token of your post.</Subtitle>
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
                   <div className="lg:col-span-1 mt-8">
@@ -74,21 +80,31 @@ const StudioCreatePage: NextPage = () => {
                     )}
                     {openTab === 2 && (
                       <CreateTokenForm
-                        onCreateToken={onCreateToken}
+                        finalTokenData={finalTokenData}
+                        setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
+                        next={() => setOpenTab(3)}
+                      />
+                    )}
+                    {openTab === 3 && (
+                      <FinalizePost
+                        authenticatedProfile={authenticatedProfile}
+                        finalTokenData={finalTokenData}
+                        onCreate={onCreate}
+                        back={() => setOpenTab(2)}
                       />
                     )}
                   </div>
                   <div className="lg:col-span-1 mt-8">
+                    <div className="flex items-center gap-1 mb-4">
+                      <Subtitle className="text-white/70">
+                        Post preview
+                      </Subtitle>
+                    </div>
                     {preview?.text && (
                       <Publication
                         publicationData={{
-                          // author: authenticatedProfile,
-                          author: {
-                            metadata: {
-                              name: "carlos"
-                            }
-                          },
+                          author: authenticatedProfile,
                           timestamp: new Date().toISOString(),
                           metadata: {
                             __typename: preview.image

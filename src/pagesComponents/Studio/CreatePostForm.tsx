@@ -161,7 +161,7 @@ const CreatePostForm = ({
               Generate Preview
             </Button>
           )}
-          <Button size='md' disabled={isPosting || !isValid()} onClick={() => next(templateData)} variant={!template.options.allowPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isGeneratingPreview || isPosting || !isValid()} onClick={() => next(templateData)} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             Next
           </Button>
         </div>

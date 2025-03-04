@@ -4,14 +4,15 @@ import { StyledToggleButtonGroup } from "@pagesComponents/Dashboard/BondingCurve
 const tabs = [
   { name: "Media", id: 1 },
   { name: "Token", id: 2 },
+  { name: "Finalize", id: 3 },
 ];
 
 export const Tabs = ({ openTab, setOpenTab }) => {
-  const handleChange = (event, newValue) => {
-      if (newValue !== null) {
-              setOpenTab(newValue);
-      }
-  };
+  // const handleChange = (event, newValue) => {
+  //     if (newValue !== null) {
+  //             setOpenTab(newValue);
+  //     }
+  // };
 
   return (
     <div className="md:flex justify-end w-full">

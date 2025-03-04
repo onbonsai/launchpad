@@ -47,7 +47,7 @@ export const parsePublicationLink = (link: string) => {
   return parts[parts.length - 1];
 };
 
-export const kFormatter = (num) => {
+export const kFormatter = (num, asInteger = false) => {
   if (typeof num === "string") return num;
 
   if (Math.abs(num) > 999_999) {
@@ -56,7 +56,9 @@ export const kFormatter = (num) => {
     return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k";
   }
 
-  return Number((Math.sign(num) * Math.abs(num)).toFixed(2)).toFixed(2);
+  return !asInteger
+    ? Number((Math.sign(num) * Math.abs(num)).toFixed(2)).toFixed(2)
+    : Number((Math.sign(num) * Math.abs(num)));
 };
 
 export function polygonScanUrl(address: string, chainId?: string | number | undefined, route?: string) {

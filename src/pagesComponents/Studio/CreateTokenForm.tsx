@@ -1,6 +1,5 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
@@ -24,6 +23,7 @@ import {
   WHITELISTED_UNI_HOOKS,
   PricingTier,
   BONSAI_NFT_BASE_ADDRESS,
+  WGHO_CONTRACT_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
@@ -81,28 +81,25 @@ const NETWORK_CHAIN_IDS = {
   'lens': IS_PRODUCTION ? 167004 : 37111
 } as const;
 
-export const CreateTokenForm = ({ onCreateToken, back }) => {
-  const router = useRouter();
+export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next }) => {
   const { chainId, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
-  const [initialSupply, setInitialSupply] = useState<number>();
-  const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES_HOOK");
-  const [tokenName, setTokenName] = useState<string>("");
-  const [tokenSymbol, setTokenSymbol] = useState<string>("");
-  const [vestingCliff, setVestingCliff] = useState<number>(10);
-  const [vestingDuration, setVestingDuration] = useState<number>(2);
-  const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("hours");
-  const [strategy, setStrategy] = useState<string>("lens");
+  const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
+  const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
+  const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
+  const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
+  const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage || []);
+  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
+  const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const [isBuying, setIsBuying] = useState(false);
-  const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">('lens');
-  const [pricingTier, setPricingTier] = useState<string>("SMALL");
+  const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
 
+  // stablecoin balance (GHO on lens, USDC on base)
   const { data: tokenBalance } = useReadContract({
-    address: USDC_CONTRACT_ADDRESS,
+    address: selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
-    chainId: selectedNetwork === "base" ? base.id : lens.id,
+    chainId: NETWORK_CHAIN_IDS[selectedNetwork],
     functionName: 'balanceOf',
     args: [address as `0x${string}`]
   });
@@ -110,28 +107,45 @@ export const CreateTokenForm = ({ onCreateToken, back }) => {
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
-  const isValid = tokenName && tokenSymbol && tokenBalance >= (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
-
-  const { data: usdcBalance } = useReadContract({
-    address: USDC_CONTRACT_ADDRESS,
-    abi: erc20Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address || zeroAddress],
-    query: {
-      refetchInterval: 5000
-    }
-  });
+  const isValid = (() => {
+    return tokenName &&
+           tokenSymbol &&
+           tokenBalance >= (totalRegistrationFee || 0n) &&
+           !!tokenImage &&
+           ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
+  })();
 
   const registrationCost = BigInt(0);
 
   const buyPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, USDC_DECIMALS)), 4)
+    roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
   ), [totalRegistrationFee, isLoadingRegistrationFee]);
 
   // const registrationFee = useMemo(() => (
   //   bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
   // ), [registrationCost]);
+
+  const networkOptions = useMemo(() => [{
+    // label: "Networks",
+    options: NETWORK_OPTIONS.map(option => ({
+      value: option.value,
+      label: option.label
+    }))
+  }], []);
+
+  const setTokenDataBefore = (fn) => {
+    setFinalTokenData({
+      initialSupply,
+      uniHook,
+      tokenName,
+      tokenSymbol,
+      tokenImage,
+      selectedNetwork,
+      pricingTier
+    });
+
+    fn();
+  }
 
   const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
     switch (unit) {
@@ -170,25 +184,26 @@ export const CreateTokenForm = ({ onCreateToken, back }) => {
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
 
-      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
+      const { objectId, clubId, tokenAddress } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        strategy,
+        strategy: "lens",
         tokenName,
         tokenSymbol,
         tokenImage: _tokenImage,
         tokenDescription: "",
         hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
-        cliffPercent: vestingCliff * 100,
-        // TODO: some sensible default
+        // TODO: some sensible defaults
+        cliffPercent: 50 * 100, // 50% cliff
         vestingDuration: convertVestingDurationToSeconds(6, "hours"),
         pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
-        // TODO: postId
       }, selectedNetwork);
       if (!(objectId && clubId)) throw new Error("failed");
 
       setIsBuying(false);
 
       // TODO: send request to eliza server
+
+      // TODO: set postId in the db record
 
     } catch (error) {
       setIsBuying(false);
@@ -198,14 +213,6 @@ export const CreateTokenForm = ({ onCreateToken, back }) => {
   };
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
-
-  const networkOptions = useMemo(() => [{
-    // label: "Networks",
-    options: NETWORK_OPTIONS.map(option => ({
-      value: option.value,
-      label: option.label
-    }))
-  }], []);
 
   return (
     <form
@@ -369,12 +376,12 @@ export const CreateTokenForm = ({ onCreateToken, back }) => {
                     </Tooltip>
                   </div>
                 </div>
-                <div className="flex overflow-x-auto space-x-4 py-2">
+                <div className="grid grid-cols-3 gap-4 py-2">
                   {Object.keys(LENS_PRICING_TIERS).map((key) => (
                     <div
                       key={`tier-${key}`}
                       className={clsx(
-                        "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
+                        "flex-shrink-0 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
                         pricingTier === key ? "" : "border-card-lightest"
                       )}
                       onClick={() => setPricingTier(key)}
@@ -419,32 +426,32 @@ export const CreateTokenForm = ({ onCreateToken, back }) => {
               <div className="relative flex flex-col space-y-1 gap-1">
                 <CurrencyInput
                     trailingAmount={`${buyPriceFormatted}`}
-                    trailingAmountSymbol="USDC"
+                    trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
                     tokenBalance={tokenBalance}
                     price={`${initialSupply}`}
-                    isError={false}
+                    isError={tokenBalance < (totalRegistrationFee || 0n)}
                     onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                     symbol={tokenSymbol}
                     hideBalance
                 />
                 <div className="flex justify-end">
                   <Subtitle className="text-xs text-white/70 mr-4">
-                    Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
+                    Balance: {localizeNumber(formatUnits(tokenBalance || 0n, stableDecimals))}
                   </Subtitle>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="pt-8 flex flex-col gap-4 justify-center items-center">
-          <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
-            Create token
+        <div className="pt-8 flex flex-col gap-2 justify-center items-center">
+          <Button size='md' disabled={isBuying || !isValid} onClick={() => setTokenDataBefore(next)} variant="accentBrand" className="w-full hover:bg-bullish">
+            Next
           </Button>
           {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
             ? <Subtitle className="text-primary/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
             : null
           }
-          <Button size='md' onClick={() => back()} variant="dark-grey" className="w-full hover:bg-bullish">
+          <Button size='md' onClick={() => setTokenDataBefore(back)} variant="dark-grey" className="w-full hover:bg-bullish">
             Back
           </Button>
         </div>

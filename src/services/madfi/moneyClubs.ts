@@ -650,7 +650,7 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
   const _publicClient = publicClient(chain);
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
   let holdings = clubChips || [];
-  
+
   // override with erc20 balance of in case of transfers post-graduation
   if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
     const contracts = holdings.map(data => ({
@@ -669,7 +669,7 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
       amount: balances[i].result
     }));
   }
-  
+
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
@@ -834,7 +834,7 @@ export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: 
       {
         address: tokenAddress,
         abi: VestingERC20Abi,
-        functionName: "balanceOf", 
+        functionName: "balanceOf",
         args: [account],
       }
     ]
@@ -1084,9 +1084,9 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
     const publicC = publicClient(chainName);
 
     // Get creator NFTs
-    const { data: { creatorNFTs } } = await client.query({ 
-      query: GET_CREATOR_NFTS, 
-      variables: { trader: account } 
+    const { data: { creatorNFTs } } = await client.query({
+      query: GET_CREATOR_NFTS,
+      variables: { trader: account }
     });
     const creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
 
@@ -1122,13 +1122,13 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
       // Map club fees results to original format
       const clubFees = clubFeesResults.map((fees, index) => ({
         id: parseInt(creatorNFTList[index]),
-        amount: chainName === "lens" 
+        amount: chainName === "lens"
           ? (fees as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
           : fees as bigint
       }));
 
       const clubFeesTotal = clubFees.reduce((sum, fee) => sum + fee.amount, 0n);
-      const normalizedFeesEarned = chainName === "lens" 
+      const normalizedFeesEarned = chainName === "lens"
         ? (feesEarned as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
         : feesEarned as bigint;
 
@@ -1216,7 +1216,12 @@ type RegistrationParams = {
   pricingTier?: PricingTier;
 };
 
-export const registerClub = async (walletClient, isAuthenticated: boolean, params: RegistrationParams, chain = "base"): Promise<{ objectId?: string, clubId?: string, txHash?: string }> => {
+export const registerClub = async (
+  walletClient,
+  isAuthenticated: boolean,
+  params: RegistrationParams,
+  chain = "base"
+): Promise<{ objectId?: string, clubId?: string, txHash?: string, tokenAddress?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
   let args = [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration];
   if (chain == "lens" && params.pricingTier) {
@@ -1259,7 +1264,12 @@ export const registerClub = async (walletClient, isAuthenticated: boolean, param
     abi: BonsaiLaunchpadAbi,
     eventName: "RegisteredClub",
   });
-  const res = { objectId: (await response.json()).id as string, clubId: event.args.clubId.toString(), txHash: hash };
+  const res = {
+    objectId: (await response.json()).id as string,
+    clubId: event.args.clubId.toString(),
+    tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
+    txHash: hash
+  };
   return receipt.status === "success" && response.ok ? res : {};
 };
 
