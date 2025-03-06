@@ -47,7 +47,7 @@ interface BondingCurveSelectorProps {
 }
 
 export default function BondingCurveSelector(props: BondingCurveSelectorProps) {
-        const { value: initialValue, options, onChange } = props;
+    const { value: initialValue, options, onChange } = props;
     const [value, setValue] = React.useState(initialValue);
 
     const handleChange = (event, newValue) => {

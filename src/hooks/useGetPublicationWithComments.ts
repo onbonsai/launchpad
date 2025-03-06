@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getPost } from "@src/services/lens/getPost";
+import { getPost } from "@src/services/lens/posts";
 import { getComments } from "@src/services/lens/getReactions";
 
 const fetchData = async (postId: string) => {

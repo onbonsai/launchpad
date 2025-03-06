@@ -54,7 +54,7 @@ export const getAuthenticatedProfile = async (): Promise<Account | null> => {
 // TODO: profile id should be deprecated throughout
 export const getAuthenticatedProfileId = async (): Promise<string | undefined> => {
   const profile = await getAuthenticatedProfile();
-  return profile?.id;
+  return profile?.address;
 }
 
 export const getAuthenticatedSession = async () => {
@@ -120,18 +120,12 @@ export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: Walle
 
       const [address] = await walletClient.getAddresses();
 
-      console.log("address", address);
-      console.log("selectedProfileId", _selectedProfileId);
-      console.log("selectedProfileId", selectedProfileId);
-
       let loginWithId = _selectedProfileId || selectedProfileId;
       if (!loginWithId) {
         const availableAccounts = await fetchAvailableAccounts(address);
         if (availableAccounts.isErr()) return false;
         loginWithId = availableAccounts.value.items[0].account;
       }
-
-      console.log("loginWithId", loginWithId);
 
       const authenticated = await lensClient.login({
         accountOwner: {

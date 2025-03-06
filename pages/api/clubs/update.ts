@@ -49,7 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       handle = _handle;
     }
 
-    const client = publicClient();
+    const client = publicClient(chain);
     const transactionReceipt = await client.waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
       contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,

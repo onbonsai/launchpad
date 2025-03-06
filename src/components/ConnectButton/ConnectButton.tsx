@@ -10,7 +10,6 @@ import { transformTextToWithDots } from "@utils/transformTextToWithDots";
 import useENS from "@src/hooks/useENS";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { ProfilePictureSetFragment } from "@lens-protocol/client";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
 import { inter } from "@src/fonts/fonts";
@@ -72,7 +71,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
-      return authenticatedProfile.username.localName || authenticatedProfile.metadata.name
+      return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name
     if (!loadingENS && ensName) return ensName;
 
     return transformTextToWithDots(address);
@@ -99,9 +98,12 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const { logout } = useLogout({
     onSuccess: () => {
-      if ((!!authenticatedProfile?.id)) {
-        lensLogout();
+      const asyncLogout = async () => {
+        await lensLogout();
         fullRefetch() // invalidate cached query data
+      }
+      if ((!!authenticatedProfile?.address)) {
+        asyncLogout();
       }
     },
   })

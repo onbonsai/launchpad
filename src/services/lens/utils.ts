@@ -41,5 +41,5 @@ export const bToHexString = (id: bigint) => {
 };
 
 export const getProfileImage = (profile) => {
-  return profile.metadata.picture || "/default.png";
+  return profile?.metadata?.picture || "/default.png";
 };

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { evmAddress, postId, txHash } from "@lens-protocol/client";
+import { Account, Cursor, evmAddress, postId, txHash } from "@lens-protocol/client";
 import { fetchPost, fetchPosts } from "@lens-protocol/client/actions";
 import { lensClient } from "./client";
+import { APP_ID } from "../madfi/studio";
 
 export const getPost = async (_postId: string) => {
   try {
@@ -48,11 +49,11 @@ export const getPostsByAuthor = async (authorId: string) => {
       authors: [evmAddress(authorId)],
     },
   });
-  
+
   if (result.isErr()) {
     return console.error(result.error);
   }
-  
+
   // items: Array<Post>
   const { items, pageInfo } = result.value;
 
@@ -65,3 +66,44 @@ export const useGetPostsByAuthor = (authorId: string) => {
     queryFn: () => getPostsByAuthor(authorId),
   });
 };
+
+interface GetExplorePostsProps {
+  accountAddress: `0x${string}`; // authenticatedProfile.address
+  cursor?: Cursor;
+  withToken?: boolean;
+}
+
+// TODO:
+// - personalized by tags?
+// - enriched with token data?
+// - sorted by engagement? or token mcap?
+export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExplorePostsProps) => {
+  return useQuery({
+    queryKey: ["explore-posts", accountAddress],
+    queryFn: async () => {
+      const result = await fetchPosts(lensClient, {
+        filter: {
+          metadata: {
+            tags: {
+              all: [APP_ID]
+            }
+          }
+        },
+        cursor
+      });
+
+      if (result.isErr()) {
+        console.log(result.error);
+        return;
+      }
+
+      const { items: posts, pageInfo } = result.value;
+
+      // if (withToken) {
+
+      // }
+
+      return { posts, pageInfo };
+    },
+  });
+}

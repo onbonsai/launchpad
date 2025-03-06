@@ -6,12 +6,13 @@ import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
 
+// TODO: check Authorization.idToken
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     let { txHash, pubId, profileId, handle, chain } = req.body;
     chain = chain || "base";
 
-    const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash: txHash });
+    const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
       contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       transactionReceipt,
@@ -29,7 +30,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       { $set: { pubId, profileId, handle } }
     );
 
-    res.status(200);
+    res.status(200).end();
   } catch (e) {
     console.log(e);
     res.status(500).json({ success: false });

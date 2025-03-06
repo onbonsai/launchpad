@@ -1,165 +1,175 @@
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { omit } from "lodash/object";
+import { type SessionClient, uri, postId, type URI, BigDecimal, txHash } from "@lens-protocol/client";
+import { fetchPost, post } from "@lens-protocol/client/actions";
+import {
+  textOnly,
+  image,
+  video,
+  type MediaImageMimeType,
+  type MediaVideoMimeType,
+  MetadataLicenseType,
+  MetadataAttributeType,
+  TextOnlyMetadata,
+  ImageMetadata,
+  VideoMetadata,
+  EvmAddress,
+} from "@lens-protocol/metadata";
+import { handleOperationWith } from "@lens-protocol/client/viem";
+import { immutable, WalletAddressAcl } from "@lens-chain/storage-client";
+import { storageClient } from "./client";
+import { APP_ID } from "../madfi/studio";
+import { LENS_CHAIN_ID } from "../madfi/utils";
+import { parseBase64Image } from "@src/utils/utils";
+import { lensClient } from "./client";
 
-import { ZERO_ADDRESS, EMPTY_BYTES, IS_PRODUCTION } from "@src/constants/constants";
-import { getEventFromReceipt } from "@src/utils/viem";
-import { configureChainsConfig } from "@src/utils/wagmi";
+interface PostParams {
+  text: string;
+  image?: {
+    url: string;
+    type: MediaImageMimeType;
+  };
+  video?: {
+    url: string;
+    cover?: string;
+    type: MediaVideoMimeType;
+  };
+  template?: {
+    apiUrl: string;
+    acl: WalletAddressAcl;
+  };
+  actions?: {
+    simpleCollect: {
+      amount?: {
+        currency: EvmAddress;
+        value: BigDecimal;
+      };
+      recipients?: {
+        address: EvmAddress;
+        percent: number;
+      }[];
+      referralShare?: number;
+      collectLimit?: number;
+      endsAt?: string;
+    };
+  }[];
+}
 
-import { lensClient, handleBroadcastResult } from "./client";
-import { LENSHUB_PROXY } from "./utils";
-import { LensHubProxy } from "./abi";
-import { Events } from "./events";
-import { Account } from "viem";
+const baseMetadata = {
+  appId: APP_ID,
+  attributes: ({ apiUrl }: { apiUrl: string }) => [
+    {
+      type: MetadataAttributeType.STRING as const,
+      key: "framework",
+      value: "ElizaOS"
+    },
+    {
+      type: MetadataAttributeType.STRING as const,
+      key: "plugin",
+      value: "client-bonsai",
+    },
+    {
+      type: MetadataAttributeType.STRING as const,
+      key: "apiUrl",
+      value: apiUrl
+    }
+  ],
+}
 
-const MODULES_ALLOWED_API = !IS_PRODUCTION; // need lens to enable on mainnet
+export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMetadata | VideoMetadata => {
+  if (!(params.image || params.video)) {
+    return textOnly({
+      content: params.text,
+      tags: [baseMetadata.appId],
+      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+    });
+  } else if (params.image) {
+    return image({
+      content: params.text,
+      image: {
+        item: params.image.url,
+        type: params.image.type,
+        altTag: params.text?.substring(0, 10),
+        license: MetadataLicenseType.CCO,
+      },
+      tags: [baseMetadata.appId],
+      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+    });
+  } else if (params.video) {
+    return video({
+      content: params.text,
+      video: {
+        item: params.video.url,
+        cover: params.video.cover,
+        type: params.video.type,
+        license: MetadataLicenseType.CCO,
+      },
+      tags: [baseMetadata.appId],
+      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+    });
+  }
+
+  throw new Error("formatMetadata:: Missing property for metadata");
+}
+
+export const uploadMetadata = async (params: PostParams): Promise<URI> => {
+  const metadata = formatMetadata(params);
+  const acl = params.template?.acl || immutable(LENS_CHAIN_ID);
+  const { uri: hash } = await storageClient.uploadAsJson(metadata, { acl });
+  return uri(hash);
+};
+
+export const uploadImageBase64 = async (
+  image: string,
+  _acl?: WalletAddressAcl
+): Promise<{ uri: URI, type: MediaImageMimeType }> => {
+  const file = parseBase64Image(image) as File;
+  const acl = _acl || immutable(LENS_CHAIN_ID);
+  const { uri: hash } = await storageClient.uploadFile(file, { acl });
+  console.log(`image hash: ${hash}`);
+  return {
+    uri: uri(hash),
+    type: file.type as MediaImageMimeType
+  };
+};
 
 export const createPost = async (
+  sessionClient: SessionClient,
   walletClient: any,
-  profileId: any,
-  contentUri: string,
-  actionModules?: string[],
-  actionModulesInitDatas?: string[],
-  referenceModule?: string,
-  referenceModuleInitData?: string,
-) => {
-  try {
-    const hash = await walletClient.writeContract({
-      address: LENSHUB_PROXY,
-      abi: LensHubProxy,
-      functionName: "post",
-      args: [
-        {
-          profileId,
-          contentURI: contentUri,
-          actionModules: actionModules || [],
-          actionModulesInitDatas: actionModulesInitDatas || [],
-          referenceModule: referenceModule || ZERO_ADDRESS,
-          referenceModuleInitData: referenceModuleInitData || EMPTY_BYTES,
-        },
-      ],
-      // gas: 750_000
-    });
-    console.log(`tx: ${hash}`);
+  params: PostParams,
+  commentOn?: `0x${string}`,
+  quoteOf?: `0x${string}`
+): Promise<{ postId: string, uri: URI } | undefined> => {
+  const contentUri = await uploadMetadata(params);
+  console.log(`contentUri: ${contentUri}`);
 
-    const transactionReceipt = await waitForTransactionReceipt(configureChainsConfig, { hash });
-    const postCreatedEvent = getEventFromReceipt({
-      contractAddress: LENSHUB_PROXY,
-      transactionReceipt,
-      abi: Events,
-      eventName: "PostCreated",
-    });
+  const result = await post(sessionClient, {
+    contentUri,
+    commentOn: commentOn
+      ? {
+        post: postId(commentOn),
+      }
+      : undefined,
+    quoteOf: quoteOf
+      ? {
+        post: postId(quoteOf),
+      }
+      : undefined,
+    actions: params.actions,
+  })
+    .andThen(handleOperationWith(walletClient))
+    .andThen(sessionClient.waitForTransaction);
 
-    const { pubId } = postCreatedEvent.args;
-
-    return pubId;
-  } catch (error) {
-    console.log("createPost:: ", error);
-  }
-};
-
-// try to create a post using lens profile manager, else fallback to signed type data
-export const createPostMomoka = async (
-  walletClient: any,
-  contentURI: string,
-  authenticatedProfile?: any,
-) => {
-  // gasless + signless if they enabled the lens profile manager
-  if (authenticatedProfile?.signless) {
-    const broadcastResult = await lensClient.publication.postOnMomoka({ contentURI });
-    return handleBroadcastResult(broadcastResult);
-  }
-
-  // gasless with signed type data
-  const typedDataResult = await lensClient.publication.createMomokaPostTypedData({ contentURI });
-  const { id, typedData } = typedDataResult.unwrap();
-
-  const [account] = await walletClient.getAddresses();
-  const signedTypedData = await walletClient.signTypedData({
-    account,
-    domain: omit(typedData.domain, "__typename"),
-    types: omit(typedData.types, "__typename"),
-    primaryType: "Post",
-    message: omit(typedData.value, "__typename"),
-  });
-
-  const broadcastResult = await lensClient.transaction.broadcastOnMomoka({ id, signature: signedTypedData });
-  return handleBroadcastResult(broadcastResult);
-};
-
-export const createPostMomokaWithAccount = async (
-  account: Account,
-  contentURI: string,
-  authenticatedProfile?: any,
-) => {
-  // gasless + signless if they enabled the lens profile manager
-  if (authenticatedProfile?.signless) {
-    const broadcastResult = await lensClient.publication.postOnMomoka({ contentURI });
-    return handleBroadcastResult(broadcastResult);
-  }
-
-  // gasless with signed type data
-  const typedDataResult = await lensClient.publication.createMomokaPostTypedData({ contentURI });
-  const { id, typedData } = typedDataResult.unwrap();
-
-  const signedTypedData = await account.signTypedData!({
-    domain: omit(typedData.domain, "__typename"),
-    types: omit(typedData.types, "__typename"),
-    primaryType: "Post",
-    message: omit(typedData.value, "__typename"),
-  });
-
-  const broadcastResult = await lensClient.transaction.broadcastOnMomoka({ id, signature: signedTypedData });
-  return handleBroadcastResult(broadcastResult);
-};
-
-export const createPostOnchain = async (
-  walletClient: any,
-  contentURI: string,
-  authenticatedProfile?: any,
-  actionModules?: string[],
-  actionModulesInitDatas?: string[]
-) => {
-  // handle optional open action modules
-  let openActionModules;
-  if (actionModules?.length) {
-    if (actionModules.length != actionModulesInitDatas?.length)
-      throw new Error('createPostOnchain:: array length mismatch');
-
-    // modules on mainnet must be whitelisted by lens for use with api
-    if (MODULES_ALLOWED_API) {
-      openActionModules = actionModules.map((address: string, i: number) => ({
-        unknownOpenAction: { address, data: actionModulesInitDatas![i] }
-      }));
-    } else {
-      return await createPost(
-        walletClient,
-        authenticatedProfile?.id,
-        contentURI,
-        actionModules,
-        actionModulesInitDatas
-      );
+  if (result.isOk()) {
+    const post = await fetchPost(lensClient, { txHash: txHash(result.value as `0x${string}`) });
+    if (post.isOk()) {
+      return {
+        postId: post.value?.slug as string, // slug is shorter version of id
+        uri: contentUri,
+      };
     }
   }
 
-  // gasless + signless if they enabled the lens profile manager
-  if (authenticatedProfile?.signless) {
-    const broadcastResult = await lensClient.publication.postOnchain({ contentURI, openActionModules });
-    return handleBroadcastResult(broadcastResult);
-  }
-
-  // gasless with signed type data
-  const typedDataResult = await lensClient.publication.createOnchainPostTypedData({ contentURI, openActionModules });
-  const { id, typedData } = typedDataResult.unwrap();
-
-  const [account] = await walletClient.getAddresses();
-  const signedTypedData = await walletClient.signTypedData({
-    account,
-    domain: omit(typedData.domain, "__typename"),
-    types: omit(typedData.types, "__typename"),
-    primaryType: "Post",
-    message: omit(typedData.value, "__typename"),
-  });
-
-  const broadcastResult = await lensClient.transaction.broadcastOnchain({ id, signature: signedTypedData });
-  return handleBroadcastResult(broadcastResult);
+  console.log(
+    "lens:: createPost:: failed to post with error:",
+    result
+  );
 };

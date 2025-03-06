@@ -24,6 +24,7 @@ import {
   PricingTier,
   BONSAI_NFT_BASE_ADDRESS,
   WGHO_CONTRACT_ADDRESS,
+  NETWORK_CHAIN_IDS,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
@@ -32,7 +33,7 @@ import { Subtitle } from "@src/styles/text";
 import BondingCurveSelector from "@pagesComponents/Dashboard/BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
-import { IS_PRODUCTION, lens } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, lens, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { base } from "viem/chains";
 
@@ -75,11 +76,6 @@ const LENS_PRICING_TIERS = {
     iconLabel: '$21k to graduate'
   }
 };
-
-const NETWORK_CHAIN_IDS = {
-  'base': CONTRACT_CHAIN_ID,
-  'lens': IS_PRODUCTION ? 167004 : 37111
-} as const;
 
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next }) => {
   const { chainId, address } = useAccount();
@@ -141,24 +137,12 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
       tokenSymbol,
       tokenImage,
       selectedNetwork,
-      pricingTier
+      pricingTier,
+      totalRegistrationFee,
     });
 
     fn();
   }
-
-  const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
-    switch (unit) {
-      case 'hours':
-        return duration * 3600;
-      case 'days':
-        return duration * 3600 * 24;
-      case 'weeks':
-        return duration * 3600 * 24 * 7;
-      default:
-        return 0; // Default case to handle unexpected units
-    }
-  };
 
   const registerClub = async () => {
     setIsBuying(true);
@@ -194,7 +178,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
         hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
         // TODO: some sensible defaults
         cliffPercent: 50 * 100, // 50% cliff
-        vestingDuration: convertVestingDurationToSeconds(6, "hours"),
+        vestingDuration: 3600 * 6, // 6h
         pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
       }, selectedNetwork);
       if (!(objectId && clubId)) throw new Error("failed");
@@ -428,7 +412,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
                     trailingAmount={`${buyPriceFormatted}`}
                     trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
                     tokenBalance={tokenBalance}
-                    price={`${initialSupply}`}
+                    price={initialSupply || ""}
                     isError={tokenBalance < (totalRegistrationFee || 0n)}
                     onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                     symbol={tokenSymbol}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { ProfileFragment } from "@lens-protocol/client";
+import { Account } from "@lens-protocol/client";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
@@ -13,7 +13,7 @@ type LensSignInReturnType = {
   signingIn: boolean;
   isAuthenticated?: boolean;
   authenticatedProfileId?: string | null;
-  authenticatedProfile?: ProfileFragment | null;
+  authenticatedProfile?: Account | null;
   authenticatedLensClient?: any | null;
   setSelectedProfileId: (profileId: string) => void;
   selectedProfileId?: string;

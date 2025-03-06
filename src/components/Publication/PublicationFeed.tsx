@@ -8,7 +8,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { parsePublicationLink } from "@src/utils/utils";
 
 import PublicationContainer, { PostFragmentPotentiallyDecrypted } from "./PublicationContainer";
-import { useGetPostsByAuthor } from "@src/services/lens/getPost";
+import { useGetPostsByAuthor } from "@src/services/lens/posts";
 const PublicationFeed = ({
   welcomePostUrl,
   isAuthenticated,

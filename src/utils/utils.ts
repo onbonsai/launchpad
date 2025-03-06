@@ -1,8 +1,10 @@
 import axios from "axios";
+import { z } from 'zod';
 import { formatUnits, getAddress, hashMessage, hexToSignature, recoverAddress } from "viem";
 
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
-import { IS_PRODUCTION, MADFI_BOUNTIES_URL } from "@src/constants/constants";
+import { MADFI_BOUNTIES_URL } from "@src/constants/constants";
+import { MetadataAttribute } from "@lens-protocol/metadata";
 
 // only .png files are supported (this is what the publication-image endpoint does by default)
 export const bucketImageLinkStorj = (id: string, bucket = "seo") => {
@@ -114,11 +116,6 @@ export function castIntentTokenReferral({ text, clubId, referralAddress }: Inten
   return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 
 }
-
-// export function lensterIntentDashboardUrl({ text, url, ref, tokenId }: IntentUrlProps) {
-//   const _ref = encodeURIComponent(`${ref}|${tokenId}`);
-//   return `https://${!IS_PRODUCTION ? "testnet." : ""}hey.xyz/?text=${encodeURIComponent}&url=${encodeURI(`${url}?ref=${_ref}`)}`;
-// }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
 
@@ -369,3 +366,45 @@ export const formatFarcasterProfileToMatchLens = (profile) => ({
   }
 });
 export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37niuhe6d5xpf2kvu7eq/misc%2Ffarcaster.png";
+
+export const parseBase64Image = (imageBase64: string): File | undefined => {
+  // Extract image type from base64 string
+  const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
+  if (!matches) {
+    throw new Error("parseBase64Image:: failed to infer image type");
+  }
+
+  const imageType = matches[1];
+  const mimeType = `image/${imageType}`;
+
+  // Convert base64 to buffer
+  const base64Data = imageBase64.replace(
+    /^data:image\/\w+;base64,/,
+    ""
+  );
+  const imageBuffer = Buffer.from(base64Data, "base64");
+
+  // Create a file object that can be used with FormData
+  return new File([imageBuffer], `generated_${Date.now()}.${imageType}`, {
+    type: mimeType
+  });
+};
+
+export const reconstructZodSchema = (shape: any) => {
+  return z.object(
+    Object.entries(shape).reduce((acc, [key, def]) => ({
+      ...acc,
+      [key]: z.string() // or map the appropriate type based on def
+    }), {})
+  );
+};
+
+export const getSmartMediaUrl = (attributes: MetadataAttribute[]): string | undefined => {
+  const isBonsaiPlugin = attributes.some(
+    attr => attr.key === "plugin" && attr.value === "client-bonsai"
+  );
+
+  if (!isBonsaiPlugin) return;
+
+  return attributes.find(attr => attr.key === "apiUrl")?.value;
+}

@@ -1,7 +1,8 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
+import { useAccount, useWalletClient, useReadContract } from "wagmi";
+import { switchChain } from "@wagmi/core";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
@@ -27,8 +28,6 @@ import {
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
-import publicationBody from "@src/services/lens/publicationBody";
-import { createPostMomoka } from "@src/services/lens/createPost";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
@@ -37,6 +36,7 @@ import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
+import { configureChainsConfig } from "@src/utils/wagmi";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -93,7 +93,6 @@ export const RegisterClubModal = ({
   const router = useRouter();
   const { chainId, address } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { switchChain } = useSwitchChain();
   const [initialSupply, setInitialSupply] = useState<number>();
   const [uniHook, setUniHook] = useState<string>("BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>("");
@@ -155,7 +154,7 @@ export const RegisterClubModal = ({
 
     if (chainId !== targetChainId) {
       try {
-        switchChain({ chainId: targetChainId });
+        await switchChain(configureChainsConfig, { chainId: targetChainId });
       } catch {
         toast.error(`Please switch to ${selectedNetwork}`);
         setIsBuying(false);
@@ -174,9 +173,8 @@ export const RegisterClubModal = ({
         ? Math.floor(Date.now() / 1000) + (BENEFITS_AUTO_FEATURE_HOURS * 3600)
         : undefined;
 
-      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
+      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        strategy,
         tokenName,
         tokenSymbol,
         tokenImage: _tokenImage,
@@ -185,7 +183,8 @@ export const RegisterClubModal = ({
         hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
         cliffPercent: vestingCliff * 100,
         vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit),
-        pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined
+        pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
+        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
       }, selectedNetwork);
       if (!(objectId && clubId)) throw new Error("failed");
 
@@ -224,52 +223,53 @@ export const RegisterClubModal = ({
     }
   };
 
+  // TODO: update for lens v3
   // create a post from the authenticated profile _or_ from Sage (@bons_ai)
   const createPost = async (clubId: string, attachment: any, txHash: string) => {
-    try {
-      const publicationMetadata = publicationBody(
-        `${tokenName} ($${tokenSymbol})
-${tokenDescription}
-${MADFI_CLUBS_URL}/token/${clubId}
-`,
-        [attachment],
-        authenticatedProfile?.metadata?.displayName || authenticatedProfile?.handle!.suggestedFormatted.localName || "Sage"
-      );
+//     try {
+//       const publicationMetadata = publicationBody(
+//         `${tokenName} ($${tokenSymbol})
+// ${tokenDescription}
+// ${MADFI_CLUBS_URL}/token/${clubId}
+// `,
+//         [attachment],
+//         authenticatedProfile?.metadata?.displayName || authenticatedProfile?.handle!.suggestedFormatted.localName || "Sage"
+//       );
 
-      // creating a post on momoka
-      const { data: postIpfsHash } = await pinJson(publicationMetadata);
+//       // creating a post on momoka
+//       const { data: postIpfsHash } = await pinJson(publicationMetadata);
 
-      if (authenticatedProfile?.id) {
-        const broadcastResult = await createPostMomoka(
-          walletClient,
-          storjGatewayURL(`ipfs://${postIpfsHash}`),
-          authenticatedProfile,
-        );
+//       if (authenticatedProfile?.id) {
+//         const broadcastResult = await createPostMomoka(
+//           walletClient,
+//           storjGatewayURL(`ipfs://${postIpfsHash}`),
+//           authenticatedProfile,
+//         );
 
-        // broadcastResult might be the `pubId` if it was a wallet tx
-        if (broadcastResult) {
-          // create seo image
-          return typeof broadcastResult === "string"
-            ? broadcastResult
-            : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
-        }
-      }
+//         // broadcastResult might be the `pubId` if it was a wallet tx
+//         if (broadcastResult) {
+//           // create seo image
+//           return typeof broadcastResult === "string"
+//             ? broadcastResult
+//             : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
+//         }
+//       }
 
-      const response = await fetch('/api/clubs/sage-create-post', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          txHash,
-          postIpfsHash
-        })
-      });
+//       const response = await fetch('/api/clubs/sage-create-post', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           txHash,
+//           postIpfsHash
+//         })
+//       });
 
-      if (!response.ok) throw new Error("Failed to create post");
-      const data = await response.json();
-      return data?.pubId;
-    } catch (error) {
-      console.log(error);
-    }
+//       if (!response.ok) throw new Error("Failed to create post");
+//       const data = await response.json();
+//       return data?.pubId;
+//     } catch (error) {
+//       console.log(error);
+//     }
   };
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';

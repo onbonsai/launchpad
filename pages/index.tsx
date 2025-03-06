@@ -38,6 +38,8 @@ const IndexPage: NextPage = () => {
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
+  // TODO: steven use these posts to render a grid
+
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
     abi: erc20Abi,

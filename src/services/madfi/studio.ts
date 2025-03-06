@@ -1,14 +1,10 @@
-import { AclTemplate } from "@lens-chain/storage-client/import";
-import { zeroAddress } from "viem";
+import { WalletAddressAcl } from "@lens-chain/storage-client";
+import { MetadataAttribute } from "@lens-protocol/client";
+import { URI } from "@lens-protocol/metadata";
+import { getSmartMediaUrl } from "@src/utils/utils";
 import z from "zod";
 
-/**
- * SmartMedia templates
- */
-export enum TemplateName {
-  ADVENTURE_TIME = "adventure_time",
-  ARTIST_PRESENT = "artist_present",
-}
+export const APP_ID = "BONSAI";
 
 /**
  * SmartMedia categories and templates
@@ -29,12 +25,20 @@ export const CATEGORIES = [
   },
 ];
 
+export interface BonsaiClientMetadata {
+  domain: string;
+  version: string;
+  templates: Template[];
+  acl: WalletAddressAcl;
+}
+
 export type Template = {
   apiUrl: string;
+  acl: WalletAddressAcl;
   protocolFeeRecipient: `0x${string}`;
   category: TemplateCategory;
-  name: TemplateName;
-  label: string;
+  name: string;
+  displayName: string;
   description: string;
   image: string;
   options: {
@@ -48,75 +52,47 @@ export type Template = {
 };
 
 export type Preview = {
+  agentId: string;
   text: string;
   image?: string;
   video?: string;
 }
 
-// TODO: how can we pull these from a registry api?
-export const TEMPLATES: Template[] = [
-  {
-    apiUrl: "http://localhost:3001",
-    protocolFeeRecipient: zeroAddress,
-    category: TemplateCategory.EVOLVING_POST,
-    name: TemplateName.ADVENTURE_TIME,
-    label: "Adventure Time",
-    description: "Choose your own adventure. Creator sets the context and inits the post with the first page. Weighted comments / upvotes decide the direction of the story.",
-    image: "https://link.storjshare.io/raw/jxf7g334eesksjbdydo3dglc62ua/bonsai/adventureTime.jpg",
-    options: {
-      allowPreview: true,
-      allowPreviousToken: true,
-      requireImage: false,
-    },
-    templateData: {
-      form: z.object({
-        context: z.string().describe("Set the initial context and background for your story. This will help guide the narrative direction."),
-        writingStyle: z.string().describe("Define the writing style and tone - e.g. humorous, dramatic, poetic, etc."),
-        modelId: z.string().optional().nullable().describe("Optional: Specify an AI model to use for image generation"),
-        stylePreset: z.string().optional().nullable().describe("Optional: Choose a style preset to use for image generation"),
-      })
-    }
-  },
-  {
-    apiUrl: "http://localhost:3001",
-    protocolFeeRecipient: zeroAddress,
-    category: TemplateCategory.EVOLVING_ART,
-    name: TemplateName.ARTIST_PRESENT,
-    label: "Artist is Present",
-    description: "The artist is present in the evolving art. Creator sets the original image and style. The comment with the most votes dictates how the image evolves.",
-    image: "https://link.storjshare.io/raw/jvudw6oz7g5bui2ypmjtvi46h55q/bonsai/artistPresent.jpg",
-    options: {
-      allowPreview: false,
-      allowPreviousToken: true,
-      requireImage: true,
-    },
-    templateData: {
-      form: z.object({
-        style: z.string().describe("Define the style to maintain for all image generations - e.g. bright, neon green."),
-        modelId: z.string().optional().nullable().describe("Optional: Specify an AI model to use for image generation"),
-        stylePreset: z.string().optional().nullable().describe("Optional: Choose a style preset to use for image generation"),
-      })
-    }
-  }
-];
+export type SmartMedia = {
+  agentId: string; // uuid
+  creator: `0x${string}`; // lens account
+  template: string;
+  category: TemplateCategory;
+  createdAt: number; // unix ts
+  updatedAt: number; // unix ts
+  templateData?: unknown; // specific data needed per template
+  postId: string; // lens post id; will be null for previews
+  maxStaleTime: number; // seconds
+  uri: URI; // lens storage node uri
+  token: {
+    chain: "base" | "lens";
+    address: `0x${string}`;
+  };
+};
 
 interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
-  acl: AclTemplate;
+  acl: WalletAddressAcl;
 }
 
 export const generatePreview = async (
-  token: string,
+  url: string,
+  idToken: string,
   template: Template,
   templateData: any
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
-    const response = await fetch(`${template.apiUrl}/post/create-preview`, {
+    const response = await fetch(`${url}/post/create-preview`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify({
         templateName: template.name,
@@ -125,13 +101,58 @@ export const generatePreview = async (
       })
     });
 
-    if (!response.ok) {
-      console.log(`Preview generation failed: ${response.statusText}`);
-      return;
-    }
+    if (!response.ok) throw new Error(`Preview generation failed: ${response.statusText}`);
 
     return await response.json();
   } catch (error) {
     console.error('Error generating preview:', error);
+  }
+}
+
+export const createSmartMedia = async (
+  url: string,
+  idToken: string,
+  body: string,
+): Promise<any | undefined> => {
+  try {
+    const response = await fetch(`${url}/post/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`
+      },
+      body
+    });
+
+    if (!response.ok) throw new Error(`Create failed ${response.statusText}`);
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating:', error);
+  }
+}
+
+export const resolveSmartMedia = async (
+  attributes: MetadataAttribute[],
+  postId: string,
+  withVersions?: boolean
+): Promise<{
+  data: SmartMedia;
+  isProcessing: boolean;
+  versions?: string[]
+} | undefined> => {
+  try {
+    let url = getSmartMediaUrl(attributes);
+    if (!url) return;
+
+    // HACK: localhost
+    // if (url === "http://localhost:3001") url = "https://eliza-staging.up.railway.app";
+
+    const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
+    if (!response.ok) throw new Error(`Failed to resolve smart media: ${response.statusText}`);
+
+    return await response.json();
+  } catch (error) {
+    console.log(error);
   }
 }

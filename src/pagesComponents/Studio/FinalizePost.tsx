@@ -1,15 +1,11 @@
 import { inter } from "@src/fonts/fonts";
 import { useEffect, useState } from "react";
-import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { InfoOutlined, LocalAtmOutlined } from "@mui/icons-material";
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
 import { kFormatter } from "@src/utils/utils";
-import {
-  fetchTokenPrice,
-  BONSAI_TOKEN_BASE_ADDRESS,
-} from "@src/services/madfi/moneyClubs";
+import { fetchTokenPrice } from "@src/services/madfi/moneyClubs";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
@@ -19,20 +15,23 @@ const COLLECT_PRICE_TIERS = [
     label: '$1',
     amountStable: 1,
     icon: 'local-atm',
+    amountBonsai: undefined,
   },
   {
     label: '$5',
     amountStable: 5,
     icon: 'local-atm',
+    amountBonsai: undefined,
   },
   {
     label: '$10',
     amountStable: 10,
     icon: 'local-atm',
+    amountBonsai: undefined,
   }
 ];
 
-export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back }) => {
+export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating }) => {
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
@@ -46,6 +45,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
         newcollectAmountOptions.push({ ... tier, amountBonsai });
       }
       setCollectAmountOptions(newcollectAmountOptions);
+      setCollectAmount(newcollectAmountOptions[0].amountBonsai);
     }
 
     fetchBonsaiPrice();
@@ -57,11 +57,8 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
       style={{ fontFamily: inter.style.fontFamily }}
     >
       <div className="space-y-4">
-        {/* Token preview */}
-
-
-        {/* Collect settings */}
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
+          {/* Token preview */}
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
               <div className="flex items-center gap-1">
@@ -72,6 +69,8 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
               <TokenPreviewCard authenticatedProfile={authenticatedProfile} token={finalTokenData} />
             </div>
           </div>
+
+          {/* Collect settings */}
           <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
@@ -117,10 +116,10 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
             </div>
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
-          <Button size='md' disabled={!collectAmount} onClick={() => onCreate(collectAmount)} variant="accentBrand" className="w-full hover:bg-bullish">
+          <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount)} variant="accentBrand" className="w-full hover:bg-bullish">
             Create
           </Button>
-          <Button size='md' onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isCreating} onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
             Back
           </Button>
         </div>
@@ -139,7 +138,7 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
           style={{ filter: 'blur(40px)' }}
         >
           <img
-            src={token.tokenImage[0]}
+            src={token.tokenImage[0].preview}
             alt={"token image"}
             sizes="10vw"
             className="w-full h-full object-cover"

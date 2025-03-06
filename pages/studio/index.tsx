@@ -2,20 +2,23 @@ import { NextPage } from "next"
 import Image from "next/image"
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react"
-import { CATEGORIES, TemplateCategory, TEMPLATES} from "@src/services/madfi/studio";
+import { CATEGORIES, TemplateCategory} from "@src/services/madfi/studio";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
+import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
+  const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
 
   const templatesFiltered = useMemo(() => {
     if (!categoryFilter) {
-      return TEMPLATES;
+      return registeredTemplates;
     }
 
-    return TEMPLATES.filter(({ category }) => category === categoryFilter);
-  }, [categoryFilter]);
+    return registeredTemplates?.filter(({ category }) => category === categoryFilter);
+  }, [categoryFilter, isLoading, registeredTemplates]);
 
   const categories = useMemo(() => {
     return [{ key: undefined, label: "All" }, ...CATEGORIES]
@@ -54,7 +57,8 @@ const StudioCreatePage: NextPage = () => {
 
                 {/* Templates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {templatesFiltered.map((template, idx) => (
+                  {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>}
+                  {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}
                       className="bg-card-light rounded-xl p-4 relative hover:border-primary transition-colors border border-dark-grey"
@@ -62,13 +66,13 @@ const StudioCreatePage: NextPage = () => {
                       <div className="rounded-xl overflow-hidden mb-4 border border-dark-grey">
                         <Image
                           src={template.image || "/placeholder.svg?height=150&width=300"}
-                          alt={template.label}
+                          alt={template.displayName}
                           width={300}
                           height={150}
                           className="w-full"
                         />
                       </div>
-                      <h3 className="font-semibold text-lg text-primary">{template.label}</h3>
+                      <h3 className="font-semibold text-lg text-primary">{template.displayName}</h3>
                       <p className="text-sm text-secondary/60">
                         {template.description}
                       </p>

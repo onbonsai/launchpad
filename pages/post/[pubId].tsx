@@ -3,16 +3,14 @@ import { useRouter } from "next/router";
 import {
   Publications,
   Theme,
-  formatProfilePicture,
   ActionButton,
-  fetchActionModuleHandlers
 } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
 
-import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
+import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
@@ -22,28 +20,23 @@ import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { createCommentMomoka, createCommentOnchain } from "@src/services/lens/createComment";
 import { useGetComments } from "@src/hooks/useGetComments";
-import publicationBody from "@src/services/lens/publicationBody";
-import PublicationContainer, {
-  PostFragmentPotentiallyDecrypted,
-} from "@src/components/Publication/PublicationContainer";
+import PublicationContainer from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
-import { getPost } from "@src/services/lens/getPost";
-import { ZERO_ADDRESS } from "@src/constants/constants";
-import { ChainRpcs } from "@src/constants/chains";
+import { getPost } from "@src/services/lens/posts";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
 import { sendLike } from "@src/services/lens/getReactions";
 import { postId, uri } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { post } from "@lens-protocol/client/actions";
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
+import { resolveSmartMedia } from "@src/services/madfi/studio";
 
 const SinglePublicationPage: NextPage = () => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { pubId, returnTo } = router.query;
-  const { address, isConnected } = useAccount();
+  const { pubId } = router.query;
+  const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
@@ -51,7 +44,7 @@ const SinglePublicationPage: NextPage = () => {
   const { publication, comments } =
     publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
-  const creatorPageRoute = `/profile/${publication?.author.name}`;
+  const creatorPageRoute = `/profile/${publication?.author.username.localName}`;
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
@@ -329,18 +322,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   } catch { }
 
   if (!post) return { notFound: true };
-
-  // get action module data for a hey portal
-  let openActionData = null;
+  const media = await resolveSmartMedia(post.metadata.attributes, post.slug);
 
   return {
     props: {
       pubId,
       handle: post?.author.username.localName,
       content: post?.metadata?.content,
-      image: post?.metadata?.asset?.image?.small?.uri || post?.metadata?.asset?.image?.optimized?.uri || null,
+      image: post?.metadata?.image?.item || null,
       pageName: "singlePublication",
-      openActionData,
+      media,
     },
   };
 };

@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { lens } from "@src/services/madfi/utils";
+import { lens, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
@@ -16,7 +16,7 @@ import { generatePreview, Preview, Template } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions} from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { AclTemplate } from "@lens-chain/storage-client/import";
+import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { inter } from "@src/fonts/fonts";
 
 type CreatePostProps = {
@@ -46,46 +46,6 @@ const CreatePostForm = ({
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [previewId, setPreviewId] = useState<string | undefined>();
-  const [postAcl, setPostAcl] = useState<AclTemplate | undefined>();
-
-  const _createPost = async () => {
-    if (!isAuthenticated) return;
-
-    setIsPosting(true);
-    let toastId;
-
-    if (lens.id !== chain?.id && switchChain) {
-      toastId = toast.loading("Switching networks...");
-      try {
-        await switchChain({ chainId: lens.id });
-      } catch {
-        toast.error("Please switch networks to create your Lens post");
-      }
-      toast.dismiss(toastId);
-      setIsPosting(false);
-      return;
-    }
-
-    try {
-      // Validate the form data against the schema
-      const validatedData = template.templateData.form.parse(templateData);
-
-      // TODO: Handle post creation with validated data
-
-      setPostContent("");
-      setPostImage([]);
-
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error("Please fill in all required fields correctly");
-      } else {
-        console.log(error);
-        toast.error("Something went wrong. Please try again later", { id: toastId });
-      }
-    }
-
-    setIsPosting(false);
-  };
 
   const isValid = () => {
     try {
@@ -96,33 +56,32 @@ const CreatePostForm = ({
     return false;
   }
 
-  // TODO: lens id token: https://dev-preview.lens.xyz/docs/protocol/authentication#advanced-topics-authentication-tokens-id-token
   const _generatePreview = async () => {
-    // const sessionClient = await resumeSession();
-    // if (!sessionClient) return;
+    const sessionClient = await resumeSession();
+    if (!sessionClient) return;
 
-    // const creds = await sessionClient.getCredentials();
-    // console.log(creds);
+    const creds = await sessionClient.getCredentials();
 
-    // if (creds.isOk()) {
-    //   const data = creds.safeUnwrap();
-    //   console.log(data);
-    // } else {
-    //   toast.error("Must be logged in");
-    // }
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+    }
 
     setIsGeneratingPreview(true);
     let toastId = toast.loading("Generating preview...");
 
     try {
-      const res = await generatePreview("", template, templateData);
+      const res = await generatePreview(template.apiUrl, idToken, template, templateData);
       if (!res) throw new Error();
-      const { agentId, preview, acl } = res;
+      const { agentId, preview } = res;
 
-      console.log(`preview`, preview);
-      setPreview(preview as Preview);
-      setPreviewId(agentId);
-      setPostAcl(acl);
+      if (!preview) throw new Error("No preview");
+      setPreview({
+        ...preview,
+        agentId,
+      } as Preview);
 
       toast.success("Done", { id: toastId });
     } catch (error) {

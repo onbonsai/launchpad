@@ -79,18 +79,28 @@ const LoginWithLensModal = ({ closeModal }) => {
         }
 
         {/* PROFILE SELECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 pb-4 md:max-w-[800px]">
           {profiles && profiles.length
             ? profiles.map(({account}) => (
               <div className="" key={account.address}>
-                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg flex flex-col gap-6" key={account.address}>
-                  <div className="flex w-full items-center justify-between">
-                    <img
-                      src={getProfileImage(account)}
-                      alt={account.address}
-                      className="rounded-sm w-20 h-20"
-                    />
-                    <div className="flex flex-col">
+                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
+                  <div className="grid grid-cols-5 items-center gap-x-4">
+                    <div className="col-span-1">
+                      <img
+                        src={getProfileImage(account)}
+                        alt={account.address}
+                        className="rounded-full w-14 h-14"
+                      />
+                    </div>
+
+                    <div className="flex flex-col text-left col-span-2">
+                      <h3 className="font-bold">
+                        {account?.metadata?.name || account?.username.localName}
+                      </h3>
+                      <span className="text-sm">{account.username.localName || `${account.metadata.name}`}</span>
+                    </div>
+
+                    <div className="flex justify-end col-span-2">
                       {authenticatedProfileId === account.address && (
                         <div className="flex flex-col justify-center items-center">
                           <CheckCircleIcon className="h-8 w-8 text-white" />
@@ -99,7 +109,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                       )}
                       {authenticatedProfileId !== account.address && (
                         <Button
-                          className="md:px-12 ml-4 hover:bg-bullish"
+                          className="md:px-8 hover:bg-bullish"
                           onClick={() => setSelectedProfileId(account.address)}
                           disabled={signingIn}
                         >
@@ -107,12 +117,6 @@ const LoginWithLensModal = ({ closeModal }) => {
                         </Button>
                       )}
                     </div>
-                  </div>
-                  <div className="flex w-full justify-between items-center">
-                    <h3 className="font-bold">
-                      {account.metadata.name || ""}
-                    </h3>
-                    <span className="text-sm">{account.username.localName || `${account.metadata.name}`}</span>
                   </div>
                 </div>
               </div>

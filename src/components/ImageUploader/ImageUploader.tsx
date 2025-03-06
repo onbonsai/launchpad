@@ -49,8 +49,8 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         try {
           const compressedBlob = await imageCompression(file, options);
           (compressedBlob as any).name = file.name;
-          console.log("Compressed file:", compressedBlob);
-          console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
+          // console.log("Compressed file:", compressedBlob);
+          // console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
 
           return Object.assign(compressedBlob, {
             preview: URL.createObjectURL(compressedBlob),

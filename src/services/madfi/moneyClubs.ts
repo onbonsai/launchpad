@@ -4,7 +4,7 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT, getChain, lens, lensTestnet } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, lens, lensTestnet } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
@@ -20,7 +20,7 @@ import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
 import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
-import { getPosts } from "../lens/getPost";
+import { getPosts } from "../lens/posts";
 
 export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
@@ -430,6 +430,11 @@ export const WHITELISTED_UNI_HOOKS = {
     iconLabel: "9am-4:30pm EST"
   },
 };
+
+export const NETWORK_CHAIN_IDS = {
+  'base': CONTRACT_CHAIN_ID,
+  'lens': LENS_CHAIN_ID
+} as const;
 
 export function baseScanUrl(txHash: string, tx = true) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
@@ -1209,16 +1214,15 @@ type RegistrationParams = {
   tokenDescription: string;
   tokenImage: string;
   initialSupply: string;
-  strategy: string;
   featureEndAt?: number;
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
   pricingTier?: PricingTier;
+  handle: string;
 };
 
 export const registerClub = async (
   walletClient,
-  isAuthenticated: boolean,
   params: RegistrationParams,
   chain = "base"
 ): Promise<{ objectId?: string, clubId?: string, txHash?: string, tokenAddress?: string }> => {
@@ -1266,6 +1270,68 @@ export const registerClub = async (
   });
   const res = {
     objectId: (await response.json()).id as string,
+    clubId: event.args.clubId.toString(),
+    tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
+    txHash: hash
+  };
+  return receipt.status === "success" && response.ok ? res : {};
+};
+
+type RegistrationTxParams = {
+  hook: `0x${string}`;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenImage: string;
+  initialSupply: string;
+  cliffPercent: number; // bps
+  vestingDuration: number; // seconds
+  pricingTier?: PricingTier;
+  postId: string;
+  handle: string;
+};
+export const registerClubTransaction = async (
+  walletClient,
+  params: RegistrationTxParams,
+  chain = "base"
+): Promise<{ clubId?: string, txHash?: string, tokenAddress?: string }> => {
+  const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
+  let args = [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration];
+  if (chain == "lens" && params.pricingTier) {
+    args.push(LENS_PRICING_TIERS[params.pricingTier].initialPrice);
+    args.push(LENS_PRICING_TIERS[params.pricingTier].flatThreshold);
+    args.push(LENS_PRICING_TIERS[params.pricingTier].targetPriceMultiplier);
+    args.push(zeroAddress); // TODO: whitelist module
+    args.push("0x"); // TODO: whitelist data
+    args.push(WGHO_CONTRACT_ADDRESS); // quote token
+  }
+  const hash = await walletClient.writeContract({
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
+    functionName: "registerClub",
+    args,
+    chain: getChain(chain)
+  });
+  console.log(`tx: ${hash}`);
+
+  const response = await fetch('/api/clubs/set-lens-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      txHash: hash,
+      handle: params.handle,
+      pubId: params.postId,
+      chain,
+    })
+  });
+
+  const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
+  const event = getEventFromReceipt({
+    contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    transactionReceipt: receipt,
+    abi: BonsaiLaunchpadAbi,
+    eventName: "RegisteredClub",
+  });
+  const res = {
     clubId: event.args.clubId.toString(),
     tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
     txHash: hash

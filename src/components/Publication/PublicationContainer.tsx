@@ -14,7 +14,6 @@ import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
 import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/createMirror";
 import { ChainRpcs } from "@src/constants/chains";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
-import publicationBody from "@src/services/lens/publicationBody";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import { polygon } from "viem/chains";

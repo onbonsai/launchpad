@@ -53,6 +53,8 @@ export const PROTOCOL_DEPLOYMENT = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET :
 export const lens: Chain = chains.testnet
 export const lensTestnet: Chain = chains.testnet
 
+export const LENS_CHAIN_ID = IS_PRODUCTION ? lens.id : lensTestnet.id;
+
 // {
 //   id: 37111,
 //   name: "Lens Testnet",
