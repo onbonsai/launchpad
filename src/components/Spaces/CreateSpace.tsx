@@ -10,14 +10,13 @@ import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useMultiStepForm from "@src/hooks/useMultiStepForm";
 import { ipfsOrNotWithDefaultGateway } from "@src/utils/pinata";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import publicationBody from "@src/services/lens/publicationBody";
 import { pinJson, storjGatewayURL } from "@src/utils/storj";
-import { createPostMomoka, createPostOnchain } from "@src/services/lens/createPost";
+// import { createPostMomoka, createPostOnchain } from "@src/services/lens/createPost";
 import readLensHub from "@src/services/lens/readLensHub";
 import { bToHexString, getProfileImage } from "@src/services/lens/utils";
 import { chainIdNumber } from "@src/constants/validChainId";
 import { encodeAbi } from "@src/utils/viem";
-import { BLACKJACK_ACTION_MODULE, BONSAI_TOKEN_ADDRESS } from "@src/services/madfi/utils";
+// import { BLACKJACK_ACTION_MODULE, BONSAI_TOKEN_ADDRESS } from "@src/services/madfi/utils";
 import { approveToken } from "@src/services/madfi/bountyContract";
 
 import SetSchedule from "./SetSchedule";

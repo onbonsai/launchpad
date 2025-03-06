@@ -73,6 +73,8 @@ export type SmartMedia = {
     chain: "base" | "lens";
     address: `0x${string}`;
   };
+  isProcessing?: boolean;
+  versions?: string[];
 };
 
 interface GeneratePreviewResponse {
@@ -136,11 +138,7 @@ export const resolveSmartMedia = async (
   attributes: MetadataAttribute[],
   postId: string,
   withVersions?: boolean
-): Promise<{
-  data: SmartMedia;
-  isProcessing: boolean;
-  versions?: string[]
-} | undefined> => {
+): Promise<SmartMedia | undefined> => {
   try {
     let url = getSmartMediaUrl(attributes);
     if (!url) return;
@@ -151,7 +149,8 @@ export const resolveSmartMedia = async (
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) throw new Error(`Failed to resolve smart media: ${response.statusText}`);
 
-    return await response.json();
+    const { data, isProcessing, versions } = await response.json();
+    return { ...data, isProcessing, versions };
   } catch (error) {
     console.log(error);
   }

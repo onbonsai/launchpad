@@ -30,9 +30,9 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { post } from "@lens-protocol/client/actions";
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
-import { resolveSmartMedia } from "@src/services/madfi/studio";
+import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 
-const SinglePublicationPage: NextPage = () => {
+const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { pubId } = router.query;

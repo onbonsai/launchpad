@@ -22,7 +22,6 @@ import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { createCommentMomoka, createCommentOnchain } from "@src/services/lens/createComment";
 import { useGetComments } from "@src/hooks/useGetComments";
-import publicationBody from "@src/services/lens/publicationBody";
 import PublicationContainer, {
   PostFragmentPotentiallyDecrypted,
 } from "@src/components/Publication/PublicationContainer";
