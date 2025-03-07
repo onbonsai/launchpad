@@ -1,10 +1,11 @@
 import { BonsaiClientMetadata, Template } from "@src/services/madfi/studio";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { reconstructZodSchema } from "@src/utils/utils";
+import { ELIZA_API_URL } from "@src/services/madfi/studio";
 
 // TODO: some registry api
 const BONSAI_CLIENT_REGISTRY = [
-  "http://localhost:3001"
+  ELIZA_API_URL
 ];
 
 const fetchBonsaiClients = async (): Promise<BonsaiClientMetadata[]> => {

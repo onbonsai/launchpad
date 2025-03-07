@@ -1,10 +1,14 @@
 import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { MetadataAttribute } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
-import { getSmartMediaUrl } from "@src/utils/utils";
 import z from "zod";
+import { getSmartMediaUrl } from "@src/utils/utils";
+import { IS_PRODUCTION } from "./utils";
 
 export const APP_ID = "BONSAI";
+export const ELIZA_API_URL = IS_PRODUCTION
+  ? "https://eliza.bonsai.meme"
+  : "https://eliza-staging.up.railway.app";
 
 /**
  * SmartMedia categories and templates
@@ -144,7 +148,7 @@ export const resolveSmartMedia = async (
     if (!url) return;
 
     // HACK: localhost
-    if (url === "http://localhost:3001") url = "https://eliza-staging.up.railway.app";
+    if (url === "http://localhost:3001") url = ELIZA_API_URL;
 
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) throw new Error(`Failed to resolve smart media: ${response.statusText}`);
