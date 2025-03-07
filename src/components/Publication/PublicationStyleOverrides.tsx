@@ -79,13 +79,13 @@ export const publicationContainerStyleOverride = css`
 `
 
 export const shareContainerStyleOverride = (color, backgroundColor) => css`
-background-color: rgb(255,255,255,0.08);
+  background-color: rgb(255,255,255,0.08);
   &:hover {
     background-color: ${backgroundColor}
   }
   display: flex;
   justify-content: center;
-    align-items: center;
+  align-items: center;
   border-radius: 10px;
   padding: 6px;
   margin-right: 4px;
@@ -102,4 +102,27 @@ background-color: rgb(255,255,255,0.08);
     margin-left: 4px;
   }
   cursor: pointer;
+`
+
+export const actButtonContainerStyleOverride = (color, backgroundColor, disabled?: boolean) => css`
+  background-color: rgb(255,255,255,0.08);
+  &:hover {
+    background-color: ${backgroundColor}
+  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 6px;
+  right: 45px;
+  top: 0px;
+  height: 28px;
+  width: 68px;
+  p {
+    color: ${color};
+    font-size: 14px;
+    opacity: .75;
+    margin: 0;
+  }
+  cursor: ${!disabled ? 'pointer' : 'default'};
 `

@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
-import { useWalletClient, useAccount, useSwitchChain } from "wagmi";
+import { useWalletClient, useAccount, useSwitchChain, useReadContract } from "wagmi";
 import { PostFragment, postId, PublicationReactionType } from "@lens-protocol/client"
 import { Publication, Theme } from "@madfi/widgets-react";
+import Popper from '@mui/material/Popper';
+import clsx from "clsx";
+import { erc20Abi, formatEther } from "viem";
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -17,10 +21,14 @@ import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import { polygon } from "viem/chains";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "./PublicationStyleOverrides";
+import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, actButtonContainerStyleOverride } from "./PublicationStyleOverrides";
 import { addReaction } from "@lens-protocol/client/actions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
+import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { kFormatter } from "@src/utils/utils";
+import { inter } from "@src/fonts/fonts";
+import { Subtitle } from "@src/styles/text";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -65,7 +73,7 @@ const PublicationContainer = ({
   hideFollowButton,
 }: PublicationContainerProps) => {
   const router = useRouter();
-  const { isConnected, chainId } = useAccount();
+  const { isConnected, chainId, address } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const {
@@ -78,6 +86,22 @@ const PublicationContainer = ({
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
   const [hasMirrored, setHasMirrored] = useState<boolean>(publication?.operations?.hasMirrored || false);
+  const [isCollect, setIsCollect] = useState(false);
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
+
+  // bonsai balance on Lens
+  const { data: bonsaiBalance } = useReadContract({
+    address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+    abi: erc20Abi,
+    chainId: LENS_CHAIN_ID,
+    functionName: "balanceOf",
+    args: [address as `0x${string}`],
+    query: {
+      refetchInterval: 10000,
+      enabled: isConnected && !!address
+    },
+  });
 
   if (!(publicationId || publication)) throw new Error('Need publicationId or publication');
   if (publication?.metadata?.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
@@ -186,40 +210,41 @@ const PublicationContainer = ({
   //   return { requiresBadge, hasMintedCorrectBadge };
   // }, [publication, hasMintedBadge]);
 
-  const handlePinMetadata = async (content, files): Promise<string> => {
-    let toastId;
-    let attachments: any[] = [];
+  // TODO: update to lens storage
+  // const handlePinMetadata = async (content, files): Promise<string> => {
+  //   let toastId;
+  //   let attachments: any[] = [];
 
-    if (files.length > 0) {
-      toastId = toast.loading("Uploading content...", { id: toastId });
-      try {
-        const cids = await Promise.all(
-          files.map(async (file: any, idx: number) => ({
-            item: `ipfs://${await pinFile(file)}`,
-            type: file.type,
-            altTag: file.name || `attachment_${idx}`,
-          })),
-        );
-        attachments = attachments.concat(cids);
-      } catch (error) {
-        console.log(error);
-        toast.dismiss(toastId);
-        return '';
-      }
-    }
+  //   if (files.length > 0) {
+  //     toastId = toast.loading("Uploading content...", { id: toastId });
+  //     try {
+  //       const cids = await Promise.all(
+  //         files.map(async (file: any, idx: number) => ({
+  //           item: `ipfs://${await pinFile(file)}`,
+  //           type: file.type,
+  //           altTag: file.name || `attachment_${idx}`,
+  //         })),
+  //       );
+  //       attachments = attachments.concat(cids);
+  //     } catch (error) {
+  //       console.log(error);
+  //       toast.dismiss(toastId);
+  //       return '';
+  //     }
+  //   }
 
-    const publicationMetadata = publicationBody(
-      content,
-      attachments,
-      authenticatedProfile!.metadata?.displayName || authenticatedProfile!.handle!.suggestedFormatted.localName
-    );
+  //   const publicationMetadata = publicationBody(
+  //     content,
+  //     attachments,
+  //     authenticatedProfile!.metadata?.displayName || authenticatedProfile!.handle!.suggestedFormatted.localName
+  //   );
 
-    const { data: postIpfsHash } = await pinJson(publicationMetadata);
+  //   const { data: postIpfsHash } = await pinJson(publicationMetadata);
 
-    if (toastId) toast.dismiss(toastId);
+  //   if (toastId) toast.dismiss(toastId);
 
-    return storjGatewayURL(postIpfsHash);
-  }
+  //   return storjGatewayURL(postIpfsHash);
+  // }
 
   // TODO: only for lens profiles
   const onFollowClick = async (e: React.MouseEvent, _) => {
@@ -247,6 +272,36 @@ const PublicationContainer = ({
     }
   };
 
+  const _renderActButtonWithCTA = useMemo(() => {
+    // TODO: waiting on lens api fix;
+    // TODO: check if currency is bonsai
+    // const isCollect = publication?.actions?.some(action => action.simpleCollect);
+    const isCollect = true;
+    setIsCollect(isCollect);
+
+    if (isCollect && !!authenticatedProfileId) {
+      return "Collect";
+    }
+
+    return renderActButtonWithCTA;
+  }, [publication, authenticatedProfileId]);
+
+  const _onActButtonClick = async (e: React.MouseEvent) => {
+    if (isCollect) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setShowCollectModal(true);
+      setCollectAnchorElement(e.target);
+    }
+
+    if (onActButtonClick) onActButtonClick(e);
+  }
+
+  const onCollect = async () => {
+
+  }
+
   return (
     <div className="mt-4 relative">
       <Publication
@@ -272,9 +327,9 @@ const PublicationContainer = ({
         useToast={toast}
         rpcURLs={ChainRpcs}
         appDomainWhitelistedGasless={true}
-        handlePinMetadata={handlePinMetadata}
-        onActButtonClick={onActButtonClick}
-        renderActButtonWithCTA={renderActButtonWithCTA}
+        // handlePinMetadata={handlePinMetadata}
+        onActButtonClick={_onActButtonClick}
+        renderActButtonWithCTA={_renderActButtonWithCTA}
         hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
         onFollowPress={onFollowClick}
         followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
@@ -292,12 +347,24 @@ const PublicationContainer = ({
         reactionsContainerStyleOverride={reactionsContainerStyleOverride}
         reactionContainerStyleOverride={reactionContainerStyleOverride}
         shareContainerStyleOverride={shareContainerStyleOverride}
+        actButtonContainerStyleOverride={actButtonContainerStyleOverride}
         markdownStyleBottomMargin={'0'}
         heartIconOverride={true}
         messageIconOverride={true}
         shareIconOverride={true}
       />
-      {publication?.metadata?.encryptedWith && decryptGatedPosts && (
+      {showCollectModal && (
+        <CollectModal
+          publication={publication}
+          onCollect={onCollect}
+          bonsaiBalance={bonsaiBalance}
+          bonsaiCost={500n}
+          anchorEl={collectAnchorElement}
+          onClose={() => setShowCollectModal(false)}
+        />
+      )}
+
+      {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
           <Button
             variant={isConnected ? "accent" : "accent-disabled"}
@@ -323,9 +390,59 @@ const PublicationContainer = ({
             )}
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   )
+};
+
+const CollectModal = ({ publication, onCollect, bonsaiBalance, bonsaiCost, anchorEl, onClose }) => {
+  const bonsaiBalanceFormatted = useMemo(() => (
+    kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)))
+  ), [bonsaiBalance]);
+
+  const bonsaiCostFormatted = useMemo(() => (
+    kFormatter(parseFloat(formatEther(500000000000000000000n)), true)
+  ), []);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+
+  return (
+    <Popper
+      open={Boolean(anchorEl)}
+      anchorEl={anchorEl}
+      placement="bottom-start"
+      style={{ zIndex: 1400 }}
+    >
+      <ClickAwayListener onClickAway={onClose}>
+        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px]", inter.className)}>
+          <Button
+            variant="accent"
+            className="w-full md:mb-0 text-base"
+            disabled={false}
+            onClick={onCollect}
+          >
+            Pay {bonsaiCostFormatted} $BONSAI
+          </Button>
+          <div className="mt-4 flex items-center justify-center">
+            <Subtitle>
+              Balance:
+              <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
+            </Subtitle>
+          </div>
+        </div>
+      </ClickAwayListener>
+    </Popper>
+  );
 };
 
 

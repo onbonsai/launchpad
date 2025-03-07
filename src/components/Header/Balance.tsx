@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { formatUnits, erc20Abi } from "viem";
-import { Button } from "@src/components/Button";
+import clsx from "clsx";
 import {
   USDC_DECIMALS,
   CONTRACT_CHAIN_ID,
@@ -12,8 +12,12 @@ import {
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { kFormatter } from "@src/utils/utils";
+import { inter } from "@src/fonts/fonts";
+import Popper from '@mui/material/Popper';
+
 export const Balance = () => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const { address, isConnected } = useAccount();
 
   // USDC Balance
@@ -53,12 +57,22 @@ export const Balance = () => {
     };
   }, [usdcBalance, ghoBalance]);
 
+  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    setAnchorEl(event.currentTarget);
+    setShowDropdown(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowDropdown(false);
+    setAnchorEl(null);
+  };
+
   return (
-    <div className="relative inline-block">
+    <div className={clsx("relative inline-block", inter.className)}>
       <div
         className="bg-dark-grey text-white text-base font-medium rounded-xl md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-32 cursor-pointer relative"
-        onMouseEnter={() => setShowDropdown(true)}
-        onMouseLeave={() => setShowDropdown(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-2">
@@ -68,19 +82,21 @@ export const Balance = () => {
           <span>${totalFormatted}</span>
         </div>
 
-        {showDropdown && (
+        <Popper
+          open={showDropdown}
+          anchorEl={anchorEl}
+          placement="bottom-start"
+          style={{ zIndex: 1400 }}
+        >
           <div
-            className="fixed mt-4 right-[92px] bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] z-[140]"
-            style={{
-              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-              transform: "translateY(0)",
-            }}
+            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px]"
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-x-2">
                 <div className="relative">
                   <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg" />
-                  {/* <img src="/lens.png" alt={"lens"} className="absolute top-3 left-3 h-[12px]" /> */}
                 </div>
                 <span className="text-sm text-white">WGHO on Lens</span>
               </div>
@@ -90,14 +106,13 @@ export const Balance = () => {
               <div className="flex items-center gap-x-2">
                 <div className="relative">
                   <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
-                  {/* <img src="/base.png" alt={"base"} className="absolute top-3 left-3 w-[14px] h-[14px]" /> */}
                 </div>
                 <span className="text-sm text-white">USDC on Base</span>
               </div>
               <span className="text-sm text-white">{usdcFormatted}</span>
             </div>
           </div>
-        )}
+        </Popper>
       </div>
     </div>
   );

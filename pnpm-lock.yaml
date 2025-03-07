@@ -58,8 +58,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@types/react@18.2.15)(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.5.0)(react@18.2.0)(utf-8-validate@5.0.10)
       '@madfi/widgets-react':
-        specifier: ^3.0.2
-        version: 3.0.2(@lens-network/sdk@0.0.0-canary-20241203140504(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
+        specifier: ^3.0.5
+        version: 3.0.5(@lens-network/sdk@0.0.0-canary-20241203140504(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^5.8.0
         version: 5.8.0(@mui/material@5.13.5(@emotion/react@11.14.0(@types/react@18.2.15)(react@18.2.0))(@emotion/styled@11.13.0(@emotion/react@11.14.0(@types/react@18.2.15)(react@18.2.0))(@types/react@18.2.15)(react@18.2.0))(@types/react@18.2.15)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@types/react@18.2.15)(react@18.2.0)
@@ -1556,8 +1556,8 @@ packages:
     resolution: {integrity: sha512-9hldbMK/L1fGP2jE3F29YkD3YcYHj8GfW39H8tVqUs3sHik/NQwVdGBJOHqM9iYPZRI0SUTQ7isiOQoTPUVJpw==}
     engines: {node: '>=18.0.0'}
 
-  '@madfi/widgets-react@3.0.2':
-    resolution: {integrity: sha512-9clVw2VF6124S0VhJL+iwjWLPy6sjvLgqtkJpnLXsHn9hkyNbs8cf9IeLKr/T8k5DlqKF2CzXsr+4TlKhk7B8g==}
+  '@madfi/widgets-react@3.0.5':
+    resolution: {integrity: sha512-YuetY8Py6uxy7ptp/TemUJs4o303h33mGGK0gvWOjFfq+BYVHiOipXp9/eS224eIEvBnVpk+EnMMIeqd3sZJpg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@tanstack/react-query': ^5.40.1
@@ -9191,7 +9191,7 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@madfi/widgets-react@3.0.2(@lens-network/sdk@0.0.0-canary-20241203140504(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
+  '@madfi/widgets-react@3.0.5(@lens-network/sdk@0.0.0-canary-20241203140504(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
     dependencies:
       '@emotion/css': 11.13.5
       '@ethersproject/providers': 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
