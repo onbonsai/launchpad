@@ -2,6 +2,7 @@ import { PhotographIcon } from "@heroicons/react/solid";
 import { FC, ReactNode, SetStateAction } from "react";
 import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
+import imageCompression from "browser-image-compression";
 
 import { cx } from "@src/utils/classnames";
 
@@ -11,7 +12,7 @@ interface ImageUploaderProps {
   children?: ReactNode;
 }
 
-const MAX_FILE_SIZE = 10000000; // 10 MB
+const MAX_SIZE = 8000000; // 8 MB
 const MAX_FILES = 1;
 
 export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...rest }) => {
@@ -21,25 +22,51 @@ export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...re
     // "audio/*": [".mp3", ".wav"]
   };
 
-  const onDrop = (acceptedFiles: any[]) => {
-    for (const file of acceptedFiles) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File too large. Maximum size is 10 MB.`);
-        return;
-      }
-    }
+  const onDrop = async (acceptedFiles: any[]) => {
     if (files.length + acceptedFiles.length > MAX_FILES) {
-      toast.error(`You can only upload ${MAX_FILES}`);
+      toast.error(`You can only upload ${MAX_FILES} images`);
       return;
     }
-    setFiles([
-      ...files,
-      ...acceptedFiles.map((file: any) =>
-        Object.assign(file, {
-          preview: URL.createObjectURL(file),
-        }),
-      ),
-    ]);
+
+    const processedFiles = await Promise.all(
+      acceptedFiles.map(async (file: any) => {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 720,
+          useWebWorker: true,
+        };
+
+        if (!file.type.startsWith("image/")) {
+          return Object.assign(file, {
+            preview: URL.createObjectURL(file),
+          });
+        }
+
+        try {
+          const compressedBlob = await imageCompression(file, options);
+          (compressedBlob as any).name = file.name;
+          // console.log("Compressed file:", compressedBlob);
+          // console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
+          if (compressedBlob.size > MAX_SIZE) {
+            toast.error(`File too large. Maximum size is 8 MB.`);
+            return;
+          }
+
+          return Object.assign(compressedBlob, {
+            preview: URL.createObjectURL(compressedBlob),
+          });
+        } catch (error) {
+          console.error("Compression error:", error);
+          toast.error(`Error compressing ${file.name}. Uploading original file.`);
+          return Object.assign(file, {
+            preview: URL.createObjectURL(file),
+          });
+        }
+      })
+    );
+
+    const validFiles = processedFiles.filter((f) => f !== null);
+    setFiles([...files, ...validFiles]);
   };
 
   const removeFile = (event, file: any) => {
@@ -63,8 +90,8 @@ export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...re
         <Dropzone
           accept={acceptFileTypes}
           onDrop={onDrop}
-          MAX_FILES={MAX_FILES}
-          maxSize={MAX_FILE_SIZE}
+          maxFiles={MAX_FILES}
+          maxSize={MAX_SIZE}
           {...rest}
         >
           {({ getRootProps, getInputProps }) => (

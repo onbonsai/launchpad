@@ -131,12 +131,29 @@ export const uploadImageBase64 = async (
   };
 };
 
+export const uploadFile = async (
+  file: File,
+  _acl?: WalletAddressAcl,
+): Promise<{
+  image?: { url: URI, type: MediaImageMimeType },
+  video?: { url: URI, type: MediaVideoMimeType }
+}> => {
+  const acl = _acl || immutable(LENS_CHAIN_ID);
+  const { uri: hash } = await storageClient.uploadFile(file, { acl });
+  const isImage = file.type.includes("image");
+  console.log(`${isImage ? 'image' : 'video'} hash: ${hash}`);
+  if (isImage) {
+    return { image: { url: uri(hash), type: file.type as MediaImageMimeType } };
+  }
+  return { video: { url: uri(hash), type: file.type as MediaVideoMimeType } };
+};
+
 export const createPost = async (
   sessionClient: SessionClient,
   walletClient: any,
   params: PostParams,
-  commentOn?: `0x${string}`,
-  quoteOf?: `0x${string}`
+  commentOn?: string,
+  quoteOf?: string
 ): Promise<{ postId: string, uri: URI } | undefined> => {
   const contentUri = await uploadMetadata(params);
   console.log(`contentUri: ${contentUri}`);

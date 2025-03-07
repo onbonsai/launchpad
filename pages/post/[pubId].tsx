@@ -31,6 +31,7 @@ import { post } from "@lens-protocol/client/actions";
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
 import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
+import { createPost, uploadFile } from "@src/services/lens/createPost";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -131,43 +132,27 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
     const toastId = toast.loading("Preparing comment...");
     try {
-      let attachment;
+      let asset = {};
       if (files?.length) {
-        // can only be one
-        const file = files[0];
-        attachment = {
-          item: storjGatewayURL(await pinFile(file)),
-          type: file.type,
-          license: MetadataLicenseType.CCO,
-          altTag: file.name ?? "MadFi",
-        };
+        asset = await uploadFile(files[0]);
       }
-
-      const metadata = publicationBody(
-        comment,
-        [attachment],
-        authenticatedProfile.username.localName
-      );
-      const { uri: contentUri } = await storageClient.uploadAsJson(metadata);
 
       const sessionClient = await resumeSession();
       if (!sessionClient) return;
 
-      const result = await post(sessionClient, {
-        contentUri: uri(contentUri),
-        commentOn: {
-          post: postId(publication.slug),
-        },
-      }).andThen(handleOperationWith(walletClient));
-
-      console.log("result", result);
+      await createPost(
+        sessionClient,
+        walletClient,
+        { text: comment, ...asset },
+        pubId as string
+      );
 
       setComment("");
       setFiles([]);
 
       toast.success("Commented", { id: toastId, duration: 3000 });
 
-      setTimeout(fetchComments, 6000); // give the api some time
+      setTimeout(fetchComments, 3000); // give the api some time
     } catch (error) {
       console.log(error);
       toast.error("Comment failed", { duration: 5000, id: toastId });

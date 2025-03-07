@@ -17,7 +17,7 @@ interface ImageUploaderProps {
   children?: ReactNode;
 }
 
-const MAX_SIZE = 10000000; // 10mb
+const MAX_SIZE = 8000000; // 8mb
 
 export const ImageUploader: FC<ImageUploaderProps> = ({
   files,
@@ -51,6 +51,10 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           (compressedBlob as any).name = file.name;
           // console.log("Compressed file:", compressedBlob);
           // console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
+          if (compressedBlob.size > MAX_SIZE) {
+            toast.error(`File too large. Maximum size is 8 MB.`);
+            return;
+          }
 
           return Object.assign(compressedBlob, {
             preview: URL.createObjectURL(compressedBlob),
@@ -132,7 +136,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           accept={{ "image/": ["*"] }}
           onDrop={onDrop}
           maxFiles={maxFiles}
-          maxSize={MAX_SIZE}
+          // maxSize={MAX_SIZE}
           {...rest}
         >
           {({ getRootProps, getInputProps }) => (
