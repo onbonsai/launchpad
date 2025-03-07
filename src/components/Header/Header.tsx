@@ -18,6 +18,7 @@ import clsx from "clsx";
 import { Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
+import { Button } from "../Button";
 
 const headerLinks = [
   // add any top-level nav links here
@@ -68,7 +69,16 @@ export const Header = () => {
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
-              <CreateClub />
+              {/* <CreateClub /> */}
+              <Link href="/studio">
+                <Button
+                  variant="accentBrand"
+                  size="md" // This sets the height to 40px and padding appropriately
+                  className="text-base font-bold md:px-6 bg-white rounded-xl"
+                >
+                  Studio
+                </Button>
+              </Link>
               <Balance />
               <ClaimFeesEarned />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}

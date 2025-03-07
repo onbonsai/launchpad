@@ -154,6 +154,7 @@ export const Feed = ({ postId, morePadding = false }) => {
     if (scrollPaddingRef.current) scrollPaddingRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
   };
 
+  // TODO: update for lens v3
   const submitComment = async (e) => {
     e.preventDefault();
     if (!authenticatedProfile) throw new Error("no authenticated profile!");

@@ -22,7 +22,7 @@ export const getPost = async (_postId: string) => {
   }
 };
 
-// TODO: this is a temporary function to get posts from lens v3
+// TODO: this is a temporary function to get posts from lens v3; need a way to fetch by ids
 export const getPosts = async (publicationIds: string[]) => {
   try {
     const posts = await Promise.all(publicationIds.map((id) => getPost(id)));

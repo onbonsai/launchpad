@@ -12,7 +12,6 @@ import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 import { ChainRpcs } from "@src/constants/chains";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import { roundedToFixed } from "@src/utils/utils";
-import { getAccessToken } from "@src/hooks/useLensLogin";
 import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
@@ -831,8 +830,9 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
     const { clubs } = await response.json();
 
     try {
-      // TODO: fetch for other strategies (ie orb_club, farcaster)
-      const publications = await getPosts(clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== "")).map(({ postId }) => postId));
+      // TODO: switch to postId?
+      const lensTokens = clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== ""));
+      const publications = await getPosts(lensTokens.map(({ pubId }) => pubId));
       const gPublications = groupBy(publications || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {

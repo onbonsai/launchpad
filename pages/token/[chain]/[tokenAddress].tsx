@@ -154,7 +154,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" && !!club.pubId ? 1 : 2);
-  const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
   const fairLaunchMode = !isLoadingTotalSupply && (totalSupply! < FLAT_THRESHOLD);
@@ -312,7 +311,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             <div className="flex flex-col">
                               <div className="flex flex-row space-x-4">
                                 <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                                <div className="ml-4 -mt-[6px]">
+                                <div className="pl-4 -mt-[6px]">
                                   <ShareClub clubId={club.clubId} symbol={club.token.name} />
                                 </div>
                                 <p className="text-white text-md"><WalletButton wallet={club.tokenAddress!} chain={club.chain} /></p>
@@ -459,11 +458,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
               {/* Feed/Trades/Holders */}
               <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                 <div className="mb-4">
-                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.postId} />
+                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
-                  <Feed postId={club.postId} morePadding={true} />
+                  <Feed postId={club.pubId} morePadding={true} />
                 )}
                 {openTab === 2 && (
                   <Trades clubId={club.clubId} />
