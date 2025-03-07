@@ -6,7 +6,6 @@ import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
 
-// TODO: check Authorization.idToken
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     let { txHash, pubId, profileId, handle, chain } = req.body;
@@ -19,15 +18,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",
     });
-    const { clubId }: { clubId: bigint } = registeredClubEvent.args;
+    const { clubId , tokenAddress}: { clubId: bigint, tokenAddress } = registeredClubEvent.args;
     if (!clubId) throw new Error("No registered club");
 
     const { collection } = await getClientWithClubs();
 
-    // only update where pubId does not exist
+    // link the token to a post and creator, for display purposes on the bonsai app
     await collection.updateOne(
-      { clubId: parseInt(clubId.toString()), pubId: { $exists: false } },
-      { $set: { pubId, profileId, handle } }
+      { clubId: parseInt(clubId.toString()) },
+      { $setOnInsert: { pubId, profileId, handle, tokenAddress } },
+      { upsert: true }
     );
 
     res.status(200).end();

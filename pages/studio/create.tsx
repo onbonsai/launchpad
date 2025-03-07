@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { toEvmAddress } from "@lens-protocol/metadata";
-import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier } from "@src/services/madfi/moneyClubs";
+import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 
@@ -178,11 +178,17 @@ const StudioCreatePage: NextPage = () => {
         cliffPercent: 50 * 100, // 50% cliff
         vestingDuration: 3600 * 6, // 6h
         pricingTier: finalTokenData.selectedNetwork === 'lens' ? finalTokenData.pricingTier as PricingTier : undefined,
-        postId,
-        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
       }, finalTokenData.selectedNetwork);
 
       if (!result) throw new Error("No result from registerClubTransaction");
+      // link the creator handle and post id
+      await setLensData({
+        hash: result.txHash as string,
+        postId,
+        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
+        chain: finalTokenData.selectedNetwork
+      });
+
       tokenAddress = result.tokenAddress;
     } catch (error) {
       console.log(error);
@@ -215,7 +221,7 @@ const StudioCreatePage: NextPage = () => {
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
-      toast.success("Token created! Going to page...", { duration: 5000, id: toastId });
+      toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);

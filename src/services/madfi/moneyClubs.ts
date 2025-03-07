@@ -81,6 +81,63 @@ const REGISTERED_CLUB = gql`
   }
 `;
 
+const REGISTERED_CLUB_BY_TOKEN = gql`
+  query Club($tokenAddress: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      creator
+      createdAt
+      initialSupply
+      createdAt
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      liquidity
+      complete
+      completedAt
+      liquidityReleasedAt
+      tokenInfo
+      tokenAddress
+      creatorFees
+      holders
+      v2
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+      prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade6h: trades(where:{createdAt_gt: $sixHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade1h: trades(where:{createdAt_gt: $oneHourAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade5m: trades(where:{createdAt_gt: $fiveMinutesAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+    }
+  }
+`;
+
 const REGISTERED_CLUB_INFO = gql`
   query ClubInfo($ids: [Bytes!]!) {
     clubs(where: { id_in: $ids }) {
@@ -456,24 +513,26 @@ export const subgraphClient = (chain = "base") => {
 };
 
 // server-side
-export const getRegisteredClubById = async (clubId: string, chain = "base") => {
-  const id = toHexString(parseInt(clubId));
+export const getRegisteredClubById = async (clubId: string, chain = "base", tokenAddress?: `0x${string}`) => {
   const now = Date.now();
   const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
   const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
   const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
   const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
   const client = subgraphClient(chain);
-  const { data: { club } } = await client.query({
-    query: REGISTERED_CLUB,
+  const { data } = await client.query({
+    query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
     variables: {
-      id,
+      id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
+      tokenAddress,
       twentyFourHoursAgo,
       sixHoursAgo,
       oneHourAgo,
       fiveMinutesAgo
     }
   });
+
+  const club = !tokenAddress ? data.club : (data.clubs ? data.clubs[0] : null);
 
   const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
   const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
@@ -1207,76 +1266,6 @@ const LENS_PRICING_TIERS = {
   }
 };
 
-type RegistrationParams = {
-  hook: `0x${string}`;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenDescription: string;
-  tokenImage: string;
-  initialSupply: string;
-  featureEndAt?: number;
-  cliffPercent: number; // bps
-  vestingDuration: number; // seconds
-  pricingTier?: PricingTier;
-  handle: string;
-};
-
-export const registerClub = async (
-  walletClient,
-  params: RegistrationParams,
-  chain = "base"
-): Promise<{ objectId?: string, clubId?: string, txHash?: string, tokenAddress?: string }> => {
-  const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
-  let args = [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration];
-  if (chain == "lens" && params.pricingTier) {
-    args.push(LENS_PRICING_TIERS[params.pricingTier].initialPrice);
-    args.push(LENS_PRICING_TIERS[params.pricingTier].flatThreshold);
-    args.push(LENS_PRICING_TIERS[params.pricingTier].targetPriceMultiplier);
-    args.push(zeroAddress); // TODO: whitelist module
-    args.push("0x"); // TODO: whitelist data
-    args.push(WGHO_CONTRACT_ADDRESS); // quote token
-  }
-  const hash = await walletClient.writeContract({
-    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-    abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
-    functionName: "registerClub",
-    args,
-    chain: getChain(chain)
-  });
-  console.log(`tx: ${hash}`);
-
-  const identityToken = isAuthenticated ? await getAccessToken() : undefined;
-  const [creator] = await walletClient.getAddresses();
-  const response = await fetch('/api/clubs/update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      strategy: params.strategy,
-      identityToken,
-      txHash: hash,
-      token: { name: params.tokenName, symbol: params.tokenSymbol, image: params.tokenImage, description: params.tokenDescription },
-      featureEndAt: params.featureEndAt,
-      handle: creator,
-      chain
-    })
-  });
-
-  const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
-  const event = getEventFromReceipt({
-    contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-    transactionReceipt: receipt,
-    abi: BonsaiLaunchpadAbi,
-    eventName: "RegisteredClub",
-  });
-  const res = {
-    objectId: (await response.json()).id as string,
-    clubId: event.args.clubId.toString(),
-    tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
-    txHash: hash
-  };
-  return receipt.status === "success" && response.ok ? res : {};
-};
-
 type RegistrationTxParams = {
   hook: `0x${string}`;
   tokenName: string;
@@ -1286,8 +1275,6 @@ type RegistrationTxParams = {
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
   pricingTier?: PricingTier;
-  postId: string;
-  handle: string;
 };
 export const registerClubTransaction = async (
   walletClient,
@@ -1313,17 +1300,6 @@ export const registerClubTransaction = async (
   });
   console.log(`tx: ${hash}`);
 
-  const response = await fetch('/api/clubs/set-lens-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      txHash: hash,
-      handle: params.handle,
-      pubId: params.postId,
-      chain,
-    })
-  });
-
   const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
   const event = getEventFromReceipt({
     contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
@@ -1336,8 +1312,22 @@ export const registerClubTransaction = async (
     tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
     txHash: hash
   };
-  return receipt.status === "success" && response.ok ? res : {};
+
+  return receipt.status === "success" ? res : {};
 };
+
+export const setLensData = async ({
+  hash,
+  handle,
+  postId,
+  chain,
+}: { hash: string; handle: string; postId: string; chain: string }) => {
+  await fetch('/api/clubs/set-lens-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ txHash: hash, handle, pubId: postId, chain })
+  });
+}
 
 export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`, chain = "base") => {
   const [recipient] = await walletClient.getAddresses();

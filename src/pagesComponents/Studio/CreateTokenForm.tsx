@@ -1,41 +1,27 @@
 import { inter } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useWalletClient, useSwitchChain, useReadContract } from "wagmi";
-import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
-import { Dialog } from "@headlessui/react";
+import { useAccount, useReadContract } from "wagmi";
+import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
-import toast from "react-hot-toast"
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
 import { roundedToFixed } from "@src/utils/utils";
 import { useGetRegistrationFee } from "@src/hooks/useMoneyClubs";
-import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import {
-  DECIMALS,
-  CONTRACT_CHAIN_ID,
   USDC_CONTRACT_ADDRESS,
-  USDC_DECIMALS,
-  registerClub as registerClubTransaction,
-  approveToken,
   MAX_INITIAL_SUPPLY,
-  BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
   PricingTier,
-  BONSAI_NFT_BASE_ADDRESS,
   WGHO_CONTRACT_ADDRESS,
   NETWORK_CHAIN_IDS,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
-import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
-import BondingCurveSelector from "@pagesComponents/Dashboard/BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
-import { IS_PRODUCTION, lens, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { base } from "viem/chains";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -78,9 +64,7 @@ const LENS_PRICING_TIERS = {
 };
 
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next }) => {
-  const { chainId, address } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const { switchChain } = useSwitchChain();
+  const { address } = useAccount();
   const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
@@ -88,7 +72,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage || []);
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
-  const [isBuying, setIsBuying] = useState(false);
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
 
   // stablecoin balance (GHO on lens, USDC on base)
@@ -100,7 +83,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
     args: [address as `0x${string}`]
   });
 
-  const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
   // TODO: might need to check this after registration fees enabled
   const isValid = (() => {
@@ -111,15 +93,9 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
            ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
   })();
 
-  const registrationCost = BigInt(0);
-
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
   ), [totalRegistrationFee, isLoadingRegistrationFee]);
-
-  // const registrationFee = useMemo(() => (
-  //   bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
-  // ), [registrationCost]);
 
   const networkOptions = useMemo(() => [{
     // label: "Networks",
@@ -143,58 +119,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
 
     fn();
   }
-
-  const registerClub = async () => {
-    setIsBuying(true);
-    let toastId;
-
-    const targetChainId = NETWORK_CHAIN_IDS[selectedNetwork];
-
-    if (chainId !== targetChainId) {
-      try {
-        switchChain({ chainId: targetChainId });
-      } catch {
-        toast.error(`Please switch to ${selectedNetwork}`);
-        setIsBuying(false);
-      }
-      return;
-    }
-
-    try {
-      if (totalRegistrationFee && totalRegistrationFee > 0n) {
-        await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
-      }
-
-      toastId = toast.loading("Creating token...");
-      const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
-
-      const { objectId, clubId, tokenAddress } = await registerClubTransaction(walletClient, !!authenticatedProfile?.id, {
-        initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        strategy: "lens",
-        tokenName,
-        tokenSymbol,
-        tokenImage: _tokenImage,
-        tokenDescription: "",
-        hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
-        // TODO: some sensible defaults
-        cliffPercent: 50 * 100, // 50% cliff
-        vestingDuration: 3600 * 6, // 6h
-        pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
-      }, selectedNetwork);
-      if (!(objectId && clubId)) throw new Error("failed");
-
-      setIsBuying(false);
-
-      // TODO: send request to eliza server
-
-      // TODO: set postId in the db record
-
-    } catch (error) {
-      setIsBuying(false);
-      console.log(error);
-      toast.error("Failed", { id: toastId });
-    }
-  };
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
@@ -428,7 +352,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next 
           </div>
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
-          <Button size='md' disabled={isBuying || !isValid} onClick={() => setTokenDataBefore(next)} variant="accentBrand" className="w-full hover:bg-bullish">
+          <Button size='md' disabled={!isValid} onClick={() => setTokenDataBefore(next)} variant="accentBrand" className="w-full hover:bg-bullish">
             Next
           </Button>
           {initialSupply && initialSupply > MAX_INITIAL_SUPPLY

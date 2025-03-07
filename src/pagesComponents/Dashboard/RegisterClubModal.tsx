@@ -19,12 +19,13 @@ import {
   CONTRACT_CHAIN_ID,
   USDC_CONTRACT_ADDRESS,
   USDC_DECIMALS,
-  registerClub as registerClubTransaction,
+  registerClubTransaction,
   approveToken,
   MAX_INITIAL_SUPPLY,
   BENEFITS_AUTO_FEATURE_HOURS,
   WHITELISTED_UNI_HOOKS,
   PricingTier,
+  setLensData,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
@@ -37,6 +38,9 @@ import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { createPost } from "@src/services/lens/createPost";
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { SessionClient } from "@lens-protocol/client";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -100,7 +104,6 @@ export const RegisterClubModal = ({
   const [vestingCliff, setVestingCliff] = useState<number>(10);
   const [vestingDuration, setVestingDuration] = useState<number>(2);
   const [vestingDurationUnit, setVestingDurationUnit] = useState<string>("hours");
-  const [tokenDescription, setTokenDescription] = useState<string>("");
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
@@ -169,53 +172,42 @@ export const RegisterClubModal = ({
 
       toastId = toast.loading("Creating token...");
       const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
-      const featureEndAt = bonsaiNftBalance > 0n
-        ? Math.floor(Date.now() / 1000) + (BENEFITS_AUTO_FEATURE_HOURS * 3600)
-        : undefined;
 
-      const { objectId, clubId, txHash } = await registerClubTransaction(walletClient, {
+      const { clubId, txHash, tokenAddress } = await registerClubTransaction(walletClient, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
         tokenName,
         tokenSymbol,
         tokenImage: _tokenImage,
-        tokenDescription,
-        featureEndAt,
         hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
         cliffPercent: vestingCliff * 100,
         vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit),
         pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
-        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
       }, selectedNetwork);
-      if (!(objectId && clubId)) throw new Error("failed");
+      if (!clubId) throw new Error("failed");
 
-      toastId = toast.loading("Preparing post...", { id: toastId });
-      const pubId = await createPost(clubId!, {
-        item: _tokenImage,
-        type: tokenImage[0].type,
-        altTag: tokenImage[0].name,
-      }, txHash!);
-      if (!pubId) throw new Error("Failed to create post");
+      let pubId;
+      if (authenticatedProfile?.address) {
+        toastId = toast.loading("Preparing post...", { id: toastId });
+        pubId = await _createPost(tokenAddress as string);
+        if (!pubId) toast.error("Failed to create post");
+      }
 
-      const response = await fetch('/api/clubs/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          updateRecord: {
-            id: objectId,
-            pubId
-          }
-        })
+      // link the creator handle and post id
+      await setLensData({
+        hash: txHash as string,
+        postId: pubId,
+        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
+        chain: selectedNetwork
       });
-      if (!response.ok) throw new Error("Failed to link publication");
 
       setTimeout(refetchRegisteredClub, 8000); // give the indexer some time
       setTimeout(refetchClubBalance, 8000); // give the indexer some time
       setIsBuying(false);
 
-      // toast.success("Token created! Share your Frame URL to invite your community", { duration: 10000, id: toastId });
       toast.success("Token created! Going to page...", { duration: 5000, id: toastId });
       closeModal();
-      setTimeout(() => router.push(`/token/${clubId}`), 2000);
+
+      setTimeout(() => router.push(`/token/${selectedNetwork}/${tokenAddress}`), 2000);
     } catch (error) {
       setIsBuying(false);
       console.log(error);
@@ -223,53 +215,24 @@ export const RegisterClubModal = ({
     }
   };
 
-  // TODO: update for lens v3
-  // create a post from the authenticated profile _or_ from Sage (@bons_ai)
-  const createPost = async (clubId: string, attachment: any, txHash: string) => {
-//     try {
-//       const publicationMetadata = publicationBody(
-//         `${tokenName} ($${tokenSymbol})
-// ${tokenDescription}
-// ${MADFI_CLUBS_URL}/token/${clubId}
-// `,
-//         [attachment],
-//         authenticatedProfile?.metadata?.displayName || authenticatedProfile?.handle!.suggestedFormatted.localName || "Sage"
-//       );
+  // create a post from the authenticated profile
+  const _createPost = async (tokenAddress: string): Promise<string | undefined> => {
+    try {
+      const text = `Created ${tokenName} ($${tokenSymbol}) on @bonsai
 
-//       // creating a post on momoka
-//       const { data: postIpfsHash } = await pinJson(publicationMetadata);
+${MADFI_CLUBS_URL}/token/${selectedNetwork}/${tokenAddress}`;
 
-//       if (authenticatedProfile?.id) {
-//         const broadcastResult = await createPostMomoka(
-//           walletClient,
-//           storjGatewayURL(`ipfs://${postIpfsHash}`),
-//           authenticatedProfile,
-//         );
+      const sessionClient = await resumeSession();
+      const result = await createPost(
+        sessionClient as SessionClient,
+        walletClient,
+        { text }
+      );
 
-//         // broadcastResult might be the `pubId` if it was a wallet tx
-//         if (broadcastResult) {
-//           // create seo image
-//           return typeof broadcastResult === "string"
-//             ? broadcastResult
-//             : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile?.id}-${broadcastResult?.toString(16)}`;
-//         }
-//       }
-
-//       const response = await fetch('/api/clubs/sage-create-post', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//           txHash,
-//           postIpfsHash
-//         })
-//       });
-
-//       if (!response.ok) throw new Error("Failed to create post");
-//       const data = await response.json();
-//       return data?.pubId;
-//     } catch (error) {
-//       console.log(error);
-//     }
+      return result?.postId;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
@@ -426,22 +389,6 @@ export const RegisterClubModal = ({
                     value={tokenSymbol}
                     className={clsx("w-full pr-4", sharedInputClasses)}
                     onChange={(e) => setTokenSymbol(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="sm:col-span-6 flex flex-col">
-              <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Subtitle className="text-white/70">
-                    Description
-                  </Subtitle>
-                </div>
-                <div>
-                  <textarea
-                    value={tokenDescription}
-                    className={clsx("w-full pr-4 resize-none", sharedInputClasses)}
-                    onChange={(e) => setTokenDescription(e.target.value)}
                   />
                 </div>
               </div>

@@ -23,6 +23,7 @@ interface Props {
       supply: string;
       currentPrice: string;
       token: { name: string; symbol: string; image: string; description: string };
+      tokenAddress: `0x${string}`;
       marketCap: string;
       featured?: boolean;
       handle: string;
@@ -116,7 +117,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
   }
 
   const link = club.v2
-    ? `/token/${club?.chain}-${club?.clubId}`
+    ? `/token/${club?.chain}/${club?.tokenAddress}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;

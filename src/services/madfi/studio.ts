@@ -144,7 +144,7 @@ export const resolveSmartMedia = async (
     if (!url) return;
 
     // HACK: localhost
-    // if (url === "http://localhost:3001") url = "https://eliza-staging.up.railway.app";
+    if (url === "http://localhost:3001") url = "https://eliza-staging.up.railway.app";
 
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) throw new Error(`Failed to resolve smart media: ${response.statusText}`);

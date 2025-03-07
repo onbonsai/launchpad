@@ -68,7 +68,7 @@ export const useGetPostsByAuthor = (authorId: string) => {
 };
 
 interface GetExplorePostsProps {
-  accountAddress: `0x${string}`; // authenticatedProfile.address
+  accountAddress?: `0x${string}`; // authenticatedProfile.address
   cursor?: Cursor;
   withToken?: boolean;
 }

@@ -3,7 +3,7 @@ import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
 import { useMemo, useState, ReactNode, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { formatUnits, zeroAddress } from "viem";
+import { formatUnits, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
@@ -31,7 +31,6 @@ import { ShareClub } from '@src/pagesComponents/Club';
 import { InfoOutlined } from '@mui/icons-material';
 import { capitalizeFirstLetter } from '@src/utils/utils';
 
-const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
 type Token = {
@@ -153,7 +152,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
     club.vestingDuration
   );
 
-  const [createSpaceModal, setCreateSpaceModal] = useState(false);
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" && !!club.pubId ? 1 : 2);
   const [livestreamConfig, setLivestreamConfig] = useState<LivestreamConfig | undefined>();
@@ -193,7 +191,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
     // Add handling for zero address and unknown hooks
     hooks[zeroAddress] = defaultHookInfo;
-    
+
     return new Proxy(hooks, {
       get: (target, prop) => target[prop] || defaultHookInfo
     });
@@ -479,22 +477,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
         </main>
       </div>
 
-      {/* Create Space Modal */}
-      <Modal
-        onClose={() => setCreateSpaceModal(false)}
-        open={createSpaceModal}
-        setOpen={setCreateSpaceModal}
-        panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
-      >
-        <CreateSpaceModal
-          profile={profile}
-          livestreamConfig={livestreamConfig}
-          setLivestreamConfig={setLivestreamConfig}
-          closeModal={() => setCreateSpaceModal(false)}
-          moneyClubId={club?.id}
-        />
-      </Modal>
-
       {/* Login Modal */}
       <Modal
         onClose={() => setOpenSignInModal(false)}
@@ -512,21 +494,10 @@ export default TokenPage;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const {
-    query: { clubId },
+    query: { chain, tokenAddress },
   } = context;
 
-  if (!clubId || typeof clubId !== 'string') {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/dashboard",
-      },
-    };
-  }
-
-  // Parse the chain-specific clubId format
-  const [chain, numericId] = clubId.split('-');
-  if (!chain || !numericId) {
+  if (!(chain && isAddress(tokenAddress as string))) {
     return {
       redirect: {
         permanent: false,
@@ -536,14 +507,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   const [_club, dbRecord] = await Promise.all([
-    getRegisteredClubById(numericId, chain), // Update function signature to accept chain
+    getRegisteredClubById("", chain as string, tokenAddress as `0x${string}`),
     (async () => {
       const { collection } = await getClientWithClubs();
       return await collection.findOne(
-        { 
-          clubId: parseInt(numericId),
-          chain: chain // Add chain to the query
-        }, 
+        { tokenAddress },
         { projection: { _id: 0 } }
       );
     })()

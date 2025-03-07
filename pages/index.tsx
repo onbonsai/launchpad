@@ -20,6 +20,7 @@ import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import { ActivityBanner } from "@src/components/Header";
+import { useGetExplorePosts } from "@src/services/lens/posts";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -39,6 +40,9 @@ const IndexPage: NextPage = () => {
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
   // TODO: steven use these posts to render a grid
+  // TODO: handle pagination
+  // TODO: with token
+  const { data: posts } = useGetExplorePosts({ accountAddress: address });
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -104,7 +108,6 @@ const IndexPage: NextPage = () => {
                         <ListItemCard items={[
                           "0% fees on bonding curves",
                           "0% fees on Uni v4 pools",
-                          `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
                           <>
                             Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
                               <span className="link link-hover">Rooftop Club</span>
