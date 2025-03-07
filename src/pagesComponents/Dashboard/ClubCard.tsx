@@ -10,11 +10,11 @@ import { localizeNumber } from "@src/constants/utils";
 
 interface Props {
   data: {
+    chain: string;
     publication: {
       stats: { comments: number };
     };
     club: {
-      chain?: string;
       creator: string;
       id: string;
       clubId: string;
@@ -35,7 +35,7 @@ interface Props {
 }
 
 const ClubCard = ({ data, creatorProfile }: Props) => {
-  const { club } = data;
+  const { club, chain } = data;
 
   const bondingCurveProgress = useMemo(() => {
     if (club.v2){
@@ -117,10 +117,10 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
   }
 
   const link = club.v2
-    ? `/token/${club?.chain}/${club?.tokenAddress}`
+    ? `/token/${chain}/${club?.tokenAddress}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
 
-  const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
+  const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   return (
     <Link href={link} legacyBehavior target="_blank">

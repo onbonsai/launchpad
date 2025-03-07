@@ -519,7 +519,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
 
-  if (!dbRecord) {
+  if (!dbRecord.token) {
     _club.token = {
       name: _club.name,
       symbol: _club.symbol,

@@ -839,28 +839,21 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
         const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (club?.hidden) return; // db forced hide
+        let { name, symbol, uri: image } = _club;
+        if (!name || !symbol || !image) {
+          // backup for v1 clubs
+          [name, symbol, image] = decodeAbiParameters([
+            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+          ], _club.tokenInfo);
+        }
+        const token = { name, image, symbol };
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
           if (club.featured) return; // featured clubs are queried elsewhere
           const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
-          return { publication, ..._club, ...club, marketCap };
+          return { publication, ..._club, ...club, marketCap, token };
         } else { // not created on our app
-          let { name, symbol, uri: image } = _club;
-
-          if (!name || !symbol || !image) {
-            // backup for v1 clubs
-            [name, symbol, image] = decodeAbiParameters([
-              { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-            ], _club.tokenInfo);
-          }
-          return {
-            ..._club,
-            handle: _club.creator,
-            marketCap,
-            token: {
-              name, image, symbol
-            }
-          };
+          return { ..._club, handle: _club.creator, marketCap, token };
         }
       }).filter((c) => c);
 
