@@ -1,13 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
-import { useWalletClient, useAccount, useSwitchChain } from "wagmi";
-import { useRouter } from "next/router";
+import { useState, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
-import useLensSignIn from "@src/hooks/useLensSignIn";
-import { lens, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
@@ -16,7 +12,6 @@ import { generatePreview, Preview, Template } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions} from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { inter } from "@src/fonts/fonts";
 
 type CreatePostProps = {
@@ -25,6 +20,10 @@ type CreatePostProps = {
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
   finalTemplateData?: any;
+  postContent?: string;
+  setPostContent: (s: string) => void;
+  postImage?: any;
+  setPostImage: (i: any) => void;
 };
 
 const CreatePostForm = ({
@@ -33,25 +32,24 @@ const CreatePostForm = ({
   setPreview,
   next,
   finalTemplateData,
+  postContent,
+  setPostContent,
+  postImage,
+  setPostImage,
 }: CreatePostProps) => {
-  const { data: walletClient } = useWalletClient();
-  const { switchChain } = useSwitchChain();
-  const { chain } = useAccount();
-  const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
-
-  const [postContent, setPostContent] = useState("");
-  const [postImage, setPostImage] = useState<any[]>([]);
-  const [isPosting, setIsPosting] = useState(false);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
-  const [previewId, setPreviewId] = useState<string | undefined>();
 
   const isValid = () => {
     try {
       template.templateData.form.parse(templateData);
+      if (template.options?.requireContent && !postContent) return false;
+      if (template.options?.requireImage && !postImage?.length) return false;
       return true;
-    } catch {}
+    } catch (error) {
+      // console.log(error);
+    }
 
     return false;
   }
@@ -111,16 +109,20 @@ const CreatePostForm = ({
                   setTemplateData={setTemplateData}
                   sharedInputClasses={sharedInputClasses}
                   veniceImageOptions={veniceImageOptions}
+                  postContent={postContent}
+                  setPostContent={setPostContent}
+                  postImage={postImage}
+                  setPostImage={setPostImage}
                 />
           }
         </div>
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
           {template.options.allowPreview && (
-            <Button size='md' disabled={isGeneratingPreview || isPosting || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+            <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
               Generate Preview
             </Button>
           )}
-          <Button size='md' disabled={isGeneratingPreview || isPosting || !isValid()} onClick={() => next(templateData)} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={() => next(templateData)} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             Next
           </Button>
         </div>
@@ -148,12 +150,20 @@ const DynamicForm = ({
   setTemplateData,
   sharedInputClasses,
   veniceImageOptions,
+  postContent,
+  setPostContent,
+  postImage,
+  setPostImage,
 }: {
   template: Template;
   templateData: Record<string, any>;
   setTemplateData: (data: Record<string, any>) => void;
   sharedInputClasses: string;
   veniceImageOptions?: { models?: string[]; stylePresets?: string[] };
+  postContent?: string;
+  setPostContent: (s: string) => void;
+  postImage?: any;
+  setPostImage: (i: any) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
 
@@ -196,34 +206,53 @@ const DynamicForm = ({
   // Get the shape of the zod object
   const shape = template.templateData.form.shape;
 
+  const FieldLabel = ({ label, fieldDescription }) => (
+    <div className="flex items-center gap-1">
+      <Subtitle className="text-white/70">
+        {label}
+      </Subtitle>
+      {fieldDescription && (
+        <div className="text-sm inline-block">
+          <Tooltip message={fieldDescription} direction="right">
+            <InfoOutlined
+              className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40"
+            />
+          </Tooltip>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
+      {/* Post content */}
+      {template.options?.requireContent && (
+        <div className="space-y-2">
+          <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
+          <textarea
+            value={postContent}
+            onChange={(e) => setPostContent(e.target.value)}
+            className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
+          />
+        </div>
+      )}
+
+      {/* Post image */}
+      {template.options?.requireImage && (
+        <div className="space-y-2">
+          <FieldLabel label={"Post image"} fieldDescription={"Set the starting image. Updates to your post could change it."} />
+          <ImageUploader files={postImage} setFiles={setPostImage} maxFiles={1} />
+        </div>
+      )}
+
       {Object.entries(shape).map(([key, field]) => {
         // normalize snakecase and camelcase
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
-        const fieldDescription = field.description;
         const isRequired = !field.isOptional();
-
-        const FieldLabel = () => (
-          <div className="flex items-center gap-1">
-            <Subtitle className="text-white/70">
-              {label}
-            </Subtitle>
-            {fieldDescription && (
-              <div className="text-sm inline-block">
-                <Tooltip message={fieldDescription} direction="right">
-                  <InfoOutlined
-                    className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40"
-                  />
-                </Tooltip>
-              </div>
-            )}
-          </div>
-        );
 
         return (
           <div key={key} className="space-y-2">
-            <FieldLabel />
+            <FieldLabel label={label} fieldDescription={field.description} />
 
             {/* Special handling for modelId and stylePreset using SelectDropdown */}
             {key === 'modelId' && models ? (
@@ -246,7 +275,7 @@ const DynamicForm = ({
               field._def.maxLength ? (
                 <textarea
                   value={templateData[key] || ''}
-                  onChange={(e) => updateField(key, e.target.value)}
+                  onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
                   maxLength={field._def.maxLength?.value}
                 />
@@ -254,7 +283,7 @@ const DynamicForm = ({
                 <input
                   type="text"
                   value={templateData[key] || ''}
-                  onChange={(e) => updateField(key, e.target.value)}
+                  onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )

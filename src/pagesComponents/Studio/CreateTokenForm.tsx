@@ -63,13 +63,13 @@ const LENS_PRICING_TIERS = {
   }
 };
 
-export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next }) => {
+export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next, postImage }) => {
   const { address } = useAccount();
   const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
   const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
-  const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage || []);
+  const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage || postImage || []);
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;

@@ -392,10 +392,56 @@ export const parseBase64Image = (imageBase64: string): File | undefined => {
 
 export const reconstructZodSchema = (shape: any) => {
   return z.object(
-    Object.entries(shape).reduce((acc, [key, def]) => ({
-      ...acc,
-      [key]: z.string() // or map the appropriate type based on def
-    }), {})
+    Object.entries(shape).reduce((acc, [key, field]) => {
+      let fieldSchema;
+      field = field._def;
+
+      const description = field.description;
+      let type = field.typeName;
+      let nullish = false
+
+      // Recursively unwrap ZodNullable and ZodOptional types
+      while (field.innerType && (field.typeName === 'ZodNullable' || field.typeName === 'ZodOptional')) {
+        nullish = true;
+        type = field.innerType._def.typeName;
+        field = field.innerType._def;
+      }
+
+      switch (type) {
+        case 'ZodString':
+          fieldSchema = z.string();
+          break;
+        case 'ZodNumber':
+          fieldSchema = z.number();
+          break;
+        case 'ZodBoolean':
+          fieldSchema = z.boolean();
+          break;
+        case 'ZodArray':
+          fieldSchema = z.array(z.any()); // or recursive if needed
+          break;
+        case 'ZodObject':
+          fieldSchema = reconstructZodSchema(field.shape);
+          break;
+        default:
+          fieldSchema = z.any();
+      }
+
+      // Add description if present
+      if (description) {
+        fieldSchema = fieldSchema.describe(description);
+      }
+
+      // Make nullish if the original was nullish
+      if (nullish) {
+        fieldSchema = fieldSchema.nullish();
+      }
+
+      return {
+        ...acc,
+        [key]: fieldSchema
+      };
+    }, {})
   );
 };
 

@@ -48,7 +48,8 @@ export type Template = {
   options: {
     allowPreview?: boolean;
     allowPreviousToken?: boolean;
-    requireImage: boolean;
+    requireImage?: boolean;
+    requireContent?: boolean;
   };
   templateData: {
     form: z.ZodObject<any>;

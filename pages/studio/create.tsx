@@ -17,7 +17,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
-import { createPost, uploadImageBase64 } from "@src/services/lens/createPost";
+import { createPost, uploadFile, uploadImageBase64 } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
@@ -49,6 +49,8 @@ const StudioCreatePage: NextPage = () => {
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
   const [isCreating, setIsCreating] = useState(false);
+  const [postContent, setPostContent] = useState("");
+  const [postImage, setPostImage] = useState<any[]>([]);
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
 
@@ -101,7 +103,9 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     try {
       let image;
-      if (preview?.image) {
+      if (postImage) {
+        image = (await uploadFile(postImage[0], template?.acl)).image;
+      } else if (preview?.image) {
         const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
         image = { url: imageUri, type };
       }
@@ -109,7 +113,7 @@ const StudioCreatePage: NextPage = () => {
         sessionClient as SessionClient,
         walletClient,
         {
-          text: preview?.text || template.displayName, // TODO: post content?
+          text: postContent || preview?.text || template.displayName,
           image,
           template,
           actions: [{
@@ -262,6 +266,10 @@ const StudioCreatePage: NextPage = () => {
                         preview={preview}
                         finalTemplateData={finalTemplateData}
                         setPreview={setPreview}
+                        postContent={postContent}
+                        setPostContent={setPostContent}
+                        postImage={postImage}
+                        setPostImage={setPostImage}
                         next={(templateData) => {
                           setFinalTemplateData(templateData);
                           setOpenTab(2);
@@ -271,6 +279,7 @@ const StudioCreatePage: NextPage = () => {
                     {openTab === 2 && (
                       <CreateTokenForm
                         finalTokenData={finalTokenData}
+                        postImage={postImage}
                         setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
                         next={() => setOpenTab(3)}

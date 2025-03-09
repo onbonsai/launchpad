@@ -150,7 +150,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
               <input {...getInputProps()} />
               <div className="text-secondary flex items-center flex-col">
                 <PhotographIcon width={50} height={50} />
-                <BodySemiBold>Upload an image (max: 10mb)</BodySemiBold>
+                <BodySemiBold>Upload an image (max: 8mb)</BodySemiBold>
               </div>
             </div>
           )}
