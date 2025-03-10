@@ -1,58 +1,83 @@
-const Sidebar = () => {
+"use client"
+
+import { Header } from "@src/styles/text"
+import { Button } from "@src/components/Button"
+import Link from "next/link"
+import clsx from "clsx"
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile"
+
+const StudioSidebar = () => {
+  const { data: authenticatedProfile } = useAuthenticatedLensProfile();
+
+  const profileDisabled = !authenticatedProfile?.username?.localName;
+
+  const menuItems = [
+    { icon: null, label: "Create", href: "/studio/create", disabled: false },
+    { icon: null, label: "Profile", href: "/studio", disabled: profileDisabled },
+    { icon: null, label: "Bonsai Token", href: "/studio/token", disabled: false },
+  ]
+
   return (
-    <>
-      <div className="bg-card rounded-xl p-4">
-        <h2 className="text-xl font-semibold mb-6 text-primary">My posts?</h2>
-        <div className="space-y-4">
-          <div className="cursor-pointer">
-            <p className="text-secondary hover:text-primary transition-colors">
-              Post Title 1 [disable updates]
-            </p>
-          </div>
-          <div className="cursor-pointer">
-            <p className="text-secondary hover:text-primary transition-colors">Post Title 2</p>
+    <div className="flex flex-col h-full w-64 bg-card rounded-xl p-4">
+      {/* Main Navigation */}
+      <nav className="space-y-2">
+        {menuItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.disabled ? "#" : item.href}
+            className={clsx(
+              "flex items-center px-3 py-2 rounded-lg transition-colors",
+              item.disabled
+                ? "text-secondary/50 cursor-not-allowed"
+                : "text-secondary hover:text-primary hover:bg-card-light"
+            )}
+            onClick={e => {
+              if (item.disabled) {
+                e.preventDefault();
+              }
+            }}
+          >
+            {/* <item.icon className="h-5 w-5 mr-3" /> */}
+            <span className="text-sm">[ICON] {item.label}</span>
+          </Link>
+        ))}
+      </nav>
+
+      {/* Recent Posts */}
+      <div className="mt-12">
+        <Header className="text-lg text-primary">Recent Posts</Header>
+        <nav className="mt-2 space-y-1">
+          <Link
+            href="/studio/post/1"
+            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors"
+          >
+            Post Title 1 [disable updates]
+          </Link>
+          <Link
+            href="/studio/post/2"
+            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors"
+          >
+            Post Title 2
+          </Link>
+        </nav>
+      </div>
+
+      {/* Bonsai Token Info */}
+      <div className="mt-12">
+        <Header className="text-lg text-primary">$BONSAI</Header>
+        <div className="mt-4 space-y-4 px-3">
+          <div>
+            <p className="text-sm text-primary">Staking</p>
+            <p className="text-secondary mt-1">50k</p>
           </div>
           <div>
-            <p className="text-secondary/60">... or mini publication component?</p>
+            <p className="text-sm text-primary">AI Credits (today)</p>
+            <p className="text-secondary mt-1">100</p>
           </div>
         </div>
       </div>
-      <div className="bg-card rounded-xl p-4 mt-10 space-y-4">
-        <h2 className="text-xl font-semibold mb-6 text-primary">Bonsai Token</h2>
-        <div className="space-y-2">
-          <p className="text-sm text-primary hover:text-primary transition-colors">
-            Lens Balance
-          </p>
-          <p className="text-secondary">
-            500k $BONSAI
-          </p>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm text-primary hover:text-primary transition-colors">
-            Staking
-          </p>
-          <p className="text-secondary">
-            0 $BONSAI
-          </p>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm text-primary hover:text-primary transition-colors">
-            Smart Media Credits (today)
-          </p>
-          <p className="text-secondary">
-            100
-          </p>
-        </div>
-        <div className="flex items-center mt-4 text-xs text-secondary/60">
-          <button
-            className="ml-auto bg-primary text-white px-4 py-1 rounded-full text-sm"
-          >
-            Get credits
-          </button>
-        </div>
-      </div>
-    </>
+    </div>
   )
-};
+}
 
-export default Sidebar;
+export default StudioSidebar;
