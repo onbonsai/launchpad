@@ -103,7 +103,7 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     try {
       let image;
-      if (postImage) {
+      if (postImage && postImage.length) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
       } else if (preview?.image) {
         const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
