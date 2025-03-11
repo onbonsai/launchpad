@@ -18,7 +18,6 @@ import { ConnectButton } from "@src/components/ConnectButton";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { createCommentMomoka, createCommentOnchain } from "@src/services/lens/createComment";
 import { useGetComments } from "@src/hooks/useGetComments";
 import PublicationContainer from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
@@ -27,7 +26,6 @@ import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfil
 import { sendLike } from "@src/services/lens/getReactions";
 import { postId, uri } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { post } from "@lens-protocol/client/actions";
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
 import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
@@ -46,6 +44,9 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
   const creatorPageRoute = `/profile/${publication?.author.username.localName}`;
+
+  // TODO: fetch registered club for media.token.address + chain
+  // console.log(media)
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
@@ -316,7 +317,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       content: post?.metadata?.content,
       image: post?.metadata?.image?.item || null,
       pageName: "singlePublication",
-      media,
+      media: media,
     },
   };
 };

@@ -1,84 +1,36 @@
-import { gql } from "@apollo/client";
-import { waitForTransaction, writeContract } from "@wagmi/core";
-import { omit } from "lodash/object";
+import { postId, SessionClient } from "@lens-protocol/client";
+import { executePostAction } from "@lens-protocol/client/actions";
+import { handleOperationWith } from "@lens-protocol/client/viem";
 
-import { apolloClient, apolloClientReadOnly } from "./apolloClient";
-import { broadcastOnchain } from './broadcastMutation';
-import { LENSHUB_PROXY } from "./utils";
-import { LensHubProxy } from "./abi";
+export const collectPost = async (
+  sessionClient: SessionClient,
+  walletClient: any,
+  _postId: string,
+  referralAddress?: `0x${string}`,
+): Promise<boolean> => {
+  const result = await executePostAction(sessionClient, {
+    post: postId(_postId),
+    action: {
+      simpleCollect: {
+        selected: true,
+        referrals: referralAddress ? [
+          {
+            address: referralAddress,
+            percent: 100,
+          },
+        ] : undefined,
+      },
+    },
+  }).andThen(handleOperationWith(walletClient));
 
-const COLLECT_POST_TYPED_DATA = gql`
-  mutation CreateCollectTypedData($publicationId: InternalPublicationId!) {
-    createCollectTypedData(request: {
-      publicationId: $publicationId
-    }) {
-      id
-      expiresAt
-      typedData {
-        types {
-          CollectWithSig {
-            name
-            type
-          }
-        }
-        domain {
-          name
-          chainId
-          version
-          verifyingContract
-        }
-        value {
-          nonce
-          deadline
-          profileId
-          pubId
-          data
-        }
-      }
-    }
+  if (result.isOk()) {
+    return true;
   }
-`;
 
-export const signCreateTypedData = async (variables, walletClient) => {
-  const { data } = await apolloClient.mutate({
-    mutation: COLLECT_POST_TYPED_DATA,
-    variables
-  });
+  console.log(
+    "lens:: collectPost:: failed to collect with error:",
+    result
+  );
 
-  const result = data.createCollectTypedData;
-  const typedData = result.typedData;
-
-  const [account] = await walletClient.getAddresses();
-  const signature = await walletClient.signTypedData({
-    account,
-    domain: omit(typedData.domain, "__typename"),
-    types: omit(typedData.types, "__typename"),
-    primaryType: 'CollectWithSig',
-    message: omit(typedData.value, "__typename"),
-  });
-
-  return { result, signature };
-};
-
-export const collectPostGasless = async (publicationId: string, walletClient: any) => {
-  const signedResult = await signCreateTypedData({ publicationId }, walletClient);
-
-  return await broadcastOnchain({
-    id: [signedResult.result.id],
-    signature: [signedResult.signature],
-  });
-};
-
-export const collectPost = async (publicationId: string, collectModuleData: any) => {
-  const [profileId, pubId] = publicationId.split("-");
-  const { hash } = await writeContract({
-    address: LENSHUB_PROXY,
-    abi: LensHubProxy,
-    functionName: "collect",
-    args: [profileId, pubId, collectModuleData],
-    gas: 2100000,
-  });
-
-  console.log(`tx: ${hash}`);
-  await waitForTransaction({ hash });
+  return false;
 };

@@ -69,7 +69,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
   const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
-  const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage || postImage || []);
+  const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;

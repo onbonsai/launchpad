@@ -20,7 +20,6 @@ import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { createCommentMomoka, createCommentOnchain } from "@src/services/lens/createComment";
 import { useGetComments } from "@src/hooks/useGetComments";
 import PublicationContainer, {
   PostFragmentPotentiallyDecrypted,

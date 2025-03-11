@@ -26,6 +26,7 @@ import { toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { parseBase64Image } from "@src/utils/utils";
 
 type TokenData = {
   initialSupply: number;
@@ -103,7 +104,7 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     try {
       let image;
-      if (postImage && postImage.length) {
+      if (postImage && postImage.length > 0) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
       } else if (preview?.image) {
         const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
@@ -137,7 +138,7 @@ const StudioCreatePage: NextPage = () => {
           }]
         }
       )
-      if (!result) throw new Error("No result from createPost");
+      if (!result?.postId) throw new Error("No result from createPost");
 
       postId = result.postId;
       uri = result.uri;
@@ -279,7 +280,7 @@ const StudioCreatePage: NextPage = () => {
                     {openTab === 2 && (
                       <CreateTokenForm
                         finalTokenData={finalTokenData}
-                        postImage={postImage}
+                        postImage={typeof preview?.image === 'string' ? [parseBase64Image(preview.image)] : preview?.image ? [preview.image] : postImage}
                         setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
                         next={() => setOpenTab(3)}
@@ -303,16 +304,17 @@ const StudioCreatePage: NextPage = () => {
                     </div>
                     {preview?.text && (
                       <Publication
+                        key={`preview-${JSON.stringify(preview)}`}
                         publicationData={{
                           author: authenticatedProfile,
                           timestamp: new Date().toISOString(),
                           metadata: {
-                            __typename: preview.image
+                            __typename: !!preview?.image
                               ? "ImageMetadata"
                               : (preview.video ? "VideoMetadata" : "TextOnlyMetadata"),
                             content: preview.text,
                             image: preview.image
-                              ? { item: preview.image }
+                              ? { item: typeof preview.image === 'string' ? preview.image : preview.imagePreview }
                               : undefined,
                             video: preview.video
                               ? { item: preview.video }

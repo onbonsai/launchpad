@@ -76,6 +76,7 @@ const CreatePostForm = ({
       const { agentId, preview } = res;
 
       if (!preview) throw new Error("No preview");
+      console.log("setting preview", preview)
       setPreview({
         ...preview,
         agentId,
@@ -87,6 +88,18 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(false);
+  }
+
+  const handleNext = () => {
+    if ((postContent || postImage?.length)) {
+      console.log("handle next with postImage", postImage)
+      setPreview({
+        text: postContent || "",
+        image: postImage?.length ? postImage[0] : undefined,
+        imagePreview: postImage[0].preview
+      });
+    }
+    next(templateData);
   }
 
   const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
@@ -122,7 +135,7 @@ const CreatePostForm = ({
               Generate Preview
             </Button>
           )}
-          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={() => next(templateData)} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             Next
           </Button>
         </div>

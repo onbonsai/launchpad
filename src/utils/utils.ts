@@ -368,26 +368,34 @@ export const formatFarcasterProfileToMatchLens = (profile) => ({
 export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37niuhe6d5xpf2kvu7eq/misc%2Ffarcaster.png";
 
 export const parseBase64Image = (imageBase64: string): File | undefined => {
-  // Extract image type from base64 string
-  const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
-  if (!matches) {
-    throw new Error("parseBase64Image:: failed to infer image type");
+  try {
+    // Extract image type from base64 string
+    const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
+    if (!matches) {
+      throw new Error("parseBase64Image:: failed to infer image type");
+    }
+
+    const imageType = matches[1];
+    const mimeType = `image/${imageType}`;
+
+    // Convert base64 to buffer
+    const base64Data = imageBase64.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+    const imageBuffer = Buffer.from(base64Data, "base64");
+
+    // Create a file object that can be used with FormData
+    const blob = new File([imageBuffer], `generated_${Date.now()}.${imageType}`, {
+      type: mimeType,
+    });
+
+    return Object.assign(blob, {
+      preview: URL.createObjectURL(blob),
+    });
+  } catch (error) {
+    console.log(error);
   }
-
-  const imageType = matches[1];
-  const mimeType = `image/${imageType}`;
-
-  // Convert base64 to buffer
-  const base64Data = imageBase64.replace(
-    /^data:image\/\w+;base64,/,
-    ""
-  );
-  const imageBuffer = Buffer.from(base64Data, "base64");
-
-  // Create a file object that can be used with FormData
-  return new File([imageBuffer], `generated_${Date.now()}.${imageType}`, {
-    type: mimeType
-  });
 };
 
 export const reconstructZodSchema = (shape: any) => {

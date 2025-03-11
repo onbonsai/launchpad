@@ -124,7 +124,7 @@ export const uploadImageBase64 = async (
   const file = parseBase64Image(image) as File;
   const acl = _acl || immutable(LENS_CHAIN_ID);
   const { uri: hash } = await storageClient.uploadFile(file, { acl });
-  console.log(`image hash: ${hash}`);
+  // console.log(`image hash: ${hash}`);
   return {
     uri: uri(hash),
     type: file.type as MediaImageMimeType
@@ -156,7 +156,7 @@ export const createPost = async (
   quoteOf?: string
 ): Promise<{ postId: string, uri: URI } | undefined> => {
   const contentUri = await uploadMetadata(params);
-  console.log(`contentUri: ${contentUri}`);
+  // console.log(`contentUri: ${contentUri}`);
 
   const result = await post(sessionClient, {
     contentUri,
@@ -176,10 +176,20 @@ export const createPost = async (
     .andThen(sessionClient.waitForTransaction);
 
   if (result.isOk()) {
-    const post = await fetchPost(lensClient, { txHash: txHash(result.value as `0x${string}`) });
-    if (post.isOk()) {
+    let post;
+    let attempts = 0;
+    do {
+      post = await fetchPost(lensClient, { txHash: txHash(result.value as `0x${string}`) });
+      post = post.value;
+      if (!post) {
+        if (++attempts === 3) return;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+      }
+    } while (!post);
+
+    if (post) {
       return {
-        postId: post.value?.slug as string, // slug is shorter version of id
+        postId: post.slug as string, // slug is shorter version of id
         uri: contentUri,
       };
     }

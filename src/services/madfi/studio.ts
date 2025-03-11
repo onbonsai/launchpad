@@ -57,9 +57,10 @@ export type Template = {
 };
 
 export type Preview = {
-  agentId: string;
+  agentId?: string; // HACK: should be present but optional if a preview is set client-side
   text: string;
-  image?: string;
+  image?: any;
+  imagePreview?: string;
   video?: string;
 }
 
@@ -143,7 +144,7 @@ export const resolveSmartMedia = async (
   attributes: MetadataAttribute[],
   postId: string,
   withVersions?: boolean
-): Promise<SmartMedia | undefined> => {
+): Promise<SmartMedia | null> => {
   try {
     let url = getSmartMediaUrl(attributes);
     if (!url) return;
@@ -158,5 +159,6 @@ export const resolveSmartMedia = async (
     return { ...data, isProcessing, versions };
   } catch (error) {
     console.log(error);
+    return null;
   }
 }
