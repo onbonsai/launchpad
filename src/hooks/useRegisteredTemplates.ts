@@ -5,7 +5,7 @@ import { ELIZA_API_URL } from "@src/services/madfi/studio";
 
 // TODO: some registry api
 const BONSAI_CLIENT_REGISTRY = [
-  "http://localhost:3001"//ELIZA_API_URL
+  ELIZA_API_URL
 ];
 
 const fetchBonsaiClients = async (): Promise<BonsaiClientMetadata[]> => {
