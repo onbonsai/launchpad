@@ -7,7 +7,7 @@ import { IS_PRODUCTION } from "./utils";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = IS_PRODUCTION
-  ? "https://eliza.bonsai.meme"
+  ? "https://eliza-staging.up.railway.app"
   : "https://eliza-staging.up.railway.app";
 
 /**
