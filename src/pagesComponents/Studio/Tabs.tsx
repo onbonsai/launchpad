@@ -1,18 +1,18 @@
 import { ToggleButton } from "@mui/material";
 import { StyledToggleButtonGroup } from "@pagesComponents/Dashboard/BondingCurveSelector";
 
-const tabs = [
-  { name: "Media", id: 1 },
-  { name: "Token", id: 2 },
-  { name: "Finalize", id: 3 },
-];
-
-export const Tabs = ({ openTab, setOpenTab }) => {
+export const Tabs = ({ openTab, setOpenTab, addToken }) => {
   // const handleChange = (event, newValue) => {
   //     if (newValue !== null) {
   //             setOpenTab(newValue);
   //     }
   // };
+
+  const tabs = [
+    { name: "Media", id: 1 },
+    addToken ? { name: "Token", id: 2 } : undefined,
+    { name: "Finalize", id: 3 },
+  ].filter(t => t) ;
 
   return (
     <div className="md:flex justify-end w-full">

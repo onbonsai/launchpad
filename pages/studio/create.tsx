@@ -52,6 +52,7 @@ const StudioCreatePage: NextPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
+  const [addToken, setAddToken] = useState(false);
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
 
@@ -151,55 +152,55 @@ const StudioCreatePage: NextPage = () => {
 
     // 2. create token + set club db record
     let tokenAddress;
-    toastId = toast.loading("Creating token...", { id: toastId });
-    try {
-      if (!finalTokenData) throw new Error("Missing finalTokenData");
-
-      const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
-      if (chain?.id !== targetChainId) {
-        try {
-          await switchChain(configureChainsConfig, { chainId: targetChainId });
-        } catch {
-          toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
-          setIsCreating(false);
-          return;
+    if (addToken && finalTokenData) {
+      toastId = toast.loading("Creating token...", { id: toastId });
+      try {
+        const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
+        if (chain?.id !== targetChainId) {
+          try {
+            await switchChain(configureChainsConfig, { chainId: targetChainId });
+          } catch {
+            toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
+            setIsCreating(false);
+            return;
+          }
         }
+
+        if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
+          const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
+          await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId);
+        }
+
+        const result = await registerClubTransaction(walletClient, {
+          initialSupply: parseUnits((finalTokenData.initialSupply || 0).toString(), DECIMALS).toString(),
+          tokenName: finalTokenData.tokenName,
+          tokenSymbol: finalTokenData.tokenSymbol,
+          tokenImage: storjGatewayURL(await pinFile(finalTokenData.tokenImage[0])),
+          hook: finalTokenData.selectedNetwork === 'base'
+            ? WHITELISTED_UNI_HOOKS[finalTokenData.uniHook].contractAddress as `0x${string}`
+            : zeroAddress,
+          // TODO: some sensible defaults
+          cliffPercent: 50 * 100, // 50% cliff
+          vestingDuration: 3600 * 6, // 6h
+          pricingTier: finalTokenData.selectedNetwork === 'lens' ? finalTokenData.pricingTier as PricingTier : undefined,
+        }, finalTokenData.selectedNetwork);
+
+        if (!result) throw new Error("No result from registerClubTransaction");
+        // link the creator handle and post id
+        await setLensData({
+          hash: result.txHash as string,
+          postId,
+          handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
+          chain: finalTokenData.selectedNetwork
+        });
+
+        tokenAddress = result.tokenAddress;
+      } catch (error) {
+        console.log(error);
+        toast.error("Failed to create token", { id: toastId });
+        setIsCreating(false);
+        return;
       }
-
-      if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
-        const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
-        await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId);
-      }
-
-      const result = await registerClubTransaction(walletClient, {
-        initialSupply: parseUnits((finalTokenData.initialSupply || 0).toString(), DECIMALS).toString(),
-        tokenName: finalTokenData.tokenName,
-        tokenSymbol: finalTokenData.tokenSymbol,
-        tokenImage: storjGatewayURL(await pinFile(finalTokenData.tokenImage[0])),
-        hook: finalTokenData.selectedNetwork === 'base'
-          ? WHITELISTED_UNI_HOOKS[finalTokenData.uniHook].contractAddress as `0x${string}`
-          : zeroAddress,
-        // TODO: some sensible defaults
-        cliffPercent: 50 * 100, // 50% cliff
-        vestingDuration: 3600 * 6, // 6h
-        pricingTier: finalTokenData.selectedNetwork === 'lens' ? finalTokenData.pricingTier as PricingTier : undefined,
-      }, finalTokenData.selectedNetwork);
-
-      if (!result) throw new Error("No result from registerClubTransaction");
-      // link the creator handle and post id
-      await setLensData({
-        hash: result.txHash as string,
-        postId,
-        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-        chain: finalTokenData.selectedNetwork
-      });
-
-      tokenAddress = result.tokenAddress;
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to create token", { id: toastId });
-      setIsCreating(false);
-      return;
     }
 
     // 3. create smart media
@@ -258,7 +259,7 @@ const StudioCreatePage: NextPage = () => {
                   <div className="lg:col-span-1 mt-8">
                     <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                       <div className="mb-4">
-                        <Tabs openTab={openTab} setOpenTab={setOpenTab} />
+                        <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                       </div>
                     </div>
                     {openTab === 1 && template && (
@@ -273,7 +274,7 @@ const StudioCreatePage: NextPage = () => {
                         setPostImage={setPostImage}
                         next={(templateData) => {
                           setFinalTemplateData(templateData);
-                          setOpenTab(2);
+                          setOpenTab(addToken ? 2 : 3);
                         }}
                       />
                     )}
@@ -291,8 +292,13 @@ const StudioCreatePage: NextPage = () => {
                         authenticatedProfile={authenticatedProfile}
                         finalTokenData={finalTokenData}
                         onCreate={onCreate}
-                        back={() => setOpenTab(2)}
+                        back={() => setOpenTab(addToken ? 2 : 1)}
                         isCreating={isCreating}
+                        addToken={addToken}
+                        onAddToken={() => {
+                          setAddToken(true);
+                          setOpenTab(2);
+                        }}
                       />
                     )}
                   </div>

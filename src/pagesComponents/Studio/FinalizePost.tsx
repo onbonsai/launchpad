@@ -31,7 +31,7 @@ const COLLECT_PRICE_TIERS = [
   }
 ];
 
-export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating }) => {
+export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating, addToken, onAddToken }) => {
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
@@ -61,12 +61,27 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
           {/* Token preview */}
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
-              <div className="flex items-center gap-1">
-                <Subtitle className="text-white/70">
-                  Token preview
-                </Subtitle>
-              </div>
-              <TokenPreviewCard authenticatedProfile={authenticatedProfile} token={finalTokenData} />
+              {addToken ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70">
+                      Token preview
+                    </Subtitle>
+                  </div>
+                  <TokenPreviewCard authenticatedProfile={authenticatedProfile} token={finalTokenData} />
+                </>
+              ) : (
+                <div className="flex flex-col justify-center space-y-4">
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70">
+                      Earn from trading fees by adding a token
+                    </Subtitle>
+                  </div>
+                  <Button size='md' onClick={onAddToken} variant="dark-grey" className="w-[1/2] hover:bg-bullish">
+                    Add a token
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 

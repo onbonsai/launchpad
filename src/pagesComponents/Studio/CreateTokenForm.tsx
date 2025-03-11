@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
+import { Disclosure, Transition } from "@headlessui/react";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
@@ -61,6 +63,18 @@ const LENS_PRICING_TIERS = {
     icon: 'local-atm',
     iconLabel: '$21k to graduate'
   }
+};
+
+const DisclosurePanelWithTransition = ({ children }) => {
+  return (
+    <Transition
+      enter="transition ease-in-out duration-200"
+      enterFrom="opacity-0 translate-y-1"
+      enterTo="opacity-100 translate-y-0"
+    >
+      {children}
+    </Transition>
+  )
 };
 
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next, postImage }) => {
@@ -271,44 +285,59 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
             </div>
           ) : (
             <div className="sm:col-span-6 flex flex-col">
-              <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Pricing Options
-                  </Subtitle>
-                  <div className="text-sm inline-block">
-                    <Tooltip message="Select the liquidity threshold required for your token to graduate" direction="top">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                      />
-                    </Tooltip>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 py-2">
-                  {Object.keys(LENS_PRICING_TIERS).map((key) => (
-                    <div
-                      key={`tier-${key}`}
-                      className={clsx(
-                        "flex-shrink-0 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
-                        pricingTier === key ? "" : "border-card-lightest"
-                      )}
-                      onClick={() => setPricingTier(key)}
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="text-center">
-                          <h3 className="text-sm font-semibold">{LENS_PRICING_TIERS[key].label}</h3>
+              <Disclosure defaultOpen>
+                {({ open }) => (
+                  <>
+                    <h3 className="leading-6">
+                      <Disclosure.Button className="flex w-full items-center justify-between py-3 hover:text-secondary/80">
+                        <div className="flex items-center gap-1">
+                          <Subtitle className="text-white/70">{`Token graduation - ${LENS_PRICING_TIERS[pricingTier].iconLabel}`}</Subtitle>
+                          <Tooltip message="Select the liquidity threshold required for your token to graduate" direction="top">
+                            <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
+                          </Tooltip>
                         </div>
-                        <div className="flex justify-center items-center mt-2">
-                          <span>
-                            <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
-                          </span>
-                          <span className="ml-1 text-white/40 text-sm">{LENS_PRICING_TIERS[key].iconLabel}</span>
+                        <span className="ml-6 flex items-center">
+                          {open ? (
+                            <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                          ) : (
+                            <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                          )}
+                        </span>
+                      </Disclosure.Button>
+                    </h3>
+                    <DisclosurePanelWithTransition>
+                      <Disclosure.Panel className="p-2">
+                        <div className="grid grid-cols-3 gap-4 py-2">
+                          {Object.keys(LENS_PRICING_TIERS).map((key) => (
+                            <div
+                              key={`tier-${key}`}
+                              className={clsx(
+                                "flex-shrink-0 cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
+                                pricingTier === key ? "" : "border-card-lightest"
+                              )}
+                              onClick={() => setPricingTier(key)}
+                            >
+                              <div className="flex flex-col items-center">
+                                <div className="text-center">
+                                  <h3 className="text-sm font-semibold">{LENS_PRICING_TIERS[key].label}</h3>
+                                </div>
+                                <div className="flex justify-center items-center mt-2">
+                                  <span>
+                                    <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                                  </span>
+                                  <span className="ml-1 text-white/40 text-sm">
+                                    {LENS_PRICING_TIERS[key].iconLabel}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      </Disclosure.Panel>
+                    </DisclosurePanelWithTransition>
+                  </>
+                )}
+              </Disclosure>
             </div>
           )}
 

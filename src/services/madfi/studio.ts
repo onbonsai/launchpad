@@ -8,7 +8,7 @@ import { IS_PRODUCTION } from "./utils";
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = IS_PRODUCTION
   ? "https://eliza-staging.up.railway.app"
-  : "https://eliza-staging.up.railway.app";
+  : "http://localhost:3001";
 
 /**
  * SmartMedia categories and templates
