@@ -97,7 +97,7 @@ export const Balance = () => {
           style={{ zIndex: 1400 }}
         >
           <div
-            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] space-y-2"
+            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] font-sf-pro-text"
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={handleMouseLeave}
           >

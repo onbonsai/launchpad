@@ -1358,7 +1358,8 @@ export const approveToken = async (
   walletClient: any,
   toastId?,
   approveMessage = "Approving tokens...",
-  chain = "base"
+  chain = "base",
+  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
 ) => {
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
@@ -1366,7 +1367,7 @@ export const approveToken = async (
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [user, PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad],
+    args: [user, contractAddress],
   });
 
   if (allowance < amount) {
@@ -1375,7 +1376,7 @@ export const approveToken = async (
       address: token,
       abi: erc20Abi,
       functionName: "approve",
-      args: [PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad, maxUint256],
+      args: [contractAddress, maxUint256],
       chain: getChain(chain)
     });
     console.log(`hash: ${hash}`)

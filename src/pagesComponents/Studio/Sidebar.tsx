@@ -5,9 +5,19 @@ import { Button } from "@src/components/Button"
 import Link from "next/link"
 import clsx from "clsx"
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile"
-
+import { formatStakingAmount, useStakingData } from "@src/hooks/useStakingData"
+import { useAccount } from "wagmi"
+import { useMemo } from "react"
+import { kFormatter } from "@src/utils/utils"
 const StudioSidebar = () => {
+  const { address } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
+  const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
+
+  const totalStaked = useMemo(() => {
+    if (!stakingData?.summary?.totalStaked) return "0";
+    return formatStakingAmount(stakingData.summary.totalStaked);
+  }, [stakingData?.summary]);
 
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
@@ -45,17 +55,17 @@ const StudioSidebar = () => {
 
       {/* Recent Posts */}
       <div className="mt-12">
-        <Header className="text-lg text-primary">Recent Posts</Header>
+        <Header className="text-lg">Recent Posts</Header>
         <nav className="mt-2 space-y-1">
           <Link
             href="/studio/post/1"
-            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors"
+            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors opacity-80"
           >
             Post Title 1 [disable updates]
           </Link>
           <Link
             href="/studio/post/2"
-            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors"
+            className="block px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-card-light rounded-lg transition-colors opacity-80"
           >
             Post Title 2
           </Link>
@@ -64,14 +74,14 @@ const StudioSidebar = () => {
 
       {/* Bonsai Token Info */}
       <div className="mt-12">
-        <Header className="text-lg text-primary">$BONSAI</Header>
+        <Header className="text-lg">$BONSAI</Header>
         <div className="mt-4 space-y-4 px-3">
           <div>
-            <p className="text-sm text-primary">Staking</p>
-            <p className="text-secondary mt-1">50k</p>
+            <p className="text-sm opacity-80">Staking</p>
+            <p className="text-secondary mt-1">{kFormatter(totalStaked)}</p>
           </div>
           <div>
-            <p className="text-sm text-primary">AI Credits (today)</p>
+            <p className="text-sm  opacity-80">AI Credits (today)</p>
             <p className="text-secondary mt-1">100</p>
           </div>
         </div>
