@@ -122,18 +122,22 @@ export const getReactions = async (pubIds: string[]) => {
 };
 
 export const getComments = async (slug: string, sessionClient?: SessionClient): Promise<any> => {
-  const result = await fetchPostReferences(sessionClient || lensClient, {
-    referencedPost: postId(slug),
-    referenceTypes: [PostReferenceType.CommentOn],
-  });
+  try {
+    const result = await fetchPostReferences(sessionClient || lensClient, {
+      referencedPost: postId(slug),
+      referenceTypes: [PostReferenceType.CommentOn],
+    });
 
-  if (result.isErr()) {
-    console.error(result.error);
+    if (result.isErr()) {
+      console.error(result.error);
+      return [];
+    }
+
+    // items: Array<AnyPost>
+    const { items, pageInfo } = result.value;
+
+    return items;
+  } catch (error) {
     return [];
   }
-
-  // items: Array<AnyPost>
-  const { items, pageInfo } = result.value;
-
-  return items;
 };

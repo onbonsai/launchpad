@@ -23,6 +23,8 @@ import { inter } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
+import { useRouter } from "next/router.js";
+import { SinglePageLayout } from "@src/components/Layouts/Layout/SinglePageLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +53,12 @@ const boxTheme = {
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
+
+  const router = useRouter();
+
+  const isPostRoute = router.pathname.startsWith("/post");
+
+  const AppLayout = isPostRoute ? SinglePageLayout : Layout;
 
   if (typeof window !== "undefined") {
     window.addEventListener(
@@ -124,11 +132,11 @@ export default function MyApp(props: AppProps) {
                   )}
                 </Toaster>
                 <NextNProgress color={"#7B0100"} height={2} />
-                <Layout>
+                <AppLayout>
                   <BoxThemeProvider theme={boxTheme}>
                     <Component {...pageProps} />
                   </BoxThemeProvider>
-                </Layout>
+                </AppLayout>
                 <Analytics />
               </HotkeysProvider>
             </ClubsProvider>

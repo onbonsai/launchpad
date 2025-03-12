@@ -19,7 +19,8 @@ export const fetchAvailableAccounts = async (address: string) => {
 export const resumeSession = async () => {
   const resumed = await lensClient.resumeSession();
   if (resumed.isErr()) {
-    return console.error(resumed.error);
+    console.error(resumed.error);
+    return;
   }
   // SessionClient: { ... }
   const sessionClient = resumed.value;

@@ -6,9 +6,7 @@ import { getSmartMediaUrl } from "@src/utils/utils";
 import { IS_PRODUCTION } from "./utils";
 
 export const APP_ID = "BONSAI";
-export const ELIZA_API_URL = IS_PRODUCTION
-  ? "https://eliza-staging.up.railway.app"
-  : "http://localhost:3001";
+export const ELIZA_API_URL = "https://eliza-staging.up.railway.app";
 
 /**
  * SmartMedia categories and templates
@@ -147,13 +145,17 @@ export const resolveSmartMedia = async (
 ): Promise<SmartMedia | null> => {
   try {
     let url = getSmartMediaUrl(attributes);
-    if (!url) return;
+    if (!url) return null;
 
     // HACK: localhost
     if (url === "http://localhost:3001") url = ELIZA_API_URL;
-
+    const fullUrl = `${url}/post/${postId}?withVersions=${withVersions}`;
+    console.log('RESOLVING:', fullUrl);
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
-    if (!response.ok) throw new Error(`Failed to resolve smart media: ${response.statusText}`);
+    if (!response.ok) {
+      console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);
+      return null;
+    }
 
     const { data, isProcessing, versions } = await response.json();
     return { ...data, isProcessing, versions };

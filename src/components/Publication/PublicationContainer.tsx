@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
@@ -44,6 +44,8 @@ type PublicationContainerProps = {
   hideFollowButton?: boolean;
   media?: SmartMedia;
   onCollectCallback?: () => void;
+  sideBySideMode?: boolean;
+  nestedWidget?: ReactNode;
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -70,6 +72,8 @@ const PublicationContainer = ({
   hideFollowButton,
   media,
   onCollectCallback,
+  sideBySideMode,
+  nestedWidget,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -290,7 +294,6 @@ const PublicationContainer = ({
 
     setIsCollecting(false);
   }
-
   return (
     <div className="mt-4 relative">
       <Publication
@@ -343,6 +346,8 @@ const PublicationContainer = ({
         heartIconOverride={true}
         messageIconOverride={true}
         shareIconOverride={true}
+        sideBySideMode={sideBySideMode}
+        nestedWidget={nestedWidget}
       />
       {showCollectModal && (
         <CollectModal

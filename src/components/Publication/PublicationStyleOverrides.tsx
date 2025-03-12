@@ -24,6 +24,7 @@ export const mediaImageStyleOverride = css`
     height: auto;
     display: block;
     border-radius: 16px;
+    object-fit: contain;
 `
 
 export const imageContainerStyleOverride = css`
@@ -34,6 +35,7 @@ export const imageContainerStyleOverride = css`
   width: 100%;
   overflow: hidden;
   max-height: 480px;
+  border-radius: 16px;
 `
 
 export const reactionsContainerStyleOverride = css`

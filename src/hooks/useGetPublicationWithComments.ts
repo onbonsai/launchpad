@@ -4,10 +4,15 @@ import { getComments } from "@src/services/lens/getReactions";
 import { resumeSession } from "./useLensLogin";
 
 const fetchData = async (postId: string) => {
-  const sessionClient = await resumeSession();
-  const [publication, comments] = await Promise.all([getPost(postId, sessionClient), getComments(postId, sessionClient)]);
+  try {
+    const sessionClient = await resumeSession();
+    const [publication, comments] = await Promise.all([getPost(postId, sessionClient), getComments(postId, sessionClient)]);
 
-  return { publication, comments };
+    return { publication, comments };
+  } catch (error) {
+    console.error("Error fetching publication:", error);
+    return null;
+  }
 };
 
 export default (postId?: string) => {
