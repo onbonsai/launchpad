@@ -14,11 +14,15 @@ import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { kFormatter } from "@src/utils/utils";
 import { inter } from "@src/fonts/fonts";
 import Popper from '@mui/material/Popper';
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
+import { Subtitle } from "@src/styles/text";
+import WalletButton from "../Creators/WalletButton";
 
 export const Balance = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const { address, isConnected } = useAccount();
+  const { data: authenticatedProfile } = useAuthenticatedLensProfile();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
@@ -67,6 +71,10 @@ export const Balance = () => {
     setAnchorEl(null);
   };
 
+  const formattedAccount = useMemo(() => {
+    return `${authenticatedProfile?.address.slice(0, 6)}...`;
+  }, [authenticatedProfile]);
+
   return (
     <div className={clsx("relative inline-block", inter.className)}>
       <div
@@ -89,10 +97,14 @@ export const Balance = () => {
           style={{ zIndex: 1400 }}
         >
           <div
-            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px]"
+            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] space-y-2"
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={handleMouseLeave}
           >
+            {/* <div className="flex items-center space-x-2">
+              <Subtitle className="text-white/70">Lens Account</Subtitle>
+              <WalletButton wallet={authenticatedProfile?.address} />
+            </div> */}
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-x-2">
                 <div className="relative">

@@ -30,6 +30,7 @@ import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
 import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
+import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -45,14 +46,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
   const creatorPageRoute = `/profile/${publication?.author.username.localName}`;
 
-  // TODO: fetch registered club for media.token.address + chain
-  // console.log(media)
+  // TODO: render token info
+  const { data: token, isLoading: isLoadingToken } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
+  console.log(publication, media, token);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
+  const [canComment, setCanComment] = useState(publication.operations?.hasSimpleCollected);
 
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
@@ -212,7 +215,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                   onCommentButtonClick={onCommentButtonClick}
                   shouldGoToPublicationPage={false}
                   isProfileAdmin={isProfileAdmin}
-                  setSubscriptionOpenModal={() => { }}
+                  media={media}
+                  onCollectCallback={() => setCanComment(true)}
                 />
               )}
             </div>
@@ -244,6 +248,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 heartIconOverride={true}
                 messageIconOverride={true}
                 shareIconOverride={true}
+                followButtonDisabled={true}
               />
             </div>
             {(!isConnected || !walletClient) && (
@@ -262,33 +267,42 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
               <>
                 <div className="flex items-center gap-x-6 mt-4">
                   <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-                  <input
-                    ref={commentInputRef}
-                    type="text"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                    placeholder="Add a comment"
-                    onFocus={() => setInputFocused(true)}
-                    onBlur={() => setInputFocused(false)}
-                  />
-                </div>
-                <div className="flex justify-between gap-y-2 -mt-4">
-                  <div className="ml-[72px]">
-                    <GenericUploader files={files} setFiles={setFiles} />
-                  </div>
-                  <div className="mt-3">
-                    <ActionButton
-                      label="Comment"
-                      disabled={isCommenting || !comment}
-                      onClick={submitComment}
-                      theme={Theme.dark}
-                      backgroundColor={comment ? "#EEEDED" : "transparent"}
-                      textColor={comment ? undefined : "#EEEDED"}
+                  <div className="relative w-full">
+                    <input
+                      ref={commentInputRef}
+                      type="text"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                      placeholder={canComment ? "Add a comment" : "Collect the post to join"}
+                      disabled={!canComment}
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setInputFocused(false)}
                     />
+                    {canComment && (
+                      <div className="absolute right-2 -top-2">
+                        <GenericUploader files={files} setFiles={setFiles} contained />
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="h-14" ref={scrollPaddingRef}></div>
+                {canComment && (
+                  <>
+                    <div className="flex justify-end gap-y-2 -mt-4">
+                      <div className="mt-3">
+                        <ActionButton
+                          label="Comment"
+                          disabled={isCommenting || !comment}
+                          onClick={submitComment}
+                          theme={Theme.dark}
+                          backgroundColor={comment ? "#EEEDED" : "transparent"}
+                          textColor={comment ? undefined : "#EEEDED"}
+                        />
+                      </div>
+                    </div>
+                    <div className="h-14" ref={scrollPaddingRef}></div>
+                  </>
+                )}
               </>
             )}
           </div>

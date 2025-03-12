@@ -218,10 +218,10 @@ const StudioCreatePage: NextPage = () => {
         agentId: preview?.agentId,
         postId,
         uri,
-        token: {
+        token: addToken && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress
-        },
+        } : undefined,
         params
       }));
 

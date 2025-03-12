@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-
 import { getPost } from "@src/services/lens/posts";
 import { getComments } from "@src/services/lens/getReactions";
+import { resumeSession } from "./useLensLogin";
 
 const fetchData = async (postId: string) => {
-  const [publication, comments] = await Promise.all([getPost(postId), getComments(postId)]);
+  const sessionClient = await resumeSession();
+  const [publication, comments] = await Promise.all([getPost(postId, sessionClient), getComments(postId, sessionClient)]);
 
   return { publication, comments };
 };

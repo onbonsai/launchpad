@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { Account, Cursor, evmAddress, postId, PostType, txHash } from "@lens-protocol/client";
+import { Cursor, evmAddress, postId, PostType, SessionClient } from "@lens-protocol/client";
 import { fetchPost, fetchPosts } from "@lens-protocol/client/actions";
 import { lensClient } from "./client";
 import { APP_ID } from "../madfi/studio";
 
-export const getPost = async (_postId: string) => {
+export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
-    const result = await fetchPost(lensClient, {
+    const result = await fetchPost(sessionClient || lensClient, {
       post: postId(_postId),
     });
 

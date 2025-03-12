@@ -183,7 +183,7 @@ export const createPost = async (
       post = post.value;
       if (!post) {
         if (++attempts === 3) return;
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
     } while (!post);
 

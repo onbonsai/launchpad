@@ -3,7 +3,7 @@ import { gql } from "@apollo/client";
 import { apolloClient } from "./apolloClient";
 import { lensClient } from "./client";
 import { addReaction, fetchPostReferences } from "@lens-protocol/client/actions";
-import { postId, PostReferenceType } from "@lens-protocol/client";
+import { postId, PostReferenceType, SessionClient } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
 
 // v2 complete
@@ -121,8 +121,8 @@ export const getReactions = async (pubIds: string[]) => {
   return reactions;
 };
 
-export const getComments = async (slug: string): Promise<any> => {
-  const result = await fetchPostReferences(lensClient, {
+export const getComments = async (slug: string, sessionClient?: SessionClient): Promise<any> => {
+  const result = await fetchPostReferences(sessionClient || lensClient, {
     referencedPost: postId(slug),
     referenceTypes: [PostReferenceType.CommentOn],
   });

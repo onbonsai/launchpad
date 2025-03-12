@@ -10,12 +10,13 @@ interface ImageUploaderProps {
   files: any[];
   setFiles: (value: SetStateAction<any[]>) => void;
   children?: ReactNode;
+  contained?: boolean;
 }
 
 const MAX_SIZE = 8000000; // 8 MB
 const MAX_FILES = 1;
 
-export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...rest }) => {
+export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, contained, ...rest }) => {
   const acceptFileTypes = {
     "image/*": [".png", ".gif", ".jpeg", ".jpg"],
     "video/*": [".mov", ".mp4"],
@@ -76,16 +77,29 @@ export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...re
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 pb-2 mt-2">
-        {files.map((file: any, i: number) => (
-          <div className="reveal-on-hover relative" key={i}>
-            <img className="object-cover rounded-md w-[3rem] h-14" src={file.preview} alt={file.name} />
-            <button className="-mt-8 bg-black/75 absolute h-8 show-on-hover w-full" onClick={(e) => removeFile(e, file)}>
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
+      {contained ? (
+        <div className="flex gap-2 mt-4">
+          {files.map((file: any, i: number) => (
+            <div className="reveal-on-hover relative" key={i}>
+              <img className="object-cover rounded-md w-[3rem] h-8" src={file.preview} alt={file.name} />
+              <button className="-mt-8 bg-black/75 absolute h-8 show-on-hover w-full" onClick={(e) => removeFile(e, file)}>
+                x
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 pb-2 mt-2">
+          {files.map((file: any, i: number) => (
+            <div className="reveal-on-hover relative" key={i}>
+              <img className="object-cover rounded-md w-[3rem] h-14" src={file.preview} alt={file.name} />
+              <button className="-mt-8 bg-black/75 absolute h-8 show-on-hover w-full" onClick={(e) => removeFile(e, file)}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       {files?.length < MAX_FILES && (
         <Dropzone
           accept={acceptFileTypes}
@@ -98,7 +112,8 @@ export const GenericUploader: FC<ImageUploaderProps> = ({ files, setFiles, ...re
             <div
               {...getRootProps()}
               className={cx(
-                "flex flex-col items-center justify-center border-2 rounded-md border-spacing-5 rounded-xs border-dark-grey shadow-sm focus:border-dark-grey focus:ring-dark-grey transition-all h-10 cursor-pointer",
+                "flex flex-col items-center justify-center transition-all h-10 cursor-pointer",
+                !contained ? "border-2 rounded-md border-spacing-5 rounded-xs border-dark-grey shadow-sm focus:border-dark-grey focus:ring-dark-grey" : "",
                 files.length ? "shadow-xl" : "",
               )}
             >

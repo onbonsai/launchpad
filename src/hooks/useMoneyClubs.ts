@@ -36,6 +36,16 @@ export const useRegisteredClubById = (clubId: string) => {
   });
 };
 
+export const useRegisteredClubByToken = (tokenAddress?: `0x${string}`, chain?: string) => {
+  return useQuery({
+    queryKey: ["registered-club-token", tokenAddress, chain],
+    queryFn: () => getRegisteredClubById("", chain, tokenAddress),
+    enabled: !!tokenAddress && !!chain,
+    staleTime: 10000,
+    gcTime: 60000,
+  });
+};
+
 export const useRegisteredClub = (handle?: string, profileId?: string) => {
   return useQuery({
     queryKey: ["registered-club", handle, profileId],
@@ -93,7 +103,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
 
         // Combine and sort the clubs according to sortedBy parameter
         const combinedClubs = [...baseClubs, ...lensClubs];
-        
+
         return {
           clubs: combinedClubs,
           nextPage: {
@@ -341,8 +351,8 @@ export const useGetTradingInfo = (clubId?: number, chain = "base") => {
 };
 
 export const useGetAvailableBalance = (
-  tokenAddress: `0x${string}`, 
-  address: `0x${string}` | undefined, 
+  tokenAddress: `0x${string}`,
+  address: `0x${string}` | undefined,
   complete: boolean,
   chain = "base"
 ) => {

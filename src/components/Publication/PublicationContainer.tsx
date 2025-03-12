@@ -1,29 +1,23 @@
 import { useMemo, useState, useEffect } from "react";
-import { LockClosedIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
-import { PostFragment, postId, PublicationReactionType } from "@lens-protocol/client"
 import { Publication, Theme } from "@madfi/widgets-react";
 import Popper from '@mui/material/Popper';
 import clsx from "clsx";
-import { erc20Abi, formatEther } from "viem";
+import { erc20Abi, formatEther, parseEther } from "viem";
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 
-import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
-import { MADFI_POST_URL, MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
-import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
+import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
+import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/createMirror";
 import { ChainRpcs } from "@src/constants/chains";
-import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
-import { polygon } from "viem/chains";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, actButtonContainerStyleOverride } from "./PublicationStyleOverrides";
-import { addReaction } from "@lens-protocol/client/actions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
@@ -32,13 +26,13 @@ import { inter } from "@src/fonts/fonts";
 import { Subtitle } from "@src/styles/text";
 import { collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import type { SmartMedia } from "@src/services/madfi/studio";
+import WalletButton from "../Creators/WalletButton";
 
 type PublicationContainerProps = {
   publicationId?: string;
   publication?: PostFragmentPotentiallyDecrypted;
   isProfileAdmin?: boolean;
-  setSubscriptionOpenModal?: () => void;
-  hasMintedBadge?: string;
   decryptGatedPosts?: () => void;
   decrypting?: boolean;
   shouldGoToPublicationPage?: boolean;
@@ -48,9 +42,11 @@ type PublicationContainerProps = {
   returnToPage?: string;
   hideQuoteButton?: boolean;
   hideFollowButton?: boolean;
+  media?: SmartMedia;
+  onCollectCallback?: () => void;
 };
 
-export type PostFragmentPotentiallyDecrypted = PostFragment & {
+export type PostFragmentPotentiallyDecrypted = any & {
   isDecrypted?: boolean;
 };
 
@@ -63,8 +59,6 @@ const PublicationContainer = ({
   publicationId,
   publication,
   isProfileAdmin,
-  setSubscriptionOpenModal,
-  hasMintedBadge,
   decryptGatedPosts,
   decrypting,
   shouldGoToPublicationPage = false,
@@ -74,10 +68,12 @@ const PublicationContainer = ({
   returnToPage,
   hideQuoteButton = false,
   hideFollowButton,
+  media,
+  onCollectCallback,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
-  const { isConnected, chainId, address, chain } = useAccount();
+  const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const {
     isAuthenticated,
@@ -89,21 +85,22 @@ const PublicationContainer = ({
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
   const [hasMirrored, setHasMirrored] = useState<boolean>(publication?.operations?.hasMirrored || false);
+  const [hasCollected, setHasCollected] = useState<boolean>(publication.operations?.hasSimpleCollected || false);
   const [collectAmount, setCollectAmount] = useState<string>();
   const [isCollecting, setIsCollecting] = useState(false);
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
 
-  // bonsai balance on Lens
+  // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
     address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
     abi: erc20Abi,
     chainId: LENS_CHAIN_ID,
     functionName: "balanceOf",
-    args: [address as `0x${string}`],
+    args: [authenticatedProfile?.address as `0x${string}`],
     query: {
       refetchInterval: 10000,
-      enabled: isConnected && !!address
+      enabled: isAuthenticated && authenticatedProfile?.address
     },
   });
 
@@ -168,7 +165,7 @@ const PublicationContainer = ({
 
   const handleCommentButton = (e, actionModuleHandler?) => {
     if (shouldGoToPublicationPage) return goToPublicationPage(e);
-    if (onCommentButtonClick) onCommentButtonClick(e);
+    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e);
   };
 
   const onMirrorButtonClick = async (e: React.MouseEvent, actionModuleHandler?) => {
@@ -204,52 +201,6 @@ const PublicationContainer = ({
     }
   };
 
-  // TODO: refactor for p00ls
-  // const { requiresBadge, hasMintedCorrectBadge } = useMemo(() => {
-  //   const hasTokenIdRequirement = publication?.metadata?.encryptedWith?.accessCondition?.criteria?.
-  //     find(({ tokenIds }) => tokenIds);
-  //   const requiresBadge = !isEmpty(hasTokenIdRequirement);
-  //   const hasMintedCorrectBadge = hasTokenIdRequirement?.tokenIds?.includes(hasMintedBadge);
-
-  //   return { requiresBadge, hasMintedCorrectBadge };
-  // }, [publication, hasMintedBadge]);
-
-  // TODO: update to lens storage
-  // const handlePinMetadata = async (content, files): Promise<string> => {
-  //   let toastId;
-  //   let attachments: any[] = [];
-
-  //   if (files.length > 0) {
-  //     toastId = toast.loading("Uploading content...", { id: toastId });
-  //     try {
-  //       const cids = await Promise.all(
-  //         files.map(async (file: any, idx: number) => ({
-  //           item: `ipfs://${await pinFile(file)}`,
-  //           type: file.type,
-  //           altTag: file.name || `attachment_${idx}`,
-  //         })),
-  //       );
-  //       attachments = attachments.concat(cids);
-  //     } catch (error) {
-  //       console.log(error);
-  //       toast.dismiss(toastId);
-  //       return '';
-  //     }
-  //   }
-
-  //   const publicationMetadata = publicationBody(
-  //     content,
-  //     attachments,
-  //     authenticatedProfile!.metadata?.displayName || authenticatedProfile!.handle!.suggestedFormatted.localName
-  //   );
-
-  //   const { data: postIpfsHash } = await pinJson(publicationMetadata);
-
-  //   if (toastId) toast.dismiss(toastId);
-
-  //   return storjGatewayURL(postIpfsHash);
-  // }
-
   // TODO: lens v3
   const onFollowClick = async (e: React.MouseEvent, _) => {
     e.preventDefault();
@@ -280,6 +231,7 @@ const PublicationContainer = ({
     const simpleCollect = publication?.actions?.find(action => action.__typename === "SimpleCollectAction");
 
     if (simpleCollect) {
+      if (hasCollected) return;
       const isBonsai = simpleCollect.amount.asset.contract.address = PROTOCOL_DEPLOYMENT.lens.Bonsai;
 
       if (isBonsai && !!authenticatedProfileId) {
@@ -328,7 +280,9 @@ const PublicationContainer = ({
       );
 
       if (!collected) throw new Error("Failed to collect");
-      toast.success("Collected! You can now join the post evolution", { id: toastId });
+      toast.success("Collected! You can now join the post", { id: toastId });
+      setHasCollected(true);
+      if (onCollectCallback) onCollectCallback();
     } catch (error) {
       console.log(error);
       toast.error("Failed to collect", { id: toastId });
@@ -358,6 +312,8 @@ const PublicationContainer = ({
           ...publication?.operations || {},
           hasUpvoted: publication?.operations?.hasUpvoted || hasUpvoted,
           hasMirrored: publication?.operations?.hasMirrored || hasMirrored,
+          hasCollected: publication?.operations?.hasSimpleCollected || hasCollected,
+          canComment: media?.agentId ? hasCollected : undefined,
         }}
         useToast={toast}
         rpcURLs={ChainRpcs}
@@ -396,6 +352,8 @@ const PublicationContainer = ({
           anchorEl={collectAnchorElement}
           onClose={() => setShowCollectModal(false)}
           isCollecting={isCollecting}
+          isMedia={media?.agentId}
+          account={authenticatedProfile?.address}
         />
       )}
 
@@ -430,14 +388,19 @@ const PublicationContainer = ({
   )
 };
 
-const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting }) => {
+const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting, isMedia, account }) => {
   const bonsaiBalanceFormatted = useMemo(() => (
-    kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)))
+    kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)), true)
   ), [bonsaiBalance]);
 
   const bonsaiCostFormatted = useMemo(() => (
     kFormatter(parseFloat(collectAmount), true)
   ), [collectAmount]);
+
+  const collectAmountBn = useMemo(() => {
+    if (collectAmount) return parseEther(collectAmount);
+    return 0n;
+  }, [collectAmount])
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -459,25 +422,31 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
       style={{ zIndex: 1400 }}
     >
       <ClickAwayListener onClickAway={onClose}>
-        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px]", inter.className)}>
-          <div className="mb-4 flex items-center justify-center text-center">
-            <Subtitle className="text-md">
-              You must collect this post to participate in the evolution of it
-            </Subtitle>
-          </div>
+        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4", inter.className)}>
+          {isMedia && (
+            <div className="flex items-center justify-center text-center">
+              <Subtitle className="text-md">
+                Collect to join the post
+              </Subtitle>
+            </div>
+          )}
           <Button
             variant="accent"
             className="w-full md:mb-0 text-base"
-            disabled={isCollecting}
+            disabled={isCollecting || collectAmountBn > bonsaiBalance}
             onClick={onCollect}
           >
-            Pay {bonsaiCostFormatted} $BONSAI
+            Collect {bonsaiCostFormatted} $BONSAI
           </Button>
-          <div className="mt-4 flex items-center justify-center">
-            <Subtitle>
-              Balance:
+          <div className="flex items-center justify-center">
+            <Subtitle className="text-md">
+              Account Balance:
               <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
             </Subtitle>
+          </div>
+          <div className="flex items-center justify-center space-x-1">
+            <Subtitle className="text-md">Deposit</Subtitle>
+            <WalletButton wallet={account} chain="lens" />
           </div>
         </div>
       </ClickAwayListener>
