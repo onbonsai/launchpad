@@ -131,7 +131,8 @@ const TokenPage: NextPage = () => {
             <div className="lg:col-span-8">
               <div className="bg-card rounded-xl p-6">
                 <Header2>Bonsai Token</Header2>
-                <Subtitle className="mt-1">Own a share of unrestricted intelligence</Subtitle>
+                {/* <Subtitle className="mt-1">Own a share of unrestricted intelligence.</Subtitle> */}
+                <Subtitle className="mt-1">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
               </div>
 
               <div className="space-y-8 mt-6">
