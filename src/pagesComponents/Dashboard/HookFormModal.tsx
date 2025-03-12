@@ -43,11 +43,11 @@ const HookFormModal = () => {
   };
 
   return (
-    <div className="flex flex-col w-full mt-8">
+    <div className="flex flex-col w-full mt-8 min-w-[650px]">
       <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
         Submit Hook
       </Dialog.Title>
-      <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">
+      <div className="w-full mt-4 md:mb-8 mb-4 md:h-full font-sf-pro-text">
         <div className="flex flex-col w-full my-8 space-y-4">
           <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
             Submit a hook to be available on the Bonsai Launchpad
@@ -70,7 +70,7 @@ const HookFormModal = () => {
           <form onSubmit={onSubmit} className="">
             <div className="space-y-4 mb-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-secondary">
+                <label htmlFor="name" className="block text-sm font-medium text-secondary mb-2">
                   Hook Name
                 </label>
                 <input
@@ -78,13 +78,13 @@ const HookFormModal = () => {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Enter the name of your hook"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-secondary">
+                <label htmlFor="description" className="block text-sm font-medium text-secondary mb-2">
                   Description
                 </label>
                 <textarea
@@ -92,13 +92,13 @@ const HookFormModal = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Describe what your hook does"
                 />
               </div>
 
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-secondary">
+                <label htmlFor="address" className="block text-sm font-medium text-secondary mb-2">
                   Deployed Contract Address
                 </label>
                 <input
@@ -106,13 +106,13 @@ const HookFormModal = () => {
                   id="address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Enter the deployed contract address on Base"
                 />
               </div>
 
               <div>
-                <label htmlFor="source" className="block text-sm font-medium text-secondary">
+                <label htmlFor="source" className="block text-sm font-medium text-secondary mb-2">
                   Source Code Link
                 </label>
                 <input
@@ -120,13 +120,13 @@ const HookFormModal = () => {
                   id="source"
                   value={sourceUrl}
                   onChange={(e) => setSourceUrl(e.target.value)}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Link to source code repository"
                 />
               </div>
 
               <div>
-                <label htmlFor="source" className="block text-sm font-medium text-secondary">
+                <label htmlFor="source" className="block text-sm font-medium text-secondary mb-2">
                   Telegram Username
                 </label>
                 <input
@@ -134,13 +134,13 @@ const HookFormModal = () => {
                   id="telegram"
                   value={telegramUsername}
                   onChange={(e) => setTelegramUsername(e.target.value)}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Your telegram username so we can reach out for questions/feedback"
                 />
               </div>
 
               <div>
-                <label htmlFor="additionalInfo" className="block text-sm font-medium text-secondary">
+                <label htmlFor="additionalInfo" className="block text-sm font-medium text-secondary mb-2">
                   [OPTIONAL] Additional Information - add any other relevant info e.g. links to audits
                 </label>
                 <textarea
@@ -148,7 +148,7 @@ const HookFormModal = () => {
                   value={additionalInfo}
                   onChange={(e) => setAdditionalInfo(e.target.value)}
                   rows={3}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
                   placeholder="Any other relevant information"
                 />
               </div>

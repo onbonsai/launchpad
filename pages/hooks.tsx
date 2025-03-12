@@ -101,7 +101,7 @@ const Hooks = () => {
         onClose={() => setHookFormModal(false)}
         open={hookFormModal}
         setOpen={setHookFormModal}
-        panelClassnames="bg-background w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-8 text-secondary"
       >
         <HookFormModal />
       </Modal>

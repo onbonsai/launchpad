@@ -33,13 +33,13 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
   return (
     <div className="space-y-6 min-w-[450px] text-secondary font-sans">
       <div>
-        <h3 className="text-lg font-medium text-primary mb-4">Stake $BONSAI</h3>
+        <h3 className="text-lg font-medium mb-4 font-sf-pro-text">Stake $BONSAI</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 font-sf-pro-text">
         {/* Amount Input */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-2">Amount</label>
+          <label className="block text-sm font-medium mb-2">Amount</label>
           <div className="relative">
             <input
               type="number"
@@ -59,7 +59,7 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
 
         {/* Lockup Period Selection */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-2">Lockup Period</label>
+          <label className="block text-sm font-medium mb-2">Lockup Period</label>
           <div className="grid grid-cols-2 gap-2">
             {LOCKUP_PERIODS.map((period) => (
               <button
