@@ -5,17 +5,19 @@ interface StakeModalProps {
   onClose: () => void;
   onStake: (amount: string, lockupPeriod: number) => void;
   maxAmount: string;
+  calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
+  twapPrice?: number;
 }
 
 const LOCKUP_PERIODS = [
   { label: "No Lock", value: 0, multiplier: 1 },
-  { label: "1 Month", value: 30 * 24 * 60 * 60, multiplier: 1.5 },
-  { label: "3 Months", value: 90 * 24 * 60 * 60, multiplier: 2 },
-  { label: "6 Months", value: 180 * 24 * 60 * 60, multiplier: 3 },
-  { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 5 },
+  { label: "1 Month", value: 30 * 24 * 60 * 60, multiplier: 1.25 },
+  { label: "3 Months", value: 90 * 24 * 60 * 60, multiplier: 1.5 },
+  { label: "6 Months", value: 180 * 24 * 60 * 60, multiplier: 2 },
+  { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => {
+export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
@@ -29,6 +31,9 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
     setAmount("");
     setSelectedPeriod(LOCKUP_PERIODS[0]);
   };
+
+  // Calculate estimated daily credits
+  const estimatedDailyCredits = calculateCreditsPerDay(amount, selectedPeriod.value);
 
   return (
     <div className="space-y-6 min-w-[450px] text-secondary font-sans">
@@ -77,6 +82,19 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
             ))}
           </div>
         </div>
+
+        {/* Credits Estimate */}
+        {twapPrice && amount && Number(amount) > 0 && (
+          <div className="mt-4 p-4 bg-card-light rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Estimated Daily Credits:</span>
+              <span className="text-lg font-bold text-primary">{estimatedDailyCredits.toFixed(1)}</span>
+            </div>
+            <div className="text-xs text-secondary/60 mt-1">
+              Based on current $BONSAI price and {selectedPeriod.multiplier}× multiplier
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="secondary" size="sm" onClick={onClose}>
