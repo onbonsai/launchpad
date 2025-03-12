@@ -26,6 +26,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET = {
     BonsaiLaunchpad: "0x33F706555fc08E2A035083aFb1e7F6d594f9BD16",
     CreatorNFT: "0xa9Fbeb45021d5c9b10384aeC4d3Cf28f723978C1",
     Periphery: "0xa5eeE8d1cECEa07220Bc5A7676c3F5357E639642",
+    Staking: "0x80f836453113E01a673175CCB9eC66bDd4e2CB5F",
   },
 };
 
@@ -42,6 +43,7 @@ const PROTOCOL_DEPLOYMENT_MAINNET = {
     BonsaiLaunchpad: "0x717138EbACFbbD9787b84c220E7BDA230C93dfB8",
     CreatorNFT: "0xD6d9EF97F10EA133B829928Ebfb606344E60dc7F",
     Periphery: zeroAddress, // TODO: add periphery address
+    Staking: "0x80f836453113E01a673175CCB9eC66bDd4e2CB5F",
   },
 };
 

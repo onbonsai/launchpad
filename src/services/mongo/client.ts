@@ -125,3 +125,11 @@ export const getClientWithHookSubmissions = async () => {
 
   return { collection, database };
 };
+
+export const getClientWithApiCredits = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("api-credits");
+
+  return { collection, database };
+};
