@@ -443,14 +443,14 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
           >
             Collect {bonsaiCostFormatted} $BONSAI
           </Button>
-          <div className="flex items-center justify-center">
+          <div className="flex">
             <Subtitle className="text-md">
               Account Balance:
               <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
             </Subtitle>
           </div>
-          <div className="flex items-center justify-center space-x-1">
-            <Subtitle className="text-md">Deposit</Subtitle>
+          <div className="flex space-x-1">
+            <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>
             <WalletButton wallet={account} chain="lens" />
           </div>
         </div>

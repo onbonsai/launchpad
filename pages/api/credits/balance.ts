@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getClientWithApiCredits } from "@src/services/mongo/client";
 
-const DAILY_CREDIT_ALLOCATION = 100;
+const FREE_TIER_CREDIT_ALLOCATION = 10;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -18,49 +18,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const normalizedAddress = address.toLowerCase();
 
     const { collection } = await getClientWithApiCredits();
-    
-    // Get or create user credits
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
+    // Get user credits or create if doesn't exist
     const userCredits = await collection.findOne({ address: normalizedAddress });
-    
-    if (!userCredits || userCredits.lastResetTimestamp < startOfDay) {
-      // Either new user or needs reset
-      await collection.updateOne(
-        { address: normalizedAddress },
-        {
-          $set: {
-            dailyAllocation: DAILY_CREDIT_ALLOCATION,
-            creditsUsed: 0,
-            lastResetTimestamp: now
-          }
-        },
-        { upsert: true }
-      );
-      
-      return res.status(200).json({
-        totalCredits: DAILY_CREDIT_ALLOCATION,
+
+    if (!userCredits) {
+      // New user - create with initial allocation
+      const now = new Date();
+      await collection.insertOne({
+        address: normalizedAddress,
+        dailyAllocation: FREE_TIER_CREDIT_ALLOCATION,
         creditsUsed: 0,
-        creditsRemaining: DAILY_CREDIT_ALLOCATION,
-        nextResetTime: new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-        usagePercentage: 0
+        lastResetTimestamp: now,
+      });
+
+      return res.status(200).json({
+        totalCredits: FREE_TIER_CREDIT_ALLOCATION,
+        creditsUsed: 0,
+        creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
+        nextResetTime: null,
+        usagePercentage: 0,
       });
     }
 
-    const creditsRemaining = DAILY_CREDIT_ALLOCATION - (userCredits.creditsUsed || 0);
-    const usagePercentage = ((userCredits.creditsUsed || 0) / DAILY_CREDIT_ALLOCATION) * 100;
+    // Return existing user's credit information
+    const creditsRemaining = userCredits.dailyAllocation - (userCredits.creditsUsed || 0);
+    const usagePercentage = ((userCredits.creditsUsed || 0) / userCredits.dailyAllocation) * 100;
 
     return res.status(200).json({
-      totalCredits: DAILY_CREDIT_ALLOCATION,
+      totalCredits: userCredits.dailyAllocation,
       creditsUsed: userCredits.creditsUsed || 0,
       creditsRemaining,
-      nextResetTime: new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-      usagePercentage
+      nextResetTime: null,
+      usagePercentage,
     });
-
   } catch (error) {
     console.error("Error fetching credits:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
-} 
+}

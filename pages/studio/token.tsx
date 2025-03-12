@@ -12,13 +12,24 @@ import { useStakingData, formatStakingAmount, getLockupPeriodLabel } from "@src/
 import { useStakingTransactions } from "@src/hooks/useStakingTransactions";
 import { StakeModal } from "@src/components/StakeModal";
 import { Modal } from "@src/components/Modal";
+import WalletButton from "@src/components/Creators/WalletButton";
+import { kFormatter } from "@src/utils/utils";
 
 interface CreditBalance {
   totalCredits: number;
+  freeCredits: number;
+  stakingCredits: number;
   creditsUsed: number;
   creditsRemaining: number;
   nextResetTime: string;
   usagePercentage: number;
+}
+
+interface TwapData {
+  period: string;
+  price: number;
+  lastUpdated: Date;
+  dataPoints: number;
 }
 
 const fetchCredits = async (address: string): Promise<CreditBalance> => {
@@ -27,15 +38,34 @@ const fetchCredits = async (address: string): Promise<CreditBalance> => {
   return response.json();
 };
 
+const fetchTwapPrice = async (): Promise<number> => {
+  try {
+    const response = await fetch("/api/twap/price");
+    if (!response.ok) throw new Error("Failed to fetch TWAP price");
+    const data = await response.json();
+    return data.price || 0;
+  } catch (error) {
+    console.error("Error fetching TWAP price:", error);
+    return 0;
+  }
+};
+
 const getCreditsMultiplier = (lockupPeriod: number) => {
   // Convert seconds to months roughly
   const months = Math.floor(lockupPeriod / (30 * 24 * 60 * 60));
-  
-  if (months >= 12) return 5; // 12-month lock: 5x
-  if (months >= 6) return 3;  // 6-month lock: 3x
-  if (months >= 3) return 2;  // 3-month lock: 2x
-  if (months >= 1) return 1.5; // 1-month lock: 1.5x
+
+  if (months >= 12) return 3; // 12-month lock: 3x (was 5x)
+  if (months >= 6) return 2; // 6-month lock: 2x (was 3x)
+  if (months >= 3) return 1.5; // 3-month lock: 1.5x (was 2x)
+  if (months >= 1) return 1.25; // 1-month lock: 1.25x (was 1.5x)
   return 1; // no lock: 1x
+};
+
+// Calculate daily credits from staking
+const calculateDailyStakingCredits = (stakedAmount: string, tokenPrice: number, multiplier: number) => {
+  // 10% of USD value per year, divided by 365 days
+  const baseAmount = (Number(stakedAmount) * tokenPrice * 0.1) / 365;
+  return baseAmount * multiplier;
 };
 
 const TokenPage: NextPage = () => {
@@ -55,6 +85,13 @@ const TokenPage: NextPage = () => {
 
   const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
 
+  // Fetch 30-day TWAP price
+  const { data: twapPrice, isLoading: isLoadingTwap } = useQuery({
+    queryKey: ["twap-price"],
+    queryFn: fetchTwapPrice,
+    refetchInterval: 3600000, // Refetch every hour
+  });
+
   const [bonsaiPrice, setBonsaiPrice] = useState(0);
   const [tokenHoldings, setTokenHoldings] = useState(0);
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
@@ -72,7 +109,7 @@ const TokenPage: NextPage = () => {
     setTokenHoldings(tokenPrice * bonsaiHoldings);
   }, [bonsaiBalance?.value]);
 
-  const formattedBalance = bonsaiBalance ? Number(bonsaiBalance.formatted).toFixed(2) : "0";
+  const formattedBalance = kFormatter(parseFloat(formatEther(bonsaiBalance?.value || 0n)), true);
 
   const totalStaked = useMemo(() => {
     if (!stakingData?.summary?.totalStaked) return "0";
@@ -118,6 +155,18 @@ const TokenPage: NextPage = () => {
     }
   };
 
+  // Calculate credits per day for a given amount and lockup period
+  const calculateCreditsPerDay = (amount: string, lockupPeriod: number) => {
+    if (!amount || Number(amount) <= 0) return 0;
+
+    // Use TWAP price if available, otherwise fall back to spot price
+    const priceToUse = twapPrice || bonsaiPrice;
+    if (!priceToUse) return 0;
+
+    const multiplier = getCreditsMultiplier(lockupPeriod);
+    return calculateDailyStakingCredits(amount, priceToUse, multiplier);
+  };
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
@@ -130,9 +179,12 @@ const TokenPage: NextPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-8">
               <div className="bg-card rounded-xl p-6">
-                <Header2>Bonsai Token</Header2>
+                <div className="flex space-x-2">
+                  <Header2>Bonsai Token</Header2>
+                  <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                </div>
                 {/* <Subtitle className="mt-1">Own a share of unrestricted intelligence.</Subtitle> */}
-                <Subtitle className="mt-1">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
+                <Subtitle className="mt-2">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
               </div>
 
               <div className="space-y-8 mt-6">
@@ -141,7 +193,7 @@ const TokenPage: NextPage = () => {
                   {/* Available Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Available</h3>
+                      <h3 className="text-sm font-medium text-primary">Balance</h3>
                     </div>
                     <div>
                       {isConnected ? (
@@ -215,22 +267,17 @@ const TokenPage: NextPage = () => {
 
                 {/* API Capacity Card */}
                 <div className="bg-card rounded-xl p-6">
-                  <div className="pb-2">
-                    <h3 className="text-sm font-medium text-primary">
-                      Total API Capacity: {isConnected ? creditBalance?.totalCredits || 0 : "---"} Credits
-                    </h3>
-                    <p className="text-xs text-secondary/60">Credits reset daily at midnight UTC</p>
-                  </div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-primary">My Capacity Today</h3>
+                          {/* TODO: credits to post generations */}
                           <div className="text-2xl font-bold text-secondary">
-                            {creditBalance?.creditsRemaining.toFixed(2) || "0"} Credits
+                            ~{Number(creditBalance?.creditsRemaining) / 2} post generations
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {creditBalance?.creditsUsed || 0} used of {creditBalance?.totalCredits || 0} total
+                            {creditBalance?.creditsUsed || 0} credits used of {creditBalance?.totalCredits || 0} total
                           </p>
                         </div>
 
@@ -258,21 +305,23 @@ const TokenPage: NextPage = () => {
                                 strokeWidth="4"
                                 strokeLinecap="round"
                                 strokeDasharray={`${2 * Math.PI * 44}`}
-                                strokeDashoffset={`${2 * Math.PI * 44 * ((creditBalance?.usagePercentage || 0) / 100)}`}
+                                strokeDashoffset={`${2 * Math.PI * 44 * (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))}`}
                                 stroke={
-                                  creditBalance?.creditsRemaining
-                                    ? creditBalance.creditsRemaining > 66
+                                  creditBalance?.creditsRemaining && creditBalance?.totalCredits
+                                    ? (creditBalance.creditsRemaining / creditBalance.totalCredits) > 0.66
                                       ? "#22c55e" // Green for > 66% remaining
-                                      : creditBalance.creditsRemaining > 33
-                                      ? "#eab308" // Yellow for 33-66% remaining
-                                      : "#ef4444" // Red for < 33% remaining
+                                      : (creditBalance.creditsRemaining / creditBalance.totalCredits) > 0.33
+                                        ? "#eab308" // Yellow for 33-66% remaining
+                                        : "#ef4444" // Red for < 33% remaining
                                     : "#22c55e"
                                 }
                               />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <div className="text-2xl font-bold text-secondary">
-                                {creditBalance ? 100 - Math.round(creditBalance.usagePercentage) : 100}%
+                                {creditBalance 
+                                  ? Math.round((creditBalance.creditsRemaining / creditBalance.totalCredits) * 100) 
+                                  : 100}%
                               </div>
                               <div className="text-xs text-secondary/60">Remaining</div>
                             </div>
@@ -296,30 +345,36 @@ const TokenPage: NextPage = () => {
                     <h3 className="text-sm font-medium text-primary mb-4">Active Stakes</h3>
                     <div className="space-y-4">
                       {activeStakes.map((stake, index) => (
-                        <div
-                          key={stake.id}
-                          className="flex items-center justify-between p-4 bg-card-light rounded-lg"
-                        >
+                        <div key={stake.id} className="flex items-center justify-between p-4 bg-card-light rounded-lg">
                           <div>
                             <div className="text-lg font-semibold">{formatStakingAmount(stake.amount)} $BONSAI</div>
                             <div className="text-xs text-secondary/60">
-                              {getLockupPeriodLabel(stake.lockupPeriod)} Lock • {getCreditsMultiplier(Number(stake.lockupPeriod))}×
-                              Credits
+                              {getLockupPeriodLabel(stake.lockupPeriod)} Lock •{" "}
+                              {getCreditsMultiplier(Number(stake.lockupPeriod))}× Credits
+                            </div>
+                            <div className="text-xs text-secondary/60 mt-1">
+                              ~
+                              {calculateDailyStakingCredits(
+                                formatStakingAmount(stake.amount),
+                                twapPrice || bonsaiPrice,
+                                getCreditsMultiplier(Number(stake.lockupPeriod)),
+                              ).toFixed(2)}{" "}
+                              credits/day
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-x-6">
                             <div className="text-right">
                               <div className="text-sm">Unlocks</div>
                               <div className="text-xs text-secondary/60">
-                                {Date.now() >= Number(stake.unlockTime) * 1000 
+                                {Date.now() >= Number(stake.unlockTime) * 1000
                                   ? "Unlocked"
-                                  : new Date(Number(stake.unlockTime) * 1000).toLocaleDateString()
-                                }
+                                  : new Date(Number(stake.unlockTime) * 1000).toLocaleDateString()}
                               </div>
                             </div>
                             <Button
-                              variant="secondary"
+                              variant="dark-grey"
                               size="sm"
+                              className="hover:bg-bullish"
                               onClick={() => handleUnstake(index)}
                               disabled={Date.now() < Number(stake.unlockTime) * 1000}
                             >
@@ -340,9 +395,11 @@ const TokenPage: NextPage = () => {
                   panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
                 >
                   <StakeModal
-                    maxAmount={formattedBalance}
+                    maxAmount={bonsaiBalance ? Number(bonsaiBalance?.formatted).toFixed(2) : "0"}
                     onStake={handleStake}
                     onClose={() => setIsStakeModalOpen(false)}
+                    calculateCreditsPerDay={calculateCreditsPerDay}
+                    twapPrice={twapPrice || bonsaiPrice}
                   />
                 </Modal>
               </div>
