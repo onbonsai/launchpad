@@ -12,6 +12,8 @@ import { useStakingData, formatStakingAmount, getLockupPeriodLabel } from "@src/
 import { useStakingTransactions } from "@src/hooks/useStakingTransactions";
 import { StakeModal } from "@src/components/StakeModal";
 import { Modal } from "@src/components/Modal";
+import WalletButton from "@src/components/Creators/WalletButton";
+import { kFormatter } from "@src/utils/utils";
 
 interface CreditBalance {
   totalCredits: number;
@@ -30,7 +32,7 @@ const fetchCredits = async (address: string): Promise<CreditBalance> => {
 const getCreditsMultiplier = (lockupPeriod: number) => {
   // Convert seconds to months roughly
   const months = Math.floor(lockupPeriod / (30 * 24 * 60 * 60));
-  
+
   if (months >= 12) return 5; // 12-month lock: 5x
   if (months >= 6) return 3;  // 6-month lock: 3x
   if (months >= 3) return 2;  // 3-month lock: 2x
@@ -72,7 +74,7 @@ const TokenPage: NextPage = () => {
     setTokenHoldings(tokenPrice * bonsaiHoldings);
   }, [bonsaiBalance?.value]);
 
-  const formattedBalance = bonsaiBalance ? Number(bonsaiBalance.formatted).toFixed(2) : "0";
+  const formattedBalance = kFormatter(parseFloat(formatEther(bonsaiBalance?.value || 0n)), true);
 
   const totalStaked = useMemo(() => {
     if (!stakingData?.summary?.totalStaked) return "0";
@@ -130,9 +132,12 @@ const TokenPage: NextPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-8">
               <div className="bg-card rounded-xl p-6">
-                <Header2>Bonsai Token</Header2>
+                <div className="flex space-x-2">
+                  <Header2>Bonsai Token</Header2>
+                  <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                </div>
                 {/* <Subtitle className="mt-1">Own a share of unrestricted intelligence.</Subtitle> */}
-                <Subtitle className="mt-1">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
+                <Subtitle className="mt-2">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
               </div>
 
               <div className="space-y-8 mt-6">
@@ -141,7 +146,7 @@ const TokenPage: NextPage = () => {
                   {/* Available Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Available</h3>
+                      <h3 className="text-sm font-medium text-primary">Balance</h3>
                     </div>
                     <div>
                       {isConnected ? (
@@ -215,22 +220,23 @@ const TokenPage: NextPage = () => {
 
                 {/* API Capacity Card */}
                 <div className="bg-card rounded-xl p-6">
-                  <div className="pb-2">
+                  {/* <div className="pb-2">
                     <h3 className="text-sm font-medium text-primary">
-                      Total API Capacity: {isConnected ? creditBalance?.totalCredits || 0 : "---"} Credits
+                      Total Credits: {isConnected ? creditBalance?.totalCredits || 0 : "---"} Credits
                     </h3>
                     <p className="text-xs text-secondary/60">Credits reset daily at midnight UTC</p>
-                  </div>
+                  </div> */}
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-primary">My Capacity Today</h3>
+                          <h3 className="text-sm font-medium text-primary">Capacity Today</h3>
                           <div className="text-2xl font-bold text-secondary">
-                            {creditBalance?.creditsRemaining.toFixed(2) || "0"} Credits
+                            ~5 post generations
+                            {/* ({creditBalance?.creditsRemaining.toFixed(2) || "0"} Credits) */}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {creditBalance?.creditsUsed || 0} used of {creditBalance?.totalCredits || 0} total
+                            {creditBalance?.creditsUsed || 0} / {creditBalance?.totalCredits || 0} credits today
                           </p>
                         </div>
 
@@ -307,19 +313,20 @@ const TokenPage: NextPage = () => {
                               Credits
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-x-6">
                             <div className="text-right">
                               <div className="text-sm">Unlocks</div>
                               <div className="text-xs text-secondary/60">
-                                {Date.now() >= Number(stake.unlockTime) * 1000 
+                                {Date.now() >= Number(stake.unlockTime) * 1000
                                   ? "Unlocked"
                                   : new Date(Number(stake.unlockTime) * 1000).toLocaleDateString()
                                 }
                               </div>
                             </div>
                             <Button
-                              variant="secondary"
+                              variant="dark-grey"
                               size="sm"
+                              className="hover:bg-bullish"
                               onClick={() => handleUnstake(index)}
                               disabled={Date.now() < Number(stake.unlockTime) * 1000}
                             >
@@ -340,7 +347,7 @@ const TokenPage: NextPage = () => {
                   panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
                 >
                   <StakeModal
-                    maxAmount={formattedBalance}
+                    maxAmount={bonsaiBalance ? Number(bonsaiBalance?.formatted).toFixed(2) : "0"}
                     onStake={handleStake}
                     onClose={() => setIsStakeModalOpen(false)}
                   />

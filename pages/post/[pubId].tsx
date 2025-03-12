@@ -55,7 +55,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState(publication.operations?.hasSimpleCollected);
+  const [canComment, setCanComment] = useState(publication?.operations?.hasSimpleCollected);
 
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
