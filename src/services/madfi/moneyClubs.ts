@@ -739,7 +739,7 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
 export const getRegisteredClub = async (handle: string, profileId?: string, chain = "base") => {
   if (!profileId) {
     const profile = await getProfileByHandle(`lens/${handle}`);
-    profileId = profile?.id;
+    profileId = profile?.owner.id;
   }
 
   const twentyFourHoursAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;

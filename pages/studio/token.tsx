@@ -3,8 +3,8 @@ import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
 import { switchChain } from "@wagmi/core";
-import { useEffect, useState, useMemo } from "react";
-import { useAccount, useBalance, useReadContract } from "wagmi";
+import { useState, useMemo } from "react";
+import { useAccount, useReadContract } from "wagmi";
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { erc20Abi, formatEther } from "viem";
@@ -79,12 +79,12 @@ const TokenPage: NextPage = () => {
   const { data: bonsaiBalance, refetch: refetchBonsaiBalance } = useReadContract({
     address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
     abi: erc20Abi,
-    functionName: 'balanceOf',
+    functionName: "balanceOf",
     args: [address as `0x${string}`],
     chainId: LENS_CHAIN_ID,
     query: {
-      enabled: isConnected
-    }
+      enabled: isConnected,
+    },
   });
 
   const { data: creditBalance, isLoading: isLoadingCredits } = useQuery({
@@ -207,7 +207,7 @@ const TokenPage: NextPage = () => {
 
     // Cleanup interval on component unmount
     return () => clearInterval(statusInterval);
-  }
+  };
 
   // Calculate credits per day for a given amount and lockup period
   const calculateCreditsPerDay = (amount: string, lockupPeriod: number) => {
@@ -238,7 +238,10 @@ const TokenPage: NextPage = () => {
                   <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
                 </div>
                 {/* <Subtitle className="mt-1">Own a share of unrestricted intelligence.</Subtitle> */}
-                <Subtitle className="mt-2">Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn. Credits reset daily at midnight UTC.</Subtitle>
+                <Subtitle className="mt-2">
+                  Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn.
+                  Credits reset daily at midnight UTC.
+                </Subtitle>
               </div>
 
               <div className="space-y-8 mt-6">
@@ -255,11 +258,7 @@ const TokenPage: NextPage = () => {
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
                           <div className="mt-4 flex justify-end space-x-2">
-                            <Button
-                              variant="dark-grey"
-                              size="sm"
-                              onClick={() => setIsBridgeModalOpen(true)}
-                            >
+                            <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)}>
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
                                 <div className="flex items-center gap-2 flex-row">
@@ -372,14 +371,19 @@ const TokenPage: NextPage = () => {
                                 strokeWidth="4"
                                 strokeLinecap="round"
                                 strokeDasharray={`${2 * Math.PI * 44}`}
-                                strokeDashoffset={`${2 * Math.PI * 44 * (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))}`}
+                                strokeDashoffset={`${
+                                  2 *
+                                  Math.PI *
+                                  44 *
+                                  (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))
+                                }`}
                                 stroke={
                                   creditBalance?.creditsRemaining && creditBalance?.totalCredits
-                                    ? (creditBalance.creditsRemaining / creditBalance.totalCredits) > 0.66
+                                    ? creditBalance.creditsRemaining / creditBalance.totalCredits > 0.66
                                       ? "#22c55e" // Green for > 66% remaining
-                                      : (creditBalance.creditsRemaining / creditBalance.totalCredits) > 0.33
-                                        ? "#eab308" // Yellow for 33-66% remaining
-                                        : "#ef4444" // Red for < 33% remaining
+                                      : creditBalance.creditsRemaining / creditBalance.totalCredits > 0.33
+                                      ? "#eab308" // Yellow for 33-66% remaining
+                                      : "#ef4444" // Red for < 33% remaining
                                     : "#22c55e"
                                 }
                               />
@@ -388,7 +392,8 @@ const TokenPage: NextPage = () => {
                               <div className="text-2xl font-bold text-secondary">
                                 {creditBalance
                                   ? Math.round((creditBalance.creditsRemaining / creditBalance.totalCredits) * 100)
-                                  : 100}%
+                                  : 100}
+                                %
                               </div>
                               <div className="text-xs text-secondary/60">Remaining</div>
                             </div>
