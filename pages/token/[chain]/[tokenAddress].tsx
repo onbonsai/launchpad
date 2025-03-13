@@ -15,7 +15,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS } from "@src/services/madfi/moneyClubs";
+import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { ActivityBanner } from "@src/components/Header";
@@ -32,44 +32,6 @@ import { InfoOutlined } from '@mui/icons-material';
 import { capitalizeFirstLetter } from '@src/utils/utils';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
-
-type Token = {
-  name: string;
-  symbol: string;
-  description: string;
-  image: string;
-};
-
-export type Club = {
-  __typename: 'Club';
-  id: string;
-  creator: string;
-  initialSupply: string;
-  createdAt: string;
-  supply: string;
-  feesEarned: string;
-  currentPrice: string;
-  marketCap: string;
-  prevTrade24Hr: object; // Replace 'object' with a more specific type if available
-  clubId: number;
-  profileId: string;
-  strategy: string;
-  handle: string;
-  token: Token;
-  postId: string;
-  pubId?: string;
-  featured: boolean;
-  creatorFees: string;
-  complete: boolean;
-  completedAt?: number
-  liquidityReleasedAt?: number
-  claimAt: number;
-  cliffPercent: string
-  vestingDuration: string
-  tokenAddress?: `0x${string}`;
-  hook: `0x${string}`;
-  chain: string;
-};
 
 interface TokenPageProps {
   club: Club;
@@ -281,10 +243,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
         <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
-            <h2 id="dashboard-heading" className="sr-only">
-              {profile?.metadata?.displayName}
-            </h2>
-
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
               {/* Chart */}
               <div className={clsx("md:col-span-3 rounded-3xl", club.featured && "animate-pulse")}>

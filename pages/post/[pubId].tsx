@@ -31,6 +31,7 @@ import { getProfileImage } from "@src/services/lens/utils";
 import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
+import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -43,11 +44,9 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(pubId as string);
   const { publication, comments } =
     publicationWithComments || ({} as { publication: any; comments: any[] });
+  const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
   const creatorPageRoute = `/profile/${publication?.author.username.localName}`;
-
-  // TODO: render token info
-  const { data: token, isLoading: isLoadingToken } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
@@ -271,7 +270,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
           ← Back
         </span>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
-          <div className="flex flex-col gap-4 h-full">
+          <div className="flex flex-col gap-2 h-full">
+            {club?.tokenAddress && <TokenInfoComponent club={club} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
