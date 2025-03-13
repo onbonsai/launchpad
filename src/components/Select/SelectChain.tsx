@@ -9,7 +9,7 @@ const CustomOption = ({ children, ...props }: any) => {
 
   return (
     <components.Option {...props}>
-      <div className="flex items-center justify-between w-full font-sans">
+      <div className="flex items-center justify-between w-full font-sf-pro-text">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-white/5">
             <Image
