@@ -7,7 +7,7 @@ import {
 } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { MetadataLicenseType } from "@lens-protocol/metadata";
 
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
@@ -48,7 +48,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   // TODO: render token info
   const { data: token, isLoading: isLoadingToken } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
-  console.log(publication, media, token);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
@@ -78,6 +77,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       hasUpvoted: localHasUpvoted.has(publicationId) || comment?.operations?.hasUpvoted,
     };
   };
+
+  useEffect(() => {
+    setCanComment(publication?.operations?.hasSimpleCollected);
+  }, [publication]);
 
   const isLoadingPage = useMemo(() => {
     return isLoading
@@ -196,31 +199,130 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       </div>
     );
 
+  const CommentBox = () => {
+    return (<>
+      {
+        (!isConnected || !walletClient) && (
+          <div className="flex justify-center">
+            <ConnectButton className="md:px-12 mb-16" />
+          </div>
+        )
+      }
+      {
+        isConnected && walletClient && !isAuthenticated && (
+          <div className="flex justify-center">
+            <Button className="md:px-12 mb-16" onClick={onSignInWithLensClick} disabled={signingIn}>
+              Login with Lens
+            </Button>
+          </div>
+        )
+      }
+      {
+        isConnected && isAuthenticated && (
+          <>
+            <div className="flex items-center gap-x-6 mt-4">
+              <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+              <div className="relative w-full">
+                <input
+                  ref={commentInputRef}
+                  type="text"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                  placeholder={canComment ? "Add a comment" : "Collect the post to join"}
+                  disabled={!canComment}
+                  onFocus={() => setInputFocused(true)}
+                  onBlur={() => setInputFocused(false)}
+                />
+                {canComment && (
+                  <div className="absolute right-2 -top-2">
+                    <GenericUploader files={files} setFiles={setFiles} contained />
+                  </div>
+                )}
+              </div>
+            </div>
+            {canComment && (
+              <>
+                <div className="flex justify-end gap-y-2 -mt-4">
+                  <div className="mt-3">
+                    <ActionButton
+                      label="Comment"
+                      disabled={isCommenting || !comment}
+                      onClick={submitComment}
+                      theme={Theme.dark}
+                      backgroundColor={comment ? "#EEEDED" : "transparent"}
+                      textColor={comment ? undefined : "#EEEDED"}
+                    />
+                  </div>
+                </div>
+                <div className="h-14" ref={scrollPaddingRef}></div>
+              </>
+            )}
+          </>
+        )
+      }
+    </>);
+  }
+
   return (
-    <div className="bg-background text-secondary min-h-[50vh]">
-      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+    <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
+      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
         <span onClick={() => goToCreatorPage()} className="link link-hover mb-4">
           ← Back
         </span>
-        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center">
-          <div className="flex flex-col gap-y-4">
-            <div className="min-w-[500px]">
+        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
+          <div className="flex flex-col gap-4 h-full">
+            <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
                   <Spinner customClasses="h-6 w-6" color="#E42101" />
                 </div>
-              ) :  (
-                <PublicationContainer
+              ) : (
+                publication ? <PublicationContainer
                   publication={publication}
                   onCommentButtonClick={onCommentButtonClick}
                   shouldGoToPublicationPage={false}
                   isProfileAdmin={isProfileAdmin}
                   media={media}
                   onCollectCallback={() => setCanComment(true)}
-                />
+                  sideBySideMode={true}
+                  nestedWidget={<div className=""><Publications
+                    publications={sortedComments}
+                    theme={Theme.dark}
+                    environment={LENS_ENVIRONMENT}
+                    authenticatedProfile={authenticatedProfile}
+                    hideCommentButton={true}
+                    hideQuoteButton={true}
+                    hideShareButton={true}
+                    hasUpvotedComment={hasUpvotedComment}
+                    onLikeButtonClick={onLikeButtonClick}
+                    getOperationsFor={getOperationsFor}
+                    profilePictureStyleOverride={publicationProfilePictureStyle}
+                    containerBorderRadius={'24px'}
+                    containerPadding={'12px'}
+                    profilePadding={'0 0 0 0'}
+                    textContainerStyleOverride={textContainerStyleOverrides}
+                    backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                    mediaImageStyleOverride={mediaImageStyleOverride}
+                    imageContainerStyleOverride={imageContainerStyleOverride}
+                    reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                    reactionContainerStyleOverride={reactionContainerStyleOverride}
+                    publicationContainerStyleOverride={publicationContainerStyleOverride}
+                    shareContainerStyleOverride={shareContainerStyleOverride}
+                    markdownStyleBottomMargin={'0px'}
+                    heartIconOverride={true}
+                    messageIconOverride={true}
+                    shareIconOverride={true}
+                    followButtonDisabled={true}
+                  />
+                    <CommentBox />
+                  </div>}
+                /> : <div className="flex justify-center pt-8 pb-8">
+                  <Spinner customClasses="h-6 w-6" color="#E42101" />
+                </div>
               )}
             </div>
-            <div>
+            <div className="xs:hidden">
               <Publications
                 publications={sortedComments}
                 theme={Theme.dark}
@@ -250,61 +352,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 shareIconOverride={true}
                 followButtonDisabled={true}
               />
+              <CommentBox />
             </div>
-            {(!isConnected || !walletClient) && (
-              <div className="flex justify-center">
-                <ConnectButton className="md:px-12 mb-16" />
-              </div>
-            )}
-            {isConnected && walletClient && !isAuthenticated && (
-              <div className="flex justify-center">
-                <Button className="md:px-12 mb-16" onClick={onSignInWithLensClick} disabled={signingIn}>
-                  Login with Lens
-                </Button>
-              </div>
-            )}
-            {isConnected && isAuthenticated && (
-              <>
-                <div className="flex items-center gap-x-6 mt-4">
-                  <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-                  <div className="relative w-full">
-                    <input
-                      ref={commentInputRef}
-                      type="text"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                      placeholder={canComment ? "Add a comment" : "Collect the post to join"}
-                      disabled={!canComment}
-                      onFocus={() => setInputFocused(true)}
-                      onBlur={() => setInputFocused(false)}
-                    />
-                    {canComment && (
-                      <div className="absolute right-2 -top-2">
-                        <GenericUploader files={files} setFiles={setFiles} contained />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {canComment && (
-                  <>
-                    <div className="flex justify-end gap-y-2 -mt-4">
-                      <div className="mt-3">
-                        <ActionButton
-                          label="Comment"
-                          disabled={isCommenting || !comment}
-                          onClick={submitComment}
-                          theme={Theme.dark}
-                          backgroundColor={comment ? "#EEEDED" : "transparent"}
-                          textColor={comment ? undefined : "#EEEDED"}
-                        />
-                      </div>
-                    </div>
-                    <div className="h-14" ref={scrollPaddingRef}></div>
-                  </>
-                )}
-              </>
-            )}
           </div>
         </section>
       </main>
@@ -322,7 +371,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   } catch { }
 
   if (!post) return { notFound: true };
-  const media = await resolveSmartMedia(post.metadata.attributes, post.slug);
+  const media = await resolveSmartMedia(post.metadata.attributes, post.slug, false);
 
   return {
     props: {

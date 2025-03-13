@@ -108,11 +108,10 @@ export const getClientWithCreditsGhostwriter = async () => {
   return { collection, database };
 };
 
-
 export const getClientWithClubs = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("moonshot");
-  const _collection = IS_PRODUCTION_LAUNCHPAD ? "clubs-prod" : "clubs"
+  const _collection = IS_PRODUCTION_LAUNCHPAD ? "clubs-prod" : "clubs";
   const collection = database.collection(_collection);
 
   return { collection, database };
@@ -130,6 +129,14 @@ export const getClientWithApiCredits = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("client-bonsai");
   const collection = database.collection("api-credits");
+
+  return { collection, database };
+};
+
+export const getClientWithTwap = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("twap");
 
   return { collection, database };
 };
