@@ -34,9 +34,10 @@ interface Props {
   };
   creatorProfile?: { picture: string };
   funny?: boolean;
+  funnier?: boolean;
 }
 
-const ClubCard = ({ data, creatorProfile, funny }: Props) => {
+const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   const { club, chain } = data;
 
   const bondingCurveProgress = useMemo(() => {
@@ -132,7 +133,7 @@ const ClubCard = ({ data, creatorProfile, funny }: Props) => {
             }`}
           style={{ width: "100%", height: "100%" }}
         ></canvas>
-        <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '')}>
+        <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '', funnier ? 'h-[400px]' : '')}>
           <BgImage />
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />

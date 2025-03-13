@@ -19,6 +19,7 @@ import BridgeModal from "@pagesComponents/Studio/BridgeModal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import toast from "react-hot-toast";
+import { calculateStakingCredits, LockupPeriod } from "./stakingCalculator";
 
 interface CreditBalance {
   totalCredits: number;
@@ -27,6 +28,9 @@ interface CreditBalance {
   creditsUsed: number;
   creditsRemaining: number;
   nextResetTime: string;
+  lastResetTime: string;
+  maxStakingCredits: number;
+  dailyAllocation: number;
   usagePercentage: number;
 }
 
@@ -217,8 +221,29 @@ const TokenPage: NextPage = () => {
     const priceToUse = twapPrice || bonsaiPrice;
     if (!priceToUse) return 0;
 
-    const multiplier = getCreditsMultiplier(lockupPeriod);
-    return calculateDailyStakingCredits(amount, priceToUse, multiplier);
+    // Map lockup period in seconds to months for the calculator
+    const lockupMonths = mapLockupPeriodToMonths(lockupPeriod);
+
+    // Use the staking calculator to get more accurate estimates
+    const result = calculateStakingCredits(
+      Number(amount) * priceToUse, // Convert token amount to USD
+      lockupMonths as LockupPeriod,
+      priceToUse,
+      stakingData?.summary || null,
+    );
+
+    // Return the incremental credits
+    return result.incrementalCredits;
+  };
+
+  // Helper function to map lockup period in seconds to months
+  const mapLockupPeriodToMonths = (seconds: number): number => {
+    const days = seconds / (24 * 60 * 60);
+    if (days >= 360) return 12;
+    if (days >= 180) return 6;
+    if (days >= 90) return 3;
+    if (days >= 30) return 1;
+    return 0;
   };
 
   return (
@@ -267,7 +292,7 @@ const TokenPage: NextPage = () => {
                                 </div>
                               )}
                             </Button>
-                            <Button variant="accent" size="sm">
+                            <Button variant="accent" size="sm" disabled>
                               Buy $BONSAI
                             </Button>
                           </div>
@@ -290,7 +315,7 @@ const TokenPage: NextPage = () => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-secondary">Coming Soon</div>
-                      <p className="text-xs text-secondary/60">80% APY</p>
+                      <p className="text-xs text-secondary/60">--% APY</p>
                       <div className="mt-4 flex justify-end gap-2">
                         <Button variant="accent" size="sm" disabled>
                           Claim
@@ -338,12 +363,13 @@ const TokenPage: NextPage = () => {
                       <>
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-primary">My Capacity Today</h3>
-                          {/* TODO: credits to post generations */}
+                          {/* Display both staking and free credits */}
                           <div className="text-2xl font-bold text-secondary">
-                            ~{Number(creditBalance?.creditsRemaining) / 2} post generations
+                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 2)} post generations
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {creditBalance?.creditsUsed || 0} credits used of {creditBalance?.totalCredits || 0} total
+                            {creditBalance?.creditsUsed || 0} credits used of{" "}
+                            {creditBalance?.totalCredits?.toFixed(1) || 0} total
                           </p>
                         </div>
 
@@ -353,7 +379,7 @@ const TokenPage: NextPage = () => {
                             {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            Credits will reset to {creditBalance?.totalCredits || 0}
+                            Credits will reset to {creditBalance?.totalCredits?.toFixed(1) || 0}
                           </p>
                         </div>
 
@@ -424,15 +450,6 @@ const TokenPage: NextPage = () => {
                               {getLockupPeriodLabel(stake.lockupPeriod)} Lock •{" "}
                               {getCreditsMultiplier(Number(stake.lockupPeriod))}× Credits
                             </div>
-                            <div className="text-xs text-secondary/60 mt-1">
-                              ~
-                              {calculateDailyStakingCredits(
-                                formatStakingAmount(stake.amount),
-                                twapPrice || bonsaiPrice,
-                                getCreditsMultiplier(Number(stake.lockupPeriod)),
-                              ).toFixed(2)}{" "}
-                              credits/day
-                            </div>
                           </div>
                           <div className="flex items-center gap-x-6">
                             <div className="text-right">
@@ -472,6 +489,7 @@ const TokenPage: NextPage = () => {
                     onClose={() => setIsStakeModalOpen(false)}
                     calculateCreditsPerDay={calculateCreditsPerDay}
                     twapPrice={twapPrice || bonsaiPrice}
+                    stakingSummary={stakingData?.summary || null}
                   />
                 </Modal>
 

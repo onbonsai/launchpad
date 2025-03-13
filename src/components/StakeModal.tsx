@@ -3,6 +3,7 @@ import { Button } from "./Button";
 import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
+import { StakingSummary } from "../../pages/studio/stakingCalculator";
 
 interface StakeModalProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface StakeModalProps {
   maxAmount: string;
   calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
   twapPrice?: number;
+  stakingSummary?: StakingSummary | null;
 }
 
 const LOCKUP_PERIODS = [
@@ -20,7 +22,14 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
+export const StakeModal = ({
+  onClose,
+  onStake,
+  maxAmount,
+  calculateCreditsPerDay,
+  twapPrice,
+  stakingSummary,
+}: StakeModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
@@ -35,10 +44,18 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
     setSelectedPeriod(LOCKUP_PERIODS[0]);
   };
 
-  const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
+  const sharedInputClasses =
+    "bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm";
 
   // Calculate estimated daily credits
-  const estimatedDailyCredits = calculateCreditsPerDay(amount, selectedPeriod.value);
+  const estimatedAdditionalCredits = calculateCreditsPerDay(amount, selectedPeriod.value);
+
+  // Format the estimated credits
+  const formattedCredits = estimatedAdditionalCredits.toFixed(1);
+
+  // Calculate USD value
+  const usdValue = Number(amount) * (twapPrice || 0);
+  const effectiveUsdValue = usdValue * selectedPeriod.multiplier;
 
   return (
     <div className="space-y-6 min-w-[450px] text-secondary font-sans">
@@ -62,10 +79,7 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
               className={clsx("w-full pr-4", sharedInputClasses)}
               placeholder="0"
             />
-            <button
-              onClick={handleMax}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish"
-            >
+            <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish">
               MAX
             </button>
           </div>
@@ -98,18 +112,44 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
         {twapPrice && amount && Number(amount) > 0 && (
           <div className="mt-4 p-4 bg-card-light rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Estimated Daily Credits:</span>
-              <span className="text-lg font-bold text-primary">{estimatedDailyCredits.toFixed(1)}</span>
+              <span className="text-sm font-medium">Estimated Additional Daily Credits:</span>
+              <span className="text-lg font-bold text-primary">{formattedCredits}</span>
             </div>
             <div className="text-xs text-secondary/60 mt-1">
-              Based on current $BONSAI price and {selectedPeriod.multiplier}× multiplier
+              Based on current $BONSAI price (${twapPrice?.toFixed(2)}) and {selectedPeriod.multiplier}× multiplier
             </div>
+
+            {Number(estimatedAdditionalCredits) > 0 && (
+              <div className="mt-3 pt-3 border-t border-card-light/20">
+                <div className="text-xs">
+                  <div className="flex justify-between mb-1">
+                    <span>Stake value:</span>
+                    <span>${usdValue.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mb-1 font-medium">
+                    <span>Effective value with {selectedPeriod.multiplier}× multiplier:</span>
+                    <span>${effectiveUsdValue.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mt-2 pt-2 border-t border-card-light/20 text-xs">
+                    <p>Credit calculation tiers:</p>
+                  </div>
+                  <div className="text-xs mt-1 text-secondary/80">
+                    <div className="grid grid-cols-3 gap-x-2">
+                      <div>First $20 = 0.5× credits</div>
+                      <div>$21-$100 = 0.25× credits</div>
+                      <div>$101+ = 0.1× credits</div>
+                    </div>
+                    <div className="mt-2 text-secondary/60">Maximum staking credits: 100 (+ 10 free tier credits)</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button
-            size='md'
+            size="md"
             variant="accentBrand"
             className="w-full hover:bg-bullish"
             onClick={handleStake}

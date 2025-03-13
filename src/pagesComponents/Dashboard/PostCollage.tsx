@@ -5,13 +5,11 @@ import { useInView } from "react-intersection-observer";
 import ClubCard from "./ClubCard";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
-import useGetClubCreators from "@src/hooks/useGetClubCreators";
+import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
 
-export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
+export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
-  const [clubCreators, setClubCreators] = useState({});
-  const { data: creators, isLoading: isLoadingClubCreators } = useGetClubCreators(clubs, clubCreators);
   const [showCompleted, setShowCompleted] = useState(false);
 
   useEffect(() => {
@@ -20,28 +18,17 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
     }
   }, [inView, isLoading, hasMore, fetchNextPage]);
 
-  useEffect(() => {
-    if (!isLoadingClubCreators) {
-      setClubCreators({ ...clubCreators, ...creators });
-    }
-  }, [creators, isLoadingClubCreators]);
-
-  const sortedClubs = useMemo(() => {
-    const _clubs = filterBy ? filteredClubs : clubs;
+  const sortedPosts = useMemo(() => {
+    const _posts = filterBy ? filteredPosts : posts;
     const direction = "desc";
 
-    // Filter out completed clubs if showCompleted is false
-    const filteredByCompletion = showCompleted
-      ? _clubs
-      : _clubs.filter(({ club }) => !club.liquidityReleasedAt);
-
-    const orderedClubs = orderBy(filteredByCompletion, [club => {
-      const value = get(club, sortedBy);
+    const orderedPosts = orderBy(_posts, [post => {
+      const value = get(post, sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
 
-    const featuredClubs = orderedClubs.filter(({ club }) => club.featured);
-    const nonFeaturedClubs = orderedClubs.filter(({ club }) => !club.featured);
+    const featuredPosts = orderedPosts.filter(({ post }) => post.featured);
+    const nonFeaturedPosts = orderedPosts.filter(({ post }) => !post.featured);
 
     return [...featuredClubs, ...nonFeaturedClubs];
   }, [sortedBy, filterBy, filteredClubs, clubs, showCompleted]);
@@ -55,20 +42,13 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
   return (
     <div className="bg-background text-secondary">
       <main className="mx-auto max-w-full">
-        {sortedClubs.length > 0 && (
-          <div className="mb-8">
-            <ClubCard data={sortedClubs[0]}
-              creatorProfile={clubCreators[sortedClubs[0].club.clubId]?.[0]?.profile}
-            />
-          </div>
-        )}
         {/* FILTER */}
         <div className="relative max-w-full">
           <div className="flex justify-end">
             {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
                 <span className="text-secondary text-sm pr-4">{filterBy}</span>
-                <button onClick={() => { setFilteredClubs([]); setFilterBy("") }} className="text-secondary inline-flex">
+                <button onClick={() => { setFilteredPosts([]); setFilterBy("") }} className="text-secondary inline-flex">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -129,13 +109,13 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
             >
-              {sortedClubs.map((club, idx) => {
+              {sortedPosts.map((club, idx) => {
                 if (idx === 0) return null;
                 return (
                   <div key={`club-${idx}`} className="mb-4">
+                    {/* Make this a Publication */}
                     <ClubCard
                       data={club}
-                      creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
                       funny={idx % 3 === 0}
                       funnier={idx % 2 === 0}
                     />
