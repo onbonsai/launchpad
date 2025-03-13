@@ -3,10 +3,9 @@ import { MetadataAttribute } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
 import { getSmartMediaUrl } from "@src/utils/utils";
-import { IS_PRODUCTION } from "./utils";
 
 export const APP_ID = "BONSAI";
-export const ELIZA_API_URL = "https://eliza-staging.up.railway.app";
+export const ELIZA_API_URL = "http://localhost:3001"
 
 /**
  * SmartMedia categories and templates
