@@ -116,16 +116,22 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         </div>
 
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
-          <div className="lg:col-span-3 max-w-full whitespace-nowrap">
-            <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
+          <div className="lg:col-span-3 max-w-full">
+            <ul role="list" className="columns-1 sm:columns-2 lg:columns-3 gap-4">
               {sortedClubs.map((club, idx) => {
                 if (idx === 0) return null;
-                return <li className="w-full" key={`club-${idx}`}>
-                  <ClubCard
-                    data={club}
-                    creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
-                  />
-                </li>
+                return (
+                  <li
+                    className="break-inside-avoid-column mb-4 inline-block w-full"
+                    key={`club-${idx}`}
+                  >
+                    <ClubCard
+                      data={club}
+                      creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
+                      funny={idx % 2 === 0}
+                    />
+                  </li>
+                );
               })}
             </ul>
             {hasMore && (

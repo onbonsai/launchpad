@@ -58,7 +58,7 @@ export default function MyApp(props: AppProps) {
 
   const isPostRoute = router.pathname.startsWith("/post");
 
-  const AppLayout = isPostRoute ? SinglePageLayout : Layout;
+  const AppLayout = isPostRoute ? Layout : Layout;
 
   if (typeof window !== "undefined") {
     window.addEventListener(

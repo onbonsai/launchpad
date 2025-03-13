@@ -7,6 +7,7 @@ import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import { localizeNumber } from "@src/constants/utils";
+import clsx from "clsx";
 
 interface Props {
   data: {
@@ -32,13 +33,14 @@ interface Props {
     };
   };
   creatorProfile?: { picture: string };
+  funny?: boolean;
 }
 
-const ClubCard = ({ data, creatorProfile }: Props) => {
+const ClubCard = ({ data, creatorProfile, funny }: Props) => {
   const { club, chain } = data;
 
   const bondingCurveProgress = useMemo(() => {
-    if (club.v2){
+    if (club.v2) {
       const clubSupply = Number(formatEther(BigInt(club.supply)));
       if (clubSupply) {
         const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
@@ -130,7 +132,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
             }`}
           style={{ width: "100%", height: "100%" }}
         ></canvas>
-        <div className="rounded-3xl card card-compact shadow-md relative z-10">
+        <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '')}>
           <BgImage />
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />
