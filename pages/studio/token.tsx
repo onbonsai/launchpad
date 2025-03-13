@@ -2,11 +2,12 @@ import { NextPage } from "next";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
+import { switchChain } from "@wagmi/core";
 import { useEffect, useState, useMemo } from "react";
-import { useAccount, useBalance } from "wagmi";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { useAccount, useBalance, useReadContract } from "wagmi";
+import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
-import { formatEther } from "viem";
+import { erc20Abi, formatEther } from "viem";
 import { useQuery } from "@tanstack/react-query";
 import { useStakingData, formatStakingAmount, getLockupPeriodLabel } from "@src/hooks/useStakingData";
 import { useStakingTransactions } from "@src/hooks/useStakingTransactions";
@@ -14,6 +15,10 @@ import { StakeModal } from "@src/components/StakeModal";
 import { Modal } from "@src/components/Modal";
 import WalletButton from "@src/components/Creators/WalletButton";
 import { kFormatter } from "@src/utils/utils";
+import BridgeModal from "@pagesComponents/Studio/BridgeModal";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { configureChainsConfig } from "@src/utils/wagmi";
+import toast from "react-hot-toast";
 
 interface CreditBalance {
   totalCredits: number;
@@ -41,11 +46,17 @@ const getCreditsMultiplier = (lockupPeriod: number) => {
 };
 
 const TokenPage: NextPage = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
 
-  const { data: bonsaiBalance } = useBalance({
-    address,
-    token: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+  const { data: bonsaiBalance, refetch: refetchBonsaiBalance } = useReadContract({
+    address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`],
+    chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: isConnected
+    }
   });
 
   const { data: creditBalance, isLoading: isLoadingCredits } = useQuery({
@@ -60,21 +71,23 @@ const TokenPage: NextPage = () => {
   const [bonsaiPrice, setBonsaiPrice] = useState(0);
   const [tokenHoldings, setTokenHoldings] = useState(0);
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
+  const [isBridgeModalOpen, setIsBridgeModalOpen] = useState(false);
+  const [bridgeInfo, setBridgeInfo] = useState<{ txHash: `0x${string}` }>();
 
   const { stake, unstake } = useStakingTransactions();
 
   useMemo(() => {
-    if (!bonsaiBalance?.value || bonsaiBalance.value === BigInt(0)) {
+    if (!bonsaiBalance || bonsaiBalance === BigInt(0)) {
       setBonsaiPrice(0);
       return;
     }
     const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
     setBonsaiPrice(tokenPrice);
-    const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiBalance.value));
+    const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiBalance));
     setTokenHoldings(tokenPrice * bonsaiHoldings);
-  }, [bonsaiBalance?.value]);
+  }, [bonsaiBalance]);
 
-  const formattedBalance = kFormatter(parseFloat(formatEther(bonsaiBalance?.value || 0n)), true);
+  const formattedBalance = kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)), true);
 
   const totalStaked = useMemo(() => {
     if (!stakingData?.summary?.totalStaked) return "0";
@@ -105,6 +118,14 @@ const TokenPage: NextPage = () => {
 
   const handleStake = async (amount: string, lockupPeriod: number) => {
     try {
+      if (chain?.id !== lens.id) {
+        try {
+          await switchChain(configureChainsConfig, { chainId: lens.id });
+        } catch {
+          toast.error("Please switch to Lens");
+          return;
+        }
+      }
       await stake(amount, lockupPeriod);
       setIsStakeModalOpen(false);
     } catch (error) {
@@ -114,11 +135,44 @@ const TokenPage: NextPage = () => {
 
   const handleUnstake = async (stakeIndex: number) => {
     try {
+      if (chain?.id !== lens.id) {
+        try {
+          await switchChain(configureChainsConfig, { chainId: lens.id });
+        } catch {
+          toast.error("Please switch to Lens");
+          return;
+        }
+      }
       await unstake(stakeIndex);
     } catch (error) {
       console.error("Unstaking error:", error);
     }
   };
+
+  const onBridge = async (txHash: `0x${string}`) => {
+    setBridgeInfo({ txHash });
+
+    const checkDeliveryStatus = async () => {
+      try {
+        const response = await fetch(`https://scan.layerzero-api.com/v1/messages/tx/${txHash}`);
+        const data = await response.json();
+
+        if (data.data[0].status.name === "DELIVERED") {
+          // Refetch bonsai balance
+          refetchBonsaiBalance();
+          clearInterval(statusInterval);
+          setBridgeInfo(undefined);
+        }
+      } catch (error) {
+        console.error("Error checking bridge status:", error);
+      }
+    };
+
+    const statusInterval = setInterval(checkDeliveryStatus, 30000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(statusInterval);
+  }
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -153,7 +207,20 @@ const TokenPage: NextPage = () => {
                         <>
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
-                          <div className="mt-4 flex justify-end">
+                          <div className="mt-4 flex justify-end space-x-2">
+                            <Button
+                              variant="dark-grey"
+                              size="sm"
+                              onClick={() => setIsBridgeModalOpen(true)}
+                            >
+                              {!bridgeInfo?.txHash && "Bridge"}
+                              {bridgeInfo?.txHash && (
+                                <div className="flex items-center gap-2 flex-row">
+                                  <Spinner customClasses="h-4 w-4" color="#E42101" />
+                                  <span>Bridging</span>
+                                </div>
+                              )}
+                            </Button>
                             <Button variant="accent" size="sm">
                               Buy $BONSAI
                             </Button>
@@ -173,11 +240,11 @@ const TokenPage: NextPage = () => {
                   {/* Rewards Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Rewards</h3>
+                      <h3 className="text-sm font-medium text-primary">Staking Rewards</h3>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-secondary">Coming Soon</div>
-                      <p className="text-xs text-secondary/60">Coming Soon</p>
+                      <p className="text-xs text-secondary/60">80% APY</p>
                       <div className="mt-4 flex justify-end gap-2">
                         <Button variant="accent" size="sm" disabled>
                           Claim
@@ -347,10 +414,20 @@ const TokenPage: NextPage = () => {
                   panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
                 >
                   <StakeModal
-                    maxAmount={bonsaiBalance ? Number(bonsaiBalance?.formatted).toFixed(2) : "0"}
+                    maxAmount={formatEther(bonsaiBalance || 0n)}
                     onStake={handleStake}
                     onClose={() => setIsStakeModalOpen(false)}
                   />
+                </Modal>
+
+                {/* Bridge Modal */}
+                <Modal
+                  onClose={() => setIsBridgeModalOpen(false)}
+                  open={isBridgeModalOpen}
+                  setOpen={setIsBridgeModalOpen}
+                  panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+                >
+                  <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
                 </Modal>
               </div>
             </div>

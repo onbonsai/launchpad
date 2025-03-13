@@ -1,4 +1,5 @@
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { base, polygon, zkSync } from "viem/chains";
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";

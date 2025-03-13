@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Button } from "./Button";
+import { Dialog } from "@headlessui/react";
+import { Subtitle } from "@src/styles/text";
+import clsx from "clsx";
 
 interface StakeModalProps {
   onClose: () => void;
@@ -8,7 +11,7 @@ interface StakeModalProps {
 }
 
 const LOCKUP_PERIODS = [
-  { label: "No Lock", value: 0, multiplier: 1 },
+  { label: "No Lockup", value: 0, multiplier: 1 },
   { label: "1 Month", value: 30 * 24 * 60 * 60, multiplier: 1.5 },
   { label: "3 Months", value: 90 * 24 * 60 * 60, multiplier: 2 },
   { label: "6 Months", value: 180 * 24 * 60 * 60, multiplier: 3 },
@@ -30,27 +33,33 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
     setSelectedPeriod(LOCKUP_PERIODS[0]);
   };
 
+  const sharedInputClasses = 'bg-card-light rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
+
   return (
     <div className="space-y-6 min-w-[450px] text-secondary font-sans">
-      <div>
-        <h3 className="text-lg font-medium mb-4 font-sf-pro-text">Stake $BONSAI</h3>
+      <div className="flex items-center justify-between">
+        <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
+          Stake $BONSAI
+        </Dialog.Title>
       </div>
 
       <div className="space-y-4 font-sf-pro-text">
         {/* Amount Input */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Amount</label>
+        <div className="flex flex-col justify-between gap-2">
+          <div className="flex items-center gap-1">
+            <Subtitle className="text-white/70">Amount</Subtitle>
+          </div>
           <div className="relative">
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-card-light rounded-lg px-4 py-2 text-secondary font-sans"
-              placeholder="0.00"
+              className={clsx("w-full pr-4", sharedInputClasses)}
+              placeholder="0"
             />
             <button
               onClick={handleMax}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-primary hover:text-primary/80"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish"
             >
               MAX
             </button>
@@ -58,8 +67,10 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
         </div>
 
         {/* Lockup Period Selection */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Lockup Period</label>
+        <div className="flex flex-col justify-between gap-2">
+          <div className="flex items-center gap-1">
+            <Subtitle className="text-white/70">Lockup Period</Subtitle>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {LOCKUP_PERIODS.map((period) => (
               <button
@@ -67,8 +78,8 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
                 onClick={() => setSelectedPeriod(period)}
                 className={`p-3 rounded-lg text-left transition-colors ${
                   selectedPeriod.value === period.value
-                    ? "bg-primary/20 text-primary"
-                    : "bg-card-light text-secondary hover:bg-primary/10"
+                    ? "bg-bullish/20 text-bullish"
+                    : "bg-card-light text-secondary hover:bg-bullish/10"
                 }`}
               >
                 <div className="text-sm font-medium">{period.label}</div>
@@ -79,12 +90,10 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="secondary" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
           <Button
-            variant="accent"
-            size="sm"
+            size='md'
+            variant="accentBrand"
+            className="w-full hover:bg-bullish"
             onClick={handleStake}
             disabled={!amount || Number(amount) <= 0}
           >
@@ -94,4 +103,4 @@ export const StakeModal = ({ onClose, onStake, maxAmount }: StakeModalProps) => 
       </div>
     </div>
   );
-}; 
+};

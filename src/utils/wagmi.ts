@@ -1,5 +1,5 @@
 import { http } from "wagmi";
-import { polygon, base, baseSepolia, mainnet } from "viem/chains";
+import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
 import { createConfig } from "@privy-io/wagmi";
 import { providers } from "ethers";
 
@@ -8,7 +8,7 @@ import { frameConnector } from "./connector";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
 
 export const configureChainsConfig = createConfig({
-  chains: [lens, lensTestnet, polygon, base, baseSepolia, mainnet],
+  chains: [lens, lensTestnet, polygon, base, baseSepolia, mainnet, zkSync],
   transports: {
     [lens.id]: http(ChainRpcs[lens.id]),
     [lensTestnet.id]: http(ChainRpcs[lensTestnet.id]),
@@ -16,6 +16,7 @@ export const configureChainsConfig = createConfig({
     [base.id]: http(ChainRpcs[base.id]),
     [baseSepolia.id]: http(ChainRpcs[baseSepolia.id]),
     [mainnet.id]: http(),
+    [zkSync.id]: http(ChainRpcs[zkSync.id]),
   },
   connectors: [frameConnector()],
 });
