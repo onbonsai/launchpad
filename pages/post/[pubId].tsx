@@ -22,7 +22,7 @@ import { useGetComments } from "@src/hooks/useGetComments";
 import PublicationContainer from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 import { getPost } from "@src/services/lens/posts";
-import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
+import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
 import { postId, uri } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -278,46 +278,62 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                   <Spinner customClasses="h-6 w-6" color="#E42101" />
                 </div>
               ) : (
-                publication ? <PublicationContainer
-                  publication={publication}
-                  onCommentButtonClick={onCommentButtonClick}
-                  shouldGoToPublicationPage={false}
-                  isProfileAdmin={isProfileAdmin}
-                  media={media}
-                  onCollectCallback={() => setCanComment(true)}
-                  sideBySideMode={true}
-                  nestedWidget={<div className=""><Publications
-                    publications={sortedComments}
-                    theme={Theme.dark}
-                    environment={LENS_ENVIRONMENT}
-                    authenticatedProfile={authenticatedProfile}
-                    hideCommentButton={true}
-                    hideQuoteButton={true}
-                    hideShareButton={true}
-                    hasUpvotedComment={hasUpvotedComment}
-                    onLikeButtonClick={onLikeButtonClick}
-                    getOperationsFor={getOperationsFor}
-                    profilePictureStyleOverride={publicationProfilePictureStyle}
-                    containerBorderRadius={'24px'}
-                    containerPadding={'12px'}
-                    profilePadding={'0 0 0 0'}
-                    textContainerStyleOverride={textContainerStyleOverrides}
-                    backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                    mediaImageStyleOverride={mediaImageStyleOverride}
-                    imageContainerStyleOverride={imageContainerStyleOverride}
-                    reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                    reactionContainerStyleOverride={reactionContainerStyleOverride}
-                    publicationContainerStyleOverride={publicationContainerStyleOverride}
-                    shareContainerStyleOverride={shareContainerStyleOverride}
-                    markdownStyleBottomMargin={'0px'}
-                    heartIconOverride={true}
-                    messageIconOverride={true}
-                    shareIconOverride={true}
-                    followButtonDisabled={true}
-                  />
-                    <CommentBox />
-                  </div>}
-                /> : <div className="flex justify-center pt-8 pb-8">
+                publication ? <>
+                  <div className="hidden sm:block">
+                    <PublicationContainer
+                      publication={publication}
+                      onCommentButtonClick={onCommentButtonClick}
+                      shouldGoToPublicationPage={false}
+                      isProfileAdmin={isProfileAdmin}
+                      media={media}
+                      onCollectCallback={() => setCanComment(true)}
+                      sideBySideMode={true}
+                      nestedWidget={<div className=""><Publications
+                        publications={sortedComments}
+                        theme={Theme.dark}
+                        environment={LENS_ENVIRONMENT}
+                        authenticatedProfile={authenticatedProfile}
+                        hideCommentButton={true}
+                        hideQuoteButton={true}
+                        hideShareButton={true}
+                        hasUpvotedComment={hasUpvotedComment}
+                        onLikeButtonClick={onLikeButtonClick}
+                        getOperationsFor={getOperationsFor}
+                        profilePictureStyleOverride={commentPublicationProfilePictureStyle}
+                        containerBorderRadius={'24px'}
+                        containerPadding={'12px'}
+                        profilePadding={'0 0 0 0'}
+                        textContainerStyleOverride={commentTextContainerStyleOverrides}
+                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                        mediaImageStyleOverride={mediaImageStyleOverride}
+                        imageContainerStyleOverride={imageContainerStyleOverride}
+                        reactionsContainerStyleOverride={commentReactionsContainerStyleOverride}
+                        reactionContainerStyleOverride={reactionContainerStyleOverride}
+                        publicationContainerStyleOverride={publicationContainerStyleOverride}
+                        shareContainerStyleOverride={shareContainerStyleOverride}
+                        profileNameStyleOverride={commentProfileNameStyleOverride}
+                        dateNameStyleOverride={commentDateStyleOverride}
+                        markdownStyleBottomMargin={'0px'}
+                        heartIconOverride={true}
+                        messageIconOverride={true}
+                        shareIconOverride={true}
+                        followButtonDisabled={true}
+                      />
+                        <CommentBox />
+                      </div>}
+                    />
+                  </div>
+                  <div className="sm:hidden">
+                    <PublicationContainer
+                      publication={publication}
+                      onCommentButtonClick={onCommentButtonClick}
+                      shouldGoToPublicationPage={false}
+                      isProfileAdmin={isProfileAdmin}
+                      media={media}
+                      onCollectCallback={() => setCanComment(true)}
+                    />
+                  </div>
+                </> : <div className="flex justify-center pt-8 pb-8">
                   <Spinner customClasses="h-6 w-6" color="#E42101" />
                 </div>
               )}

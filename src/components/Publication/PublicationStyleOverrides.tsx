@@ -12,10 +12,29 @@ export const publicationProfilePictureStyle = css`
   background-color: #dddddd;
 `;
 
+export const commentPublicationProfilePictureStyle = css`
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #dddddd;
+`;
+
 export const textContainerStyleOverrides = css`
   padding-top: 20px;
   font-size: 16px;
   line-height: 20px;
+  font-family: var(--font-inter), sans-serif;
+`
+
+export const commentTextContainerStyleOverrides = css`
+  padding-top: 8px;
+  font-size: 12px;
+  line-height: 14px;
   font-family: var(--font-inter), sans-serif;
 `
 
@@ -49,6 +68,30 @@ export const reactionsContainerStyleOverride = css`
   margin-left: 12px;
   gap: 8px;
   cursor: default;
+`
+
+export const commentReactionsContainerStyleOverride = css`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 0px;
+  padding-bottom: 12px;
+  margin-left: 12px;
+  gap: 8px;
+  cursor: default;
+`
+
+export const commentProfileNameStyleOverride = css`
+  font-weight: 600;
+  font-size: 12px;
+`
+
+export const commentDateStyleOverride = css`
+  font-size: 10px;
+  color: #464646;
+  opacity: .75;
 `
 
 export const reactionContainerStyleOverride = (color, backgroundColor, isAuthenticatedAndWithHandler, hasReacted) => css`

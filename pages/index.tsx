@@ -39,9 +39,6 @@ const IndexPage: NextPage = () => {
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
-  // TODO: steven use these posts to render a grid
-  // TODO: handle pagination
-  // TODO: with token
   const { data: posts } = useGetExplorePosts({ accountAddress: address });
 
   const { data: bonsaiBalance } = useReadContract({
@@ -62,7 +59,7 @@ const IndexPage: NextPage = () => {
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8 pt-6">
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
-              <div className="lg:col-span-7 max-w-full">
+              <div className="lg:col-span-10 max-w-full">
                 {/* return the featured clubs asap, then load the rest */}
                 {isLoadingFeaturedClubs
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
@@ -80,63 +77,7 @@ const IndexPage: NextPage = () => {
                   />
                 }
               </div>
-              <div className="lg:col-span-3 overflow-auto">
-                {/* Profile */}
-                {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy isConnected={isConnected} isAuthenticatedProfile={!!authenticatedProfile} />}
-                {isConnected && (
-                  <div className="bg-card rounded-xl p-4 hidden lg:block">
-                    {!!address &&
-                      <>
-                        <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
-                        <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
-                      </>
-                    }
-                  </div>
-                )}
 
-                {/* Bonsai NFT Perks */}
-                {!isConnected && (
-                  <div className="relative lg:col-span-3">
-                    <div className="rounded-xl p-6 w-full bg-card mt-1">
-                      <div className="flex justify-between flex-col gap-[2px]">
-                        <Header2>Bonsai NFT Perks</Header2>
-                        <Subtitle>
-                          Get an edge when creating or trading tokens
-                        </Subtitle>
-                      </div>
-                      <span className="text-base gap-2 flex flex-col mt-6">
-                        <ListItemCard items={[
-                          "0% fees on bonding curves",
-                          "0% fees on Uni v4 pools",
-                          <>
-                            Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
-                              <span className="link link-hover">Rooftop Club</span>
-                            </Link>{" "}on Orb
-                          </>
-                        ]} />
-                      </span>
-                      <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
-                        <Subtitle>
-                          Requirements
-                        </Subtitle>
-                        <div className="flex gap-2">
-                          <CreatorButton text="100K $BONSAI" />
-                          <p>or</p>
-                          <CreatorButton text="1 BONSAI NFT" image={'nft-example.png'} />
-                        </div>
-                      </div>
-                      {/* <Button
-                        className="mt-6"
-                        size="sm"
-                        onClick={() => setOpenBuyModal(true)}
-                        disabled={!isConnected}
-                      >
-                        Buy $BONSAI
-                      </Button> */}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div >
           </section >
 
@@ -156,5 +97,56 @@ const IndexPage: NextPage = () => {
     </div >
   );
 };
+
+// OLD Profile code:
+/* <div className="lg:col-span-3">
+
+  {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy isConnected={isConnected} isAuthenticatedProfile={!!authenticatedProfile} />}
+  {isConnected && (
+    <div className="bg-card rounded-xl p-4 hidden lg:block sticky top-24">
+      {!!address &&
+        <>
+          <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
+          <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
+        </>
+      }
+    </div>
+  )}
+
+
+  {!isConnected && (
+    <div className="relative lg:col-span-3">
+      <div className="rounded-xl p-6 w-full bg-card mt-1">
+        <div className="flex justify-between flex-col gap-[2px]">
+          <Header2>Bonsai NFT Perks</Header2>
+          <Subtitle>
+            Get an edge when creating or trading tokens
+          </Subtitle>
+        </div>
+        <span className="text-base gap-2 flex flex-col mt-6">
+          <ListItemCard items={[
+            "0% fees on bonding curves",
+            "0% fees on Uni v4 pools",
+            <>
+              Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
+                <span className="link link-hover">Rooftop Club</span>
+              </Link>{" "}on Orb
+            </>
+          ]} />
+        </span>
+        <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
+          <Subtitle>
+            Requirements
+          </Subtitle>
+          <div className="flex gap-2">
+            <CreatorButton text="100K $BONSAI" />
+            <p>or</p>
+            <CreatorButton text="1 BONSAI NFT" image={'nft-example.png'} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+</div> */
 
 export default IndexPage;

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
-import { Publication, Theme } from "@madfi/widgets-react";
+import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
 import Popper from '@mui/material/Popper';
 import clsx from "clsx";
 import { erc20Abi, formatEther, parseEther } from "viem";
@@ -294,9 +294,12 @@ const PublicationContainer = ({
 
     setIsCollecting(false);
   }
+
+  const PublicationType = sideBySideMode ? HorizontalPublication : Publication;
+
   return (
-    <div className="mt-4 relative">
-      <Publication
+    <div className="mt-4 relative flex justify-center max-h-60vh">
+      <PublicationType
         key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
         publicationId={publication?.id ? publication!.id : publicationId}
         publicationData={publication ? getPublicationDataPotentiallyEncrypted(publication) : undefined}
@@ -346,7 +349,6 @@ const PublicationContainer = ({
         heartIconOverride={true}
         messageIconOverride={true}
         shareIconOverride={true}
-        sideBySideMode={sideBySideMode}
         nestedWidget={nestedWidget}
       />
       {showCollectModal && (
