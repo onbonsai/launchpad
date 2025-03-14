@@ -103,16 +103,17 @@ export function tweetIntentUrlMinted(handle: string) {
 interface IntentUrlProps {
   text: string;
   referralAddress: string;
-  clubId: string;
+  chain: string;
+  tokenAddress: string;
 }
 
-export function tweetIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
+  const url = `https://launch.bonsai.meme/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURI(`${url}`)}`;
 }
 
-export function castIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
+  const url = `https://launch.bonsai.meme/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 
 }
