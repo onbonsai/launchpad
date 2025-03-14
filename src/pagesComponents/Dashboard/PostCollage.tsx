@@ -10,10 +10,13 @@ import Masonry from "react-masonry-css";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
+import { useRouter } from "next/router";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
   const [showCompleted, setShowCompleted] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
@@ -113,9 +116,9 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
             >
               {sortedPosts.map((post, idx) => {
                 if (idx === 0) return null;
+                console.log(post)
                 return (
                   <div key={`club-${idx}`} className="mb-4 relative group">
-                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 cursor-pointer" />
                     <Publication
                       key={`preview-${JSON.stringify(post)}`}
                       publicationData={{
@@ -156,11 +159,13 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
                       <CardOverlay
                         profileName={post.author.handle}
-                        onSave={() => {/* handle save */}}
-                        onShare={() => {/* handle share */}}
-                        onHide={() => {/* handle hide */}}
-                        onDownload={() => {/* handle download */}}
-                        onReport={() => {/* handle report */}}
+                        onSave={() => {/* handle save */ }}
+                        onShare={() => {/* handle share */ }}
+                        onHide={() => {/* handle hide */ }}
+                        onDownload={() => {/* handle download */ }}
+                        onReport={() => {/* handle report */ }}
+                        onClick={() => { router.push(`/post/${post.id}`); }}
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out z-30"
                       />
                     </div>
                   </div>
