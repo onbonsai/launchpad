@@ -9,6 +9,7 @@ import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+import { CardOverlay } from "@src/components/CardOverlay";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
@@ -113,7 +114,8 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
               {sortedPosts.map((post, idx) => {
                 if (idx === 0) return null;
                 return (
-                  <div key={`club-${idx}`} className="mb-4">
+                  <div key={`club-${idx}`} className="mb-4 relative group">
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 cursor-pointer" />
                     <Publication
                       key={`preview-${JSON.stringify(post)}`}
                       publicationData={{
@@ -151,6 +153,16 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                       messageIconOverride={true}
                       shareIconOverride={true}
                     />
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
+                      <CardOverlay
+                        profileName={post.author.handle}
+                        onSave={() => {/* handle save */}}
+                        onShare={() => {/* handle share */}}
+                        onHide={() => {/* handle hide */}}
+                        onDownload={() => {/* handle download */}}
+                        onReport={() => {/* handle report */}}
+                      />
+                    </div>
                   </div>
                 );
               })}
