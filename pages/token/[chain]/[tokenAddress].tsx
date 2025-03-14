@@ -15,10 +15,9 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { BENEFITS_AUTO_FEATURE_HOURS, getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS } from "@src/services/madfi/moneyClubs";
+import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
-import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { FairLaunchModeComponent } from '@pagesComponents/Club/FairLaunchModeComponent';
@@ -32,44 +31,6 @@ import { InfoOutlined } from '@mui/icons-material';
 import { capitalizeFirstLetter } from '@src/utils/utils';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
-
-type Token = {
-  name: string;
-  symbol: string;
-  description: string;
-  image: string;
-};
-
-export type Club = {
-  __typename: 'Club';
-  id: string;
-  creator: string;
-  initialSupply: string;
-  createdAt: string;
-  supply: string;
-  feesEarned: string;
-  currentPrice: string;
-  marketCap: string;
-  prevTrade24Hr: object; // Replace 'object' with a more specific type if available
-  clubId: number;
-  profileId: string;
-  strategy: string;
-  handle: string;
-  token: Token;
-  postId: string;
-  pubId?: string;
-  featured: boolean;
-  creatorFees: string;
-  complete: boolean;
-  completedAt?: number
-  liquidityReleasedAt?: number
-  claimAt: number;
-  cliffPercent: string
-  vestingDuration: string
-  tokenAddress?: `0x${string}`;
-  hook: `0x${string}`;
-  chain: string;
-};
 
 interface TokenPageProps {
   club: Club;
@@ -226,10 +187,18 @@ const TokenPage: NextPage<TokenPageProps> = ({
       </div>
     );
 
-  const InfoCard: React.FC<{ title: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
+  const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
     <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
-      <Subtitle className="text-xs">{title}</Subtitle>
-      <span>{subtitle}</span>
+      {title ? (
+        <>
+          <Subtitle className="text-xs">{title}</Subtitle>
+          <span>{subtitle}</span>
+        </>
+      ) : (
+        <div className="h-8 flex items-center">
+          <span>{subtitle}</span>
+        </div>
+      )}
     </div>
   );
 
@@ -244,14 +213,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }
 
   const infoCardRow = () => {
-    if (fairLaunchMode) {
-      return (
-        <InfoCard title="Phase" className="animate-pulse ml-2" subtitle="Fair Launch"
-          roundedRight
-          roundedLeft
-        />
-      )
-    }
+    if (fairLaunchMode) return null;
 
     return (
       <>
@@ -278,13 +240,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
-            <h2 id="dashboard-heading" className="sr-only">
-              {profile?.metadata?.displayName}
-            </h2>
-
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
               {/* Chart */}
               <div className={clsx("md:col-span-3 rounded-3xl", club.featured && "animate-pulse")}>
@@ -311,12 +268,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             <div className="flex flex-col">
                               <div className="flex flex-row space-x-4">
                                 <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                                <div className="pl-4 -mt-[6px]">
-                                  <ShareClub clubId={club.clubId} symbol={club.token.name} />
-                                </div>
-                                <p className="text-white text-md"><WalletButton wallet={club.tokenAddress!} chain={club.chain} /></p>
                               </div>
-                              <BodySemiBold className={`text-white/60 ${isConnected && "-mt-2"}`}>{club.token.name}</BodySemiBold>
+                              <BodySemiBold className={`text-white/60 ${isConnected && "mt-1"}`}>{club.token.name}</BodySemiBold>
                             </div>
                             {!!club.liquidityReleasedAt && (
                               <div className="flex flex-col ml-20">
@@ -331,21 +284,32 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex flex-row items-center gap-2">
-                        <InfoCard title='Network' subtitle={
+                      <div className="flex flex-row items-center">
+                        <InfoCard title='' subtitle={
+                          <div className='flex gap-1 items-center'>
+                            <ShareClub chain={club.chain} tokenAddress={club.tokenAddress} symbol={club.token.name} />
+                          </div>
+                        }
+                          roundedLeft
+                        />
+                        <InfoCard title='Chain' subtitle={
                           <div className='flex gap-1 items-center'>
                             <img
                               src={`/${club.chain}.png`}
                               alt={club.chain}
-                              className="h-[12px]"
+                              className="h-[12px] opacity-75"
                             />
                             <Subtitle className='text-white'>
                               {capitalizeFirstLetter(club.chain)}
                             </Subtitle>
                           </div>
+                        }/>
+                        <InfoCard title='CA' subtitle={
+                          <div className='flex gap-1 items-center'>
+                            <WalletButton wallet={club.tokenAddress!} />
+                          </div>
                         }
                           roundedRight
-                          roundedLeft
                         />
                         <div className="flex-row items-center hidden md:flex">
                           {infoCardRow()}
@@ -518,7 +482,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
 
-  if (!dbRecord.token) {
+  if (!dbRecord?.token) {
     _club.token = {
       name: _club.name,
       symbol: _club.symbol,

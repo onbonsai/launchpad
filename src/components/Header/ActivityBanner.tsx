@@ -5,7 +5,7 @@ import { groupBy } from "lodash/collection";
 import { publicClient, getRegisteredClubInfo, toHexString } from "@src/services/madfi/moneyClubs";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
+// import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 import { shortAddress } from "@src/utils/utils";
 import { bToHexString } from "@src/services/lens/utils";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -108,33 +108,33 @@ export const ActivityBanner = () => {
     return [...tokens, ...cached];
   };
 
-  const prepLastTrade = async (client: PublicClient, events: TradeEvent[]) => {
-    const [tokens, profiles] = await Promise.all([
-      getClubInfo(events.map(({ event: { clubId } }) => toHexString(clubId.toString(16)))),
-      getHandlesByAddresses(events.map(({ event: { actor } }) => actor)),
-    ]);
-    const profilesGrouped = groupBy(profiles, "ownedBy.address");
-    const tokensGrouped = groupBy(tokens, "clubId");
-    const _items = await Promise.all(
-      events.map(async ({ event }) => {
-        const address = getAddress(event.actor);
-        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-        let ens;
-        if (!profile) ens = await client.getEnsName({ address });
+  // const prepLastTrade = async (client: PublicClient, events: TradeEvent[]) => {
+  //   const [tokens, profiles] = await Promise.all([
+  //     getClubInfo(events.map(({ event: { clubId } }) => toHexString(clubId.toString(16)))),
+  //     getHandlesByAddresses(events.map(({ event: { actor } }) => actor)),
+  //   ]);
+  //   const profilesGrouped = groupBy(profiles, "ownedBy.address");
+  //   const tokensGrouped = groupBy(tokens, "clubId");
+  //   const _items = await Promise.all(
+  //     events.map(async ({ event }) => {
+  //       const address = getAddress(event.actor);
+  //       const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+  //       let ens;
+  //       if (!profile) ens = await client.getEnsName({ address });
 
-        return {
-          handle: profile?.handle?.localName || ens || shortAddress(event.actor),
-          verb: event.isBuy ? "bought" : "sold",
-          // price: roundedToFixed(parseFloat(formatUnits(event.price || 0n, USDC_DECIMALS)), 2),
-          clubId: event.clubId.toString(),
-          symbol: tokensGrouped[event.clubId.toString()][0].symbol,
-          image: tokensGrouped[event.clubId.toString()][0].image,
-        };
-      }),
-    );
+  //       return {
+  //         handle: profile?.handle?.localName || ens || shortAddress(event.actor),
+  //         verb: event.isBuy ? "bought" : "sold",
+  //         // price: roundedToFixed(parseFloat(formatUnits(event.price || 0n, USDC_DECIMALS)), 2),
+  //         clubId: event.clubId.toString(),
+  //         symbol: tokensGrouped[event.clubId.toString()][0].symbol,
+  //         image: tokensGrouped[event.clubId.toString()][0].image,
+  //       };
+  //     }),
+  //   );
 
-    setItems([...items, ..._items]);
-  };
+  //   setItems([...items, ..._items]);
+  // };
 
   const initListenForClubTrades = async () => {
     const client = createPublicClient({ chain: mainnet, transport: http() });
@@ -152,7 +152,7 @@ export const ActivityBanner = () => {
           })
           .filter((d) => d);
 
-        prepLastTrade(client as PublicClient, events as unknown as TradeEvent[]);
+        // prepLastTrade(client as PublicClient, events as unknown as TradeEvent[]);
       },
     });
   };
@@ -187,35 +187,35 @@ export const ActivityBanner = () => {
     );
   };
 
-  const prepCreatedToken = async (client: PublicClient, events: RegisteredClubEvent[]) => {
-    const [tokens, profiles] = await Promise.all([
-      getNewClubInfo(
-        client,
-        events.map(({ event: { clubId } }) => clubId),
-      ),
-      getHandlesByAddresses(events.map(({ event: { creator } }) => creator)),
-    ]);
-    const profilesGrouped = groupBy(profiles, "ownedBy.address");
-    const tokensGrouped = groupBy(tokens, "clubId");
-    const _items = await Promise.all(
-      events.map(async ({ event, transactionHash }) => {
-        const address = getAddress(event.creator);
-        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-        // let ens;
-        // if (!profile) ens = await client.getEnsName({ address });
+  // const prepCreatedToken = async (client: PublicClient, events: RegisteredClubEvent[]) => {
+  //   const [tokens, profiles] = await Promise.all([
+  //     getNewClubInfo(
+  //       client,
+  //       events.map(({ event: { clubId } }) => clubId),
+  //     ),
+  //     getHandlesByAddresses(events.map(({ event: { creator } }) => creator)),
+  //   ]);
+  //   const profilesGrouped = groupBy(profiles, "ownedBy.address");
+  //   const tokensGrouped = groupBy(tokens, "clubId");
+  //   const _items = await Promise.all(
+  //     events.map(async ({ event, transactionHash }) => {
+  //       const address = getAddress(event.creator);
+  //       const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+  //       // let ens;
+  //       // if (!profile) ens = await client.getEnsName({ address });
 
-        return {
-          handle: profile?.handle?.localName || shortAddress(event.creator),
-          verb: "created",
-          clubId: event.clubId.toString(),
-          symbol: tokensGrouped[event.clubId.toString()][0].symbol,
-          image: tokensGrouped[event.clubId.toString()][0].image,
-        };
-      }),
-    );
+  //       return {
+  //         handle: profile?.handle?.localName || shortAddress(event.creator),
+  //         verb: "created",
+  //         clubId: event.clubId.toString(),
+  //         symbol: tokensGrouped[event.clubId.toString()][0].symbol,
+  //         image: tokensGrouped[event.clubId.toString()][0].image,
+  //       };
+  //     }),
+  //   );
 
-    setItems([...items, ..._items]);
-  };
+  //   setItems([...items, ..._items]);
+  // };
 
   const initListenForRegisteredClubs = async () => {
     const client = publicClient();
@@ -233,7 +233,7 @@ export const ActivityBanner = () => {
           })
           .filter((d) => d);
 
-        prepCreatedToken(client as PublicClient, events as unknown as RegisteredClubEvent[]);
+        // prepCreatedToken(client as PublicClient, events as unknown as RegisteredClubEvent[]);
       },
     });
   };

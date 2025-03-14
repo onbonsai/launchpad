@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
-import { evmAddress, LimitType } from "@lens-protocol/client";
+import { evmAddress } from "@lens-protocol/client";
 
-import { apolloClient, apolloClientReadOnly } from "./apolloClient";
+import { apolloClient } from "./apolloClient";
 import { lensClient } from "./client";
-import { fetchAvailableAccounts, getAccessToken } from "@src/hooks/useLensLogin";
+import { fetchAvailableAccounts } from "@src/hooks/useLensLogin";
 import { fetchAccount } from "@lens-protocol/client/actions";
 
 const GET_PROFILE_AND_FOLLOWERS = `
@@ -174,18 +174,17 @@ export const getHandleAndFollowersByAddresses = async (ownedBy: string[], limit 
   }
 };
 
-// TODO: outdated
-export const getHandlesByAddresses = async (ownedBy: string[], limit = LimitType.Fifty) => {
+// TODO: update for v3
+export const getHandlesByAddresses = async (ownedBy: string[], limit = 50) => {
   try {
-    const _limit = limit === LimitType.Fifty ? 50 : limit === LimitType.Ten ? 10 : 25;
     const promises: any[] = [];
     let accessToken;
-    try {
-      accessToken = await getAccessToken();
-    } catch {}
+    // try {
+    //   accessToken = await getAccessToken();
+    // } catch {}
 
-    for (let i = 0; i < ownedBy.length; i += _limit) {
-      const _ownedBy = ownedBy.slice(i, i + _limit);
+    for (let i = 0; i < ownedBy.length; i += limit) {
+      const _ownedBy = ownedBy.slice(i, i + limit);
       promises.push(
         apolloClient.query({
           query: gql(GET_PROFILE_HANDLES),

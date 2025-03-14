@@ -7,6 +7,8 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
+import { LENS_ENVIRONMENT } from "@src/services/lens/client";
+import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
@@ -130,6 +132,24 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                             : undefined
                         }
                       }}
+                      theme={Theme.dark}
+                      followButtonDisabled={true}
+                      environment={LENS_ENVIRONMENT}
+                      profilePictureStyleOverride={publicationProfilePictureStyle}
+                      containerBorderRadius={'24px'}
+                      containerPadding={'12px'}
+                      profilePadding={'0 0 0 0'}
+                      textContainerStyleOverride={textContainerStyleOverrides}
+                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                      mediaImageStyleOverride={mediaImageStyleOverride}
+                      imageContainerStyleOverride={imageContainerStyleOverride}
+                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                      reactionContainerStyleOverride={reactionContainerStyleOverride}
+                      shareContainerStyleOverride={shareContainerStyleOverride}
+                      markdownStyleBottomMargin={'0'}
+                      heartIconOverride={true}
+                      messageIconOverride={true}
+                      shareIconOverride={true}
                     />
                   </div>
                 );

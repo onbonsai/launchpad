@@ -19,7 +19,6 @@ import CreatorButton from "@src/components/Creators/CreatorButton";
 import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import ListItemCard from "@src/components/Shared/ListItemCard";
-import { ActivityBanner } from "@src/components/Header";
 import { useGetExplorePosts } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 
@@ -60,7 +59,6 @@ const IndexPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        {/* <ActivityBanner /> */}
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8 pt-6">
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">

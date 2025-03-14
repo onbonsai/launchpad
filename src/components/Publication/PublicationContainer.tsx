@@ -286,6 +286,7 @@ const PublicationContainer = ({
       if (!collected) throw new Error("Failed to collect");
       toast.success("Collected! You can now join the post", { id: toastId });
       setHasCollected(true);
+      setShowCollectModal(false);
       if (onCollectCallback) onCollectCallback();
     } catch (error) {
       console.log(error);
@@ -407,7 +408,9 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
   const collectAmountBn = useMemo(() => {
     if (collectAmount) return parseEther(collectAmount);
     return 0n;
-  }, [collectAmount])
+  }, [collectAmount]);
+
+  const insufficientFunds = bonsaiBalance < collectAmountBn;
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -445,16 +448,18 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
           >
             Collect {bonsaiCostFormatted} $BONSAI
           </Button>
-          <div className="flex">
+          <div className="flex items-center justify-center">
             <Subtitle className="text-md">
               Account Balance:
               <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
             </Subtitle>
           </div>
-          <div className="flex space-x-1">
-            <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>
-            <WalletButton wallet={account} chain="lens" />
-          </div>
+          {insufficientFunds && (
+            <div className="flex space-x-1">
+              <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>
+              <WalletButton wallet={account} chain="lens" />
+            </div>
+          )}
         </div>
       </ClickAwayListener>
     </Popper>

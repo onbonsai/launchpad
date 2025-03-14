@@ -492,6 +492,44 @@ export const NETWORK_CHAIN_IDS = {
   'lens': LENS_CHAIN_ID
 } as const;
 
+export type Token = {
+  name: string;
+  symbol: string;
+  description?: string;
+  image: string;
+};
+
+export type Club = {
+  __typename: 'Club';
+  id: string;
+  creator: string;
+  initialSupply: string;
+  createdAt: string;
+  supply: string;
+  feesEarned: string;
+  currentPrice: string;
+  marketCap: string;
+  prevTrade24Hr: object; // Replace 'object' with a more specific type if available
+  clubId: number;
+  profileId: string;
+  strategy: string;
+  handle: string;
+  token: Token;
+  postId: string;
+  pubId?: string;
+  featured: boolean;
+  creatorFees: string;
+  complete: boolean;
+  completedAt?: number
+  liquidityReleasedAt?: number
+  claimAt: number;
+  cliffPercent: string
+  vestingDuration: string
+  tokenAddress?: `0x${string}`;
+  hook: `0x${string}`;
+  chain: string;
+};
+
 export function baseScanUrl(txHash: string, tx = true) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
 }
@@ -513,39 +551,48 @@ export const subgraphClient = (chain = "base") => {
 
 // server-side
 export const getRegisteredClubById = async (clubId: string, chain = "base", tokenAddress?: `0x${string}`) => {
-  const now = Date.now();
-  const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
-  const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
-  const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
-  const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
-  const client = subgraphClient(chain);
-  const { data } = await client.query({
-    query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
-    variables: {
-      id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
-      tokenAddress,
-      twentyFourHoursAgo,
-      sixHoursAgo,
-      oneHourAgo,
-      fiveMinutesAgo
-    }
-  });
+  try {
+    const now = Date.now();
+    const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
+    const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
+    const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
+    const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
+    const client = subgraphClient(chain);
+    const { data } = await client.query({
+      query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
+      variables: {
+        id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
+        tokenAddress,
+        twentyFourHoursAgo,
+        sixHoursAgo,
+        oneHourAgo,
+        fiveMinutesAgo
+      }
+    });
 
-  const club = !tokenAddress ? data.club : (data.clubs ? data.clubs[0] : null);
+    const club = !tokenAddress ? data.club : (data.clubs ? data.clubs[0] : null);
 
-  const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
-  const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
-  const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
-  const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
+    const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
+    const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
+    const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
+    const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
 
-  return {
-    ...club,
-    chain,
-    "24h": prevTrade24h,
-    "6h": prevTrade6h,
-    "1h": prevTrade1h,
-    "5m": prevTrade5m,
-  };
+    return {
+      ...club,
+      token: {
+        name: club.name,
+        symbol: club.symbol,
+        image: club.uri,
+      },
+      chain,
+      "24h": prevTrade24h,
+      "6h": prevTrade6h,
+      "1h": prevTrade1h,
+      "5m": prevTrade5m,
+    };
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {

@@ -19,7 +19,7 @@ import BridgeModal from "@pagesComponents/Studio/BridgeModal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import toast from "react-hot-toast";
-import { calculateStakingCredits, LockupPeriod } from "./stakingCalculator";
+import { calculateStakingCredits, LockupPeriod } from "@src/services/madfi/stakingCalculator";
 
 interface CreditBalance {
   totalCredits: number;
