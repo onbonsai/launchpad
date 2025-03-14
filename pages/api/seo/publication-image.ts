@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createPublicClient, http } from "viem";
-import { polygon, polygonMumbai } from "viem/chains";
+import { polygon } from "viem/chains";
 
 import {
   bufferToPng,
@@ -13,7 +13,6 @@ import {
 import { getLensPfp, bucketImageLinkStorj } from "@src/utils/utils";
 import { overlaysmallbase64 } from "@src/utils/overlaysmallbase64";
 import { cacheImageStorj } from "@src/utils/storj-backend";
-import { IS_PRODUCTION } from "@src/constants/constants";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { LENSHUB_PROXY } from "@src/services/lens/utils";
 
@@ -27,7 +26,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!pubIdOrTxHash.includes("-")) {
       // if we only have a tx hash, get the pub id
       const publicClient = createPublicClient({
-        chain: IS_PRODUCTION ? polygon : polygonMumbai,
+        chain: polygon,
         transport: http(),
       });
       const transactionReceipt = await publicClient.waitForTransactionReceipt({

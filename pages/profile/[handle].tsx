@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
-import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
 import { useLogout } from '@privy-io/react-auth';
@@ -31,7 +30,6 @@ import ProfileHoldings from "./ProfileHoldings";
 import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 
-const CreateSpaceModal = dynamic(() => import("@src/components/Creators/CreateSpaceModal"));
 interface CreatorPageProps {
   profile: any;
   type: "lens" | "farcaster" | "ens";

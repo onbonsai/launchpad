@@ -4,10 +4,11 @@ import {
   ChartingLibraryWidgetOptions,
   LanguageCode,
   ResolutionString,
-  widget,
   IChartingLibraryWidget,
   TradingTerminalWidgetOptions
 } from "../../../public/static/charting_library";
+/* webpackIgnore: true */
+import { widget } from "../../../public/static/charting_library";
 import { Datafeed, BONDING_CURVE_BASE_TOKEN } from '@src/services/chart/datafeed';
 
 const Chart = ({ symbol, clubId }) => {

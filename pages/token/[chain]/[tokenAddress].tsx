@@ -18,7 +18,6 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
-import { ActivityBanner } from "@src/components/Header";
 import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
 import { FairLaunchModeComponent } from '@pagesComponents/Club/FairLaunchModeComponent';
@@ -241,7 +240,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <div>
-        <ActivityBanner />
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">

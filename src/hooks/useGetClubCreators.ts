@@ -4,7 +4,6 @@ import { getProfileByHandle } from '@src/services/lens/getProfiles';
 import { getBasenameAvatar } from '@src/services/base/basename';
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
-import { ProfileFragment } from '@lens-protocol/client';
 import { getProfileImage } from '@src/services/lens/utils';
 
 const fetchClubCreators = async (clubs) => {

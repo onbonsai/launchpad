@@ -11,7 +11,6 @@ import {
   avalancheFuji,
 } from "viem/chains";
 
-import { IS_PRODUCTION } from "@src/constants/constants";
 import { apiUrls } from "@src/constants/apiUrls";
 import { chainIdNumber } from "@src/constants/validChainId";
 
@@ -72,7 +71,7 @@ export const encodeAbi = (types: string[], values: any[]) => {
 
 export const getPolygonClient = () => {
   return createPublicClient({
-    chain: IS_PRODUCTION ? polygon : polygonMumbai,
+    chain: polygon,
     transport: http(apiUrls.rpc),
   });
 }
