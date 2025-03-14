@@ -7,6 +7,8 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
+import { LENS_ENVIRONMENT } from "@src/services/lens/client";
+import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
@@ -26,12 +28,11 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
       const value = get(post, sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
+    const featuredPosts = posts.filter((post) => post.featured);
+    const nonFeaturedPosts = posts.filter((post) => !post.featured);
 
-    const featuredPosts = orderedPosts.filter(({ post }) => post.featured);
-    const nonFeaturedPosts = orderedPosts.filter(({ post }) => !post.featured);
-
-    return [...featuredClubs, ...nonFeaturedClubs];
-  }, [sortedBy, filterBy, filteredClubs, clubs, showCompleted]);
+    return [...featuredPosts, ...nonFeaturedPosts];
+  }, [sortedBy, filterBy, filteredPosts, posts, showCompleted]);
 
   const SortIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -109,15 +110,46 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
             >
-              {sortedPosts.map((club, idx) => {
+              {sortedPosts.map((post, idx) => {
                 if (idx === 0) return null;
                 return (
                   <div key={`club-${idx}`} className="mb-4">
-                    {/* Make this a Publication */}
-                    <ClubCard
-                      data={club}
-                      funny={idx % 3 === 0}
-                      funnier={idx % 2 === 0}
+                    <Publication
+                      key={`preview-${JSON.stringify(post)}`}
+                      publicationData={{
+                        author: post.author,
+                        timestamp: post.timestamp,
+                        metadata: {
+                          __typename: post.metadata?.image
+                            ? "ImageMetadata"
+                            : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+                          content: post.metadata?.content ?? '',
+                          image: post.metadata?.image
+                            ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+                            : undefined,
+                          video: post.metadata?.video
+                            ? { item: post.metadata.video.item }
+                            : undefined
+                        }
+                      }}
+                      theme={Theme.dark}
+                      followButtonDisabled={true}
+                      environment={LENS_ENVIRONMENT}
+                      profilePictureStyleOverride={publicationProfilePictureStyle}
+                      containerBorderRadius={'24px'}
+                      containerPadding={'12px'}
+                      profilePadding={'0 0 0 0'}
+                      textContainerStyleOverride={textContainerStyleOverrides}
+                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                      mediaImageStyleOverride={mediaImageStyleOverride}
+                      imageContainerStyleOverride={imageContainerStyleOverride}
+                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                      reactionContainerStyleOverride={reactionContainerStyleOverride}
+                      shareContainerStyleOverride={shareContainerStyleOverride}
+                      markdownStyleBottomMargin={'0'}
+                      heartIconOverride={true}
+                      messageIconOverride={true}
+                      shareIconOverride={true}
                     />
                   </div>
                 );

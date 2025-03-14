@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import Link from "next/link";
 import { erc20Abi } from "viem";
@@ -20,6 +20,7 @@ import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import { useGetExplorePosts } from "@src/services/lens/posts";
+import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -38,7 +39,7 @@ const IndexPage: NextPage = () => {
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
-  const { data: posts } = useGetExplorePosts({ accountAddress: address });
+  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({ accountAddress: address });
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -48,6 +49,10 @@ const IndexPage: NextPage = () => {
     args: [address!],
     query: { enabled: !!address }
   });
+
+  useEffect(() => {
+    console.log('posts', JSON.stringify(posts));
+  }, [posts, postsLoading]);
 
   // fix hydration issues
   if (!isMounted) return null;
@@ -59,12 +64,12 @@ const IndexPage: NextPage = () => {
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
                 {/* return the featured clubs asap, then load the rest */}
-                {isLoadingFeaturedClubs
+                {postsLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
-                  : <ClubList
-                    clubs={clubs}
-                    setFilteredClubs={setFilteredClubs}
-                    filteredClubs={filteredClubs}
+                  : <PostCollage
+                    posts={posts?.posts ?? []}
+                    setFilteredPosts={setFilteredClubs}
+                    filteredPosts={filteredClubs}
                     filterBy={filterBy}
                     setFilterBy={setFilterBy}
                     isLoading={isLoading || isFetchingNextPage}
