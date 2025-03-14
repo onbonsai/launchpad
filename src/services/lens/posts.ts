@@ -84,13 +84,15 @@ export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExp
     queryFn: async () => {
       const result = await fetchPosts(lensClient, {
         // TODO: Renable this filter when bug is fixed
-        // filter: {
-        //   metadata: {
-        //     tags: {
-        //       all: [APP_ID]
-        //     }
-        //   }
-        // },
+        filter: {
+          postTypes: [PostType.Root],
+          authors: accountAddress ? [evmAddress(accountAddress)] : undefined
+          // metadata: {
+          //   tags: {
+          //     all: [APP_ID]
+          //   }
+          // }
+        },
         cursor
       });
 

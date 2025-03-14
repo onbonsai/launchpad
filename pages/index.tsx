@@ -39,7 +39,7 @@ const IndexPage: NextPage = () => {
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
-  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({ accountAddress: address });
+  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({ accountAddress: authenticatedProfile?.address });
 
   const { data: bonsaiBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
