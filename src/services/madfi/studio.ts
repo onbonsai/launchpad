@@ -5,7 +5,7 @@ import z from "zod";
 import { getSmartMediaUrl } from "@src/utils/utils";
 
 export const APP_ID = "BONSAI";
-export const ELIZA_API_URL = "http://localhost:3001"
+export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://eliza-staging.up.railway.app";
 
 /**
  * SmartMedia categories and templates

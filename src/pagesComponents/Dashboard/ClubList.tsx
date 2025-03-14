@@ -6,7 +6,6 @@ import ClubCard from "./ClubCard";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import useGetClubCreators from "@src/hooks/useGetClubCreators";
-import Masonry from "react-masonry-css";
 
 export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
@@ -117,32 +116,18 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
         </div>
 
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
-          <div className="lg:col-span-3 max-w-full">
-            <Masonry
-              breakpointCols={{
-                default: 5,
-                1280: 4,
-                1024: 3,
-                768: 2,
-                640: 2,
-              }}
-              className="flex w-auto -ml-4"
-              columnClassName="pl-4 bg-clip-padding"
-            >
+          <div className="lg:col-span-3 max-w-full whitespace-nowrap">
+            <ul role="list" className="grid group/item grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-3">
               {sortedClubs.map((club, idx) => {
                 if (idx === 0) return null;
-                return (
-                  <div key={`club-${idx}`} className="mb-4">
-                    <ClubCard
-                      data={club}
-                      creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
-                      funny={idx % 3 === 0}
-                      funnier={idx % 2 === 0}
-                    />
-                  </div>
-                );
+                return <li className="w-full" key={`club-${idx}`}>
+                  <ClubCard
+                    data={club}
+                    creatorProfile={clubCreators[club.club.clubId]?.[0]?.profile}
+                  />
+                </li>
               })}
-            </Masonry>
+            </ul>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">
                 <Spinner customClasses="h-6 w-6" color="#E42101" />

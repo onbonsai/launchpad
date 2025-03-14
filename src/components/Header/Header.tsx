@@ -1,7 +1,7 @@
 import { inter } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useWalletClient, useAccount } from "wagmi";
+import { useWalletClient } from "wagmi";
 import { useState } from "react";
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
@@ -11,7 +11,6 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
-import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
@@ -21,7 +20,10 @@ import { Balance } from "./Balance";
 import { Button } from "../Button";
 
 const headerLinks = [
-  // add any top-level nav links here
+  {
+    label: "Tokens",
+    href: "/tokens"
+  }
 ];
 
 export const Header = () => {
@@ -44,16 +46,32 @@ export const Header = () => {
             <div className="w-max">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
-            {/* <Link href={"/studio"} className="ml-4 font-medium text-white text-[16px]">
-              Studio
-            </Link> */}
-            <div
-              className="hidden md:flex h-[40px] py-[12px] px-4 ml-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
-              onClick={() => setOpenHelpModal(true)}
-            >
-              <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
-                Info
-              </span>
+            <div className="ml-10 hidden lg:flex items-center space-x-4">
+              {headerLinks.map((link) => (
+                <div
+                  key={link.href}
+                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+                >
+                  <Link
+                    href={link.href}
+                    passHref
+                    className={cx(
+                      "h-full leading-4 font-medium text-white text-[16px] hover:opacity-100",
+                      route.includes(link.href) ? "font-bold" : ""
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </div>
+              ))}
+              <div
+                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+                onClick={() => setOpenHelpModal(true)}
+              >
+                <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
+                  Info
+                </span>
+              </div>
             </div>
           </div>
 
