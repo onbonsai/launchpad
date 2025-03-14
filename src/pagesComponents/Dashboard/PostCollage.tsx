@@ -26,12 +26,11 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
       const value = get(post, sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
+    const featuredPosts = posts.filter((post) => post.featured);
+    const nonFeaturedPosts = posts.filter((post) => !post.featured);
 
-    const featuredPosts = orderedPosts.filter(({ post }) => post.featured);
-    const nonFeaturedPosts = orderedPosts.filter(({ post }) => !post.featured);
-
-    return [...featuredClubs, ...nonFeaturedClubs];
-  }, [sortedBy, filterBy, filteredClubs, clubs, showCompleted]);
+    return [...featuredPosts, ...nonFeaturedPosts];
+  }, [sortedBy, filterBy, filteredPosts, posts, showCompleted]);
 
   const SortIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -109,15 +108,28 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
             >
-              {sortedPosts.map((club, idx) => {
+              {sortedPosts.map((post, idx) => {
                 if (idx === 0) return null;
                 return (
                   <div key={`club-${idx}`} className="mb-4">
-                    {/* Make this a Publication */}
-                    <ClubCard
-                      data={club}
-                      funny={idx % 3 === 0}
-                      funnier={idx % 2 === 0}
+                    <Publication
+                      key={`preview-${JSON.stringify(post)}`}
+                      publicationData={{
+                        author: post.author,
+                        timestamp: post.timestamp,
+                        metadata: {
+                          __typename: post.metadata?.image
+                            ? "ImageMetadata"
+                            : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+                          content: post.metadata?.content ?? '',
+                          image: post.metadata?.image
+                            ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+                            : undefined,
+                          video: post.metadata?.video
+                            ? { item: post.metadata.video.item }
+                            : undefined
+                        }
+                      }}
                     />
                   </div>
                 );

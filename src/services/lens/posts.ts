@@ -83,13 +83,14 @@ export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExp
     queryKey: ["explore-posts", accountAddress],
     queryFn: async () => {
       const result = await fetchPosts(lensClient, {
-        filter: {
-          metadata: {
-            tags: {
-              all: [APP_ID]
-            }
-          }
-        },
+        // TODO: Renable this filter when bug is fixed
+        // filter: {
+        //   metadata: {
+        //     tags: {
+        //       all: [APP_ID]
+        //     }
+        //   }
+        // },
         cursor
       });
 
@@ -103,7 +104,7 @@ export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExp
       // if (withToken) {
 
       // }
-
+      console.log('posts', posts[0]);
       return { posts, pageInfo };
     },
   });
