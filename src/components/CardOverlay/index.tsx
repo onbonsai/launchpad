@@ -1,14 +1,21 @@
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz } from "@mui/icons-material";
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
+import { switchChain } from "@wagmi/core";
+import { Account, Post } from "@lens-protocol/client";
+import toast from "react-hot-toast";
+import { useAccount, useWalletClient } from "wagmi";
 import { NewShareIcon } from "../Share/NewShareIcon";
 import { Button } from "../Button";
-import { Post } from "@lens-protocol/client";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { configureChainsConfig } from "@src/utils/wagmi";
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { collectPost } from "@src/services/lens/collect";
+import CollectModal from "@src/components/Publication/CollectModal";
 
 interface CardOverlayProps {
-  profileName?: string;
+  authenticatedProfile?: Account | null;
+  bonsaiBalance?: bigint;
   post: Post;
-  onCollect: (postId: string) => void;
   onShare?: () => void;
   onHide?: () => void;
   onReport?: () => void;
@@ -17,22 +24,29 @@ interface CardOverlayProps {
 }
 
 export const CardOverlay: React.FC<CardOverlayProps> = ({
-  profileName,
+  authenticatedProfile,
+  bonsaiBalance,
   post,
-  onCollect,
   onShare,
   onHide,
   onReport,
   onClick,
   className = "",
 }) => {
-  const [showDropdown, setShowDropdown] = useState(false)
-  const hasCollected = post?.operations?.hasSimpleCollected;
+  const { isConnected, chain } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const [collectAmount, setCollectAmount] = useState<string>();
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [isCollecting, setIsCollecting] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [hasCollected, setHasCollected] = useState<boolean>(post.operations?.hasSimpleCollected || false);
+  const collectButtonRef = useRef<HTMLButtonElement>(null);
 
   const isCollect = useMemo(() => {
     const simpleCollect = post?.actions?.find(action => action.__typename === "SimpleCollectAction");
 
     if (simpleCollect) {
+      setCollectAmount(simpleCollect.amount?.value);
       return simpleCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
     }
 
@@ -50,6 +64,11 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
     callback?.();
   };
 
+  const handleMouseLeave = () => {
+    setShowCollectModal(false);
+    setShowDropdown(false);
+  };
+
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (showDropdown && event.key === 'Escape') {
@@ -62,11 +81,46 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
     };
   }, [showDropdown]);
 
+  const onCollect = async () => {
+    if (hasCollected) return;
+    let toastId;
+    try {
+      toastId = toast.loading("Collecting post...");
+
+      if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+        try {
+          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        } catch {
+          toast.error("Please switch networks to collect", { id: toastId });
+          return;
+        }
+      }
+      const sessionClient = await resumeSession();
+      if (!sessionClient) throw new Error("Not authenticated");
+
+      const collected = await collectPost(
+        sessionClient,
+        walletClient,
+        post.id
+      );
+
+      if (!collected) throw new Error("Failed to collect");
+      toast.success("Added to collection", { id: toastId });
+      setHasCollected(true);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to collect", { id: toastId });
+    }
+
+    setIsCollecting(false);
+  }
+
   return (
     <div
       className={`absolute inset-0 ${className}`}
       style={{ willChange: "opacity" }}
       onClick={handleBackgroundClick}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Dark background overlay */}
       <div
@@ -77,32 +131,48 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       {/* Top overlay */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-30">
         <div></div>
+        {/* TODO: do we show the author profile here instead of in the root post? */}
         {/* <button
           className="flex items-center bg-black/50 text-white hover:bg-black/60 rounded-full px-4 py-2"
           onClick={(e) => e.stopPropagation()}
         >
-          {profileName}
+          {post.author.username}
         </button> */}
 
         {isCollect && (
-          <Button
-            variant="accentBrand"
-            size="md"
-            className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
-            onClick={(e) => handleButtonClick(e, () => onCollect(post.id))}
-          >
-            {!hasCollected ? (
-              <>
-                <BookmarkAddOutlined />
-                Collect
-              </>
-            ): (
-              <>
-                <BookmarkOutlined />
-                Collected
-              </>
+          <div className="relative">
+            <Button
+              variant="accentBrand"
+              ref={collectButtonRef}
+              size="md"
+              className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+              onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true)})}
+            >
+              {!hasCollected ? (
+                <>
+                  <BookmarkAddOutlined />
+                  Collect
+                </>
+              ): (
+                <>
+                  <BookmarkOutlined />
+                  Collected
+                </>
+              )}
+            </Button>
+            {showCollectModal && (
+              <CollectModal
+                onCollect={onCollect}
+                bonsaiBalance={bonsaiBalance}
+                collectAmount={collectAmount}
+                anchorEl={collectButtonRef.current}
+                onClose={() => setShowCollectModal(false)}
+                isCollecting={isCollecting}
+                isMedia
+                account={authenticatedProfile?.address}
+              />
             )}
-          </Button>
+          </div>
         )}
       </div>
 

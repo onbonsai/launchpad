@@ -13,12 +13,34 @@ import { CardOverlay } from "@src/components/CardOverlay";
 import { useRouter } from "next/router";
 import { BONSAI_POST_URL } from "@src/constants/constants";
 import toast from "react-hot-toast";
+import { useReadContract, useWalletClient } from "wagmi";
+import { erc20Abi } from "viem";
+import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import useLensSignIn from "@src/hooks/useLensSignIn";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
+  const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView();
   const [showCompleted, setShowCompleted] = useState(false);
 
   const router = useRouter();
+  const {
+    isAuthenticated,
+    authenticatedProfile,
+  } = useLensSignIn(walletClient);
+
+  // bonsai balance of Lens Account
+  const { data: bonsaiBalance } = useReadContract({
+    address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+    abi: erc20Abi,
+    chainId: LENS_CHAIN_ID,
+    functionName: "balanceOf",
+    args: [authenticatedProfile?.address as `0x${string}`],
+    query: {
+      refetchInterval: 10000,
+      enabled: isAuthenticated && authenticatedProfile?.address
+    },
+  });
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
@@ -164,9 +186,9 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                     />
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
                       <CardOverlay
-                        profileName={post.author.handle}
+                        authenticatedProfile={authenticatedProfile}
+                        bonsaiBalance={bonsaiBalance}
                         post={post}
-                        onCollect={() => {/* handle save */ }}
                         onShare={() => onShareButtonClick(post.slug)}
                         onHide={() => {/* handle hide */ }}
                         onReport={() => {/* handle report */ }}

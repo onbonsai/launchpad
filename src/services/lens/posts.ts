@@ -3,6 +3,7 @@ import { Cursor, evmAddress, postId, PostType, SessionClient } from "@lens-proto
 import { fetchPost, fetchPosts } from "@lens-protocol/client/actions";
 import { lensClient } from "./client";
 import { APP_ID } from "../madfi/studio";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -69,6 +70,7 @@ export const useGetPostsByAuthor = (authorId: string) => {
 };
 
 interface GetExplorePostsProps {
+  isLoadingAuthenticatedProfile: boolean;
   accountAddress?: `0x${string}`; // authenticatedProfile.address
   cursor?: Cursor;
   withToken?: boolean;
@@ -78,11 +80,15 @@ interface GetExplorePostsProps {
 // - personalized by tags?
 // - enriched with token data?
 // - sorted by engagement? or token mcap?
-export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExplorePostsProps) => {
+export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress, cursor, withToken }: GetExplorePostsProps) => {
   return useQuery({
     queryKey: ["explore-posts", accountAddress],
     queryFn: async () => {
-      const result = await fetchPosts(lensClient, {
+      let sessionClient;
+      try {
+        sessionClient = await resumeSession();
+      } catch {}
+      const result = await fetchPosts(sessionClient || lensClient, {
         // TODO: Renable this filter when bug is fixed
         filter: {
           postTypes: [PostType.Root],
@@ -106,8 +112,8 @@ export const useGetExplorePosts = ({ accountAddress, cursor, withToken }: GetExp
       // if (withToken) {
 
       // }
-      console.log('posts', posts[0]);
       return { posts, pageInfo };
     },
+    enabled: isLoadingAuthenticatedProfile === false,
   });
 }

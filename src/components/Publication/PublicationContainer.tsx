@@ -1,16 +1,12 @@
-import { useMemo, useState, useEffect, ReactNode } from "react";
+import { useMemo, useState, ReactNode } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
-import Popper from '@mui/material/Popper';
-import clsx from "clsx";
-import { erc20Abi, formatEther, parseEther } from "viem";
-import ClickAwayListener from '@mui/material/ClickAwayListener';
+import { erc20Abi } from "viem";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { Button } from "@src/components/Button";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/createMirror";
@@ -21,13 +17,10 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { kFormatter } from "@src/utils/utils";
-import { inter } from "@src/fonts/fonts";
-import { Subtitle } from "@src/styles/text";
 import { collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import type { SmartMedia } from "@src/services/madfi/studio";
-import WalletButton from "../Creators/WalletButton";
+import CollectModal from "./CollectModal";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -396,75 +389,7 @@ const PublicationContainer = ({
   )
 };
 
-const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting, isMedia, account }) => {
-  const bonsaiBalanceFormatted = useMemo(() => (
-    kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)), true)
-  ), [bonsaiBalance]);
 
-  const bonsaiCostFormatted = useMemo(() => (
-    kFormatter(parseFloat(collectAmount), true)
-  ), [collectAmount]);
-
-  const collectAmountBn = useMemo(() => {
-    if (collectAmount) return parseEther(collectAmount);
-    return 0n;
-  }, [collectAmount]);
-
-  const insufficientFunds = bonsaiBalance < collectAmountBn;
-
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
-
-  return (
-    <Popper
-      open={Boolean(anchorEl)}
-      anchorEl={anchorEl}
-      placement="bottom-start"
-      style={{ zIndex: 1400 }}
-    >
-      <ClickAwayListener onClickAway={onClose}>
-        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4", inter.className, "font-sf-pro-text")}>
-          {isMedia && (
-            <div className="flex items-center justify-center text-center">
-              <Subtitle className="text-md">
-                Collect to join the post
-              </Subtitle>
-            </div>
-          )}
-          <Button
-            variant="accent"
-            className="w-full md:mb-0 text-base"
-            disabled={isCollecting || collectAmountBn > bonsaiBalance}
-            onClick={onCollect}
-          >
-            Collect {bonsaiCostFormatted} $BONSAI
-          </Button>
-          <div className="flex items-center justify-center">
-            <Subtitle className="text-md">
-              Account Balance:
-              <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
-            </Subtitle>
-          </div>
-          {insufficientFunds && (
-            <div className="flex space-x-1">
-              <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>
-              <WalletButton wallet={account} chain="lens" />
-            </div>
-          )}
-        </div>
-      </ClickAwayListener>
-    </Popper>
-  );
-};
 
 
 export default PublicationContainer;

@@ -1,13 +1,11 @@
 import { NextPage } from "next";
-import { useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
-import { erc20Abi } from "viem";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { useGetRegisteredClubs } from "@src/hooks/useMoneyClubs";
-import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
@@ -16,11 +14,10 @@ import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 import { Post } from "@lens-protocol/client";
 
 const IndexPage: NextPage = () => {
-  const { address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
-  const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
+  const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
   // TODO: remove
   const {
     data,
@@ -30,20 +27,14 @@ const IndexPage: NextPage = () => {
     isFetchingNextPage,
   } = useGetRegisteredClubs(sortedBy);
 
-  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({ accountAddress: authenticatedProfile?.address });
-
-  const { data: bonsaiBalance } = useReadContract({
-    address: BONSAI_TOKEN_BASE_ADDRESS,
-    abi: erc20Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address!],
-    query: { enabled: !!address }
+  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({
+    isLoadingAuthenticatedProfile,
+    accountAddress: authenticatedProfile?.address
   });
 
-  useEffect(() => {
-    console.log('posts', JSON.stringify(posts));
-  }, [posts, postsLoading]);
+  // useEffect(() => {
+  //   console.log('posts', JSON.stringify(posts));
+  // }, [posts, postsLoading]);
 
   // fix hydration issues
   if (!isMounted) return null;
