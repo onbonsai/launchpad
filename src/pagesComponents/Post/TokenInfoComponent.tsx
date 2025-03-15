@@ -56,7 +56,7 @@ export const TokenInfoComponent = ({ club }: { club: Club }) => {
         <div className="relative z-10 p-2 pb-4 flex flex-col justify-between items-center">
           <div className="flex flex-row justify-between items-center w-full">
             <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
-              <div className='flex flex-row items-center'>
+              <div className='flex flex-row items-center gap-x-2'>
                 <img
                   src={club.token.image}
                   alt={club.token.name}

@@ -5,6 +5,7 @@ import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
+import { BookmarkAddOutlined, BookmarkOutlined } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -21,6 +22,7 @@ import { collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import type { SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
+import { Button } from "../Button";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -224,23 +226,18 @@ const PublicationContainer = ({
     }
   };
 
-  const _renderActButtonWithCTA = useMemo(() => {
+  const isCollect = useMemo(() => {
     const simpleCollect = publication?.actions?.find(action => action.__typename === "SimpleCollectAction");
 
     if (simpleCollect) {
-      if (hasCollected) return;
-      const isBonsai = simpleCollect.amount.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
-
-      if (isBonsai && !!authenticatedProfileId) {
-        setCollectAmount(simpleCollect.amount.value);
-        return "Collect";
-      }
+      setCollectAmount(simpleCollect.amount?.value);
+      return simpleCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
     }
 
-    return renderActButtonWithCTA;
-  }, [publication, authenticatedProfileId]);
+    return false;
+  }, [publication]);
 
-  const _onActButtonClick = async (e: React.MouseEvent) => {
+  const onCollectButtonClick = async (e: React.MouseEvent) => {
     if (!!collectAmount) {
       e.preventDefault();
       e.stopPropagation();
@@ -319,8 +316,8 @@ const PublicationContainer = ({
         rpcURLs={ChainRpcs}
         appDomainWhitelistedGasless={true}
         // handlePinMetadata={handlePinMetadata}
-        onActButtonClick={_onActButtonClick}
-        renderActButtonWithCTA={_renderActButtonWithCTA}
+        // onActButtonClick={_onActButtonClick}
+        // renderActButtonWithCTA={_renderActButtonWithCTA}
         hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
         onFollowPress={onFollowClick}
         followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
@@ -345,6 +342,28 @@ const PublicationContainer = ({
         shareIconOverride={true}
         nestedWidget={nestedWidget}
       />
+      {isCollect && (
+        <div className="absolute right-4 top-2">
+          <Button
+            variant="accentBrand"
+            size="md"
+            className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+            onClick={(e) => { if (!hasCollected) onCollectButtonClick(e) }}
+          >
+            {!hasCollected ? (
+              <>
+                <BookmarkAddOutlined />
+                Collect
+              </>
+            ): (
+              <>
+                <BookmarkOutlined />
+                Collected
+              </>
+            )}
+          </Button>
+        </div>
+      )}
       {showCollectModal && (
         <CollectModal
           onCollect={onCollect}

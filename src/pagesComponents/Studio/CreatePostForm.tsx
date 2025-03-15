@@ -92,7 +92,6 @@ const CreatePostForm = ({
 
   const handleNext = () => {
     if ((postContent || postImage?.length)) {
-      console.log("handle next with postImage", postImage)
       setPreview({
         text: postContent || "",
         image: postImage?.length ? postImage[0] : undefined,

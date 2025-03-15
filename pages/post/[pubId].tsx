@@ -228,7 +228,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                  placeholder={canComment ? "Add a comment" : "Collect the post to join"}
+                  placeholder={canComment ? "Add a comment to participate in the post" : "Collect the post to join"}
                   disabled={!canComment}
                   onFocus={() => setInputFocused(true)}
                   onBlur={() => setInputFocused(false)}
