@@ -1,26 +1,19 @@
 import { NextPage } from "next";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import Link from "next/link";
 import { erc20Abi } from "viem";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
-import CreatorCopy from "@src/components/Lens/CreatorCopy";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { useGetRegisteredClubs, useGetFeaturedClubs } from "@src/hooks/useMoneyClubs";
-import { ClubList, Holdings } from "@src/pagesComponents/Dashboard";
+import { useGetRegisteredClubs } from "@src/hooks/useMoneyClubs";
 import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
-import { Header2, Subtitle } from "@src/styles/text";
-import CreatorButton from "@src/components/Creators/CreatorButton";
-import BonsaiNFTsSection from "@pagesComponents/Dashboard/BonsaiNFTsSection";
-import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
-import ListItemCard from "@src/components/Shared/ListItemCard";
 import { useGetExplorePosts } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
+import { Post } from "@lens-protocol/client";
 
 const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
@@ -28,6 +21,7 @@ const IndexPage: NextPage = () => {
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
+  // TODO: remove
   const {
     data,
     isLoading,
@@ -35,9 +29,6 @@ const IndexPage: NextPage = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useGetRegisteredClubs(sortedBy);
-  const { data: featuredClubs, isLoading: isLoadingFeaturedClubs } = useGetFeaturedClubs();
-  const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
-  const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
   const { data: posts, isLoading: postsLoading } = useGetExplorePosts({ accountAddress: authenticatedProfile?.address });
 
@@ -67,7 +58,7 @@ const IndexPage: NextPage = () => {
                 {postsLoading
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <PostCollage
-                    posts={posts?.posts ?? []}
+                    posts={posts?.posts as Post[] ?? []}
                     setFilteredPosts={setFilteredClubs}
                     filteredPosts={filteredClubs}
                     filterBy={filterBy}

@@ -36,7 +36,7 @@ import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { pubId } = router.query;
+  const { pubId, returnTo } = router.query;
   const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
@@ -58,8 +58,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
 
-  const goToCreatorPage = () => {
-    router.push(creatorPageRoute);
+  const goToPage = () => {
+    router.push(returnTo ? returnTo as string : creatorPageRoute);
   };
 
   const hasUpvotedComment = (publicationId: string): boolean => {
@@ -266,7 +266,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
-        <span onClick={() => goToCreatorPage()} className="link link-hover mb-4">
+        <span onClick={goToPage} className="link link-hover mb-4">
           ← Back
         </span>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">

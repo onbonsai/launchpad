@@ -11,6 +11,8 @@ import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
 import { useRouter } from "next/router";
+import { BONSAI_POST_URL } from "@src/constants/constants";
+import toast from "react-hot-toast";
 
 export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { ref, inView } = useInView();
@@ -38,6 +40,11 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
     return [...featuredPosts, ...nonFeaturedPosts];
   }, [sortedBy, filterBy, filteredPosts, posts, showCompleted]);
 
+  const onShareButtonClick = (postSlug: string) => {
+    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
+    toast.success("Copied", { position: "bottom-center", duration: 2000 });
+  };
+
   const SortIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path fillRule="evenodd" clipRule="evenodd" d="M14.6 14.6958L17.1095 12.5445L17.8905 13.4555L14.3908 16.4558L14.0003 16.7906L13.6098 16.4558L10.1095 13.4555L10.8905 12.5444L13.4 14.6955L13.4 3.99998H14.6L14.6 14.6958ZM2.50004 5.39976L10.5 5.4L10.5 6.6L2.5 6.59976L2.50004 5.39976ZM2.50002 9.4H9.00002V10.6H2.50002V9.4ZM7.50002 13.4H2.50002V14.6H7.50002V13.4Z" fill="white" fillOpacity="0.6" />
@@ -45,7 +52,7 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
   );
 
   return (
-    <div className="bg-background text-secondary">
+    <div className="bg-background text-secondary font-sf-pro-text">
       <main className="mx-auto max-w-full">
         {/* FILTER */}
         <div className="relative max-w-full">
@@ -116,11 +123,10 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
             >
               {sortedPosts.map((post, idx) => {
                 if (idx === 0) return null;
-                console.log(post)
                 return (
-                  <div key={`club-${idx}`} className="mb-4 relative group">
+                  <div key={`post-${post.slug}`} className="mb-4 relative group">
                     <Publication
-                      key={`preview-${JSON.stringify(post)}`}
+                      key={`preview-${post.slug}`}
                       publicationData={{
                         author: post.author,
                         timestamp: post.timestamp,
@@ -159,12 +165,12 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
                       <CardOverlay
                         profileName={post.author.handle}
-                        onSave={() => {/* handle save */ }}
-                        onShare={() => {/* handle share */ }}
+                        post={post}
+                        onCollect={() => {/* handle save */ }}
+                        onShare={() => onShareButtonClick(post.slug)}
                         onHide={() => {/* handle hide */ }}
-                        onDownload={() => {/* handle download */ }}
                         onReport={() => {/* handle report */ }}
-                        onClick={() => { router.push(`/post/${post.id}`); }}
+                        onClick={() => { router.push(`/post/${post.slug}?returnTo=/`); }}
                         className="opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out z-30"
                       />
                     </div>

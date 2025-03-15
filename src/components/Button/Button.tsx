@@ -11,7 +11,7 @@ const buttonStyles = cva(
         primary: "bg-button text-white disabled:text-black disabled:hover:text-black",
         secondary: "bg-secondary/90 text-black hover:bg-secondary",
         accent: "bg-white text-black hover:bg-white/90",
-        accentBrand: "bg-orange text-white hover:bg-opacity-90",
+        accentBrand: "bg-orange text-white hover:bg-orange/80",
         info: "bg-white hover:bg-grey-300 text-black border border-solid border-grey-500 hover:border-grey-700 disabled:text-white disabled:hover:text-white",
         "dark-grey": "bg-dark-grey text-white hover:bg-dark-grey/90",
         "accent-disabled": "bg-primary text-white cursor-not-allowed hover:bg-primary",

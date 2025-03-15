@@ -236,7 +236,7 @@ const PublicationContainer = ({
 
     if (simpleCollect) {
       if (hasCollected) return;
-      const isBonsai = simpleCollect.amount.asset.contract.address = PROTOCOL_DEPLOYMENT.lens.Bonsai;
+      const isBonsai = simpleCollect.amount.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
 
       if (isBonsai && !!authenticatedProfileId) {
         setCollectAmount(simpleCollect.amount.value);
@@ -432,7 +432,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
       style={{ zIndex: 1400 }}
     >
       <ClickAwayListener onClickAway={onClose}>
-        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4", inter.className)}>
+        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4", inter.className, "font-sf-pro-text")}>
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-md">
