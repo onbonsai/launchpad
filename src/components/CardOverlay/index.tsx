@@ -1,4 +1,4 @@
-import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz } from "@mui/icons-material";
+import { BookmarkAddOutlined, BookmarkOutlined, BookmarkBorder, MoreHoriz } from "@mui/icons-material";
 import { useEffect, useMemo, useState, useRef } from "react"
 import { switchChain } from "@wagmi/core";
 import { Account, Post } from "@lens-protocol/client";
@@ -11,6 +11,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";
+import { Subtitle } from "@src/styles/text";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -174,6 +175,16 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             )}
           </div>
         )}
+      </div>
+
+      {/* Bottom overlay LEFT */}
+      <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
+        <div
+          className="rounded-full bg-white h-10 w-10 flex items-center justify-center gap-x-1"
+        >
+          {hasCollected ? <BookmarkOutlined sx={{ color: '#000', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#000', fontSize: '1rem' }}/>}
+          {post.stats.collects > 0 ? <Subtitle className="text-base text-black">{post.stats.collects}</Subtitle> : null}
+        </div>
       </div>
 
       {/* Bottom overlay */}

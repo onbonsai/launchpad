@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { orderBy } from "lodash/collection";
 import { get } from "lodash/object";
 import { useInView } from "react-intersection-observer";
-import ClubCard from "./ClubCard";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
@@ -54,10 +53,13 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
 
     const orderedPosts = orderBy(_posts, [post => {
       const value = get(post, sortedBy);
+      if (sortedBy === 'timestamp') {
+        return value ? new Date(value).getTime() : 0;
+      }
       return value ? BigInt(value) : 0;
     }], [direction]);
-    const featuredPosts = posts.filter((post) => post.featured);
-    const nonFeaturedPosts = posts.filter((post) => !post.featured);
+    const featuredPosts = orderedPosts.filter((post) => post.featured);
+    const nonFeaturedPosts = orderedPosts.filter((post) => !post.featured);
 
     return [...featuredPosts, ...nonFeaturedPosts];
   }, [sortedBy, filterBy, filteredPosts, posts, showCompleted]);
@@ -99,7 +101,7 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
               </div>
             )}
             <div className="relative bg-white/10 rounded-[10px] flex flex-row">
-              <label className="mr-6 pl-4 flex items-center space-x-2 cursor-pointer">
+              {/* <label className="mr-6 pl-4 flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showCompleted}
@@ -111,7 +113,7 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
               </label>
               <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
-              </div>
+              </div> */}
               <span className="mt-[9px] ml-2">
                 <SortIcon />
               </span>
@@ -121,9 +123,9 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >
-                <option value="club.marketCap">Market Cap</option>
-                <option value="club.createdAt">Age</option>
-                {/* <option value="publication.stats.comments">Replies</option> */}
+                <option value="stats.collects">Collects</option>
+                <option value="timestamp">Age</option>
+                {/* <option value="stats.comments">Comments</option> */}
               </select>
               <DropDown />
             </div>
@@ -134,7 +136,7 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
           <div className="lg:col-span-3 max-w-full">
             <Masonry
               breakpointCols={{
-                default: 5,
+                default: 4,
                 1280: 4,
                 1024: 3,
                 768: 2,
