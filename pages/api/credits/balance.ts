@@ -26,10 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // New user - create with initial allocation
       const now = new Date();
       const nextResetTime = getNextMidnightUTC();
-      
+
       await collection.insertOne({
         address: normalizedAddress,
-        dailyAllocation: FREE_TIER_CREDIT_ALLOCATION,
         creditsUsed: 0,
         lastResetTimestamp: now,
         freeCredits: FREE_TIER_CREDIT_ALLOCATION,
@@ -50,28 +49,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         nextResetTime: nextResetTime.toISOString(),
         lastResetTime: now.toISOString(),
         maxStakingCredits: 100,
-        dailyAllocation: FREE_TIER_CREDIT_ALLOCATION,
         usagePercentage: 0,
       });
     }
 
     // Return existing user's credit information with all the new fields
-    const creditsRemaining = userCredits.creditsRemaining || 
-      (userCredits.totalCredits - (userCredits.creditsUsed || 0));
-    
-    const usagePercentage = ((userCredits.creditsUsed || 0) / 
-      (userCredits.totalCredits || userCredits.dailyAllocation)) * 100;
+    const creditsRemaining = userCredits.creditsRemaining || userCredits.totalCredits - (userCredits.creditsUsed || 0);
+
+    const usagePercentage = ((userCredits.creditsUsed || 0) / userCredits.totalCredits) * 100;
 
     return res.status(200).json({
-      totalCredits: userCredits.totalCredits || userCredits.dailyAllocation,
+      totalCredits: userCredits.totalCredits,
       freeCredits: userCredits.freeCredits || FREE_TIER_CREDIT_ALLOCATION,
       stakingCredits: userCredits.stakingCredits || 0,
       creditsUsed: userCredits.creditsUsed || 0,
       creditsRemaining: creditsRemaining,
-      nextResetTime: userCredits.nextResetTime ? new Date(userCredits.nextResetTime).toISOString() : getNextMidnightUTC().toISOString(),
-      lastResetTime: userCredits.lastResetTime ? new Date(userCredits.lastResetTime).toISOString() : new Date(userCredits.lastResetTimestamp).toISOString(),
+      nextResetTime: userCredits.nextResetTime
+        ? new Date(userCredits.nextResetTime).toISOString()
+        : getNextMidnightUTC().toISOString(),
+      lastResetTime: userCredits.lastResetTime
+        ? new Date(userCredits.lastResetTime).toISOString()
+        : new Date(userCredits.lastResetTimestamp).toISOString(),
       maxStakingCredits: userCredits.maxStakingCredits || 100,
-      dailyAllocation: userCredits.dailyAllocation,
       usagePercentage,
     });
   } catch (error) {
