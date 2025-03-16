@@ -30,7 +30,6 @@ interface CreditBalance {
   nextResetTime: string;
   lastResetTime: string;
   maxStakingCredits: number;
-  dailyAllocation: number;
   usagePercentage: number;
 }
 
