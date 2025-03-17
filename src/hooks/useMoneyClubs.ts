@@ -155,6 +155,7 @@ const useTraderProfiles = (traders?: string[]) => {
     queryKey: ["trader-profiles", traders],
     queryFn: async () => {
       if (!traders?.length) return {};
+      // TODO: need a new lens query
       const profiles = await getHandlesByAddresses(traders);
       // const publicClient = createEnsPublicClient({
       //   chain: mainnet,
@@ -191,10 +192,10 @@ const useTraderProfiles = (traders?: string[]) => {
   });
 };
 
-export const useGetClubTrades = (clubId: string, page: number) => {
+export const useGetClubTrades = (clubId: string, page: number, chain: string) => {
   const tradesQuery = useQuery({
-    queryKey: ["club-raw-trades", clubId, page],
-    queryFn: () => getTrades(clubId!, page),
+    queryKey: ["club-raw-trades", chain, clubId, page],
+    queryFn: () => getTrades(clubId!, page, chain),
     enabled: !!clubId,
     staleTime: 60000,
   });

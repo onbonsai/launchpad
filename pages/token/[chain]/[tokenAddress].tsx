@@ -3,7 +3,7 @@ import { GetServerSideProps, NextPage } from "next";
 import Script from "next/script";
 import { useMemo, useState, ReactNode, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { formatUnits, isAddress, zeroAddress } from "viem";
+import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
@@ -429,10 +429,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   <Feed postId={club.pubId} morePadding={true} />
                 )}
                 {openTab === 2 && (
-                  <Trades clubId={club.clubId} />
+                  <Trades clubId={club.clubId} chain={club.chain} />
                 )}
                 {openTab === 3 && (
-                  <HolderDistribution clubId={club.clubId} supply={club.supply} creator={club.creator} />
+                  <HolderDistribution clubId={club.clubId} supply={club.supply} creator={club.creator} chain={club.chain} />
                 )}
               </div>
             </div>
@@ -474,7 +474,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     (async () => {
       const { collection } = await getClientWithClubs();
       return await collection.findOne(
-        { tokenAddress },
+        { tokenAddress: getAddress(tokenAddress as string) },
         { projection: { _id: 0 } }
       );
     })()

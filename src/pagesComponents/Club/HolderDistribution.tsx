@@ -57,11 +57,11 @@ const Row = ({ row, supply, creator }) => {
   )
 }
 
-export const HolderDistribution = ({ clubId, supply, creator }) => {
+export const HolderDistribution = ({ clubId, supply, creator, chain }) => {
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
   const [allHoldings, setAllHoldings] = useState<any[]>([]);
-  const { data, isLoading, refetch } = useGetClubHoldings(clubId, page);
+  const { data, isLoading, refetch } = useGetClubHoldings(clubId, page, chain);
   const { holdings, hasMore } = data || {};
 
   useEffect(() => {

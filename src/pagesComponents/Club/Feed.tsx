@@ -274,7 +274,6 @@ export const Feed = ({ postId, morePadding = false }) => {
               decrypting={decrypting}
               shouldGoToPublicationPage={false}
               isProfileAdmin={isProfileAdmin}
-              setSubscriptionOpenModal={() => { }}
               hideQuoteButton
               hideFollowButton={false}
             />

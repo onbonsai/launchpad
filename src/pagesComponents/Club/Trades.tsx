@@ -25,7 +25,8 @@ const formatDate = (date: Date) => {
   return formattedDate;
 }
 
-const Row = ({ row }) => {
+const Row = ({ row, chain }) => {
+  const decimals = chain === "base" ? 6 : 18;
   const txDate = new Date(parseInt(row?.createdAt as string) * 1000);
   return <div className={`text-white ${row.isBuy ? 'bg-[#0B99811F]' : 'bg-[#CD30301F]'} rounded-2xl bg-opacity-[0.12] flex flex-col py-[10px] px-3`}>
     <div className="flex flex-row items-center font-semibold text-base leading-5 mb-3">
@@ -39,13 +40,13 @@ const Row = ({ row }) => {
     <div className="flex flex-row items-center mb-5">
       <InfoPill text={`${row.isBuy ? "+" : "-"}${roundedToFixed(parseFloat(formatUnits(row.amount, DECIMALS)), 2)}`} />
       <span className="px-[6px]">for</span>
-      <InfoPill text={`$${roundedToFixed(parseFloat(formatUnits(row.txPrice, USDC_DECIMALS)), 2)}`} />
+      <InfoPill text={`$${roundedToFixed(parseFloat(formatUnits(row.txPrice, decimals)), 2)}`} />
     </div>
 
     <div className="flex justify-between items-center">
-      {!!(row.profile?.handle?.localName)
-        ? <Link href={`/profile/${row.profile?.handle?.localName}`} target="_blank" className="hover:opacity-80">
-          <CreatorButton text={row.profile?.handle?.localName || shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
+      {!!(row.profile?.username?.localName)
+        ? <Link href={`/profile/${row.profile?.username?.localName}`} target="_blank" className="hover:opacity-80">
+          <CreatorButton text={row.profile?.username?.localName || shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
         </Link>
         : <CreatorButton text={shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
       }
@@ -64,11 +65,11 @@ const Row = ({ row }) => {
   </div>
 };
 
-export const Trades = ({ clubId }) => {
+export const Trades = ({ clubId, chain }) => {
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
   const [allTrades, setAllTrades] = useState<any[]>([]);
-  const { data, isLoading, refetch } = useGetClubTrades(clubId, page);
+  const { data, isLoading, refetch } = useGetClubTrades(clubId, page, chain);
   const { trades, hasMore } = data || {};
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export const Trades = ({ clubId }) => {
     <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 shadow-md mb-[100px]">
       <div className="mb-2 w-full text-center flex flex-col gap-1">
         {allTrades.map((row, index) => (
-          <Row key={index} row={row} />
+          <Row key={index} row={row} chain={chain} />
         ))}
         {hasMore && (
           <div ref={ref} className="flex justify-center pt-4">
