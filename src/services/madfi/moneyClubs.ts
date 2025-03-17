@@ -4,7 +4,7 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, lens, lensTestnet } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
@@ -914,7 +914,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
 };
 
 export const publicClient = (chain = "base") => {
-  const _chain = IS_PRODUCTION ? chain == "base" ? base : lens : chain == "base" ? baseSepolia : lensTestnet;
+  const _chain = getChain(chain);
   return createPublicClient({ chain: _chain, transport: http(ChainRpcs[_chain.id]) });
 };
 

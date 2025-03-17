@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",
     });
-    const { clubId , tokenAddress}: { clubId: bigint, tokenAddress } = registeredClubEvent.args;
+    const { clubId , tokenAddress}: { clubId: bigint, tokenAddress } = registeredClubEvent?.args || {};
     if (!clubId) throw new Error("No registered club");
 
     const { collection } = await getClientWithClubs();

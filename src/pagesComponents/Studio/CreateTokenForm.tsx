@@ -285,7 +285,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
             </div>
           ) : (
             <div className="sm:col-span-6 flex flex-col">
-              <Disclosure defaultOpen>
+              <Disclosure>
                 {({ open }) => (
                   <>
                     <h3 className="leading-6">
