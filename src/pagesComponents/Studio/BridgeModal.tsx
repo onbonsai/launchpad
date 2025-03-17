@@ -218,7 +218,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                   />
                   <button
                     disabled={!fromChain}
-                    onClick={() => setAmount(formatEther(fromChainBalance || 0n))}
+                    onClick={() => setAmount(parseFloat(formatEther(fromChainBalance || 0n)).toFixed(2))}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish"
                   >
                     MAX
