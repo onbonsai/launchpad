@@ -364,7 +364,7 @@ const TokenPage: NextPage = () => {
                           <h3 className="text-sm font-medium text-primary">My Capacity Today</h3>
                           {/* Display both staking and free credits */}
                           <div className="text-2xl font-bold text-secondary">
-                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 2)} post generations
+                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
                           </div>
                           <p className="text-xs text-secondary/60">
                             {creditBalance?.creditsUsed || 0} credits used of{" "}
