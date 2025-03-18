@@ -85,7 +85,7 @@ const StudioCreatePage: NextPage = () => {
       }
     }
 
-    const sessionClient = await resumeSession();
+    const sessionClient = await resumeSession(true);
     let idToken;
     if (!sessionClient && !authenticatedProfile) {
       toast.error("Not authenticated");

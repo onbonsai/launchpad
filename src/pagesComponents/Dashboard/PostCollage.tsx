@@ -17,7 +17,7 @@ import { erc20Abi } from "viem";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 
-export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
+export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView();
   const [showCompleted, setShowCompleted] = useState(false);
@@ -191,6 +191,7 @@ export const PostCollage = ({ posts, filterBy, filteredPosts, setFilteredPosts, 
                         authenticatedProfile={authenticatedProfile}
                         bonsaiBalance={bonsaiBalance}
                         post={post}
+                        postData={postData[post.slug]}
                         onShare={() => onShareButtonClick(post.slug)}
                         onHide={() => {/* handle hide */ }}
                         onReport={() => {/* handle report */ }}

@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
@@ -18,23 +18,12 @@ const IndexPage: NextPage = () => {
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
-  // TODO: remove
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useGetRegisteredClubs(sortedBy);
-
-  const { data: posts, isLoading: postsLoading } = useGetExplorePosts({
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading: isLoadingPosts } = useGetExplorePosts({
     isLoadingAuthenticatedProfile,
     accountAddress: authenticatedProfile?.address
   });
-
-  // useEffect(() => {
-  //   console.log('posts', JSON.stringify(posts));
-  // }, [posts, postsLoading]);
+  const posts = useMemo(() => data?.pages.flatMap(page => page.posts) || [], [isLoadingPosts]);
+  const postData = useMemo(() => data?.pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) || {}, [isLoadingPosts]);
 
   // fix hydration issues
   if (!isMounted) return null;
@@ -46,15 +35,16 @@ const IndexPage: NextPage = () => {
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
                 {/* return the featured clubs asap, then load the rest */}
-                {postsLoading
+                {isLoadingPosts
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
                   : <PostCollage
-                    posts={posts?.posts as Post[] ?? []}
+                    posts={posts as Post[] ?? []}
+                    postData={postData}
                     setFilteredPosts={setFilteredClubs}
                     filteredPosts={filteredClubs}
                     filterBy={filterBy}
                     setFilterBy={setFilterBy}
-                    isLoading={isLoading || isFetchingNextPage}
+                    isLoading={isLoadingPosts || isFetchingNextPage}
                     hasMore={hasNextPage}
                     fetchNextPage={fetchNextPage}
                     sortedBy={sortedBy}

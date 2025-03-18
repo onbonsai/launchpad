@@ -148,8 +148,6 @@ export const resolveSmartMedia = async (
 
     // HACK: localhost
     if (url === "http://localhost:3001") url = ELIZA_API_URL;
-    const fullUrl = `${url}/post/${postId}?withVersions=${withVersions}`;
-    console.log('RESOLVING:', fullUrl);
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) {
       console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);

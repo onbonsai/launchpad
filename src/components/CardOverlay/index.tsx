@@ -12,11 +12,13 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";
 import { Subtitle } from "@src/styles/text";
+import { Tooltip } from "@src/components/Tooltip";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
   bonsaiBalance?: bigint;
   post: Post;
+  postData?: { actors: any[] };
   onShare?: () => void;
   onHide?: () => void;
   onReport?: () => void;
@@ -28,6 +30,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   authenticatedProfile,
   bonsaiBalance,
   post,
+  postData,
   onShare,
   onHide,
   onReport,
@@ -116,6 +119,14 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
     setIsCollecting(false);
   }
 
+  const collectorsText = useMemo(() => {
+    if (!!postData?.actors?.length) {
+      const word = postData.actors.length === 1 ? "has" : "have";
+      return postData.actors.map(actor => `@${actor.account.username.localName}`).join(', ') + ` ${word} joined`;
+    }
+    return ""
+  }, [postData?.actors]);
+
   return (
     <div
       className={`absolute inset-0 ${className}`}
@@ -157,7 +168,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               ): (
                 <>
                   <BookmarkOutlined />
-                  Collected
+                  Joined
                 </>
               )}
             </Button>
@@ -179,11 +190,25 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
 
       {/* Bottom overlay LEFT */}
       <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
-        <div
-          className="rounded-full bg-white h-10 w-10 flex items-center justify-center gap-x-1"
-        >
-          {hasCollected ? <BookmarkOutlined sx={{ color: '#000', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#000', fontSize: '1rem' }}/>}
-          {post.stats.collects > 0 ? <Subtitle className="text-base text-black">{post.stats.collects}</Subtitle> : null}
+        <div className={`rounded-full bg-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
+          <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1">
+            {hasCollected ? <BookmarkOutlined sx={{ color: '#000', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#000', fontSize: '1rem' }}/>}
+            {post.stats.collects > 0 ? <Subtitle className="text-base text-black">{post.stats.collects}</Subtitle> : null}
+          </div>
+          {!!postData?.actors?.length && (
+            <Tooltip message={collectorsText} direction="top" classNames="z-100">
+              <div className="flex -space-x-2">
+                {postData?.actors?.map(({ account }, index: number) => (
+                  <img
+                    key={index}
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-dark-grey"
+                    src={account.metadata?.picture || "/default.png"}
+                    alt="avatar"
+                  />
+                ))}
+              </div>
+            </Tooltip>
+          )}
         </div>
       </div>
 

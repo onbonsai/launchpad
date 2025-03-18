@@ -1,34 +1,21 @@
-import React, { useMemo, memo } from "react";
+import React, { memo } from "react";
 import Image from "next/image";
-import { getProfileImage } from "@src/services/lens/utils";
+
 const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
   if (!profiles?.length) return null;
 
-  const images = useMemo(() => {
-    return profiles
-      .map((profile) => {
-        // using lens profile object
-        if (profile.__typename === "Profile" || profile.id?.includes("0x")) {
-          return getProfileImage(profile);
-        }
-
-        // basic usage
-        return profile.lens ? profile.lens.avatar_url : profile.twitter.avatar_url;
-      })
-      .filter((u) => u);
-  }, [profiles]);
-
   return (
     <div className="flex -space-x-2">
-      {images.map((url: string, index: number) => (
+      {profiles.map((p: any, index: number) => (
         <Image
           key={index}
           className="inline-block h-10 w-10 rounded-full ring-2 ring-dark-grey"
-          src={url}
+          src={p.metadata?.picture}
           alt="/sage.webp"
           height={32}
           width={32}
-          quality={75}
+          // quality={75}
+          unoptimized
         />
       ))}
     </div>

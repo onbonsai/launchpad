@@ -16,14 +16,16 @@ export const fetchAvailableAccounts = async (address: string) => {
 };
 
 // returns a session client if available
-export const resumeSession = async () => {
+export const resumeSession = async (refreshTokens = false) => {
   const resumed = await lensClient.resumeSession();
   if (resumed.isErr()) {
     console.error(resumed.error);
     return;
   }
-  // SessionClient: { ... }
   const sessionClient = resumed.value;
+
+  if (refreshTokens) await currentSession(sessionClient);
+
   return sessionClient;
 };
 

@@ -89,16 +89,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
           <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Cost to join
-                  </Subtitle>
-                  <div className="text-sm inline-block">
-                    <Tooltip message="Users must collect your post to participate in the evolution of it" direction="right">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                      />
-                    </Tooltip>
-                  </div>
+                  <Subtitle className="text-white/70">Set the Collect Fee users must pay to join your post</Subtitle>
                 </div>
                 <div className="grid grid-cols-3 gap-4 py-2">
                   {collectAmountOptions.map((data, idx) => (

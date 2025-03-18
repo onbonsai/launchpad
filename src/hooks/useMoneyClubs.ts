@@ -73,8 +73,6 @@ export const useGetFeaturedClubs = () => {
   });
 };
 
-// ... existing code ...
-
 export const useGetRegisteredClubs = (sortedBy: string) => {
   return useInfiniteQuery({
     queryKey: ['registered-clubs', sortedBy],
@@ -125,8 +123,6 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     gcTime: 60000,
   });
 };
-
-// ... existing code ...
 
 export const useGetClubVolume = (clubId?: string) => {
   return useQuery({

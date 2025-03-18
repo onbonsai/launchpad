@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { Cursor, evmAddress, postId, PostType, SessionClient } from "@lens-protocol/client";
-import { fetchPost, fetchPosts } from "@lens-protocol/client/actions";
+import { fetchPost, fetchPosts, fetchWhoExecutedActionOnPost } from "@lens-protocol/client/actions";
 import { lensClient } from "./client";
 import { APP_ID } from "../madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { groupBy, sampleSize } from "lodash";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -71,49 +73,68 @@ export const useGetPostsByAuthor = (authorId: string) => {
 
 interface GetExplorePostsProps {
   isLoadingAuthenticatedProfile: boolean;
-  accountAddress?: `0x${string}`; // authenticatedProfile.address
+  accountAddress?: `0x${string}`;
   cursor?: Cursor;
-  withToken?: boolean;
-}
+};
 
-// TODO:
-// - personalized by tags?
-// - enriched with token data?
-// - sorted by engagement? or token mcap?
-export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress, cursor, withToken }: GetExplorePostsProps) => {
-  return useQuery({
+export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+  return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = null }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();
       } catch {}
+
       const result = await fetchPosts(sessionClient || lensClient, {
-        // TODO: Renable this filter when bug is fixed
         filter: {
           postTypes: [PostType.Root],
           authors: accountAddress ? [evmAddress(accountAddress)] : undefined
-          // metadata: {
-          //   tags: {
-          //     all: [APP_ID]
-          //   }
-          // }
         },
-        cursor
+        cursor: pageParam,
       });
 
       if (result.isErr()) {
         console.log(result.error);
-        return;
+        throw result.error;
       }
 
       const { items: posts, pageInfo } = result.value;
-
-      // if (withToken) {
-
-      // }
-      return { posts, pageInfo };
+      return {
+        posts,
+        postData: await getPostData(posts?.map(({ slug }) => slug)),
+        pageInfo,
+        nextCursor: pageInfo.next
+      };
     },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: isLoadingAuthenticatedProfile === false,
   });
-}
+};
+
+// TODO: consider using resolveSmartMedia or a batched version to fetch more info
+export const getPostData = async (postIds: string[]): Promise<Object> => {
+  let sessionClient;
+  try {
+    sessionClient = await resumeSession();
+  } catch { }
+
+  // TODO: this is a temporary solution until we can batch query
+  const results = await Promise.all(postIds.map(async (_postId) => {
+    const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
+    if (result.isErr()) return;
+
+    // try to get the actors followed by me
+    let actors = result.value.items;
+    if (sessionClient) {
+      actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
+    }
+    return { postId: _postId, actors: sampleSize(actors, 3) };
+  }));
+
+  const grouped = groupBy(results.filter((r) => r), 'postId');
+  return Object.fromEntries(
+    Object.entries(grouped).map(([key, value]) => [key, value[0]])
+  );
+};
