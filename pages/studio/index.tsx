@@ -86,11 +86,11 @@ const StudioCreatePage: NextPage = () => {
                     >
                       <div className="rounded-xl overflow-hidden mb-4 border border-dark-grey">
                         <Image
-                          src={template.image || "/placeholder.svg?height=150&width=300"}
+                          src={template.image || "/placeholder.svg?height=200&width=300"}
                           alt={template.displayName}
                           width={300}
-                          height={150}
-                          className="w-full"
+                          height={200}
+                          className="w-full h-auto aspect-[1.5/1] object-cover"
                         />
                       </div>
                       <h3 className="font-semibold text-lg text-primary">{template.displayName}</h3>
