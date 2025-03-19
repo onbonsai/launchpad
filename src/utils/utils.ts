@@ -455,9 +455,7 @@ export const reconstructZodSchema = (shape: any) => {
 };
 
 export const getSmartMediaUrl = (attributes: MetadataAttribute[]): string | undefined => {
-  const isBonsaiPlugin = attributes.some(
-    attr => attr.key === "plugin" && attr.value === "client-bonsai"
-  );
+  const isBonsaiPlugin = attributes.some((attr) => attr.key === "template");
 
   if (!isBonsaiPlugin) return;
 

@@ -2,6 +2,7 @@ import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { MetadataAttribute } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
 
 export const APP_ID = "BONSAI";
@@ -76,6 +77,7 @@ export type SmartMedia = {
     chain: "base" | "lens";
     address: `0x${string}`;
   };
+  protocolFeeRecipient: `0x${string}`; // media template
   isProcessing?: boolean;
   versions?: string[];
 };
@@ -150,14 +152,26 @@ export const resolveSmartMedia = async (
     if (url === "http://localhost:3001") url = ELIZA_API_URL;
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) {
-      console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);
+      // console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
-    const { data, isProcessing, versions } = await response.json();
-    return { ...data, isProcessing, versions };
+    const { data, isProcessing, versions, protocolFeeRecipient } = await response.json();
+    return { ...data, isProcessing, versions, protocolFeeRecipient };
   } catch (error) {
     console.log(error);
     return null;
   }
 }
+
+export const useResolveSmartMedia = (
+  attributes?: MetadataAttribute[],
+  postId?: string,
+  withVersions?: boolean
+): UseQueryResult<SmartMedia | null, Error> => {
+  return useQuery({
+    queryKey: ["resolve-smart-media", postId],
+    queryFn: () => resolveSmartMedia(attributes!, postId!, withVersions),
+    enabled: !!postId && !!attributes,
+  });
+};

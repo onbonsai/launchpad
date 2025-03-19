@@ -9,10 +9,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
 
 import { Modal } from "@src/components/Modal";
-import { Tooltip } from "@src/components/Tooltip";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { LivestreamConfig } from "@src/components/Creators/CreatePost";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club } from "@src/services/madfi/moneyClubs";
@@ -27,8 +25,9 @@ import { localizeNumber } from '@src/constants/utils';
 import WalletButton from '@src/components/Creators/WalletButton';
 import { Button } from '@src/components/Button';
 import { ShareClub } from '@src/pagesComponents/Club';
-import { InfoOutlined } from '@mui/icons-material';
 import { capitalizeFirstLetter } from '@src/utils/utils';
+import { useResolveSmartMedia } from '@src/services/madfi/studio';
+import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
@@ -105,6 +104,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
+  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(club.pubId as string);
+  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, club.pubId);
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -416,7 +417,14 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           </div>
                   }
                 </div>
-                {!club.complete && <BottomInfoComponent club={club} address={address} totalSupply={totalSupply} />}
+                {!club.complete &&
+                  <BottomInfoComponent
+                    club={club}
+                    address={address}
+                    totalSupply={totalSupply}
+                    media={media}
+                  />
+                }
               </div>
 
               {/* Feed/Trades/Holders */}
@@ -426,7 +434,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 {openTab === 1 && type === "lens" && (
-                  <Feed postId={club.pubId} morePadding={true} />
+                  <Feed
+                    postId={club.pubId}
+                    isLoading={isLoading}
+                    publicationWithComments={publicationWithComments}
+                  />
                 )}
                 {openTab === 2 && (
                   <Trades clubId={club.clubId} chain={club.chain} />

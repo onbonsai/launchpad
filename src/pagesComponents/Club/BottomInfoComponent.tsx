@@ -8,7 +8,7 @@ import { formatEther, formatUnits } from "viem";
 import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 import BuyUSDCWidget from "./BuyUSDCWidget";
 
-export const BottomInfoComponent = ({ club, address, totalSupply }) => {
+export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
@@ -91,6 +91,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply }) => {
                 setBuyClubModalOpen(false)
                 setBuyUSDCModalOpen(true)
               }}
+              mediaProtocolFeeRecipient={media?.protocolFeeRecipient}
             />
             <BuyUSDCWidget
               open={BuyUSDCModalOpen}

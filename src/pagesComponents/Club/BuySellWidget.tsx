@@ -31,7 +31,6 @@ import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
 import { getChain, lens } from "@src/services/madfi/utils";
-import { base } from "viem/chains";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -42,6 +41,7 @@ export const BuySellWidget = ({
   openTab: _openTab,
   onBuyUSDC,
   defaultBuyAmount,
+  mediaProtocolFeeRecipient,
 }) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -111,7 +111,7 @@ export const BuySellWidget = ({
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain);
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);

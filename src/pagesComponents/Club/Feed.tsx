@@ -7,11 +7,6 @@ import {
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { MetadataLicenseType } from "@lens-protocol/metadata";
-import {
-  PostFragment,
-  uri,
-} from "@lens-protocol/client";
 
 import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -24,21 +19,17 @@ import { useGetComments } from "@src/hooks/useGetComments";
 import PublicationContainer, {
   PostFragmentPotentiallyDecrypted,
 } from "@src/components/Publication/PublicationContainer";
-import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 // import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
 import clsx from "clsx";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { addReaction, post } from "@lens-protocol/client/actions";
-import { postId as formatPostId } from "@lens-protocol/client";
 import { sendLike } from "@src/services/lens/getReactions";
 import { getProfileImage } from "@src/services/lens/utils";
-import { handleOperationWith } from "@lens-protocol/client/viem";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 
-export const Feed = ({ postId, morePadding = false }) => {
+export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { address, isConnected, chainId } = useAccount();
@@ -46,7 +37,6 @@ export const Feed = ({ postId, morePadding = false }) => {
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
   const { publication, comments } =
     publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);

@@ -38,6 +38,7 @@ interface PostParams {
     category: string;
     name: string;
   };
+  tokenAddress?: `0x${string}`;
   actions?: {
     simpleCollect: {
       amount?: {
@@ -77,11 +78,23 @@ const baseMetadata = {
 }
 
 export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMetadata | VideoMetadata => {
+  // smart media attributes
+  const attributes = !!params.template ? baseMetadata.attributes(params.template) : undefined;
+
+  // include token address in attributes for indexing
+  if (!!params.template && !!params.tokenAddress) {
+    attributes!.push({
+      type: MetadataAttributeType.STRING as const,
+      key: "tokenAddress",
+      value: params.tokenAddress,
+    });
+  }
+
   if (!(params.image || params.video)) {
     return textOnly({
       content: params.text,
       tags: [baseMetadata.appId],
-      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+      attributes
     });
   } else if (params.image) {
     return image({
@@ -93,7 +106,7 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
         license: MetadataLicenseType.CCO,
       },
       tags: [baseMetadata.appId],
-      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+      attributes
     });
   } else if (params.video) {
     return video({
@@ -105,7 +118,7 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
         license: MetadataLicenseType.CCO,
       },
       tags: [baseMetadata.appId],
-      attributes: params.template ? baseMetadata.attributes(params.template) : undefined,
+      attributes
     });
   }
 

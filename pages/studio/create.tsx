@@ -78,85 +78,13 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    // 1. create lens post with template metadata and ACL
-    if (LENS_CHAIN_ID !== chain?.id && switchChain) {
-      try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
-      } catch {
-        toast.error("Please switch networks to create your Lens post");
-        return;
-      }
-    }
-
-    const sessionClient = await resumeSession(true);
-    let idToken;
-    if (!sessionClient && !authenticatedProfile) {
-      toast.error("Not authenticated");
-      return;
-    } else {
-      const creds = await (sessionClient as SessionClient).getCredentials();
-      if (creds.isOk()) {
-        idToken = creds.value?.idToken;
-      } else {
-        toast.error("Failed to get credentials");
-        return;
-      }
-    }
-
     setIsCreating(true);
-    toastId = toast.loading("Creating your post...");
-    let postId, uri;
-    try {
-      let image;
-      if (postImage && postImage.length > 0) {
-        image = (await uploadFile(postImage[0], template?.acl)).image;
-      } else if (preview?.image) {
-        const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
-        image = { url: imageUri, type };
-      }
-      const result = await createPost(
-        sessionClient as SessionClient,
-        walletClient,
-        {
-          text: postContent || preview?.text || template.displayName,
-          image,
-          template,
-          actions: [{
-            simpleCollect: {
-              amount: {
-                currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
-                value: collectAmount.toString() as BigDecimal
-              },
-              recipients: [
-                {
-                  address: toEvmAddress(address as string),
-                  percent: 80
-                },
-                {
-                  address: toEvmAddress(template.protocolFeeRecipient),
-                  percent: 20,
-                }
-              ],
-              referralShare: 5,
-            }
-          }]
-        }
-      )
-      if (!result?.postId) throw new Error("No result from createPost");
 
-      postId = result.postId;
-      uri = result.uri;
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to create post", { id: toastId });
-      setIsCreating(false);
-      return;
-    }
-
-    // 2. create token + set club db record
+    // 1. create token
     let tokenAddress;
+    let txHash;
     if (addToken && finalTokenData) {
-      toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`, { id: toastId });
+      toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId) {
@@ -189,14 +117,8 @@ const StudioCreatePage: NextPage = () => {
         }, finalTokenData.selectedNetwork);
 
         if (!result) throw new Error("No result from registerClubTransaction");
-        // link the creator handle and post id
-        await setLensData({
-          hash: result.txHash as string,
-          postId,
-          handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-          chain: finalTokenData.selectedNetwork
-        });
 
+        txHash = result.txHash as string;
         tokenAddress = result.tokenAddress;
       } catch (error) {
         console.log(error);
@@ -206,9 +128,93 @@ const StudioCreatePage: NextPage = () => {
       }
     }
 
+    // 2. create lens post with template metadata and ACL; set club db record
+    if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+      try {
+        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+      } catch {
+        toast.error("Please switch networks to create your Lens post");
+        return;
+      }
+    }
+
+    const sessionClient = await resumeSession(true);
+    let idToken;
+    if (!sessionClient && !authenticatedProfile) {
+      toast.error("Not authenticated");
+      return;
+    } else {
+      const creds = await (sessionClient as SessionClient).getCredentials();
+      if (creds.isOk()) {
+        idToken = creds.value?.idToken;
+      } else {
+        toast.error("Failed to get credentials");
+        return;
+      }
+    }
+
+    toastId = toast.loading("Creating your post...", { id: toastId });
+    let postId, uri;
+    try {
+      let image;
+      if (postImage && postImage.length > 0) {
+        image = (await uploadFile(postImage[0], template?.acl)).image;
+      } else if (preview?.image) {
+        const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
+        image = { url: imageUri, type };
+      }
+      const result = await createPost(
+        sessionClient as SessionClient,
+        walletClient,
+        {
+          text: postContent || preview?.text || template.displayName,
+          image,
+          template,
+          tokenAddress,
+          actions: [{
+            simpleCollect: {
+              amount: {
+                currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
+                value: collectAmount.toString() as BigDecimal
+              },
+              recipients: [
+                {
+                  address: toEvmAddress(address as string),
+                  percent: 80
+                },
+                {
+                  address: toEvmAddress(template.protocolFeeRecipient),
+                  percent: 20,
+                }
+              ],
+              referralShare: 5,
+            }
+          }]
+        }
+      )
+      if (!result?.postId) throw new Error("No result from createPost");
+
+      postId = result.postId;
+      uri = result.uri;
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create post", { id: toastId });
+      setIsCreating(false);
+      return;
+    }
+
     // 3. create smart media
     toastId = toast.loading("Finalizing...", { id: toastId });
     try {
+      if (tokenAddress) { // link the creator handle and post id in our db
+        await setLensData({
+          hash: txHash,
+          postId,
+          handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
+          chain: finalTokenData?.selectedNetwork || "lens"
+        });
+      }
+
       let params;
       if (!preview?.agentId) {
         params = {

@@ -9,7 +9,7 @@ import { BuySellWidget } from "./BuySellWidget";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
-export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount }) => {
+export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient }) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
@@ -53,6 +53,7 @@ export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount }) =
           openTab={1}
           onBuyUSDC={onBuyUSDC}
           defaultBuyAmount={defaultBuyAmount}
+          mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
         />
       </div>
     </div>

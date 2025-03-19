@@ -1369,13 +1369,21 @@ export const setLensData = async ({
   });
 }
 
-export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`, chain = "base") => {
+export const buyChips = async (
+  walletClient: any,
+  clubId: string,
+  amount: bigint,
+  maxPrice: bigint,
+  referral?: `0x${string}`,
+  chain = "base",
+  clientAddress?: `0x${string}`
+) => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
     address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amount, maxPrice, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
+    args: [clubId, amount, maxPrice, clientAddress || zeroAddress, recipient, referral || zeroAddress],
     chain: getChain(chain)
   });
   console.log(`tx: ${hash}`);

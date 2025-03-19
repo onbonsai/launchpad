@@ -341,8 +341,9 @@ const PublicationContainer = ({
         messageIconOverride={true}
         shareIconOverride={true}
         nestedWidget={nestedWidget}
+        onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
-      {isCollect && (
+      {isCollect && sideBySideMode && (
         <div className="absolute right-4 top-2">
           <Button
             variant="accentBrand"
@@ -358,7 +359,7 @@ const PublicationContainer = ({
             ): (
               <>
                 <BookmarkOutlined />
-                Collected
+                Joined
               </>
             )}
           </Button>
