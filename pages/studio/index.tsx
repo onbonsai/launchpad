@@ -14,7 +14,7 @@ const StudioCreatePage: NextPage = () => {
   const router = useRouter();
   const importButtonRef = useRef<HTMLButtonElement>(null);
   const [showImportTemplateModal, setShowImportTemplateModal] = useState(false);
-  const [importedTemplateURL, setImportedTemplateURL] = useState();
+  const [importedTemplateURL, setImportedTemplateURL] = useState<string | undefined>();
   const { data: registeredTemplates, isLoading } = useRegisteredTemplates(importedTemplateURL);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
 
@@ -113,7 +113,10 @@ const StudioCreatePage: NextPage = () => {
                 {/* Import template modal */}
                 {showImportTemplateModal && (
                   <ImportTemplatesModal
-                    onSubmit={(l: string) => setImportedTemplateURL(l)}
+                    onSubmit={(url: string) => {
+                      setImportedTemplateURL(url);
+                      localStorage.setItem('importedTemplateURL', url);
+                    }}
                     anchorEl={importButtonRef.current}
                     onClose={() => setShowImportTemplateModal(false)}
                   />

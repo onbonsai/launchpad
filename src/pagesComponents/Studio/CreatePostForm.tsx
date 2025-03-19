@@ -98,7 +98,7 @@ const CreatePostForm = ({
       setPreview({
         text: postContent || "",
         image: postImage?.length ? postImage[0] : undefined,
-        imagePreview: postImage[0].preview
+        imagePreview: postImage?.length ? postImage[0].preview : undefined
       });
     }
     next(templateData);
