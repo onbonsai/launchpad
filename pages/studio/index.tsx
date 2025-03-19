@@ -27,8 +27,29 @@ const StudioCreatePage: NextPage = () => {
   }, [categoryFilter, isLoading, registeredTemplates]);
 
   const categories = useMemo(() => {
-    return [{ key: undefined, label: "All" }, ...CATEGORIES]
-  }, [CATEGORIES]);
+    const formatCategoryLabel = (category: string) => {
+      return category
+        // Split by underscores and camelCase
+        .split(/[\s_]|(?=[A-Z])/)
+        // Capitalize first letter of each word
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        // Join with spaces
+        .join(' ');
+    };
+
+    const importedCategories = registeredTemplates
+      ?.map(template => ({ 
+        key: template.category, 
+        label: formatCategoryLabel(template.category)
+      }))
+      .filter(category => !CATEGORIES.some(c => c.key === category.key)) || [];
+
+    return [
+      { key: undefined, label: "All" }, 
+      ...CATEGORIES,
+      ...importedCategories
+    ];
+  }, [CATEGORIES, registeredTemplates]);
 
   const selectTemplate = (template: string) => {
     router.push(`/studio/create?template=${template}`);
