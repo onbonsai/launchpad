@@ -231,7 +231,12 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                   placeholder={canComment ? "Add a comment to participate" : "Collect the post to participate"}
                   disabled={!canComment}
                   onFocus={() => setInputFocused(true)}
-                  onBlur={() => setInputFocused(false)}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setInputFocused(false);
+                    }
+                  }}
+                  autoFocus={isInputFocused}
                 />
                 {canComment && (
                   <div className="absolute right-2 -top-2">

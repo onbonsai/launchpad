@@ -156,7 +156,7 @@ export const resolveSmartMedia = async (
       return null;
     }
 
-    const { data, isProcessing, versions, protocolFeeRecipient } = await response.json();
+    const { data, isProcessing, versions, protocolFeeRecipient = null } = await response.json();
     return { ...data, isProcessing, versions, protocolFeeRecipient };
   } catch (error) {
     console.log(error);
