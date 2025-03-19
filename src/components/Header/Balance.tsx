@@ -71,9 +71,9 @@ export const Balance = () => {
     setAnchorEl(null);
   };
 
-  const formattedAccount = useMemo(() => {
-    return `${authenticatedProfile?.address.slice(0, 6)}...`;
-  }, [authenticatedProfile]);
+  // const formattedAccount = useMemo(() => {
+  //   return `${authenticatedProfile?.address.slice(0, 6)}...`;
+  // }, [authenticatedProfile]);
 
   return (
     <div className={clsx("relative inline-block", inter.className)}>
@@ -103,7 +103,7 @@ export const Balance = () => {
           >
             {/* <div className="flex items-center space-x-2">
               <Subtitle className="text-white/70">Lens Account</Subtitle>
-              <WalletButton wallet={authenticatedProfile?.address} />
+              <WalletButton wallet={formattedAccount} />
             </div> */}
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-x-2">

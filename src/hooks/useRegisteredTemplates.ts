@@ -8,8 +8,10 @@ const BONSAI_CLIENT_REGISTRY = [
   ELIZA_API_URL
 ];
 
-const fetchBonsaiClients = async (): Promise<BonsaiClientMetadata[]> => {
-  const clientMetadataPromises = BONSAI_CLIENT_REGISTRY.map(async (url) => {
+const fetchBonsaiClients = async (importedTemplateURL: string): Promise<BonsaiClientMetadata[]> => {
+  const urls = [...BONSAI_CLIENT_REGISTRY];
+  if (importedTemplateURL) urls.push(importedTemplateURL);
+  const clientMetadataPromises = urls.map(async (url) => {
     try {
       const response = await fetch(`${url}/metadata`);
       if (!response.ok) return undefined;
@@ -24,11 +26,11 @@ const fetchBonsaiClients = async (): Promise<BonsaiClientMetadata[]> => {
   return results.filter((result): result is BonsaiClientMetadata => result !== undefined);
 };
 
-export default (): UseQueryResult<Template[], Error> => {
+export default (importedTemplateURL?: string): UseQueryResult<Template[], Error> => {
   return useQuery({
     queryKey: ["registered-templates"],
     queryFn: async () => {
-      const clients = await fetchBonsaiClients();
+      const clients = await fetchBonsaiClients(importedTemplateURL);
       return clients.flatMap(client =>
         client.templates.map(template => ({
           ...template,

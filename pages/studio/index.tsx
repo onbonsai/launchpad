@@ -1,15 +1,21 @@
 import { NextPage } from "next"
 import Image from "next/image"
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { CATEGORIES, TemplateCategory} from "@src/services/madfi/studio";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { Subtitle } from "@src/styles/text";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  const [showImportTemplateModal, setShowImportTemplateModal] = useState(false);
+  const [importedTemplateURL, setImportedTemplateURL] = useState();
+  const { data: registeredTemplates, isLoading } = useRegisteredTemplates(importedTemplateURL);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
 
   const templatesFiltered = useMemo(() => {
@@ -28,6 +34,10 @@ const StudioCreatePage: NextPage = () => {
     router.push(`/studio/create?template=${template}`);
   }
 
+  const onSubmit = (link: string) => {
+    ;
+  };
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
@@ -42,8 +52,10 @@ const StudioCreatePage: NextPage = () => {
               <div className="bg-card rounded-xl p-6">
                 <h2 className="text-2xl font-semibold mb-6 text-secondary">Create a post</h2>
 
+                <Subtitle className="text-white/70 mb-2">Select a category{!IS_PRODUCTION ? " - or import from your ElizaOS server" : ""}</Subtitle>
+
                 {/* Categories */}
-                <div className="bg-card-light rounded-full p-1 mb-8 flex gap-x-2">
+                <div className="bg-card-light rounded-full p-1 mb-8 flex gap-x-2 relative">
                   {categories.map((c) => (
                     <button
                       key={c.label}
@@ -53,6 +65,15 @@ const StudioCreatePage: NextPage = () => {
                       {c.label}
                     </button>
                   ))}
+                  {!IS_PRODUCTION && (
+                    <button
+                      ref={importButtonRef}
+                      className="text-secondary/60 hover:bg-card transition-colors px-6 py-2 rounded-full absolute right-2 z-50"
+                      onClick={() => setShowImportTemplateModal(true)}
+                    >
+                      + Import
+                    </button>
+                  )}
                 </div>
 
                 {/* Templates */}
@@ -88,6 +109,15 @@ const StudioCreatePage: NextPage = () => {
                     </div>
                   ))}
                 </div>
+
+                {/* Import template modal */}
+                {showImportTemplateModal && (
+                  <ImportTemplatesModal
+                    onSubmit={(l: string) => setImportedTemplateURL(l)}
+                    anchorEl={importButtonRef.current}
+                    onClose={() => setShowImportTemplateModal(false)}
+                  />
+                )}
               </div>
             </div>
           </div>
