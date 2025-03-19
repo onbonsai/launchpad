@@ -488,7 +488,6 @@ const TokenPage: NextPage = () => {
                     onClose={() => setIsStakeModalOpen(false)}
                     calculateCreditsPerDay={calculateCreditsPerDay}
                     twapPrice={twapPrice || bonsaiPrice}
-                    stakingSummary={stakingData?.summary || null}
                   />
                 </Modal>
 
