@@ -3,7 +3,6 @@ import { Button } from "./Button";
 import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
-import { StakingSummary } from "../../pages/studio/stakingCalculator";
 
 interface StakeModalProps {
   onClose: () => void;
@@ -11,7 +10,6 @@ interface StakeModalProps {
   maxAmount: string;
   calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
   twapPrice?: number;
-  stakingSummary?: StakingSummary | null;
 }
 
 const LOCKUP_PERIODS = [
@@ -22,14 +20,7 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-export const StakeModal = ({
-  onClose,
-  onStake,
-  maxAmount,
-  calculateCreditsPerDay,
-  twapPrice,
-  stakingSummary,
-}: StakeModalProps) => {
+export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
