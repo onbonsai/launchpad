@@ -16,6 +16,7 @@ import { useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
+import { getPostContentSubstring } from "@src/utils/utils";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
@@ -43,6 +44,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
+      console.log("fetchNextPage");
       fetchNextPage();
     }
   }, [inView, isLoading, hasMore, fetchNextPage]);
@@ -145,63 +147,60 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
             >
-              {sortedPosts.map((post, idx) => {
-                if (idx === 0) return null;
-                return (
-                  <div key={`post-${post.slug}`} className="mb-4 relative group">
-                    <Publication
-                      key={`preview-${post.slug}`}
-                      publicationData={{
-                        author: post.author,
-                        timestamp: post.timestamp,
-                        metadata: {
-                          __typename: post.metadata?.image
-                            ? "ImageMetadata"
-                            : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
-                          content: post.metadata?.content ?? '',
-                          image: post.metadata?.image
-                            ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
-                            : undefined,
-                          video: post.metadata?.video
-                            ? { item: post.metadata.video.item }
-                            : undefined
-                        }
-                      }}
-                      theme={Theme.dark}
-                      followButtonDisabled={true}
-                      environment={LENS_ENVIRONMENT}
-                      profilePictureStyleOverride={publicationProfilePictureStyle}
-                      containerBorderRadius={'24px'}
-                      containerPadding={'12px'}
-                      profilePadding={'0 0 0 0'}
-                      textContainerStyleOverride={textContainerStyleOverrides}
-                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                      mediaImageStyleOverride={mediaImageStyleOverride}
-                      imageContainerStyleOverride={imageContainerStyleOverride}
-                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                      reactionContainerStyleOverride={reactionContainerStyleOverride}
-                      shareContainerStyleOverride={shareContainerStyleOverride}
-                      markdownStyleBottomMargin={'0'}
-                      heartIconOverride={true}
-                      messageIconOverride={true}
-                      shareIconOverride={true}
+              {sortedPosts.map((post, idx) => (
+                <div key={`post-${post.slug}`} className="mb-4 relative group">
+                  <Publication
+                    key={`preview-${post.slug}`}
+                    publicationData={{
+                      author: post.author,
+                      timestamp: post.timestamp,
+                      metadata: {
+                        __typename: post.metadata?.image
+                          ? "ImageMetadata"
+                          : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+                        content: getPostContentSubstring(post.metadata?.content ?? ''),
+                        image: post.metadata?.image
+                          ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+                          : undefined,
+                        video: post.metadata?.video
+                          ? { item: post.metadata.video.item }
+                          : undefined
+                      }
+                    }}
+                    theme={Theme.dark}
+                    followButtonDisabled={true}
+                    environment={LENS_ENVIRONMENT}
+                    profilePictureStyleOverride={publicationProfilePictureStyle}
+                    containerBorderRadius={'24px'}
+                    containerPadding={'12px'}
+                    profilePadding={'0 0 0 0'}
+                    textContainerStyleOverride={textContainerStyleOverrides}
+                    backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                    mediaImageStyleOverride={mediaImageStyleOverride}
+                    imageContainerStyleOverride={imageContainerStyleOverride}
+                    reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                    reactionContainerStyleOverride={reactionContainerStyleOverride}
+                    shareContainerStyleOverride={shareContainerStyleOverride}
+                    markdownStyleBottomMargin={'0'}
+                    heartIconOverride={true}
+                    messageIconOverride={true}
+                    shareIconOverride={true}
+                  />
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
+                    <CardOverlay
+                      authenticatedProfile={authenticatedProfile}
+                      bonsaiBalance={bonsaiBalance}
+                      post={post}
+                      postData={postData[post.slug]}
+                      onShare={() => onShareButtonClick(post.slug)}
+                      onHide={() => {/* handle hide */ }}
+                      onReport={() => {/* handle report */ }}
+                      onClick={() => { router.push(`/post/${post.slug}?returnTo=/`); }}
+                      className="opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out z-30"
                     />
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
-                      <CardOverlay
-                        authenticatedProfile={authenticatedProfile}
-                        bonsaiBalance={bonsaiBalance}
-                        post={post}
-                        postData={postData[post.slug]}
-                        onShare={() => onShareButtonClick(post.slug)}
-                        onHide={() => {/* handle hide */ }}
-                        onReport={() => {/* handle report */ }}
-                        onClick={() => { router.push(`/post/${post.slug}?returnTo=/`); }}
-                        className="opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out z-30"
-                      />
-                    </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </Masonry>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">

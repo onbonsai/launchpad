@@ -27,6 +27,8 @@ import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_A
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
+import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
+import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 
 type TokenData = {
   initialSupply: number;
@@ -49,6 +51,7 @@ const StudioCreatePage: NextPage = () => {
   const [preview, setPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
@@ -101,7 +104,7 @@ const StudioCreatePage: NextPage = () => {
     }
 
     setIsCreating(true);
-    toastId = toast.loading("Creating post...");
+    toastId = toast.loading("Creating your post...");
     let postId, uri;
     try {
       let image;
@@ -153,7 +156,7 @@ const StudioCreatePage: NextPage = () => {
     // 2. create token + set club db record
     let tokenAddress;
     if (addToken && finalTokenData) {
-      toastId = toast.loading("Creating token...", { id: toastId });
+      toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`, { id: toastId });
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId) {
@@ -276,6 +279,8 @@ const StudioCreatePage: NextPage = () => {
                           setFinalTemplateData(templateData);
                           setOpenTab(addToken ? 2 : 3);
                         }}
+                        isGeneratingPreview={isGeneratingPreview}
+                        setIsGeneratingPreview={setIsGeneratingPreview}
                       />
                     )}
                     {openTab === 2 && (
@@ -308,7 +313,32 @@ const StudioCreatePage: NextPage = () => {
                         Post preview
                       </Subtitle>
                     </div>
-                    {preview?.text && (
+                    {isGeneratingPreview && (
+                      <div className="flex flex-col items-center gap-4 pt-12">
+                        <div>
+                          <AnimatedBonsai duration={10} />
+                        </div>
+                        <div className="w-full">
+                          <AnimatedText
+                            lines={[
+                              "Generating preview...",
+                              "Sending content prompt to LLM...",
+                              "Analyzing context and tone...",
+                              "Processing language model response...",
+                              "Enhancing semantic structure...",
+                              "Refining writing style...",
+                              "Optimizing content flow...",
+                              "Applying creative improvements...",
+                              "Running final quality checks...",
+                              "Finalizing your masterpiece..."
+                            ]}
+                            duration={60}
+                            className="text-lg text-white/70"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {!isGeneratingPreview && preview?.text && (
                       <Publication
                         key={`preview-${JSON.stringify(preview)}`}
                         publicationData={{

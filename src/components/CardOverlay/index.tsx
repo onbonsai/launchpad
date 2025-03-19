@@ -13,6 +13,7 @@ import { collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";
 import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
+import { SparkIcon } from "../Icons/SparkIcon";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -45,6 +46,8 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [hasCollected, setHasCollected] = useState<boolean>(post.operations?.hasSimpleCollected || false);
   const collectButtonRef = useRef<HTMLButtonElement>(null);
+  const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
+  // const template = post.metadata.attributes?.find(({ key }) => key === "template");
 
   const isCollect = useMemo(() => {
     const simpleCollect = post?.actions?.find(action => action.__typename === "SimpleCollectAction");
@@ -141,18 +144,27 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       />
 
       {/* Top overlay */}
-      <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-30">
-        <div></div>
-        {/* TODO: do we show the author profile here instead of in the root post? */}
-        {/* <button
-          className="flex items-center bg-black/50 text-white hover:bg-black/60 rounded-full px-4 py-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {post.author.username}
-        </button> */}
+      <div className="absolute top-4 left-4 right-4 flex justify-between z-30">
+        <div className="space-y-2">
+          {category && (
+            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center min-w-[2.5rem] px-3 justify-center gap-1 pointer-events-none select-none">
+              <span className="-ml-2 pointer-events-none">
+                <SparkIcon color="#fff" height={14} />
+              </span>
+              <span className="pointer-events-none">
+                {category.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+              </span>
+            </div>
+          )}
+          {/* {template && (
+            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center min-w-[2.5rem] px-3 justify-center gap-1 pointer-events-none">
+              {template.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+            </div>
+          )} */}
+        </div>
 
-        {isCollect && (
-          <div className="relative">
+        <div className="self-start">
+          {isCollect && (
             <Button
               variant="accentBrand"
               ref={collectButtonRef}
@@ -172,26 +184,26 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
                 </>
               )}
             </Button>
-            {showCollectModal && (
-              <CollectModal
-                onCollect={onCollect}
-                bonsaiBalance={bonsaiBalance}
-                collectAmount={collectAmount}
-                anchorEl={collectButtonRef.current}
-                onClose={() => setShowCollectModal(false)}
-                isCollecting={isCollecting}
-                isMedia
-                account={authenticatedProfile?.address}
-              />
-            )}
-          </div>
-        )}
+          )}
+          {showCollectModal && (
+            <CollectModal
+              onCollect={onCollect}
+              bonsaiBalance={bonsaiBalance}
+              collectAmount={collectAmount}
+              anchorEl={collectButtonRef.current}
+              onClose={() => setShowCollectModal(false)}
+              isCollecting={isCollecting}
+              isMedia
+              account={authenticatedProfile?.address}
+            />
+          )}
+        </div>
       </div>
 
       {/* Bottom overlay LEFT */}
       <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
         <div className={`rounded-full bg-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
-          <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1">
+          <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1 pointer-events-none">
             {hasCollected ? <BookmarkOutlined sx={{ color: '#000', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#000', fontSize: '1rem' }}/>}
             {post.stats.collects > 0 ? <Subtitle className="text-base text-black">{post.stats.collects}</Subtitle> : null}
           </div>

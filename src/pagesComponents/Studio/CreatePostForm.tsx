@@ -24,6 +24,8 @@ type CreatePostProps = {
   setPostContent: (s: string) => void;
   postImage?: any;
   setPostImage: (i: any) => void;
+  isGeneratingPreview: boolean;
+  setIsGeneratingPreview: (b: boolean) => void;
 };
 
 const CreatePostForm = ({
@@ -36,9 +38,10 @@ const CreatePostForm = ({
   setPostContent,
   postImage,
   setPostImage,
+  isGeneratingPreview,
+  setIsGeneratingPreview,
 }: CreatePostProps) => {
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
 
   const isValid = () => {
@@ -55,7 +58,7 @@ const CreatePostForm = ({
   }
 
   const _generatePreview = async () => {
-    const sessionClient = await resumeSession();
+    const sessionClient = await resumeSession(true);
     if (!sessionClient) return;
 
     const creds = await sessionClient.getCredentials();

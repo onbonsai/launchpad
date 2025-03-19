@@ -35,6 +35,8 @@ interface PostParams {
   template?: {
     apiUrl: string;
     acl: WalletAddressAcl;
+    category: string;
+    name: string;
   };
   actions?: {
     simpleCollect: {
@@ -55,16 +57,16 @@ interface PostParams {
 
 const baseMetadata = {
   appId: APP_ID,
-  attributes: ({ apiUrl }: { apiUrl: string }) => [
+  attributes: ({ apiUrl, category, name }: { apiUrl: string; category: string; name: string }) => [
     {
       type: MetadataAttributeType.STRING as const,
-      key: "framework",
-      value: "ElizaOS"
+      key: "templateCategory",
+      value: category
     },
     {
       type: MetadataAttributeType.STRING as const,
-      key: "plugin",
-      value: "client-bonsai",
+      key: "template",
+      value: name,
     },
     {
       type: MetadataAttributeType.STRING as const,

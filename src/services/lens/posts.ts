@@ -104,7 +104,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
         posts,
         postData: await getPostData(posts?.map(({ slug }) => slug)),
         pageInfo,
-        nextCursor: pageInfo.next
+        nextCursor: pageInfo.next,
       };
     },
     initialPageParam: null,
