@@ -31,6 +31,19 @@ export const textContainerStyleOverrides = css`
   font-family: var(--font-inter), sans-serif;
 `
 
+export const postCollageTextContainerStyleOverrides = css`
+  padding-top: 20px;
+  font-size: 16px;
+  line-height: 20px;
+  font-family: var(--font-inter), sans-serif;
+
+  &::first-line {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 30px;
+  }
+`
+
 export const commentTextContainerStyleOverrides = css`
   padding-top: 8px;
   font-size: 12px;

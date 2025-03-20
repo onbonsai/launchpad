@@ -6,6 +6,7 @@ import { APP_ID } from "../madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { groupBy, sampleSize } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { LENS_BONSAI_APP, LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -89,7 +90,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
       const result = await fetchPosts(sessionClient || lensClient, {
         filter: {
           postTypes: [PostType.Root],
-          authors: accountAddress ? [evmAddress(accountAddress)] : undefined
+          apps: [evmAddress(LENS_BONSAI_APP)]
         },
         cursor: pageParam,
       });

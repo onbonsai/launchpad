@@ -1,4 +1,4 @@
-import { type SessionClient, uri, postId, type URI, BigDecimal, txHash } from "@lens-protocol/client";
+import { type SessionClient, uri, postId, type URI, BigDecimal, txHash, evmAddress } from "@lens-protocol/client";
 import { fetchPost, post } from "@lens-protocol/client/actions";
 import {
   textOnly,
@@ -17,7 +17,7 @@ import { handleOperationWith } from "@lens-protocol/client/viem";
 import { immutable, WalletAddressAcl } from "@lens-chain/storage-client";
 import { storageClient } from "./client";
 import { APP_ID } from "../madfi/studio";
-import { LENS_CHAIN_ID } from "../madfi/utils";
+import { LENS_BONSAI_DEFAULT_FEED, LENS_CHAIN_ID } from "../madfi/utils";
 import { parseBase64Image } from "@src/utils/utils";
 import { lensClient } from "./client";
 
@@ -186,6 +186,7 @@ export const createPost = async (
       }
       : undefined,
     actions: params.actions,
+    feed: evmAddress(LENS_BONSAI_DEFAULT_FEED),
   })
     .andThen(handleOperationWith(walletClient))
     .andThen(sessionClient.waitForTransaction);

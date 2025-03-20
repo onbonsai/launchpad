@@ -23,7 +23,7 @@ const StudioSidebar = () => {
 
   const menuItems = [
     { icon: null, label: "Create a Post", href: "/studio/create", disabled: false },
-    { icon: null, label: "Profile", href: "/studio", disabled: profileDisabled },
+    { icon: null, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
     { icon: null, label: "Bonsai Token", href: "/studio/token", disabled: false },
   ]
 

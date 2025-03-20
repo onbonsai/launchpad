@@ -462,7 +462,7 @@ export const getSmartMediaUrl = (attributes: MetadataAttribute[]): string | unde
   return attributes.find(attr => attr.key === "apiUrl")?.value;
 }
 
-export const getPostContentSubstring = (string, length = 245): string => { // 250 characters and we show "Show more"
+export const getPostContentSubstring = (string, length = 100): string => { // 250 characters and we show "Show more"
   if (!string) return ''
   if (string.length <= length) {
     return string

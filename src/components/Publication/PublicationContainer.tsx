@@ -286,7 +286,12 @@ const PublicationContainer = ({
     setIsCollecting(false);
   }
 
-  const PublicationType = sideBySideMode ? HorizontalPublication : Publication;
+  let PublicationType;
+  if (publication?.metadata.__typename === "TextOnlyMetadata") {
+    PublicationType = Publication;
+  } else {
+    PublicationType = sideBySideMode ? HorizontalPublication : Publication;
+  }
 
   return (
     <div className="mt-4 relative flex justify-center max-h-60vh">

@@ -7,7 +7,7 @@ import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, postCollageTextContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
 import { useRouter } from "next/router";
 import { BONSAI_POST_URL } from "@src/constants/constants";
@@ -158,7 +158,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                         __typename: post.metadata?.image
                           ? "ImageMetadata"
                           : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
-                        content: getPostContentSubstring(post.metadata?.content ?? ''),
+                        content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 230 : 100),
                         image: post.metadata?.image
                           ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
                           : undefined,
@@ -174,7 +174,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                     containerBorderRadius={'24px'}
                     containerPadding={'12px'}
                     profilePadding={'0 0 0 0'}
-                    textContainerStyleOverride={textContainerStyleOverrides}
+                    textContainerStyleOverride={postCollageTextContainerStyleOverrides}
                     backgroundColorOverride={'rgba(255,255,255, 0.08)'}
                     mediaImageStyleOverride={mediaImageStyleOverride}
                     imageContainerStyleOverride={imageContainerStyleOverride}
