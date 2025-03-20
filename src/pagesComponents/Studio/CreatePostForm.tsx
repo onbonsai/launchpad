@@ -8,7 +8,7 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, Preview, Template } from "@src/services/madfi/studio";
+import { generatePreview, ImageRequirement, Preview, Template } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions} from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -48,7 +48,7 @@ const CreatePostForm = ({
     try {
       template.templateData.form.parse(templateData);
       if (template.options?.requireContent && !postContent) return false;
-      if (template.options?.requireImage && !postImage?.length) return false;
+      if (template.options?.imageRequirement === ImageRequirement.REQUIRED && !postImage?.length) return false;
       return true;
     } catch (error) {
       // console.log(error);
@@ -253,9 +253,16 @@ const DynamicForm = ({
       )}
 
       {/* Post image */}
-      {template.options?.requireImage && (
+      {template.options?.imageRequirement !== ImageRequirement.NONE && (
         <div className="space-y-2">
-          <FieldLabel label={"Post image"} fieldDescription={"Set the starting image. Updates to your post could change it."} />
+          <FieldLabel 
+            label={"Post image"} 
+            fieldDescription={
+              template.options.imageRequirement === ImageRequirement.REQUIRED 
+                ? "An image is required for this post."
+                : "Optionally add an image to your post."
+            } 
+          />
           <ImageUploader files={postImage} setFiles={setPostImage} maxFiles={1} />
         </div>
       )}

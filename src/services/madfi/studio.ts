@@ -14,6 +14,7 @@ export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://e
 export enum TemplateCategory {
   EVOLVING_POST = "evolving_post",
   EVOLVING_ART = "evolving_art",
+  CAMPFIRE = "campfire",
 }
 
 export const CATEGORIES = [
@@ -23,7 +24,11 @@ export const CATEGORIES = [
   },
   {
     key: TemplateCategory.EVOLVING_ART,
-    label: "Evolving Art"
+    label: "Evolving Art",
+  },
+  {
+    key: TemplateCategory.CAMPFIRE,
+    label: "Campfire",
   },
 ];
 
@@ -32,6 +37,12 @@ export interface BonsaiClientMetadata {
   version: string;
   templates: Template[];
   acl: WalletAddressAcl;
+}
+
+export enum ImageRequirement {
+  NONE = "none",
+  OPTIONAL = "optional",
+  REQUIRED = "required",
 }
 
 export type Template = {
@@ -46,7 +57,7 @@ export type Template = {
   options: {
     allowPreview?: boolean;
     allowPreviousToken?: boolean;
-    requireImage?: boolean;
+    imageRequirement?: ImageRequirement;
     requireContent?: boolean;
   };
   templateData: {
@@ -60,7 +71,7 @@ export type Preview = {
   image?: any;
   imagePreview?: string;
   video?: string;
-}
+};
 
 export type SmartMedia = {
   agentId: string; // uuid
@@ -92,57 +103,53 @@ export const generatePreview = async (
   url: string,
   idToken: string,
   template: Template,
-  templateData: any
+  templateData: any,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const response = await fetch(`${url}/post/create-preview`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         templateName: template.name,
         category: template.category,
-        templateData
-      })
+        templateData,
+      }),
     });
 
     if (!response.ok) throw new Error(`Preview generation failed: ${response.statusText}`);
 
     return await response.json();
   } catch (error) {
-    console.error('Error generating preview:', error);
+    console.error("Error generating preview:", error);
   }
-}
+};
 
-export const createSmartMedia = async (
-  url: string,
-  idToken: string,
-  body: string,
-): Promise<any | undefined> => {
+export const createSmartMedia = async (url: string, idToken: string, body: string): Promise<any | undefined> => {
   try {
     const response = await fetch(`${url}/post/create`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
-      body
+      body,
     });
 
     if (!response.ok) throw new Error(`Create failed ${response.statusText}`);
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating:', error);
+    console.error("Error creating:", error);
   }
-}
+};
 
 export const resolveSmartMedia = async (
   attributes: MetadataAttribute[],
   postId: string,
-  withVersions?: boolean
+  withVersions?: boolean,
 ): Promise<SmartMedia | null> => {
   try {
     let url = getSmartMediaUrl(attributes);
@@ -162,12 +169,12 @@ export const resolveSmartMedia = async (
     console.log(error);
     return null;
   }
-}
+};
 
 export const useResolveSmartMedia = (
   attributes?: MetadataAttribute[],
   postId?: string,
-  withVersions?: boolean
+  withVersions?: boolean,
 ): UseQueryResult<SmartMedia | null, Error> => {
   return useQuery({
     queryKey: ["resolve-smart-media", postId],

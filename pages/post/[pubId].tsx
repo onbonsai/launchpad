@@ -395,9 +395,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const media = await resolveSmartMedia(post.metadata.attributes, post.slug, false);
 
 
-  const image = post.metadata.image.item.startsWith("lens://")
-    ? await storageClient.resolve(post.metadata.image.item)
-    : post.metadata.image.item ?? null;
+  const image =
+    (post.metadata?.image?.item?.startsWith("lens://")
+      ? await storageClient.resolve(post.metadata.image.item)
+      : post.metadata?.image?.item) ?? null;
 
   return {
     props: {
