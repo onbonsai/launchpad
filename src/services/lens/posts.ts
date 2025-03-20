@@ -90,7 +90,8 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
       const result = await fetchPosts(sessionClient || lensClient, {
         filter: {
           postTypes: [PostType.Root],
-          apps: [evmAddress(LENS_BONSAI_APP)]
+          // apps: [evmAddress(LENS_BONSAI_APP)]
+          feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
         },
         cursor: pageParam,
       });
