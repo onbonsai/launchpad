@@ -29,6 +29,7 @@ import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
 import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
+import { getProfileImage } from '@src/services/lens/utils';
 
 interface CreatorPageProps {
   profile: any;
@@ -132,7 +133,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileImage;
     // }
-    return profile.metadata?.picture
+    return getProfileImage(profile.metadata?.picture)
   };
 
   const coverImage = () => {
@@ -160,7 +161,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileDisplayName;
     // }
-    return profile.metadata?.name;
+    return profile.username?.localName;
   }
 
   const followingCount = () => {

@@ -394,12 +394,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (!post) return { notFound: true };
   const media = await resolveSmartMedia(post.metadata.attributes, post.slug, false);
 
+
+  const image = post.metadata.image.item.startsWith("lens://")
+    ? await storageClient.resolve(post.metadata.image.item)
+    : post.metadata.image.item ?? null;
+
   return {
     props: {
       pubId,
       handle: post?.author.username.localName,
       content: post?.metadata?.content,
-      image: post?.metadata?.image?.item || null,
+      image: image,
       pageName: "singlePublication",
       media: media,
     },
