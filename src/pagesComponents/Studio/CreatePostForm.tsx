@@ -219,7 +219,7 @@ const DynamicForm = ({
   };
 
   // Get the shape of the zod object
-  const shape = template.templateData.form.shape;
+  const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
 
   const FieldLabel = ({ label, fieldDescription }) => (
     <div className="flex items-center gap-1">

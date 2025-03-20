@@ -59,6 +59,7 @@ export type Template = {
     allowPreviousToken?: boolean;
     imageRequirement?: ImageRequirement;
     requireContent?: boolean;
+    isCanvas?: boolean;
   };
   templateData: {
     form: z.ZodObject<any>;

@@ -37,6 +37,7 @@ interface PostParams {
     acl: WalletAddressAcl;
     category: string;
     name: string;
+    options: { isCanvas?: boolean };
   };
   tokenAddress?: `0x${string}`;
   actions?: {
@@ -58,7 +59,7 @@ interface PostParams {
 
 const baseMetadata = {
   appId: APP_ID,
-  attributes: ({ apiUrl, category, name }: { apiUrl: string; category: string; name: string }) => [
+  attributes: ({ apiUrl, category, name, options: { isCanvas } }: { apiUrl: string; category: string; name: string, options: { isCanvas?: boolean } }) => [
     {
       type: MetadataAttributeType.STRING as const,
       key: "templateCategory",
@@ -73,8 +74,13 @@ const baseMetadata = {
       type: MetadataAttributeType.STRING as const,
       key: "apiUrl",
       value: apiUrl
-    }
-  ],
+    },
+    ...(isCanvas ? [{
+      type: MetadataAttributeType.BOOLEAN as const,
+      key: "isCanvas",
+      value: true
+    }] : [])
+  ]
 }
 
 export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMetadata | VideoMetadata => {
