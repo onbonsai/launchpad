@@ -41,8 +41,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description}></meta>
         <meta property="og:url" content={SITE_URL}></meta>
         <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image}></meta>
-        <meta property="og:image:alt" content="madfi.png"></meta>
+        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
+        <meta property="og:image:alt" content="opengraph-image.jpg"></meta>
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
         <meta property="og:locale" content="en_IE"></meta>
@@ -51,7 +51,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image}></meta>
+        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
         <meta name="theme-color" content="#141414"></meta>
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -76,7 +76,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description}></meta>
         <meta property="og:url" content={SITE_URL}></meta>
         <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image || ""}></meta>
+        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
         <meta property="og:image:alt" content="madfi.png"></meta>
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
@@ -86,7 +86,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image || ""}></meta>
+        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
         <meta name="theme-color" content="#141414"></meta>
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -113,7 +113,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description}></meta>
         <meta property="og:url" content={SITE_URL}></meta>
         <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image}></meta>
+        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
         <meta property="og:image:alt" content="bonsai.png"></meta>
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
@@ -123,7 +123,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image}></meta>
+        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
         <meta name="theme-color" content="#141414"></meta>
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
