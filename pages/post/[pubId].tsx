@@ -298,7 +298,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                         theme={Theme.dark}
                         environment={LENS_ENVIRONMENT}
                         authenticatedProfile={authenticatedProfile}
-                        hideCommentButton={true}
+                        hideCommentButton={false}
                         hideQuoteButton={true}
                         hideShareButton={true}
                         hasUpvotedComment={hasUpvotedComment}
