@@ -35,7 +35,6 @@ export default (importedTemplateURL?: string): UseQueryResult<Template[], Error>
     queryKey: ["registered-templates", finalURL],
     queryFn: async () => {
       const clients = await fetchBonsaiClients(finalURL);
-      console.log('clients', clients);
       return clients.flatMap(client =>
         client.templates.map(template => ({
           ...template,

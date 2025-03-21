@@ -78,7 +78,7 @@ const baseMetadata = {
     ...(isCanvas ? [{
       type: MetadataAttributeType.BOOLEAN as const,
       key: "isCanvas",
-      value: true
+      value: 'true'
     }] : [])
   ]
 }

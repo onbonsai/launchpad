@@ -287,7 +287,7 @@ const PublicationContainer = ({
   }
 
   let PublicationType;
-  if (publication?.metadata.__typename === "TextOnlyMetadata") {
+  if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
   } else {
     PublicationType = sideBySideMode ? HorizontalPublication : Publication;

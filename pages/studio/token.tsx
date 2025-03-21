@@ -516,7 +516,7 @@ const TokenPage: NextPage = () => {
                           {/* Disabled buttons */}
                           <div className="flex items-center gap-x-6 relative z-10">
                             <div className="text-right">
-                              <div className="text-sm">Unlocks</div>
+                              <div className="text-sm">Coming Soon</div>
                               <div className="text-xs text-secondary/60">April 7th, 2024</div>
                             </div>
                             <Button
