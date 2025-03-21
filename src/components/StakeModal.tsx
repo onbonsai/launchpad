@@ -5,7 +5,6 @@ import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
 
 interface StakeModalProps {
-  onClose: () => void;
   onStake: (amount: string, lockupPeriod: number) => void;
   maxAmount: string;
   calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
@@ -20,7 +19,9 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
+const MIN_STAKE = 1000;
+
+export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
   const [amount, setAmount] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
@@ -29,8 +30,8 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
   };
 
   const handleStake = () => {
+    if (Number(amount) < MIN_STAKE) return;
     onStake(amount, selectedPeriod.value);
-    onClose();
     setAmount("");
     setSelectedPeriod(LOCKUP_PERIODS[0]);
   };
@@ -49,8 +50,8 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
   const effectiveUsdValue = usdValue * selectedPeriod.multiplier;
 
   return (
-    <div className="space-y-6 min-w-[450px] text-secondary font-sans">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 min-w-[450px] text-secondary">
+      <div className="flex items-center justify-between font-owners">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
           Stake $BONSAI
         </Dialog.Title>
@@ -59,21 +60,30 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
       <div className="space-y-4 font-sf-pro-text">
         {/* Amount Input */}
         <div className="flex flex-col justify-between gap-2">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between gap-1">
             <Subtitle className="text-white/70">Amount</Subtitle>
+            <span className="text-xs text-white/50">Minimum: {MIN_STAKE}</span>
           </div>
           <div className="relative">
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className={clsx("w-full pr-4", sharedInputClasses)}
+              className={clsx(
+                "w-full pr-4",
+                sharedInputClasses,
+                Number(amount) > 0 && Number(amount) < MIN_STAKE && "border-bearish focus:border-bearish",
+              )}
               placeholder="0"
+              min="1000"
             />
             <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish">
               MAX
             </button>
           </div>
+          {Number(amount) > 0 && Number(amount) < MIN_STAKE && (
+            <p className="text-xs text-bearish">Minimum stake amount is {MIN_STAKE}</p>
+          )}
         </div>
 
         {/* Lockup Period Selection */}
@@ -144,7 +154,7 @@ export const StakeModal = ({ onClose, onStake, maxAmount, calculateCreditsPerDay
             variant="accentBrand"
             className="w-full hover:bg-bullish"
             onClick={handleStake}
-            disabled={!amount || Number(amount) <= 0}
+            disabled={!amount || Number(amount) < MIN_STAKE}
           >
             Stake
           </Button>

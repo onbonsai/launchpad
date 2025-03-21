@@ -139,3 +139,11 @@ export const getClientWithTwap = async () => {
 
   return { collection, database };
 };
+
+export const getClientWithStakingReferrals = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("staking-referrals");
+
+  return { collection, database };
+};

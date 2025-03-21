@@ -33,7 +33,7 @@ interface StakingData {
 
 const STAKING_QUERY = gql`
   query GetStakingData($address: Bytes!) {
-    stakes(where: { user: $address, isActive: true }) {
+    stakes(where: { user: $address, isActive: true }, orderBy: createdAt, orderDirection: asc) {
       id
       amount
       lockupPeriod

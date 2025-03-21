@@ -20,6 +20,10 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import toast from "react-hot-toast";
 import { calculateStakingCredits, LockupPeriod } from "@src/services/madfi/stakingCalculator";
+import { ReferralModal } from '@src/components/ReferralModal/ReferralModal';
+import { GiftIcon } from "@heroicons/react/outline";
+import { useRouter } from 'next/router';
+import axios from "axios";
 
 interface CreditBalance {
   totalCredits: number;
@@ -31,13 +35,6 @@ interface CreditBalance {
   lastResetTime: string;
   maxStakingCredits: number;
   usagePercentage: number;
-}
-
-interface TwapData {
-  period: string;
-  price: number;
-  lastUpdated: Date;
-  dataPoints: number;
 }
 
 const fetchCredits = async (address: string): Promise<CreditBalance> => {
@@ -69,15 +66,9 @@ const getCreditsMultiplier = (lockupPeriod: number) => {
   return 1; // no lock: 1x
 };
 
-// Calculate daily credits from staking
-const calculateDailyStakingCredits = (stakedAmount: string, tokenPrice: number, multiplier: number) => {
-  // 10% of USD value per year, divided by 365 days
-  const baseAmount = (Number(stakedAmount) * tokenPrice * 0.1) / 365;
-  return baseAmount * multiplier;
-};
-
 const TokenPage: NextPage = () => {
   const { address, isConnected, chain } = useAccount();
+  const router = useRouter();
 
   const { data: bonsaiBalance, refetch: refetchBonsaiBalance } = useReadContract({
     address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
@@ -106,13 +97,39 @@ const TokenPage: NextPage = () => {
     refetchInterval: 3600000, // Refetch every hour
   });
 
+  const { data: wasReferred } = useQuery({
+    queryKey: ["referral-status", address],
+    queryFn: async () => {
+      if (!address) return false;
+      try {
+        const response = await axios.get(`/api/referrals/status?address=${address}`);
+        return response.data.hasReferrer;
+      } catch (error) {
+        console.error('Error checking referral status:', error);
+        return false;
+      }
+    },
+    enabled: !!address,
+  });
+
   const [bonsaiPrice, setBonsaiPrice] = useState(0);
   const [tokenHoldings, setTokenHoldings] = useState(0);
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
   const [isBridgeModalOpen, setIsBridgeModalOpen] = useState(false);
   const [bridgeInfo, setBridgeInfo] = useState<{ txHash: `0x${string}` }>();
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   const { stake, unstake } = useStakingTransactions();
+
+  const referrer = useMemo(() => {
+    const { ref } = router.query;
+    return typeof ref === 'string' ? ref : null;
+  }, [router.query]);
+
+  const referralLink = useMemo(() => {
+    if (!address) return '';
+    return `${window.location.origin}/studio/token?ref=${address}`;
+  }, [address]);
 
   useMemo(() => {
     if (!bonsaiBalance || bonsaiBalance === BigInt(0)) {
@@ -154,6 +171,20 @@ const TokenPage: NextPage = () => {
   const activeStakes = stakingData?.stakes || [];
   const hasActiveStakes = activeStakes.length > 0;
 
+  const recordReferral = async (userAddress: string, referrerAddress: string) => {
+    try {
+      const response = await axios.post('/api/referrals/record', {
+        user: userAddress,
+        referrer: referrerAddress,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error recording referral:', error);
+      throw error;
+    }
+  };
+
   const handleStake = async (amount: string, lockupPeriod: number) => {
     try {
       if (chain?.id !== lens.id) {
@@ -164,8 +195,21 @@ const TokenPage: NextPage = () => {
           return;
         }
       }
+      
       await stake(amount, lockupPeriod);
+
       setIsStakeModalOpen(false);
+      setIsReferralModalOpen(true);
+      
+      // Record referral if there's a referrer and we have the user's address
+      if (referrer && address && referrer !== address) {
+        try {
+          await recordReferral(address, referrer);
+        } catch (error) {
+          console.error('Failed to record referral:', error);
+          // Don't throw here - we don't want to revert the stake if referral recording fails
+        }
+      }
     } catch (error) {
       console.error("Staking error:", error);
     }
@@ -257,11 +301,18 @@ const TokenPage: NextPage = () => {
             {/* Main Content */}
             <div className="lg:col-span-8">
               <div className="bg-card rounded-xl p-6">
-                <div className="flex space-x-2">
-                  <Header2>Bonsai Token</Header2>
-                  <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <Header2>Bonsai Token</Header2>
+                    <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                  </div>
+                  <Button
+                    onClick={() => setIsReferralModalOpen(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <GiftIcon className="h-5 w-5 mr-2 text-white" /> Referrals
+                  </Button>
                 </div>
-                {/* <Subtitle className="mt-1">Own a share of unrestricted intelligence.</Subtitle> */}
                 <Subtitle className="mt-2">
                   Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn.
                   Credits reset daily at midnight UTC.
@@ -437,10 +488,50 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* Active Stakes List */}
-                {isConnected && hasActiveStakes && (
+                {isConnected && (hasActiveStakes || wasReferred) && (
                   <div className="bg-card rounded-xl p-6">
                     <h3 className="text-sm font-medium text-primary mb-4">Active Stakes</h3>
                     <div className="space-y-4">
+                      {/* Referral Reward Preview */}
+                      {wasReferred && (
+                        <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-purple-500/50 relative overflow-hidden">
+                          {/* Gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10" />
+                          
+                          {/* Content */}
+                          <div className="relative z-10">
+                            <div className="flex items-center space-x-2">
+                              <div className="text-lg font-semibold">
+                                {activeStakes[0] ? formatStakingAmount(activeStakes[0].amount) : '0'} $BONSAI
+                              </div>
+                              <span className="text-xs font-medium bg-purple-500/20 text-purple-500 px-2 py-0.5 rounded">
+                                Referral Reward
+                              </span>
+                            </div>
+                            <div className="text-xs text-secondary/60">
+                              Coming April 7th
+                            </div>
+                          </div>
+                          
+                          {/* Disabled buttons */}
+                          <div className="flex items-center gap-x-6 relative z-10">
+                            <div className="text-right">
+                              <div className="text-sm">Unlocks</div>
+                              <div className="text-xs text-secondary/60">April 7th, 2024</div>
+                            </div>
+                            <Button
+                              variant="dark-grey"
+                              size="sm"
+                              disabled
+                              className="opacity-50"
+                            >
+                              Locked
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Existing stakes */}
                       {activeStakes.map((stake, index) => (
                         <div key={stake.id} className="flex items-center justify-between p-4 bg-card-light rounded-lg">
                           <div>
@@ -485,7 +576,6 @@ const TokenPage: NextPage = () => {
                   <StakeModal
                     maxAmount={formatEther(bonsaiBalance || 0n)}
                     onStake={handleStake}
-                    onClose={() => setIsStakeModalOpen(false)}
                     calculateCreditsPerDay={calculateCreditsPerDay}
                     twapPrice={twapPrice || bonsaiPrice}
                   />
@@ -499,6 +589,19 @@ const TokenPage: NextPage = () => {
                   panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
                 >
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
+                </Modal>
+
+                {/* Referral Modal */}
+                <Modal
+                  onClose={() => setIsReferralModalOpen(false)}
+                  open={isReferralModalOpen}
+                  setOpen={setIsReferralModalOpen}
+                  panelClassnames="w-screen h-screen md:h-fit md:w-[500px] text-secondary"
+                >
+                  <ReferralModal
+                    onClose={() => setIsReferralModalOpen(false)}
+                    referralLink={referralLink}
+                  />
                 </Modal>
               </div>
             </div>

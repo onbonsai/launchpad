@@ -22,13 +22,14 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { toEvmAddress } from "@lens-protocol/metadata";
+import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
 import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
 import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
+import axios from "axios";
 
 type TokenData = {
   initialSupply: number;
@@ -70,6 +71,16 @@ const StudioCreatePage: NextPage = () => {
 
     return res;
   }, [templateName, isMounted, isLoading]);
+
+  const checkReferralStatus = async (address: string) => {
+    try {
+      const response = await axios.get(`/api/referrals/status?address=${address}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error checking referral status:', error);
+      return null;
+    }
+  };
 
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
@@ -163,6 +174,42 @@ const StudioCreatePage: NextPage = () => {
         const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
         image = { url: imageUri, type };
       }
+
+      // Check if user was referred
+      const referralStatus = await checkReferralStatus(address as string);
+      
+      // Prepare collect settings
+      let recipients: { address: EvmAddress; percent: number }[] = [];
+      if (referralStatus?.hasReferrer && !referralStatus?.firstPostUsed) {
+        // Split 80% between creator and referrer (40% each)
+        recipients = [
+          {
+            address: toEvmAddress(address as string),
+            percent: 40
+          },
+          {
+            address: toEvmAddress(referralStatus.referrer),
+            percent: 40
+          },
+          {
+            address: toEvmAddress(template.protocolFeeRecipient),
+            percent: 20,
+          }
+        ];
+      } else {
+        // Default split: 80% creator, 20% protocol
+        recipients = [
+          {
+            address: toEvmAddress(address as string),
+            percent: 80
+          },
+          {
+            address: toEvmAddress(template.protocolFeeRecipient),
+            percent: 20,
+          }
+        ];
+      }
+
       const result = await createPost(
         sessionClient as SessionClient,
         walletClient,
@@ -177,25 +224,26 @@ const StudioCreatePage: NextPage = () => {
                 currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
                 value: collectAmount.toString() as BigDecimal
               },
-              recipients: [
-                {
-                  address: toEvmAddress(address as string),
-                  percent: 80
-                },
-                {
-                  address: toEvmAddress(template.protocolFeeRecipient),
-                  percent: 20,
-                }
-              ],
+              recipients,
               referralShare: 5,
             }
           }]
         }
-      )
-      if (!result?.postId) throw new Error("No result from createPost");
+      );
 
+      if (!result?.postId) throw new Error("No result from createPost");
       postId = result.postId;
       uri = result.uri;
+
+      // If this was a referred user's first post, mark it as used
+      if (referralStatus?.hasReferrer && !referralStatus?.firstPostUsed) {
+        try {
+          await axios.post('/api/referrals/mark-used', { address: address as string });
+        } catch (error) {
+          console.error('Error marking referral as used:', error);
+          // Don't throw here - the post was still created successfully
+        }
+      }
     } catch (error) {
       console.log(error);
       toast.error("Failed to create post", { id: toastId });
