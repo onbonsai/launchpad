@@ -1,6 +1,6 @@
 "use client"
 
-import { Header } from "@src/styles/text"
+import { Header, Header2 } from "@src/styles/text"
 import { Button } from "@src/components/Button"
 import Link from "next/link"
 import clsx from "clsx"
@@ -9,6 +9,7 @@ import { formatStakingAmount, useStakingData } from "@src/hooks/useStakingData"
 import { useAccount } from "wagmi"
 import { useMemo } from "react"
 import { kFormatter } from "@src/utils/utils"
+import { Divider } from "@mui/material"
 const StudioSidebar = () => {
   const { address } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -28,7 +29,7 @@ const StudioSidebar = () => {
   ]
 
   return (
-    <div className="flex flex-col h-full w-64 bg-card rounded-xl p-4">
+    <div className="flex flex-col w-full lg:w-64 bg-card rounded-xl p-4 sticky top-24 overflow-hidden" >
       {/* Main Navigation */}
       <nav className="space-y-2">
         {menuItems.map((item) => (
@@ -53,9 +54,11 @@ const StudioSidebar = () => {
         ))}
       </nav>
 
+      <Divider className="my-4" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
+
       {/* Recent Posts */}
-      <div className="mt-12">
-        <Header className="text-lg">Recent Posts</Header>
+      <div className="mt-2">
+        <Header2 className="text-lg">Recent Posts</Header2>
         <nav className="mt-2 space-y-1">
           <Link
             href="/studio/post/1"
@@ -72,9 +75,11 @@ const StudioSidebar = () => {
         </nav>
       </div>
 
+      <Divider className="my-4" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
+
       {/* Bonsai Token Info */}
-      <div className="mt-12">
-        <Header className="text-lg">$BONSAI</Header>
+      <div className="mt-2">
+        <Header2 className="text-lg">$BONSAI</Header2>
         <div className="mt-4 space-y-4 px-3">
           <div>
             <p className="text-sm opacity-80">Staking</p>

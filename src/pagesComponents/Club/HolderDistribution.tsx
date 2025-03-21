@@ -9,7 +9,7 @@ import { formatEther } from "viem";
 
 const CreatorPill = () => {
   return (
-    <div className="flex h-[18px] items-center justify-center bg-orange text-white px-1 rounded-lg font-semibold text-xs leading-4">
+    <div className="flex h-[18px] items-center justify-center bg-primary text-white px-1 rounded-lg font-semibold text-xs leading-4">
       CREATOR
     </div>
   )

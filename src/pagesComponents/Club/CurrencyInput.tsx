@@ -2,7 +2,6 @@ import { Divider } from '@mui/material';
 import { localizeNumber } from '@src/constants/utils';
 import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
 import { BodySemiBold, Subtitle } from '@src/styles/text';
-import { roundedToFixed } from '@src/utils/utils';
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { formatUnits } from 'viem';
