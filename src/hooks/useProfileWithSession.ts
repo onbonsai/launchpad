@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 
@@ -25,24 +25,24 @@ export const useProfileWithSession = (handle: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setIsLoading(true);
-        const sessionClient = await resumeSession();
-        if (!sessionClient) return;
-        const profile = await getProfileByHandle(handle, sessionClient);
-        // @ts-ignore
-        setProfileData(profile);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch profile'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfile();
+  const fetchProfile = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const sessionClient = await resumeSession();
+      if (!sessionClient) return;
+      const profile = await getProfileByHandle(handle, sessionClient);
+      // @ts-ignore
+      setProfileData(profile);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch profile'));
+    } finally {
+      setIsLoading(false);
+    }
   }, [handle]);
 
-  return { profileData, isLoading, error };
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  return { profileData, isLoading, error, refetch: fetchProfile };
 }; 

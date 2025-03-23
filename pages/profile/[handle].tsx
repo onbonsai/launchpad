@@ -16,7 +16,7 @@ import Link from "next/link";
 import { Modal } from "@src/components/Modal";
 import { Button } from "@src/components/Button";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { followProfile } from "@src/services/lens/follow";
+import { followProfile, unfollowProfile } from "@src/services/lens/follow";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -35,6 +35,7 @@ import { FollowButton } from '@src/components/Profile/FollowButton';
 import { useFollowersYouKnow } from '@src/hooks/useFollowersYouKnow';
 import { FollowersYouKnow } from '@src/components/Profile/FollowersYouKnow';
 import { getAccountStats } from "@src/services/lens/getStats";
+import toast from 'react-hot-toast';
 
 interface CreatorPageProps {
   profile: any;
@@ -96,7 +97,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [mobileView, setMobileView] = useState('profile');
 
-  const { profileData, isLoading: isLoadingProfile } = useProfileWithSession(profile?.username?.localName);
+  const { profileData, isLoading: isLoadingProfile, refetch } = useProfileWithSession(profile?.username?.localName);
   
   const {
     fullRefetch,
@@ -202,8 +203,18 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
     try {
       const sessionClient = await resumeSession();
-      await followProfile(sessionClient, profile.address);
-      // Optionally refresh the profile data here
+      if (profileData?.operations?.isFollowedByMe) {
+        await unfollowProfile(sessionClient, profile.address);
+      } else {
+        await followProfile(sessionClient, profile.address);
+      }
+      
+      // Refetch profile data to update follow status
+      setTimeout(() => {
+        refetch();
+      }, 2000);
+
+      toast.success(profileData?.operations?.isFollowedByMe ? 'Unfollowed successfully' : 'Followed successfully');
 
     } catch (error) {
       console.error('Failed to follow/unfollow:', error);
