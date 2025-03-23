@@ -1,10 +1,10 @@
 import { MobileViewSelector } from './MobileViewSelector';
-import { logout as lensLogout } from "@src/hooks/useLensLogin";
+import { logout as lensLogout, resumeSession } from "@src/hooks/useLensLogin";
 import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { MADFI_CLUBS_URL } from "@src/constants/constants";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
@@ -30,6 +30,11 @@ import ProfileHoldings from "./ProfileHoldings";
 import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import { getProfileImage } from '@src/services/lens/utils';
+import { useProfileWithSession } from '@src/hooks/useProfileWithSession';
+import { FollowButton } from '@src/components/Profile/FollowButton';
+import { useFollowersYouKnow } from '@src/hooks/useFollowersYouKnow';
+import { FollowersYouKnow } from '@src/components/Profile/FollowersYouKnow';
+import { getAccountStats } from "@src/services/lens/getStats";
 
 interface CreatorPageProps {
   profile: any;
@@ -37,6 +42,16 @@ interface CreatorPageProps {
   airdrops: any[];
   creatorInfo: any;
   allSocials?: { data: any[]; commonUserAssociatedAddresses: string[]; error?: any };
+  accountStats?: {
+    graphFollowStats: {
+      followers: number;
+      following: number;
+    };
+    feedStats: {
+      posts: number;
+      quotes: number;
+    };
+  };
 }
 
 const profileAddress = (profile, creatorInfoAddress?: string) =>
@@ -51,6 +66,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   creatorInfo,
   type,
   allSocials,
+  accountStats,
 }: CreatorPageProps) => {
   const isMounted = useIsMounted();
   const {
@@ -80,6 +96,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [mobileView, setMobileView] = useState('profile');
 
+  const { profileData, isLoading: isLoadingProfile } = useProfileWithSession(profile?.username?.localName);
+  
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
@@ -110,6 +128,11 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
     return profile?.id === authenticatedProfileId;
   }, [profile, authenticatedProfileId]);
+
+  const { followers: followersYouKnow, isLoading: isLoadingFollowers } = useFollowersYouKnow(
+    authenticatedProfile?.address || '',
+    profile?.owner || ''
+  );
 
   if (!isMounted) return null;
 
@@ -164,18 +187,28 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   }
 
   const followingCount = () => {
-    // if (isFarcasterProfile(profile)) {
-    //   return profile.followingCount;
-    // }
-    return profile.stats?.following;
-  }
+    return accountStats?.graphFollowStats?.following ?? 0;
+  };
 
   const followerCount = () => {
-    // if (isFarcasterProfile(profile)) {
-    //   return profile.followerCount;
-    // }
-    return profile.stats?.followers;
-  }
+    return accountStats?.graphFollowStats?.followers ?? 0;
+  };
+
+  const handleFollowClick = async () => {
+    if (!isConnected || !isAuthenticated) {
+      setOpenSignInModal(true);
+      return;
+    }
+
+    try {
+      const sessionClient = await resumeSession();
+      await followProfile(sessionClient, profile.address);
+      // Optionally refresh the profile data here
+
+    } catch (error) {
+      console.error('Failed to follow/unfollow:', error);
+    }
+  };
 
   return (
     <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">
@@ -216,19 +249,34 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                         />
                       </div>
                       <h2 className="mt-[16px] font-semibold text-[#ffffff] text-[32px] leading-[1.125]">{displayName()}</h2>
+                      {profileData?.operations?.isFollowingMe && (
+                        <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-sm">
+                          <span className="text-xs font-medium text-white">Follows you</span>
+                        </div>
+                      )}
                       <a href={`${MADFI_CLUBS_URL}/profile/${userHandle()}`} target="_blank" rel="noreferrer" className="text-[#ffffff] opacity-60 hover:opacity-50 text-[16px] leading-tight cursor-pointer mt-[2px]">{profile.handle?.suggestedFormatted.localName}</a>
                       <p className="text-[#ffffff] text-[16px] leading-tight font-light mt-8">
                         {userBio()}
                       </p>
-                      <div className='mt-5 flex gap-5'>
-                        <div className='flex flex-col gap-[2px]'>
-                          <Subtitle>Following</Subtitle>
-                          <BodySemiBold>{followingCount() ?? 0}</BodySemiBold>
+                      <div className='mt-5 flex flex-col gap-5'>
+                        <div className='flex gap-5'>
+                          <div className='flex flex-col gap-[2px]'>
+                            <Subtitle>Following</Subtitle>
+                            <BodySemiBold>{followingCount() ?? 0}</BodySemiBold>
+                          </div>
+                          <div className='flex flex-col gap-[2px]'>
+                            <Subtitle>Followers</Subtitle>
+                            <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
+                          </div>
                         </div>
-                        <div className='flex flex-col gap-[2px]'>
-                          <Subtitle>Followers</Subtitle>
-                          <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
-                        </div>
+                        
+                        {/* Add the FollowersYouKnow component */}
+                        {!isLoadingFollowers && followersYouKnow.length > 0 && (
+                          <FollowersYouKnow 
+                            followers={followersYouKnow}
+                            className="mt-2"
+                          />
+                        )}
                       </div>
                       {isProfileAdmin && hasBenefits && !isLoadingBalance && (
                         <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
@@ -247,7 +295,14 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           </span>
                         </div>
                       )}
-                      {/* TODO: Add Follow Button */}
+                      {/* Show follow button if not admin */}
+                      {!isProfileAdmin && (
+                        <FollowButton
+                          isFollowing={!!profileData?.operations?.isFollowedByMe}
+                          onFollowClick={handleFollowClick}
+                          disabled={!isConnected || !isAuthenticated || isLoadingProfile}
+                        />
+                      )}
                     </div>
                     {isProfileAdmin && <Button
                       className="mt-6"
@@ -261,38 +316,9 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   </div>
                 </div>
               </div>
-
-              {/* <ProfileLarge
-                  profileData={profile}
-                  profileType={type}
-                  theme={Theme.dark}
-                  onClick={() => { }}
-                  environment={LENS_ENVIRONMENT}
-                  containerStyle={{ cursor: "default" }}
-                  hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || !canFollow}
-                  onFollowPress={onFollowClick}
-                  followButtonBackgroundColor={isFollowed ? "transparent" : "#EEEDED"}
-                  followButtonDisabled={!isConnected}
-                  isFollowed={isFollowed}
-                  renderMadFiBadge={true}
-                  allSocials={allSocials?.data}
-                /> */}
-
-              {/* <div className="mt-8">
-                  <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-4">
-                    <h2 className="text-2xl font-owners tracking-wide leading-6">Holdings</h2>
-                  </div>
-                  <div className="rounded-md p-6 md:w-[500px] w-full border-dark-grey border-2 shadow-lg space-y-4 mt-4">
-                    <Holdings address={profileAddress(profile, creatorInfo?.address)} />
-                  </div>
-                </div> */}
-            </div>
-            <div className={`lg:col-span-6 h-full ${mobileView === 'holdings' ? 'block' : 'hidden lg:block'
-              }`}>
-              <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
             </div>
 
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-6">
               {/* <CreatorsTabs
                   type={type}
                   setOpenTab={setOpenTab}
@@ -317,6 +343,12 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 </div>
               </div>
             </div>
+
+            <div className={`lg:col-span-3 h-full ${mobileView === 'holdings' ? 'block' : 'hidden lg:block'
+              }`}>
+              <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
+            </div>
+
           </div>
         </section>
       </main>
@@ -347,7 +379,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   if (handle) {
     try {
-      const profile = await getProfileByHandle(handle);
+      const [profile, accountStats] = await Promise.all([
+        getProfileByHandle(handle),
+        getAccountStats(handle)
+      ]);
 
       if (profile?.owner) {
         const { collection } = await getClientWithCreatorInfo();
@@ -359,6 +394,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         return {
           props: {
             profile,
+            accountStats,
             type: "lens",
             pageName: "profile",
             creatorInfo: creatorInfo || null,

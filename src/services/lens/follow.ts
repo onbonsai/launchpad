@@ -1,9 +1,6 @@
-import { lensClient } from "./client";
+import { evmAddress } from "@lens-protocol/client";
+import { follow } from "@lens-protocol/client/actions";
 
-// TODO: v3
-export const followProfile = async (
-  walletClient: any,
-  profileId: string
-) => {
-
-}
+export const followProfile = async (sessionClient: any, address: string) => {
+  const result = await follow(sessionClient, { account: evmAddress(address) });
+};

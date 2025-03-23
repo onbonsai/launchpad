@@ -347,7 +347,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                         shareIconOverride={true}
                         followButtonDisabled={true}
                       />
-                      <CommentBox />
+                      {/* <CommentBox /> */}
                       </div>}
                     />
                   </div>

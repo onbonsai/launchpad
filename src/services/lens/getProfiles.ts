@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { evmAddress } from "@lens-protocol/client";
+import { AnyClient, evmAddress } from "@lens-protocol/client";
 
 import { apolloClient } from "./apolloClient";
 import { lensClient } from "./client";
@@ -96,8 +96,8 @@ query($request: ProfilesRequest!) {
 }
 `;
 
-export const getProfileByHandle = async (forHandle: string) => {
-  const result = await fetchAccount(lensClient, {
+export const getProfileByHandle = async (forHandle: string, client?: AnyClient) => {
+  const result = await fetchAccount(client || lensClient, {
     username: {
       localName: forHandle,
     },
