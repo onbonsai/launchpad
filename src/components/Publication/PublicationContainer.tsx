@@ -31,7 +31,7 @@ type PublicationContainerProps = {
   decryptGatedPosts?: () => void;
   decrypting?: boolean;
   shouldGoToPublicationPage?: boolean;
-  onCommentButtonClick?: (e) => void;
+  onCommentButtonClick?: (e, commentId?: string, username?: string) => void;
   onActButtonClick?: (e) => void;
   renderActButtonWithCTA?: string;
   returnToPage?: string;
@@ -124,11 +124,11 @@ const PublicationContainer = ({
     router.push(`/post/${_publicationId}`);
   };
 
-  const goToCreatorPage = (e: React.MouseEvent) => {
+  const goToCreatorPage = (e: React.MouseEvent, username?: string) => {
     e.preventDefault();
     e.stopPropagation();
     // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
-    router.push(`/profile/${publication.author.username.localName}`);
+    router.push(`/profile/${username}`);
   };
 
   // stub the encrypted pub metadata to render something nicer
@@ -164,7 +164,7 @@ const PublicationContainer = ({
 
   const handleCommentButton = (e, actionModuleHandler?) => {
     if (shouldGoToPublicationPage) return goToPublicationPage(e);
-    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e);
+    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author.username.localName);
   };
 
   const onMirrorButtonClick = async (e: React.MouseEvent, actionModuleHandler?) => {
@@ -286,15 +286,19 @@ const PublicationContainer = ({
     setIsCollecting(false);
   }
 
-  let PublicationType;
+  let PublicationType = HorizontalPublication;
+  let minWidth = 'min-w-[450px]'
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
   } else {
     PublicationType = sideBySideMode ? HorizontalPublication : Publication;
+    if (sideBySideMode) {
+      minWidth = 'min-w-[900px]'
+    }
   }
 
   return (
-    <div className="mt-4 relative flex justify-center max-h-60vh">
+    <div className={`mt-4 relative flex justify-center max-h-60vh ${minWidth}`}>
       <PublicationType
         key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
         publicationId={publication?.id ? publication!.id : publicationId}
@@ -304,7 +308,7 @@ const PublicationContainer = ({
         authenticatedProfile={authenticatedProfile || undefined}
         walletClient={walletClient || undefined}
         onClick={shouldGoToPublicationPage ? (e) => goToPublicationPage(e) : undefined}
-        onProfileClick={!shouldGoToPublicationPage ? (e) => goToCreatorPage(e) : undefined}
+        onProfileClick={!shouldGoToPublicationPage ? (e) => goToCreatorPage(e, publication?.author.username.localName) : undefined}
         onShareButtonClick={(e) => onShareButtonClick(e)}
         onCommentButtonClick={handleCommentButton}
         onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}

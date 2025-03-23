@@ -80,7 +80,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [mobileView, setMobileView] = useState('profile');
 
-
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);

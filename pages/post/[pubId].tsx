@@ -54,6 +54,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
   const [canComment, setCanComment] = useState(publication?.operations?.hasSimpleCollected);
+  const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
+  const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
 
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
@@ -121,11 +123,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     return publication?.by.id === authenticatedProfileId;
   }, [publication, authenticatedProfileId]);
 
-  const onCommentButtonClick = (e: React.MouseEvent) => {
+  const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string) => {
     e.preventDefault();
 
-    if (isInputFocused) return;
+    // if (isInputFocused) return;
 
+    setReplyingToComment(commentId || null);
+    setReplyingToUsername(username || null);
     if (commentInputRef.current) commentInputRef.current.focus();
     if (scrollPaddingRef.current) scrollPaddingRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
   };
@@ -150,15 +154,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        pubId as string
+        replyingToComment || pubId as string
       );
 
       setComment("");
       setFiles([]);
+      setReplyingToComment(null);
 
       toast.success("Commented", { id: toastId, duration: 3000 });
 
-      setTimeout(fetchComments, 3000); // give the api some time
+      setTimeout(fetchComments, 3000);
     } catch (error) {
       console.log(error);
       toast.error("Comment failed", { duration: 5000, id: toastId });
@@ -183,6 +188,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
     setLocalHasUpvoted(new Set([...localHasUpvoted, publicationId]));
     toast.success("Liked", { duration: 2000 });
+  };
+
+  const goToCreatorPage = (e: React.MouseEvent, username?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
+    router.push(`/profile/${username}`);
   };
 
   if (!isMounted) return null;
@@ -219,6 +231,17 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       {
         isConnected && isAuthenticated && (
           <>
+            {replyingToComment && (
+              <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+                <span>Replying to {replyingToUsername}</span>
+                <button 
+                  onClick={() => setReplyingToComment(null)}
+                  className="text-secondary hover:text-secondary/80"
+                >
+                  × Cancel
+                </button>
+              </div>
+            )}
             <div className="flex items-center gap-x-6 mt-4">
               <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
               <div className="relative w-full">
@@ -247,7 +270,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
             </div>
             {canComment && (
               <>
-                <div className="flex justify-end gap-y-2 -mt-4">
+                <div className="flex justify-end gap-y-2 -mt-2">
                   <div className="mt-3">
                     <ActionButton
                       label="Comment"
@@ -324,7 +347,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                         shareIconOverride={true}
                         followButtonDisabled={true}
                       />
-                        <CommentBox />
+                      <CommentBox />
                       </div>}
                     />
                   </div>
@@ -343,13 +366,14 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 </div>
               )}
             </div>
-            <div className="xs:hidden">
+            <div className="">
               <Publications
+                onCommentButtonClick={onCommentButtonClick}
                 publications={sortedComments}
                 theme={Theme.dark}
                 environment={LENS_ENVIRONMENT}
                 authenticatedProfile={authenticatedProfile}
-                hideCommentButton={true}
+                hideCommentButton={false}
                 hideQuoteButton={true}
                 hideShareButton={true}
                 hasUpvotedComment={hasUpvotedComment}
@@ -372,6 +396,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 messageIconOverride={true}
                 shareIconOverride={true}
                 followButtonDisabled={true}
+                onProfileClick={goToCreatorPage}
               />
               <CommentBox />
             </div>
