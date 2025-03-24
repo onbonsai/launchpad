@@ -38,7 +38,7 @@ ${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               </Button>
             </a>
             <a href={tweetIntentTokenReferral({
-              text: `Trade $${symbol} on the @bonsaitoken404 Launchpad`,
+              text: `Trade $${symbol} on the @onbonsai Launchpad`,
               chain,
               tokenAddress,
               referralAddress: address!
@@ -48,7 +48,7 @@ ${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               </Button>
             </a>
             <a href={castIntentTokenReferral({
-              text: `Trade $${symbol} on the @bonsaitoken404 Launchpad`,
+              text: `Trade $${symbol} on the @onbonsai Launchpad`,
               chain,
               tokenAddress,
               referralAddress: address!

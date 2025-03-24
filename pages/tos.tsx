@@ -3,7 +3,7 @@ const Tos = () => {
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-2 lg:px-8">
         <div className="md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
-          <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">Terms of Service</h1>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">Terms of Service</h1>
           <p>Last updated December 18, 2024</p>
         </div>
         <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">

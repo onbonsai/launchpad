@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Button } from "@src/components/Button";
+import Copy from "../Copy/Copy";
+import clsx from "clsx";
+import { inter } from "@src/fonts/fonts";
 
 interface ReferralModalProps {
   onClose: () => void;
@@ -20,14 +22,21 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6 font-owners">
+    <div
+      className={clsx("flex flex-col w-full")}
+      style={{
+        fontFamily: inter.style.fontFamily,
+      }}
+    >
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Referrals</h2>
       </div>
 
-      <div className="mb-6 font-sf-pro-text">
+      <div className="mb-6">
         <div className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-lg">
-          <p className="text-secondary/80 mb-4"><b>🎉Launch Week Special🎉</b></p>
+          <p className="text-secondary/80 mb-4">
+            <b>🎉Launch Week Special🎉</b>
+          </p>
           <p className="text-secondary/80 mb-4">
             Refer at least 1 friend before April 7th and get a 100% match on your stake up to 10k $BONSAI!
           </p>
@@ -37,15 +46,7 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
         </p>
 
         <div className="flex items-center gap-2 bg-card-light p-3 rounded-lg">
-          <input
-            type="text"
-            value={referralLink}
-            readOnly
-            className="bg-transparent flex-1 outline-none text-secondary"
-          />
-          <Button variant="accent" size="sm" onClick={handleCopy}>
-            {copied ? "Copied!" : "Copy"}
-          </Button>
+          <Copy title="" text={referralLink} link={referralLink} />
         </div>
       </div>
     </div>

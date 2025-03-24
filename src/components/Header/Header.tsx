@@ -170,25 +170,19 @@ export const Header = () => {
         panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", inter.className)}
       >
         <HeaderText>
-          Bonsai Launchpad
+          Bonsai Smart Media
         </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
-          Tokens start on a bonding curve until they graduate ($100k mcap or ~$21k in liquidity).
+          Bonsai Smart Media is a platform for creators to create and monetize dynamic living content.
         </p>
         <p className="mt-4 text-xl text-secondary/70">
-          The first 200 million tokens are available at a flat price to reduce the effect of snipers and then the bonding curve kicks in, increasing the price until the full supply is minted.
+          New posts are created with a Smart Media template in the studio and can have a token created on the Bonsai Launchpad to accompany the post. Users must collect the post to participate and can buy the token to gain more access.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
-          Built on Base. Bonding curves are priced in USDC ($)
+          Smart Media posts update their content regularly based on the interactions of users and token holders.
         </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate
-        </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $100k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uniswap v4. Tokens vest linearly becoming available to transfer over a period of time in order to reduce the power of rugs and snipers. Vesting parameters are set by the token creator.
-        </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">https://launch-v1.bonsai.meme/</a>
+        <p className="mt-4 text-xl text-secondary/70">
+          Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.
         </p>
         <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">

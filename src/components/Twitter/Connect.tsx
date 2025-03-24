@@ -38,7 +38,7 @@ const ConnectTwitter = () => {
 
   return (
     <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
+      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-bold">
         Connect Twitter
       </Dialog.Title>
       <p className="text-sm text-center text-secondary w-1/2 mx-auto mt-2">

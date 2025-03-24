@@ -127,8 +127,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const isProfileAdmin = useMemo(() => {
     if (!authenticatedProfileId) return false;
 
-    return profile?.id === authenticatedProfileId;
-  }, [profile, authenticatedProfileId]);
+    return profile?.owner === authenticatedProfile?.owner;
+  }, [profile, authenticatedProfile]);
 
   const { followers: followersYouKnow, isLoading: isLoadingFollowers } = useFollowersYouKnow(
     authenticatedProfile?.address || '',

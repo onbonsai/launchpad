@@ -27,6 +27,7 @@ const Help = () => {
   const isMounted = useIsMounted();
 
   const ANCHOR_OVERVIEW = "overview";
+  const ANCHOR_LAUNCHPAD = "launchpad";
   const ANCHOR_SOCIAL = "social";
   const ANCHOR_AGENTS = "agents";
   const ANCHOR_DEPLOYED_CONTRACTS = "deployed-contracts";
@@ -56,6 +57,7 @@ const Help = () => {
         <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
           <div className="md:pl-12 md:pr-12 md:pb-12 pl-2 pr-2 pb-2">
             <section className="mt-4 max-w-screen-lg">
+
               {/* Overview */}
               <div className="">
                 <Disclosure as="div" key={ANCHOR_OVERVIEW} defaultOpen={section == ANCHOR_OVERVIEW}>
@@ -75,7 +77,42 @@ const Help = () => {
                       </h3>
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
-                          <p className="text-lg text-secondary">The most consumer-friendly memecoin launchpad, with a focus on crypto social and agentic integrations</p>
+                          <p className="text-lg text-secondary">Bonsai Smart Media is a platform for creators to create and monetize dynamic living content. </p>
+                          <ul className="list-disc pl-5 mt-4 text-lg/70">
+                            <li>Social primitives such as posts, profiles and feeds are brough to life with autonomous AI-driven capabilities</li>
+                            <li>New posts are created with a Smart Media template in the studio and can have a token created on the Bonsai Launchpad to accompany the post. Users must collect the post to participate and can buy the token to gain more access.</li>
+                            <li>Smart Media posts update their content regularly based on the interactions of users and token holders.</li>
+                            <li>Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.</li>
+                          </ul>
+                          <p className="text-lg text-secondary pt-8">A modular framework allows developers to create their own Smart Media templates and distribute them through the Bonsai Studio. Visit <Link href="https://docs.bonsai.meme" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">docs.bonsai.meme</span></Link> to get started.</p>
+                          <p className="text-lg text-secondary pt-8">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Lens Protocol</span></Link>{" "}- a modular blockchain for social apps.</p>
+                        </Disclosure.Panel>
+                      </DisclosurePanelWithTransition>
+                    </>
+                  )}
+                </Disclosure>
+              </div>
+
+              {/* Launchpad */}
+              <div className="pt-8">
+                <Disclosure as="div" key={ANCHOR_LAUNCHPAD} defaultOpen={section == ANCHOR_LAUNCHPAD}>
+                  {({ open }) => (
+                    <>
+                      <h3 className="text-xl leading-6 text-secondary">
+                        <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80" onClick={() => handleDisclosureClick(ANCHOR_OVERVIEW)}>
+                          <span className="font-medium">Launchpad</span>
+                          <span className="ml-6 flex items-center">
+                            {open ? (
+                              <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                            )}
+                          </span>
+                        </Disclosure.Button>
+                      </h3>
+                      <DisclosurePanelWithTransition>
+                        <Disclosure.Panel className="p-2">
+                          <p className="text-lg text-secondary">The most consumer-friendly token launchpad, with a focus on crypto social and agentic integrations</p>
                           <ul className="list-disc pl-5 mt-4 text-lg/70">
                             <li>Bonding curves are priced in USDC for easier fiat onramp</li>
                             <li>Sniper protection through early flat pricing and creator-defined vesting</li>
@@ -118,6 +155,9 @@ const Help = () => {
                             <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
                               <span className="link-hover cursor-pointer">submit their hook</span>
                             </Link>{" "}so Bonsai Launchpad users can use it</li>
+                          <p className="text-lg text-secondary pt-8">
+                            Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">https://launch-v1.bonsai.meme/</a>
+                          </p>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>
                     </>
@@ -230,7 +270,8 @@ const Help = () => {
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai Launchpad |{" "}
+                            Bonsai Launchpad
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -239,6 +280,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad}
                             </a>
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -249,7 +291,8 @@ const Help = () => {
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai Token |{" "}
+                            Bonsai Token
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -258,6 +301,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
                             </a>
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -268,7 +312,8 @@ const Help = () => {
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai NFT |{" "}
+                            Bonsai NFT
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -277,6 +322,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
                             </a>
+                            <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"

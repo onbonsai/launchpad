@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import axios from "axios";
 
 import { Button } from "@src/components/Button";
+import { inter } from "@src/fonts/fonts";
 
 const HookFormModal = () => {
   const [name, setName] = useState();
@@ -43,16 +44,21 @@ const HookFormModal = () => {
   };
 
   return (
-    <div className="flex flex-col w-full mt-8 min-w-[650px]">
-      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
+    <div
+      className="flex flex-col w-full mt-8 min-w-[650px]"
+      style={{
+        fontFamily: inter.style.fontFamily,
+      }}
+    >
+      <Dialog.Title as="h3" className="text-5xl uppercase text-center font-bold">
         Submit Hook
       </Dialog.Title>
-      <div className="w-full mt-4 md:mb-8 mb-4 md:h-full font-sf-pro-text">
-        <div className="flex flex-col w-full my-8 space-y-4">
-          <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
+      <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">
+        <div className="flex flex-col w-full my-8">
+          <p className="text-md text-center text-secondary w-3/4 mx-auto">
             Submit a hook to be available on the Bonsai Launchpad
           </p>
-          <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
+          <p className="text-md text-center text-secondary w-3/4 mx-auto">
             Every submission MUST be verified on Basescan
           </p>
           {/* <p className="text-md text-center text-secondary w-3/4 mx-auto mt-2">
@@ -67,7 +73,7 @@ const HookFormModal = () => {
             </a>{" "}
             for setting swap fees based on Bonsai NFT holdings.
           </p> */}
-          <form onSubmit={onSubmit} className="">
+          <form onSubmit={onSubmit} className="mt-2">
             <div className="space-y-4 mb-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-secondary mb-2">

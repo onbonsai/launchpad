@@ -10,7 +10,7 @@ const frameDataTemplate = {
     title: "💰 Start Trading 💰",
     action: {
       type: "launch_frame",
-      name: "Bonsai Launchpad",
+      name: "Bonsai Smart Media",
       url: SITE_URL,
       splashImageUrl: `${SITE_URL}/splash.jpg`,
       splashBackgroundColor: "#000000",
@@ -25,7 +25,7 @@ const HandleSEO = ({ pageProps }) => {
     const handle = profile.username?.localName || profile.username || profile.metadata.name;
     const title = trimText(`@${handle}`, 45);
     const image = getProfileImage(profile);
-    const description = trimText("Profile on the Bonsai Launchpad", 45);
+    const description = trimText("Profile on Bonsai", 45);
 
     let frameData = frameDataTemplate;
     frameData.imageUrl = image;
@@ -46,8 +46,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
         <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Launchpad | bonsai.meme"></meta>
-        <meta name="twitter:creator" content="@bonsaitoken404"></meta>
+        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
+        <meta name="twitter:creator" content="@onbonsai"></meta>
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
@@ -81,8 +81,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
         <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Launchpad | bonsai.meme"></meta>
-        <meta name="twitter:creator" content="@bonsaitoken404"></meta>
+        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
+        <meta name="twitter:creator" content="@onbonsai"></meta>
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
@@ -96,7 +96,7 @@ const HandleSEO = ({ pageProps }) => {
   if (pageName === "token") {
     const { club } = pageProps;
     const title = `${club.token.name} ($${club.token.symbol})`;
-    const description = trimText(`Buy $${club.token.symbol} on the Bonsai Launchpad`, 45);
+    const description = trimText(`Buy $${club.token.symbol} on Bonsai`, 45);
     let image = club.token.image;
 
     let frameData = frameDataTemplate;
@@ -118,8 +118,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:image:width" content="1200"></meta>
         <meta property="og:image:height" content="630"></meta>
         <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Launchpad | bonsai.meme"></meta>
-        <meta name="twitter:creator" content="@bonsaitoken404"></meta>
+        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
+        <meta name="twitter:creator" content="@onbonsai"></meta>
         <meta name="twitter:card" content="summary_large_image"></meta>
         <meta name="twitter:title" content={title}></meta>
         <meta name="twitter:description" content={description}></meta>
@@ -134,9 +134,9 @@ const HandleSEO = ({ pageProps }) => {
 
   return (
     <Head>
-      <title>Launchpad | bonsai.meme</title>
+      <title>Bonsai Smart Media</title>
       <meta name="description" content={description}></meta>
-      <meta property="og:title" content="Launchpad | bonsai.meme"></meta>
+      <meta property="og:title" content="Bonsai Smart Media"></meta>
       <meta property="og:description" content={description}></meta>
       <meta property="og:url" content={SITE_URL}></meta>
       <meta property="og:type" content="website"></meta>
@@ -145,10 +145,10 @@ const HandleSEO = ({ pageProps }) => {
       <meta property="og:image:width" content="1200"></meta>
       <meta property="og:image:height" content="630"></meta>
       <meta property="og:locale" content="en_IE"></meta>
-      <meta property="og:site_name" content="Launchpad | bonsai.meme"></meta>
-      <meta name="twitter:creator" content="@bonsaitoken404"></meta>
+      <meta property="og:site_name" content="Bonsai Smart Media"></meta>
+      <meta name="twitter:creator" content="@onbonsai"></meta>
       <meta name="twitter:card" content="summary_large_image"></meta>
-      <meta name="twitter:title" content="Launchpad | bonsai.meme"></meta>
+      <meta name="twitter:title" content="Bonsai Smart Media"></meta>
       <meta name="twitter:description" content={description}></meta>
       <meta name="twitter:image" content="/opengraph-image.jpg"></meta>
       <meta name="theme-color" content="#141414"></meta>

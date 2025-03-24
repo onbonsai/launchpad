@@ -184,7 +184,7 @@ const CreatePost = ({
             <h3 className="text-xl leading-6 text-secondary">
               <Disclosure.Button className="flex w-full items-center justify-between py-3 text-secondary hover:text-secondary/80">
                 <div className="flex items-center">
-                  <h2 className="text-2xl font-owners tracking-wide leading-6">Create a post</h2>
+                  <h2 className="text-2xl tracking-wide leading-6">Create a post</h2>
                   <span className="ml-6 flex items-center">
                     {open ? (
                       <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />

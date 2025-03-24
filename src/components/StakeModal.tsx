@@ -3,6 +3,7 @@ import { Button } from "./Button";
 import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
+import { inter } from "@src/fonts/fonts";
 
 interface StakeModalProps {
   onStake: (amount: string, lockupPeriod: number) => void;
@@ -50,14 +51,19 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
   const effectiveUsdValue = usdValue * selectedPeriod.multiplier;
 
   return (
-    <div className="p-6 space-y-6 min-w-[450px] text-secondary">
-      <div className="flex items-center justify-between font-owners">
+    <div
+      className="p-6 space-y-6 min-w-[450px] text-secondary"
+      style={{
+        fontFamily: inter.style.fontFamily,
+      }}
+    >
+      <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
           Stake $BONSAI
         </Dialog.Title>
       </div>
 
-      <div className="space-y-4 font-sf-pro-text">
+      <div className="space-y-4">
         {/* Amount Input */}
         <div className="flex flex-col justify-between gap-2">
           <div className="flex items-center justify-between gap-1">

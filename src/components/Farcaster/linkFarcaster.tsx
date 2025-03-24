@@ -11,7 +11,7 @@ const LinkFarcaster = ({ text }) => {
 
   return (
     <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
+      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-bold">
         Link Farcaster
       </Dialog.Title>
       <div className="text-center my-8 space-y-8">
