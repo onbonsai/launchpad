@@ -77,7 +77,8 @@ export const SearchClubs = () => {
             defaultValue={query}
             autoComplete="off"
             onClick={() => openModal()}
-            className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+            readOnly
+            className="block w-full rounded-xl text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm cursor-pointer"
           />
           <div className="inset-y-0 right-0 py-1.5 pr-1.5 absolute">
             <kbd className="inline-flex bg-transparent items-center border border-gray-400 px-2 text-sm font-medium text-gray-400 rounded-lg mr-2">
@@ -137,7 +138,7 @@ export const SearchClubs = () => {
                         leaveTo="opacity-0"
                         afterLeave={() => setQuery("")}
                       >
-                        <Combobox.Options className="mt-1 max-h-60 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Combobox.Options className="mt-1 max-h-80 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
                               <Spinner customClasses="h-6 w-6" color="#E42101" />
