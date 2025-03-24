@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Popper, ClickAwayListener } from '@mui/material';
-import { Button } from '@src/components/Button';
-import { Subtitle } from '@src/styles/text';
-import clsx from 'clsx';
+import { useEffect, useState } from "react";
+import { Popper, ClickAwayListener } from "@mui/material";
+import { Button } from "@src/components/Button";
+import { Subtitle } from "@src/styles/text";
+import clsx from "clsx";
 import { inter } from "@src/fonts/fonts";
 
 const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,29 +16,28 @@ const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
-    window.addEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [onClose]);
 
   return (
-    <Popper
-      open={Boolean(anchorEl)}
-      anchorEl={anchorEl}
-      placement="bottom-start"
-      style={{ zIndex: 1400 }}
-    >
+    <Popper open={Boolean(anchorEl)} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1400 }}>
       <ClickAwayListener onClickAway={onClose}>
-        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[350px] space-y-4", inter.className, "font-sf-pro-text")}>
-          <div className="flex items-center justify-center text-center">
-            <Subtitle className="text-md">
-              Import templates from your ElizaOS server
-            </Subtitle>
+        <div
+          className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[350px] space-y-4", inter.className)}
+          style={{
+            fontFamily: inter.style.fontFamily,
+          }}
+        >
+          <div className="items-center justify-center text-left space-y-2">
+            <Subtitle>Import templates from another ElizaOS server</Subtitle>
+            <p className="text-xs text-secondary/40">Note: Bonsai does not guarantee the content of 3rd party templates. Use at your own disgression.</p>
           </div>
           <form onSubmit={handleSubmit} className="flex items-center gap-x-4">
             <input
@@ -63,4 +62,4 @@ const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
   );
 };
 
-export default ImportTemplatesModal
+export default ImportTemplatesModal;

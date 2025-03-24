@@ -88,17 +88,15 @@ const StudioCreatePage: NextPage = () => {
                     ))}
                   </div>
 
-                  {!IS_PRODUCTION && (
-                    <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card-light via-card-light to-transparent pl-10 pr-2 rounded-r-full">
-                      <button
-                        ref={importButtonRef}
-                        className="text-secondary/60 hover:bg-card transition-colors px-6 py-2 rounded-full flex-shrink-0"
-                        onClick={() => setShowImportTemplateModal(true)}
-                      >
-                        + Import
-                      </button>
-                    </div>
-                  )}
+                  <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card-light via-card-light to-transparent pl-10 pr-2 rounded-r-full">
+                    <button
+                      ref={importButtonRef}
+                      className="text-secondary/60 hover:bg-card transition-colors px-6 py-2 rounded-full flex-shrink-0"
+                      onClick={() => setShowImportTemplateModal(true)}
+                    >
+                      + Import
+                    </button>
+                  </div>
                 </div>
 
                 {/* Templates */}
