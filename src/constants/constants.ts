@@ -64,7 +64,7 @@ export const MADFI_BANNER_IMAGE_SMALL =
   "https://link.storjshare.io/raw/jvnvg6pove7qyyfbyo5hqggdis6a/misc%2Fmadfi-banner.jpeg";
 export const MADFI_BOUNTIES_URL = IS_PRODUCTION ? "https://madfi.xyz/bounties" : "https://testnet.madfi.xyz/bounties";
 export const MADFI_SITE_URL = IS_PRODUCTION ? "https://madfi.xyz" : "https://testnet.madfi.xyz";
-export const MADFI_CLUBS_URL = "https://launch.bonsai.meme";
+export const SITE_URL = "https://app.onbons.ai";
 export const MADFI_POST_URL = IS_PRODUCTION ? "https://madfi.xyz/post" : "https://testnet.madfi.xyz/post";
 export const MADFI_WALLET_ADDRESS = "0x7F0408bc8Dfe90C09072D8ccF3a1C544737BcDB6";
 export const MADFI_GENESIS_COLLECTION_ID = "1";

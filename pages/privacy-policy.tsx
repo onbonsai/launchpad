@@ -81,8 +81,8 @@ const PP = () => {
                 </li>
                 <li>
                   <strong>Website</strong> refers to Launchpad, accessible from{" "}
-                  <a href="https://launch.bonsai.meme/" rel="external nofollow noopener" target="_blank">
-                    https://launch.bonsai.meme/
+                  <a href="https://app.bons.ai/" rel="external nofollow noopener" target="_blank">
+                    https://app.bons.ai/
                   </a>
                 </li>
                 <li>

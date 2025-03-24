@@ -1,7 +1,7 @@
 import { PublicClient, testnet, staging } from "@lens-protocol/client";
 import { StorageClient } from "@lens-chain/storage-client";
 import { IS_PRODUCTION } from "../madfi/utils";
-
+import { SITE_URL } from "@src/constants/constants";
 // TODO: update to production
 export const LENS_ENVIRONMENT = IS_PRODUCTION ? staging : staging;
 
@@ -12,7 +12,7 @@ if (typeof window !== 'undefined') {
 }
 export const lensClient = PublicClient.create({
   environment: LENS_ENVIRONMENT,
-  origin: "https://launch.bonsai.meme",
+  origin: SITE_URL,
   storage,
 });
 

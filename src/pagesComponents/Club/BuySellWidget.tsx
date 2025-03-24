@@ -24,7 +24,7 @@ import {
   MAX_MINTABLE_SUPPLY,
   WGHO_CONTRACT_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
-import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
@@ -167,7 +167,7 @@ export const BuySellWidget = ({
   const urlEncodedPostParams = () => {
     const params = {
       text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
-${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
+${SITE_URL}/token/${club.clubId}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();

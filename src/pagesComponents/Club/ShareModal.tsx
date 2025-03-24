@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { inter } from "@src/fonts/fonts";
 import { useAccount } from "wagmi";
 import { Dialog } from "@headlessui/react";
-import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import { Button } from "@src/components/Button";
 import { tweetIntentTokenReferral, castIntentTokenReferral } from "@src/utils/utils";
 import Copy from "@src/components/Copy/Copy";
@@ -14,7 +14,7 @@ const ShareModal = ({ tokenAddress, chain, symbol }) => {
   const urlEncodedPostParams = () => {
     const params = {
       text: `Trade $${symbol} on @bonsai
-${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
+${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();
@@ -60,8 +60,8 @@ ${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
           </div>
           <Copy
             title=""
-            text={`${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`}
-            link={`${MADFI_CLUBS_URL}/token/${chain}/${tokenAddress}?ref=${address}`}
+            text={`${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`}
+            link={`${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`}
           />
         </div>
       </div>

@@ -108,12 +108,12 @@ interface IntentUrlProps {
 }
 
 export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
+  const url = `${window.location.origin}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURI(`${url}`)}`;
 }
 
 export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
+  const url = `${window.location.origin}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 
 }

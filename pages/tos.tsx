@@ -260,7 +260,7 @@ const Tos = () => {
               the Services, including proprietary rights of every kind and nature however denominated throughout the
               world, registered or unregistered, associated with such Bonsai Content and the Services.
               <h1 className="text-xl mt-4">6.2. Our Rights</h1>
-              The Services are owned and operated by Bonsai. Unless otherwise indicated, the launch.bonsai.meme and
+              The Services are owned and operated by Bonsai. Unless otherwise indicated, the app.bons.ai and
               related websites are Bonsai Content and our proprietary property, and all computer code (including source
               code or object code), products, databases, functionality, software, services, usernames, designs, visual
               interfaces, audio, video, text, photographs, compilations, graphics, and all other elements of the

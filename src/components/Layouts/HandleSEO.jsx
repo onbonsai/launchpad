@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { bucketImageLinkStorj, trimText } from "@src/utils/utils";
 import { getProfileImage } from "@src/services/lens/utils";
-const SITE_URL = "https://launch.bonsai.meme";
+import { SITE_URL } from "@src/constants/constants";
 
 const frameDataTemplate = {
   version: "next",

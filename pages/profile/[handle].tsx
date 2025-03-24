@@ -1,7 +1,7 @@
 import { MobileViewSelector } from './MobileViewSelector';
 import { logout as lensLogout, resumeSession } from "@src/hooks/useLensLogin";
 import { Subtitle, BodySemiBold } from "@src/styles/text";
-import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -265,7 +265,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           <span className="text-xs font-medium text-white">Follows you</span>
                         </div>
                       )}
-                      <a href={`${MADFI_CLUBS_URL}/profile/${userHandle()}`} target="_blank" rel="noreferrer" className="text-[#ffffff] opacity-60 hover:opacity-50 text-[16px] leading-tight cursor-pointer mt-[2px]">{profile.handle?.suggestedFormatted.localName}</a>
+                      <a href={`${SITE_URL}/profile/${userHandle()}`} target="_blank" rel="noreferrer" className="text-[#ffffff] opacity-60 hover:opacity-50 text-[16px] leading-tight cursor-pointer mt-[2px]">{profile.handle?.suggestedFormatted.localName}</a>
                       <p className="text-[#ffffff] text-[16px] leading-tight font-light mt-8">
                         {userBio()}
                       </p>

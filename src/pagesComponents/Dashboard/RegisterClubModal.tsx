@@ -29,7 +29,7 @@ import {
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
-import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
 import BondingCurveSelector from "./BondingCurveSelector";
@@ -220,7 +220,7 @@ export const RegisterClubModal = ({
     try {
       const text = `Created ${tokenName} ($${tokenSymbol}) on @bonsai
 
-${MADFI_CLUBS_URL}/token/${selectedNetwork}/${tokenAddress}`;
+${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
 
       const sessionClient = await resumeSession();
       const result = await createPost(
