@@ -1,7 +1,6 @@
 "use client"
 
-import { Header, Header2 } from "@src/styles/text"
-import { Button } from "@src/components/Button"
+import { Header2 } from "@src/styles/text"
 import Link from "next/link"
 import clsx from "clsx"
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile"
@@ -10,8 +9,13 @@ import { useAccount } from "wagmi"
 import { useMemo } from "react"
 import { kFormatter } from "@src/utils/utils"
 import { Divider } from "@mui/material"
+import PlusCircleIcon from "@heroicons/react/outline/PlusCircleIcon"
+import UserIcon from "@heroicons/react/outline/UserIcon"
+import CurrencyDollarIcon from "@heroicons/react/outline/CurrencyDollarIcon"
+import { useGetCredits } from "@src/hooks/useGetCredits";
+
 const StudioSidebar = () => {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
 
@@ -20,12 +24,14 @@ const StudioSidebar = () => {
     return formatStakingAmount(stakingData.summary.totalStaked);
   }, [stakingData?.summary]);
 
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
   const menuItems = [
-    { icon: null, label: "Create a Post", href: "/studio/create", disabled: false },
-    { icon: null, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
-    { icon: null, label: "Bonsai Token", href: "/studio/token", disabled: false },
+    { icon: <PlusCircleIcon className="h-5 w-5 mr-3" />, label: "Create a Post", href: "/studio/create", disabled: false },
+    { icon: <UserIcon className="h-5 w-5 mr-3" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
+    { icon: <CurrencyDollarIcon className="h-5 w-5 mr-3" />, label: "Bonsai Token", href: "/studio/token", disabled: false },
   ]
 
   return (
@@ -48,8 +54,8 @@ const StudioSidebar = () => {
               }
             }}
           >
-            {/* <item.icon className="h-5 w-5 mr-3" /> */}
-            <span className="text-sm">[ICON] {item.label}</span>
+            {item.icon}
+            <span className="text-sm flex items-center">{item.label}</span>
           </Link>
         ))}
       </nav>
@@ -86,8 +92,8 @@ const StudioSidebar = () => {
             <p className="text-secondary mt-1">{kFormatter(totalStaked)}</p>
           </div>
           <div>
-            <p className="text-sm  opacity-80">AI Credits (today)</p>
-            <p className="text-secondary mt-1">100</p>
+            <p className="text-sm  opacity-80">AI Generations (today)</p>
+            <p className="text-secondary mt-1">{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} remaining</p>
           </div>
         </div>
       </div>

@@ -24,24 +24,7 @@ import { ReferralModal } from '@src/components/ReferralModal/ReferralModal';
 import { GiftIcon } from "@heroicons/react/outline";
 import { useRouter } from 'next/router';
 import axios from "axios";
-
-interface CreditBalance {
-  totalCredits: number;
-  freeCredits: number;
-  stakingCredits: number;
-  creditsUsed: number;
-  creditsRemaining: number;
-  nextResetTime: string;
-  lastResetTime: string;
-  maxStakingCredits: number;
-  usagePercentage: number;
-}
-
-const fetchCredits = async (address: string): Promise<CreditBalance> => {
-  const response = await fetch(`/api/credits/balance?address=${address}`);
-  if (!response.ok) throw new Error("Failed to fetch credits");
-  return response.json();
-};
+import { useGetCredits } from "@src/hooks/useGetCredits";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -81,12 +64,7 @@ const TokenPage: NextPage = () => {
     },
   });
 
-  const { data: creditBalance, isLoading: isLoadingCredits } = useQuery({
-    queryKey: ["credits", address],
-    queryFn: () => fetchCredits(address as string),
-    enabled: !!address && isConnected,
-    refetchInterval: 60000, // Refetch every minute
-  });
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
 
   const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
 
