@@ -534,6 +534,10 @@ export function baseScanUrl(txHash: string, tx = true) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
 }
 
+export function lensScanUrl(txHash: string, tx = true) {
+  return `https://explorer.${!IS_PRODUCTION ? "testnet." : ""}lens.xyz/${tx ? "tx" : "address"}/${txHash}`;
+}
+
 export const toHexString = (id: number | string, minLength: number = 2): string => {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
   const stringId = numericId.toString(16);

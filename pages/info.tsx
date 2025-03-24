@@ -6,7 +6,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 
 import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS } from "@src/services/madfi/moneyClubs";
+import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl } from "@src/services/madfi/moneyClubs";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import clsx from "clsx";
 
@@ -84,8 +84,44 @@ const Help = () => {
                             <li>Smart Media posts update their content regularly based on the interactions of users and token holders.</li>
                             <li>Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.</li>
                           </ul>
-                          <p className="text-lg text-secondary pt-8">A modular framework allows developers to create their own Smart Media templates and distribute them through the Bonsai Studio. Visit <Link href="https://docs.bonsai.meme" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">docs.bonsai.meme</span></Link> to get started.</p>
                           <p className="text-lg text-secondary pt-8">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Lens Protocol</span></Link>{" "}- a modular blockchain for social apps.</p>
+                          <p className="text-lg text-secondary pt-8">A modular framework built with ElizaOS makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai Studio.</p>
+                          <p className="mt-4 text-lg text-secondary/70">
+                            Docs:
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href="https://docs.bonsai.meme"
+                            >
+                              docs.bonsai.meme
+                            </a>
+                          </p>
+                          <p className="mt-4 text-lg text-secondary/70">
+                            Github:
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href="https://github.com/mad-finance"
+                            >
+                              github.com/mad-finance
+                            </a>
+                          </p>
+                          <p className="mt-4 text-lg text-secondary/70">
+                            Whitepaper:
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href="#"
+                            >
+                              Coming Soon
+                            </a>
+                          </p>
                         </Disclosure.Panel>
                       </DisclosurePanelWithTransition>
                     </>
@@ -269,8 +305,50 @@ const Help = () => {
                       </h3>
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
+                        <p className="mt-4 text-lg text-secondary/70">
+                            Bonsai Token
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.Bonsai, false)}
+                            >
+                              Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
+                            </a>
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Bonsai, false)}
+                            >
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
+                            </a>
+                          </p>
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai Launchpad
+                            Bonsai NFT
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiNFT, false)}
+                            >
+                              Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
+                            </a>
+                            <br/>
+                            <a
+                              className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiNFT, false)}
+                            >
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
+                            </a>
+                          </p>
+                          <p className="mt-4 text-lg text-secondary/70">
+                            Launchpad
                             <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
@@ -285,51 +363,54 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad, false)}
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad, false)}
                             >
                               Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad}
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai Token
+                            Launchpad Creator NFT
                             <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS, false)}
+                              href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.CreatorNFT, false)}
                             >
-                              Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
+                              Base: {PROTOCOL_DEPLOYMENT.base.CreatorNFT}
                             </a>
                             <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_TOKEN_BASE_ADDRESS, false)}
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.CreatorNFT, false)}
                             >
-                              Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.CreatorNFT}
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
-                            Bonsai NFT
+                            Launchpad Periphery
                             <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS, false)}
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Periphery, false)}
                             >
-                              Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.Periphery}
                             </a>
+                          </p>
+                          <p className="mt-4 text-lg text-secondary/70">
+                            Staking
                             <br/>
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href={baseScanUrl(BONSAI_NFT_BASE_ADDRESS, false)}
+                              href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Staking, false)}
                             >
-                              Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
+                              Lens: {PROTOCOL_DEPLOYMENT.lens.Staking}
                             </a>
                           </p>
                         </Disclosure.Panel>
