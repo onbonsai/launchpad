@@ -78,6 +78,8 @@ interface GetExplorePostsProps {
   cursor?: Cursor;
 };
 
+
+// TODO: need filter for feed for explore/foryou
 export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],

@@ -108,9 +108,12 @@ export const BuySellWidget = ({
       const buyPriceBigInt = parseUnits(buyPrice, _DECIMALS)
       const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
       const quoteTokenAddress = club.chain === "lens" ? WGHO_CONTRACT_ADDRESS : USDC_CONTRACT_ADDRESS;
+      // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
+      console.log(`club.clubId: ${club.clubId}`)
+      console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
       await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time

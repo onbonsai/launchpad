@@ -36,7 +36,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     }
   }, [price]);
 
-  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" ? "currency" : "decimal", 0) : "0";
+  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" || symbol === "WGHO" ? "currency" : "decimal", 0) : "0";
   const formattedPrice = overridePrice ? localizeNumber(parseFloat(overridePrice)) : formattedBalance;
 
   return (
@@ -49,11 +49,11 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               alt={'token image'}
               className="w-[24px] h-[24px] object-cover rounded-lg"
             />
-            <img
+            {/* <img
               src={chain === "lens" ? '/lens.png' : '/base.png'}
               alt={chain}
               className="absolute top-4 left-8 h-[12px]"
-            />
+            /> */}
           </div>}
           {disabled ? (
             <span

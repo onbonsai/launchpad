@@ -89,7 +89,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { clubId, chain } = req.query;
 
     const [{ buyPrice }, volume, club] = await Promise.all([
-      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1", chain as string),
+      getBuyPrice(RANDOM_ADDRESS, clubId as string, "1", undefined, chain as string),
       getVolume(clubId as string, chain as string),
       getRegisteredClubById(clubId as string, chain as string)
     ]);
@@ -107,15 +107,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     PREV_TRADE_KEYS.forEach((key) => {
       if (club[key]?.price) {
         const res = calculatePriceDelta(buyPrice, BigInt(club[key].prevPrice !== "0" ? club[key].prevPrice : club[key].price));
-        priceDeltas[key] = `${res.valuePct === 0 ? '' : (res.positive ? '+' : '-')}${res.valuePct.toString()}`;
+        priceDeltas[key] = `${res.valuePct === 0 || res.neutral ? '' : (res.positive ? '+' : '-')}${res.valuePct.toString()}`;
       } else {
         priceDeltas[key] = "0";
       }
     });
 
-    const marketCap = geckoData?.marketCap || 
-      ((BigInt(club.supply) <=  FLAT_THRESHOLD && club.v2) ? 
-        BigInt(club.liquidity) : 
+    const marketCap = geckoData?.marketCap ||
+      ((BigInt(club.supply) <=  FLAT_THRESHOLD && club.v2) ?
+        BigInt(club.liquidity) :
         formatUnits(BigInt(club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) :club.supply) * BigInt(buyPrice.toString()), DECIMALS).split(".")[0]
       );
     const holders = club.holders;
@@ -136,7 +136,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Determine which data sources to use based on graduation status and gecko data availability
     const useGeckoData = graduated && geckoData;
-    
+
     return res.status(200).json({
       id: club.id,
       v2: club.v2,

@@ -27,6 +27,7 @@ const REGISTERED_CLUB = gql`
   query Club($id: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
     club(id: $id) {
       id
+      clubId
       creator
       createdAt
       initialSupply
@@ -84,6 +85,7 @@ const REGISTERED_CLUB_BY_TOKEN = gql`
   query Club($tokenAddress: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
     clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
       id
+      clubId
       creator
       createdAt
       initialSupply
@@ -979,7 +981,8 @@ export const getBuyPrice = async (
         functionName: "getBuyPriceByClub",
         args: [clubId, amountWithDecimals]
       });
-  } catch {
+  } catch (error) {
+    console.log("getBuyPrice", error);
     buyPrice = 1n
   }
 
@@ -1169,13 +1172,14 @@ export const getRegistrationFee = async (
   return initialBuyPrice.buyPrice as bigint
 };
 
-export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean } => {
+export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean; neutral?: boolean } => {
   if (lastTradePrice == 0n) return { valuePct: 0 };
   const priceDelta: bigint = price > lastTradePrice ? price - lastTradePrice : lastTradePrice - price;
   const priceDeltaPercentage = parseFloat(formatEther(priceDelta)) * 100 / parseFloat(formatEther(lastTradePrice));
   return {
     valuePct: parseFloat(roundedToFixed(priceDeltaPercentage, 2)),
     positive: price > lastTradePrice,
+    neutral: price === lastTradePrice,
   };
 };
 
@@ -1420,6 +1424,7 @@ export const approveToken = async (
   chain = "base",
   contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
 ) => {
+  console.log(`contractAddress: ${contractAddress}`)
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
   const allowance = await client.readContract({

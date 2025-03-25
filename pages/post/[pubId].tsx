@@ -234,7 +234,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
             {replyingToComment && (
               <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
                 <span>Replying to {replyingToUsername}</span>
-                <button 
+                <button
                   onClick={() => setReplyingToComment(null)}
                   className="text-secondary hover:text-secondary/80"
                 >
@@ -299,7 +299,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         </span>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">
-            {club?.tokenAddress && <TokenInfoComponent club={club} />}
+            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">

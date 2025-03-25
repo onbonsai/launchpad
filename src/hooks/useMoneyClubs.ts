@@ -152,14 +152,14 @@ const useTraderProfiles = (traders?: string[]) => {
     queryFn: async () => {
       if (!traders?.length) return {};
       // TODO: need a new lens query
-      const profiles = await getHandlesByAddresses(traders);
+      // const profiles = await getHandlesByAddresses(traders);
       // const publicClient = createEnsPublicClient({
       //   chain: mainnet,
       //   transport: http(),
       // })
 
       // Group profiles by address
-      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+      // const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
       // TODO: no viem batch function for ens!
 
@@ -180,7 +180,7 @@ const useTraderProfiles = (traders?: string[]) => {
 
       // const ensNames = Object.fromEntries(pairedResults);
 
-      return { profiles: profilesGrouped };
+      return { profiles: {} };
     },
     enabled: !!traders?.length,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -225,15 +225,16 @@ export const useGetClubHoldings = (clubId: string, page: number, chain = "base")
     queryFn: async () => {
       const res = await getClubHoldings(clubId!, page, chain);
       const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
-      const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
-      const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+      // const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
+      // const profilesGrouped = groupBy(profiles, 'ownedBy.address');
 
       const holdings = await Promise.all(res.holdings?.map(async (trade) => {
         const address = getAddress(trade.trader.id);
-        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-        let ens;
-        if (!profile) ens = await publicClient.getEnsName({ address });
-        return { ...trade, profile, ens };
+        // const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        // let ens;
+        // if (!profile) ens = await publicClient.getEnsName({ address });
+        // return { ...trade, profile, ens };
+        return trade;
       }));
 
       return { holdings, hasMore: res.hasMore };
