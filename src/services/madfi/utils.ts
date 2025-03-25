@@ -56,12 +56,12 @@ export const lens: Chain = chains.testnet
 export const lensTestnet: Chain = chains.testnet
 export const LENS_CHAIN_ID = IS_PRODUCTION ? lens.id : lensTestnet.id;
 export const LENS_BONSAI_APP = IS_PRODUCTION
-  ? "0x50ebad61F484218eAF4D841488656126B668b4C6" // todo: mainnet
-  : "0x50ebad61F484218eAF4D841488656126B668b4C6"
+  ? "0x4Abd67c2c42ff2b8003C642D0d0e562A3F900805" // todo: mainnet
+  : "0x4Abd67c2c42ff2b8003C642D0d0e562A3F900805"
 
 export const LENS_BONSAI_DEFAULT_FEED = IS_PRODUCTION
-  ? "0xCf392c1a413f6791a559fb9ACa99Cd985CD38FED" // todo: mainnet
-  : "0xCf392c1a413f6791a559fb9ACa99Cd985CD38FED"
+  ? "0x68F0961bE0cDef06a24984cD590Bb7cD554c7F0b" // todo: mainnet
+  : "0x68F0961bE0cDef06a24984cD590Bb7cD554c7F0b"
 
 // {
 //   id: 37111,

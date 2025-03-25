@@ -42,17 +42,19 @@ interface PostParams {
   tokenAddress?: `0x${string}`;
   actions?: {
     simpleCollect: {
-      amount?: {
-        currency: EvmAddress;
-        value: BigDecimal;
-      };
-      recipients?: {
-        address: EvmAddress;
-        percent: number;
-      }[];
-      referralShare?: number;
-      collectLimit?: number;
-      endsAt?: string;
+      payToCollect: {
+        amount?: {
+          currency: EvmAddress;
+          value: BigDecimal;
+        };
+        recipients?: {
+          address: EvmAddress;
+          percent: number;
+        }[];
+        referralShare?: number;
+        collectLimit?: number;
+        endsAt?: string;
+      }
     };
   }[];
 }

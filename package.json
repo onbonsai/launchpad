@@ -21,7 +21,7 @@
     "@heroicons/react": "^1.0.6",
     "@lens-chain/storage-client": "1.0.3",
     "@lens-network/sdk": "0.0.0-canary-20241203140504",
-    "@lens-protocol/client": "0.0.0-canary-20250311124347",
+    "@lens-protocol/client": "0.0.0-canary-20250325144346",
     "@lens-protocol/gated-content": "^0.5.1",
     "@lens-protocol/metadata": "2.0.0-next.6",
     "@madfi/lens-oa-client": "^0.3.0",

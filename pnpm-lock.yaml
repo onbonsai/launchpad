@@ -46,8 +46,8 @@ importers:
         specifier: 0.0.0-canary-20241203140504
         version: 0.0.0-canary-20241203140504(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@lens-protocol/client':
-        specifier: 0.0.0-canary-20250311124347
-        version: 0.0.0-canary-20250311124347(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))
+        specifier: 0.0.0-canary-20250325144346
+        version: 0.0.0-canary-20250325144346(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@lens-protocol/gated-content':
         specifier: ^0.5.1
         version: 0.5.1(@ethersproject/abi@5.7.0)(@ethersproject/address@5.7.0)(@ethersproject/bignumber@5.7.0)(@ethersproject/contracts@5.7.0)(@ethersproject/hash@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@ethersproject/wallet@5.7.0)(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@types/react@18.2.15)(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(react@18.2.0)(utf-8-validate@5.0.10)(zod@3.24.2)
@@ -59,7 +59,7 @@ importers:
         version: 0.3.0(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@types/react@18.2.15)(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.5.0)(react@18.2.0)(utf-8-validate@5.0.10)
       '@madfi/widgets-react':
         specifier: ^3.0.20
-        version: 3.0.20(@lens-chain/storage-client@1.0.3)(@lens-protocol/client@0.0.0-canary-20250311124347(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
+        version: 3.0.20(@lens-chain/storage-client@1.0.3)(@lens-protocol/client@0.0.0-canary-20250325144346(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^5.8.0
         version: 5.8.0(@mui/material@5.13.5(@emotion/react@11.14.0(@types/react@18.2.15)(react@18.2.0))(@emotion/styled@11.13.0(@emotion/react@11.14.0(@types/react@18.2.15)(react@18.2.0))(@types/react@18.2.15)(react@18.2.0))(@types/react@18.2.15)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@types/react@18.2.15)(react@18.2.0)
@@ -119,7 +119,7 @@ importers:
         version: 2.28.0
       eslint-plugin-import:
         specifier: ^2.28.1
-        version: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+        version: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       ethers:
         specifier: ^5.7.2
         version: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -280,8 +280,8 @@ importers:
 
 packages:
 
-  '@0no-co/graphql.web@1.1.1':
-    resolution: {integrity: sha512-F2i3xdycesw78QCOBHmpTn7eaD2iNXGwB2gkfwxcOfBbeauYpr8RBSyJOkDrFtKtVRMclg8Sg3n1ip0ACyUuag==}
+  '@0no-co/graphql.web@1.1.2':
+    resolution: {integrity: sha512-N2NGsU5FLBhT8NZ+3l2YrzZSHITjNXNuDhC4iDiikv0IujaJ0Xc6xIxQZ/Ek3Cb+rgPjnLHYyJm11tInuJn+cw==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     peerDependenciesMeta:
@@ -1392,8 +1392,8 @@ packages:
   '@lens-protocol/blockchain-bindings@0.10.2':
     resolution: {integrity: sha512-WIlp30gohy/EuTD+Oqb2ACftpIkBE3wOC1WgiaFeu1ybpnIY0PnUn0hAQeecG6TIekhP3VvMXK82BXppsv2Nhw==}
 
-  '@lens-protocol/client@0.0.0-canary-20250311124347':
-    resolution: {integrity: sha512-mIibGtvztzFvWzbMXsfutdf6TaRrc8Dxl5lG9zWcELKgHn9sflkViW7TD9FjaMFt2s9SKLu6C0IYrN3ymukOZQ==}
+  '@lens-protocol/client@0.0.0-canary-20250325144346':
+    resolution: {integrity: sha512-eO7TO1gz9a2uzg4a3gAxPafoyJThFPx1pqTR8ko9xOfbhVq5evS21cmCWbmkzGfiOiD7TtTdOGVx1Z0DQ2a7nw==}
     peerDependencies:
       '@lens-chain/sdk': canary
       ethers: ^6.13.4
@@ -1438,8 +1438,8 @@ packages:
       wait-for-expect:
         optional: true
 
-  '@lens-protocol/env@0.0.0-canary-20250311124347':
-    resolution: {integrity: sha512-35f0dvWquGotdsqzma0ZVdqu/l7KOnFQz3xxhQIdyB6X92pOhcGYU7v3liKiHA/at2RZ/vavNJYy5jxqOIt/jw==}
+  '@lens-protocol/env@0.0.0-canary-20250325144346':
+    resolution: {integrity: sha512-hwJhG9ys2B37qrB4ACK14enJhGDeSD25nWp7zKCv2tNUNOa/X0MsDpZh/m6GsrmXMYHZSFcN2NPEXhSGScI0wA==}
 
   '@lens-protocol/gated-content@0.5.1':
     resolution: {integrity: sha512-rXD0/lkdFIGrwi7+LLgxYwb1Bbsnbi3XouUxfXbqBD32YwKkpYRNb0EfYcB3HZOQv9vmeTTlyrozNKxWoCBJ3A==}
@@ -1454,8 +1454,8 @@ packages:
       '@lens-protocol/metadata': ^1.0.0
       zod: ^3.22.0
 
-  '@lens-protocol/graphql@0.0.0-canary-20250311124347':
-    resolution: {integrity: sha512-oHn7JWliQJeDjSUbBNL+xtE8rYBg/ZDLokB3HxvLWVfxsl5zIB7JrluAc/RtGSq44rLIyWLvwWNf1c23sVORIQ==}
+  '@lens-protocol/graphql@0.0.0-canary-20250325144346':
+    resolution: {integrity: sha512-UC8Sn/DS3guYoWkhJuIm3QciX7McBYwIn7UUlu8nASsh5d86GsL4I8lj8kQyrBntpit+Th4RdkRqC3TR09FOTw==}
 
   '@lens-protocol/metadata@2.0.0-next.6':
     resolution: {integrity: sha512-om7HYTdhpeWJLeQy+NNCOexYe1gPSnBPc5bR6EhLLs1YNhQmvWgQG/j92/283sQlMopo7Rsqk9KggUgdtEbHvg==}
@@ -1469,14 +1469,14 @@ packages:
   '@lens-protocol/shared-kernel@0.12.0':
     resolution: {integrity: sha512-+trBZPjGDSRMVafZF6jXcfKc8UVHr1bVRjxeAVO1ZpR7zWfampJhxMO+7jbmmhvmYmf5Losp7Ffq4//szKloaA==}
 
-  '@lens-protocol/storage@0.0.0-canary-20250311124347':
-    resolution: {integrity: sha512-lLZHNoe60sDa3dkhLdfcvkQbWbeXHC+aT+2EqiVS1/LAhDBBWcIVyX2tTHQwCSGCM9r9oeYaZAThbjgqfjRc/Q==}
+  '@lens-protocol/storage@0.0.0-canary-20250325144346':
+    resolution: {integrity: sha512-2wFLlp6YXVQD31tdtfwgqoA+AiiheQV1DlMeHw27YPu2VnyKgUujRPCShoCIQB2X30TnuOuoFqTTs7wUiYrZnw==}
 
   '@lens-protocol/storage@0.8.1':
     resolution: {integrity: sha512-9nOf8wnDEYAd6Jjoqw5kM7YvZ+g1Y9LfhLfP0ZcAl/nx3uPWBO0cT7GSZWBXAwQ7ayW6Kno5P+vFoBFEaNVVLQ==}
 
-  '@lens-protocol/types@0.0.0-canary-20250311124347':
-    resolution: {integrity: sha512-w7NvgrqN4m1ks3jo0fAealZsTToVosBUMXBOu978wqUwBesXi7xMxK5bjEEhrWfI54WWtD7zXKkFcvQqjM2Csg==}
+  '@lens-protocol/types@0.0.0-canary-20250325144346':
+    resolution: {integrity: sha512-V34Si4GRfHJ8oNnxohh7GbPROpdMuoc9W5k269SHXTM9hTaunVKS33w/zuCYXcX2HBy250c+eRKhCXEQoQdycQ==}
 
   '@lit-labs/ssr-dom-shim@1.2.1':
     resolution: {integrity: sha512-wx4aBmgeGvFmOKucFKY+8VFJSYZxs9poN3SDNQFF6lT6NrQUnHiPB2PWz2sc4ieEcAaYYzN+1uWahEeTq2aRIQ==}
@@ -2060,8 +2060,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@rollup/rollup-linux-x64-gnu@4.34.8':
-    resolution: {integrity: sha512-8y7ED8gjxITUltTUEJLQdgpbPh1sUQ0kMTmufRF/Ns5tI9TNMNlhWtmPKKHCU0SilX+3MJkZ0zERYYGIVBYHIA==}
+  '@rollup/rollup-linux-x64-gnu@4.37.0':
+    resolution: {integrity: sha512-pKivGpgJM5g8dwj0ywBwe/HeVAUSuVVJhUTa/URXjxvoyTT/AxsLTAbkHkDHG7qQxLoW2s3apEIl26uUe08LVQ==}
     cpu: [x64]
     os: [linux]
 
@@ -2429,11 +2429,11 @@ packages:
     peerDependencies:
       graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
 
-  '@urql/core@5.1.0':
-    resolution: {integrity: sha512-yC3sw8yqjbX45GbXxfiBY8GLYCiyW/hLBbQF9l3TJrv4ro00Y0ChkKaD9I2KntRxAVm9IYBqh0awX8fwWAe/Yw==}
+  '@urql/core@5.1.1':
+    resolution: {integrity: sha512-aGh024z5v2oINGD/In6rAtVKTm4VmQ2TxKQBAtk2ZSME5dunZFcjltw4p5ENQg+5CBhZ3FHMzl0Oa+rwqiWqlg==}
 
-  '@urql/exchange-auth@2.2.0':
-    resolution: {integrity: sha512-4bJR22EYa/flbhwMBj4lU8MI4cO3ddo/DX7FygWeaeHZU+RWfnQKifCKwxIYlnoV8/CgYRM4lFSMIByYlhmWcg==}
+  '@urql/exchange-auth@2.2.1':
+    resolution: {integrity: sha512-n4xUxxjvY36GJh539sLaPFyvFzreADOv8EFQdTiXOCIRVoXXhWVVI7DjY/HNtLICfbg1+UlbvQ7sNkwaBouDHg==}
     peerDependencies:
       '@urql/core': ^5.0.0
 
@@ -6536,8 +6536,8 @@ packages:
     resolution: {integrity: sha512-Ne2YiiGN8bmrmJJEuTWTLJR32nh/JdL1+PSicowtNb0WFpn59GK8/lfD61bVtzguz7b3PBt74nxpv/Pw5po5Rg==}
     engines: {node: '>=8'}
 
-  type-fest@4.35.0:
-    resolution: {integrity: sha512-2/AwEFQDFEy30iOLjrvHDIH7e4HEWH+f1Yl1bI5XMqzuoCUqwYCdxachgsgv0og/JdVZUhbfjcJAoHj5L1753A==}
+  type-fest@4.38.0:
+    resolution: {integrity: sha512-2dBz5D5ycHIoliLYLi0Q2V7KRaDlH0uWIvmk7TYlAg5slqwiPv1ezJdZm1QEM0xgk29oYWMCbIG7E6gHpvChlg==}
     engines: {node: '>=16'}
 
   type@2.7.3:
@@ -7123,11 +7123,11 @@ packages:
 
 snapshots:
 
-  '@0no-co/graphql.web@1.1.1(graphql@16.10.0)':
+  '@0no-co/graphql.web@1.1.2(graphql@16.10.0)':
     optionalDependencies:
       graphql: 16.10.0
 
-  '@0no-co/graphql.web@1.1.1(graphql@16.5.0)':
+  '@0no-co/graphql.web@1.1.2(graphql@16.5.0)':
     optionalDependencies:
       graphql: 16.5.0
 
@@ -8562,13 +8562,13 @@ snapshots:
 
   '@gql.tada/internal@1.0.8(graphql@16.10.0)(typescript@5.1.6)':
     dependencies:
-      '@0no-co/graphql.web': 1.1.1(graphql@16.5.0)
+      '@0no-co/graphql.web': 1.1.2(graphql@16.5.0)
       graphql: 16.10.0
       typescript: 5.1.6
 
   '@gql.tada/internal@1.0.8(graphql@16.5.0)(typescript@5.1.6)':
     dependencies:
-      '@0no-co/graphql.web': 1.1.1(graphql@16.5.0)
+      '@0no-co/graphql.web': 1.1.2(graphql@16.5.0)
       graphql: 16.5.0
       typescript: 5.1.6
 
@@ -8725,14 +8725,14 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@lens-protocol/client@0.0.0-canary-20250311124347(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))':
+  '@lens-protocol/client@0.0.0-canary-20250325144346(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))':
     dependencies:
-      '@lens-protocol/env': 0.0.0-canary-20250311124347
-      '@lens-protocol/graphql': 0.0.0-canary-20250311124347(typescript@5.1.6)
-      '@lens-protocol/storage': 0.0.0-canary-20250311124347
-      '@lens-protocol/types': 0.0.0-canary-20250311124347
-      '@urql/core': 5.1.0(graphql@16.5.0)
-      '@urql/exchange-auth': 2.2.0(@urql/core@5.1.0(graphql@16.5.0))
+      '@lens-protocol/env': 0.0.0-canary-20250325144346
+      '@lens-protocol/graphql': 0.0.0-canary-20250325144346(typescript@5.1.6)
+      '@lens-protocol/storage': 0.0.0-canary-20250325144346
+      '@lens-protocol/types': 0.0.0-canary-20250325144346
+      '@urql/core': 5.1.1(graphql@16.5.0)
+      '@urql/exchange-auth': 2.2.1(@urql/core@5.1.1(graphql@16.5.0))
       jwt-decode: 4.0.0
       loglevel: 1.9.2
     optionalDependencies:
@@ -8797,9 +8797,9 @@ snapshots:
       '@lens-protocol/shared-kernel': 0.12.0
       tslib: 2.8.1
 
-  '@lens-protocol/env@0.0.0-canary-20250311124347':
+  '@lens-protocol/env@0.0.0-canary-20250325144346':
     dependencies:
-      '@lens-protocol/types': 0.0.0-canary-20250311124347
+      '@lens-protocol/types': 0.0.0-canary-20250325144346
 
   '@lens-protocol/gated-content@0.5.1(@ethersproject/abi@5.7.0)(@ethersproject/address@5.7.0)(@ethersproject/bignumber@5.7.0)(@ethersproject/contracts@5.7.0)(@ethersproject/hash@5.7.0)(@ethersproject/providers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@ethersproject/wallet@5.7.0)(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@types/react@18.2.15)(bufferutil@4.0.8)(encoding@0.1.13)(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(react@18.2.0)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
@@ -8842,12 +8842,12 @@ snapshots:
       - react
       - utf-8-validate
 
-  '@lens-protocol/graphql@0.0.0-canary-20250311124347(typescript@5.1.6)':
+  '@lens-protocol/graphql@0.0.0-canary-20250325144346(typescript@5.1.6)':
     dependencies:
-      '@lens-protocol/types': 0.0.0-canary-20250311124347
+      '@lens-protocol/types': 0.0.0-canary-20250325144346
       gql.tada: 1.8.10(graphql@16.10.0)(typescript@5.1.6)
       graphql: 16.10.0
-      type-fest: 4.35.0
+      type-fest: 4.38.0
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
@@ -8871,9 +8871,9 @@ snapshots:
       traverse: 0.6.10
       tslib: 2.8.1
 
-  '@lens-protocol/storage@0.0.0-canary-20250311124347':
+  '@lens-protocol/storage@0.0.0-canary-20250325144346':
     dependencies:
-      '@lens-protocol/types': 0.0.0-canary-20250311124347
+      '@lens-protocol/types': 0.0.0-canary-20250325144346
       zod: 3.24.2
 
   '@lens-protocol/storage@0.8.1':
@@ -8882,10 +8882,10 @@ snapshots:
       tslib: 2.8.1
       zod: 3.24.2
 
-  '@lens-protocol/types@0.0.0-canary-20250311124347':
+  '@lens-protocol/types@0.0.0-canary-20250325144346':
     dependencies:
       neverthrow: 8.2.0
-      type-fest: 4.35.0
+      type-fest: 4.38.0
 
   '@lit-labs/ssr-dom-shim@1.2.1': {}
 
@@ -9132,12 +9132,12 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@madfi/widgets-react@3.0.20(@lens-chain/storage-client@1.0.3)(@lens-protocol/client@0.0.0-canary-20250311124347(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
+  '@madfi/widgets-react@3.0.20(@lens-chain/storage-client@1.0.3)(@lens-protocol/client@0.0.0-canary-20250325144346(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
     dependencies:
       '@emotion/css': 11.13.5
       '@ethersproject/providers': 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@lens-chain/storage-client': 1.0.3
-      '@lens-protocol/client': 0.0.0-canary-20250311124347(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))
+      '@lens-protocol/client': 0.0.0-canary-20250325144346(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(graphql@16.5.0)(typescript@5.1.6)(viem@2.13.8(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@madfi/lens-oa-client': 0.3.0(@lens-protocol/metadata@2.0.0-next.6(typescript@5.1.6)(zod@3.24.2))(@types/react@18.2.15)(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.10.0)(react@18.2.0)(utf-8-validate@5.0.10)
       '@tanstack/react-query': 5.40.1(react@18.2.0)
       '@types/react': 18.2.15
@@ -9898,7 +9898,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.2.15
 
-  '@rollup/rollup-linux-x64-gnu@4.34.8':
+  '@rollup/rollup-linux-x64-gnu@4.37.0':
     optional: true
 
   '@rushstack/eslint-patch@1.10.4': {}
@@ -10382,16 +10382,16 @@ snapshots:
       graphql: 16.5.0
       wonka: 6.3.4
 
-  '@urql/core@5.1.0(graphql@16.5.0)':
+  '@urql/core@5.1.1(graphql@16.5.0)':
     dependencies:
-      '@0no-co/graphql.web': 1.1.1(graphql@16.5.0)
+      '@0no-co/graphql.web': 1.1.2(graphql@16.5.0)
       wonka: 6.3.4
     transitivePeerDependencies:
       - graphql
 
-  '@urql/exchange-auth@2.2.0(@urql/core@5.1.0(graphql@16.5.0))':
+  '@urql/exchange-auth@2.2.1(@urql/core@5.1.1(graphql@16.5.0))':
     dependencies:
-      '@urql/core': 5.1.0(graphql@16.5.0)
+      '@urql/core': 5.1.1(graphql@16.5.0)
       wonka: 6.3.4
 
   '@vercel/analytics@1.0.0(react@18.2.0)':
@@ -12123,8 +12123,8 @@ snapshots:
       '@typescript-eslint/parser': 6.21.0(eslint@8.16.0)(typescript@5.1.6)
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0)
-      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0)
+      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.16.0)
       eslint-plugin-react: 7.37.2(eslint@8.16.0)
       eslint-plugin-react-hooks: 5.0.0-canary-7118f5dd7-20230705(eslint@8.16.0)
@@ -12147,7 +12147,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.0(supports-color@5.5.0)
@@ -12159,22 +12159,22 @@ snapshots:
       is-glob: 4.0.3
       stable-hash: 0.0.4
     optionalDependencies:
-      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 6.21.0(eslint@8.16.0)(typescript@5.1.6)
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -12184,7 +12184,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       has: 1.0.4
       is-core-module: 2.16.0
       is-glob: 4.0.3
@@ -12722,7 +12722,7 @@ snapshots:
 
   gql.tada@1.8.10(graphql@16.10.0)(typescript@5.1.6):
     dependencies:
-      '@0no-co/graphql.web': 1.1.1(graphql@16.10.0)
+      '@0no-co/graphql.web': 1.1.2(graphql@16.10.0)
       '@0no-co/graphqlsp': 1.12.16(graphql@16.5.0)(typescript@5.1.6)
       '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
@@ -14141,7 +14141,7 @@ snapshots:
 
   neverthrow@8.2.0:
     optionalDependencies:
-      '@rollup/rollup-linux-x64-gnu': 4.34.8
+      '@rollup/rollup-linux-x64-gnu': 4.37.0
 
   next-tick@1.1.0: {}
 
@@ -15724,7 +15724,7 @@ snapshots:
 
   type-fest@0.7.1: {}
 
-  type-fest@4.35.0: {}
+  type-fest@4.38.0: {}
 
   type@2.7.3: {}
 

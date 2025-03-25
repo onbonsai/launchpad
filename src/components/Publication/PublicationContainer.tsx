@@ -227,11 +227,11 @@ const PublicationContainer = ({
   };
 
   const isCollect = useMemo(() => {
-    const simpleCollect = publication?.actions?.find(action => action.__typename === "SimpleCollectAction");
+    const { payToCollect } = publication?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
 
-    if (simpleCollect) {
-      setCollectAmount(simpleCollect.amount?.value);
-      return simpleCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
+    if (payToCollect) {
+      setCollectAmount(payToCollect.amount?.value);
+      return payToCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
     }
 
     return false;

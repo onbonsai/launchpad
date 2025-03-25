@@ -50,11 +50,11 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   // const template = post.metadata.attributes?.find(({ key }) => key === "template");
 
   const isCollect = useMemo(() => {
-    const simpleCollect = post?.actions?.find(action => action.__typename === "SimpleCollectAction");
+    const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
 
-    if (simpleCollect) {
-      setCollectAmount(simpleCollect.amount?.value);
-      return simpleCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
+    if (payToCollect) {
+      setCollectAmount(payToCollect.amount?.value);
+      return payToCollect.amount?.asset.contract.address === PROTOCOL_DEPLOYMENT.lens.Bonsai;
     }
 
     return false;

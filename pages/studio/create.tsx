@@ -177,7 +177,7 @@ const StudioCreatePage: NextPage = () => {
 
       // Check if user was referred
       const referralStatus = await checkReferralStatus(address as string);
-      
+
       // Prepare collect settings
       let recipients: { address: EvmAddress; percent: number }[] = [];
       if (referralStatus?.hasReferrer && !referralStatus?.firstPostUsed) {
@@ -220,12 +220,14 @@ const StudioCreatePage: NextPage = () => {
           tokenAddress,
           actions: [{
             simpleCollect: {
-              amount: {
+              payToCollect: {
+                amount: {
                 currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
                 value: collectAmount.toString() as BigDecimal
               },
               recipients,
               referralShare: 5,
+              }
             }
           }]
         }

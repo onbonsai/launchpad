@@ -10,6 +10,7 @@ export const collectPost = async (
 ): Promise<boolean> => {
   const result = await executePostAction(sessionClient, {
     post: postId(_postId),
+    // TODO: when renamed to payToCollect ?
     action: {
       simpleCollect: {
         selected: true,
