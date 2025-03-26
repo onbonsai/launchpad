@@ -5,6 +5,7 @@ import { Dialog } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import { useSIWE } from "connectkit";
+import { useDisconnect } from 'wagmi'
 
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { Button } from "@src/components/Button";
@@ -15,6 +16,7 @@ import { getProfileImage } from "@src/services/lens/utils";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
+  const { disconnect } = useDisconnect()
   const { profiles, isLoading } = useGetProfiles(address);
   const { data: walletClient } = useWalletClient();
   const {
@@ -27,6 +29,8 @@ const LoginWithLensModal = ({ closeModal }) => {
   } = useLensSignIn(walletClient);
   const { signOut } = useSIWE({
     onSignOut: () => {
+      disconnect();
+
       if (authenticatedProfileId) {
         lensLogout();
         fullRefetch() // invalidate cached query data
@@ -125,7 +129,7 @@ const LoginWithLensModal = ({ closeModal }) => {
             <div className="absolute right-8 bottom-2">
               <span
                 className="link link-hover mb-8"
-                onClick={async () => { await signOut(); closeModal(); }}
+                onClick={async () => { closeModal(); await signOut(); }}
               >
                 Switch wallets
               </span>

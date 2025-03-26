@@ -19,8 +19,6 @@ export const Web3Provider = ({ children }) => {
         signOutOnDisconnect
         signOutOnAccountChange
         signOutOnNetworkChange
-        onSignIn={(session?: SIWESession) => {}}
-        onSignOut={() => {}}
       >
         <ConnectKitProvider>{children}</ConnectKitProvider>
       </siweClient.Provider>

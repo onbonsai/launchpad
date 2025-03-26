@@ -1,6 +1,6 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
 import { useSIWE, useModal, SIWESession } from "connectkit";
 
@@ -50,24 +50,20 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect()
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
   const { setOpen } = useModal();
   const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
-    onSignIn: (session?: SIWESession) => {
-      // pop open the lens login modal once connected and signed in
-      if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
-        setOpenSignInModal(true);
-      }
-    },
     onSignOut: () => {
       const asyncLogout = async () => {
-          await lensLogout();
-          fullRefetch() // invalidate cached query data
-        }
+        await lensLogout();
+        fullRefetch() // invalidate cached query data
+      }
 
-        if ((!!authenticatedProfile?.address)) asyncLogout();
+      disconnect();
+      if ((!!authenticatedProfile?.address)) asyncLogout();
     }
   });
   const router = useRouter();
@@ -75,6 +71,15 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
+
+  useEffect(() => {
+    // pop open the lens login modal once connected and signed in with ethereum
+    if (connected && autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
+      setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 1000);
+    }
+  }, [connected]);
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
@@ -115,7 +120,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       <Button
         variant="accent"
         className="text-base font-medium md:px-4 rounded-xl"
-        onClick={() => !isConnected ? setOpen(true) : handleSignIn()}
+        onClick={() => !isConnected || !connected ? setOpen(true) : handleSignIn()}
         size="md" // This sets the height to 40px and padding appropriately
       >
         Log in
