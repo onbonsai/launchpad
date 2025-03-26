@@ -105,7 +105,7 @@ const StudioCreatePage: NextPage = () => {
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}
-                      className="bg-card-light rounded-xl p-4 relative hover:border-primary transition-colors border border-dark-grey"
+                      className="bg-card-light rounded-xl p-4 flex flex-col border border-dark-grey hover:border-primary transition-colors h-full"
                     >
                       <div className="rounded-xl overflow-hidden mb-4 border border-dark-grey">
                         <Image
@@ -116,18 +116,20 @@ const StudioCreatePage: NextPage = () => {
                           className="w-full h-auto aspect-[1.5/1] object-cover"
                         />
                       </div>
-                      <h3 className="font-semibold text-lg text-primary">{template.displayName}</h3>
-                      <p className="text-sm text-secondary/60">
-                        {template.description}
-                      </p>
-
-                      <div className="flex items-center mt-4 text-xs text-secondary/60">
-                        <button
-                          className="ml-auto bg-primary text-white px-4 py-1 rounded-full text-sm"
-                          onClick={() => selectTemplate(template.name)}
-                        >
-                          Create
-                        </button>
+                      <div className="flex flex-col flex-1">
+                        <h3 className="font-semibold text-lg text-primary">{template.displayName}</h3>
+                        <p className="text-sm text-secondary/60">
+                          {template.description}
+                        </p>
+                        <div className="flex-1" />
+                        <div className="flex justify-end mt-4">
+                          <button
+                            className="bg-primary text-white px-4 py-1 rounded-full text-sm"
+                            onClick={() => selectTemplate(template.name)}
+                          >
+                            Create
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
