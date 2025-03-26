@@ -100,7 +100,7 @@ const StudioCreatePage: NextPage = () => {
                 </div>
 
                 {/* Templates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div

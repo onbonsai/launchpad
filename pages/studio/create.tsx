@@ -222,11 +222,11 @@ const StudioCreatePage: NextPage = () => {
             simpleCollect: {
               payToCollect: {
                 amount: {
-                currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
-                value: collectAmount.toString() as BigDecimal
-              },
-              recipients,
-              referralShare: 5,
+                  currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
+                  value: collectAmount.toString() as BigDecimal
+                },
+                recipients,
+                referralShare: 5,
               }
             }
           }]

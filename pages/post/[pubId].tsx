@@ -53,7 +53,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState(publication?.operations?.hasSimpleCollected);
+  const [canComment, setCanComment] = useState(true); // publication?.operations?.hasSimpleCollected);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
 
@@ -80,7 +80,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   };
 
   useEffect(() => {
-    setCanComment(publication?.operations?.hasSimpleCollected);
+    setCanComment(true); //publication?.operations?.hasSimpleCollected);
   }, [publication]);
 
   const isLoadingPage = useMemo(() => {
@@ -140,7 +140,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
     setIsCommenting(true);
 
-    const toastId = toast.loading("Preparing comment...");
+    const toastId = toast.loading("Sending reply...");
     try {
       let asset = {};
       if (files?.length) {
@@ -161,7 +161,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       setFiles([]);
       setReplyingToComment(null);
 
-      toast.success("Commented", { id: toastId, duration: 3000 });
+      toast.success("Sent", { id: toastId, duration: 3000 });
 
       setTimeout(fetchComments, 3000);
     } catch (error) {
@@ -251,7 +251,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                  placeholder={canComment ? "Add a comment to participate" : "Collect the post to participate"}
+                  placeholder={canComment ? "Participate by replying" : "Collect the post to participate"}
                   disabled={!canComment}
                   onFocus={() => setInputFocused(true)}
                   onBlur={(e) => {
@@ -273,7 +273,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 <div className="flex justify-end gap-y-2 -mt-2">
                   <div className="mt-3">
                     <ActionButton
-                      label="Comment"
+                      label="Reply"
                       disabled={isCommenting || !comment}
                       onClick={submitComment}
                       theme={Theme.dark}
@@ -316,39 +316,39 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                       media={media}
                       onCollectCallback={() => setCanComment(true)}
                       sideBySideMode={true}
-                      nestedWidget={<div className=""><Publications
-                        publications={sortedComments}
-                        theme={Theme.dark}
-                        environment={LENS_ENVIRONMENT}
-                        authenticatedProfile={authenticatedProfile}
-                        hideCommentButton={false}
-                        hideQuoteButton={true}
-                        hideShareButton={true}
-                        hasUpvotedComment={hasUpvotedComment}
-                        onLikeButtonClick={onLikeButtonClick}
-                        getOperationsFor={getOperationsFor}
-                        profilePictureStyleOverride={commentPublicationProfilePictureStyle}
-                        containerBorderRadius={'24px'}
-                        containerPadding={'12px'}
-                        profilePadding={'0 0 0 0'}
-                        textContainerStyleOverride={commentTextContainerStyleOverrides}
-                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                        mediaImageStyleOverride={mediaImageStyleOverride}
-                        imageContainerStyleOverride={imageContainerStyleOverride}
-                        reactionsContainerStyleOverride={commentReactionsContainerStyleOverride}
-                        reactionContainerStyleOverride={reactionContainerStyleOverride}
-                        publicationContainerStyleOverride={publicationContainerStyleOverride}
-                        shareContainerStyleOverride={shareContainerStyleOverride}
-                        profileNameStyleOverride={commentProfileNameStyleOverride}
-                        dateNameStyleOverride={commentDateStyleOverride}
-                        markdownStyleBottomMargin={'0px'}
-                        heartIconOverride={true}
-                        messageIconOverride={true}
-                        shareIconOverride={true}
-                        followButtonDisabled={true}
-                      />
-                      {/* <CommentBox /> */}
-                      </div>}
+                    //   nestedWidget={<div className=""><Publications
+                    //     publications={sortedComments}
+                    //     theme={Theme.dark}
+                    //     environment={LENS_ENVIRONMENT}
+                    //     authenticatedProfile={authenticatedProfile}
+                    //     hideCommentButton={false}
+                    //     hideQuoteButton={true}
+                    //     hideShareButton={true}
+                    //     hasUpvotedComment={hasUpvotedComment}
+                    //     onLikeButtonClick={onLikeButtonClick}
+                    //     getOperationsFor={getOperationsFor}
+                    //     profilePictureStyleOverride={commentPublicationProfilePictureStyle}
+                    //     containerBorderRadius={'24px'}
+                    //     containerPadding={'12px'}
+                    //     profilePadding={'0 0 0 0'}
+                    //     textContainerStyleOverride={commentTextContainerStyleOverrides}
+                    //     backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                    //     mediaImageStyleOverride={mediaImageStyleOverride}
+                    //     imageContainerStyleOverride={imageContainerStyleOverride}
+                    //     reactionsContainerStyleOverride={commentReactionsContainerStyleOverride}
+                    //     reactionContainerStyleOverride={reactionContainerStyleOverride}
+                    //     publicationContainerStyleOverride={publicationContainerStyleOverride}
+                    //     shareContainerStyleOverride={shareContainerStyleOverride}
+                    //     profileNameStyleOverride={commentProfileNameStyleOverride}
+                    //     dateNameStyleOverride={commentDateStyleOverride}
+                    //     markdownStyleBottomMargin={'0px'}
+                    //     heartIconOverride={true}
+                    //     messageIconOverride={true}
+                    //     shareIconOverride={true}
+                    //     followButtonDisabled={true}
+                    //   />
+                    //   <CommentBox />
+                    // </div>}
                     />
                   </div>
                   <div className="sm:hidden">
@@ -398,7 +398,9 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 followButtonDisabled={true}
                 onProfileClick={goToCreatorPage}
               />
-              <CommentBox />
+              <div className="mt-4">
+                <CommentBox />
+              </div>
             </div>
           </div>
         </section>
