@@ -5,7 +5,6 @@ import { useMemo, useState, ReactNode, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
-import { usePrivy } from "@privy-io/react-auth";
 import toast from 'react-hot-toast';
 
 import { Modal } from "@src/components/Modal";
@@ -28,6 +27,7 @@ import { ShareClub } from '@src/pagesComponents/Club';
 import { capitalizeFirstLetter } from '@src/utils/utils';
 import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
+import { useSIWE } from 'connectkit';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
@@ -100,7 +100,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 }: TokenPageProps) => {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
-  const { ready } = usePrivy();
+  const { isReady: ready } = useSIWE();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);

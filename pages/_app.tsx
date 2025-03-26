@@ -6,10 +6,7 @@ import "@styles/globals.css";
 import "@styles/calendar-override.css";
 import { HotkeysProvider } from "react-hotkeys-hook";
 import { Analytics } from "@vercel/analytics/react";
-import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider } from "@privy-io/wagmi";
-import { keepPreviousData, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { base, baseSepolia } from "viem/chains";
+import { keepPreviousData, QueryClient } from "@tanstack/react-query";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
@@ -17,14 +14,12 @@ import { BoxThemeProvider } from "@decent.xyz/the-box";
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
-import { configureChainsConfig } from "@utils/wagmi";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { inter } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
-import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { useRouter } from "next/router.js";
-import { SinglePageLayout } from "@src/components/Layouts/Layout/SinglePageLayout";
+import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,66 +78,46 @@ export default function MyApp(props: AppProps) {
   }, [isSDKLoaded]);
 
   return (
-    <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
-      // onSuccess={handleLogin}
-      config={{
-        appearance: {
-          theme: "dark",
-          accentColor: "#eb4d30",
-          walletList: ["detected_wallets", "rainbow", "coinbase_wallet", "wallet_connect" /*'farcaster'*/],
-        },
-        defaultChain: IS_PRODUCTION ? lens : lensTestnet,
-        supportedChains: IS_PRODUCTION ? [lens, base] : [lensTestnet, baseSepolia],
-        embeddedWallets: {
-          createOnLogin: "users-without-wallets",
-          noPromptOnSignature: true,
-        },
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={configureChainsConfig}>
-          <HandleSEO pageProps={pageProps} />
-          <ThemeProvider>
-            <ClubsProvider>
-              <Head>
-                <meta name="viewport" content="initial-scale=1, width=device-width" />
-              </Head>
-              <HotkeysProvider>
-                <Toaster
-                  position="bottom-right"
-                  toastOptions={{
-                    style: {
-                      backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                      color: "white",
-                      fontFamily: inter.style.fontFamily,
-                      zIndex: 1001,
-                    },
-                  }}
-                >
-                  {(t) => (
-                    <ToastBar toast={t}>
-                      {({ icon, message }) => (
-                        <>
-                          {icon}
-                          {message}
-                        </>
-                      )}
-                    </ToastBar>
+    <Web3Provider>
+      <HandleSEO pageProps={pageProps} />
+      <ThemeProvider>
+        <ClubsProvider>
+          <Head>
+            <meta name="viewport" content="initial-scale=1, width=device-width" />
+          </Head>
+          <HotkeysProvider>
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                  color: "white",
+                  fontFamily: inter.style.fontFamily,
+                  zIndex: 1001,
+                },
+              }}
+            >
+              {(t) => (
+                <ToastBar toast={t}>
+                  {({ icon, message }) => (
+                    <>
+                      {icon}
+                      {message}
+                    </>
                   )}
-                </Toaster>
-                <NextNProgress color={"#7B0100"} height={2} />
-                <AppLayout>
-                  <BoxThemeProvider theme={boxTheme}>
-                    <Component {...pageProps} />
-                  </BoxThemeProvider>
-                </AppLayout>
-                <Analytics />
-              </HotkeysProvider>
-            </ClubsProvider>
-          </ThemeProvider>
-        </WagmiProvider>
-      </QueryClientProvider>
-    </PrivyProvider>
+                </ToastBar>
+              )}
+            </Toaster>
+            <NextNProgress color={"#7B0100"} height={2} />
+            <AppLayout>
+              <BoxThemeProvider theme={boxTheme}>
+                <Component {...pageProps} />
+              </BoxThemeProvider>
+            </AppLayout>
+            <Analytics />
+          </HotkeysProvider>
+        </ClubsProvider>
+      </ThemeProvider>
+    </Web3Provider>
   );
 }

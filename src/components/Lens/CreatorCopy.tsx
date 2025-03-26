@@ -4,7 +4,7 @@ import { ConnectButton } from "@components/ConnectButton";
 import { Modal } from "@src/components/Modal";
 import LoginWithLensModal from "./LoginWithLensModal";
 import { Header2, Subtitle } from "@src/styles/text";
-import { usePrivy } from "@privy-io/react-auth";
+import { useSIWE } from "connectkit";
 
 interface CreatorCopyProps {
   isConnected: boolean;
@@ -13,7 +13,7 @@ interface CreatorCopyProps {
 
 export default function CreatorCopy(props: CreatorCopyProps) {
   const { isConnected, isAuthenticatedProfile } = props;
-  const { authenticated: connected } = usePrivy();
+  const { isSignedIn: connected } = useSIWE();
   const [openSignInModal, setOpenSignInModal] = useState(false);
 
   return (

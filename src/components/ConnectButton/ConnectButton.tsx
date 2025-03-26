@@ -1,9 +1,8 @@
 import { FC, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
 import { useAccount, useWalletClient } from "wagmi";
-import { useLogout, usePrivy } from '@privy-io/react-auth';
-import { useLogin } from '@privy-io/react-auth';
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
+import { useSIWE, useModal, SIWESession } from "connectkit";
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";
@@ -54,15 +53,23 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
-  const { ready, authenticated: connected } = usePrivy();
-  const { login } = useLogin({
-    onComplete: (user, isNewUser, wasAlreadyAuthenticated) => {
-      // pop open the lens login modal once connected
-      if (autoLensLogin && !wasAlreadyAuthenticated && setOpenSignInModal && isAuthenticated === false) {
+  const { setOpen } = useModal();
+  const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
+    onSignIn: (session?: SIWESession) => {
+      // pop open the lens login modal once connected and signed in
+      if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
         setOpenSignInModal(true);
       }
+    },
+    onSignOut: () => {
+      const asyncLogout = async () => {
+          await lensLogout();
+          fullRefetch() // invalidate cached query data
+        }
+
+        if ((!!authenticatedProfile?.address)) asyncLogout();
     }
-  })
+  });
   const router = useRouter();
 
   const {
@@ -96,17 +103,10 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     setAnchorEl(null);
   };
 
-  const { logout } = useLogout({
-    onSuccess: () => {
-      const asyncLogout = async () => {
-        await lensLogout();
-        fullRefetch() // invalidate cached query data
-      }
-      if ((!!authenticatedProfile?.address)) {
-        asyncLogout();
-      }
-    },
-  })
+  // need this to trigger the onSignIn callback
+  const handleSignIn = async () => {
+    await signIn()?.then((session?: SIWESession) => {});
+  };
 
   if (!ready && !connected) return null;
 
@@ -115,7 +115,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       <Button
         variant="accent"
         className="text-base font-medium md:px-4 rounded-xl"
-        onClick={login}
+        onClick={() => !isConnected ? setOpen(true) : handleSignIn()}
         size="md" // This sets the height to 40px and padding appropriately
       >
         Log in
@@ -181,7 +181,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
           </MenuItem>
         )}
         <MenuItem onClick={() => {
-          logout();
+          signOut();
           handleClose();
         }}>Log out</MenuItem>
       </Menu>

@@ -7,9 +7,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
-import { usePrivy } from "@privy-io/react-auth";
 import { last } from "lodash/array";
-import { useLogout } from '@privy-io/react-auth';
 import Image from "next/image";
 import Link from "next/link";
 
@@ -36,6 +34,7 @@ import { useFollowersYouKnow } from '@src/hooks/useFollowersYouKnow';
 import { FollowersYouKnow } from '@src/components/Profile/FollowersYouKnow';
 import { getAccountStats } from "@src/services/lens/getStats";
 import toast from 'react-hot-toast';
+import { useSIWE } from 'connectkit';
 
 interface CreatorPageProps {
   profile: any;
@@ -80,7 +79,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { ready } = usePrivy();
+  const { isReady: ready } = useSIWE();
   const {
     // signInWithLens,
     signingIn,
@@ -98,19 +97,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const [mobileView, setMobileView] = useState('profile');
 
   const { profileData, isLoading: isLoadingProfile, refetch } = useProfileWithSession(profile?.username?.localName);
-  
-  const {
-    fullRefetch,
-  } = useLensSignIn(walletClient);
-
-  const { logout } = useLogout({
-    onSuccess: () => {
-      if ((!!authenticatedProfile?.id)) {
-        lensLogout();
-        fullRefetch() // invalidate cached query data
-      }
-    },
-  })
 
   const { data: bonsaiBalance, isLoading: isLoadingBalance } = useReadContract({
     address: BONSAI_TOKEN_BASE_ADDRESS,
@@ -208,7 +194,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
       } else {
         await followProfile(sessionClient, profile.address);
       }
-      
+
       // Refetch profile data to update follow status
       setTimeout(() => {
         refetch();
@@ -271,32 +257,31 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                       </p>
                       <div className='mt-5 flex flex-col gap-5'>
                         <div className='flex gap-5'>
-                          <div className='flex flex-col gap-[2px]'>
+                          <div className='flex flex-col gap-[2px] gap-y-2'>
                             <Subtitle>Following</Subtitle>
                             <BodySemiBold>{followingCount() ?? 0}</BodySemiBold>
                           </div>
-                          <div className='flex flex-col gap-[2px]'>
+                          <div className='flex flex-col gap-[2px] gap-y-2'>
                             <Subtitle>Followers</Subtitle>
                             <BodySemiBold>{followerCount() ?? 0}</BodySemiBold>
                           </div>
                         </div>
-                        
+
                         {/* Add the FollowersYouKnow component */}
                         {!isLoadingFollowers && followersYouKnow.length > 0 && (
-                          <FollowersYouKnow 
+                          <FollowersYouKnow
                             followers={followersYouKnow}
                             className="mt-2"
                           />
                         )}
                       </div>
-                      {isProfileAdmin && hasBenefits && !isLoadingBalance && (
+                      {/* {isProfileAdmin && hasBenefits && !isLoadingBalance && (
                         <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
                           <BodySemiBold>Active Bonsai NFT Perks</BodySemiBold>
                           <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
                             <ListItemCard items={[
                               "0% fees on bonding curves",
                               "0% fees on Uni v4 pools",
-                              `Created tokens are auto-featured for ${BENEFITS_AUTO_FEATURE_HOURS}h`,
                               <>
                                 Access to the{" "}<Link href="https://orb.club/c/bonsairooftop" passHref target="_blank">
                                   <span className="link link-hover">Rooftop Club</span>
@@ -305,7 +290,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                             ]} />
                           </span>
                         </div>
-                      )}
+                      )} */}
                       {/* Show follow button if not admin */}
                       {!isProfileAdmin && (
                         <FollowButton
@@ -315,15 +300,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                         />
                       )}
                     </div>
-                    {isProfileAdmin && <Button
-                      className="mt-6"
-                      size="sm"
-                      onClick={() => {
-                        logout();
-                        router.push(`/`);
-                      }}>
-                      Log out
-                    </Button>}
                   </div>
                 </div>
               </div>

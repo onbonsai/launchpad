@@ -3,7 +3,7 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 import { lensClient } from "@src/services/lens/client";
 
-import { type Account, evmAddress } from "@lens-protocol/client";
+import { type Account, evmAddress, SessionClient } from "@lens-protocol/client";
 import { currentSession, fetchAccountsAvailable } from "@lens-protocol/client/actions";
 import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
 import { WalletClient } from "viem";
@@ -19,7 +19,6 @@ export const fetchAvailableAccounts = async (address: string) => {
 export const resumeSession = async (refreshTokens = false) => {
   const resumed = await lensClient.resumeSession();
   if (resumed.isErr()) {
-    console.error(resumed.error);
     return;
   }
   const sessionClient = resumed.value;
@@ -30,13 +29,17 @@ export const resumeSession = async (refreshTokens = false) => {
 };
 
 export const getAuthenticatedProfile = async (): Promise<Account | null> => {
-  const sessionClient = await resumeSession();
-  if (!sessionClient) return null;
+  let sessionClient: SessionClient | undefined;
+  try {
+    sessionClient = await resumeSession();
+    if (!sessionClient) return null;
+  } catch {
+    return null;
+  }
 
   const result = await currentSession(sessionClient);
 
   if (result.isErr()) {
-    console.error(result.error);
     return null;
   }
 

@@ -1,13 +1,13 @@
-import { http } from "wagmi";
+import { http, createConfig } from "wagmi";
 import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
-import { createConfig } from "@privy-io/wagmi";
-import { providers } from "ethers";
+import { getDefaultConfig } from "connectkit";
 
 import { ChainRpcs } from "@src/constants/chains";
 import { frameConnector } from "./connector";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
-export const configureChainsConfig = createConfig({
+export const config = getDefaultConfig({
   chains: [lens, lensTestnet, polygon, base, baseSepolia, mainnet, zkSync],
   transports: {
     [lens.id]: http(ChainRpcs[lens.id]),
@@ -18,17 +18,14 @@ export const configureChainsConfig = createConfig({
     [mainnet.id]: http(),
     [zkSync.id]: http(ChainRpcs[zkSync.id]),
   },
-  connectors: [frameConnector()],
+  // TOOD: not working with new connectkit setup
+  // connectors: [frameConnector()],
+  walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
+  appName: "Bonsai",
+  appDescription: "Create autonomous, agentic content on Lens",
+  appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.bonsai.meme",
+  appIcon: "/static/images/logo.png", // IS_PRODUCTION ? "https://app.onbons.ai/static/images/logo.png" : "https://testnet.bonsai.meme/static/images/logo.png",
 });
 
-export function walletClientToSigner(walletClient: any) {
-  const { account, chain, transport } = walletClient;
-  if (!chain) return;
-  const network = {
-    chainId: chain.id,
-    name: chain.name,
-    ensAddress: chain.contracts?.ensRegistry?.address,
-  };
-  const provider = new providers.Web3Provider(transport, network);
-  return provider.getSigner(account.address);
-}
+
+export const configureChainsConfig = createConfig(config);

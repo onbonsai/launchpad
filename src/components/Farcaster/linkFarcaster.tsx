@@ -1,13 +1,15 @@
 import { Dialog } from "@headlessui/react";
-import { usePrivy } from "@privy-io/react-auth";
 
 import { Button } from "@src/components/Button";
 
 const LinkFarcaster = ({ text }) => {
-  const {
-    linkFarcaster,
-    user: { farcaster },
-  } = usePrivy();
+  // NO LONGER USING PRIVY
+  // const {
+  //   linkFarcaster,
+  //   user: { farcaster },
+  // } = usePrivy();
+
+  return null;
 
   return (
     <div className="flex flex-col w-full mt-8">

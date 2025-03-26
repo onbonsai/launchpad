@@ -46,7 +46,7 @@ export default (walletClient: any): LensSignInReturnType => {
 
       fullRefetch();
 
-      toast.success("Signed in with Lens", { id: toastId });
+      toast.success("Logged in", { id: toastId });
     } catch {
       toast.error("Unable to sign in", { id: toastId });
     }

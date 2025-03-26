@@ -298,7 +298,7 @@ const PublicationContainer = ({
   }
 
   return (
-    <div className={`mt-4 relative flex justify-center max-h-60vh ${minWidth}`}>
+    <div className={`mb-4 relative flex justify-center max-h-60vh ${minWidth}`}>
       <PublicationType
         key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
         publicationId={publication?.id ? publication!.id : publicationId}

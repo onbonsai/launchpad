@@ -3,8 +3,8 @@ import { useAccount, useWalletClient } from "wagmi";
 import { useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
-import { useLogout } from '@privy-io/react-auth';
 import clsx from "clsx";
+import { useSIWE } from "connectkit";
 
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { Button } from "@src/components/Button";
@@ -25,14 +25,14 @@ const LoginWithLensModal = ({ closeModal }) => {
     selectedProfileId,
     fullRefetch,
   } = useLensSignIn(walletClient);
-  const { logout } = useLogout({
-    onSuccess: () => {
+  const { signOut } = useSIWE({
+    onSignOut: () => {
       if (authenticatedProfileId) {
         lensLogout();
         fullRefetch() // invalidate cached query data
       }
-    },
-  })
+    }
+  });
 
   useEffect(() => {
     if (selectedProfileId) { // triggered when we select a profile
@@ -58,7 +58,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   return (
     <div className={clsx("flex flex-col w-full mt-8", inter.className)}>
       <Dialog.Title as="h2" className="text-3xl text-center font-bold">
-        {`${!profiles || !profiles.length ? 'No Profile found' : 'Choose a Profile'}`}
+        {`${!profiles || !profiles.length ? 'No Profile found' : 'Your profiles'}`}
       </Dialog.Title>
       <div className="max-w-full flex flex-col gap-4 pt-4">
         {
@@ -125,7 +125,7 @@ const LoginWithLensModal = ({ closeModal }) => {
             <div className="absolute right-8 bottom-2">
               <span
                 className="link link-hover mb-8"
-                onClick={async () => { await logout(); closeModal(); }}
+                onClick={async () => { await signOut(); closeModal(); }}
               >
                 Switch wallets
               </span>
