@@ -1,5 +1,5 @@
 import { BookmarkAddOutlined, BookmarkOutlined, BookmarkBorder, MoreHoriz } from "@mui/icons-material";
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useMemo, useState, useRef } from "react"
 import { switchChain } from "@wagmi/core";
 import { Account, Post } from "@lens-protocol/client";
 import toast from "react-hot-toast";
@@ -15,7 +15,6 @@ import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
-import { clsx } from "clsx";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -52,6 +51,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const collectButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
+  const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
   // const template = post.metadata.attributes?.find(({ key }) => key === "template");
 
   const isCollect = useMemo(() => {
@@ -194,17 +194,21 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             showDropdown={showDropdown}
             setShowDropdown={setShowDropdown}
             anchorEl={dropdownButtonRef.current}
-            placement={"top-end"}
+            placement="top-end"
+            postId={post.id}
+            postSlug={post.slug}
+            isCreator={post.author.address === authenticatedProfile?.address}
+            mediaUrl={mediaUrl?.value}
           />
         </div>
       </div>
 
       {/* Bottom overlay LEFT */}
       <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
-        <div className={`rounded-full bg-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
+        <div className={`rounded-full bg-dark-grey text-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
           <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1 pointer-events-none">
-            {hasCollected ? <BookmarkOutlined sx={{ color: '#000', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#000', fontSize: '1rem' }}/>}
-            {post.stats.collects > 0 ? <Subtitle className="text-base text-black">{post.stats.collects}</Subtitle> : null}
+            {hasCollected ? <BookmarkOutlined sx={{ color: '#fff', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#fff', fontSize: '1rem' }}/>}
+            {post.stats.collects > 0 ? <Subtitle className="text-base">{post.stats.collects || 0}</Subtitle> : null}
           </div>
           {!!postData?.actors?.length && (
             <Tooltip message={collectorsText} direction="top" classNames="z-100">

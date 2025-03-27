@@ -9,11 +9,10 @@ import clsx from 'clsx';
 import { inter } from "@src/fonts/fonts";
 import WalletButton from "../Creators/WalletButton";
 
-const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting, isMedia, account, showCollectModal }) => {
+const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setShowCollectModal, isCollecting, isMedia, account, showCollectModal }) => {
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
     e.stopPropagation();
     callback?.();
-    onClose();
   };
 
   const handleClickAway = (event: MouseEvent | TouchEvent) => {
@@ -22,7 +21,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
     if (popperElement?.contains(event.target as Node)) {
       return; // Don't close if clicking within the Popper
     }
-    onClose();
+    setShowCollectModal(false);
   };
 
   const bonsaiBalanceFormatted = useMemo(() => (
@@ -41,16 +40,18 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
   const insufficientFunds = bonsaiBalance < collectAmountBn;
 
   useEffect(() => {
+    if (!showCollectModal) return;
+
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        setShowCollectModal(false);
       }
     };
     window.addEventListener('keydown', handleEsc);
     return () => {
       window.removeEventListener('keydown', handleEsc);
     };
-  }, [onClose]);
+  }, [showCollectModal, setShowCollectModal]);
 
   return (
     <Popper

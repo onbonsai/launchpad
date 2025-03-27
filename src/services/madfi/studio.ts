@@ -183,3 +183,22 @@ export const useResolveSmartMedia = (
     enabled: !!postId && !!attributes,
   });
 };
+
+export const requestPostUpdate = async (url: string, postSlug: string, idToken: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${url}/post/${postSlug}/update`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      }
+    });
+
+    if (!response.ok) throw new Error(`Post update failed: ${response.statusText}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error requestPostUpdate::", error);
+    return false;
+  }
+}

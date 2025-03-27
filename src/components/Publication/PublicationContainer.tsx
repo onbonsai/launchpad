@@ -388,20 +388,28 @@ const PublicationContainer = ({
           <MoreHoriz sx={{ color: '#fff' }} />
         </Button>
       </div>
-      {showCollectModal && (
-        <CollectModal
-          onCollect={onCollect}
-          bonsaiBalance={bonsaiBalance}
-          collectAmount={collectAmount}
-          anchorEl={collectAnchorElement}
-          onClose={() => setShowCollectModal(false)}
-          isCollecting={isCollecting}
-          isMedia={media?.agentId}
-          account={authenticatedProfile?.address}
-        />
-      )}
+      <CollectModal
+        onCollect={onCollect}
+        bonsaiBalance={bonsaiBalance}
+        collectAmount={collectAmount}
+        anchorEl={collectAnchorElement}
+        isCollecting={isCollecting}
+        isMedia={media?.agentId}
+        account={authenticatedProfile?.address}
+        showCollectModal={showCollectModal}
+        setShowCollectModal={setShowCollectModal}
+      />
 
-      <DropdownMenu showDropdown={showDropdown} setShowDropdown={setShowDropdown} anchorEl={dropdownButtonRef.current} />
+      <DropdownMenu
+        showDropdown={showDropdown}
+        setShowDropdown={setShowDropdown}
+        anchorEl={dropdownButtonRef.current}
+        placement="top-end"
+        postId={publication.id}
+        postSlug={publication.slug}
+        isCreator={publication?.author.address === authenticatedProfile?.address}
+        mediaUrl={publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value}
+      />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
