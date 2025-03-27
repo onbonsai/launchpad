@@ -1,11 +1,11 @@
-import { useMemo, useState, ReactNode } from "react";
+import { useMemo, useState, ReactNode, useRef } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
-import { BookmarkAddOutlined, BookmarkOutlined } from "@mui/icons-material";
+import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -23,6 +23,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import type { SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
+import DropdownMenu from "./DropdownMenu";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -89,6 +90,8 @@ const PublicationContainer = ({
   const [isCollecting, setIsCollecting] = useState(false);
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -350,7 +353,7 @@ const PublicationContainer = ({
         messageIconOverride={true}
         shareIconOverride={true}
         nestedWidget={nestedWidget}
-        onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
+        // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && sideBySideMode && (
         <div className="absolute right-4 top-2">
@@ -374,6 +377,17 @@ const PublicationContainer = ({
           </Button>
         </div>
       )}
+      <div className="absolute right-4 bottom-4">
+        <Button
+          ref={dropdownButtonRef}
+          variant="dark-grey"
+          size="sm"
+          className={"text-sm font-bold rounded-xl gap-x-1 md:px-1 py-[6px]"}
+          onClick={(e) => { setShowDropdown(!showDropdown) }}
+        >
+          <MoreHoriz sx={{ color: '#fff' }} />
+        </Button>
+      </div>
       {showCollectModal && (
         <CollectModal
           onCollect={onCollect}
@@ -386,6 +400,8 @@ const PublicationContainer = ({
           account={authenticatedProfile?.address}
         />
       )}
+
+      <DropdownMenu showDropdown={showDropdown} setShowDropdown={setShowDropdown} anchorEl={dropdownButtonRef.current} />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">

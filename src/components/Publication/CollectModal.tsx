@@ -9,7 +9,22 @@ import clsx from 'clsx';
 import { inter } from "@src/fonts/fonts";
 import WalletButton from "../Creators/WalletButton";
 
-const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting, isMedia, account }) => {
+const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClose, isCollecting, isMedia, account, showCollectModal }) => {
+  const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
+    e.stopPropagation();
+    callback?.();
+    onClose();
+  };
+
+  const handleClickAway = (event: MouseEvent | TouchEvent) => {
+    // Check if the click target is part of the Popper
+    const popperElement = document.querySelector('[data-popper-placement]');
+    if (popperElement?.contains(event.target as Node)) {
+      return; // Don't close if clicking within the Popper
+    }
+    onClose();
+  };
+
   const bonsaiBalanceFormatted = useMemo(() => (
     kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)), true)
   ), [bonsaiBalance]);
@@ -39,13 +54,44 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
 
   return (
     <Popper
-      open={Boolean(anchorEl)}
+      open={showCollectModal}
       anchorEl={anchorEl}
       placement="bottom-start"
-      style={{ zIndex: 1400 }}
+      className="z-50 pt-2"
+      modifiers={[
+        {
+          name: 'eventListeners',
+          options: {
+            scroll: false,
+            resize: true,
+          },
+        },
+      ]}
     >
-      <ClickAwayListener onClickAway={onClose}>
-        <div className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4", inter.className, "font-sf-pro-text")}>
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <div
+          className={clsx(
+            "mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4",
+            inter.className,
+            "font-sf-pro-text"
+          )}
+          onClick={(e) => e.stopPropagation()}
+          onMouseEnter={(e) => {
+            e.stopPropagation();
+            const parentGroup = anchorEl?.closest('.group');
+            if (parentGroup) {
+              parentGroup.classList.add('hover');
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showCollectModal) {
+              const parentGroup = anchorEl?.closest('.group');
+              if (parentGroup) {
+                parentGroup.classList.remove('hover');
+              }
+            }
+          }}
+        >
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-md">
@@ -57,7 +103,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, onClo
             variant="accent"
             className="w-full md:mb-0 text-base gap-x-1"
             disabled={isCollecting || collectAmountBn > bonsaiBalance}
-            onClick={onCollect}
+            onClick={(e) => handleButtonClick(e, onCollect)}
           >
             <BookmarkAddOutlined /> {bonsaiCostFormatted} $BONSAI
           </Button>

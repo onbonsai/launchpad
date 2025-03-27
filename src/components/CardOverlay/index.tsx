@@ -14,6 +14,8 @@ import CollectModal from "@src/components/Publication/CollectModal";
 import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
+import DropdownMenu from "../Publication/DropdownMenu";
+import { clsx } from "clsx";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -21,10 +23,12 @@ interface CardOverlayProps {
   post: Post;
   postData?: { actors: any[] };
   onShare?: () => void;
-  onHide?: () => void;
-  onReport?: () => void;
   onClick?: () => void;
   className?: string;
+  showDropdown: boolean;
+  setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>;
+  showCollectModal: boolean;
+  setShowCollectModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const CardOverlay: React.FC<CardOverlayProps> = ({
@@ -33,19 +37,20 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   post,
   postData,
   onShare,
-  onHide,
-  onReport,
   onClick,
   className = "",
+  showDropdown,
+  setShowDropdown,
+  showCollectModal,
+  setShowCollectModal
 }) => {
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [collectAmount, setCollectAmount] = useState<string>();
-  const [showCollectModal, setShowCollectModal] = useState(false);
   const [isCollecting, setIsCollecting] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [hasCollected, setHasCollected] = useState<boolean>(post.operations?.hasSimpleCollected || false);
   const collectButtonRef = useRef<HTMLButtonElement>(null);
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   // const template = post.metadata.attributes?.find(({ key }) => key === "template");
 
@@ -75,18 +80,6 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
     setShowCollectModal(false);
     setShowDropdown(false);
   };
-
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (showDropdown && event.key === 'Escape') {
-        setShowDropdown(false);
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [showDropdown]);
 
   const onCollect = async () => {
     if (hasCollected) return;
@@ -185,18 +178,24 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               )}
             </Button>
           )}
-          {showCollectModal && (
-            <CollectModal
-              onCollect={onCollect}
-              bonsaiBalance={bonsaiBalance}
-              collectAmount={collectAmount}
-              anchorEl={collectButtonRef.current}
-              onClose={() => setShowCollectModal(false)}
-              isCollecting={isCollecting}
-              isMedia
-              account={authenticatedProfile?.address}
-            />
-          )}
+          <CollectModal
+            showCollectModal={showCollectModal}
+            onCollect={onCollect}
+            bonsaiBalance={bonsaiBalance}
+            collectAmount={collectAmount}
+            anchorEl={collectButtonRef.current}
+            onClose={() => setShowCollectModal(false)}
+            isCollecting={isCollecting}
+            isMedia
+            account={authenticatedProfile?.address}
+          />
+
+          <DropdownMenu
+            showDropdown={showDropdown}
+            setShowDropdown={setShowDropdown}
+            anchorEl={dropdownButtonRef.current}
+            placement={"top-end"}
+          />
         </div>
       </div>
 
@@ -235,6 +234,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
 
         <div className="relative">
           <button
+            ref={dropdownButtonRef}
             className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
@@ -243,29 +243,6 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
           >
             <MoreHoriz sx={{ color: '#000' }} />
           </button>
-
-          {showDropdown && (
-            <div
-              className="absolute bottom-12 right-0 w-48 bg-dark-grey rounded-xl shadow-lg overflow-clip"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* <div className="py-2 px-4 text-center border-b border-gray-100">
-                <p className="text-sm text-gray-700">This Pin was inspired by your recent activity</p>
-              </div> */}
-              <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
-                onClick={(e) => handleButtonClick(e, onHide)}
-              >
-                Not Interested
-              </button>
-              <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
-                onClick={(e) => handleButtonClick(e, onReport)}
-              >
-                Report
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -168,6 +168,9 @@ importers:
       oauth-1.0a:
         specifier: ^2.2.6
         version: 2.2.6
+      promise-limit:
+        specifier: ^2.7.0
+        version: 2.7.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -4196,6 +4199,9 @@ packages:
     resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
     engines: {node: '>= 0.6.0'}
 
+  promise-limit@2.7.0:
+    resolution: {integrity: sha512-7nJ6v5lnJsXwGprnGXga4wx6d1POjvi5Qmf1ivTRxTjH4Z/9Czja/UCMLVmB9N93GeWOU93XaFaEt6jbuoagNw==}
+
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
@@ -5416,10 +5422,10 @@ snapshots:
     optionalDependencies:
       graphql: 16.5.0
 
-  '@0no-co/graphqlsp@1.12.16(graphql@16.5.0)(typescript@5.1.6)':
+  '@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6)':
     dependencies:
-      '@gql.tada/internal': 1.0.8(graphql@16.5.0)(typescript@5.1.6)
-      graphql: 16.5.0
+      '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
+      graphql: 16.10.0
       typescript: 5.1.6
 
   '@adraffy/ens-normalize@1.10.0': {}
@@ -6110,21 +6116,15 @@ snapshots:
 
   '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)':
     dependencies:
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.5.0)(typescript@5.1.6)
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.1.6)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
       graphql: 16.10.0
       typescript: 5.1.6
 
   '@gql.tada/internal@1.0.8(graphql@16.10.0)(typescript@5.1.6)':
     dependencies:
-      '@0no-co/graphql.web': 1.1.2(graphql@16.5.0)
+      '@0no-co/graphql.web': 1.1.2(graphql@16.10.0)
       graphql: 16.10.0
-      typescript: 5.1.6
-
-  '@gql.tada/internal@1.0.8(graphql@16.5.0)(typescript@5.1.6)':
-    dependencies:
-      '@0no-co/graphql.web': 1.1.2(graphql@16.5.0)
-      graphql: 16.5.0
       typescript: 5.1.6
 
   '@graphql-typed-document-node/core@3.2.0(graphql@16.10.0)':
@@ -6785,8 +6785,8 @@ snapshots:
     dependencies:
       '@ethereumjs/tx': 4.2.0
       '@metamask/superstruct': 3.1.0
-      '@noble/hashes': 1.7.0
-      '@scure/base': 1.2.1
+      '@noble/hashes': 1.7.1
+      '@scure/base': 1.2.4
       '@types/debug': 4.1.12
       debug: 4.4.0(supports-color@5.5.0)
       pony-cause: 2.1.11
@@ -6799,8 +6799,8 @@ snapshots:
     dependencies:
       '@ethereumjs/tx': 4.2.0
       '@metamask/superstruct': 3.1.0
-      '@noble/hashes': 1.7.0
-      '@scure/base': 1.2.1
+      '@noble/hashes': 1.7.1
+      '@scure/base': 1.2.4
       '@types/debug': 4.1.12
       debug: 4.4.0(supports-color@5.5.0)
       pony-cause: 2.1.11
@@ -8974,7 +8974,7 @@ snapshots:
       '@ecies/ciphers': 0.2.3(@noble/ciphers@1.2.1)
       '@noble/ciphers': 1.2.1
       '@noble/curves': 1.8.0
-      '@noble/hashes': 1.7.0
+      '@noble/hashes': 1.7.1
 
   electron-to-chromium@1.5.74: {}
 
@@ -9676,7 +9676,7 @@ snapshots:
   gql.tada@1.8.10(graphql@16.10.0)(typescript@5.1.6):
     dependencies:
       '@0no-co/graphql.web': 1.1.2(graphql@16.10.0)
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.5.0)(typescript@5.1.6)
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.10.0)(typescript@5.1.6)
       '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.1.6))(graphql@16.10.0)(typescript@5.1.6)
       '@gql.tada/internal': 1.0.8(graphql@16.10.0)(typescript@5.1.6)
       typescript: 5.1.6
@@ -11006,6 +11006,8 @@ snapshots:
   process-warning@1.0.0: {}
 
   process@0.11.10: {}
+
+  promise-limit@2.7.0: {}
 
   prop-types@15.8.1:
     dependencies:

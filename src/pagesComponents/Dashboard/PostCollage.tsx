@@ -17,11 +17,15 @@ import { erc20Abi } from "viem";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { getPostContentSubstring } from "@src/utils/utils";
+import clsx from "clsx";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [activeCollectModal, setActiveCollectModal] = useState<string | null>(null);
 
   const router = useRouter();
   const {
@@ -44,7 +48,6 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
 
   useEffect(() => {
     if (inView && !isLoading && hasMore) {
-      console.log("fetchNextPage");
       fetchNextPage();
     }
   }, [inView, isLoading, hasMore, fetchNextPage]);
@@ -186,17 +189,27 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                     messageIconOverride={true}
                     shareIconOverride={true}
                   />
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30">
+                  <div className={clsx(
+                    "opacity-0 transition-opacity duration-200 z-30",
+                    "group-hover:opacity-100",
+                    (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+                  )}>
                     <CardOverlay
                       authenticatedProfile={authenticatedProfile}
                       bonsaiBalance={bonsaiBalance}
                       post={post}
                       postData={postData[post.slug]}
                       onShare={() => onShareButtonClick(post.slug)}
-                      onHide={() => {/* handle hide */ }}
-                      onReport={() => {/* handle report */ }}
                       onClick={() => { router.push(`/post/${post.slug}?returnTo=/`); }}
-                      className="opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out z-30"
+                      className={clsx(
+                        "opacity-0 transition-all duration-300 ease-in-out z-30",
+                        "group-hover:opacity-100",
+                        (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+                      )}
+                      showDropdown={activeDropdown === post.slug}
+                      setShowDropdown={(show) => setActiveDropdown(show ? post.slug : null)}
+                      showCollectModal={activeCollectModal === post.slug}
+                      setShowCollectModal={(show) => setActiveCollectModal(show ? post.slug : null)}
                     />
                   </div>
                 </div>

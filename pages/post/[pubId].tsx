@@ -53,7 +53,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState(true); // publication?.operations?.hasSimpleCollected);
+  const [canComment, setCanComment] = useState(publication?.operations?.hasSimpleCollected);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
 
@@ -80,7 +80,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   };
 
   useEffect(() => {
-    setCanComment(true); //publication?.operations?.hasSimpleCollected);
+    setCanComment(publication?.operations?.hasSimpleCollected);
   }, [publication]);
 
   const isLoadingPage = useMemo(() => {
@@ -397,6 +397,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 shareIconOverride={true}
                 followButtonDisabled={true}
                 onProfileClick={goToCreatorPage}
+                hideCollectButton={true}
               />
               <div className="mt-4">
                 <CommentBox />

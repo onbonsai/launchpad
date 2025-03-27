@@ -1,12 +1,12 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { Cursor, evmAddress, postId, PostType, SessionClient } from "@lens-protocol/client";
+import { useQuery } from "@tanstack/react-query";
+import { Cursor, evmAddress, PageSize, postId, PostType, SessionClient } from "@lens-protocol/client";
 import { fetchPost, fetchPosts, fetchWhoExecutedActionOnPost } from "@lens-protocol/client/actions";
+import promiseLimit from "promise-limit";
 import { lensClient } from "./client";
-import { APP_ID } from "../madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { groupBy, sampleSize } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { LENS_BONSAI_APP, LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
+import { LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -28,8 +28,10 @@ export const getPost = async (_postId: string, sessionClient?: SessionClient) =>
 
 // TODO: this is a temporary function to get posts from lens v3; need a way to fetch by ids
 export const getPosts = async (publicationIds: string[]) => {
+  const FETCH_POSTS_BATCH_SIZE = 15;
   try {
-    const posts = await Promise.all(publicationIds.map((id) => getPost(id)));
+    const limit = promiseLimit(FETCH_POSTS_BATCH_SIZE);
+    const posts = await Promise.all(publicationIds.map(id => limit(() => getPost(id))));
 
     return posts.filter(Boolean);
   } catch (error) {
@@ -95,6 +97,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
           // apps: [evmAddress(LENS_BONSAI_APP)]
           feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
         },
+        pageSize: PageSize.Ten,
         cursor: pageParam,
       });
 
@@ -119,13 +122,15 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
 
 // TODO: consider using resolveSmartMedia or a batched version to fetch more info
 export const getPostData = async (postIds: string[]): Promise<Object> => {
+  const FETCH_ACTORS_BATCH_SIZE = 10;
   let sessionClient;
   try {
     sessionClient = await resumeSession();
   } catch { }
 
   // TODO: this is a temporary solution until we can batch query
-  const results = await Promise.all(postIds.map(async (_postId) => {
+  const limit = promiseLimit(FETCH_ACTORS_BATCH_SIZE);
+  const results = await Promise.all(postIds.map((_postId) => limit(async () => {
     const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
     if (result.isErr()) return;
 
@@ -135,7 +140,7 @@ export const getPostData = async (postIds: string[]): Promise<Object> => {
       actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
     }
     return { postId: _postId, actors: sampleSize(actors, 3) };
-  }));
+  })));
 
   const grouped = groupBy(results.filter((r) => r), 'postId');
   return Object.fromEntries(
