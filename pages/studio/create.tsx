@@ -328,7 +328,7 @@ const StudioCreatePage: NextPage = () => {
 
               {/* Form Card */}
               <div className="bg-card rounded-xl p-6 mt-6">
-                <h3 className="text-sm font-medium text-primary mb-4">Fill out the details for the media and token of your post</h3>
+                <h3 className="text-sm font-medium text-primary mb-4">Fill out the details for your smart media post</h3>
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
                   <div className="lg:col-span-1">

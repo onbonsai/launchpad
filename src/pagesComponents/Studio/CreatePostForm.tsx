@@ -227,10 +227,10 @@ const DynamicForm = ({
         {label}
       </Subtitle>
       {fieldDescription && (
-        <div className="text-sm inline-block">
+        <div className="text-sm inline-block mt-1">
           <Tooltip message={fieldDescription} direction="right">
             <InfoOutlined
-              className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40"
+              className="max-w-4 max-h-4 inline-block text-white/40"
             />
           </Tooltip>
         </div>
@@ -255,13 +255,13 @@ const DynamicForm = ({
       {/* Post image */}
       {template.options?.imageRequirement !== ImageRequirement.NONE && (
         <div className="space-y-2">
-          <FieldLabel 
-            label={"Post image"} 
+          <FieldLabel
+            label={"Post image"}
             fieldDescription={
-              template.options.imageRequirement === ImageRequirement.REQUIRED 
+              template.options.imageRequirement === ImageRequirement.REQUIRED
                 ? "An image is required for this post."
                 : "Optionally add an image to your post."
-            } 
+            }
           />
           <ImageUploader files={postImage} setFiles={setPostImage} maxFiles={1} />
         </div>

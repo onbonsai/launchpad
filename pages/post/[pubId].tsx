@@ -1,18 +1,12 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import {
-  Publications,
-  Theme,
-  ActionButton,
-} from "@madfi/widgets-react";
+import { Publications, Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useMemo, useState, useRef, useEffect } from "react";
-import { MetadataLicenseType } from "@lens-protocol/metadata";
+import { useEffect, useMemo, useState } from "react";
 
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import { Button } from "@src/components/Button";
 import { ConnectButton } from "@src/components/ConnectButton";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -24,9 +18,7 @@ import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComme
 import { getPost } from "@src/services/lens/posts";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
-import { postId, uri } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { handleOperationWith } from "@lens-protocol/client/viem";
 import { getProfileImage } from "@src/services/lens/utils";
 import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
@@ -48,19 +40,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
   const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
-  const creatorPageRoute = `/profile/${publication?.author.username.localName}`;
+
+  const showRootPublication = !!publication?.root;
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
-  const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState(publication?.operations?.hasSimpleCollected);
+  const [canComment, setCanComment] = useState();
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
-
-  const commentInputRef = useRef<HTMLInputElement>(null);
-  const scrollPaddingRef = useRef<HTMLInputElement>(null);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -76,10 +65,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       hasUpvoted: localHasUpvoted.has(publicationId) || comment?.operations?.hasUpvoted,
     };
   };
-
-  useEffect(() => {
-    setCanComment(publication?.operations?.hasSimpleCollected);
-  }, [publication]);
 
   const isLoadingPage = useMemo(() => {
     return isLoading
@@ -121,20 +106,32 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     return publication?.by.id === authenticatedProfileId;
   }, [publication, authenticatedProfileId]);
 
+  useEffect(() => {
+    setCanComment(
+      showRootPublication
+        ? publication?.root.operations?.hasSimpleCollected
+        : publication?.operations?.hasSimpleCollected
+    );
+  }, [publication]);
+
   const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string) => {
     e.preventDefault();
 
-    // if (isInputFocused) return;
-
     setReplyingToComment(commentId || null);
     setReplyingToUsername(username || null);
-    if (commentInputRef.current) commentInputRef.current.focus();
-    if (scrollPaddingRef.current) scrollPaddingRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
   };
 
-  const submitComment = async (e) => {
-    e.preventDefault();
-    if (!authenticatedProfile) throw new Error("no authenticated profile!");
+  const submitComment = async () => {
+    if (!authenticatedProfile) {
+      console.log('No authenticated profile');
+      return;
+    }
+
+    // Prevent double submission
+    if (isCommenting) {
+      console.log('Already submitting');
+      return;
+    }
 
     setIsCommenting(true);
 
@@ -146,7 +143,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       }
 
       const sessionClient = await resumeSession();
-      if (!sessionClient) return;
+      if (!sessionClient) {
+        console.log('No session client');
+        return;
+      }
 
       await createPost(
         sessionClient,
@@ -163,11 +163,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
       setTimeout(fetchComments, 3000);
     } catch (error) {
-      console.log(error);
       toast.error("Comment failed", { duration: 5000, id: toastId });
+    } finally {
+      setIsCommenting(false);
     }
-
-    setIsCommenting(false);
   };
 
   const onSignInWithLensClick = async (e) => {
@@ -208,96 +207,15 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       </div>
     );
 
-  const CommentBox = () => {
-    return (<>
-      {
-        (!isConnected || !walletClient) && (
-          <div className="flex justify-center">
-            <ConnectButton className="md:px-12 mb-16" />
-          </div>
-        )
-      }
-      {
-        isConnected && walletClient && !isAuthenticated && (
-          <div className="flex justify-center">
-            <Button className="md:px-12 mb-16" onClick={onSignInWithLensClick} disabled={signingIn}>
-              Login with Lens
-            </Button>
-          </div>
-        )
-      }
-      {
-        isConnected && isAuthenticated && (
-          <>
-            {replyingToComment && (
-              <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
-                <span>Replying to {replyingToUsername}</span>
-                <button
-                  onClick={() => setReplyingToComment(null)}
-                  className="text-secondary hover:text-secondary/80"
-                >
-                  × Cancel
-                </button>
-              </div>
-            )}
-            <div className="flex items-center gap-x-6 mt-4">
-              <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-              <div className="relative w-full">
-                <input
-                  ref={commentInputRef}
-                  type="text"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                  placeholder={canComment ? "Participate by replying" : "Collect the post to participate"}
-                  disabled={!canComment}
-                  onFocus={() => setInputFocused(true)}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setInputFocused(false);
-                    }
-                  }}
-                  autoFocus={isInputFocused}
-                />
-                {canComment && (
-                  <div className="absolute right-2 -top-2">
-                    <GenericUploader files={files} setFiles={setFiles} contained />
-                  </div>
-                )}
-              </div>
-            </div>
-            {canComment && (
-              <>
-                <div className="flex justify-end gap-y-2">
-                  <div className="mt-3">
-                    <Button
-                      disabled={isCommenting || !comment || !canComment}
-                      onClick={submitComment}
-                      variant="accentBrand"
-                      size="sm"
-                    >
-                      Reply
-                    </Button>
-                  </div>
-                </div>
-                <div className="h-14" ref={scrollPaddingRef}></div>
-              </>
-            )}
-          </>
-        )
-      }
-    </>);
-  }
-
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
         <Link
-          href={returnTo ? returnTo as string : creatorPageRoute}
+          href={returnTo ? returnTo as string : "/"}
           className="flex items-center text-secondary/60 hover:text-primary transition-colors"
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
-          <span className="text-sm">Back</span>
+          <span className="text-sm">{returnTo ? "Back" : "More Posts"}</span>
         </Link>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">
@@ -311,51 +229,18 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 publication ? <>
                   <div className="hidden sm:block">
                     <PublicationContainer
-                      publication={publication}
+                      publication={showRootPublication ? publication.root : publication}
                       onCommentButtonClick={onCommentButtonClick}
                       shouldGoToPublicationPage={false}
                       isProfileAdmin={isProfileAdmin}
                       media={media}
                       onCollectCallback={() => setCanComment(true)}
                       sideBySideMode={true}
-                    //   nestedWidget={<div className=""><Publications
-                    //     publications={sortedComments}
-                    //     theme={Theme.dark}
-                    //     environment={LENS_ENVIRONMENT}
-                    //     authenticatedProfile={authenticatedProfile}
-                    //     hideCommentButton={false}
-                    //     hideQuoteButton={true}
-                    //     hideShareButton={true}
-                    //     hasUpvotedComment={hasUpvotedComment}
-                    //     onLikeButtonClick={onLikeButtonClick}
-                    //     getOperationsFor={getOperationsFor}
-                    //     profilePictureStyleOverride={commentPublicationProfilePictureStyle}
-                    //     containerBorderRadius={'24px'}
-                    //     containerPadding={'12px'}
-                    //     profilePadding={'0 0 0 0'}
-                    //     textContainerStyleOverride={commentTextContainerStyleOverrides}
-                    //     backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                    //     mediaImageStyleOverride={mediaImageStyleOverride}
-                    //     imageContainerStyleOverride={imageContainerStyleOverride}
-                    //     reactionsContainerStyleOverride={commentReactionsContainerStyleOverride}
-                    //     reactionContainerStyleOverride={reactionContainerStyleOverride}
-                    //     publicationContainerStyleOverride={publicationContainerStyleOverride}
-                    //     shareContainerStyleOverride={shareContainerStyleOverride}
-                    //     profileNameStyleOverride={commentProfileNameStyleOverride}
-                    //     dateNameStyleOverride={commentDateStyleOverride}
-                    //     markdownStyleBottomMargin={'0px'}
-                    //     heartIconOverride={true}
-                    //     messageIconOverride={true}
-                    //     shareIconOverride={true}
-                    //     followButtonDisabled={true}
-                    //   />
-                    //   <CommentBox />
-                    // </div>}
                     />
                   </div>
                   <div className="sm:hidden">
                     <PublicationContainer
-                      publication={publication}
+                      publication={showRootPublication ? publication.root : publication}
                       onCommentButtonClick={onCommentButtonClick}
                       shouldGoToPublicationPage={false}
                       isProfileAdmin={isProfileAdmin}
@@ -368,10 +253,65 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 </div>
               )}
             </div>
-            <div className="">
+
+            {/* Comment section */}
+            <div className="space-y-6">
+              {isConnected && isAuthenticated && (
+                <>
+                  {replyingToComment && (
+                    <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+                      <span>Replying to {replyingToUsername}</span>
+                      <button
+                        onClick={() => setReplyingToComment(null)}
+                        className="text-secondary hover:text-secondary/80"
+                      >
+                        × Cancel
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-x-6 mt-4">
+                    <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                          className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                          placeholder={canComment ? "Send a reply" : "Collect the post to participate"}
+                          disabled={!canComment}
+                          autoComplete="off"
+                          onFocus={(e) => e.target.focus()}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                        {canComment && (
+                          <div className="absolute right-2 -top-2">
+                            <GenericUploader files={files} setFiles={setFiles} contained />
+                          </div>
+                        )}
+                      </div>
+                      {canComment && (
+                        <Button
+                          disabled={isCommenting || !comment || !canComment}
+                          onClick={submitComment}
+                          variant="accentBrand"
+                          size="sm"
+                        >
+                          Reply
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
               <Publications
                 onCommentButtonClick={onCommentButtonClick}
-                publications={sortedComments}
+                publications={showRootPublication ? [publication] : sortedComments}
                 theme={Theme.dark}
                 environment={LENS_ENVIRONMENT}
                 authenticatedProfile={authenticatedProfile}
@@ -401,9 +341,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                 onProfileClick={goToCreatorPage}
                 hideCollectButton={true}
               />
-              <div className="mt-4">
-                <CommentBox />
-              </div>
             </div>
           </div>
         </section>
@@ -422,7 +359,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   } catch { }
 
   if (!post) return { notFound: true };
-  const media = await resolveSmartMedia(post.metadata.attributes, post.slug, false);
+
+  const media = !post.root
+    ? await resolveSmartMedia(post.metadata.attributes, post.slug, false)
+    : await resolveSmartMedia(post.root.metadata.attributes, post.root.slug, false)
 
 
   const image =

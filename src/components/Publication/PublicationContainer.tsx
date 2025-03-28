@@ -93,6 +93,7 @@ const PublicationContainer = ({
   const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const isCreator = publication?.author.address === authenticatedProfile?.address;
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -351,7 +352,8 @@ const PublicationContainer = ({
         messageIconOverride={true}
         shareIconOverride={true}
         nestedWidget={nestedWidget}
-        updatedAt={sideBySideMode ? media?.updatedAt : undefined}
+        updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
+        hideCollectButton={!!publication.root}
         // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && sideBySideMode && (
@@ -403,17 +405,19 @@ const PublicationContainer = ({
         </div>
       )}
 
-      <div className={`absolute ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}>
-        <Button
-          ref={dropdownButtonRef}
-          variant="dark-grey"
-          size="sm"
-          className={`text-sm font-bold rounded-xl gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
-          onClick={(e) => { setShowDropdown(!showDropdown) }}
-        >
-          <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
-        </Button>
-      </div>
+      {!isCreator || media?.agentId && (
+        <div className={`absolute ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}>
+          <Button
+            ref={dropdownButtonRef}
+            variant="dark-grey"
+            size="sm"
+            className={`text-sm font-bold rounded-xl gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
+            onClick={(e) => { setShowDropdown(!showDropdown) }}
+          >
+            <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
+          </Button>
+        </div>
+      )}
 
       <CollectModal
         onCollect={onCollect}
@@ -434,7 +438,7 @@ const PublicationContainer = ({
         placement="top-end"
         postId={publication.id}
         postSlug={publication.slug}
-        isCreator={publication?.author.address === authenticatedProfile?.address}
+        isCreator={isCreator}
         mediaUrl={publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value}
       />
 
