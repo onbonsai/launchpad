@@ -277,7 +277,7 @@ const PublicationContainer = ({
       );
 
       if (!collected) throw new Error("Failed to collect");
-      toast.success("Collected! You can now join the post", { id: toastId });
+      toast.success("Collected", { id: toastId, duration: 3000 });
       setHasCollected(true);
       setShowCollectModal(false);
       if (onCollectCallback) onCollectCallback();

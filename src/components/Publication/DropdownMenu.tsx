@@ -146,13 +146,13 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10 text-primary"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-primary"
                   onClick={(e) => handleButtonClick(e, onRefreshMetadata)}
                 >
                   Confirm
                 </button>
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                   onClick={() => setCurrentView('initial')}
                 >
                   Cancel
@@ -164,10 +164,10 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
         default:
           return (
             <button
-              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10 flex items-center"
+              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
               onClick={() => setCurrentView('refresh')}
             >
-              <SparkIcon color="#fff" height={12} />
+              <SparkIcon color="#000" height={16} />
               <span className="ml-2">Refresh post</span>
             </button>
           );
@@ -183,13 +183,13 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
             </div>
             <div className="border-t border-white/10">
               <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10 text-primary"
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-primary"
                 onClick={(e) => handleButtonClick(e, onHide)}
               >
                 Confirm
               </button>
               <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                 onClick={() => setCurrentView('initial')}
               >
                 Cancel
@@ -208,14 +208,14 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
               {reportReasons.map(({ value, label }) => (
                 <button
                   key={value}
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                   onClick={(e) => handleButtonClick(e, () => handleReport(value))}
                 >
                   {label}
                 </button>
               ))}
               <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10 border-t border-white/10"
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 border-t border-white/10"
                 onClick={() => setCurrentView('initial')}
               >
                 Cancel
@@ -228,17 +228,17 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
         return (
           <>
             <button
-              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
+              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
               onClick={() => setCurrentView('notInterested')}
             >
-              <RemoveCircle sx={{ fontSize: '1.25rem', marginTop: "-4px" }} />
+              <RemoveCircle sx={{ fontSize: '1.25rem', marginTop: "-4px", color: "#000" }} />
               <span className="ml-2">Not interested</span>
             </button>
             <button
-              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-white/10"
+              className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
               onClick={() => setCurrentView('report')}
             >
-              <FlagOutlined sx={{ fontSize: '1.25rem' }} />
+              <FlagOutlined sx={{ fontSize: '1.25rem', color: "#000" }} />
               <span className="ml-2">Report</span>
             </button>
           </>
@@ -271,7 +271,7 @@ export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-e
         touchEvent="onTouchStart"
       >
         <div
-          className="w-48 bg-dark-grey rounded-xl shadow-lg overflow-clip font-sf-pro-text text-white"
+          className="w-48 bg-white rounded-xl shadow-lg overflow-clip font-sf-pro-text text-black"
           onClick={(e) => e.stopPropagation()}
           onMouseEnter={(e) => {
             e.stopPropagation();

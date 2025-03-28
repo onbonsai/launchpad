@@ -162,7 +162,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               variant="accentBrand"
               ref={collectButtonRef}
               size="md"
-              className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+              className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
               onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true)})}
             >
               {!hasCollected ? (
@@ -184,7 +184,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             bonsaiBalance={bonsaiBalance}
             collectAmount={collectAmount}
             anchorEl={collectButtonRef.current}
-            onClose={() => setShowCollectModal(false)}
+            setShowCollectModal={setShowCollectModal}
             isCollecting={isCollecting}
             isMedia
             account={authenticatedProfile?.address}
@@ -239,7 +239,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
         <div className="relative">
           <button
             ref={dropdownButtonRef}
-            className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center"
+            className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center outline-none"
             onClick={(e) => {
               e.stopPropagation();
               setShowDropdown(!showDropdown);
