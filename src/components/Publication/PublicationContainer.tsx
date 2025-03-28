@@ -377,9 +377,9 @@ const PublicationContainer = ({
         </div>
       )}
       {sideBySideMode && (
-        <div className="absolute top-2 left-1 right-4 flex justify-between z-10">
+        <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (
-            <div className="rounded-full bg-dark-grey/80 text-white h-10 flex items-center px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer">
+            <div className="rounded-full bg-dark-grey/80 text-white h-10 flex items-center px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
               <span className="pointer-events-none">
                 <SparkIcon color="#fff" height={16} />
               </span>

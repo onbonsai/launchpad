@@ -30,6 +30,8 @@ import { parseBase64Image } from "@src/utils/utils";
 import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
 import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
+import { ChevronLeftIcon } from "@heroicons/react/outline";
+import Link from "next/link";
 
 type TokenData = {
   initialSupply: number;
@@ -298,24 +300,38 @@ const StudioCreatePage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
-            <div className="lg:col-span-2">
+          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
+            <div className="md:w-64 flex-shrink-0">
               <Sidebar />
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-8">
+            <div className="flex-grow">
+              {/* Header Card */}
               <div className="bg-card rounded-xl p-6">
-                <h2 className="text-2xl font-semibold mb-2 text-secondary">{template?.displayName}</h2>
-                <Subtitle className="items-start text-lg leading-tight">{template?.description}</Subtitle>
-                <Subtitle className="items-start mt-2">Fill out the details for the media and token of your post.</Subtitle>
+                <div className="flex items-start gap-6">
+                  <Link
+                    href="/studio"
+                    className="flex items-center text-secondary/60 hover:text-primary transition-colors"
+                  >
+                    <ChevronLeftIcon className="h-5 w-5 mr-1" />
+                    <span className="text-sm">Back</span>
+                  </Link>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
+                    <Subtitle className="items-start text-lg leading-tight mt-2 mr-8">{template?.description}</Subtitle>
+                  </div>
+                </div>
+              </div>
 
-                {/* TODO: handle isConnected */}
+              {/* Form Card */}
+              <div className="bg-card rounded-xl p-6 mt-6">
+                <h3 className="text-sm font-medium text-primary mb-4">Fill out the details for the media and token of your post</h3>
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
-                  <div className="lg:col-span-1 mt-8">
+                  <div className="lg:col-span-1">
                     <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
                       <div className="mb-4">
                         <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
@@ -363,7 +379,7 @@ const StudioCreatePage: NextPage = () => {
                       />
                     )}
                   </div>
-                  <div className="lg:col-span-1 mt-8">
+                  <div className="lg:col-span-1">
                     <div className="flex items-center gap-1 mb-4">
                       <Subtitle className="text-white/70">
                         Post preview

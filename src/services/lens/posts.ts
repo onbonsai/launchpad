@@ -72,7 +72,7 @@ export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | nu
   });
 }
 
-export const useGetPostsByAuthor = (authorId: string, getCollected: boolean = false) => {
+export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = false) => {
   return useInfiniteQuery({
     queryKey: ["get-posts-by-author", authorId, getCollected],
     queryFn: async ({ pageParam = null }) => {
@@ -94,6 +94,7 @@ export const useGetPostsByAuthor = (authorId: string, getCollected: boolean = fa
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: !!authorId
   });
 };
 

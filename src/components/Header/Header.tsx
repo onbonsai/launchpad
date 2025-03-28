@@ -21,6 +21,10 @@ import { Button } from "../Button";
 
 const headerLinks = [
   {
+    label: "Posts",
+    href: "/"
+  },
+  {
     label: "Tokens",
     href: "/tokens"
   }

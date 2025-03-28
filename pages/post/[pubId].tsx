@@ -32,6 +32,8 @@ import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
+import Link from "next/link";
+import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -59,10 +61,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   const commentInputRef = useRef<HTMLInputElement>(null);
   const scrollPaddingRef = useRef<HTMLInputElement>(null);
-
-  const goToPage = () => {
-    router.push(returnTo ? returnTo as string : creatorPageRoute);
-  };
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -294,9 +292,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
-        <span onClick={goToPage} className="link link-hover mb-4">
-          ← Back
-        </span>
+        <Link
+          href={returnTo ? returnTo as string : creatorPageRoute}
+          className="flex items-center text-secondary/60 hover:text-primary transition-colors"
+        >
+          <ChevronLeftIcon className="h-5 w-5 mr-1" />
+          <span className="text-sm">Back</span>
+        </Link>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={media} />}

@@ -66,7 +66,7 @@ const TokenPage: NextPage = () => {
 
   const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
 
-  const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
+  const { data: stakingData, isLoading: isLoadingStaking, refetch: refetchStakingData } = useStakingData(address);
 
   // Fetch 30-day TWAP price
   const { data: twapPrice, isLoading: isLoadingTwap } = useQuery({
@@ -173,12 +173,14 @@ const TokenPage: NextPage = () => {
           return;
         }
       }
-      
+
       await stake(amount, lockupPeriod);
+      refetchBonsaiBalance();
+      setTimeout(() => refetchStakingData(), 5000);
 
       setIsStakeModalOpen(false);
       setIsReferralModalOpen(true);
-      
+
       // Record referral if there's a referrer and we have the user's address
       if (referrer && address && referrer !== address) {
         try {
@@ -218,7 +220,6 @@ const TokenPage: NextPage = () => {
         const data = await response.json();
 
         if (data.data[0].status.name === "DELIVERED") {
-          // Refetch bonsai balance
           refetchBonsaiBalance();
           clearInterval(statusInterval);
           setBridgeInfo(undefined);
@@ -270,30 +271,29 @@ const TokenPage: NextPage = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
-        <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          <div className="grid grid-cols-1 gap-y-10 lg:grid-cols-10 max-w-full">
-            <div className="lg:col-span-2">
+        <section aria-labelledby="studio-heading" className="pt-0 pb-6 max-w-full">
+          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
+            <div className="md:w-64 flex-shrink-0">
               <Sidebar />
             </div>
-
             {/* Main Content */}
-            <div className="lg:col-span-8">
+            <div className="flex-grow">
               <div className="bg-card rounded-xl p-6">
-                <div className="flex justify-between items-center">
-                  <div className="flex space-x-2">
+                <div className="flex items-center relative">
+                  <div className="flex space-x-4">
                     <Header2>Bonsai Token</Header2>
                     <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
                   </div>
                   <Button
                     onClick={() => setIsReferralModalOpen(true)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="absolute right-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <GiftIcon className="h-5 w-5 mr-2 text-white" /> Referrals
                   </Button>
                 </div>
                 <Subtitle className="mt-2">
-                  Stake $BONSAI on Lens Chain to earn API credits. The longer the lockup, the more credits you earn.
-                  Credits reset daily at midnight UTC.
+                  Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
+                  Credits reset daily.
                 </Subtitle>
               </div>
 
@@ -390,7 +390,7 @@ const TokenPage: NextPage = () => {
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-primary">My Capacity Today</h3>
+                          <h3 className="text-sm font-medium text-primary">Capacity Today</h3>
                           {/* Display both staking and free credits */}
                           <div className="text-2xl font-bold text-secondary">
                             ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
@@ -469,13 +469,13 @@ const TokenPage: NextPage = () => {
                 {isConnected && (hasActiveStakes || wasReferred) && (
                   <div className="bg-card rounded-xl p-6">
                     <h3 className="text-sm font-medium text-primary mb-4">Active Stakes</h3>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                       {/* Referral Reward Preview */}
                       {wasReferred && (
                         <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-purple-500/50 relative overflow-hidden">
                           {/* Gradient overlay */}
                           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10" />
-                          
+
                           {/* Content */}
                           <div className="relative z-10">
                             <div className="flex items-center space-x-2">
@@ -490,7 +490,7 @@ const TokenPage: NextPage = () => {
                               Coming April 7th
                             </div>
                           </div>
-                          
+
                           {/* Disabled buttons */}
                           <div className="flex items-center gap-x-6 relative z-10">
                             <div className="text-right">
@@ -520,14 +520,14 @@ const TokenPage: NextPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-x-6">
-                            <div className="text-right">
-                              <div className="text-sm">Unlocks</div>
-                              <div className="text-xs text-secondary/60">
-                                {Date.now() >= Number(stake.unlockTime) * 1000
-                                  ? "Unlocked"
-                                  : new Date(Number(stake.unlockTime) * 1000).toLocaleDateString()}
+                            {!(Date.now() >= Number(stake.unlockTime) * 1000) && (
+                              <div className="text-right">
+                                <div className="text-sm">Unlocks</div>
+                                <div className="text-xs text-secondary/60">
+                                  {new Date(Number(stake.unlockTime) * 1000).toLocaleDateString()}
+                                </div>
                               </div>
-                            </div>
+                            )}
                             <Button
                               variant="dark-grey"
                               size="sm"

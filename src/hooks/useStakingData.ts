@@ -94,7 +94,8 @@ export const calculateAPR = (lockupPeriod: string): number => {
 };
 
 export const formatStakingAmount = (amount: string): string => {
-  return Number(formatEther(BigInt(amount))).toFixed(2);
+  const num = Number(formatEther(BigInt(amount)));
+  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 };
 
 export const getLockupPeriodLabel = (lockupPeriod: string): string => {
@@ -107,4 +108,4 @@ export const getLockupPeriodLabel = (lockupPeriod: string): string => {
     case 12: return "12 Months";
     default: return "Unknown";
   }
-}; 
+};
