@@ -191,7 +191,8 @@ export const requestPostUpdate = async (url: string, postSlug: string, idToken: 
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
-      }
+      },
+      body: JSON.stringify({ forceUpdate: true })
     });
 
     if (!response.ok) throw new Error(`Post update failed: ${response.statusText}`);

@@ -10,7 +10,6 @@ import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz } from "@mui/icons-mat
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { createMirrorMomoka, createMirrorOnchain } from "@src/services/lens/createMirror";
 import { ChainRpcs } from "@src/constants/chains";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
@@ -24,6 +23,7 @@ import type { SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
+import { sendRepost } from "@src/services/lens/posts";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -84,7 +84,7 @@ const PublicationContainer = ({
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
-  const [hasMirrored, setHasMirrored] = useState<boolean>(publication?.operations?.hasMirrored || false);
+  const [hasMirrored, setHasMirrored] = useState<boolean>(!!publication?.operations?.hasReposted || false);
   const [hasCollected, setHasCollected] = useState<boolean>(publication.operations?.hasSimpleCollected || false);
   const [collectAmount, setCollectAmount] = useState<string>();
   const [isCollecting, setIsCollecting] = useState(false);
@@ -176,7 +176,7 @@ const PublicationContainer = ({
 
     if (!isAuthenticated || hasMirrored) return;
 
-    const toastId = toast.loading("Preparing mirror...");
+    const toastId = toast.loading("Reposting");
     try {
       // if (actionModuleHandler?.address === REWARD_ENGAGEMENT_ACTION_MODULE && actionModuleHandler.publicationRewarded?.actionType === "MIRROR") {
       //   // handle this mirror as an act to get the points (should've been a ref module :shrug:)
@@ -189,17 +189,14 @@ const PublicationContainer = ({
       //   }
       // }
 
-      if (publication?.momoka) {
-        await createMirrorMomoka(walletClient, publication!.id, authenticatedProfile!);
-      } else {
-        await createMirrorOnchain(walletClient, publication!.id, authenticatedProfile!);
-      }
+      const success = await sendRepost(publication.id);
+      if (!success) throw new Error("Repost result not good");
 
       setHasMirrored(true);
-      toast.success("Mirrored", { duration: 3000, id: toastId });
+      toast.success("Reposted", { duration: 3000, id: toastId });
     } catch (error) {
       console.log(error);
-      toast.error("Failed to mirror", { id: toastId });
+      toast.error("Failed to repost", { id: toastId });
     }
   };
 

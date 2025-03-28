@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Cursor, evmAddress, PageSize, postId, PostType, SessionClient } from "@lens-protocol/client";
-import { fetchPost, fetchPosts, fetchWhoExecutedActionOnPost } from "@lens-protocol/client/actions";
+import { fetchPost, fetchPosts, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
 import promiseLimit from "promise-limit";
 import { lensClient } from "./client";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -146,4 +146,19 @@ export const getPostData = async (postIds: string[]): Promise<Object> => {
   return Object.fromEntries(
     Object.entries(grouped).map(([key, value]) => [key, value[0]])
   );
+};
+
+/**
+ * Rpost
+ * @param publicationId - The ID or slug of the publication to like
+ */
+export const sendRepost = async (_postId: string): Promise<boolean> => {
+  const sessionClient = await resumeSession();
+  if (!sessionClient) return false;
+
+  const result = await repost(sessionClient, {
+    post: postId(_postId),
+  });
+
+  return result.isOk();
 };
