@@ -137,6 +137,7 @@ export const ClaimFeesEarned = () => {
       </Button>
       {showTooltip && (
         <EarningsTooltip
+          isClaiming={isClaiming}
           creatorFeesFormatted={creatorFeesFormatted}
           creatorFeesEarned={creatorFeesEarned}
           claimFeesEarned={claimFeesEarned}
@@ -147,10 +148,12 @@ export const ClaimFeesEarned = () => {
 };
 
 const EarningsTooltip = ({
+  isClaiming,
   creatorFeesFormatted,
   creatorFeesEarned,
   claimFeesEarned,
 }: {
+  isClaiming: boolean;
   creatorFeesFormatted: string;
   creatorFeesEarned: any;
   claimFeesEarned: () => Promise<void>;
@@ -163,43 +166,35 @@ const EarningsTooltip = ({
       <Subtitle className="pt-2">Earned from creator & referral fees</Subtitle>
 
       <div className="pt-4 space-y-4">
-        {/* Base Chain Fees */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-secondary">Base Chain</div>
-          <div className="flex justify-between text-sm text-secondary/70">
-            <span>Creator fees:</span>
-            <span>{formatFee(creatorFeesEarned?.base.feesEarned || 0n)}</span>
-          </div>
-          <div className="flex justify-between text-sm text-secondary/70">
-            <span>Club referrals:</span>
-            <span>{formatFee(creatorFeesEarned?.base.clubFeesTotal || 0n)}</span>
-          </div>
-        </div>
-
         {/* Lens Chain Fees */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-secondary">Lens Chain</div>
-          <div className="flex justify-between text-sm text-secondary/70">
-            <span>Creator fees:</span>
-            <span>{formatFee(creatorFeesEarned?.lens.feesEarned || 0n)}</span>
+        <div className="flex items-center justify-between py-1">
+          <div className="flex items-center gap-x-2">
+            <div className="relative">
+              <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg" />
+            </div>
+            <span className="text-sm text-white">WGHO on Lens</span>
           </div>
-          <div className="flex justify-between text-sm text-secondary/70">
-            <span>Club referrals:</span>
-            <span>{formatFee(creatorFeesEarned?.lens.clubFeesTotal || 0n)}</span>
-          </div>
+          <span className="text-sm text-white">
+            {formatFee((creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n))}
+          </span>
         </div>
 
-        {/* Total */}
-        <div className="pt-2 border-t border-secondary/20">
-          <div className="flex justify-between text-sm font-semibold text-secondary">
-            <span>Total:</span>
-            <span>{creatorFeesFormatted}</span>
+        {/* Base Chain Fees */}
+        <div className="flex items-center justify-between py-1">
+          <div className="flex items-center gap-x-2">
+            <div className="relative">
+              <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
+            </div>
+            <span className="text-sm text-white">USDC on Base</span>
           </div>
+          <span className="text-sm text-white">
+            {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n))}
+          </span>
         </div>
       </div>
 
       <div className="pt-4 w-full">
-        <Button variant="accent" className="w-full" onClick={claimFeesEarned}>
+        <Button variant="accent" className="w-full" onClick={claimFeesEarned} disabled={isClaiming}>
           Claim All
         </Button>
       </div>

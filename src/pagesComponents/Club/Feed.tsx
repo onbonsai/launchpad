@@ -250,93 +250,95 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
     );
 
   return (
-    <div className="flex flex-col items-center relative h-full w-full">
-      <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full w-full md:pb-0">
-        <div className="w-full max-w-[500px]">
-          {isConnected && isLoading ? (
-            <div className="flex justify-center pt-8 pb-8">
-              <Spinner customClasses="h-6 w-6" color="#E42101" />
-            </div>
-          ) : publication ? (
-            <PublicationContainer
-              publication={publication}
-              onCommentButtonClick={onCommentButtonClick}
-              decryptGatedPosts={handleDecryptPosts}
-              decrypting={decrypting}
-              shouldGoToPublicationPage={false}
-              isProfileAdmin={isProfileAdmin}
-              hideQuoteButton
-              hideFollowButton={false}
-            />
-          ) : null}
-        </div>
-        <div className="w-full max-w-[500px] space-y-1">
-          <Publications
-            publications={sortedComments}
-            theme={Theme.dark}
-            environment={LENS_ENVIRONMENT}
-            authenticatedProfile={authenticatedProfile}
-            hideCommentButton={true}
-            hideQuoteButton={true}
-            hideShareButton={true}
-            hideFollowButton={false}
-            hasUpvotedComment={hasUpvotedComment}
-            onLikeButtonClick={onLikeButtonClick}
-            getOperationsFor={getOperationsFor}
-            followButtonDisabled={!isConnected}
-            onFollowPress={onFollowClick}
-            onProfileClick={goToProfile}
-            profilePictureStyleOverride={publicationProfilePictureStyle}
-            containerBorderRadius={'24px'}
-            containerPadding={'12px 12px 0 12px'}
-            profilePadding={'0 0 0 0'}
-            textContainerStyleOverride={textContainerStyleOverrides}
-            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-            mediaImageStyleOverride={mediaImageStyleOverride}
-            imageContainerStyleOverride={imageContainerStyleOverride}
-            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-            reactionContainerStyleOverride={reactionContainerStyleOverride}
-            publicationContainerStyleOverride={publicationContainerStyleOverride}
-            shareContainerStyleOverride={shareContainerStyleOverride}
-            markdownStyleBottomMargin={'0'}
-            heartIconOverride={true}
-            messageIconOverride={true}
-            shareIconOverride={true}
-          />
-        </div>
-
-        {isConnected && isAuthenticated && publication && (
-          <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
-            <div className="flex items-center gap-x-6 w-full relative">
-              <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-              <textarea
-                ref={commentInputRef}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                placeholder="Add a comment"
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col items-center gap-y-1">
+          <div className="w-full max-w-[900px]">
+            {isConnected && isLoading ? (
+              <div className="flex justify-center pt-8 pb-8">
+                <Spinner customClasses="h-6 w-6" color="#E42101" />
+              </div>
+            ) : publication ? (
+              <PublicationContainer
+                publication={publication}
+                onCommentButtonClick={onCommentButtonClick}
+                decryptGatedPosts={handleDecryptPosts}
+                decrypting={decrypting}
+                shouldGoToPublicationPage={false}
+                isProfileAdmin={isProfileAdmin}
+                hideQuoteButton
+                hideFollowButton={false}
+                sideBySideMode={false}
               />
-              <div className="absolute right-2 top-2">
-                <GenericUploader files={files} setFiles={setFiles} />
-              </div>
-            </div>
-            <div className="flex justify-between gap-y-2 -mt-4">
-              <div className="mt-4">
-                <Button
-                  disabled={isCommenting || !comment}
-                  onClick={submitComment}
-                  variant="accentBrand"
-                  size="sm"
-                >
-                  Reply
-                </Button>
-              </div>
+            ) : null}
+          </div>
+          <div className="w-full max-w-[500px] space-y-1">
+            <Publications
+              publications={sortedComments}
+              theme={Theme.dark}
+              environment={LENS_ENVIRONMENT}
+              authenticatedProfile={authenticatedProfile}
+              hideCommentButton={true}
+              hideQuoteButton={true}
+              hideShareButton={true}
+              hideFollowButton={false}
+              hasUpvotedComment={hasUpvotedComment}
+              onLikeButtonClick={onLikeButtonClick}
+              getOperationsFor={getOperationsFor}
+              followButtonDisabled={!isConnected}
+              onFollowPress={onFollowClick}
+              onProfileClick={goToProfile}
+              profilePictureStyleOverride={publicationProfilePictureStyle}
+              containerBorderRadius={'24px'}
+              containerPadding={'12px 12px 0 12px'}
+              profilePadding={'0 0 0 0'}
+              textContainerStyleOverride={textContainerStyleOverrides}
+              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+              mediaImageStyleOverride={mediaImageStyleOverride}
+              imageContainerStyleOverride={imageContainerStyleOverride}
+              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+              reactionContainerStyleOverride={reactionContainerStyleOverride}
+              publicationContainerStyleOverride={publicationContainerStyleOverride}
+              shareContainerStyleOverride={shareContainerStyleOverride}
+              markdownStyleBottomMargin={'0'}
+              heartIconOverride={true}
+              messageIconOverride={true}
+              shareIconOverride={true}
+              hideCollectButton={true}
+            />
+          </div>
+        </div>
+      </div>
+
+      {isConnected && isAuthenticated && publication && (
+        <div className={clsx("w-full max-w-[500px] bg-background sticky bottom-0 pt-2")}>
+          <div className="flex items-center gap-x-6 w-full relative">
+            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+            <textarea
+              ref={commentInputRef}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+              placeholder="Add a comment"
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+            />
+            <div className="absolute right-2 top-2">
+              <GenericUploader files={files} setFiles={setFiles} />
             </div>
           </div>
-        )}
-      </div>
+          <div className="flex justify-end mt-2">
+            <Button
+                disabled={isCommenting || !comment}
+                onClick={submitComment}
+                variant="accentBrand"
+                size="sm"
+              >
+                Reply
+              </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

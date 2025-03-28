@@ -243,9 +243,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
       <div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
-            <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-4 max-w-full">
+            <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-12 max-w-full">
               {/* Chart */}
-              <div className={clsx("md:col-span-3 rounded-3xl", club.featured && "animate-pulse")}>
+              <div className={clsx("lg:col-span-8 rounded-3xl", club.featured && "animate-pulse")}>
                 <div className={"relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
                     <img
@@ -428,24 +428,26 @@ const TokenPage: NextPage<TokenPageProps> = ({
               </div>
 
               {/* Feed/Trades/Holders */}
-              <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
+              <div className="lg:col-span-4 h-[calc(100vh-20px)] md:mb-0 relative w-full flex flex-col">
                 <div className="mb-4">
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
-                {openTab === 1 && type === "lens" && (
-                  <Feed
-                    postId={club.pubId}
-                    isLoading={isLoading}
-                    publicationWithComments={publicationWithComments}
-                  />
-                )}
-                {openTab === 2 && (
-                  <Trades clubId={club.clubId} chain={club.chain} />
-                )}
-                {openTab === 3 && (
-                  <HolderDistribution clubId={club.clubId} supply={club.supply} creator={club.creator} chain={club.chain} />
-                )}
+                <div className="min-w-[450px] flex-1 overflow-y-auto">
+                  {openTab === 1 && type === "lens" && (
+                    <Feed
+                      postId={club.pubId}
+                      isLoading={isLoading}
+                      publicationWithComments={publicationWithComments}
+                    />
+                  )}
+                  {openTab === 2 && (
+                    <Trades clubId={club.clubId} chain={club.chain} />
+                  )}
+                  {openTab === 3 && (
+                    <HolderDistribution clubId={club.clubId} supply={club.supply} creator={club.creator} chain={club.chain} />
+                  )}
+                </div>
               </div>
             </div>
           </section>
