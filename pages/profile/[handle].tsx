@@ -19,13 +19,13 @@ import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { getClientWithCreatorInfo } from "@src/services/mongo/client";
-import PublicationFeed from "@src/components/Publication/PublicationFeed";
+import PublicationFeed from "@src/components/Profile/PublicationFeed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 // import { FarcasterProfile } from "@src/services/farcaster/types";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import ListItemCard from "@src/components/Shared/ListItemCard";
 import ProfileHoldings from "./ProfileHoldings";
-import { BENEFITS_AUTO_FEATURE_HOURS, BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
+import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID } from "@src/services/madfi/moneyClubs";
 import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import { getProfileImage } from '@src/services/lens/utils';
 import { useProfileWithSession } from '@src/hooks/useProfileWithSession';
@@ -35,6 +35,7 @@ import { FollowersYouKnow } from '@src/components/Profile/FollowersYouKnow';
 import { getAccountStats } from "@src/services/lens/getStats";
 import toast from 'react-hot-toast';
 import { useSIWE } from 'connectkit';
+import { Tabs } from '@src/components/Profile/Tabs';
 
 interface CreatorPageProps {
   profile: any;
@@ -315,18 +316,16 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                 /> */}
 
               <div className="flex flex-col flex-grow min-h-0">
-                <div className={`lg:col-span-3 ${mobileView === 'feed' ? 'mx-auto block' : 'hidden lg:block'
-                  }`}>
-                  {/* Feed - only show for Lens profiles atm */}
-                  {openTab === 1 && type === "lens" && (
-                    <PublicationFeed
-                      welcomePostUrl={creatorInfo?.welcomePostUrl}
-                      isAuthenticated={isAuthenticated}
-                      creatorProfile={profile}
-                      isProfileAdmin={isProfileAdmin}
-                      returnToPage={`u/${profile.handle?.localName || profile.profileHandle}`}
-                    />
-                  )}
+                <div className={`lg:col-span-3 ${mobileView === 'feed' ? 'mx-auto block' : 'hidden lg:block'}`}>
+                  <div className="mb-4">
+                    <Tabs openTab={openTab} setOpenTab={setOpenTab} />
+                  </div>
+                  <PublicationFeed
+                    openTab={openTab}
+                    creatorProfile={profile}
+                    isProfileAdmin={isProfileAdmin}
+                    returnToPage={`u/${profile.handle?.localName || profile.profileHandle}`}
+                  />
                 </div>
               </div>
             </div>

@@ -48,29 +48,52 @@ export const useGetPost = (publicationId?: string) => {
   });
 };
 
-// TODO: enable pagination
-export const getPostsByAuthor = async (authorId: string) => {
-  const result = await fetchPosts(lensClient, {
+export const getPostsByAuthor = async (authorId: string, cursor?: Cursor | null) => {
+  return await fetchPosts(lensClient, {
     filter: {
       authors: [evmAddress(authorId)],
       postTypes: [PostType.Root],
+      feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
     },
+    pageSize: PageSize.Ten,
+    cursor
   });
-
-  if (result.isErr()) {
-    return console.error(result.error);
-  }
-
-  // items: Array<Post>
-  const { items, pageInfo } = result.value;
-
-  return items;
 };
 
-export const useGetPostsByAuthor = (authorId: string) => {
-  return useQuery({
-    queryKey: ["get-posts-by-author", authorId],
-    queryFn: () => getPostsByAuthor(authorId),
+export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | null) => {
+  return await fetchPosts(lensClient, {
+    filter: {
+      postTypes: [PostType.Root],
+      feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }],
+      collectedBy: { account: evmAddress(authorId) }
+    },
+    pageSize: PageSize.Ten,
+    cursor
+  });
+}
+
+export const useGetPostsByAuthor = (authorId: string, getCollected: boolean = false) => {
+  return useInfiniteQuery({
+    queryKey: ["get-posts-by-author", authorId, getCollected],
+    queryFn: async ({ pageParam = null }) => {
+      const result = !getCollected
+        ? await getPostsByAuthor(authorId, pageParam)
+        : await getPostsCollectedBy(authorId, pageParam);
+
+      if (result.isErr()) {
+        console.log(result.error);
+        throw result.error;
+      }
+
+      const { items: posts, pageInfo } = result.value;
+      return {
+        posts,
+        pageInfo,
+        nextCursor: pageInfo.next,
+      };
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 };
 
@@ -79,7 +102,6 @@ interface GetExplorePostsProps {
   accountAddress?: `0x${string}`;
   cursor?: Cursor;
 };
-
 
 // TODO: need filter for feed for explore/foryou
 export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {

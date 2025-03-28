@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import {
   Publications,
   Theme,
-  ActionButton,
 } from "@madfi/widgets-react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
@@ -28,6 +27,7 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { getProfileImage } from "@src/services/lens/utils";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
+import { Button } from "@src/components/Button";
 
 export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const isMounted = useIsMounted();
@@ -145,6 +145,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   };
 
   const submitComment = async (e) => {
+    console.log(`submitComment: ${authenticatedProfile}`)
     e.preventDefault();
     if (!authenticatedProfile) throw new Error("no authenticated profile!");
 
@@ -323,14 +324,14 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
             </div>
             <div className="flex justify-between gap-y-2 -mt-4">
               <div className="mt-4">
-                <ActionButton
-                  label="Comment"
+                <Button
                   disabled={isCommenting || !comment}
                   onClick={submitComment}
-                  theme={Theme.dark}
-                  backgroundColor={comment ? "#EEEDED" : "transparent"}
-                  textColor={comment ? undefined : "#EEEDED"}
-                />
+                  variant="accentBrand"
+                  size="sm"
+                >
+                  Reply
+                </Button>
               </div>
             </div>
           </div>

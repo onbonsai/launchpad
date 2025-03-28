@@ -84,7 +84,7 @@ const PublicationContainer = ({
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
-  const [hasMirrored, setHasMirrored] = useState<boolean>(!!publication?.operations?.hasReposted || false);
+  const [hasMirrored, setHasMirrored] = useState<boolean>(!!publication?.operations?.hasReposted?.onchain || false);
   const [hasCollected, setHasCollected] = useState<boolean>(publication.operations?.hasSimpleCollected || false);
   const [collectAmount, setCollectAmount] = useState<string>();
   const [isCollecting, setIsCollecting] = useState(false);
@@ -374,15 +374,15 @@ const PublicationContainer = ({
           </Button>
         </div>
       )}
-      <div className="absolute right-4 bottom-4">
+      <div className={`absolute ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}>
         <Button
           ref={dropdownButtonRef}
           variant="dark-grey"
           size="sm"
-          className={"text-sm font-bold rounded-xl gap-x-1 md:px-1 py-[6px]"}
+          className={`text-sm font-bold rounded-xl gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
-          <MoreHoriz sx={{ color: '#fff' }} />
+          <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
         </Button>
       </div>
       <CollectModal

@@ -270,16 +270,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
             </div>
             {canComment && (
               <>
-                <div className="flex justify-end gap-y-2 -mt-2">
+                <div className="flex justify-end gap-y-2">
                   <div className="mt-3">
-                    <ActionButton
-                      label="Reply"
-                      disabled={isCommenting || !comment}
+                    <Button
+                      disabled={isCommenting || !comment || !canComment}
                       onClick={submitComment}
-                      theme={Theme.dark}
-                      backgroundColor={comment ? "#EEEDED" : "transparent"}
-                      textColor={comment ? undefined : "#EEEDED"}
-                    />
+                      variant="accentBrand"
+                      size="sm"
+                    >
+                      Reply
+                    </Button>
                   </div>
                 </div>
                 <div className="h-14" ref={scrollPaddingRef}></div>
