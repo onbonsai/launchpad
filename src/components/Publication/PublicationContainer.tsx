@@ -24,6 +24,7 @@ import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
+import { SparkIcon } from "../Icons/SparkIcon";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -350,10 +351,11 @@ const PublicationContainer = ({
         messageIconOverride={true}
         shareIconOverride={true}
         nestedWidget={nestedWidget}
+        updatedAt={sideBySideMode ? media?.updatedAt : undefined}
         // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && sideBySideMode && (
-        <div className="absolute right-4 top-2">
+        <div className="absolute right-4 top-2 z-20">
           <Button
             variant="accentBrand"
             size="md"
@@ -374,6 +376,33 @@ const PublicationContainer = ({
           </Button>
         </div>
       )}
+      {sideBySideMode && (
+        <div className="absolute top-2 left-1 right-4 flex justify-between z-10">
+          {(media?.category || media?.template) && (
+            <div className="rounded-full bg-dark-grey/80 text-white h-10 flex items-center px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer">
+              <span className="pointer-events-none">
+                <SparkIcon color="#fff" height={16} />
+              </span>
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden mr-2">
+                {media?.category && (
+                  <span className="pointer-events-none text-sm ml-1">
+                    {media.category.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                  </span>
+                )}
+                {media?.category && media?.template && (
+                  <span className="text-white/60">•</span>
+                )}
+                {media?.template && (
+                  <span className="pointer-events-none text-sm text-white/80">
+                    {media.template.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className={`absolute ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}>
         <Button
           ref={dropdownButtonRef}
@@ -385,6 +414,7 @@ const PublicationContainer = ({
           <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
         </Button>
       </div>
+
       <CollectModal
         onCollect={onCollect}
         bonsaiBalance={bonsaiBalance}

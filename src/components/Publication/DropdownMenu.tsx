@@ -11,7 +11,16 @@ import { requestPostUpdate } from '@src/services/madfi/studio';
 
 type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh';
 
-export default ({ showDropdown, setShowDropdown, anchorEl, placement = "bottom-end", isCreator, postId, postSlug, mediaUrl }) => {
+export default ({
+  showDropdown,
+  setShowDropdown,
+  anchorEl,
+  placement = "bottom-end",
+  isCreator,
+  postId,
+  postSlug,
+  mediaUrl
+}) => {
   const [currentView, setCurrentView] = useState<ViewState>('initial');
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {

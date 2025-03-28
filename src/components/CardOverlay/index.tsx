@@ -52,7 +52,6 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
-  // const template = post.metadata.attributes?.find(({ key }) => key === "template");
 
   const isCollect = useMemo(() => {
     const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
@@ -140,20 +139,15 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       <div className="absolute top-4 left-4 right-4 flex justify-between z-30">
         <div className="space-y-2">
           {category && (
-            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center min-w-[2.5rem] px-3 justify-center gap-1 pointer-events-none select-none">
+            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center px-3 w-fit pointer-events-none select-none">
               <span className="-ml-2 pointer-events-none">
                 <SparkIcon color="#fff" height={14} />
               </span>
-              <span className="pointer-events-none">
+              <span className="pointer-events-none text-sm ml-1">
                 {category.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
               </span>
             </div>
           )}
-          {/* {template && (
-            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center min-w-[2.5rem] px-3 justify-center gap-1 pointer-events-none">
-              {template.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-            </div>
-          )} */}
         </div>
 
         <div className="self-start">
