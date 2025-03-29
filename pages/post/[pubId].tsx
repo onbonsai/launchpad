@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Publications, Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -50,6 +50,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [canComment, setCanComment] = useState();
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
+
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -116,10 +118,20 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string) => {
     e.preventDefault();
-
     setReplyingToComment(commentId || null);
     setReplyingToUsername(username || null);
   };
+
+  useEffect(() => {
+    if (replyingToComment !== null && commentInputRef.current) {
+      commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const timer = setTimeout(() => {
+        commentInputRef.current?.focus();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [replyingToComment]);
 
   const submitComment = async () => {
     if (!authenticatedProfile) {
@@ -167,12 +179,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     } finally {
       setIsCommenting(false);
     }
-  };
-
-  const onSignInWithLensClick = async (e) => {
-    e.preventDefault();
-
-    signInWithLens();
   };
 
   const onLikeButtonClick = async (e: React.MouseEvent, publicationId: string) => {
@@ -274,6 +280,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                     <div className="flex items-center space-x-4 flex-1">
                       <div className="relative flex-1">
                         <input
+                          ref={commentInputRef}
                           type="text"
                           value={comment}
                           onChange={(e) => setComment(e.target.value)}
@@ -281,7 +288,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           placeholder={canComment ? "Send a reply" : "Collect the post to participate"}
                           disabled={!canComment}
                           autoComplete="off"
-                          onFocus={(e) => e.target.focus()}
                           onKeyDown={(e) => {
                             e.stopPropagation();
                             if (e.key === 'Enter') {
