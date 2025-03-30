@@ -200,7 +200,16 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       post={post}
                       postData={postData[post.slug]}
                       onShare={() => onShareButtonClick(post.slug)}
-                      onClick={() => { router.push(`/post/${post.slug}?returnTo=/`); }}
+                      onClick={() => {
+                        const encodedPost = encodeURIComponent(JSON.stringify(post));
+                        router.push({
+                          pathname: `/post/${post.slug}`,
+                          query: {
+                            returnTo: '/',
+                            postData: encodedPost
+                          }
+                        });
+                      }}
                       className={clsx(
                         "opacity-0 transition-all duration-300 ease-in-out z-30",
                         "group-hover:opacity-100",
