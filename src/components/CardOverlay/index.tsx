@@ -52,6 +52,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
+  const isCreator = post.author.address === authenticatedProfile?.address;
 
   const isCollect = useMemo(() => {
     const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
@@ -191,7 +192,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             placement="top-end"
             postId={post.id}
             postSlug={post.slug}
-            isCreator={post.author.address === authenticatedProfile?.address}
+            isCreator={isCreator}
             mediaUrl={mediaUrl?.value}
           />
         </div>
@@ -230,18 +231,21 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
           <NewShareIcon color="#000" height={16} />
         </button>
 
-        <div className="relative">
-          <button
-            ref={dropdownButtonRef}
-            className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center outline-none"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowDropdown(!showDropdown);
-            }}
-          >
-            <MoreHoriz sx={{ color: '#000' }} />
-          </button>
-        </div>
+        {/* Not showing media mutations for creators here, we need the full object on the post page */}
+        {!isCreator && (
+          <div className="relative">
+            <button
+              ref={dropdownButtonRef}
+              className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center outline-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown(!showDropdown);
+              }}
+            >
+              <MoreHoriz sx={{ color: '#000' }} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

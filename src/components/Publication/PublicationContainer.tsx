@@ -440,6 +440,7 @@ const PublicationContainer = ({
         postSlug={publication.slug}
         isCreator={isCreator}
         mediaUrl={publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value}
+        media={media}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (

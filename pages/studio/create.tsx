@@ -415,7 +415,7 @@ const StudioCreatePage: NextPage = () => {
                         key={`preview-${JSON.stringify(preview)}`}
                         publicationData={{
                           author: authenticatedProfile,
-                          timestamp: new Date().toISOString(),
+                          timestamp: undefined,
                           metadata: {
                             __typename: !!preview?.image
                               ? "ImageMetadata"

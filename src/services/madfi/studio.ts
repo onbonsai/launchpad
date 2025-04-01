@@ -17,6 +17,12 @@ export enum TemplateCategory {
   CAMPFIRE = "campfire",
 }
 
+export enum SmartMediaStatus {
+  ACTIVE = "active", // handler updated it
+  FAILED = "failed", // handler failed to update it
+  DISABLED = "disabled" // updates are disabled
+}
+
 export const CATEGORIES = [
   {
     key: TemplateCategory.EVOLVING_POST,
@@ -92,6 +98,7 @@ export type SmartMedia = {
   protocolFeeRecipient: `0x${string}`; // media template
   isProcessing?: boolean;
   versions?: string[];
+  status?: SmartMediaStatus
 };
 
 interface GeneratePreviewResponse {
@@ -156,16 +163,13 @@ export const resolveSmartMedia = async (
     let url = getSmartMediaUrl(attributes);
     if (!url) return null;
 
-    // HACK: localhost
-    if (url === "http://localhost:3001") url = ELIZA_API_URL;
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
     if (!response.ok) {
       // console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
-    const { data, isProcessing, versions, protocolFeeRecipient = null } = await response.json();
-    return { ...data, isProcessing, versions, protocolFeeRecipient };
+    return  await response.json();
   } catch (error) {
     console.log(error);
     return null;
@@ -200,6 +204,25 @@ export const requestPostUpdate = async (url: string, postSlug: string, idToken: 
     return true;
   } catch (error) {
     console.error("Error requestPostUpdate::", error);
+    return false;
+  }
+}
+
+export const requestPostDisable = async (url: string, postSlug: string, idToken: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${url}/post/${postSlug}/disable`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Post disable failed: ${response.statusText}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error requestPostDisable::", error);
     return false;
   }
 }

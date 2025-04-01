@@ -221,7 +221,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
         <Link
           href={returnTo ? returnTo as string : "/"}
-          className="flex items-center text-secondary/60 hover:text-primary transition-colors"
+          className="flex items-center text-secondary/60 hover:text-primary transition-colors mb-4"
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
           <span className="text-sm">{returnTo ? "Back" : "More Posts"}</span>
@@ -372,8 +372,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (!post) return { notFound: true };
 
   const media = !post.root
-    ? await resolveSmartMedia(post.metadata.attributes, post.slug, false)
-    : await resolveSmartMedia(post.root.metadata.attributes, post.root.slug, false);
+    ? await resolveSmartMedia(post.metadata.attributes, post.slug, true)
+    : await resolveSmartMedia(post.root.metadata.attributes, post.root.slug, true);
 
   const image =
     (post.metadata?.image?.item?.startsWith("lens://")

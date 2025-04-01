@@ -16,7 +16,6 @@ import {
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { immutable, WalletAddressAcl } from "@lens-chain/storage-client";
 import { storageClient } from "./client";
-import { APP_ID } from "../madfi/studio";
 import { LENS_BONSAI_DEFAULT_FEED, LENS_CHAIN_ID } from "../madfi/utils";
 import { parseBase64Image } from "@src/utils/utils";
 import { lensClient } from "./client";
@@ -60,7 +59,6 @@ interface PostParams {
 }
 
 const baseMetadata = {
-  appId: APP_ID,
   attributes: ({ apiUrl, category, name, options: { isCanvas } }: { apiUrl: string; category: string; name: string, options: { isCanvas?: boolean } }) => [
     {
       type: MetadataAttributeType.STRING as const,
@@ -101,7 +99,6 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
   if (!(params.image || params.video)) {
     return textOnly({
       content: params.text,
-      tags: [baseMetadata.appId],
       attributes
     });
   } else if (params.image) {
@@ -113,7 +110,6 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
         altTag: params.text?.substring(0, 10),
         license: MetadataLicenseType.CCO,
       },
-      tags: [baseMetadata.appId],
       attributes
     });
   } else if (params.video) {
@@ -125,7 +121,6 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
         type: params.video.type,
         license: MetadataLicenseType.CCO,
       },
-      tags: [baseMetadata.appId],
       attributes
     });
   }
