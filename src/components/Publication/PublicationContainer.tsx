@@ -292,6 +292,7 @@ const PublicationContainer = ({
   let minWidth = 'min-w-[450px]'
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
+    sideBySideMode = false;
   } else {
     PublicationType = sideBySideMode ? HorizontalPublication : Publication;
     if (sideBySideMode) {
@@ -356,7 +357,7 @@ const PublicationContainer = ({
         hideCollectButton={!!publication.root}
         // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
-      {isCollect && sideBySideMode && (
+      {isCollect && (
         <div className="absolute right-4 top-2 z-20">
           <Button
             variant="accentBrand"
