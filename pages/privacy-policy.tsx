@@ -4,7 +4,7 @@ const PP = () => {
       <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-2 lg:px-8">
         <div className="md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
           <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">Privacy Policy</h1>
-          <p>Last updated December 18, 2024</p>
+          <p>Last updated April 2, 2025</p>
         </div>
         <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
           <div className="md:pl-12 md:pr-12 md:pb-12 pl-2 pr-2 pb-2">
@@ -80,9 +80,9 @@ const PP = () => {
                   Service or from the Service infrastructure itself (for example, the duration of a page visit).
                 </li>
                 <li>
-                  <strong>Website</strong> refers to Launchpad, accessible from{" "}
-                  <a href="https://app.bons.ai/" rel="external nofollow noopener" target="_blank">
-                    https://app.bons.ai/
+                  <strong>Website</strong> refers to the App, accessible from{" "}
+                  <a href="https://app.onbons.ai/" rel="external nofollow noopener" target="_blank">
+                    https://app.onbons.ai/
                   </a>
                 </li>
                 <li>
@@ -403,7 +403,7 @@ const PP = () => {
               <h2 className="text-2xl mt-4">Contact Us</h2>
               <p>If you have any questions about this Privacy Policy, You can contact us:</p>
               <ul className="list-disc list-inside space-y-4">
-                <li>By email: contact@bonsai.meme</li>
+                <li>By email: contact@onbons.ai</li>
               </ul>
             </section>
           </div>

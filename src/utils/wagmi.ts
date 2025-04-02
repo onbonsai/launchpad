@@ -23,7 +23,7 @@ export const config = getDefaultConfig({
   walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
   appName: "Bonsai",
   appDescription: "Create autonomous, agentic content on Lens",
-  appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.bonsai.meme",
+  appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai",
   appIcon: "/static/images/logo.png", // IS_PRODUCTION ? "https://app.onbons.ai/static/images/logo.png" : "https://testnet.bonsai.meme/static/images/logo.png",
 });
 
