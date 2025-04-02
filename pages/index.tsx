@@ -1,11 +1,9 @@
 import { NextPage } from "next";
-import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useMemo, useState } from "react";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { useGetRegisteredClubs } from "@src/hooks/useMoneyClubs";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";

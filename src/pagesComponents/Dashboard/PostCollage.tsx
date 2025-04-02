@@ -6,10 +6,12 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
 import Masonry from "react-masonry-css";
+import { useRouter } from "next/router";
+import { uniqBy } from "lodash/array";
+import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, postCollageTextContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
-import { useRouter } from "next/router";
 import { BONSAI_POST_URL } from "@src/constants/constants";
 import toast from "react-hot-toast";
 import { useReadContract, useWalletClient } from "wagmi";
@@ -17,21 +19,29 @@ import { erc20Abi } from "viem";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { getPostContentSubstring } from "@src/utils/utils";
-import clsx from "clsx";
+import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView();
   const [showCompleted, setShowCompleted] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [activeCollectModal, setActiveCollectModal] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
   const router = useRouter();
   const {
     isAuthenticated,
     authenticatedProfile,
   } = useLensSignIn(walletClient);
+
+  const categories = useMemo(() => {
+    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value');
+    return _categories.map((c) => ({
+      key: c.value,
+      label: c.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+    }));
+  }, [posts]);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -56,7 +66,14 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     const _posts = filterBy ? filteredPosts : posts;
     const direction = "desc";
 
-    const orderedPosts = orderBy(_posts, [post => {
+    const filteredByCategory = !categoryFilter
+      ? _posts
+      : _posts.filter(post => {
+          const templateCategory = post.metadata?.attributes?.find(attr => attr.key === "templateCategory")?.value;
+          return templateCategory === categoryFilter;
+        });
+
+    const orderedPosts = orderBy(filteredByCategory, [post => {
       const value = get(post, sortedBy);
       if (sortedBy === 'timestamp') {
         return value ? new Date(value).getTime() : 0;
@@ -67,7 +84,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     const nonFeaturedPosts = orderedPosts.filter((post) => !post.featured);
 
     return [...featuredPosts, ...nonFeaturedPosts];
-  }, [sortedBy, filterBy, filteredPosts, posts, showCompleted]);
+  }, [sortedBy, filterBy, filteredPosts, posts, showCompleted, categoryFilter]);
 
   const onShareButtonClick = (postSlug: string) => {
     navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
@@ -84,9 +101,16 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     <div className="bg-background text-secondary font-sf-pro-text">
       <main className="mx-auto max-w-full">
         {/* FILTER */}
-        <div className="relative max-w-full">
-          <div className="flex justify-end">
-            {filterBy && (
+        <div className="flex justify-between items-center relative max-w-full">
+            <div className="flex-1">
+              <CategoryScroll
+                categories={categories}
+                categoryFilter={categoryFilter}
+                setCategoryFilter={setCategoryFilter}
+              />
+            </div>
+            <div className="flex items-center">
+              {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
                 <span className="text-secondary text-sm pr-4">{filterBy}</span>
                 <button onClick={() => { setFilteredPosts([]); setFilterBy("") }} className="text-secondary inline-flex">
