@@ -21,7 +21,7 @@ import { Button } from "../Button";
 
 const headerLinks = [
   {
-    label: "Posts",
+    label: "Home",
     href: "/"
   },
   {
@@ -54,14 +54,16 @@ export const Header = () => {
               {headerLinks.map((link) => (
                 <div
                   key={link.href}
-                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
                 >
                   <Link
                     href={link.href}
                     passHref
                     className={cx(
-                      "h-full leading-4 font-medium text-white text-[16px] hover:opacity-100",
-                      route.includes(link.href) ? "font-bold" : ""
+                      "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
+                      route === link.href
+                        ? "text-white"
+                        : "text-white/50 hover:text-white/80"
                     )}
                   >
                     {link.label}
@@ -69,10 +71,10 @@ export const Header = () => {
                 </div>
               ))}
               <div
-                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
                 onClick={() => setOpenHelpModal(true)}
               >
-                <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
+                <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
                   Info
                 </span>
               </div>
@@ -98,7 +100,7 @@ export const Header = () => {
                   size="md" // This sets the height to 40px and padding appropriately
                   className="text-base font-bold md:px-6 bg-white rounded-xl"
                 >
-                  Studio
+                  Create
                 </Button>
               </Link>
               <Balance />
