@@ -3,7 +3,7 @@ import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
 import { switchChain } from "@wagmi/core";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
@@ -96,6 +96,7 @@ const TokenPage: NextPage = () => {
   const [isBridgeModalOpen, setIsBridgeModalOpen] = useState(false);
   const [bridgeInfo, setBridgeInfo] = useState<{ txHash: `0x${string}` }>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
 
   const { stake, unstake } = useStakingTransactions();
 
@@ -163,6 +164,20 @@ const TokenPage: NextPage = () => {
     }
   };
 
+  // Calculate estimated future credits whenever staking data or price changes
+  useEffect(() => {
+    if (stakingData?.summary && (twapPrice || bonsaiPrice)) {
+      const priceToUse = twapPrice || bonsaiPrice;
+      const result = calculateStakingCredits(
+        0, // No new stake, just calculate based on existing stakes
+        0 as LockupPeriod,
+        priceToUse,
+        stakingData.summary,
+      );
+      setEstimatedFutureCredits(result.withFreeTier);
+    }
+  }, [stakingData?.summary, twapPrice, bonsaiPrice]);
+
   const handleStake = async (amount: string, lockupPeriod: number) => {
     try {
       if (chain?.id !== lens.id) {
@@ -176,7 +191,7 @@ const TokenPage: NextPage = () => {
 
       await stake(amount, lockupPeriod);
       refetchBonsaiBalance();
-      setTimeout(() => refetchStakingData(), 5000);
+      setTimeout(() => refetchStakingData(), 4000);
 
       setIsStakeModalOpen(false);
       setIsReferralModalOpen(true);
@@ -206,6 +221,9 @@ const TokenPage: NextPage = () => {
         }
       }
       await unstake(stakeIndex);
+      refetchBonsaiBalance();
+      setTimeout(() => refetchStakingData(), 4000);
+      setIsStakeModalOpen(false);
     } catch (error) {
       console.error("Unstaking error:", error);
     }
@@ -407,7 +425,7 @@ const TokenPage: NextPage = () => {
                             {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            Credits will reset to {creditBalance?.totalCredits?.toFixed(1) || 0}
+                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(1) : creditBalance?.totalCredits?.toFixed(1) || 0}
                           </p>
                         </div>
 
