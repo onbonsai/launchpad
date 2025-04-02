@@ -69,7 +69,7 @@ export const MADFI_POST_URL = IS_PRODUCTION ? "https://madfi.xyz/post" : "https:
 export const MADFI_WALLET_ADDRESS = "0x7F0408bc8Dfe90C09072D8ccF3a1C544737BcDB6";
 export const MADFI_GENESIS_COLLECTION_ID = "1";
 
-export const BONSAI_POST_URL = IS_PRODUCTION ? "https://app.bonsai.meme/post" : "https://testnet.bonsai.meme/post";
+export const BONSAI_POST_URL = IS_PRODUCTION ? "https://app.onbons.ai/post" : "https://testnet.onbons.ai/post";
 
 export const MONGO_DB_CREATORS = "creators";
 export const MONGO_COLLECTION_BOUNTIES = `bounties${IS_PRODUCTION ? "" : "-testnet"}`;
