@@ -4,13 +4,14 @@ import { ReactNode, useState } from "react";
 import { Subtitle, BodySemiBold, Header2 } from "@src/styles/text";
 import { Club, DECIMALS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
-import { useGetTradingInfo } from "@src/hooks/useMoneyClubs";
+import { useGetTradingInfo, useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import { Tooltip } from "@src/components/Tooltip";
 import Link from 'next/link';
 import { Button } from '@src/components/Button';
 import BuySellModal from '@pagesComponents/Club/BuySellModal';
 import { useAccount } from 'wagmi';
 import { SmartMedia } from '@src/services/madfi/studio';
+import { kFormatter } from '@src/utils/utils';
 
 enum PriceChangePeriod {
   twentyFourHours = '24h',
@@ -20,6 +21,7 @@ export const TokenInfoComponent = ({ club, media }: { club: Club, media?: SmartM
   const { address } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
+  const { data: clubBalance } = useGetClubBalance(club.clubId.toString(), address, club.chain);
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
@@ -99,12 +101,16 @@ export const TokenInfoComponent = ({ club, media }: { club: Club, media?: SmartM
             <div className="flex flex-row items-center mr-2">
               <InfoCard
                 title='Market Cap'
-                subtitle={<Subtitle>{!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)), 'currency', 2)}</Subtitle>}
+                subtitle={<Subtitle>{!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)).toString(), 'currency', 2)}</Subtitle>}
                 roundedLeft
               />
               <InfoCard
                 title='24h'
                 subtitle={<PriceChangeString period={PriceChangePeriod.twentyFourHours} />}
+              />
+              <InfoCard
+                title='Balance'
+                subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, _DECIMALS)))}</Subtitle>}
               />
               <ActionCard onClick={(e) => setShowBuyModal(true)} />
             </div>
