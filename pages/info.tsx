@@ -93,9 +93,9 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href="https://docs.bonsai.meme"
+                              href="https://docs.onbons.ai"
                             >
-                              docs.bonsai.meme
+                              docs.onbons.ai
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
