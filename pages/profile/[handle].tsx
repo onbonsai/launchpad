@@ -171,7 +171,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileDisplayName;
     // }
-    return profile.username?.localName;
+    return profile.metadata?.name;
   }
 
   const followingCount = () => {
@@ -246,7 +246,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                           unoptimized={true}
                         />
                       </div>
-                      <h2 className="mt-[16px] font-semibold text-[#ffffff] text-[32px] leading-[1.125]">{displayName()}</h2>
+                      <h2 className="mt-[16px] mb-2 font-semibold text-[#ffffff] text-[32px] leading-[1.125]">{displayName()}</h2>
+                      <Subtitle>@{userHandle()}</Subtitle>
                       {profileData?.operations?.isFollowingMe && (
                         <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-sm">
                           <span className="text-xs font-medium text-white">Follows you</span>
