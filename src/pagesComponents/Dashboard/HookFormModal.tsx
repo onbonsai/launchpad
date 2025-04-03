@@ -67,7 +67,7 @@ const HookFormModal = () => {
               className="link link-hover"
               target="_blank"
               rel="noreferrer"
-              href="https://github.com/mad-finance/univ4-hooks"
+              href="https://github.com/onbonsai/univ4-hooks"
             >
               Default Settings contract
             </a>{" "}

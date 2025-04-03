@@ -105,9 +105,9 @@ const Help = () => {
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
                               rel="noreferrer"
-                              href="https://github.com/mad-finance"
+                              href="https://github.com/onbonsai"
                             >
-                              github.com/mad-finance
+                              github.com/onbonsai
                             </a>
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">

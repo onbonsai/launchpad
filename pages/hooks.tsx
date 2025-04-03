@@ -12,27 +12,27 @@ const hooksList = [
     name: "Default Hook",
     description: "0% trading fees for Bonsai NFT holders",
     address: DEFAULT_HOOK_ADDRESS,
-    source: "https://github.com/mad-finance/univ4-hooks",
+    source: "https://github.com/onbonsai/univ4-hooks",
   },
   {
     name: "Trading Days Hook",
     description:
       "Need a break from the 24/7 crypto markets? This Uniswap v4 hook reverts when markets are closed in New York, the greatest city in the world and the only place where financial markets exist.",
     address: TRADING_DAYS_HOOK_ADDRESS,
-    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/TradingDaysHook.sol",
+    source: "https://github.com/onbonsai/univ4-hooks/blob/main/src/TradingDaysHook.sol",
   },
   {
     name: "Lottery Hook",
     description:
       "Growing jackpot that goes to one lucky trader. The jackpot grows on every swap and the lottery starts after 72 hours or after 1000 swaps.",
     address: LOTTERY_HOOK_ADDRESS,
-    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/LotteryHook.sol",
+    source: "https://github.com/onbonsai/univ4-hooks/blob/main/src/LotteryHook.sol",
   },
   {
     name: "Buyback and Burn Hook",
     description: "Collect 5% trading fee on every swap, only in $BONSAI, and perform a buyback and burn of the paired token every 500 swaps.",
     address: BUYBACK_AND_BURN_HOOK_ADDRESS,
-    source: "https://github.com/mad-finance/univ4-hooks/blob/main/src/BuybackAndBurn.sol",
+    source: "https://github.com/onbonsai/univ4-hooks/blob/main/src/BuybackAndBurn.sol",
   },
 ];
 
