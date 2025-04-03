@@ -85,6 +85,7 @@ html {
 }
 
 @layer utilities {
+
   input[type="number"]::-webkit-inner-spin-button:not(#number-posts),
   input[type="number"]::-webkit-outer-spin-button:not(#number-posts) {
     -webkit-appearance: none;
@@ -143,7 +144,7 @@ html {
 } */
 
 main {
-    min-height: calc(var(--vh, 1vh) * 100 - 347px);
+  min-height: calc(var(--vh, 1vh) * 100 - 347px);
 }
 
 html {
@@ -458,6 +459,7 @@ header .bonsaiLogo {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -465,7 +467,7 @@ header .bonsaiLogo {
 
 /* DECENT */
 
-.box-btn-primary {
+.box-btn-brand-highlight {
   background-color: #FF6400;
   border-radius: 16px;
   font-family: 'Inter', sans-serif;

@@ -1,6 +1,6 @@
-import { Inter } from 'next/font/google';
+import { Darker_Grotesque } from 'next/font/google';
 
-export const inter = Inter({
+export const brandFont = Darker_Grotesque({
     subsets: ['latin'],
     variable: '--font-inter',
     display: 'swap',

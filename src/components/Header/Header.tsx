@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useWalletClient } from "wagmi";
@@ -60,7 +60,7 @@ export const Header = () => {
                     href={link.href}
                     passHref
                     className={cx(
-                      "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
+                      "h-full leading-4 font-medium text-[20px] transition-opacity duration-200",
                       route === link.href
                         ? "text-white"
                         : "text-white/50 hover:text-white/80"
@@ -74,7 +74,7 @@ export const Header = () => {
                 className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
                 onClick={() => setOpenHelpModal(true)}
               >
-                <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
+                <span className="h-full leading-4 font-medium text-[20px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
                   Info
                 </span>
               </div>
@@ -121,9 +121,9 @@ export const Header = () => {
               onClick={() => setOpenMobileMenu(!openMobileMenu)}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
-                   viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M4 6h16M4 12h16M4 18h16"/>
+                  d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
@@ -173,7 +173,7 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", inter.className)}
+        panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
       >
         <HeaderText>
           Bonsai Smart Media

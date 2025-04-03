@@ -5,7 +5,7 @@ import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { ChangeEvent, Fragment, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 import { useSearchClubs } from "@src/hooks/useMoneyClubs";
 import clsx from "clsx";
@@ -64,7 +64,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("lg:min-w-[400px] w-full", inter.className)}>
+      <div className={clsx("lg:min-w-[400px] w-full", brandFont.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search tokens, profiles, and posts
         </label>
@@ -118,7 +118,7 @@ export const SearchClubs = () => {
                 <Dialog.Panel
                   className={clsx(
                     "w-full max-w-md transform rounded-2xl bg-black min-w-[50%] text-left align-middle shadow-md transition-all",
-                    inter.className,
+                    brandFont.className,
                   )}
                 >
                   <Combobox onChange={handleSelectItem}>
@@ -165,8 +165,7 @@ export const SearchClubs = () => {
                                 <Combobox.Option
                                   key={profile.address}
                                   className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                                      active ? "bg-secondary/20 text-secondary" : "text-secondary"
+                                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
                                     }`
                                   }
                                   value={{ ...profile, type: "profile" }}
@@ -199,8 +198,7 @@ export const SearchClubs = () => {
                                 <Combobox.Option
                                   key={post.id}
                                   className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                                      active ? "bg-secondary/20 text-secondary" : "text-secondary"
+                                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
                                     }`
                                   }
                                   value={{ ...post, type: "post" }}
@@ -252,8 +250,7 @@ export const SearchClubs = () => {
                                 <Combobox.Option
                                   key={data.id}
                                   className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                      active ? "bg-secondary/20 text-secondary" : "text-secondary"
+                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
                                     }`
                                   }
                                   value={data}

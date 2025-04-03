@@ -12,7 +12,7 @@ import {
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { kFormatter } from "@src/utils/utils";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import Popper from '@mui/material/Popper';
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { Subtitle } from "@src/styles/text";
@@ -76,7 +76,7 @@ export const Balance = () => {
   // }, [authenticatedProfile]);
 
   return (
-    <div className={clsx("relative inline-block", inter.className)}>
+    <div className={clsx("relative inline-block", brandFont.className)}>
       <div
         className="bg-dark-grey text-white text-base font-medium rounded-xl md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-32 cursor-pointer relative"
         onMouseEnter={handleMouseEnter}

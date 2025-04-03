@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useEffect, useState } from "react";
 import { InfoOutlined, LocalAtmOutlined } from "@mui/icons-material";
 
@@ -42,7 +42,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
       const newcollectAmountOptions: any[] = [];
       for (const tier of COLLECT_PRICE_TIERS) {
         const amountBonsai = Math.ceil(tier.amountStable / price);
-        newcollectAmountOptions.push({ ... tier, amountBonsai });
+        newcollectAmountOptions.push({ ...tier, amountBonsai });
       }
       setCollectAmountOptions(newcollectAmountOptions);
       setCollectAmount(newcollectAmountOptions[0].amountBonsai);
@@ -54,7 +54,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
   return (
     <form
       className="mt-5 mx-auto w-full space-y-4 divide-y divide-dark-grey"
-      style={{ fontFamily: inter.style.fontFamily }}
+      style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
@@ -87,39 +87,39 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
 
           {/* Collect settings */}
           <div className="sm:col-span-6 flex flex-col">
-              <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">Set the Collect Fee users must pay to join your post</Subtitle>
-                </div>
-                <div className="grid grid-cols-3 gap-4 py-2">
-                  {collectAmountOptions.map((data, idx) => (
-                    <div
-                      key={`tier-${idx}`}
-                      className={clsx(
-                        "cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
-                        data.amountStable === collectAmountStable ? "" : "border-card-lightest"
-                      )}
-                      onClick={() => {
-                        setCollectAmountStable(data.amountStable);
-                        setCollectAmount(data.amountBonsai);
-                      }}
-                    >
-                      <div className="flex flex-col items-center">
-                        <div className="text-center">
-                          <h3 className="text-sm font-semibold">{!data.amountBonsai ? "-" : `${kFormatter(data.amountBonsai as number, true)} $BONSAI`}</h3>
-                        </div>
-                        <div className="flex justify-center items-center mt-2">
-                          <span>
-                            <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
-                          </span>
-                          <span className="ml-1 text-white/40 text-sm">{data.label}</span>
-                        </div>
+            <div className="flex flex-col justify-between gap-2">
+              <div className="flex items-center gap-1">
+                <Subtitle className="text-white/70">Set the Collect Fee users must pay to join your post</Subtitle>
+              </div>
+              <div className="grid grid-cols-3 gap-4 py-2">
+                {collectAmountOptions.map((data, idx) => (
+                  <div
+                    key={`tier-${idx}`}
+                    className={clsx(
+                      "cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
+                      data.amountStable === collectAmountStable ? "" : "border-card-lightest"
+                    )}
+                    onClick={() => {
+                      setCollectAmountStable(data.amountStable);
+                      setCollectAmount(data.amountBonsai);
+                    }}
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="text-center">
+                        <h3 className="text-sm font-semibold">{!data.amountBonsai ? "-" : `${kFormatter(data.amountBonsai as number, true)} $BONSAI`}</h3>
+                      </div>
+                      <div className="flex justify-center items-center mt-2">
+                        <span>
+                          <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                        </span>
+                        <span className="ml-1 text-white/40 text-sm">{data.label}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
           <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount)} variant="accentBrand" className="w-full hover:bg-bullish">
@@ -181,21 +181,21 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
   }
 
   return (
-    <div className="col-span-1 rounded-lg relative group transition-all max-w-full focus:outline-primary">
-        <canvas
-          className="absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl bg-red-400 opacity-0 group-hover:opacity-40"
-          style={{ width: "100%", height: "100%" }}
-        ></canvas>
-        <div className="rounded-3xl card card-compact shadow-md relative z-10">
-          <BgImage />
-          <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
-            <TokenInfoHeader />
+    <div className="col-span-1 rounded-lg relative group transition-all max-w-full focus:outline-brand-highlight">
+      <canvas
+        className="absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl bg-red-400 opacity-0 group-hover:opacity-40"
+        style={{ width: "100%", height: "100%" }}
+      ></canvas>
+      <div className="rounded-3xl card card-compact shadow-md relative z-10">
+        <BgImage />
+        <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
+          <TokenInfoHeader />
 
-            <div className="flex flex-row justify-between items-center">
-              <CreatorButton text={authenticatedProfile.username.localName} image={authenticatedProfile.metadata?.picture} />
-            </div>
+          <div className="flex flex-row justify-between items-center">
+            <CreatorButton text={authenticatedProfile.username.localName} image={authenticatedProfile.metadata?.picture} />
           </div>
         </div>
       </div>
+    </div>
   );
 }

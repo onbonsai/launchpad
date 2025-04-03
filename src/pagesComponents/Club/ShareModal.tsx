@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useAccount } from "wagmi";
 import { Dialog } from "@headlessui/react";
 import { SITE_URL } from "@src/constants/constants";
@@ -22,9 +22,9 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
 
   return (
     <div className={clsx("flex flex-col md:w-[500px] w-full")}
-    style={{
-      fontFamily: inter.style.fontFamily,
-    }}>
+      style={{
+        fontFamily: brandFont.style.fontFamily,
+      }}>
       <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
         Earn Referral Rewards from your link
       </Dialog.Title>

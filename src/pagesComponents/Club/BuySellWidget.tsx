@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { formatUnits, parseEther, parseUnits } from "viem";
@@ -179,7 +179,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
   return (
     <div className="flex flex-col w-[calc(100vw-65px)] sm:w-full"
       style={{
-        fontFamily: inter.style.fontFamily
+        fontFamily: brandFont.style.fontFamily
       }
       }>
       <div className="flex items-center justify-between mb-4">
@@ -238,7 +238,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-primary/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
                 {!justBought && (
                   <>
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
@@ -352,7 +352,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                         ))}
                       </div>
                       <span
-                        className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-primary/90' : 'text-secondary/70'}`}
+                        className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-brand-highlight/90' : 'text-secondary/70'}`}
                       >
                         You will receive:{" $"}{sellPriceFormatted}
                       </span> */}
@@ -386,7 +386,7 @@ const Tabs = ({ openTab, setOpenTab }) => {
     <div
       className="flex w-full"
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <ul

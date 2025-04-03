@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Copy from "../Copy/Copy";
 import clsx from "clsx";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 interface ReferralModalProps {
   onClose: () => void;
@@ -25,7 +25,7 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
     <div
       className={clsx("flex flex-col w-full")}
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="flex justify-between items-center mb-6">

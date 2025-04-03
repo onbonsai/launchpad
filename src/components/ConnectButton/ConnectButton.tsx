@@ -11,7 +11,7 @@ import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
 
@@ -36,7 +36,7 @@ const MenuItem = styled(MuiMenuItem)(({ theme }) => ({
     padding: '10px 8px',
     borderRadius: '12px',
   },
-  fontFamily: inter.style.fontFamily,
+  fontFamily: brandFont.style.fontFamily,
   fontSize: '14px',
 }));
 
@@ -110,7 +110,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   // need this to trigger the onSignIn callback
   const handleSignIn = async () => {
-    await signIn()?.then((session?: SIWESession) => {});
+    await signIn()?.then((session?: SIWESession) => { });
   };
 
   if (!ready && !connected) return null;

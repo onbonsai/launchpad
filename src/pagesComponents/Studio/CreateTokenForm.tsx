@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
@@ -101,10 +101,10 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   // TODO: might need to check this after registration fees enabled
   const isValid = (() => {
     return tokenName &&
-           tokenSymbol &&
-           tokenBalance >= (totalRegistrationFee || 0n) &&
-           !!tokenImage &&
-           ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
+      tokenSymbol &&
+      tokenBalance >= (totalRegistrationFee || 0n) &&
+      !!tokenImage &&
+      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
   })();
 
   const buyPriceFormatted = useMemo(() => (
@@ -139,7 +139,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   return (
     <form
       className="mt-5 mx-auto w-full space-y-4 divide-y divide-dark-grey"
-      style={{ fontFamily: inter.style.fontFamily }}
+      style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-2">
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
@@ -223,7 +223,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between">
               <div className="flex items-center">
-              <Subtitle className="text-white/70 mb-2">
+                <Subtitle className="text-white/70 mb-2">
                   Token image
                 </Subtitle>
               </div>
@@ -350,9 +350,9 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   </Subtitle>
                   <div className="text-sm inline-block">
                     <Tooltip message="Buying the initial supply is optional, but recommended" direction="top">
-                    <InfoOutlined
-                      className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
-                    />
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
+                      />
                     </Tooltip>
                   </div>
                 </div>
@@ -362,14 +362,14 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               </div>
               <div className="relative flex flex-col space-y-1 gap-1">
                 <CurrencyInput
-                    trailingAmount={`${buyPriceFormatted}`}
-                    trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
-                    tokenBalance={tokenBalance}
-                    price={initialSupply || ""}
-                    isError={tokenBalance < (totalRegistrationFee || 0n)}
-                    onPriceSet={(e) => setInitialSupply(parseFloat(e))}
-                    symbol={tokenSymbol}
-                    hideBalance
+                  trailingAmount={`${buyPriceFormatted}`}
+                  trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
+                  tokenBalance={tokenBalance}
+                  price={initialSupply || ""}
+                  isError={tokenBalance < (totalRegistrationFee || 0n)}
+                  onPriceSet={(e) => setInitialSupply(parseFloat(e))}
+                  symbol={tokenSymbol}
+                  hideBalance
                 />
                 <div className="flex justify-end">
                   <Subtitle className="text-xs text-white/70 mr-4">
@@ -385,7 +385,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
             Next
           </Button>
           {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
-            ? <Subtitle className="text-primary/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
+            ? <Subtitle className="text-brand-highlight/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
             : null
           }
           <Button size='md' onClick={() => setTokenDataBefore(back)} variant="dark-grey" className="w-full hover:bg-bullish">

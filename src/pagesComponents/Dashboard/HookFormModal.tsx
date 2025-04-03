@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import axios from "axios";
 
 import { Button } from "@src/components/Button";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 const HookFormModal = () => {
   const [name, setName] = useState();
@@ -47,7 +47,7 @@ const HookFormModal = () => {
     <div
       className="flex flex-col w-full mt-8 min-w-[650px]"
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <Dialog.Title as="h3" className="text-5xl uppercase text-center font-bold">

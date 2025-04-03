@@ -15,7 +15,7 @@ import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
 import { useRouter } from "next/router.js";
@@ -92,7 +92,7 @@ export default function MyApp(props: AppProps) {
                 style: {
                   backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
                   color: "white",
-                  fontFamily: inter.style.fontFamily,
+                  fontFamily: brandFont.style.fontFamily,
                   zIndex: 1001,
                 },
               }}

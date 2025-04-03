@@ -3,7 +3,7 @@ import { Popper, ClickAwayListener } from "@mui/material";
 import { Button } from "@src/components/Button";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
   const [url, setUrl] = useState("");
@@ -30,9 +30,9 @@ const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
     <Popper open={Boolean(anchorEl)} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1400 }}>
       <ClickAwayListener onClickAway={onClose}>
         <div
-          className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[350px] space-y-4", inter.className)}
+          className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[350px] space-y-4", brandFont.className)}
           style={{
-            fontFamily: inter.style.fontFamily,
+            fontFamily: brandFont.style.fontFamily,
           }}
         >
           <div className="items-center justify-center text-left space-y-2">

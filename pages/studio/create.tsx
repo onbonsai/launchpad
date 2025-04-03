@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { useAccount, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { parseUnits, zeroAddress } from "viem";
-import { createSmartMedia, Preview, type Template} from "@src/services/madfi/studio";
+import { createSmartMedia, Preview, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
@@ -314,7 +314,7 @@ const StudioCreatePage: NextPage = () => {
                 <div className="flex items-start gap-6">
                   <Link
                     href="/studio"
-                    className="flex items-center text-secondary/60 hover:text-primary transition-colors"
+                    className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors"
                   >
                     <ChevronLeftIcon className="h-5 w-5 mr-1" />
                     <span className="text-sm">Back</span>
@@ -328,7 +328,7 @@ const StudioCreatePage: NextPage = () => {
 
               {/* Form Card */}
               <div className="bg-card rounded-xl p-6 mt-6">
-                <h3 className="text-sm font-medium text-primary mb-4">Fill out the details for your smart media post</h3>
+                <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3>
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
                   <div className="lg:col-span-1">

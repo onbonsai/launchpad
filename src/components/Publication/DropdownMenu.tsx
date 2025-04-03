@@ -228,7 +228,7 @@ export default ({
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-primary"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
                   onClick={(e) => handleButtonClick(e, onDisableMetadata)}
                 >
                   Confirm
@@ -310,7 +310,7 @@ export default ({
             </div>
             <div className="border-t border-white/10">
               <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-primary"
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
                 onClick={(e) => handleButtonClick(e, onHide)}
               >
                 Confirm

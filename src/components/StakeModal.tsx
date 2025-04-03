@@ -3,7 +3,7 @@ import { Button } from "./Button";
 import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 interface StakeModalProps {
   onStake: (amount: string, lockupPeriod: number) => void;
@@ -54,7 +54,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
     <div
       className="p-6 space-y-6 min-w-[450px] text-secondary"
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="flex items-center justify-between">
@@ -102,11 +102,10 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
               <button
                 key={period.value}
                 onClick={() => setSelectedPeriod(period)}
-                className={`p-3 rounded-lg text-left transition-colors ${
-                  selectedPeriod.value === period.value
-                    ? "bg-bullish/20 text-bullish"
-                    : "bg-card-light text-secondary hover:bg-bullish/10"
-                }`}
+                className={`p-3 rounded-lg text-left transition-colors ${selectedPeriod.value === period.value
+                  ? "bg-bullish/20 text-bullish"
+                  : "bg-card-light text-secondary hover:bg-bullish/10"
+                  }`}
               >
                 <div className="text-sm font-medium">{period.label}</div>
                 <div className="text-xs opacity-60">{period.multiplier}× Credits</div>
@@ -120,7 +119,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
           <div className="mt-4 p-4 bg-card-light rounded-lg">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Estimated Additional Daily Credits:</span>
-              <span className="text-lg font-bold text-primary">{formattedCredits}</span>
+              <span className="text-lg font-bold text-brand-highlight">{formattedCredits}</span>
             </div>
             <div className="text-xs text-secondary/60 mt-1">
               Based on current $BONSAI price (${twapPrice?.toFixed(2)}) and {selectedPeriod.multiplier}× multiplier

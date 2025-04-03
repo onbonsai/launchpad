@@ -20,6 +20,7 @@ import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { getPostContentSubstring } from "@src/utils/utils";
 import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
+import { brandFont } from "@src/fonts/fonts";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
@@ -69,9 +70,9 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     const filteredByCategory = !categoryFilter
       ? _posts
       : _posts.filter(post => {
-          const templateCategory = post.metadata?.attributes?.find(attr => attr.key === "templateCategory")?.value;
-          return templateCategory === categoryFilter;
-        });
+        const templateCategory = post.metadata?.attributes?.find(attr => attr.key === "templateCategory")?.value;
+        return templateCategory === categoryFilter;
+      });
 
     const orderedPosts = orderBy(filteredByCategory, [post => {
       const value = get(post, sortedBy);
@@ -102,15 +103,15 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
       <main className="mx-auto max-w-full">
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
-            <div className="flex-1">
-              <CategoryScroll
-                categories={categories}
-                categoryFilter={categoryFilter}
-                setCategoryFilter={setCategoryFilter}
-              />
-            </div>
-            <div className="flex items-center">
-              {filterBy && (
+          <div className="flex-1">
+            <CategoryScroll
+              categories={categories}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+            />
+          </div>
+          <div className="flex items-center">
+            {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
                 <span className="text-secondary text-sm pr-4">{filterBy}</span>
                 <button onClick={() => { setFilteredPosts([]); setFilterBy("") }} className="text-secondary inline-flex">
@@ -135,7 +136,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                   type="checkbox"
                   checked={showCompleted}
                   onChange={(e) => setShowCompleted(e.target.checked)}
-                  className="form-checkbox h-4 w-4 text-primary bg-gray-800 rounded border-gray-600 focus:ring-primary focus:ring-offset-gray-900"
+                  className="form-checkbox h-4 w-4 text-brand-highlight bg-gray-800 rounded border-gray-600 focus:ring-brand-highlight focus:ring-offset-gray-900"
                   aria-label="completed"
                 />
                 <span className="text-secondary text-sm">Graduated</span>
@@ -143,12 +144,12 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
               </div> */}
-              <span className="mt-[9px] ml-2">
+              <span className="mt-[12px] ml-2">
                 <SortIcon />
               </span>
               <select
                 id="sort-select"
-                className="block appearance-none w-full bg-white border-transparent text-secondary rounded-[10px] focus:ring-transparent focus:border-transparent shadow-sm focus:outline-none sm:text-sm md:pl-1 md:pr-8 pr-10"
+                className={`block appearance-none w-full bg-white border-transparent text-secondary rounded-[10px] text-[16px] focus:ring-transparent focus:border-transparent shadow-sm focus:outline-none md:pl-1 md:pr-8 pr-10 ${brandFont.className}`}
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >

@@ -82,7 +82,7 @@ const Hooks = () => {
                           href={hook.source}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 text-sm"
+                          className="text-brand-highlight hover:text-brand-highlight/80 text-sm"
                         >
                           View Source →
                         </a>

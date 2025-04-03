@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { Disclosure, Transition } from "@headlessui/react";
 import Link from "next/link";
 import { useRouter } from 'next/router';
@@ -47,7 +47,7 @@ const Help = () => {
   section = section || ANCHOR_OVERVIEW;
 
   return (
-    <div className={clsx("bg-background text-secondary min-h-[90vh]", inter.className)}>
+    <div className={clsx("bg-background text-secondary min-h-[90vh]", brandFont.className)}>
       <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-2 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
           <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">
@@ -88,7 +88,7 @@ const Help = () => {
                           <p className="text-lg text-secondary pt-8">A modular framework built with ElizaOS makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai Studio.</p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Docs:
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -100,7 +100,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Github:
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -112,7 +112,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Whitepaper:
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -305,9 +305,9 @@ const Help = () => {
                       </h3>
                       <DisclosurePanelWithTransition>
                         <Disclosure.Panel className="p-2">
-                        <p className="mt-4 text-lg text-secondary/70">
+                          <p className="mt-4 text-lg text-secondary/70">
                             Bonsai Token
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -316,7 +316,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
                             </a>
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -328,7 +328,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Bonsai NFT
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -337,7 +337,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
                             </a>
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -349,7 +349,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Launchpad
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -358,7 +358,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad}
                             </a>
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -370,7 +370,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Launchpad Creator NFT
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -379,7 +379,7 @@ const Help = () => {
                             >
                               Base: {PROTOCOL_DEPLOYMENT.base.CreatorNFT}
                             </a>
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -391,7 +391,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Launchpad Periphery
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"
@@ -403,7 +403,7 @@ const Help = () => {
                           </p>
                           <p className="mt-4 text-lg text-secondary/70">
                             Staking
-                            <br/>
+                            <br />
                             <a
                               className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                               target="_blank"

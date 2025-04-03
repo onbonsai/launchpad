@@ -321,7 +321,7 @@ const TokenPage: NextPage = () => {
                   {/* Available Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Balance</h3>
+                      <h3 className="text-sm font-medium text-brand-highlight">Balance</h3>
                     </div>
                     <div>
                       {isConnected ? (
@@ -357,7 +357,7 @@ const TokenPage: NextPage = () => {
                   {/* Rewards Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Staking Rewards</h3>
+                      <h3 className="text-sm font-medium text-brand-highlight">Staking Rewards</h3>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-secondary">Coming Soon</div>
@@ -376,14 +376,14 @@ const TokenPage: NextPage = () => {
                   {/* Staked Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-primary">Staked</h3>
+                      <h3 className="text-sm font-medium text-brand-highlight">Staked</h3>
                     </div>
                     {isConnected ? (
                       <div>
                         <div className="text-2xl font-bold text-secondary">{totalStaked} $BONSAI</div>
                         <p className="text-xs text-secondary/60">${stakedUsdValue}</p>
                         <div className="mt-4 flex justify-between items-center">
-                          <span className="text-xs font-medium bg-primary/20 text-primary px-2 py-0.5 rounded">
+                          <span className="text-xs font-medium bg-brand-highlight/20 text-brand-highlight px-2 py-0.5 rounded">
                             {averageMultiplier}× Credits
                           </span>
                           <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)}>
@@ -408,7 +408,7 @@ const TokenPage: NextPage = () => {
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-primary">Capacity Today</h3>
+                          <h3 className="text-sm font-medium text-brand-highlight">Capacity Today</h3>
                           {/* Display both staking and free credits */}
                           <div className="text-2xl font-bold text-secondary">
                             ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
@@ -420,7 +420,7 @@ const TokenPage: NextPage = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-primary">Next Reset</h3>
+                          <h3 className="text-sm font-medium text-brand-highlight">Next Reset</h3>
                           <div className="text-2xl font-bold text-secondary">
                             {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
                           </div>
@@ -443,19 +443,18 @@ const TokenPage: NextPage = () => {
                                 strokeWidth="4"
                                 strokeLinecap="round"
                                 strokeDasharray={`${2 * Math.PI * 44}`}
-                                strokeDashoffset={`${
-                                  2 *
+                                strokeDashoffset={`${2 *
                                   Math.PI *
                                   44 *
                                   (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))
-                                }`}
+                                  }`}
                                 stroke={
                                   creditBalance?.creditsRemaining && creditBalance?.totalCredits
                                     ? creditBalance.creditsRemaining / creditBalance.totalCredits > 0.66
                                       ? "#22c55e" // Green for > 66% remaining
                                       : creditBalance.creditsRemaining / creditBalance.totalCredits > 0.33
-                                      ? "#eab308" // Yellow for 33-66% remaining
-                                      : "#ef4444" // Red for < 33% remaining
+                                        ? "#eab308" // Yellow for 33-66% remaining
+                                        : "#ef4444" // Red for < 33% remaining
                                     : "#22c55e"
                                 }
                               />
@@ -486,7 +485,7 @@ const TokenPage: NextPage = () => {
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || wasReferred) && (
                   <div className="bg-card rounded-xl p-6">
-                    <h3 className="text-sm font-medium text-primary mb-4">Active Stakes</h3>
+                    <h3 className="text-sm font-medium text-brand-highlight mb-4">Active Stakes</h3>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                       {/* Referral Reward Preview */}
                       {wasReferred && (

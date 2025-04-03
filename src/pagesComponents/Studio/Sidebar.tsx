@@ -49,7 +49,7 @@ const StudioSidebar = () => {
               "flex items-center px-3 py-2 rounded-lg transition-colors",
               item.disabled
                 ? "text-secondary/40 cursor-not-allowed"
-                : "text-secondary/90 hover:text-primary hover:bg-card-light"
+                : "text-secondary/90 hover:text-brand-highlight hover:bg-card-light"
             )}
             onClick={e => {
               if (item.disabled) {
@@ -92,7 +92,7 @@ const StudioSidebar = () => {
             <Link
               key={post.slug}
               href={`/post/${post.slug}?returnTo=/studio`}
-              className="flex items-center px-2 py-2 text-sm text-secondary/90 hover:text-primary hover:bg-card-light rounded-lg transition-colors"
+              className="flex items-center px-2 py-2 text-sm text-secondary/90 hover:text-brand-highlight hover:bg-card-light rounded-lg transition-colors"
             >
               {post.metadata.content.substring(0, 25)}
               {post.metadata.content.length > 25 && '...'}

@@ -49,6 +49,12 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     return null;
   }, [encodedPostData]);
 
+  useEffect(() => {
+    if (pubId) {
+      fetchComments();
+    }
+  }, [pubId]);
+
   // Use the passed post data as initialData if available
   const { data: publicationWithComments, isLoading: isLoadingPublication } = useGetPublicationWithComments(
     pubId as string,
@@ -221,10 +227,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
         <Link
           href={returnTo ? returnTo as string : "/"}
-          className="flex items-center text-secondary/60 hover:text-primary transition-colors mb-4"
+          className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors mb-4"
         >
-          <ChevronLeftIcon className="h-5 w-5 mr-1" />
-          <span className="text-sm">{returnTo ? "Back" : "More Posts"}</span>
+          <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
+          <span className="text-lg">{returnTo ? "Back" : "More Posts"}</span>
         </Link>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">

@@ -9,10 +9,10 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
 import { generatePreview, ImageRequirement, Preview, Template } from "@src/services/madfi/studio";
-import { useVeniceImageOptions, imageModelDescriptions} from "@src/hooks/useVeniceImageOptions";
+import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 type CreatePostProps = {
   template: Template;
@@ -110,7 +110,7 @@ const CreatePostForm = ({
     <form
       className="mt-5 mx-auto md:w-[2/3] w-full space-y-4 divide-y divide-dark-grey"
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="space-y-2">
@@ -119,16 +119,16 @@ const CreatePostForm = ({
             isLoadingVeniceImageOptions
               ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
               : <DynamicForm
-                  template={template}
-                  templateData={templateData}
-                  setTemplateData={setTemplateData}
-                  sharedInputClasses={sharedInputClasses}
-                  veniceImageOptions={veniceImageOptions}
-                  postContent={postContent}
-                  setPostContent={setPostContent}
-                  postImage={postImage}
-                  setPostImage={setPostImage}
-                />
+                template={template}
+                templateData={templateData}
+                setTemplateData={setTemplateData}
+                sharedInputClasses={sharedInputClasses}
+                veniceImageOptions={veniceImageOptions}
+                postContent={postContent}
+                setPostContent={setPostContent}
+                postImage={postImage}
+                setPostImage={setPostImage}
+              />
           }
         </div>
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
@@ -326,7 +326,7 @@ const DynamicForm = ({
                   type="checkbox"
                   checked={templateData[key] || false}
                   onChange={(e) => updateField(key, e.target.checked)}
-                  className="h-4 w-4 text-primary rounded border-dark-grey focus:ring-primary"
+                  className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-brand-highlight"
                 />
                 <label className="ml-2 text-sm text-secondary">
                   {key.charAt(0).toUpperCase() + key.slice(1)}

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react"
 import clsx from "clsx";
+import { brandFont } from "@src/fonts/fonts";
 
 export type Category = {
   key: string | undefined;
@@ -46,9 +47,9 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
             key={c.label}
             className={clsx(
               c.key === categoryFilter
-                ? 'bg-primary text-white relative group hover:bg-primary/90'
+                ? 'bg-brand-highlight text-white relative group hover:bg-brand-highlight/90'
                 : 'text-secondary/60 hover:bg-card transition-colors',
-              'py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2',
+              `py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 text-[18px] ${brandFont.className}`,
               c.key === categoryFilter ? 'pl-6 pr-10' : 'px-6'
             )}
             onClick={() => setCategoryFilter(c.key === categoryFilter ? undefined : c.key)}

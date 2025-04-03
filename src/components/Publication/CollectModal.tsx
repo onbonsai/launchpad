@@ -6,7 +6,7 @@ import { Button } from '../Button';
 import { Subtitle } from '@src/styles/text';
 import { kFormatter } from '@src/utils/utils';
 import clsx from 'clsx';
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import WalletButton from "../Creators/WalletButton";
 
 const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setShowCollectModal, isCollecting, isMedia, account, showCollectModal }) => {
@@ -73,7 +73,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
         <div
           className={clsx(
             "mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4",
-            inter.className,
+            brandFont.className,
             "font-sf-pro-text"
           )}
           onClick={(e) => e.stopPropagation()}

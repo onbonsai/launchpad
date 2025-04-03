@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useReadContract } from "wagmi";
@@ -256,9 +256,9 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
 
   return (
     <div className={clsx("flex flex-col md:w-[448px] w-full")}
-    style={{
-      fontFamily: inter.style.fontFamily,
-    }}>
+      style={{
+        fontFamily: brandFont.style.fontFamily,
+      }}>
       <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
           Create a token
@@ -338,7 +338,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                     >
                       <input
                         type="radio"
-                        className="h-5 w-5 border-none text-primary focus:ring-primary/70"
+                        className="h-5 w-5 border-none text-brand-highlight focus:ring-brand-highlight/70"
                         value={_strategy}
                         id={`strategy-${_strategy}`}
                         name="strategy"
@@ -397,7 +397,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between">
                 <div className="flex items-center">
-                <Subtitle className="text-white/70 mb-2">
+                  <Subtitle className="text-white/70 mb-2">
                     Token image
                   </Subtitle>
                 </div>
@@ -415,7 +415,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                   </Subtitle>
                   <div className="text-sm inline-block">
                     <Tooltip message="The % of tokens that are unlocked and immediately available after graduation" direction="top">
-                    <InfoOutlined
+                      <InfoOutlined
                         className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
                       />
                     </Tooltip>
@@ -439,9 +439,9 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                   </Subtitle>
                   <div className="text-sm inline-block">
                     <Tooltip message="How long after graduation when the remaining tokens are 100% unlocked" direction="left">
-                    <InfoOutlined
-                      className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
-                    />
+                      <InfoOutlined
+                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
+                      />
                     </Tooltip>
                   </div>
                 </div>
@@ -571,9 +571,9 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                     </Subtitle>
                     <div className="text-sm inline-block">
                       <Tooltip message="Buying the initial supply is optional, but recommended" direction="top">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
-                      />
+                        <InfoOutlined
+                          className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
+                        />
                       </Tooltip>
                     </div>
                   </div>
@@ -583,14 +583,14 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                 </div>
                 <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
-                      trailingAmount={`${buyPriceFormatted}`}
-                      trailingAmountSymbol="USDC"
-                      tokenBalance={tokenBalance}
-                      price={`${initialSupply}`}
-                      isError={false}
-                      onPriceSet={(e) => setInitialSupply(parseFloat(e))}
-                      symbol={tokenSymbol}
-                      hideBalance
+                    trailingAmount={`${buyPriceFormatted}`}
+                    trailingAmountSymbol="USDC"
+                    tokenBalance={tokenBalance}
+                    price={`${initialSupply}`}
+                    isError={false}
+                    onPriceSet={(e) => setInitialSupply(parseFloat(e))}
+                    symbol={tokenSymbol}
+                    hideBalance
                   />
                   <div className="flex justify-end">
                     <Subtitle className="text-xs text-white/70 mr-4">
@@ -606,12 +606,12 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
               Create token
             </Button>
             {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
-              ? <Subtitle className="text-primary/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
+              ? <Subtitle className="text-brand-highlight/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
               : <>
-                  <Subtitle>
-                    Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
-                  </Subtitle>
-                </>
+                <Subtitle>
+                  Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
+                </Subtitle>
+              </>
             }
           </div>
         </div>

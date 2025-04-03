@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect } from "react";
 import { Dialog } from "@headlessui/react";
@@ -60,7 +60,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   }
 
   return (
-    <div className={clsx("flex flex-col w-full mt-8", inter.className)}>
+    <div className={clsx("flex flex-col w-full mt-8", brandFont.className)}>
       <Dialog.Title as="h2" className="text-3xl text-center font-bold">
         {`${!profiles || !profiles.length ? 'No Profile found' : 'Your profiles'}`}
       </Dialog.Title>
@@ -85,7 +85,7 @@ const LoginWithLensModal = ({ closeModal }) => {
         {/* PROFILE SELECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 pb-4 md:max-w-[800px]">
           {profiles && profiles.length
-            ? profiles.map(({account}) => (
+            ? profiles.map(({ account }) => (
               <div className="" key={account.address}>
                 <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
                   <div className="grid grid-cols-5 items-center gap-x-4">

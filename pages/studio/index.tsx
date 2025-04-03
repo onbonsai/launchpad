@@ -8,6 +8,8 @@ import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Header2, Subtitle } from "@src/styles/text";
 import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
+import { brandFont } from "@src/fonts/fonts";
+import clsx from "clsx";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -82,13 +84,13 @@ const StudioCreatePage: NextPage = () => {
 
               {/* Categories Card */}
               <div className="bg-card rounded-xl p-6 mt-6">
-                <h3 className="text-sm font-medium text-primary mb-4">Categories</h3>
+                <h3 className="text-sm font-medium text-brand-highlight mb-4">Categories</h3>
                 <div className="relative">
                   <div className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-24">
                     {categories.map((c) => (
                       <button
                         key={c.label}
-                        className={`${c.key === categoryFilter ? 'bg-primary text-white' : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2`}
+                        className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full text-[20px] flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
                         onClick={() => setCategoryFilter(c.key)}
                       >
                         {c.label}
@@ -96,7 +98,7 @@ const StudioCreatePage: NextPage = () => {
                     ))}
                   </div>
 
-                  <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full">
+                  <div className={clsx("absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full text-[20px]", `${brandFont.className}`)}>
                     <button
                       ref={importButtonRef}
                       className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full flex-shrink-0"
@@ -110,13 +112,13 @@ const StudioCreatePage: NextPage = () => {
 
               {/* Templates Card */}
               <div className="bg-card rounded-xl p-6 mt-6">
-                <h3 className="text-sm font-medium text-primary mb-4">Templates</h3>
+                <h3 className="text-sm font-medium text-brand-highlight mb-4">Templates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}
-                      className="bg-card-light rounded-xl p-4 flex flex-col border border-dark-grey hover:border-primary transition-colors h-full"
+                      className="bg-card-light rounded-xl p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full"
                     >
                       <div className="rounded-xl overflow-hidden mb-4 border border-dark-grey">
                         <Image
@@ -128,14 +130,14 @@ const StudioCreatePage: NextPage = () => {
                         />
                       </div>
                       <div className="flex flex-col flex-1">
-                        <h3 className="font-semibold text-lg text-primary">{template.displayName}</h3>
+                        <h3 className="font-semibold text-lg text-brand-highlight">{template.displayName}</h3>
                         <p className="text-sm text-secondary/60">
                           {template.description}
                         </p>
                         <div className="flex-1" />
                         <div className="flex justify-end mt-4">
                           <button
-                            className="bg-primary text-white px-4 py-1 rounded-full text-sm"
+                            className="bg-brand-highlight text-white px-4 py-1 rounded-full text-sm"
                             onClick={() => selectTemplate(template.name)}
                           >
                             Create
