@@ -32,7 +32,7 @@ const StudioSidebar = () => {
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
   const menuItems = [
-    { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Create a Post", href: "/studio/create", disabled: false },
+    { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Studio", href: "/studio/create", disabled: false },
     { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
     { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Bonsai Token", href: "/studio/token", disabled: false },
   ]

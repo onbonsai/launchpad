@@ -72,7 +72,7 @@ const StudioCreatePage: NextPage = () => {
               <div className="bg-card rounded-xl p-6">
                 <div className="flex items-center relative">
                   <div className="flex space-x-4">
-                    <Header2>Create a post</Header2>
+                    <Header2>Studio</Header2>
                   </div>
                 </div>
                 <Subtitle className="mt-2">
