@@ -308,12 +308,12 @@ const TokenPage: NextPage = () => {
                     <Header2>Bonsai Token</Header2>
                     <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
                   </div>
-                  <Button
+                  {/* <Button
                     onClick={() => setIsReferralModalOpen(true)}
                     className="absolute right-0 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <GiftIcon className="h-5 w-5 mr-2 text-white" /> Referrals
-                  </Button>
+                  </Button> */}
                 </div>
                 <Subtitle className="mt-2">
                   Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
@@ -383,13 +383,14 @@ const TokenPage: NextPage = () => {
                     </div>
                     {isConnected ? (
                       <div>
-                        <div className="text-2xl font-bold text-secondary">{totalStaked} $BONSAI</div>
+                        <div className="text-2xl font-bold text-secondary">Coming Soon</div>
+                        {/* <div className="text-2xl font-bold text-secondary">{totalStaked} $BONSAI</div> */}
                         <p className="text-xs text-secondary/60">${stakedUsdValue}</p>
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-xs font-medium bg-brand-highlight/20 text-brand-highlight px-2 py-0.5 rounded">
                             {averageMultiplier}× Credits
                           </span>
-                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)}>
+                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)} disabled>
                             Stake
                           </Button>
                         </div>
