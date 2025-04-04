@@ -65,7 +65,7 @@ const StudioSidebar = () => {
         ))}
       </nav>
 
-      <div className="my-6 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+      <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
 
       {/* Bonsai Token Info */}
       <div className="">
@@ -81,7 +81,7 @@ const StudioSidebar = () => {
         </div>
       </div>
 
-      <div className="my-6 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+      <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
 
       {/* Recent Posts */}
       {/* <div className="">
