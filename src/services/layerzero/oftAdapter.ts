@@ -119,8 +119,6 @@ export const bridgeTokens = async (fromChain: Chain, toChain: Chain, amount: str
     args: [params, false]
   }) as { nativeFee: bigint, lzTokenFee: bigint };
 
-  console.log(`fee: ${formatEther(fee.nativeFee)}`);
-
   toast.loading("Sending bridge transaction...", { id: toastId });
   const hash = await walletClient.writeContract({
     address: lzApp,

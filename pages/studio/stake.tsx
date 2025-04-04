@@ -245,6 +245,7 @@ const TokenPage: NextPage = () => {
           clearInterval(statusInterval);
           setBridgeInfo(undefined);
           setShowConfetti(true);
+          toast.success("Tokens bridged", { duration: 5000 });
           // Remove confetti after 5 seconds
           setTimeout(() => setShowConfetti(false), 5000);
         }
@@ -338,8 +339,8 @@ const TokenPage: NextPage = () => {
                         <>
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
-                          <div className="mt-4 flex-wrap justify-end space-x-2">
-                            <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)}>
+                          <div className="mt-4 flex justify-end space-x-2">
+                            <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)} disabled={!!bridgeInfo?.txHash}>
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
                                 <div className="flex items-center gap-2 flex-row">
@@ -359,6 +360,18 @@ const TokenPage: NextPage = () => {
                         </div>
                       )}
                     </div>
+                    {bridgeInfo?.txHash && (
+                      <div className="flex justify-end mt-4">
+                        <a
+                          href={`https://layerzeroscan.com/tx/${bridgeInfo.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-bullish hover:underline"
+                        >
+                          Check LayerZero
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {/* Rewards Card */}

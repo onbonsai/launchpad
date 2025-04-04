@@ -18,7 +18,7 @@ export const Web3Provider = ({ children }) => {
         sessionRefetchInterval={300000}// in milliseconds, defaults to 5 minutes
         signOutOnDisconnect
         signOutOnAccountChange
-        signOutOnNetworkChange={false}
+        signOutOnNetworkChange
       >
         <ConnectKitProvider>{children}</ConnectKitProvider>
       </siweClient.Provider>

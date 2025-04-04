@@ -126,6 +126,8 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     if (chain?.id !== fromChain?.id) {
       try {
         await switchChain(configureChainsConfig, { chainId: fromChain?.id });
+        toast("Please re-connect your wallet");
+        setOpen(true);
         return;
       } catch {
         toast.error("Please switch chains");
@@ -258,10 +260,15 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
               size='md'
               variant="accentBrand"
               className="w-full hover:bg-bullish"
-              disabled={!isValid || bridging}
+              disabled={!isValid || bridging || !!bridgeInfo}
               onClick={handleBridge}
             >
-              {(chain?.id !== fromChain?.id) ? `Switch to ${fromChain?.name}` : (
+              {bridgeInfo?.txHash ? (
+                <div className="flex items-center gap-2 flex-row">
+                  <Spinner customClasses="h-4 w-4" color="#5be39d" />
+                  <span>Bridging</span>
+                </div>
+              ) : (chain?.id !== fromChain?.id) ? `Switch to ${fromChain?.name}` : (
                 (nativeBalance && estimatedFee && !sufficientNativeFunds) ? "Insufficient funds" : "Bridge"
               )}
             </Button>
