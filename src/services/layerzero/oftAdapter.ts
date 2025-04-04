@@ -26,7 +26,7 @@ export const BONSAI_CONTRACTS = {
   [lens.id]: PROTOCOL_DEPLOYMENT.lens.Bonsai,
 };
 
-export const ELIGIBLE_CHAINS = [base.id as number, zkSync.id as number, polygon.id as number];
+export const ELIGIBLE_CHAINS = [base.id as number, zkSync.id as number, polygon.id as number, lens.id];
 
 const EXECUTOR_OPTIONS_LZ_RECEIVE_GAS_500k = "0x0003010011010000000000000000000000000007a120";
 const EXECUTOR_OPTIONS_LZ_RECEIVE_GAS_1M = "0x000301001101000000000000000000000000000f4240";
@@ -35,7 +35,7 @@ const CHAIN_ID_TO_EID = {
   [polygon.id]: 30109,
   [base.id]: 30184,
   [zkSync.id]: 30165,
-  [lens.id]: 0 // TODO
+  [lens.id]: 30373,
 }
 
 export const getEstimatedNativeFee = async (fromChain: Chain, toChain: Chain, amount: string, recipient: `0x${string}`): Promise<bigint | undefined> => {

@@ -59,7 +59,8 @@ const SelectDropdown: React.FC<{
   isMulti?: boolean;
   zIndex?: number;
   value?: any;
-}> = ({ options, onChange, placeholder, defaultValue, isMulti = true, zIndex, value }) => {
+  isDisabled?: boolean;
+}> = ({ options, onChange, placeholder, defaultValue, isMulti = true, zIndex, value, isDisabled }) => {
   const [menuPortalTarget, setMenuPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -164,6 +165,7 @@ const SelectDropdown: React.FC<{
         defaultValue={defaultValue}
         menuPortalTarget={menuPortalTarget}
         menuPosition={"fixed"}
+        isDisabled={isDisabled}
       />
     </div>
   );

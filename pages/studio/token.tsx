@@ -304,7 +304,7 @@ const TokenPage: NextPage = () => {
                   </div>
                   <Button
                     onClick={() => setIsReferralModalOpen(true)}
-                    className="absolute right-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="absolute right-0 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <GiftIcon className="h-5 w-5 mr-2 text-white" /> Referrals
                   </Button>
@@ -346,9 +346,6 @@ const TokenPage: NextPage = () => {
                       ) : (
                         <div className="text-center py-4">
                           <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your balance</p>
-                          <Button variant="accent" size="sm">
-                            Connect Wallet
-                          </Button>
                         </div>
                       )}
                     </div>
@@ -394,9 +391,6 @@ const TokenPage: NextPage = () => {
                     ) : (
                       <div className="text-center py-4">
                         <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view staking</p>
-                        <Button variant="accent" size="sm">
-                          Connect Wallet
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -474,9 +468,6 @@ const TokenPage: NextPage = () => {
                     ) : (
                       <div className="col-span-3 text-center py-8">
                         <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your API credits</p>
-                        <Button variant="accent" size="sm">
-                          Connect Wallet
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -491,7 +482,7 @@ const TokenPage: NextPage = () => {
                       {wasReferred && (
                         <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-purple-500/50 relative overflow-hidden">
                           {/* Gradient overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#B6D5C2]/10 to-[#52837D]/10" />
 
                           {/* Content */}
                           <div className="relative z-10">

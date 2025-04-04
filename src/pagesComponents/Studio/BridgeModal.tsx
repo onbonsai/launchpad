@@ -59,9 +59,14 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
       { value: base, label: "Base", icon: "/svg/base.svg", size: 16, balance: bonsaiBalanceBase },
       { value: polygon, label: "Polygon", icon: "/svg/polygon-logo-dark.svg", balance: bonsaiBalancePolygon },
       { value: zkSync, label: "zkSync Era", icon: "/svg/zksync-logo-dark.svg", balance: bonsaiBalanceZkSync },
-      { value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance }
+      // not allowing users to bridge _from_ Lens
+      // { value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance }
     ]
   }], [bonsaiBalancePolygon, bonsaiBalanceBase, bonsaiBalanceZkSync]);
+
+  const destinationChainOptions = [
+    { value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance }
+  ]
 
   const isLoading = isLoadingBase || isLoadingPolygon || isLoadingZkSync;
   const highestBalanceChain = useMemo(() => {
@@ -79,7 +84,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   }, [isLoading]);
 
   const [fromChain, setFromChain] = useState<Chain | undefined>(highestBalanceChain);
-  const [toChain, setToChain] = useState<Chain>();
+  const [toChain, setToChain] = useState<Chain>(lens);
 
   const { data: estimatedFee } = useGetEstimatedNativeFee({
     fromChain,
@@ -96,7 +101,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   const formattedFee = useMemo(() => {
     if (fromChain && estimatedFee) {
       const symbol = fromChain.id === polygon.id ? "POL" : "ETH";
-      return `~ ${parseFloat(formatEther(estimatedFee)).toFixed(4)} ${symbol}`;
+      return `~ ${parseFloat(formatEther(estimatedFee)).toFixed(symbol === "POL" ? 4 : 6)} ${symbol}`;
     }
   }, [fromChain, estimatedFee]);
 
@@ -121,6 +126,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     if (chain?.id !== fromChain?.id) {
       try {
         await switchChain(configureChainsConfig, { chainId: fromChain?.id });
+        return;
       } catch {
         toast.error("Please switch chains");
         return;
@@ -184,7 +190,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
               </div>
             </div>
 
-            {/* To Chain */}
+            {/* To Chain (only Lens) */}
             <div className="sm:col-span-2 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
@@ -192,11 +198,12 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                 </div>
                 <div className="relative">
                   <SelectDropdown
-                    options={chainOptions}
-                    value={chainOptions[0].options.find(opt => opt.value.id === toChain?.id)}
-                    onChange={(option) => setToChain(option.value)}
+                    options={destinationChainOptions}
+                    value={{ value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance }}
+                    onChange={() => {}}
                     isMulti={false}
                     zIndex={1001}
+                    isDisabled
                   />
                 </div>
               </div>
@@ -228,18 +235,24 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
             </div>
           </div>
 
-          {/* Estimated fee */}
+          {/* Estimated fee / time */}
           <div className="sm:col-span-2 flex flex-col">
-            <div className="flex flex-col justify-between gap-2">
-              <div className="flex items-center justify-between">
-                <Subtitle className="text-white/70">Estimated Fee</Subtitle>
-                <BodySemiBold className="text-white/70">{formattedFee}</BodySemiBold>
+            {!!formattedFee && (
+              <div className="flex flex-col justify-between gap-2">
+                <div className="flex items-center justify-between">
+                  <Subtitle className="text-white/70">Estimated Fee</Subtitle>
+                  <BodySemiBold className="text-white/70">{formattedFee}</BodySemiBold>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Subtitle className="text-white/70">Estimated Time</Subtitle>
+                  <BodySemiBold className="text-white/70">~ 2 min</BodySemiBold>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Action Button */}
-          <div className="pt-8 flex flex-col gap-2 justify-center items-center">
+          <div className="pt-4 flex flex-col gap-2 justify-center items-center">
             <Button
               size='md'
               variant="accentBrand"
@@ -247,7 +260,9 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
               disabled={!isValid}
               onClick={handleBridge}
             >
-              {(nativeBalance && estimatedFee && !sufficientNativeFunds) ? "Insufficient funds" : "Bridge"}
+              {(chain?.id !== fromChain?.id) ? `Switch to ${fromChain?.name}` : (
+                (nativeBalance && estimatedFee && !sufficientNativeFunds) ? "Insufficient funds" : "Bridge"
+              )}
             </Button>
           </div>
 

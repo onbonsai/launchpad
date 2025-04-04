@@ -1,7 +1,7 @@
 import { Chain, zeroAddress } from "viem";
 import { baseSepolia } from "viem/chains";
 import { base } from "viem/chains";
-import { chains } from "@lens-network/sdk/viem";
+import { chains } from "@lens-chain/sdk/viem";
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 
@@ -38,7 +38,7 @@ const PROTOCOL_DEPLOYMENT_MAINNET = {
     CreatorNFT: "0x598cbeAce49CfE711D5AD75fb71e81e5B81c2eB5",
   },
   lens: {
-    Bonsai: "0x795cc31B44834Ff1F72F7db73985f9159Bd51ac2",
+    Bonsai: "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82",
     BonsaiNFT: "0xD51C163134Fd3f2403AD68860C02B123503bf3BD",
     BonsaiLaunchpad: "0x717138EbACFbbD9787b84c220E7BDA230C93dfB8",
     CreatorNFT: "0xD6d9EF97F10EA133B829928Ebfb606344E60dc7F",
@@ -52,8 +52,8 @@ export const PROTOCOL_DEPLOYMENT = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET :
 // NETWORKS
 
 // TODO: mainnet
-export const lens: Chain = chains.testnet
-export const lensTestnet: Chain = chains.testnet
+export const lens: Chain = chains.mainnet;
+export const lensTestnet: Chain = chains.testnet;
 export const LENS_CHAIN_ID = IS_PRODUCTION ? lens.id : lensTestnet.id;
 export const LENS_BONSAI_APP = IS_PRODUCTION
   ? "0x4Abd67c2c42ff2b8003C642D0d0e562A3F900805" // todo: mainnet

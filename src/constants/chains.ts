@@ -1,3 +1,4 @@
+import { lens } from "@src/services/madfi/utils";
 import {
   mainnet,
   polygon,
@@ -27,6 +28,7 @@ export const ChainRpcs = {
   [zkSync.id]: process.env.NEXT_PUBLIC_ZKSYNC_RPC!,
   [zkSyncSepoliaTestnet.id]: process.env.NEXT_PUBLIC_ZKSYNC_SEPOLIA_RPC!,
   [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC!,
+  [lens.id]: process.env.NEXT_PUBLIC_LENS_RPC || "https://rpc.lens.dev"
 };
 
 export const ChainNames = {
