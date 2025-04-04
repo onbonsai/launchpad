@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import { brandFont } from "@src/fonts/fonts";
 
 export const publicationProfilePictureStyle = css`
   width: 36px;
@@ -26,16 +27,16 @@ export const commentPublicationProfilePictureStyle = css`
 
 export const textContainerStyleOverrides = css`
   padding-top: 20px;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 20px;
-  font-family: var(--font-inter), sans-serif;
+  font-family: inherit;
 `
 
 export const postCollageTextContainerStyleOverrides = css`
   padding-top: 20px;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 20px;
-  font-family: var(--font-inter), sans-serif;
+  font-family: inherit;
 
   &::first-line {
     font-size: 18px;
@@ -46,9 +47,9 @@ export const postCollageTextContainerStyleOverrides = css`
 
 export const commentTextContainerStyleOverrides = css`
   padding-top: 8px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 14px;
-  font-family: var(--font-inter), sans-serif;
+  font-family: inherit;
 `
 
 export const mediaImageStyleOverride = css`
@@ -98,11 +99,11 @@ export const commentReactionsContainerStyleOverride = css`
 
 export const commentProfileNameStyleOverride = css`
   font-weight: 600;
-  font-size: 12px;
+  font-size: 14px;
 `
 
 export const commentDateStyleOverride = css`
-  font-size: 10px;
+  font-size: 12px;
   color: #464646;
   opacity: .75;
 `
@@ -121,7 +122,7 @@ export const reactionContainerStyleOverride = (color, backgroundColor, isAuthent
     justify-content: center;
     color: ${color};
     background-color: rgb(255,255,255,0.04);
-    font-size: 10px;
+    font-size: 12px;
     margin: 0;
     margin-left: 4px;
     height: 14px;
@@ -154,7 +155,7 @@ export const shareContainerStyleOverride = (color, backgroundColor) => css`
   width: 24px;
   p {
     color: ${color};
-    font-size: 12px;
+    font-size: 14px;
     opacity: .75;
     margin: 0;
     margin-left: 4px;
@@ -178,7 +179,7 @@ export const actButtonContainerStyleOverride = (color, backgroundColor, disabled
   width: 68px;
   p {
     color: ${color};
-    font-size: 14px;
+    font-size: 16px;
     opacity: .75;
     margin: 0;
   }

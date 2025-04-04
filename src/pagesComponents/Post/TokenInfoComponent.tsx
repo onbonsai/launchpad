@@ -12,6 +12,7 @@ import BuySellModal from '@pagesComponents/Club/BuySellModal';
 import { useAccount } from 'wagmi';
 import { SmartMedia } from '@src/services/madfi/studio';
 import { kFormatter } from '@src/utils/utils';
+import { brandFont } from '@src/fonts/fonts';
 
 enum PriceChangePeriod {
   twentyFourHours = '24h',
@@ -46,7 +47,7 @@ export const TokenInfoComponent = ({ club, media }: { club: Club, media?: SmartM
           variant="dark-grey"
           size="md"
           onClick={onClick}
-          className="!bg-transparent hover:!bg-transparent !border-none !text-white/60"
+          className={`!bg-transparent hover:!bg-transparent !border-none !text-white/60 ${brandFont.className}`}
         >
           Buy
         </Button>

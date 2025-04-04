@@ -176,7 +176,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               columnClassName="pl-4 bg-clip-padding"
             >
               {sortedPosts.map((post, idx) => (
-                <div key={`post-${post.slug}`} className="mb-4 relative group">
+                <div key={`post-${post.slug}`} className={`mb-4 relative group ${brandFont.className}`}>
                   <Publication
                     key={`preview-${post.slug}`}
                     publicationData={{
@@ -196,6 +196,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       }
                     }}
                     theme={Theme.dark}
+                    fontSize="18px"
                     followButtonDisabled={true}
                     environment={LENS_ENVIRONMENT}
                     profilePictureStyleOverride={publicationProfilePictureStyle}

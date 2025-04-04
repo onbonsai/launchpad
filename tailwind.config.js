@@ -81,7 +81,7 @@ module.exports = {
         },
         'true-black': "#000",
         navy: "#232F3F",
-        background: "#191919",
+        background: "#000",
         "dark-grey": "#262626",
         "button": "rgba(255, 255, 255, 0.08)",
         "card": "rgba(255, 255, 255, 0.08)",

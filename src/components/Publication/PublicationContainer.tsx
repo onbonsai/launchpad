@@ -25,6 +25,7 @@ import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
+import { brandFont } from "@src/fonts/fonts";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -301,7 +302,7 @@ const PublicationContainer = ({
   }
 
   return (
-    <div className={`mb-4 relative flex justify-center max-h-60vh ${minWidth}`}>
+    <div className={`mb-4 relative flex justify-center max-h-60vh ${minWidth} ${brandFont.className}}`}>
       <PublicationType
         key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
         publicationId={publication?.id ? publication!.id : publicationId}
@@ -355,7 +356,8 @@ const PublicationContainer = ({
         nestedWidget={nestedWidget}
         updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
         hideCollectButton={!!publication.root}
-        // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
+        fontSize="20px"
+      // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && (
         <div className="absolute right-4 top-2 z-20">
@@ -370,7 +372,7 @@ const PublicationContainer = ({
                 <BookmarkAddOutlined />
                 Collect
               </>
-            ): (
+            ) : (
               <>
                 <BookmarkOutlined />
                 Joined
