@@ -10,6 +10,9 @@ interface StakeModalProps {
   maxAmount: string;
   calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
   twapPrice?: number;
+  switchNetwork?: boolean;
+  amount: string;
+  setAmount: (s: string) => void;
 }
 
 const LOCKUP_PERIODS = [
@@ -22,8 +25,8 @@ const LOCKUP_PERIODS = [
 
 const MIN_STAKE = 1000;
 
-export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice }: StakeModalProps) => {
-  const [amount, setAmount] = useState("");
+export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice, switchNetwork, amount, setAmount }: StakeModalProps) => {
+
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
   const handleMax = () => {
@@ -161,7 +164,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
             onClick={handleStake}
             disabled={!amount || Number(amount) < MIN_STAKE}
           >
-            Stake
+            {switchNetwork ? 'Switch to Lens' : 'Stake'}
           </Button>
         </div>
       </div>

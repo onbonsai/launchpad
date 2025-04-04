@@ -118,7 +118,7 @@ export const ClaimFeesEarned = () => {
     setIsClaiming(false);
   };
 
-  const disabled = !isConnected || isLoading || creatorFeesEarned?.grandTotal === 0n || isClaiming;
+  const disabled = !isConnected || isLoading || (!creatorFeesEarned?.grandTotal || creatorFeesEarned?.grandTotal === 0n) || isClaiming;
 
   if ((isLoading || disabled) && !isClaiming) return null;
 

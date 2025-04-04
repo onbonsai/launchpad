@@ -51,7 +51,6 @@ export const PROTOCOL_DEPLOYMENT = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET :
 
 // NETWORKS
 
-// TODO: mainnet
 export const lens: Chain = chains.mainnet;
 export const lensTestnet: Chain = chains.testnet;
 export const LENS_CHAIN_ID = IS_PRODUCTION ? lens.id : lensTestnet.id;

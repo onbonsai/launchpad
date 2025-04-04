@@ -52,6 +52,7 @@ const getCreditsMultiplier = (lockupPeriod: number) => {
 
 const TokenPage: NextPage = () => {
   const { address, isConnected, chain } = useAccount();
+  const [stakeAmount, setStakeAmount] = useState("");
   const router = useRouter();
 
   const { data: bonsaiBalance, refetch: refetchBonsaiBalance } = useReadContract({
@@ -566,6 +567,9 @@ const TokenPage: NextPage = () => {
                     onStake={handleStake}
                     calculateCreditsPerDay={calculateCreditsPerDay}
                     twapPrice={twapPrice || bonsaiPrice}
+                    switchNetwork={chain?.id !== lens.id}
+                    amount={stakeAmount}
+                    setAmount={setStakeAmount}
                   />
                 </Modal>
 
