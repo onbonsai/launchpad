@@ -119,7 +119,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     return (
       <Button
         variant="accent"
-        className="text-base font-medium md:px-4 rounded-xl"
+        className="text-base font-medium md:px-4 rounded-lg"
         onClick={() => !isConnected || !connected ? setOpen(true) : handleSignIn()}
         size="md" // This sets the height to 40px and padding appropriately
       >
@@ -141,7 +141,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     return (
       <Button
         variant="accent"
-        className="text-base font-medium md:px-4 rounded-xl"
+        className="text-base font-medium md:px-4 rounded-lg"
         onClick={() => setOpenSignInModal(true)}
         disabled={signingIn}
         size="md"
@@ -154,7 +154,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   return (
     <>
       <div
-        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl min-w-fit justify-end overflow-hidden`}
+        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-lg min-w-fit justify-end overflow-hidden`}
         onClick={handleClick}
         style={{ maxWidth: 'calc(100vw - 20px)' }} // Ensure the container does not exceed the viewport width
       >

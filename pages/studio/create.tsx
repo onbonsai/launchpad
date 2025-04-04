@@ -310,7 +310,7 @@ const StudioCreatePage: NextPage = () => {
             {/* Main Content */}
             <div className="flex-grow">
               {/* Header Card */}
-              <div className="bg-card rounded-xl p-6">
+              <div className="bg-card rounded-lg p-6">
                 <div className="flex items-start gap-6">
                   <Link
                     href="/studio"
@@ -327,7 +327,7 @@ const StudioCreatePage: NextPage = () => {
               </div>
 
               {/* Form Card */}
-              <div className="bg-card rounded-xl p-6 mt-6">
+              <div className="bg-card rounded-lg p-6 mt-6">
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3>
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">

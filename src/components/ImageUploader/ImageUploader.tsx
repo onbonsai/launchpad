@@ -112,7 +112,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           {files.map((file: any, i: number) => (
             <div className="flex flex-row" key={`file-${i}`}>
               <img
-                className="rounded-xl h-12 w-12 object-cover"
+                className="rounded-lg h-12 w-12 object-cover"
                 src={file.preview}
                 alt={file.name}
               />

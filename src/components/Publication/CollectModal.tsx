@@ -72,7 +72,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
       <ClickAwayListener onClickAway={handleClickAway}>
         <div
           className={clsx(
-            "mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[300px] space-y-4",
+            "mt-2 bg-dark-grey p-4 rounded-lg shadow-lg w-[300px] space-y-4",
             brandFont.className,
             "font-sf-pro-text"
           )}

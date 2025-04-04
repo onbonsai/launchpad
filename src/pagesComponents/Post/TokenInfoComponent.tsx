@@ -88,7 +88,7 @@ export const TokenInfoComponent = ({ club, media }: { club: Club, media?: SmartM
                     <img
                       src={club.token.image}
                       alt={club.token.name}
-                      className="w-[48px] h-[48px] object-cover rounded-xl"
+                      className="w-[48px] h-[48px] object-cover rounded-lg"
                     />
                     <div className="flex flex-col items-start">
                       <Header2 className="text-white text-md">${club.token.symbol}</Header2>

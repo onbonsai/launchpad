@@ -71,7 +71,7 @@ const StudioCreatePage: NextPage = () => {
             {/* Main Content */}
             <div className="flex-grow">
               {/* Header Card */}
-              <div className="bg-card rounded-xl p-6">
+              <div className="bg-card rounded-lg p-6">
                 <div className="flex items-center relative">
                   <div className="flex space-x-4">
                     <Header2>Studio</Header2>
@@ -83,7 +83,7 @@ const StudioCreatePage: NextPage = () => {
               </div>
 
               {/* Categories Card */}
-              <div className="bg-card rounded-xl p-6 mt-6">
+              <div className="bg-card rounded-lg p-6 mt-6">
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Categories</h3>
                 <div className="relative">
                   <div className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-24">
@@ -111,16 +111,16 @@ const StudioCreatePage: NextPage = () => {
               </div>
 
               {/* Templates Card */}
-              <div className="bg-card rounded-xl p-6 mt-6">
+              <div className="bg-card rounded-lg p-6 mt-6">
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Templates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}
-                      className="bg-card-light rounded-xl p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full"
+                      className="bg-card-light rounded-lg p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full"
                     >
-                      <div className="rounded-xl overflow-hidden mb-4 border border-dark-grey">
+                      <div className="rounded-lg overflow-hidden mb-4 border border-dark-grey">
                         <Image
                           src={template.image || "/placeholder.svg?height=200&width=300"}
                           alt={template.displayName}

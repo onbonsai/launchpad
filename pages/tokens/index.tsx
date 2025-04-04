@@ -78,7 +78,7 @@ const IndexPage: NextPage = () => {
                 {/* Profile */}
                 {(!isConnected || !authenticatedProfile) && !isLoadingAuthenicatedProfile && <CreatorCopy isConnected={isConnected} isAuthenticatedProfile={!!authenticatedProfile} />}
                 {isConnected && (
-                  <div className="bg-card rounded-xl p-4 hidden lg:block">
+                  <div className="bg-card rounded-lg p-4 hidden lg:block">
                     {!!address &&
                       <>
                         <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
@@ -91,7 +91,7 @@ const IndexPage: NextPage = () => {
                 {/* Bonsai NFT Perks */}
                 {!isConnected && (
                   <div className="relative lg:col-span-3">
-                    <div className="rounded-xl p-6 w-full bg-card mt-1">
+                    <div className="rounded-lg p-6 w-full bg-card mt-1">
                       <div className="flex justify-between flex-col gap-[2px]">
                         <Header2>Bonsai NFT Perks</Header2>
                         <Subtitle>
@@ -109,7 +109,7 @@ const IndexPage: NextPage = () => {
                           </>
                         ]} />
                       </span>
-                      <div className="bg-card-light rounded-xl px-3 py-[10px] flex flex-col gap-2 mt-8">
+                      <div className="bg-card-light rounded-lg px-3 py-[10px] flex flex-col gap-2 mt-8">
                         <Subtitle>
                           Requirements
                         </Subtitle>

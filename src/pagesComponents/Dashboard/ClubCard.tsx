@@ -89,7 +89,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             src={club.token.image}
             alt={club.token.name}
             sizes="1vw"
-            className="w-[48px] h-[48px] object-cover rounded-xl"
+            className="w-[48px] h-[48px] object-cover rounded-lg"
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">
@@ -151,9 +151,9 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
               </p>
             </div>
 
-            <div className="w-full bg-card-light h-3 rounded-xl mb-3">
+            <div className="w-full bg-card-light h-3 rounded-lg mb-3">
               <div
-                className="text-md w-full h-3 rounded-xl"
+                className="text-md w-full h-3 rounded-lg"
                 style={{
                   width: bondingCurveProgress + "%",
                   marginLeft: bondingCurveProgress === 0 ? "0px" : "0px",

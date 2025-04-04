@@ -86,7 +86,7 @@ export const HolderDistribution = ({ clubId, supply, creator, chain }) => {
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-xl shadow-md">
+    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-lg shadow-md">
       <table className="mb-2 w-full text-center border-separate [border-spacing:0_4px]">
         <tbody>
           {allHoldings.map((row, index) => (

@@ -30,7 +30,7 @@ const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
     <Popper open={Boolean(anchorEl)} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1400 }}>
       <ClickAwayListener onClickAway={onClose}>
         <div
-          className={clsx("mt-2 bg-dark-grey p-4 rounded-xl shadow-lg w-[350px] space-y-4", brandFont.className)}
+          className={clsx("mt-2 bg-dark-grey p-4 rounded-lg shadow-lg w-[350px] space-y-4", brandFont.className)}
           style={{
             fontFamily: brandFont.style.fontFamily,
           }}
@@ -44,13 +44,13 @@ const ImportTemplatesModal = ({ onSubmit, anchorEl, onClose }) => {
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="bg-card-light w-[225px] rounded-xl text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm"
+              className="bg-card-light w-[225px] rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm"
               placeholder="https://"
             />
             <Button
               size="md"
               variant="accentBrand"
-              className="text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px]"
+              className="text-base font-bold rounded-lg gap-x-1 md:px-2 py-[10px]"
               type="submit"
             >
               Import

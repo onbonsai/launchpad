@@ -148,7 +148,7 @@ export const ActivityBanner = () => {
             try {
               const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
               return { event: event.args, transactionHash: l.transactionHash };
-            } catch {}
+            } catch { }
           })
           .filter((d) => d);
 
@@ -229,7 +229,7 @@ export const ActivityBanner = () => {
             try {
               const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
               return { event: event.args, transactionHash: l.transactionHash };
-            } catch {}
+            } catch { }
           })
           .filter((d) => d);
 
@@ -254,18 +254,18 @@ export const ActivityBanner = () => {
           <React.Fragment key={`fragment-${index}`}>
             <Link key={`-${index}`} href={item.clubId ? `/token/${item.clubId}` : "#"}>
               <div className="text-base leading-5 font-medium testStyle flex justify-center items-center min-w-[200px] cursor-pointer gap-x-2 mr-2">
-                <span className="flex flex-row items-center bg-[var(--gradient-start)] bg-opacity-80 rounded-xl py-2 px-2">
+                <span className="flex flex-row items-center bg-[var(--gradient-start)] bg-opacity-80 rounded-lg py-2 px-2">
                   {item.handle}
                 </span>
                 <span className="whitespace-nowrap">{item.verb}</span>
                 {item.symbol ? (
-                  <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
-                    <img src={item.image} alt={item.symbol} className="w-[32px] h-[32px] object-cover rounded-xl" />$
+                  <span className="flex flex-row items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-lg pr-2 py-[1px]">
+                    <img src={item.image} alt={item.symbol} className="w-[32px] h-[32px] object-cover rounded-lg" />$
                     {item.symbol}
                   </span>
                 ) : (
-                  <span className="flex flex-row h-[40px] items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-xl pr-2 py-[1px]">
-                    <img src={item.image} alt="img" className="min-w-[32px] h-[32px] object-cover rounded-xl" />
+                  <span className="flex flex-row h-[40px] items-center gap-x-2 bg-[var(--gradient-start)] bg-opacity-80 rounded-lg pr-2 py-[1px]">
+                    <img src={item.image} alt="img" className="min-w-[32px] h-[32px] object-cover rounded-lg" />
                   </span>
                 )}
               </div>

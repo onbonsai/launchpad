@@ -262,7 +262,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         <img
                           src={club.token.image}
                           alt={club.token.name}
-                          className="w-[64px] h-[64px] object-cover rounded-xl"
+                          className="w-[64px] h-[64px] object-cover rounded-lg"
                         />
                         <div className="flex flex-col ml-2">
                           <div className="flex flex-row justify-between gap-x-8 w-full">
@@ -304,7 +304,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                               {capitalizeFirstLetter(club.chain)}
                             </Subtitle>
                           </div>
-                        }/>
+                        } />
                         <InfoCard title='CA' subtitle={
                           <div className='flex gap-1 items-center'>
                             <WalletButton wallet={club.tokenAddress!} />
@@ -392,29 +392,29 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         </div>
                       </div>
                       : !fairLaunchMode ?
-                          <>
-                            <Script
-                              src="/static/datafeeds/udf/dist/bundle.js"
-                              strategy="lazyOnload"
-                              onReady={() => {
-                                setIsScriptReady(true);
-                              }}
-                            />
-                            <div className='border border-card bg-card-light rounded-2xl mt-5'>
-                              <div className="rounded-2xl m-2 overflow-hidden">
-                                {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
-                              </div>
+                        <>
+                          <Script
+                            src="/static/datafeeds/udf/dist/bundle.js"
+                            strategy="lazyOnload"
+                            onReady={() => {
+                              setIsScriptReady(true);
+                            }}
+                          />
+                          <div className='border border-card bg-card-light rounded-2xl mt-5'>
+                            <div className="rounded-2xl m-2 overflow-hidden">
+                              {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
                             </div>
-                          </>
-                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
-                            <Header2 className="text-white font-medium">
-                              ${club.token.symbol} is still in Fair Launch!
-                            </Header2>
-                            <Subtitle className="mt-2">
-                              Token price will not change until 200mil tokens are minted.
-                            </Subtitle>
-                            <FairLaunchModeComponent club={club} totalSupply={totalSupply} />
                           </div>
+                        </>
+                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
+                          <Header2 className="text-white font-medium">
+                            ${club.token.symbol} is still in Fair Launch!
+                          </Header2>
+                          <Subtitle className="mt-2">
+                            Token price will not change until 200mil tokens are minted.
+                          </Subtitle>
+                          <FairLaunchModeComponent club={club} totalSupply={totalSupply} />
+                        </div>
                   }
                 </div>
                 {!club.complete &&

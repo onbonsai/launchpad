@@ -397,7 +397,7 @@ export default ({
         touchEvent="onTouchStart"
       >
         <div
-          className="w-48 bg-dark-grey rounded-xl shadow-lg overflow-clip font-sf-pro-text text-white/80"
+          className="w-48 bg-dark-grey rounded-lg shadow-lg overflow-clip font-sf-pro-text text-white/80"
           onClick={(e) => e.stopPropagation()}
           onMouseEnter={(e) => {
             e.stopPropagation();

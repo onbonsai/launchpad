@@ -318,7 +318,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
               ref={commentInputRef}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+              className="block w-full resize-none rounded-lg bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
               placeholder="Add a comment"
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
@@ -329,13 +329,13 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
           </div>
           <div className="flex justify-end mt-2">
             <Button
-                disabled={isCommenting || !comment}
-                onClick={submitComment}
-                variant="accentBrand"
-                size="sm"
-              >
-                Reply
-              </Button>
+              disabled={isCommenting || !comment}
+              onClick={submitComment}
+              variant="accentBrand"
+              size="sm"
+            >
+              Reply
+            </Button>
           </div>
         </div>
       )}

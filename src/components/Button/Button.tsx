@@ -3,7 +3,7 @@ import { VariantProps, cva } from "cva";
 
 const buttonStyles = cva(
   `
-  btn rounded-xl transition-colors duration-200 ease-in-out
+  btn rounded-lg transition-colors duration-200 ease-in-out
 `,
   {
     variants: {

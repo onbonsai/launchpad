@@ -278,7 +278,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                         )}
                       </div>
                       {/* {isProfileAdmin && hasBenefits && !isLoadingBalance && (
-                        <div className="rounded-xl p-3 pt-2 w-full bg-card mt-8">
+                        <div className="rounded-lg p-3 pt-2 w-full bg-card mt-8">
                           <BodySemiBold>Active Bonsai NFT Perks</BodySemiBold>
                           <span className="text-base gap-[6px] flex flex-col mt-2 flex-grow w-full">
                             <ListItemCard items={[

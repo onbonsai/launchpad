@@ -56,7 +56,7 @@ export const Header = () => {
               {headerLinks.map((link) => (
                 <div
                   key={link.href}
-                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
+                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
                 >
                   <Link
                     href={link.href}
@@ -73,7 +73,7 @@ export const Header = () => {
                 </div>
               ))}
               <div
-                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
+                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
                 onClick={() => setOpenHelpModal(true)}
               >
                 <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
@@ -94,13 +94,13 @@ export const Header = () => {
           <div className="flex items-center justify-end md:w-[38%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
-            <div className="hidden sm:flex items-center space-x-2 md:mr-2">
+            <div className="hidden sm:flex items-center gap-2 mr-2">
               {/* <CreateClub /> */}
               {/* <Link href="/studio">
                 <Button
                   variant="accentBrand"
                   size="md" // This sets the height to 40px and padding appropriately
-                  className="text-base font-bold md:px-6 bg-white rounded-xl"
+                  className="text-base font-bold md:px-6 bg-white rounded-lg"
                 >
                   Create
                 </Button>
@@ -146,7 +146,7 @@ export const Header = () => {
             <CreateClub />
             <ClaimFeesEarned />
             <div
-              className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+              className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-lg hover:opacity-80 hover:cursor-pointer"
               onClick={() => {
                 setOpenHelpModal(true);
                 setOpenMobileMenu(false);

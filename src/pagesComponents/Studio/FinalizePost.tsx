@@ -96,7 +96,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                   <div
                     key={`tier-${idx}`}
                     className={clsx(
-                      "cursor-pointer bg-card-light justify-center border-2 rounded-xl transition-all p-3",
+                      "cursor-pointer bg-card-light justify-center border-2 rounded-lg transition-all p-3",
                       data.amountStable === collectAmountStable ? "" : "border-card-lightest"
                     )}
                     onClick={() => {
@@ -163,7 +163,7 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
             src={token.tokenImage[0].preview}
             alt={"token image"}
             sizes="1vw"
-            className="w-[48px] h-[48px] object-cover rounded-xl"
+            className="w-[48px] h-[48px] object-cover rounded-lg"
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">

@@ -302,7 +302,7 @@ const TokenPage: NextPage = () => {
             </div>
             {/* Main Content */}
             <div className="flex-grow">
-              <div className="bg-card rounded-xl p-6 relative">
+              <div className="bg-card rounded-lg p-6 relative">
                 <div className="flex flex-col ">
                   <div className="flex flex-col">
                     <div className="flex space-x-4">
@@ -328,7 +328,7 @@ const TokenPage: NextPage = () => {
                 {/* Top Row - Available, Rewards, and Staked Cards */}
                 <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3">
                   {/* Available Card */}
-                  <div className="bg-card rounded-xl p-6">
+                  <div className="bg-card rounded-lg p-6">
                     <div className="pb-2">
                       <h3 className="text-sm font-medium text-brand-highlight">Balance</h3>
                     </div>
@@ -361,7 +361,7 @@ const TokenPage: NextPage = () => {
                   </div>
 
                   {/* Rewards Card */}
-                  <div className="bg-card rounded-xl p-6">
+                  <div className="bg-card rounded-lg p-6">
                     <div className="pb-2">
                       <h3 className="text-sm font-medium text-brand-highlight">Staking Rewards</h3>
                     </div>
@@ -380,7 +380,7 @@ const TokenPage: NextPage = () => {
                   </div>
 
                   {/* Staked Card */}
-                  <div className="bg-card rounded-xl p-6">
+                  <div className="bg-card rounded-lg p-6">
                     <div className="pb-2">
                       <h3 className="text-sm font-medium text-brand-highlight">Staked</h3>
                     </div>
@@ -407,7 +407,7 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* API Capacity Card */}
-                {/* <div className="bg-card rounded-xl p-6">
+                {/* <div className="bg-card rounded-lg p-6">
                   <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
@@ -482,7 +482,7 @@ const TokenPage: NextPage = () => {
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || wasReferred) && (
-                  <div className="bg-card rounded-xl p-6">
+                  <div className="bg-card rounded-lg p-6">
                     <h3 className="text-sm font-medium text-brand-highlight mb-4">Active Stakes</h3>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                       {/* Referral Reward Preview */}

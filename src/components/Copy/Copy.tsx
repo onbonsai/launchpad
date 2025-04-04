@@ -11,7 +11,7 @@ const Copy = ({ title, text, link, onClickFn }: Props) => (
   <div className="mt-4 text-center mx-auto">
     <p className="mb-2">{title}</p>
     <div className="flex items-center justify-center">
-      <span className="mr-2 border p-2 bg-black rounded-xl text-white/60">
+      <span className="mr-2 border p-2 bg-black rounded-lg text-white/60">
         {text.length > 45 ? `${text.substring(0, 45)}...` : text}
       </span>
       <button

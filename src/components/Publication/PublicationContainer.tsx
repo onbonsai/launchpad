@@ -363,7 +363,7 @@ const PublicationContainer = ({
           <Button
             variant="accentBrand"
             size="md"
-            className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+            className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
             onClick={(e) => { if (!hasCollected) onCollectButtonClick(e) }}
           >
             {!hasCollected ? (
@@ -413,7 +413,7 @@ const PublicationContainer = ({
             ref={dropdownButtonRef}
             variant="dark-grey"
             size="sm"
-            className={`text-sm font-bold rounded-xl gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
+            className={`text-sm font-bold rounded-lg gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
             onClick={(e) => { setShowDropdown(!showDropdown) }}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
@@ -446,7 +446,7 @@ const PublicationContainer = ({
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
-        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-xl">
+        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-lg">
           <Button
             variant={isConnected ? "accent" : "accent-disabled"}
             className="w-200px md:mb-0 text-base"

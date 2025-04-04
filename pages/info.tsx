@@ -56,7 +56,7 @@ const Help = () => {
             {/* Main Content */}
             <div className="flex-grow">
               {/* Header Card */}
-              <div className="bg-card rounded-xl p-6">
+              <div className="bg-card rounded-lg p-6">
                 <Header2>Bonsai</Header2>
                 <Subtitle className="mt-2">
                   Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
@@ -66,7 +66,7 @@ const Help = () => {
               {/* Content Cards */}
               <div className="space-y-6 mt-6">
                 {/* Overview */}
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_OVERVIEW} defaultOpen={section == ANCHOR_OVERVIEW}>
                     {({ open }) => (
                       <>
@@ -137,7 +137,7 @@ const Help = () => {
                 </div>
 
                 {/* Launchpad */}
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_LAUNCHPAD} defaultOpen={section == ANCHOR_LAUNCHPAD}>
                     {({ open }) => (
                       <>
@@ -209,7 +209,7 @@ const Help = () => {
                 </div>
 
                 {/* Social */}
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_SOCIAL} defaultOpen={section == ANCHOR_SOCIAL}>
                     {({ open }) => (
                       <>
@@ -250,7 +250,7 @@ const Help = () => {
                 </div>
 
                 {/* Agents */}
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_AGENTS} defaultOpen={section == ANCHOR_AGENTS}>
                     {({ open }) => (
                       <>
@@ -287,7 +287,7 @@ const Help = () => {
                 </div>
 
                 {/* Contracts */}
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_DEPLOYED_CONTRACTS} defaultOpen={section == ANCHOR_DEPLOYED_CONTRACTS}>
                     <h3 className="text-xl leading-6 text-secondary">
                       <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80">

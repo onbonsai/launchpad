@@ -157,15 +157,15 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               variant="accentBrand"
               ref={collectButtonRef}
               size="md"
-              className={`text-base font-bold rounded-xl gap-x-1 md:px-2 py-[10px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
-              onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true)})}
+              className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[10px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+              onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true) })}
             >
               {!hasCollected ? (
                 <>
                   <BookmarkAddOutlined />
                   Collect
                 </>
-              ): (
+              ) : (
                 <>
                   <BookmarkOutlined />
                   Joined
@@ -202,7 +202,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
         <div className={`rounded-full bg-dark-grey text-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
           <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1 pointer-events-none">
-            {hasCollected ? <BookmarkOutlined sx={{ color: '#fff', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#fff', fontSize: '1rem' }}/>}
+            {hasCollected ? <BookmarkOutlined sx={{ color: '#fff', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#fff', fontSize: '1rem' }} />}
             {post.stats.collects > 0 ? <Subtitle className="text-base">{post.stats.collects || 0}</Subtitle> : null}
           </div>
           {!!postData?.actors?.length && (

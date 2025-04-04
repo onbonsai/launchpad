@@ -78,7 +78,7 @@ export const Balance = () => {
   return (
     <div className={clsx("relative inline-block", brandFont.className)}>
       <div
-        className="bg-dark-grey text-white text-base font-medium rounded-xl md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-32 cursor-pointer relative"
+        className="bg-dark-grey text-white text-base font-medium rounded-lg md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-32 cursor-pointer relative"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -97,7 +97,7 @@ export const Balance = () => {
           style={{ zIndex: 1400 }}
         >
           <div
-            className="mt-2 bg-dark-grey text-white p-4 rounded-xl shadow-lg w-[300px] font-sf-pro-text"
+            className="mt-2 bg-dark-grey text-white p-4 rounded-lg shadow-lg w-[300px] font-sf-pro-text"
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={handleMouseLeave}
           >
