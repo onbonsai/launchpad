@@ -1,9 +1,8 @@
-import { PublicClient, testnet, staging } from "@lens-protocol/client";
+import { PublicClient, mainnet, staging } from "@lens-protocol/client";
 import { StorageClient } from "@lens-chain/storage-client";
 import { IS_PRODUCTION } from "../madfi/utils";
 import { SITE_URL } from "@src/constants/constants";
-// TODO: update to production
-export const LENS_ENVIRONMENT = IS_PRODUCTION ? staging : staging;
+export const LENS_ENVIRONMENT = IS_PRODUCTION ? mainnet : staging;
 
 // TODO: something cleaner
 let storage;

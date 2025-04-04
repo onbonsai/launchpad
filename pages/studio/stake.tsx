@@ -329,6 +329,7 @@ const TokenPage: NextPage = () => {
                 <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3">
                   {/* Available Card */}
                   <div className="bg-card rounded-lg p-6">
+                    {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
                     <div className="pb-2">
                       <h3 className="text-sm font-medium text-brand-highlight">Balance</h3>
                     </div>
@@ -337,7 +338,7 @@ const TokenPage: NextPage = () => {
                         <>
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
-                          <div className="mt-4 flex-wrap justify-end gap-2">
+                          <div className="mt-4 flex-wrap justify-end space-x-2">
                             <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)}>
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
@@ -584,7 +585,6 @@ const TokenPage: NextPage = () => {
                   setOpen={setIsBridgeModalOpen}
                   panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
                 >
-                  {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
                 </Modal>
 

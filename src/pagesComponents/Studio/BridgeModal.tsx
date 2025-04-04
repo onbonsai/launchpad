@@ -123,12 +123,9 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   }, [fromChain, bonsaiBalanceBase, bonsaiBalancePolygon, bonsaiBalanceZkSync]);
 
   const handleBridge = async () => {
-    setBridging(true);
-
     if (chain?.id !== fromChain?.id) {
       try {
         await switchChain(configureChainsConfig, { chainId: fromChain?.id });
-        setOpen(true);
         return;
       } catch {
         toast.error("Please switch chains");
@@ -137,6 +134,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     }
 
     const toastId = toast.loading("Bridging...");
+    setBridging(true);
 
     try {
       const hash = await bridgeTokens(
