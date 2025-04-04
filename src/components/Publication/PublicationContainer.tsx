@@ -356,7 +356,6 @@ const PublicationContainer = ({
         nestedWidget={nestedWidget}
         updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
         hideCollectButton={!!publication.root}
-        fontSize="20px"
       // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && (
