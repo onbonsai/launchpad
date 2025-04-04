@@ -45,7 +45,7 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
           Share your referral link and earn rewards when others make their first post!
         </p>
 
-        <div className="flex items-center gap-2 bg-card-light p-3 rounded-lg">
+        <div className="flex items-center gap-2">
           <Copy title="" text={referralLink} link={referralLink} />
         </div>
       </div>

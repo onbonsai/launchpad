@@ -19,16 +19,18 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { Button } from "../Button";
 
-const headerLinks = [
-  {
-    label: "Home",
-    href: "/"
-  },
-  {
-    label: "Tokens",
-    href: "/tokens"
-  }
-];
+const headerLinks = [];
+
+// const headerLinks = [
+//   {
+//     label: "Home",
+//     href: "/"
+//   },
+//   {
+//     label: "Tokens",
+//     href: "/tokens"
+//   }
+// ];
 
 export const Header = () => {
   const { route } = useRouter();
@@ -84,7 +86,7 @@ export const Header = () => {
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
             <div className="flex justify-center items-center w-[15%]">
-              <SearchClubs />
+              {/* <SearchClubs /> */}
             </div>
           )}
 
@@ -94,7 +96,7 @@ export const Header = () => {
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center space-x-2 md:mr-2">
               {/* <CreateClub /> */}
-              <Link href="/studio">
+              {/* <Link href="/studio">
                 <Button
                   variant="accentBrand"
                   size="md" // This sets the height to 40px and padding appropriately
@@ -102,7 +104,7 @@ export const Header = () => {
                 >
                   Create
                 </Button>
-              </Link>
+              </Link> */}
               <Balance />
               <ClaimFeesEarned />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
@@ -132,7 +134,7 @@ export const Header = () => {
         {/* Mobile-only: Search bar on second line */}
         {isMobile && (
           <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-            <SearchClubs />
+            {/* <SearchClubs /> */}
           </div>
         )}
       </nav>
@@ -176,13 +178,13 @@ export const Header = () => {
         panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
       >
         <HeaderText>
-          Bonsai Smart Media
+          Bonsai
         </HeaderText>
         <p className="mt-4 text-xl text-secondary/70">
-          Bonsai Smart Media is a platform for creators to create and monetize dynamic living content.
+          Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
         </p>
         <p className="mt-4 text-xl text-secondary/70">
-          New posts are created with a Smart Media template in the studio and can have a token created on the Bonsai Launchpad to accompany the post. Users must collect the post to participate and can buy the token to gain more access.
+          Our intuitive no-code platform empowers anyone to effortlessly create and monetize their own Smart Media content. Creators have access to a diverse selection of curated and third-party templates, making it simple to customize smart media behavior and configure monetization settings.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Smart Media posts update their content regularly based on the interactions of users and token holders.
