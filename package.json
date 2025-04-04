@@ -38,7 +38,7 @@
     "axios": "^0.27.2",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
-    "connectkit": "^1.8.2",
+    "connectkit": "^1.9.0",
     "connectkit-next-siwe": "^0.3.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
