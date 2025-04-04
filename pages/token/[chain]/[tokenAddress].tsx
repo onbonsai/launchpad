@@ -6,13 +6,14 @@ import { useAccount } from "wagmi";
 import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import toast from 'react-hot-toast';
+import { useSIWE } from 'connectkit';
 
 import { Modal } from "@src/components/Modal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
-import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club } from "@src/services/madfi/moneyClubs";
+import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
@@ -27,7 +28,7 @@ import { ShareClub } from '@src/pagesComponents/Club';
 import { capitalizeFirstLetter } from '@src/utils/utils';
 import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
-import { useSIWE } from 'connectkit';
+import { IS_PRODUCTION } from '@src/services/madfi/utils';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
@@ -493,6 +494,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       );
     })()
   ]);
+
+  // Redirect to v1 if clubId < 170 and IS_PRODUCTION is true
+  if (IS_PRODUCTION && parseInt(_club.clubId as string) < 170) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `${V1_LAUNCHPAD_URL}/token/${_club.clubId}`,
+      },
+    };
+  }
 
   const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
 

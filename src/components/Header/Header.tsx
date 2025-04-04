@@ -17,7 +17,7 @@ import clsx from "clsx";
 import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
-import { Button } from "../Button";
+import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 
 const headerLinks = [];
 
@@ -191,6 +191,9 @@ export const Header = () => {
         </p>
         <p className="mt-4 text-secondary/70">
           Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.
+        </p>
+        <p className="mt-2 text-xl text-secondary/70">
+          Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">{V1_LAUNCHPAD_URL}</a>
         </p>
         <div className="mt-2 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
