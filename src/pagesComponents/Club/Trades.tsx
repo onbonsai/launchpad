@@ -88,7 +88,7 @@ export const Trades = ({ clubId, chain }) => {
   if (isLoading && allTrades.length === 0) {
     return (
       <div ref={ref} className="flex justify-center pt-4">
-        <Spinner customClasses="h-6 w-6" color="#E42101" />
+        <Spinner customClasses="h-6 w-6" color="#5be39d" />
       </div>
     )
   }
@@ -101,7 +101,7 @@ export const Trades = ({ clubId, chain }) => {
         ))}
         {hasMore && (
           <div ref={ref} className="flex justify-center pt-4">
-            <Spinner customClasses="h-6 w-6" color="#E42101" />
+            <Spinner customClasses="h-6 w-6" color="#5be39d" />
           </div>
         )}
       </div>

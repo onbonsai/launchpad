@@ -167,7 +167,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
         </Dialog.Title>
       </div>
       {isLoading && (
-        <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+        <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
       )}
       {!isLoading && (
         <div className="space-y-4">
@@ -268,7 +268,6 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
 
           {bridgeInfo?.txHash && (
             <div className="flex justify-center">
-              <Spinner customClasses="h-6 w-6" color="#E42101" />
               <a
                 href={`https://layerzeroscan.com/tx/${bridgeInfo.txHash}`}
                 target="_blank"

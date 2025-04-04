@@ -114,7 +114,7 @@ const StudioCreatePage: NextPage = () => {
               <div className="bg-card rounded-xl p-6 mt-6">
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Templates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>}
+                  {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}

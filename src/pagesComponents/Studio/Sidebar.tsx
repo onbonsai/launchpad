@@ -86,7 +86,7 @@ const StudioSidebar = () => {
       {/* Recent Posts */}
       {/* <div className="">
         <Header2 className="text-lg font-medium opacity-80 px-2">Recent Posts</Header2>
-        {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>}
+        {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
         <nav className="mt-2 space-y-2">
           {posts?.map((post) => (
             <Link

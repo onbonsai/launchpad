@@ -338,7 +338,7 @@ const TokenPage: NextPage = () => {
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
                                 <div className="flex items-center gap-2 flex-row">
-                                  <Spinner customClasses="h-4 w-4" color="#E42101" />
+                                  <Spinner customClasses="h-4 w-4" color="#5be39d" />
                                   <span>Bridging</span>
                                 </div>
                               )}

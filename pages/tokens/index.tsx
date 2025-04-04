@@ -59,7 +59,7 @@ const IndexPage: NextPage = () => {
               <div className="lg:col-span-7 max-w-full">
                 {/* return the featured clubs asap, then load the rest */}
                 {isLoadingFeaturedClubs
-                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <ClubList
                     clubs={clubs}
                     setFilteredClubs={setFilteredClubs}

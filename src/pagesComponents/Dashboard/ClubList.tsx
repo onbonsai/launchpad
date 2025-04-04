@@ -130,7 +130,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
             </ul>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">
-                <Spinner customClasses="h-6 w-6" color="#E42101" />
+                <Spinner customClasses="h-6 w-6" color="#5be39d" />
               </div>
             )}
           </div>

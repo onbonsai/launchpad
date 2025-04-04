@@ -141,7 +141,7 @@ export const SearchClubs = () => {
                         <Combobox.Options className="mt-1 max-h-80 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
-                              <Spinner customClasses="h-6 w-6" color="#E42101" />
+                              <Spinner customClasses="h-6 w-6" color="#5be39d" />
                             </div>
                           )}
 
