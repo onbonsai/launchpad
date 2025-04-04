@@ -41,5 +41,9 @@ export const bToHexString = (id: bigint) => {
 };
 
 export const getProfileImage = (profile) => {
-  return profile?.metadata?.picture || "/default.png";
+  const picture = profile?.metadata?.picture;
+  if (picture && typeof picture === 'string' && picture.startsWith('ipfs://')) {
+    return `https://ipfs.io/ipfs/${picture.slice(7)}`;
+  }
+  return picture || "/default.png";
 };

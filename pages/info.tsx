@@ -112,7 +112,7 @@ const Help = () => {
                                 className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
                                 target="_blank"
                                 rel="noreferrer"
-                                href="/whitepaper.pdf"
+                                href="https://onbons.ai/whitepaper.pdf"
                               >
                                 whitepaper.pdf
                               </a>
