@@ -29,19 +29,21 @@ function BonsaiNFT(props: BonsaiNFTProps) {
       : "";
 
   useEffect(() => {
-    setSvgContent(null);
+    if (rawUrl) {
+      // Encode the URL to handle special characters
+      const encodedUrl = encodeURIComponent(rawUrl);
 
-    if (rawUrl && rawUrl.endsWith(".svg")) {
-      fetch(rawUrl)
-        .then((res) => res.text())
+      fetch(`/api/fetch-svg?url=${encodedUrl}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.text();
+        })
         .then((data) => {
-          // Remove <style>...</style> sections to stop the animation 
-          // that's causing our performance issues
-          const stripped = data.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-          setSvgContent(stripped);
+          setSvgContent(data);
         })
         .catch((err) => {
           console.error("Failed to fetch SVG:", err);
+          setSvgContent(null);
         });
     }
   }, [rawUrl]);

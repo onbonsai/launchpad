@@ -17,7 +17,7 @@ interface ImageUploaderProps {
   children?: ReactNode;
 }
 
-const MAX_SIZE = 10000000; // 10mb
+const MAX_SIZE = 8000000; // 8mb
 
 export const ImageUploader: FC<ImageUploaderProps> = ({
   files,
@@ -49,8 +49,12 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         try {
           const compressedBlob = await imageCompression(file, options);
           (compressedBlob as any).name = file.name;
-          console.log("Compressed file:", compressedBlob);
-          console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
+          // console.log("Compressed file:", compressedBlob);
+          // console.log(`Image size reduced from ${file.size} to ${compressedBlob.size}`);
+          if (compressedBlob.size > MAX_SIZE) {
+            toast.error(`File too large. Maximum size is 8 MB.`);
+            return;
+          }
 
           return Object.assign(compressedBlob, {
             preview: URL.createObjectURL(compressedBlob),
@@ -108,7 +112,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           {files.map((file: any, i: number) => (
             <div className="flex flex-row" key={`file-${i}`}>
               <img
-                className="rounded-xl h-12 w-12 object-cover"
+                className="rounded-lg h-12 w-12 object-cover"
                 src={file.preview}
                 alt={file.name}
               />
@@ -132,7 +136,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           accept={{ "image/": ["*"] }}
           onDrop={onDrop}
           maxFiles={maxFiles}
-          maxSize={MAX_SIZE}
+          // maxSize={MAX_SIZE}
           {...rest}
         >
           {({ getRootProps, getInputProps }) => (
@@ -146,7 +150,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
               <input {...getInputProps()} />
               <div className="text-secondary flex items-center flex-col">
                 <PhotographIcon width={50} height={50} />
-                <BodySemiBold>Upload an image (max: 10mb)</BodySemiBold>
+                <BodySemiBold>Upload an image (max: 8mb)</BodySemiBold>
               </div>
             </div>
           )}

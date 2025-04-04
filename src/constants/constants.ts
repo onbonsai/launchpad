@@ -1,7 +1,5 @@
-import { chainIdNumber } from "./validChainId";
-import { Chains } from "./chains";
-
-export const IS_PRODUCTION = chainIdNumber === Chains.POLYGON;
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { base, polygon, zkSync } from "viem/chains";
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -66,10 +64,12 @@ export const MADFI_BANNER_IMAGE_SMALL =
   "https://link.storjshare.io/raw/jvnvg6pove7qyyfbyo5hqggdis6a/misc%2Fmadfi-banner.jpeg";
 export const MADFI_BOUNTIES_URL = IS_PRODUCTION ? "https://madfi.xyz/bounties" : "https://testnet.madfi.xyz/bounties";
 export const MADFI_SITE_URL = IS_PRODUCTION ? "https://madfi.xyz" : "https://testnet.madfi.xyz";
-export const MADFI_CLUBS_URL = "https://launch.bonsai.meme";
+export const SITE_URL = "https://app.onbons.ai";
 export const MADFI_POST_URL = IS_PRODUCTION ? "https://madfi.xyz/post" : "https://testnet.madfi.xyz/post";
 export const MADFI_WALLET_ADDRESS = "0x7F0408bc8Dfe90C09072D8ccF3a1C544737BcDB6";
 export const MADFI_GENESIS_COLLECTION_ID = "1";
+
+export const BONSAI_POST_URL = IS_PRODUCTION ? "https://app.onbons.ai/post" : "https://testnet.onbons.ai/post";
 
 export const MONGO_DB_CREATORS = "creators";
 export const MONGO_COLLECTION_BOUNTIES = `bounties${IS_PRODUCTION ? "" : "-testnet"}`;
@@ -101,7 +101,8 @@ export const CUSTOM_BID_HEADERS = {
     "The Block retains all intellectual property rights and otherwise for the podcast episode clips, including all derivative works made by members of The Block Community.",
 };
 
-export const MEDIA_SERVER_URL = process.env.NEXT_PUBLIC_MEDIA_SERVER_URL || "https://madfi-media-server-af3d6b164e42.herokuapp.com";
+export const MEDIA_SERVER_URL =
+  process.env.NEXT_PUBLIC_MEDIA_SERVER_URL || "https://madfi-media-server-af3d6b164e42.herokuapp.com";
 
 export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
   ? ``

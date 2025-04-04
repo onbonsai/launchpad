@@ -89,7 +89,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                   type="checkbox"
                   checked={showCompleted}
                   onChange={(e) => setShowCompleted(e.target.checked)}
-                  className="form-checkbox h-4 w-4 text-primary bg-gray-800 rounded border-gray-600 focus:ring-primary focus:ring-offset-gray-900"
+                  className="form-checkbox h-4 w-4 text-brand-highlight bg-gray-800 rounded border-gray-600 focus:ring-brand-highlight focus:ring-offset-gray-900"
                   aria-label="completed"
                 />
                 <span className="text-secondary text-sm">Graduated</span>
@@ -130,7 +130,7 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
             </ul>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-4">
-                <Spinner customClasses="h-6 w-6" color="#E42101" />
+                <Spinner customClasses="h-6 w-6" color="#5be39d" />
               </div>
             )}
           </div>

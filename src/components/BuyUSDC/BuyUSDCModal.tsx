@@ -1,7 +1,7 @@
 import { useAccount } from "wagmi";
 import { ChainId, getNativeTokenInfo } from '@decent.xyz/box-common';
 import { SwapModal } from '@decent.xyz/the-box';
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 import { configureChainsConfig } from "@src/utils/wagmi";
 
@@ -17,7 +17,7 @@ const BuyUSDCModal = (props: BuyUSDCModalProps) => {
 
   return (
     <SwapModal
-      className={clsx("rounded-3xl bg-transparent p-0 pt-4 m-0", inter.className)}
+      className={clsx("rounded-3xl bg-transparent p-0 pt-4 m-0", brandFont.className)}
       apiKey={process.env.NEXT_PUBLIC_DECENT_API_KEY ?? ''}
       wagmiConfig={configureChainsConfig}
       selectedDstToken={{

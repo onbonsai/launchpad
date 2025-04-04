@@ -33,7 +33,7 @@ export const CreateClub = () => {
       <Button
         variant="accent"
         size="md" // This sets the height to 40px and padding appropriately
-        className="text-base font-medium md:px-4 bg-white rounded-xl"
+        className="text-base font-medium md:px-4 bg-white rounded-lg"
         onClick={() => setRegisterClubModal(true)}
       >
         Create Token
@@ -47,7 +47,7 @@ export const CreateClub = () => {
         panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <RegisterClubModal
-          tokenBalance={tokenBalance}
+          tokenBalance={tokenBalance || 0n}
           closeModal={() => setRegisterClubModal(false)}
           refetchRegisteredClub={() => { }}
           refetchClubBalance={() => { }}

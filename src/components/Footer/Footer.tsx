@@ -4,7 +4,7 @@ const links = [
   { name: "Info", href: "/info" },
   { name: "Hooks", href: "/hooks" },
   { name: "Orb", href: "https://orb.club/c/bonsai" },
-  { name: "x.com", href: "https://x.com/bonsaitoken404" },
+  { name: "X / Twitter", href: "https://x.com/onbonsai" },
   // { name: "Uni v4 hooks", href: "/hooks" },
 ];
 
@@ -13,9 +13,14 @@ const legal = [
   { name: "Terms & Conditions", href: "/tos" },
 ];
 
-export const Footer = () => {
+interface FooterProps {
+  short?: boolean;
+}
+
+export const Footer = (props: FooterProps) => {
+  const { short } = props;
   return (
-    <footer className="md:mt-32">
+    <footer className={clsx(short ? `md:mt-4` : `md:mt-32`)}>
       <div className="flex justify-end pr-4 bg-transparent w-full gap-2">
         {links.map((link, index) => (
           <div key={`footer-${index}`}>

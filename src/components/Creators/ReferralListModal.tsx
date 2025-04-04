@@ -28,7 +28,7 @@ const ReferralListModal = ({ user }) => {
 
   return (
     <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
+      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-bold">
         Your Referrals
       </Dialog.Title>
       <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">

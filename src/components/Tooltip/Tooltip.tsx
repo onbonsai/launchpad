@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-
 import { cx } from "@src/utils/classnames";
 
 export const Tooltip = ({
@@ -18,9 +17,9 @@ export const Tooltip = ({
   if (disabled) return children;
 
   return (
-    <div
+    <span
       className={cx(
-        "tooltip",
+        "tooltip inline-flex",
         direction === "top"
           ? ""
           : direction === "left"
@@ -28,11 +27,11 @@ export const Tooltip = ({
           : direction === "right"
           ? "tooltip-right"
           : "tooltip-bottom",
-        classNames ? classNames : "",
+        classNames || ""
       )}
       data-tip={message}
     >
       {children}
-    </div>
+    </span>
   );
 };

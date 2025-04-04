@@ -1,7 +1,7 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useWalletClient, useAccount } from "wagmi";
+import { useWalletClient } from "wagmi";
 import { useState } from "react";
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
@@ -11,18 +11,26 @@ import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
-import HeaderButton from "./HeaderButton";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
-import { Header as HeaderText } from "@src/styles/text";
+import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 
-const headerLinks = [
-  // add any top-level nav links here
-];
+const headerLinks = [];
+
+// const headerLinks = [
+//   {
+//     label: "Home",
+//     href: "/"
+//   },
+//   {
+//     label: "Tokens",
+//     href: "/tokens"
+//   }
+// ];
 
 export const Header = () => {
   const { route } = useRouter();
@@ -41,23 +49,44 @@ export const Header = () => {
         {/* Top row */}
         <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6 justify-between">
           <div className="flex items-center justify-start w-[33%]">
-            <div className="w-max">
+            <div className="w-max text-black">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
-            <div
-                className="hidden md:flex h-[40px] py-[12px] px-4 ml-4 justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+            <div className="ml-10 hidden lg:flex items-center space-x-4">
+              {headerLinks.map((link) => (
+                <div
+                  key={link.href}
+                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
+                >
+                  <Link
+                    href={link.href}
+                    passHref
+                    className={cx(
+                      "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
+                      route === link.href
+                        ? "text-white"
+                        : "text-white/50 hover:text-white/80"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </div>
+              ))}
+              <div
+                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
                 onClick={() => setOpenHelpModal(true)}
               >
-                <span className="h-full leading-4 font-medium text-white text-[16px] hover:opacity-100">
+                <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
                   Info
                 </span>
               </div>
+            </div>
           </div>
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
             <div className="flex justify-center items-center w-[15%]">
-              <SearchClubs />
+              {/* <SearchClubs /> */}
             </div>
           )}
 
@@ -65,8 +94,17 @@ export const Header = () => {
           <div className="flex items-center justify-end md:w-[38%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
-            <div className="hidden sm:flex items-center space-x-2 md:mr-2">
-              <CreateClub />
+            <div className="hidden sm:flex items-center gap-2 mr-2">
+              {/* <CreateClub /> */}
+              {/* <Link href="/studio">
+                <Button
+                  variant="accentBrand"
+                  size="md" // This sets the height to 40px and padding appropriately
+                  className="text-base font-bold md:px-6 bg-white rounded-lg"
+                >
+                  Create
+                </Button>
+              </Link> */}
               <Balance />
               <ClaimFeesEarned />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
@@ -85,9 +123,9 @@ export const Header = () => {
               onClick={() => setOpenMobileMenu(!openMobileMenu)}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
-                   viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round"
-                      d="M4 6h16M4 12h16M4 18h16"/>
+                  d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
@@ -96,7 +134,7 @@ export const Header = () => {
         {/* Mobile-only: Search bar on second line */}
         {isMobile && (
           <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-            <SearchClubs />
+            {/* <SearchClubs /> */}
           </div>
         )}
       </nav>
@@ -108,7 +146,7 @@ export const Header = () => {
             <CreateClub />
             <ClaimFeesEarned />
             <div
-              className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-xl hover:opacity-80 hover:cursor-pointer"
+              className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-lg hover:opacity-80 hover:cursor-pointer"
               onClick={() => {
                 setOpenHelpModal(true);
                 setOpenMobileMenu(false);
@@ -137,30 +175,27 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", inter.className)}
+        panelClassnames={clsx("text-md bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
       >
-        <HeaderText>
-          Bonsai Launchpad
-        </HeaderText>
-        <p className="mt-4 text-xl text-secondary/70">
-          Tokens start on a bonding curve until they graduate ($100k mcap or ~$21k in liquidity).
+        <Header2>
+          Bonsai
+        </Header2>
+        <p className="mt-4 text-secondary/70">
+          Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
         </p>
-        <p className="mt-4 text-xl text-secondary/70">
-          The first 200 million tokens are available at a flat price to reduce the effect of snipers and then the bonding curve kicks in, increasing the price until the full supply is minted.
+        <p className="mt-4 text-secondary/70">
+          Our intuitive no-code platform empowers anyone to effortlessly create and monetize their own Smart Media content. Creators have access to a diverse selection of curated and third-party templates, making it simple to customize smart media behavior and configure monetization settings.
         </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          Built on Base. Bonding curves are priced in USDC ($)
+        <p className="mt-2 text-secondary/70">
+          Smart Media posts update their content regularly based on the interactions of users and token holders.
         </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          Creators earn 1% trading fees on bonding curves, and 40% of the 1.5% trading fee when tokens graduate
-        </p>
-        <p className="mt-2 text-xl text-secondary/70">
-          When a token reaches $100k mcap, anyone can trigger graduation. Liquidity is used to buy $BONSAI and pair with the token on Uniswap v4. Tokens vest linearly becoming available to transfer over a period of time in order to reduce the power of rugs and snipers. Vesting parameters are set by the token creator.
+        <p className="mt-4 text-secondary/70">
+          Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.
         </p>
         <p className="mt-2 text-xl text-secondary/70">
           Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">{V1_LAUNCHPAD_URL}</a>
         </p>
-        <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
+        <div className="mt-2 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
             <span className="gradient-txt link-hover cursor-pointer">Learn more.</span>
           </Link>

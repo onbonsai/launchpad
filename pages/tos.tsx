@@ -3,18 +3,18 @@ const Tos = () => {
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[80rem] px-4 sm:px-2 lg:px-8">
         <div className="md:flex-row md:items-baseline md:justify-between border-b border-dark-grey pt-12 pb-4">
-          <h1 className="text-3xl md:text-5xl font-bold font-owners tracking-wide mb-4 md:mb-0">Terms of Service</h1>
-          <p>Last updated December 18, 2024</p>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-wide mb-4 md:mb-0">Terms of Service</h1>
+          <p>Last updated April 2, 2025</p>
         </div>
         <section aria-labelledby="dashboard-heading" className="pt-8 pb-24 max-w-full">
           <div className="md:pl-12 md:pr-12 md:pb-12 pl-2 pr-2 pb-2">
             <section className="mt-4 max-w-screen-lg">
               These terms of service, together with any documents and additional terms they incorporate by reference
-              (collectively, these "Terms"), are entered into between Bonsai Labs, Inc. ("Bonsai", "we", "us", and
+              (collectively, these "Terms"), are entered into between Bonsai Labs DAO, Corp. ("Bonsai", "we", "us", and
               "our") and you or the company or other legal entity that you represent ("you" and "your"). These Terms,
               together with any Modifications (defined below), as well as all policies posted on our website and
               incorporated by reference herein, set out the terms on which we offer you access to and use of (a) the
-              website located at [YOUR_WEBSITE_URL] and all relevant sub-pages associated with the foregoing URL (the
+              website located at https://onbons.ai and all relevant sub-pages associated with the foregoing URL (the
               "Site") and (b) any other applications (e.g., mobile apps, web applications, etc.), add-ons, tools,
               services and offerings provided by us that make reference to these Terms, including without limitation,
               smart contracts (collectively, the "Services"). These Terms apply whether you are accessing the Services
@@ -246,10 +246,6 @@ const Tos = () => {
               to protections or insurance provided by the Federal Deposit Insurance Corporation or the Securities
               Investor Protection Corporation. Tokens are not intended to be an investment opportunity of any kind and
               should not be perceived as one.
-              <h1 className="text-xl mt-4">5.2. Digital Assets Generally</h1>
-              [This section remains identical to the original, just replacing "Bonsai" with "BONSAI"]
-              <h1 className="text-xl mt-4">5.3. Transactions</h1>
-              [This section remains identical to the original, just replacing "Bonsai" with "Bonsai"]
               <h1 className="text-2xl mt-4">6. Ownership; Proprietary Rights</h1>
               <h1 className="text-xl mt-4">6.1. Definitions</h1>
               For purposes of these Terms, the following definitions apply: 6.1.1. "Content" means all works of
@@ -260,7 +256,7 @@ const Tos = () => {
               the Services, including proprietary rights of every kind and nature however denominated throughout the
               world, registered or unregistered, associated with such Bonsai Content and the Services.
               <h1 className="text-xl mt-4">6.2. Our Rights</h1>
-              The Services are owned and operated by Bonsai. Unless otherwise indicated, the launch.bonsai.meme and
+              The Services are owned and operated by Bonsai. Unless otherwise indicated, the app.bons.ai and
               related websites are Bonsai Content and our proprietary property, and all computer code (including source
               code or object code), products, databases, functionality, software, services, usernames, designs, visual
               interfaces, audio, video, text, photographs, compilations, graphics, and all other elements of the
@@ -731,7 +727,7 @@ const Tos = () => {
               <h1 className="text-xl mt-4">17.3. Opt-Out.</h1>
               If you do not wish to resolve disputes by binding arbitration, you may opt out of the provisions of this
               Section 17 (Dispute Resolution; Binding Arbitration) within 30 days after the date that you agree to these
-              Terms by sending a letter to Bonsai Labs, Inc., Attention: Legal Department – Arbitration Opt-Out, 110
+              Terms by sending a letter to Bonsai Labs DAO, Corp., Attention: Legal Department – Arbitration Opt-Out, 110
               Green Street, #803A, New York, NY 10012, that specifies: your full legal name, the email address
               associated with your account on the Services, and a statement that you wish to opt out of arbitration
               ("Opt-Out Notice"). Once Bonsai receives your Opt-Out Notice, this Section 17 (Dispute Resolution; Binding
@@ -742,7 +738,7 @@ const Tos = () => {
               Before initiating arbitration, a party must first send a written notice of the dispute to the other party
               by certified U.S. Mail or by Federal Express (signature required) or, only if that other party has not
               provided a current physical address, then by electronic mail (“Notice of Arbitration”). Bonsai’s address
-              for Notice is: Bonsai Labs, Inc., 110 Green Street, #803A, New York, NY 10012. The Notice of Arbitration
+              for Notice is: Bonsai Labs DAO, Corp., 110 Green Street, #803A, New York, NY 10012. The Notice of Arbitration
               must: (i) identify the name or account number of the party making the claim; (ii) describe the nature and
               basis of the claim or dispute; and (iii) set forth the specific relief sought (“Demand”). The parties will
               make good faith efforts to resolve the claim directly, but if the parties do not reach an agreement to do

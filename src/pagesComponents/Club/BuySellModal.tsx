@@ -10,10 +10,11 @@ interface BuySellModalProps {
     buyAmount?: string;
     onClose: () => void;
     onBuyUSDC?: (amount: string, amountNeeded: number) => void;
+    mediaProtocolFeeRecipient?: `0x${string}`;
 }
 
 const BuySellModal = (props: BuySellModalProps) => {
-    const { club, buyAmount, address, open, onClose, onBuyUSDC } = props;
+    const { club, buyAmount, address, open, onClose, onBuyUSDC, mediaProtocolFeeRecipient } = props;
     return (
         <Modal
             onClose={() => onClose()}
@@ -21,7 +22,13 @@ const BuySellModal = (props: BuySellModalProps) => {
             setOpen={() => { }}
             panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary"
         >
-            <TradeComponent defaultBuyAmount={buyAmount ?? ''} club={club} address={address} onBuyUSDC={onBuyUSDC} />
+            <TradeComponent
+                defaultBuyAmount={buyAmount ?? ''}
+                club={club}
+                address={address}
+                onBuyUSDC={onBuyUSDC}
+                mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
+            />
         </Modal>
     )
 }

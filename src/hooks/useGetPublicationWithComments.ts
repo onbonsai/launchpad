@@ -1,23 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
-
-import { getPost } from "@src/services/lens/getPost";
+import { getPost } from "@src/services/lens/posts";
 import { getComments } from "@src/services/lens/getReactions";
+import { resumeSession } from "./useLensLogin";
 
-const fetchData = async (publicationId: string) => {
-  const [publication, comments] = await Promise.all([
-    getPost(publicationId),
-    getComments(publicationId)
-  ]);
+const fetchData = async (postId: string) => {
+  try {
+    const sessionClient = await resumeSession();
+    const [publication, comments] = await Promise.all([getPost(postId, sessionClient), getComments(postId, sessionClient)]);
 
-  return { publication, comments };
-}
+    return { publication, comments };
+  } catch (error) {
+    console.error("Error fetching publication:", error);
+    return null;
+  }
+};
 
-export default (publicationId?: string) => {
+export default (postId?: string, options?: { initialData?: { publication: any; comments: any[] } }) => {
   return useQuery({
-    queryKey: ["publication", publicationId],
-    queryFn: () => fetchData(publicationId!),
-    enabled: !!publicationId,
+    queryKey: ["publication", postId],
+    queryFn: () => fetchData(postId!),
+    enabled: !!postId,
     staleTime: 60000 * 5,
     gcTime: 60000 * 10,
+    initialData: options?.initialData,
   });
 };

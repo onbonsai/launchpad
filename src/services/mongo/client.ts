@@ -1,14 +1,13 @@
 import { MongoClient } from "mongodb";
 
 import {
-  IS_PRODUCTION,
   MONGO_COLLECTION_BIDS,
   MONGO_COLLECTION_BOUNTIES,
   MONGO_COLLECTION_PROMOTED,
   MONGO_DB_CREATORS,
 } from "@src/constants/constants";
 
-import { IS_PRODUCTION as IS_PRODUCTION_LAUNCHPAD } from "../madfi/moneyClubs";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 const uri = process.env.MONGO_URI;
 
@@ -108,11 +107,10 @@ export const getClientWithCreditsGhostwriter = async () => {
   return { collection, database };
 };
 
-
 export const getClientWithClubs = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("moonshot");
-  const _collection = IS_PRODUCTION_LAUNCHPAD ? "clubs-prod" : "clubs"
+  const _collection = IS_PRODUCTION ? "clubs-prod" : "clubs";
   const collection = database.collection(_collection);
 
   return { collection, database };
@@ -122,6 +120,30 @@ export const getClientWithHookSubmissions = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("moonshot");
   const collection = database.collection("hook-submissions");
+
+  return { collection, database };
+};
+
+export const getClientWithApiCredits = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("api-credits");
+
+  return { collection, database };
+};
+
+export const getClientWithTwap = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("twap");
+
+  return { collection, database };
+};
+
+export const getClientWithStakingReferrals = async () => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("staking-referrals");
 
   return { collection, database };
 };

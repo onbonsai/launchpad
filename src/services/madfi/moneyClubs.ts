@@ -4,13 +4,14 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
+import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
 import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 import { ChainRpcs } from "@src/constants/chains";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import { roundedToFixed } from "@src/utils/utils";
-import { getAccessToken } from "@src/hooks/useLensLogin";
 import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
@@ -18,14 +19,15 @@ import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
 import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
+import { getPosts } from "../lens/posts";
 
-export const IS_PRODUCTION = process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453";
 export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
 const REGISTERED_CLUB = gql`
   query Club($id: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
     club(id: $id) {
       id
+      clubId
       creator
       createdAt
       initialSupply
@@ -49,6 +51,70 @@ const REGISTERED_CLUB = gql`
       cliffPercent
       vestingDuration
       hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+      prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade6h: trades(where:{createdAt_gt: $sixHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade1h: trades(where:{createdAt_gt: $oneHourAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+      prevTrade5m: trades(where:{createdAt_gt: $fiveMinutesAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
+        price
+        prevPrice
+        createdAt
+      }
+    }
+  }
+`;
+
+const REGISTERED_CLUB_BY_TOKEN = gql`
+  query Club($tokenAddress: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      clubId
+      creator
+      createdAt
+      initialSupply
+      createdAt
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      liquidity
+      complete
+      completedAt
+      liquidityReleasedAt
+      tokenInfo
+      tokenAddress
+      creatorFees
+      holders
+      v2
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
       prevTrade24h: trades(where:{createdAt_gt: $twentyFourHoursAgo}, orderBy: createdAt, orderDirection: asc, first: 1) {
         price
         prevPrice
@@ -85,6 +151,12 @@ const REGISTERED_CLUB_INFO = gql`
       vestingDuration
       clubId
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -173,6 +245,12 @@ const REGISTERED_CLUBS = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -201,6 +279,12 @@ const REGISTERED_CLUBS_BY_AGE = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -229,6 +313,12 @@ const REGISTERED_CLUBS_BY_ID = gql`
       vestingDuration
       tokenAddress
       v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
     }
   }
 `;
@@ -338,6 +428,9 @@ export const BENEFITS_AUTO_FEATURE_HOURS = 3;
 export const USDC_CONTRACT_ADDRESS = IS_PRODUCTION
   ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   : "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+export const WGHO_CONTRACT_ADDRESS = IS_PRODUCTION
+  ? "0x6bDc36E20D267Ff0dd6097799f82e78907105e2F"
+  : "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82"; // mock erc20 for testing
 export const BONSAI_TOKEN_ZKSYNC_ADDRESS = "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82";
 export const BONSAI_TOKEN_BASE_ADDRESS = IS_PRODUCTION
   ? "0x474f4cb764df9da079D94052fED39625c147C12C"
@@ -357,11 +450,24 @@ export const BUYBACK_AND_BURN_HOOK_ADDRESS = "0xD4E2efCE3De32de13407298d224ee7e7
 
 export const CONTRACT_CHAIN_ID = IS_PRODUCTION ? base.id : baseSepolia.id;
 
-export const MONEY_CLUBS_SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`;
-// export const MONEY_CLUBS_SUBGRAPH_URL = "https://api.studio.thegraph.com/query/18207/bonsai-launchpad-base/version/latest"; // DEV URL
-export const MONEY_CLUBS_SUBGRAPH_TESTNET_URL = `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`;
+export const SUBGRAPH_CONFIG = {
+  base: {
+    mainnet: `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/E1jXM6QybxvtA71cbiFbyyQYJwn2AHJNk7AAH1frZVyc`,
+    testnet: `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`
+  },
+  lens: {
+    mainnet: `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/EHPwY2LhhhaxiCindhLuUVJRF4teH9BnzFRfVULsf8px`,
+    testnet: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-lens-testnet/version/latest"
+  }
+};
 
 export const WHITELISTED_UNI_HOOKS = {
+  "BONSAI_NFT_ZERO_FEES_HOOK": {
+    label: "0% trading fees for Bonsai NFT holders",
+    contractAddress: DEFAULT_HOOK_ADDRESS,
+    icon: "swap-horiz",
+    iconLabel: "0% fee",
+  },
   "LOTTERY_HOOK": {
     label: "Growing jackpot that goes to one lucky trader",
     contractAddress: LOTTERY_HOOK_ADDRESS,
@@ -380,16 +486,57 @@ export const WHITELISTED_UNI_HOOKS = {
     icon: "schedule",
     iconLabel: "9am-4:30pm EST"
   },
-  "BONSAI_NFT_ZERO_FEES_HOOK": {
-    label: "0% trading fees for Bonsai NFT holders",
-    contractAddress: DEFAULT_HOOK_ADDRESS,
-    icon: "swap-horiz",
-    iconLabel: "0% fee",
-  },
+};
+
+export const NETWORK_CHAIN_IDS = {
+  'base': CONTRACT_CHAIN_ID,
+  'lens': LENS_CHAIN_ID
+} as const;
+
+export type Token = {
+  name: string;
+  symbol: string;
+  description?: string;
+  image: string;
+};
+
+export type Club = {
+  __typename: 'Club';
+  id: string;
+  creator: string;
+  initialSupply: string;
+  createdAt: string;
+  supply: string;
+  feesEarned: string;
+  currentPrice: string;
+  marketCap: string;
+  prevTrade24Hr: object; // Replace 'object' with a more specific type if available
+  clubId: number;
+  profileId: string;
+  strategy: string;
+  handle: string;
+  token: Token;
+  postId: string;
+  pubId?: string;
+  featured: boolean;
+  creatorFees: string;
+  complete: boolean;
+  completedAt?: number
+  liquidityReleasedAt?: number
+  claimAt: number;
+  cliffPercent: string
+  vestingDuration: string
+  tokenAddress?: `0x${string}`;
+  hook: `0x${string}`;
+  chain: string;
 };
 
 export function baseScanUrl(txHash: string, tx = true) {
   return `https://${!IS_PRODUCTION ? "sepolia." : ""}basescan.org/${tx ? "tx" : "address"}/${txHash}`;
+}
+
+export function lensScanUrl(txHash: string, tx = true) {
+  return `https://explorer.${!IS_PRODUCTION ? "testnet." : ""}lens.xyz/${tx ? "tx" : "address"}/${txHash}`;
 }
 
 export const toHexString = (id: number | string, minLength: number = 2): string => {
@@ -398,8 +545,8 @@ export const toHexString = (id: number | string, minLength: number = 2): string 
   return `0x${stringId.length === 3 ? stringId.padStart(4, "0") : stringId.padStart(2, "0")}`;
 }
 
-export const subgraphClient = () => {
-  const uri = IS_PRODUCTION ? MONEY_CLUBS_SUBGRAPH_URL : MONEY_CLUBS_SUBGRAPH_TESTNET_URL;
+export const subgraphClient = (chain = "base") => {
+  const uri = IS_PRODUCTION ? SUBGRAPH_CONFIG[chain].mainnet : SUBGRAPH_CONFIG[chain].testnet;
   return new ApolloClient({
     ssrMode: typeof window === "undefined", // set to true for server-side rendering
     link: new HttpLink({ uri }),
@@ -408,41 +555,53 @@ export const subgraphClient = () => {
 };
 
 // server-side
-export const getRegisteredClubById = async (clubId: string) => {
-  const id = toHexString(parseInt(clubId));
-  const now = Date.now();
-  const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
-  const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
-  const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
-  const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
-  const client = subgraphClient();
-  const { data: { club } } = await client.query({
-    query: REGISTERED_CLUB,
-    variables: {
-      id,
-      twentyFourHoursAgo,
-      sixHoursAgo,
-      oneHourAgo,
-      fiveMinutesAgo
-    }
-  });
+export const getRegisteredClubById = async (clubId: string, chain = "base", tokenAddress?: `0x${string}`) => {
+  try {
+    const now = Date.now();
+    const twentyFourHoursAgo = Math.floor(now / 1000) - 24 * 60 * 60;
+    const sixHoursAgo = Math.floor(now / 1000) - 6 * 60 * 60;
+    const oneHourAgo = Math.floor(now / 1000) - 60 * 60;
+    const fiveMinutesAgo = Math.floor(now / 1000) - 5 * 60;
+    const client = subgraphClient(chain);
+    const { data } = await client.query({
+      query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
+      variables: {
+        id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
+        tokenAddress,
+        twentyFourHoursAgo,
+        sixHoursAgo,
+        oneHourAgo,
+        fiveMinutesAgo
+      }
+    });
 
-  const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
-  const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
-  const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
-  const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
+    const club = !tokenAddress ? data.club : (data.clubs ? data.clubs[0] : null);
 
-  return {
-    ...club,
-    "24h": prevTrade24h,
-    "6h": prevTrade6h,
-    "1h": prevTrade1h,
-    "5m": prevTrade5m,
-  };
+    const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
+    const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
+    const prevTrade1h = club?.prevTrade1h ? club?.prevTrade1h[0] : {};
+    const prevTrade5m = club?.prevTrade5m ? club?.prevTrade5m[0] : {};
+
+    return {
+      ...club,
+      token: {
+        name: club.name,
+        symbol: club.symbol,
+        image: club.uri,
+      },
+      chain,
+      "24h": prevTrade24h,
+      "6h": prevTrade6h,
+      "1h": prevTrade1h,
+      "5m": prevTrade5m,
+    };
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const getRegisteredClubInfo = async (ids: string[]) => {
-  const client = subgraphClient();
+export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
+  const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
   return clubs?.map((club) => {
     let { name, symbol, image } = club
@@ -457,8 +616,8 @@ export const getRegisteredClubInfo = async (ids: string[]) => {
   });
 };
 
-export const searchClubs = async (query: string) => {
-  const client = subgraphClient();
+export const searchClubs = async (query: string, chain = "base") => {
+  const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: SEARCH_CLUBS, variables: { query } })
   return clubs?.map((club) => {
     const { name, symbol, image } = club
@@ -467,10 +626,10 @@ export const searchClubs = async (query: string) => {
   });
 };
 
-export const getVolume = async (clubId: string): Promise<bigint> => {
+export const getVolume = async (clubId: string, chain = "base"): Promise<bigint> => {
   const id = toHexString(parseInt(clubId));
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const limit = 50;
   let skip = 0;
   let volume = 0n;
@@ -494,8 +653,8 @@ export const getVolume = async (clubId: string): Promise<bigint> => {
   return volume;
 };
 
-export const getSupply = async (tokenAddress: `0x${string}`) => {
-  const client = publicClient();
+export const getSupply = async (tokenAddress: `0x${string}`, chain = "base") => {
+  const client = publicClient(chain);
   const supply = await client.readContract({
     address: tokenAddress,
     abi: VestingERC20Abi,
@@ -505,9 +664,9 @@ export const getSupply = async (tokenAddress: `0x${string}`) => {
   return supply as unknown as bigint;
 };
 
-export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any[], hasMore: boolean }> => {
+export const getTrades = async (clubId: string, page = 0, chain = "base"): Promise<{ trades: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const limit = 50;
   const skip = page * limit;
 
@@ -519,8 +678,8 @@ export const getTrades = async (clubId: string, page = 0): Promise<{ trades: any
   return { trades: trades || [], hasMore: trades?.length == limit };
 };
 
-export const getLatestTrades = async (): Promise<any[]> => {
-  const client = subgraphClient();
+export const getLatestTrades = async (chain = "base"): Promise<any[]> => {
+  const client = subgraphClient(chain);
   const { data: { trades } } = await client.query({
     query: CLUB_TRADES_LATEST
   });
@@ -560,11 +719,11 @@ export const getTokenBalances = async (account: `0x${string}`, tokenAddresses: `
   }
 };
 
-export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
+export const getHoldings = async (account: `0x${string}`, page = 0, chain = "base"): Promise<{ holdings: any[], hasMore: boolean }> => {
   const limit = 50;
   const skip = page * limit;
   const startOfDayUTC = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const { data: { clubChips } } = await client.query({
     query: HOLDINGS_PAGINATED, variables: { trader: account.toLowerCase(), startOfDayUTC, skip }
   });
@@ -598,37 +757,45 @@ export const getHoldings = async (account: `0x${string}`, page = 0): Promise<{ h
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
-export const getClubHoldings = async (clubId: string, page = 0): Promise<{ holdings: any[], hasMore: boolean }> => {
+export const getClubHoldings = async (clubId: string, page = 0, chain = "base"): Promise<{ holdings: any[], hasMore: boolean }> => {
   const id = toHexString(parseInt(clubId));
   const limit = 100;
   const skip = page * limit;
-  const client = subgraphClient();
-  const _publicClient = publicClient();
+  const client = subgraphClient(chain);
+  const _publicClient = publicClient(chain);
   const { data: { clubChips } } = await client.query({ query: CLUB_HOLDINGS_PAGINATED, variables: { club: id, skip } });
   let holdings = clubChips || [];
+
   // override with erc20 balance of in case of transfers post-graduation
   if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
-    holdings = await Promise.all(holdings.map(async (data) => {
-      const amount = await _publicClient.readContract({
-        address: data.club.tokenAddress,
-        abi: VestingERC20Abi,
-        functionName: "balanceOf",
-        args: [data.trader.id],
-      });
-      return { ...data, amount };
+    const contracts = holdings.map(data => ({
+      address: data.club.tokenAddress,
+      abi: VestingERC20Abi,
+      functionName: "balanceOf",
+      args: [data.trader.id],
+    }));
+
+    const balances = await _publicClient.multicall({
+      contracts
+    });
+
+    holdings = holdings.map((data, i) => ({
+      ...data,
+      amount: balances[i].result
     }));
   }
+
   return { holdings, hasMore: clubChips?.length == limit };
 };
 
-export const getRegisteredClub = async (handle: string, profileId?: string) => {
+export const getRegisteredClub = async (handle: string, profileId?: string, chain = "base") => {
   if (!profileId) {
     const profile = await getProfileByHandle(`lens/${handle}`);
-    profileId = profile?.id;
+    profileId = profile?.owner.id;
   }
 
   const twentyFourHoursAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
-  const { data } = await subgraphClient().query({
+  const { data } = await subgraphClient(chain).query({
     query: REGISTERED_CLUB,
     variables: { id: profileId, twentyFourHoursAgo }
   });
@@ -643,7 +810,7 @@ export const getRegisteredClub = async (handle: string, profileId?: string) => {
   };
 };
 
-export const getFeaturedClubs = async (): Promise<any[]> => {
+export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
   const response = await fetch('/api/clubs/get-enriched-clubs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -653,7 +820,7 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
   console.log(`Fetched ${clubs.length} featured clubs`);
   if (clubs?.length) {
     const ids = clubs.map(({ clubId }) => toHexString(clubId));
-    const { data: { clubs: _clubs } } = await subgraphClient().query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
+    const { data: { clubs: _clubs } } = await subgraphClient(chain).query({ query: REGISTERED_CLUBS_BY_ID, variables: { ids } });
 
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
@@ -699,11 +866,11 @@ export const getFeaturedClubs = async (): Promise<any[]> => {
   return [];
 };
 
-export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ clubs: any[], hasMore: boolean }> => {
+export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 30;
   const skip = page * limit;
   const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
-  const { data } = await subgraphClient().query({ query, variables: { pageSize: limit, skip } });
+  const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
     const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
@@ -715,38 +882,30 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
     const { clubs } = await response.json();
 
     try {
-      // TODO: fetch for other strategies (ie orb_club, farcaster)
-      const publications = await lensClient.publication.fetchAll({
-        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
-      });
-      const gPublications = groupBy(publications.items || [], "id");
+      // TODO: switch to postId?
+      const lensTokens = clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== ""));
+      const publications = await getPosts(lensTokens.map(({ pubId }) => pubId));
+      const gPublications = groupBy(publications || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
         const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (club?.hidden) return; // db forced hide
+        let { name, symbol, uri: image } = _club;
+        if (!name || !symbol || !image) {
+          // backup for v1 clubs
+          [name, symbol, image] = decodeAbiParameters([
+            { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+          ], _club.tokenInfo);
+        }
+        const token = { name, image, symbol };
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
           if (club.featured) return; // featured clubs are queried elsewhere
           const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
-          return { publication, ..._club, ...club, marketCap };
+          return { publication, ..._club, ...club, marketCap, token };
         } else { // not created on our app
-          let { name, symbol, uri: image } = _club;
-
-          if (!name || !symbol || !image) {
-            // backup for v1 clubs
-            [name, symbol, image] = decodeAbiParameters([
-              { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
-            ], _club.tokenInfo);
-          }
-          return {
-            ..._club,
-            handle: _club.creator,
-            marketCap,
-            token: {
-              name, image, symbol
-            }
-          };
+          return { ..._club, handle: _club.creator, marketCap, token };
         }
       }).filter((c) => c);
 
@@ -759,39 +918,41 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string): Promise<{ 
   return { clubs: [], hasMore: false };
 };
 
-export const publicClient = () => {
-  const chain = IS_PRODUCTION ? base : baseSepolia;
-  return createPublicClient({ chain, transport: http(ChainRpcs[chain.id]) });
+export const publicClient = (chain = "base") => {
+  const _chain = getChain(chain);
+  return createPublicClient({ chain: _chain, transport: http(ChainRpcs[_chain.id]) });
 };
 
-export const getBalance = async (clubId: string, account: `0x${string}`): Promise<bigint> => {
+export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base"): Promise<bigint> => {
   const id = toHexString(parseInt(clubId));
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account, club: id } });
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
-export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
-  const client = publicClient();
-  const [availableBalance, totalBalance] = await Promise.all([
-    client.readContract({
-      address: tokenAddress,
-      abi: VestingERC20Abi,
-      functionName: "getAvailableBalance",
-      args: [account],
-    }),
-    client.readContract({
-      address: tokenAddress,
-      abi: VestingERC20Abi,
-      functionName: "balanceOf",
-      args: [account],
-    })
-  ]);
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`, complete: boolean, chain = "base"): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
+  const client = publicClient(chain);
+  const [availableBalance, totalBalance] = await client.multicall({
+    contracts: [
+      {
+        address: tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "getAvailableBalance",
+        args: [account],
+      },
+      {
+        address: tokenAddress,
+        abi: VestingERC20Abi,
+        functionName: "balanceOf",
+        args: [account],
+      }
+    ]
+  });
 
   return {
-    availableBalance: availableBalance as bigint,
-    vestingBalance: (totalBalance as bigint) - (availableBalance as bigint),
-    totalBalance: totalBalance as bigint
+    availableBalance: availableBalance.result as bigint,
+    vestingBalance: (totalBalance.result as bigint) - (availableBalance.result as bigint),
+    totalBalance: totalBalance.result as bigint
   };
 };
 
@@ -799,26 +960,28 @@ export const getBuyPrice = async (
   account: `0x${string}`,
   clubId: string,
   amount: string,
-  supply?: string
+  supply?: string,
+  chain = "base"
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
-  const client = publicClient();
+  const client = publicClient(chain);
   let buyPrice
   try {
     buyPrice = !!supply ?
       await client.readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
         abi: BonsaiLaunchpadAbi,
         functionName: "getBuyPrice",
         args: [parseUnits(supply, DECIMALS), amountWithDecimals]
       })
       : await client.readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
-        abi: BonsaiLaunchpadAbi,
+        address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+        abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
         functionName: "getBuyPriceByClub",
         args: [clubId, amountWithDecimals]
       });
-  } catch {
+  } catch (error) {
+    console.log("getBuyPrice", error);
     buyPrice = 1n
   }
 
@@ -828,34 +991,21 @@ export const getBuyPrice = async (
   };
 };
 
-export const getMarketCap = async (
-  supply: string,
-  curve: number | string,
-): Promise<bigint> => {
-  console.log(supply, curve)
-  const client = publicClient();
-  const marketCap = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
-    functionName: "getMcap",
-    args: [supply, curve]
-  });
-
-  return marketCap as bigint
-};
-
+// optional params: initialPrice, targetPriceMultiplier, flatThreshold
+// not needed for Base deployment, but needed for Lens deployment
 function calculateTokensForUSDC(
   usdcAmount: bigint,
   currentSupply: bigint,
+  initialPrice = BigInt("12384118034062500000000000000000"),
+  targetPriceMultiplier = 5n,
+  flatThreshold = FLAT_THRESHOLD
 ): bigint {
   const BPS_MAX = BigInt("10000");
-  const initialPrice = BigInt("12384118034062500000")
-  const targetPrice = BigInt(5) * initialPrice;
+  const targetPrice = initialPrice * targetPriceMultiplier;
   const decimals = 18
-  const flatThreshold = FLAT_THRESHOLD
   const maxSupply = MAX_MINTABLE_SUPPLY
 
-  function getPrice(supply: bigint, amount: bigint): bigint {
+  function getPrice(supply: bigint, amount: bigint, initialPrice: bigint, targetPriceMultiplier: bigint, flatThreshold: bigint): bigint {
     if (supply < flatThreshold) {
       if (supply + amount <= flatThreshold) {
         return (amount * initialPrice) / BigInt(10 ** decimals);
@@ -864,7 +1014,7 @@ function calculateTokensForUSDC(
       const flatAmount = flatThreshold - supply;
       const curveAmount = amount - flatAmount;
 
-      return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount);
+      return (flatAmount * initialPrice) / BigInt(10 ** decimals) + getPrice(flatThreshold, curveAmount, initialPrice, targetPriceMultiplier, flatThreshold);
     }
 
     const endSupply = supply + amount;
@@ -903,7 +1053,7 @@ function calculateTokensForUSDC(
 
   while (low <= high) {
     mid = (low + high) / 2n;
-    price = getPrice(currentSupply, mid) / parseUnits("1", 18);
+    price = getPrice(currentSupply, mid, initialPrice, targetPriceMultiplier, flatThreshold) / parseUnits("1", 18);
 
     // Track closest value below target
     if (price < usdcAmount && (usdcAmount - price) < (usdcAmount - bestGuess)) {
@@ -948,15 +1098,18 @@ export const getBuyAmount = async (
   account: `0x${string}`,
   tokenAddress: `0x${string}`, // club.tokenAddress
   spendAmount: string, // Amount in USDC user wants to spend
-  hasNft = false
+  hasNft = false,
+  chain = "base",
+  options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string }
 ): Promise<{
   buyAmount: bigint,
   effectiveSpend: string
 }> => {
-  const client = publicClient();
+  const client = publicClient(chain);
 
-  // Convert spend amount to proper decimals
-  const spendAmountBigInt = parseUnits(spendAmount, 6);
+  // Convert spend amount to proper decimals. Assuming WGHO for Lens
+  const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;
+  const spendAmountBigInt = parseUnits(spendAmount, _DECIMALS);
 
   // If user has NFT, use full amount. If not, reduce by fees
   const spendAfterFees = hasNft
@@ -971,7 +1124,7 @@ export const getBuyAmount = async (
     account
   }) as bigint;
 
-  const rawBuyAmount = calculateTokensForUSDC(spendAfterFees, currentSupply);
+  const rawBuyAmount = options ? calculateTokensForUSDC(spendAfterFees, currentSupply, BigInt(options.initialPrice!), BigInt(options.targetPriceMultiplier!), BigInt(options.flatThreshold!)) : calculateTokensForUSDC(spendAfterFees, currentSupply);
   const buyAmount = cleanupTrailingOne(rawBuyAmount);
 
   let effectiveSpend = spendAfterFees
@@ -990,13 +1143,14 @@ export const getSellPrice = async (
   account: `0x${string}`,
   clubId: string,
   amount: string,
-  hasNft = false
+  hasNft = false,
+  chain = "base"
 ): Promise<{ sellPrice: bigint; sellPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
-  const client = publicClient();
+  const client = publicClient(chain);
   const sellPrice = await client.readContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
+    address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+    abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
     functionName: "getSellPriceByClub",
     args: [clubId, amountWithDecimals],
     account,
@@ -1011,131 +1165,251 @@ export const getRegistrationFee = async (
   amount: string,
   account?: `0x${string}`
 ): Promise<bigint> => {
+  if (amount == "0") return BigInt(0);
   const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
 };
 
-export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean } => {
+export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { valuePct: number; positive?: boolean; neutral?: boolean } => {
   if (lastTradePrice == 0n) return { valuePct: 0 };
   const priceDelta: bigint = price > lastTradePrice ? price - lastTradePrice : lastTradePrice - price;
   const priceDeltaPercentage = parseFloat(formatEther(priceDelta)) * 100 / parseFloat(formatEther(lastTradePrice));
   return {
     valuePct: parseFloat(roundedToFixed(priceDeltaPercentage, 2)),
     positive: price > lastTradePrice,
+    neutral: price === lastTradePrice,
   };
 };
 
-export const getFeesEarned = async (account: `0x${string}`): Promise<{ feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] }> => {
-  const client = subgraphClient();
-  const [creatorNFTsResponse, feesEarnedResponse] = await Promise.all([
-    client.query({ query: GET_CREATOR_NFTS, variables: { trader: account } }),
-    publicClient().readContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "feesEarned",
-      args: [account],
-    })
-  ]);
-  const creatorNFTList = creatorNFTsResponse.data.creatorNFTs.map(nft => nft.club.clubId);
+export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "lens"): Promise<{
+  base: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
+  lens: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
+  totalFeesEarned: bigint,
+  totalClubFees: bigint,
+  grandTotal: bigint
+}> => {
+  // Helper function to get fees for a specific chain
+  const getChainFees = async (chainName: "base" | "lens") => {
+    const client = subgraphClient(chainName);
+    const publicC = publicClient(chainName);
 
-  const clubFees = await Promise.all(
-    creatorNFTList.map(async (id) => {
-      const fees = await publicClient().readContract({
-        address: LAUNCHPAD_CONTRACT_ADDRESS,
+    // Get creator NFTs
+    const { data: { creatorNFTs } } = await client.query({
+      query: GET_CREATOR_NFTS,
+      variables: { trader: account }
+    });
+    const creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
+
+    // Prepare multicall contracts array
+    let feesEarnedArgs = [account]
+    if (chainName === "lens") {
+      feesEarnedArgs.push(WGHO_CONTRACT_ADDRESS)
+    }
+    const contracts = [
+      // Get total fees earned
+      {
+        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
+        abi: chainName === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
+        functionName: "feesEarned",
+        args: feesEarnedArgs,
+      },
+      // Get fees earned for each club
+      ...creatorNFTList.map(id => ({
+        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
         abi: BonsaiLaunchpadAbi,
         functionName: "clubFeesEarned",
         args: [id],
+      }))
+    ];
+
+    try {
+      // Execute multicall
+      const [feesEarned, ...clubFeesResults] = await publicC.multicall({
+        contracts,
+        allowFailure: false
       });
+
+      // Map club fees results to original format
+      const clubFees = clubFeesResults.map((fees, index) => ({
+        id: parseInt(creatorNFTList[index]),
+        amount: chainName === "lens"
+          ? (fees as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
+          : fees as bigint
+      }));
+
+      const clubFeesTotal = clubFees.reduce((sum, fee) => sum + fee.amount, 0n);
+      const normalizedFeesEarned = chainName === "lens"
+        ? (feesEarned as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
+        : feesEarned as bigint;
+
       return {
-        id: parseInt(id),
-        amount: fees as bigint
+        feesEarned: normalizedFeesEarned,
+        clubFeesTotal,
+        clubFees,
       };
-    })
-  );
+    } catch (error) {
+      console.error(`Error fetching fees for ${chainName}:`, error);
+      return {
+        feesEarned: 0n,
+        clubFeesTotal: 0n,
+        clubFees: [],
+      };
+    }
+  };
+
+  // If chain is specified, only get fees for that chain
+  if (chain) {
+    const fees = await getChainFees(chain);
+    return {
+      base: chain === "base" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
+      lens: chain === "lens" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
+      totalFeesEarned: fees.feesEarned,
+      totalClubFees: fees.clubFeesTotal,
+      grandTotal: fees.feesEarned + fees.clubFeesTotal
+    };
+  }
+
+  // Get fees for both chains in parallel
+  const [baseFees, lensFees] = await Promise.all([
+    getChainFees("base"),
+    getChainFees("lens")
+  ]);
+
+  const totalFeesEarned = baseFees.feesEarned + lensFees.feesEarned;
+  const totalClubFees = baseFees.clubFeesTotal + lensFees.clubFeesTotal;
 
   return {
-    feesEarned: feesEarnedResponse as bigint,
-    clubFeesTotal: clubFees.reduce((sum, fee) => sum + fee.amount, 0n),
-    clubFees,
+    base: baseFees,
+    lens: lensFees,
+    totalFeesEarned,
+    totalClubFees,
+    grandTotal: totalFeesEarned + totalClubFees
+  };
+};
+
+export enum PricingTier {
+  SMALL = "SMALL",
+  MEDIUM = "MEDIUM",
+  LARGE = "LARGE",
+}
+
+// NOTE: initialPrice values assume 18 decimals in quote token (WGHO)
+const LENS_PRICING_TIERS = {
+  [PricingTier.SMALL]: {
+    initialPrice: "3529508034062500000000000000000",
+    flatThreshold: FLAT_THRESHOLD.toString(),
+    targetPriceMultiplier: 5,
+  },
+  [PricingTier.MEDIUM]: {
+    initialPrice: "6471118034062500000000000000000",
+    flatThreshold: FLAT_THRESHOLD.toString(),
+    targetPriceMultiplier: 5,
+  },
+  [PricingTier.LARGE]: {
+    initialPrice: "12384118034062500000000000000000",
+    flatThreshold: FLAT_THRESHOLD.toString(),
+    targetPriceMultiplier: 5,
   }
 };
 
-type RegistrationParams = {
+type RegistrationTxParams = {
   hook: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
-  tokenDescription: string;
   tokenImage: string;
   initialSupply: string;
-  strategy: string;
-  featureEndAt?: number;
   cliffPercent: number; // bps
   vestingDuration: number; // seconds
+  pricingTier?: PricingTier;
 };
-export const registerClub = async (walletClient, isAuthenticated: boolean, params: RegistrationParams): Promise<{ objectId?: string, clubId?: string, txHash?: string }> => {
+export const registerClubTransaction = async (
+  walletClient,
+  params: RegistrationTxParams,
+  chain = "base"
+): Promise<{ clubId?: string, txHash?: string, tokenAddress?: string }> => {
   const token = encodeAbi(["string", "string", "string"], [params.tokenName, params.tokenSymbol, params.tokenImage]);
+  let args = [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration];
+  if (chain == "lens" && params.pricingTier) {
+    args.push(LENS_PRICING_TIERS[params.pricingTier].initialPrice);
+    args.push(LENS_PRICING_TIERS[params.pricingTier].flatThreshold);
+    args.push(LENS_PRICING_TIERS[params.pricingTier].targetPriceMultiplier);
+    args.push(zeroAddress); // TODO: whitelist module
+    args.push("0x"); // TODO: whitelist data
+    args.push(WGHO_CONTRACT_ADDRESS); // quote token
+  }
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
-    abi: BonsaiLaunchpadAbi,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
     functionName: "registerClub",
-    args: [params.hook, token, params.initialSupply, zeroAddress, params.cliffPercent, params.vestingDuration],
-    chain: IS_PRODUCTION ? base : baseSepolia
+    args,
+    chain: getChain(chain)
   });
   console.log(`tx: ${hash}`);
 
-  const identityToken = isAuthenticated ? await getAccessToken() : undefined;
-  const [creator] = await walletClient.getAddresses();
-  const response = await fetch('/api/clubs/update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      strategy: params.strategy,
-      identityToken,
-      txHash: hash,
-      token: { name: params.tokenName, symbol: params.tokenSymbol, image: params.tokenImage, description: params.tokenDescription },
-      featureEndAt: params.featureEndAt,
-      handle: creator,
-    })
-  });
-
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+  const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
   const event = getEventFromReceipt({
-    contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+    contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     transactionReceipt: receipt,
     abi: BonsaiLaunchpadAbi,
     eventName: "RegisteredClub",
   });
-  const res = { objectId: (await response.json()).id as string, clubId: event.args.clubId.toString(), txHash: hash };
-  return receipt.status === "success" && response.ok ? res : {};
+  const res = {
+    clubId: event.args.clubId.toString(),
+    tokenAddress: event.args.tokenAddress.toString() as `0x${string}`,
+    txHash: hash
+  };
+
+  return receipt.status === "success" ? res : {};
 };
 
-export const buyChips = async (walletClient: any, clubId: string, amount: bigint, maxPrice: bigint, referral?: `0x${string}`) => {
+export const setLensData = async ({
+  hash,
+  handle,
+  postId,
+  chain,
+}: { hash: string; handle: string; postId: string; chain: string }) => {
+  await fetch('/api/clubs/set-lens-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ txHash: hash, handle, pubId: postId, chain })
+  });
+}
+
+export const buyChips = async (
+  walletClient: any,
+  clubId: string,
+  amount: bigint,
+  maxPrice: bigint,
+  referral?: `0x${string}`,
+  chain = "base",
+  clientAddress?: `0x${string}`
+) => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
-    args: [clubId, amount, maxPrice, MADFI_WALLET_ADDRESS, recipient, referral || zeroAddress],
-    chain: IS_PRODUCTION ? base : baseSepolia,
+    args: [clubId, amount, maxPrice, clientAddress || zeroAddress, recipient, referral || zeroAddress],
+    chain: getChain(chain)
   });
   console.log(`tx: ${hash}`);
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+  const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
 
   if (receipt.status === "reverted") throw new Error("Reverted");
 };
 
-export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint) => {
+export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint, chain = "base") => {
   const amountWithDecimals = parseUnits(sellAmount, DECIMALS);
   const hash = await walletClient.writeContract({
-    address: LAUNCHPAD_CONTRACT_ADDRESS,
+    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
     abi: BonsaiLaunchpadAbi,
     functionName: "sellChips",
     args: [clubId, amountWithDecimals, minAmountOut, zeroAddress],
-    chain: IS_PRODUCTION ? base : baseSepolia,
+    chain: getChain(chain)
   });
   console.log(`tx: ${hash}`);
-  const receipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
+  const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
 
   if (receipt.status === "reverted") throw new Error("Reverted");
 };
@@ -1146,14 +1420,17 @@ export const approveToken = async (
   walletClient: any,
   toastId?,
   approveMessage = "Approving tokens...",
+  chain = "base",
+  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
 ) => {
+  console.log(`contractAddress: ${contractAddress}`)
   const [user] = await walletClient.getAddresses();
-  const client = publicClient();
+  const client = publicClient(chain);
   const allowance = await client.readContract({
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: "allowance",
-    args: [user, LAUNCHPAD_CONTRACT_ADDRESS],
+    args: [user, contractAddress],
   });
 
   if (allowance < amount) {
@@ -1162,7 +1439,8 @@ export const approveToken = async (
       address: token,
       abi: erc20Abi,
       functionName: "approve",
-      args: [LAUNCHPAD_CONTRACT_ADDRESS, maxUint256],
+      args: [contractAddress, maxUint256],
+      chain: getChain(chain)
     });
     console.log(`hash: ${hash}`)
     await client.waitForTransactionReceipt({ hash });
@@ -1171,7 +1449,7 @@ export const approveToken = async (
   }
 };
 
-export const releaseLiquidity = async (clubId: string) => {
+export const releaseLiquidity = async (clubId: string, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
     clubId, tokenPrice
@@ -1180,7 +1458,7 @@ export const releaseLiquidity = async (clubId: string) => {
   await fetch('/api/clubs/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash } })
+    body: JSON.stringify({ updateRecord: { clubId: parseInt(BigInt(clubId).toString()), liquidityReleasedTxHash: hash, chain } })
   });
 
   return token;
@@ -1188,10 +1466,10 @@ export const releaseLiquidity = async (clubId: string) => {
 
 // TODO: might need to enrich with creator profile
 // for api
-export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boolean }> => {
+export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 25;
   const skip = page * limit;
-  const { data } = await subgraphClient().query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
+  const { data } = await subgraphClient(chain).query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
 
   if (data?.clubs?.length) {
     const clubs = data?.clubs.map((_club) => {
@@ -1214,33 +1492,32 @@ export const getClubs = async (page = 0): Promise<{ clubs: any[], hasMore: boole
   return { clubs: [], hasMore: false };
 };
 
-// TODO: multicall?
-export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[]) => {
+export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[], chain = "base") => {
   let hash;
   const receipts: any[] = [];
 
   if (feesEarned > 0n) {
     hash = await walletClient.writeContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawFeesEarned",
       args: [zeroAddress],
-      chain: IS_PRODUCTION ? base : baseSepolia,
+      chain: getChain(chain)
     });
     console.log(`tx: ${hash}`);
-    receipts.push(publicClient().waitForTransactionReceipt({ hash }));
+    receipts.push(publicClient(chain).waitForTransactionReceipt({ hash }));
   }
 
   if (clubIds && clubIds.length > 0) {
     hash = await walletClient.writeContract({
-      address: LAUNCHPAD_CONTRACT_ADDRESS,
+      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawClubFeesEarned",
       args: [clubIds],
-      chain: IS_PRODUCTION ? base : baseSepolia,
+      chain: getChain(chain)
     });
     console.log(`tx 2: ${hash}`);
-    receipts.push(publicClient().waitForTransactionReceipt({ hash }));
+    receipts.push(publicClient(chain).waitForTransactionReceipt({ hash }));
   }
 
   if (receipts.length > 0) {
@@ -1274,8 +1551,8 @@ export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => 
   }
 };
 
-export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, createdAt_gt: number }) => {
-  const { data } = await subgraphClient().query({ query: GET_TRADER, variables });
+export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, createdAt_gt: number }, chain = "base") => {
+  const { data } = await subgraphClient(chain).query({ query: GET_TRADER, variables });
 
   return data.trader;
 }

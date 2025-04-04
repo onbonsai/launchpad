@@ -1,24 +1,32 @@
-import { LensClient, development, production } from "@lens-protocol/client";
-
-import { IS_PRODUCTION } from "@src/constants/constants";
-
-export const LENS_ENVIRONMENT = IS_PRODUCTION ? production : development;
+import { PublicClient, testnet, staging } from "@lens-protocol/client";
+import { StorageClient } from "@lens-chain/storage-client";
+import { IS_PRODUCTION } from "../madfi/utils";
+import { SITE_URL } from "@src/constants/constants";
+// TODO: update to production
+export const LENS_ENVIRONMENT = IS_PRODUCTION ? staging : staging;
 
 // TODO: something cleaner
 let storage;
 if (typeof window !== 'undefined') {
   storage = window.localStorage;
 }
-export const lensClient = new LensClient({ environment: LENS_ENVIRONMENT, storage });
+export const lensClient = PublicClient.create({
+  environment: LENS_ENVIRONMENT,
+  origin: SITE_URL,
+  storage,
+});
+
+export const storageClient = StorageClient.create();
 
 export const handleBroadcastResult = (broadcastResult: any) => {
   const broadcastValue = broadcastResult.unwrap();
 
-  if ('id' in broadcastValue || 'txId' in broadcastValue) { // TODO: success?
+  if ("id" in broadcastValue || "txId" in broadcastValue) {
+    // TODO: success?
     console.log(broadcastValue);
     return broadcastValue;
   } else {
     console.log(broadcastValue);
     throw new Error();
   }
-}
+};

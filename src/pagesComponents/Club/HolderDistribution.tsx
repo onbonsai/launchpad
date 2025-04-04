@@ -9,7 +9,7 @@ import { formatEther } from "viem";
 
 const CreatorPill = () => {
   return (
-    <div className="flex h-[18px] items-center justify-center bg-orange text-white px-1 rounded-lg font-semibold text-xs leading-4">
+    <div className="flex h-[18px] items-center justify-center bg-brand-highlight text-white px-1 rounded-lg font-semibold text-xs leading-4">
       CREATOR
     </div>
   )
@@ -57,11 +57,11 @@ const Row = ({ row, supply, creator }) => {
   )
 }
 
-export const HolderDistribution = ({ clubId, supply, creator }) => {
+export const HolderDistribution = ({ clubId, supply, creator, chain }) => {
   const { ref, inView } = useInView()
   const [page, setPage] = useState(0);
   const [allHoldings, setAllHoldings] = useState<any[]>([]);
-  const { data, isLoading, refetch } = useGetClubHoldings(clubId, page);
+  const { data, isLoading, refetch } = useGetClubHoldings(clubId, page, chain);
   const { holdings, hasMore } = data || {};
 
   useEffect(() => {
@@ -80,13 +80,13 @@ export const HolderDistribution = ({ clubId, supply, creator }) => {
   if (isLoading && allHoldings.length === 0) {
     return (
       <div ref={ref} className="flex justify-center pt-4">
-        <Spinner customClasses="h-6 w-6" color="#E42101" />
+        <Spinner customClasses="h-6 w-6" color="#5be39d" />
       </div>
     )
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-xl shadow-md">
+    <div className="overflow-x-auto overflow-y-auto md:max-h-[840px] max-h-[500px] mt-4 rounded-lg shadow-md">
       <table className="mb-2 w-full text-center border-separate [border-spacing:0_4px]">
         <tbody>
           {allHoldings.map((row, index) => (
@@ -94,7 +94,7 @@ export const HolderDistribution = ({ clubId, supply, creator }) => {
           ))}
           {hasMore && (
             <div ref={ref} className="flex justify-center pt-4">
-              <Spinner customClasses="h-6 w-6" color="#E42101" />
+              <Spinner customClasses="h-6 w-6" color="#5be39d" />
             </div>
           )}
         </tbody>

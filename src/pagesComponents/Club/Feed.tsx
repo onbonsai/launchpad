@@ -2,68 +2,58 @@ import { useRouter } from "next/router";
 import {
   Publications,
   Theme,
-  formatProfilePicture,
-  ActionButton,
 } from "@madfi/widgets-react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { MetadataLicenseType } from "@lens-protocol/metadata";
-import {
-  PostFragment,
-  CommentBaseFragment,
-  PublicationReactionType,
-  PublicationOperationsFragment,
-} from "@lens-protocol/client";
 
-import { LENS_ENVIRONMENT, lensClient } from "@src/services/lens/client";
+import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
-import { REWARD_ENGAGEMENT_ACTION_MODULE } from "@src/services/madfi/utils";
+// import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
 import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { createCommentMomoka, createCommentOnchain } from "@src/services/lens/createComment";
 import { useGetComments } from "@src/hooks/useGetComments";
-import publicationBody from "@src/services/lens/publicationBody";
 import PublicationContainer, {
   PostFragmentPotentiallyDecrypted,
 } from "@src/components/Publication/PublicationContainer";
-import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 // import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
 import clsx from "clsx";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
-;
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { sendLike } from "@src/services/lens/getReactions";
+import { getProfileImage } from "@src/services/lens/utils";
+import { createPost, uploadFile } from "@src/services/lens/createPost";
+import { Button } from "@src/components/Button";
 
-export const Feed = ({ pubId, morePadding = false }) => {
+export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { address, isConnected, chain } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(pubId as string);
   const { publication, comments } =
-    publicationWithComments || ({} as { publication: PostFragment; comments: CommentBaseFragment[] });
-  const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
-  const {
-    isLoadingCanDecrypt,
-    canDecrypt,
-    query: { data: decryptedGatedPosts, isLoading: isLoadingDecryptedGatedPosts, refetch: decryptGatedPosts },
-  } = useDecryptedGatedPosts(walletClient, publication?.metadata?.encryptedWith ? [publication] : []);
+    publicationWithComments || ({} as { publication: any; comments: any[] });
+  const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
+  // const {
+  //   isLoadingCanDecrypt,
+  //   canDecrypt,
+  //   query: { data: decryptedGatedPosts, isLoading: isLoadingDecryptedGatedPosts, refetch: decryptGatedPosts },
+  // } = useDecryptedGatedPosts(walletClient, publication?.metadata?.encryptedWith ? [publication] : []);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [isInputFocused, setInputFocused] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   const [decrypting, setDecrypting] = useState(false);
-  const [publicationWithEncrypted, setPublicationWithEncrypted] = useState<
-    PostFragmentPotentiallyDecrypted | undefined
-  >(publication);
+  // const [publicationWithEncrypted, setPublicationWithEncrypted] = useState<
+  //   PostFragmentPotentiallyDecrypted | undefined
+  // >(publication);
   const [contentURI, setContentURI] = useState("");
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
 
@@ -75,7 +65,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
     return comment?.operations?.hasUpvoted || localHasUpvoted.has(publicationId) || false;
   };
 
-  const getOperationsFor = (publicationId: string): PublicationOperationsFragment | undefined => {
+  const getOperationsFor = (publicationId: string): any | undefined => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
     if (!comment) return;
 
@@ -86,12 +76,12 @@ export const Feed = ({ pubId, morePadding = false }) => {
   };
 
   const isLoadingPage = useMemo(() => {
-    return isLoading && (!isConnected || !isLoadingCanDecrypt);
-  }, [isLoading, isConnected, isLoadingCanDecrypt]);
+    return isLoading && (!isConnected);
+  }, [isLoading, isConnected]);
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
-      return formatProfilePicture(authenticatedProfile).metadata.picture.url;
+      return getProfileImage(authenticatedProfile)
     }
   }, [authenticatedProfile]);
 
@@ -110,22 +100,22 @@ export const Feed = ({ pubId, morePadding = false }) => {
       }
 
       // If upvoteReactions are equal, sort by createdAt ascending
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
     });
   }, [freshComments, comments]);
 
-  useEffect(() => {
-    if ((decrypting || canDecrypt) && decryptedGatedPosts?.posts?.length) {
-      const decryptedPublication = decryptedGatedPosts.posts[0];
-      const final = { ...publication, metadata: decryptedPublication.metadata, isDecrypted: true };
-      delete final.metadata.encryptedWith; // no longer needed
+  // useEffect(() => {
+  //   if ((decrypting || canDecrypt) && decryptedGatedPosts?.posts?.length) {
+  //     const decryptedPublication = decryptedGatedPosts.posts[0];
+  //     const final = { ...publication, metadata: decryptedPublication.metadata, isDecrypted: true };
+  //     delete final.metadata.encryptedWith; // no longer needed
 
-      setDecrypting(false);
-      setPublicationWithEncrypted(final);
-    } else if (!decryptedGatedPosts?.posts?.length) {
-      setPublicationWithEncrypted(publication);
-    }
-  }, [publication, decryptedGatedPosts, decrypting]);
+  //     setDecrypting(false);
+  //     setPublicationWithEncrypted(final);
+  //   } else if (!decryptedGatedPosts?.posts?.length) {
+  //     setPublicationWithEncrypted(publication);
+  //   }
+  // }, [publication, decryptedGatedPosts, decrypting]);
 
   // TODO: any new modules
   // const isRewardAction = useMemo(() => {
@@ -155,6 +145,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
   };
 
   const submitComment = async (e) => {
+    console.log(`submitComment: ${authenticatedProfile}`)
     e.preventDefault();
     if (!authenticatedProfile) throw new Error("no authenticated profile!");
 
@@ -162,60 +153,27 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
     const toastId = toast.loading("Preparing comment...");
     try {
-      let attachment;
+      let asset = {};
       if (files?.length) {
-        // can only be one
-        const file = files[0];
-        attachment = {
-          item: storjGatewayURL(await pinFile(file)), // momoka requires fast resolving
-          type: file.type,
-          license: MetadataLicenseType.CCO,
-          altTag: file.name ?? "comment_img",
-        };
+        asset = await uploadFile(files[0]);
       }
 
-      const publicationMetadata = publicationBody(
-        comment,
-        [attachment],
-        authenticatedProfile.metadata?.displayName || authenticatedProfile.handle!.localName,
+      const sessionClient = await resumeSession();
+      if (!sessionClient) return;
+
+      await createPost(
+        sessionClient,
+        walletClient,
+        { text: comment, ...asset },
+        publication.slug as string
       );
-      const { data: postIpfsHash } = await pinJson(publicationMetadata);
-
-      // handle as act() if necessary
-      // if (isRewardAction) {
-      //   // handle this mirror as an act to get the points (should've been a ref module :shrug:)
-      //   const handler = new RewardEngagementAction(LENS_ENVIRONMENT, publication?.by?.id, publication?.id.split("-")[1], authenticatedProfile?.id);
-      //   const { hasClaimed } = await handler.fetchActionModuleData({ authenticatedProfileId: authenticatedProfile?.id, connectedWalletAddress: address });
-      //   // TODO: add check for limit reached (once enabled in the composer)
-      //   if (!hasClaimed && handler.publicationRewarded?.actionType === "COMMENT") {
-      //     await actWithActionHandler(handler, walletClient, authenticatedProfile, `ipfs://${postIpfsHash}`);
-      //     setComment("");
-      //     setFiles([]);
-
-      //     toast.success("Commented", { id: toastId, duration: 3000 });
-
-      //     setTimeout(fetchComments, 6000); // give the api some time
-      //     return;
-      //   }
-      // }
-
-      if (publication?.momoka) {
-        await createCommentMomoka(
-          walletClient,
-          publication?.id,
-          storjGatewayURL(`ipfs://${postIpfsHash}`), // momoka requires fast resolving
-          authenticatedProfile,
-        );
-      } else {
-        await createCommentOnchain(walletClient, publication?.id, `ipfs://${postIpfsHash}`, authenticatedProfile);
-      }
 
       setComment("");
       setFiles([]);
 
       toast.success("Commented", { id: toastId, duration: 3000 });
 
-      setTimeout(fetchComments, 6000); // give the api some time
+      setTimeout(fetchComments, 3000); // give the api some time
     } catch (error) {
       console.log(error);
       toast.error("Comment failed", { duration: 5000, id: toastId });
@@ -232,7 +190,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
   const handleDecryptPosts = () => {
     setDecrypting(true);
-    decryptGatedPosts();
+    // decryptGatedPosts();
   };
 
   const onLikeButtonClick = async (e: React.MouseEvent, publicationId: string) => {
@@ -241,10 +199,10 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
     if (!isAuthenticated || hasUpvotedComment(publicationId)) return;
 
-    await lensClient.publication.reactions.add({
-      for: publicationId,
-      reaction: PublicationReactionType.Upvote,
-    });
+    const sessionClient = await resumeSession();
+    if (!sessionClient) return;
+
+    await sendLike(publication.slug);
 
     setLocalHasUpvoted(new Set([...localHasUpvoted, publicationId]));
     toast.success("Liked", { duration: 2000 });
@@ -256,7 +214,7 @@ export const Feed = ({ pubId, morePadding = false }) => {
 
     if (!isAuthenticated) return;
 
-    if (chain!.id !== polygon.id && switchChain) {
+    if (chainId !== polygon.id && switchChain) {
       try {
         await switchChain({ chainId: polygon.id });
       } catch {
@@ -285,101 +243,102 @@ export const Feed = ({ pubId, morePadding = false }) => {
       <div className="bg-background text-secondary min-h-[50vh]">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-28 pb-4">
           <div className="flex justify-center">
-            <Spinner customClasses="h-6 w-6" color="#E42101" />
+            <Spinner customClasses="h-6 w-6" color="#5be39d" />
           </div>
         </main>
       </div>
     );
 
   return (
-    <div className="flex flex-col items-center relative h-full w-full">
-      <div className="flex flex-col items-center gap-y-1 overflow-y-auto h-full w-full md:pb-0">
-        <div className="w-full max-w-[500px]">
-          {isConnected && (canDecrypt || isLoadingCanDecrypt) && isLoadingDecryptedGatedPosts && !decrypting ? (
-            <div className="flex justify-center pt-8 pb-8">
-              <Spinner customClasses="h-6 w-6" color="#E42101" />
-            </div>
-          ) : publicationWithEncrypted ? (
-            <PublicationContainer
-              publication={publicationWithEncrypted}
-              onCommentButtonClick={onCommentButtonClick}
-              decryptGatedPosts={handleDecryptPosts}
-              decrypting={decrypting}
-              shouldGoToPublicationPage={false}
-              isProfileAdmin={isProfileAdmin}
-              setSubscriptionOpenModal={() => { }}
-              hideQuoteButton
-              hideFollowButton={false}
-            />
-          ) : null}
-        </div>
-        <div className="w-full max-w-[500px] space-y-1">
-          <Publications
-            publications={sortedComments}
-            theme={Theme.dark}
-            environment={LENS_ENVIRONMENT}
-            authenticatedProfile={authenticatedProfile}
-            hideCommentButton={true}
-            hideQuoteButton={true}
-            hideShareButton={true}
-            hideFollowButton={false}
-            hasUpvotedComment={hasUpvotedComment}
-            onLikeButtonClick={onLikeButtonClick}
-            getOperationsFor={getOperationsFor}
-            followButtonDisabled={!isConnected}
-            onFollowPress={onFollowClick}
-            onProfileClick={goToProfile}
-            profilePictureStyleOverride={publicationProfilePictureStyle}
-            containerBorderRadius={'24px'}
-            containerPadding={'12px 12px 0 12px'}
-            profilePadding={'0 0 0 0'}
-            textContainerStyleOverride={textContainerStyleOverrides}
-            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-            mediaImageStyleOverride={mediaImageStyleOverride}
-            imageContainerStyleOverride={imageContainerStyleOverride}
-            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-            reactionContainerStyleOverride={reactionContainerStyleOverride}
-            publicationContainerStyleOverride={publicationContainerStyleOverride}
-            shareContainerStyleOverride={shareContainerStyleOverride}
-            markdownStyleBottomMargin={'0'}
-            heartIconOverride={true}
-            messageIconOverride={true}
-            shareIconOverride={true}
-          />
-        </div>
-
-        {isConnected && isAuthenticated && publicationWithEncrypted && (
-          <div className={clsx("w-full max-w-[500px] pt-4 bg-background  md:pb-2")}>
-            <div className="flex items-center gap-x-6 w-full relative">
-              <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-              <textarea
-                ref={commentInputRef}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="block w-full resize-none rounded-xl bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                placeholder="Add a comment"
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col items-center gap-y-1">
+          <div className="w-full max-w-[900px]">
+            {isConnected && isLoading ? (
+              <div className="flex justify-center pt-8 pb-8">
+                <Spinner customClasses="h-6 w-6" color="#5be39d" />
+              </div>
+            ) : publication ? (
+              <PublicationContainer
+                publication={publication}
+                onCommentButtonClick={onCommentButtonClick}
+                decryptGatedPosts={handleDecryptPosts}
+                decrypting={decrypting}
+                shouldGoToPublicationPage={false}
+                isProfileAdmin={isProfileAdmin}
+                hideQuoteButton
+                hideFollowButton={false}
+                sideBySideMode={false}
               />
-              <div className="absolute right-2 top-2">
-                <GenericUploader files={files} setFiles={setFiles} />
-              </div>
-            </div>
-            <div className="flex justify-between gap-y-2 -mt-4">
-              <div className="mt-4">
-                <ActionButton
-                  label="Comment"
-                  disabled={isCommenting || !comment}
-                  onClick={submitComment}
-                  theme={Theme.dark}
-                  backgroundColor={comment ? "#EEEDED" : "transparent"}
-                  textColor={comment ? undefined : "#EEEDED"}
-                />
-              </div>
+            ) : null}
+          </div>
+          <div className="w-full max-w-[500px] space-y-1">
+            <Publications
+              publications={sortedComments}
+              theme={Theme.dark}
+              environment={LENS_ENVIRONMENT}
+              authenticatedProfile={authenticatedProfile}
+              hideCommentButton={true}
+              hideQuoteButton={true}
+              hideShareButton={true}
+              hideFollowButton={false}
+              hasUpvotedComment={hasUpvotedComment}
+              onLikeButtonClick={onLikeButtonClick}
+              getOperationsFor={getOperationsFor}
+              followButtonDisabled={!isConnected}
+              onFollowPress={onFollowClick}
+              onProfileClick={goToProfile}
+              profilePictureStyleOverride={publicationProfilePictureStyle}
+              containerBorderRadius={'24px'}
+              containerPadding={'12px 12px 0 12px'}
+              profilePadding={'0 0 0 0'}
+              textContainerStyleOverride={textContainerStyleOverrides}
+              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+              mediaImageStyleOverride={mediaImageStyleOverride}
+              imageContainerStyleOverride={imageContainerStyleOverride}
+              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+              reactionContainerStyleOverride={reactionContainerStyleOverride}
+              publicationContainerStyleOverride={publicationContainerStyleOverride}
+              shareContainerStyleOverride={shareContainerStyleOverride}
+              markdownStyleBottomMargin={'0'}
+              heartIconOverride={true}
+              messageIconOverride={true}
+              shareIconOverride={true}
+              hideCollectButton={true}
+            />
+          </div>
+        </div>
+      </div>
+
+      {isConnected && isAuthenticated && publication && (
+        <div className={clsx("w-full max-w-[500px] bg-background sticky bottom-0 pt-2")}>
+          <div className="flex items-center gap-x-6 w-full relative">
+            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+            <textarea
+              ref={commentInputRef}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="block w-full resize-none rounded-lg bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+              placeholder="Add a comment"
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+            />
+            <div className="absolute right-2 top-2">
+              <GenericUploader files={files} setFiles={setFiles} />
             </div>
           </div>
-        )}
-      </div>
+          <div className="flex justify-end mt-2">
+            <Button
+              disabled={isCommenting || !comment}
+              onClick={submitComment}
+              variant="accentBrand"
+              size="sm"
+            >
+              Reply
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

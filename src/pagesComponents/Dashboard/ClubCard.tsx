@@ -2,14 +2,16 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { formatEther, formatUnits } from "viem";
 
-import { MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import { localizeNumber } from "@src/constants/utils";
+import clsx from "clsx";
 
 interface Props {
   data: {
+    chain: string;
     publication: {
       stats: { comments: number };
     };
@@ -22,6 +24,7 @@ interface Props {
       supply: string;
       currentPrice: string;
       token: { name: string; symbol: string; image: string; description: string };
+      tokenAddress: `0x${string}`;
       marketCap: string;
       featured?: boolean;
       handle: string;
@@ -30,13 +33,15 @@ interface Props {
     };
   };
   creatorProfile?: { picture: string };
+  funny?: boolean;
+  funnier?: boolean;
 }
 
-const ClubCard = ({ data, creatorProfile }: Props) => {
-  const { club } = data;
+const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
+  const { club, chain } = data;
 
   const bondingCurveProgress = useMemo(() => {
-    if (club.v2){
+    if (club.v2) {
       const clubSupply = Number(formatEther(BigInt(club.supply)));
       if (clubSupply) {
         const fraction = clubSupply / Number(formatEther(MAX_MINTABLE_SUPPLY))
@@ -84,7 +89,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
             src={club.token.image}
             alt={club.token.name}
             sizes="1vw"
-            className="w-[48px] h-[48px] object-cover rounded-xl"
+            className="w-[48px] h-[48px] object-cover rounded-lg"
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">
@@ -115,18 +120,20 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
   }
 
   const link = club.v2
-    ? `/token/${club?.clubId}`
+    ? `/token/${chain}/${club?.tokenAddress}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
+
+  const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   return (
     <Link href={link} legacyBehavior target="_blank">
-      <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-primary">
+      <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-brand-highlight">
         <canvas
           className={`absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl ${club?.featured ? "bg-gradient opacity-20 group-hover:opacity-50" : "bg-red-400 opacity-0 group-hover:opacity-40"
             }`}
           style={{ width: "100%", height: "100%" }}
         ></canvas>
-        <div className="rounded-3xl card card-compact shadow-md relative z-10">
+        <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '', funnier ? 'h-[400px]' : '')}>
           <BgImage />
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />
@@ -136,7 +143,7 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
                   Mcap
                 </Subtitle>
                 <p className={infoTextStyle}>
-                  {localizeNumber(parseFloat(formatUnits(BigInt(club.marketCap), USDC_DECIMALS)))}{" "}
+                  {localizeNumber(parseFloat(formatUnits(BigInt(club.marketCap), _DECIMALS)))}{" "}
                 </p>
               </div>
               <p className={infoTextStyle}>
@@ -144,9 +151,9 @@ const ClubCard = ({ data, creatorProfile }: Props) => {
               </p>
             </div>
 
-            <div className="w-full bg-card-light h-3 rounded-xl mb-3">
+            <div className="w-full bg-card-light h-3 rounded-lg mb-3">
               <div
-                className="text-md w-full h-3 rounded-xl"
+                className="text-md w-full h-3 rounded-lg"
                 style={{
                   width: bondingCurveProgress + "%",
                   marginLeft: bondingCurveProgress === 0 ? "0px" : "0px",

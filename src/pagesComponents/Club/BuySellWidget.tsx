@@ -1,4 +1,4 @@
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { formatUnits, parseEther, parseUnits } from "viem";
@@ -22,13 +22,15 @@ import {
   sellChips as sellChipsTransaction,
   approveToken,
   MAX_MINTABLE_SUPPLY,
+  WGHO_CONTRACT_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
-import { MADFI_CLUBS_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
+import { getChain, lens } from "@src/services/madfi/utils";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -39,10 +41,11 @@ export const BuySellWidget = ({
   openTab: _openTab,
   onBuyUSDC,
   defaultBuyAmount,
+  mediaProtocolFeeRecipient,
 }) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
-  const { chain, address, isConnected } = useAccount();
+  const { chainId, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
   const [openTab, setOpenTab] = useState<number>(_openTab);
@@ -52,18 +55,24 @@ export const BuySellWidget = ({
   const [isSelling, setIsSelling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
+
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice);
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
+    initialPrice: club.initialPrice,
+    targetPriceMultiplier: club.targetPriceMultiplier,
+    flatThreshold: club.flatThreshold
+  } : undefined);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
-  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount);
+  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
   const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
-  const notEnoughFunds = parseUnits(buyPrice || '0', USDC_DECIMALS) > (tokenBalance || 0n)
+  const notEnoughFunds = parseUnits(buyPrice || '0', _DECIMALS) > (tokenBalance || 0n)
 
   const sellPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, USDC_DECIMALS)), 4)
+    roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, _DECIMALS)), 4)
   ), [sellPrice, isLoadingSellPrice]);
 
   const sellAmountError: boolean = useMemo(() => {
@@ -83,10 +92,11 @@ export const BuySellWidget = ({
     setIsBuying(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID) {
+    const targetChainId = getChain(club.chain).id;
+    if (chainId !== targetChainId) {
       try {
-        console.log('switching to', CONTRACT_CHAIN_ID);
-        switchChain({ chainId: CONTRACT_CHAIN_ID });
+        console.log('switching to', targetChainId);
+        switchChain({ chainId: targetChainId });
       } catch {
         toast.error("Please switch networks");
         setIsBuying(false);
@@ -95,12 +105,16 @@ export const BuySellWidget = ({
     }
 
     try {
-      const buyPriceBigInt = parseUnits(buyPrice, USDC_DECIMALS)
+      const buyPriceBigInt = parseUnits(buyPrice, _DECIMALS)
       const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
-      await approveToken(USDC_CONTRACT_ADDRESS, maxPrice, walletClient, toastId);
+      const quoteTokenAddress = club.chain === "lens" ? WGHO_CONTRACT_ADDRESS : USDC_CONTRACT_ADDRESS;
+      // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
+      await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
-      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress);
+      console.log(`club.clubId: ${club.clubId}`)
+      console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
+      await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time
       setTimeout(refetchClubBalance, 5000);
@@ -125,7 +139,8 @@ export const BuySellWidget = ({
     setIsSelling(true);
     let toastId;
 
-    if (chain!.id !== CONTRACT_CHAIN_ID && switchChain) {
+    const targetChainId = getChain(club.chain).id;
+    if (chainId !== targetChainId) {
       try {
         await switchChain({ chainId: CONTRACT_CHAIN_ID });
       } catch {
@@ -138,7 +153,7 @@ export const BuySellWidget = ({
     try {
       toastId = toast.loading("Selling...");
       const minAmountOut = (sellPriceAfterFees || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
-      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut);
+      await sellChipsTransaction(walletClient, club.clubId, sellAmount!, minAmountOut, club.chain);
 
       setTimeout(refetchClubBalance, 5000);
       setTimeout(refreshTradingInfo, 5000);
@@ -155,7 +170,7 @@ export const BuySellWidget = ({
   const urlEncodedPostParams = () => {
     const params = {
       text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
-${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
+${SITE_URL}/token/${club.clubId}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();
@@ -164,7 +179,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
   return (
     <div className="flex flex-col w-[calc(100vw-65px)] sm:w-full"
       style={{
-        fontFamily: inter.style.fontFamily
+        fontFamily: brandFont.style.fontFamily
       }
       }>
       <div className="flex items-center justify-between mb-4">
@@ -186,13 +201,14 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
                       <CurrencyInput
-                        tokenImage='/usdc.png'
+                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
                         tokenBalance={tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol="USDC"
+                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
                         showMax
+                        chain={club.chain}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -212,15 +228,17 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                           // TODO: Set USDC amount based on the token amount
                         }}
                         symbol={club.token.symbol}
-                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), 24)}
+                        // NOTE: as long as lens only uses wgho for quote token then the decimal factor is 36
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), club.chain === "lens" ? 36 : 24)}
                         disabled
+                        chain={club.chain}
                       />
                     </div>
                   </div>
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-primary/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
                 {!justBought && (
                   <>
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
@@ -234,7 +252,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      Get USDC
+                      Get {club.chain === "lens" ? "Wrapped GHO" : "USDC"}
                     </Button>
                   </>
                 )}
@@ -250,7 +268,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={tweetIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol} on the Launchpad @bonsaitoken404`,
+                        text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -259,7 +277,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol} on the Launchpad @bonsaitoken404`,
+                        text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai`,
                         clubId: club.clubId,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
@@ -290,6 +308,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         onPriceSet={setSellAmount}
                         symbol={club.token.symbol}
                         showMax
+                        chain={club.chain}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -301,13 +320,14 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                       </div>
 
                       <CurrencyInput
-                        tokenImage='/usdc.png'
+                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
                         tokenBalance={tokenBalance}
                         price={sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
                         isError={false}
                         onPriceSet={() => { }}
-                        symbol="USDC"
+                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
                         disabled
+                        chain={club.chain}
                       />
                       {/* <div className="relative">
                         <input
@@ -332,7 +352,7 @@ ${MADFI_CLUBS_URL}/token/${club.clubId}?ref=${address}`,
                         ))}
                       </div>
                       <span
-                        className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-primary/90' : 'text-secondary/70'}`}
+                        className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-brand-highlight/90' : 'text-secondary/70'}`}
                       >
                         You will receive:{" $"}{sellPriceFormatted}
                       </span> */}
@@ -366,7 +386,7 @@ const Tabs = ({ openTab, setOpenTab }) => {
     <div
       className="flex w-full"
       style={{
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
       }}
     >
       <ul

@@ -1,17 +1,19 @@
 import { Dialog } from "@headlessui/react";
-import { usePrivy } from "@privy-io/react-auth";
 
 import { Button } from "@src/components/Button";
 
 const LinkFarcaster = ({ text }) => {
-  const {
-    linkFarcaster,
-    user: { farcaster },
-  } = usePrivy();
+  // NO LONGER USING PRIVY
+  // const {
+  //   linkFarcaster,
+  //   user: { farcaster },
+  // } = usePrivy();
+
+  return null;
 
   return (
     <div className="flex flex-col w-full mt-8">
-      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-owners font-bold">
+      <Dialog.Title as="h2" className="text-6xl uppercase text-center font-bold">
         Link Farcaster
       </Dialog.Title>
       <div className="text-center my-8 space-y-8">

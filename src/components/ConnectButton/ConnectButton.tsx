@@ -1,20 +1,19 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
-import { useAccount, useWalletClient } from "wagmi";
-import { useLogout, usePrivy } from '@privy-io/react-auth';
-import { useLogin } from '@privy-io/react-auth';
+import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
+import { useSIWE, useModal, SIWESession } from "connectkit";
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";
 import useENS from "@src/hooks/useENS";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { ProfilePictureSetFragment } from "@lens-protocol/client";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
+import { getProfileImage } from "@src/services/lens/utils";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -37,7 +36,7 @@ const MenuItem = styled(MuiMenuItem)(({ theme }) => ({
     padding: '10px 8px',
     borderRadius: '12px',
   },
-  fontFamily: inter.style.fontFamily,
+  fontFamily: brandFont.style.fontFamily,
   fontSize: '14px',
 }));
 
@@ -51,27 +50,40 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect()
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
-  const { ready, authenticated: connected } = usePrivy();
-  const { login } = useLogin({
-    onComplete: (user, isNewUser, wasAlreadyAuthenticated) => {
-      // pop open the lens login modal once connected
-      if (autoLensLogin && !wasAlreadyAuthenticated && setOpenSignInModal && isAuthenticated === false) {
-        setOpenSignInModal(true);
+  const { setOpen } = useModal();
+  const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
+    onSignOut: () => {
+      const asyncLogout = async () => {
+        await lensLogout();
+        fullRefetch() // invalidate cached query data
       }
+
+      disconnect();
+      if ((!!authenticatedProfile?.address)) asyncLogout();
     }
-  })
+  });
   const router = useRouter();
 
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
 
+  useEffect(() => {
+    // pop open the lens login modal once connected and signed in with ethereum
+    if (connected && autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
+      setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 1000);
+    }
+  }, [connected]);
+
   const identity = useMemo(() => {
     if (authenticatedProfile)
-      return authenticatedProfile!.handle?.suggestedFormatted?.localName || authenticatedProfile!.handle?.localName
+      return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name
     if (!loadingENS && ensName) return ensName;
 
     return transformTextToWithDots(address);
@@ -79,8 +91,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
-      const basePicture: ProfilePictureSetFragment | undefined = authenticatedProfile?.metadata?.picture as ProfilePictureSetFragment;
-      return basePicture?.thumbnail?.uri || basePicture?.optimized?.uri || "";
+      return getProfileImage(authenticatedProfile)
     }
     // TODO: Default image
     return null;
@@ -97,14 +108,10 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     setAnchorEl(null);
   };
 
-  const { logout } = useLogout({
-    onSuccess: () => {
-      if ((!!authenticatedProfile?.id)) {
-        lensLogout();
-        fullRefetch() // invalidate cached query data
-      }
-    },
-  })
+  // need this to trigger the onSignIn callback
+  const handleSignIn = async () => {
+    await signIn()?.then((session?: SIWESession) => { });
+  };
 
   if (!ready && !connected) return null;
 
@@ -112,8 +119,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     return (
       <Button
         variant="accent"
-        className="text-base font-medium md:px-4 rounded-xl"
-        onClick={login}
+        className="text-base font-medium md:px-4 rounded-lg"
+        onClick={() => !isConnected || !connected ? setOpen(true) : handleSignIn()}
         size="md" // This sets the height to 40px and padding appropriately
       >
         Log in
@@ -134,7 +141,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     return (
       <Button
         variant="accent"
-        className="text-base font-medium md:px-4 rounded-xl"
+        className="text-base font-medium md:px-4 rounded-lg"
         onClick={() => setOpenSignInModal(true)}
         disabled={signingIn}
         size="md"
@@ -147,7 +154,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   return (
     <>
       <div
-        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-xl min-w-fit justify-end overflow-hidden`}
+        className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-lg min-w-fit justify-end overflow-hidden`}
         onClick={handleClick}
         style={{ maxWidth: 'calc(100vw - 20px)' }} // Ensure the container does not exceed the viewport width
       >
@@ -170,16 +177,16 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         open={open}
         onClose={handleClose}
       >
-        {authenticatedProfile?.handle?.localName && (
+        {/* {authenticatedProfile?.username?.localName && (
           <MenuItem onClick={() => {
             handleClose();
-            router.push(`/profile/${authenticatedProfile?.handle?.localName}`);
+            router.push(`/profile/${authenticatedProfile?.username?.localName}`);
           }}>
             View profile
           </MenuItem>
-        )}
+        )} */}
         <MenuItem onClick={() => {
-          logout();
+          signOut();
           handleClose();
         }}>Log out</MenuItem>
       </Menu>

@@ -2,8 +2,6 @@
 import { Wallet } from "ethers";
 import { getAddress } from "viem";
 
-import { IS_PRODUCTION } from "@src/constants/constants";
-
 type Recipient = {
   address: string;
   handle: string;
@@ -19,8 +17,8 @@ const buildConversationId = (profileIdA: string, profileIdB: string) => {
     : `${PREFIX}/${profileIdB}-${profileIdA}`;
 };
 
-const XMTP_ENV = IS_PRODUCTION ? "production" : "dev";
-const MADFI_PROFILE_ID = IS_PRODUCTION ? "0x21c0" : "0x745d";
+const XMTP_ENV = "production"
+const MADFI_PROFILE_ID = "0x21c0"
 
 // @TODO: since we're calling #newConversation - this might need to change for continuing conversation
 export const sendMessage = async (

@@ -2,7 +2,6 @@ import { Divider } from '@mui/material';
 import { localizeNumber } from '@src/constants/utils';
 import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
 import { BodySemiBold, Subtitle } from '@src/styles/text';
-import { roundedToFixed } from '@src/utils/utils';
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { formatUnits } from 'viem';
@@ -20,10 +19,11 @@ interface CurrencyInputProps {
   overridePrice?: string;
   hideBalance?: boolean; // for register club modal
   disabled?: boolean; // no input on buy / sell price
+  chain?: string;
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled } = props;
+  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled, chain } = props;
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
   const measureRef = useRef(null);
@@ -36,7 +36,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
     }
   }, [price]);
 
-  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" ? "currency" : "decimal", 0) : "0";
+  const formattedBalance = tokenBalance ? localizeNumber(parseFloat(formatUnits(tokenBalance, symbol == "USDC" ? 6 : 18)), symbol == "USDC" || symbol === "WGHO" ? "currency" : "decimal", 0) : "0";
   const formattedPrice = overridePrice ? localizeNumber(parseFloat(overridePrice)) : formattedBalance;
 
   return (
@@ -49,17 +49,17 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               alt={'token image'}
               className="w-[24px] h-[24px] object-cover rounded-lg"
             />
-            <img
-              src='/base.png'
-              alt={'base'}
-              className="absolute top-4 left-8 w-[12px] h-[12px]"
-            />
+            {/* <img
+              src={chain === "lens" ? '/lens.png' : '/base.png'}
+              alt={chain}
+              className="absolute top-4 left-8 h-[12px]"
+            /> */}
           </div>}
           {disabled ? (
             <span
               className={clsx(
                 "flex-shrink border-transparent bg-transparent shadow-sm md:text-2xl text-white sm:text-sm pt-2 pr-0 pb-2 pl-2 rounded-2xl",
-                isError ? 'text-primary/90' : 'text-secondary',
+                isError ? 'text-brand-highlight/90' : 'text-secondary',
               )}
             >
               {localizeNumber(parseFloat(price), symbol === "USDC" ? "currency" : "decimal", symbol === "USDC" ? 2 : undefined)}
@@ -75,7 +75,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               value={parseFloat(price)}
               className={clsx(
                 "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-                isError ? 'text-primary/90' : 'text-secondary',
+                isError ? 'text-brand-highlight/90' : 'text-secondary',
                 "placeholder:text-secondary/70"
               )}
               onChange={(e) => {
@@ -96,7 +96,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             className={clsx(
               // Match the same classes as the input for accurate rendering
               "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-              isError ? 'text-primary/90' : 'text-secondary',
+              isError ? 'text-brand-highlight/90' : 'text-secondary',
               "placeholder:text-secondary/70"
             )}
             style={{
@@ -109,7 +109,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             {parseInt(price || "0")}
           </span>
         </div>
-        {showMax && (
+        {showMax && tokenBalance > 0 && (
           <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
             <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
           </div>

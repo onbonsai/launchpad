@@ -2,7 +2,7 @@ import * as React from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { styled } from '@mui/material/styles';
-import { inter } from "@src/fonts/fonts";
+import { brandFont } from "@src/fonts/fonts";
 
 export const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
     backgroundColor: 'rgba(255,255,255,0.08)',
@@ -16,7 +16,7 @@ export const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => 
         borderRadius: '12px !important',
         textTransform: 'none',
         padding: '6px 16px',
-        fontFamily: inter.style.fontFamily,
+        fontFamily: brandFont.style.fontFamily,
         fontSize: '16px',
         lineHeight: '20px',
         border: 'none',
@@ -38,22 +38,22 @@ export const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => 
 }));
 
 interface BondingCurveSelectorProps {
-        options: {
-                vestingCliff: number,
-                label: string
-        }[];
-        onChange: (vestingCliff: number) => void;
-        value: number;
+    options: {
+        vestingCliff: number,
+        label: string
+    }[];
+    onChange: (vestingCliff: number) => void;
+    value: number;
 }
 
 export default function BondingCurveSelector(props: BondingCurveSelectorProps) {
-        const { value: initialValue, options, onChange } = props;
+    const { value: initialValue, options, onChange } = props;
     const [value, setValue] = React.useState(initialValue);
 
     const handleChange = (event, newValue) => {
         if (newValue !== null) {
-                setValue(newValue);
-                onChange(newValue);
+            setValue(newValue);
+            onChange(newValue);
         }
     };
 
@@ -64,11 +64,11 @@ export default function BondingCurveSelector(props: BondingCurveSelectorProps) {
             onChange={handleChange}
             aria-label="Price tier"
         >
-                {options.map((option, index) => (
-                        <ToggleButton key={index} value={option.vestingCliff} aria-label={option.label}>
-                                {option.label}
-                        </ToggleButton>
-                ))}
+            {options.map((option, index) => (
+                <ToggleButton key={index} value={option.vestingCliff} aria-label={option.label}>
+                    {option.label}
+                </ToggleButton>
+            ))}
         </StyledToggleButtonGroup>
     );
 }

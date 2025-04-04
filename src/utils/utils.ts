@@ -1,8 +1,10 @@
 import axios from "axios";
+import { z } from 'zod';
 import { formatUnits, getAddress, hashMessage, hexToSignature, recoverAddress } from "viem";
 
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
-import { IS_PRODUCTION, MADFI_BOUNTIES_URL } from "@src/constants/constants";
+import { MADFI_BOUNTIES_URL } from "@src/constants/constants";
+import { MetadataAttribute } from "@lens-protocol/metadata";
 
 // only .png files are supported (this is what the publication-image endpoint does by default)
 export const bucketImageLinkStorj = (id: string, bucket = "seo") => {
@@ -47,7 +49,7 @@ export const parsePublicationLink = (link: string) => {
   return parts[parts.length - 1];
 };
 
-export const kFormatter = (num) => {
+export const kFormatter = (num, asInteger = false) => {
   if (typeof num === "string") return num;
 
   if (Math.abs(num) > 999_999) {
@@ -56,7 +58,9 @@ export const kFormatter = (num) => {
     return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k";
   }
 
-  return Math.sign(num) * Math.abs(num);
+  return !asInteger
+    ? Number((Math.sign(num) * Math.abs(num)).toFixed(2)).toFixed(2)
+    : Number((Math.sign(num) * Math.abs(num)));
 };
 
 export function polygonScanUrl(address: string, chainId?: string | number | undefined, route?: string) {
@@ -99,24 +103,20 @@ export function tweetIntentUrlMinted(handle: string) {
 interface IntentUrlProps {
   text: string;
   referralAddress: string;
-  clubId: string;
+  chain: string;
+  tokenAddress: string;
 }
 
-export function tweetIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
+  const url = `${window.location.origin}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURI(`${url}`)}`;
 }
 
-export function castIntentTokenReferral({ text, clubId, referralAddress }: IntentUrlProps) {
-  const url = `https://launch.bonsai.meme/token/${clubId}?ref=${referralAddress}`;
+export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
+  const url = `${window.location.origin}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 
 }
-
-// export function lensterIntentDashboardUrl({ text, url, ref, tokenId }: IntentUrlProps) {
-//   const _ref = encodeURIComponent(`${ref}|${tokenId}`);
-//   return `https://${!IS_PRODUCTION ? "testnet." : ""}hey.xyz/?text=${encodeURIComponent}&url=${encodeURI(`${url}?ref=${_ref}`)}`;
-// }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
 
@@ -367,3 +367,106 @@ export const formatFarcasterProfileToMatchLens = (profile) => ({
   }
 });
 export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37niuhe6d5xpf2kvu7eq/misc%2Ffarcaster.png";
+
+export const parseBase64Image = (imageBase64: string): File | undefined => {
+  try {
+    // Extract image type from base64 string
+    const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
+    if (!matches) {
+      throw new Error("parseBase64Image:: failed to infer image type");
+    }
+
+    const imageType = matches[1];
+    const mimeType = `image/${imageType}`;
+
+    // Convert base64 to buffer
+    const base64Data = imageBase64.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+    const imageBuffer = Buffer.from(base64Data, "base64");
+
+    // Create a file object that can be used with FormData
+    const blob = new File([imageBuffer], `generated_${Date.now()}.${imageType}`, {
+      type: mimeType,
+    });
+
+    return Object.assign(blob, {
+      preview: URL.createObjectURL(blob),
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const reconstructZodSchema = (shape: any) => {
+  return z.object(
+    Object.entries(shape).reduce((acc, [key, field]) => {
+      let fieldSchema;
+      field = field._def;
+
+      const description = field.description;
+      let type = field.typeName;
+      let nullish = false
+
+      // Recursively unwrap ZodNullable and ZodOptional types
+      while (field.innerType && (field.typeName === 'ZodNullable' || field.typeName === 'ZodOptional')) {
+        nullish = true;
+        type = field.innerType._def.typeName;
+        field = field.innerType._def;
+      }
+
+      switch (type) {
+        case 'ZodString':
+          fieldSchema = z.string();
+          break;
+        case 'ZodNumber':
+          fieldSchema = z.number();
+          break;
+        case 'ZodBoolean':
+          fieldSchema = z.boolean();
+          break;
+        case 'ZodArray':
+          fieldSchema = z.array(z.any()); // or recursive if needed
+          break;
+        case 'ZodObject':
+          fieldSchema = reconstructZodSchema(field.shape);
+          break;
+        default:
+          fieldSchema = z.any();
+      }
+
+      // Add description if present
+      if (description) {
+        fieldSchema = fieldSchema.describe(description);
+      }
+
+      // Make nullish if the original was nullish
+      if (nullish) {
+        fieldSchema = fieldSchema.nullish();
+      }
+
+      return {
+        ...acc,
+        [key]: fieldSchema
+      };
+    }, {})
+  );
+};
+
+export const getSmartMediaUrl = (attributes: MetadataAttribute[]): string | undefined => {
+  const isBonsaiPlugin = attributes.some((attr) => attr.key === "template");
+
+  if (!isBonsaiPlugin) return;
+
+  return attributes.find(attr => attr.key === "apiUrl")?.value;
+}
+
+export const getPostContentSubstring = (string, length = 100): string => { // 250 characters and we show "Show more"
+  if (!string) return ''
+  if (string.length <= length) {
+    return string
+  } else {
+    return `${string.substring(0, length)}...`
+  }
+}

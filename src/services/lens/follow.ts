@@ -1,31 +1,10 @@
-import { broadcastOnchain } from './broadcastMutation';
-import { lensClient } from "./client";
+import { evmAddress } from "@lens-protocol/client";
+import { follow, unfollow } from "@lens-protocol/client/actions";
 
-export const followProfile = async (
-  walletClient: any,
-  profileId: string
-) => {
-  const result = await lensClient.profile.createFollowTypedData({
-    follow: [{ profileId }],
-  });
+export const followProfile = async (sessionClient: any, address: string) => {
+  const result = await follow(sessionClient, { account: evmAddress(address) });
+};
 
-  const data = result.unwrap();
-
-  const [account] = await walletClient.getAddresses();
-  const signedTypedData = await walletClient.signTypedData({
-    account,
-    domain: data.typedData.domain,
-    types: data.typedData.types,
-    primaryType: "Follow",
-    message: data.typedData.value,
-  });
-
-  const broadcastResult = await broadcastOnchain({
-    id: data.id,
-    signature: signedTypedData,
-  });
-
-  // const followBroadcastResultValue = broadcastResult.unwrap();
-
-  // console.log(followBroadcastResultValue);
-}
+export const unfollowProfile = async (sessionClient: any, address: string) => {
+  const result = await unfollow(sessionClient, { account: evmAddress(address) });
+};

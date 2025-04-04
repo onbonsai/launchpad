@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import { brandFont } from "@src/fonts/fonts";
 
 export const publicationProfilePictureStyle = css`
   width: 36px;
@@ -12,11 +13,43 @@ export const publicationProfilePictureStyle = css`
   background-color: #dddddd;
 `;
 
+export const commentPublicationProfilePictureStyle = css`
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #dddddd;
+`;
+
 export const textContainerStyleOverrides = css`
   padding-top: 20px;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 20px;
-  font-family: var(--font-inter), sans-serif;
+  font-family: inherit;
+`
+
+export const postCollageTextContainerStyleOverrides = css`
+  padding-top: 20px;
+  font-size: 20px;
+  line-height: 20px;
+  font-family: inherit;
+
+  &::first-line {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 30px;
+  }
+`
+
+export const commentTextContainerStyleOverrides = css`
+  padding-top: 8px;
+  font-size: 14px;
+  line-height: 14px;
+  font-family: inherit;
 `
 
 export const mediaImageStyleOverride = css`
@@ -24,6 +57,7 @@ export const mediaImageStyleOverride = css`
     height: auto;
     display: block;
     border-radius: 16px;
+    object-fit: contain;
 `
 
 export const imageContainerStyleOverride = css`
@@ -34,6 +68,7 @@ export const imageContainerStyleOverride = css`
   width: 100%;
   overflow: hidden;
   max-height: 480px;
+  border-radius: 16px;
 `
 
 export const reactionsContainerStyleOverride = css`
@@ -47,6 +82,30 @@ export const reactionsContainerStyleOverride = css`
   margin-left: 12px;
   gap: 8px;
   cursor: default;
+`
+
+export const commentReactionsContainerStyleOverride = css`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 0px;
+  padding-bottom: 12px;
+  margin-left: 12px;
+  gap: 8px;
+  cursor: default;
+`
+
+export const commentProfileNameStyleOverride = css`
+  font-weight: 600;
+  font-size: 14px;
+`
+
+export const commentDateStyleOverride = css`
+  font-size: 12px;
+  color: #464646;
+  opacity: .75;
 `
 
 export const reactionContainerStyleOverride = (color, backgroundColor, isAuthenticatedAndWithHandler, hasReacted) => css`
@@ -63,7 +122,7 @@ export const reactionContainerStyleOverride = (color, backgroundColor, isAuthent
     justify-content: center;
     color: ${color};
     background-color: rgb(255,255,255,0.04);
-    font-size: 10px;
+    font-size: 12px;
     margin: 0;
     margin-left: 4px;
     height: 14px;
@@ -79,13 +138,13 @@ export const publicationContainerStyleOverride = css`
 `
 
 export const shareContainerStyleOverride = (color, backgroundColor) => css`
-background-color: rgb(255,255,255,0.08);
+  background-color: rgb(255,255,255,0.08);
   &:hover {
     background-color: ${backgroundColor}
   }
   display: flex;
   justify-content: center;
-    align-items: center;
+  align-items: center;
   border-radius: 10px;
   padding: 6px;
   margin-right: 4px;
@@ -96,10 +155,33 @@ background-color: rgb(255,255,255,0.08);
   width: 24px;
   p {
     color: ${color};
-    font-size: 12px;
+    font-size: 14px;
     opacity: .75;
     margin: 0;
     margin-left: 4px;
   }
   cursor: pointer;
+`
+
+export const actButtonContainerStyleOverride = (color, backgroundColor, disabled?: boolean) => css`
+  background-color: rgb(255,255,255,0.08);
+  &:hover {
+    background-color: ${backgroundColor}
+  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 6px;
+  right: 45px;
+  top: 0px;
+  height: 28px;
+  width: 68px;
+  p {
+    color: ${color};
+    font-size: 16px;
+    opacity: .75;
+    margin: 0;
+  }
+  cursor: ${!disabled ? 'pointer' : 'default'};
 `

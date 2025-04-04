@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { encodeFunctionData, parseUnits, zeroAddress } from "viem";
 
 import { getBuyAmount, publicClient, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { base } from "viem/chains";
 
@@ -19,9 +19,11 @@ type QueryParams = {
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
 
-    const {
-      clubId, tokenAddress, amountIn, senderAddress, clientAddress, recipientAddress, referralAddress
+    let {
+      clubId, tokenAddress, amountIn, senderAddress, clientAddress, recipientAddress, referralAddress, chain
     } = req.query as Partial<QueryParams>;
+
+    chain = chain || "base";
 
     if (!(clubId && tokenAddress && amountIn && senderAddress)) {
       return res.status(400).json({ success: false, message: "Missing required query parameters" });
@@ -48,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let rawData: any | null = null;
     try {
       const _rawData = await publicClient().prepareTransactionRequest({
-        to: LAUNCHPAD_CONTRACT_ADDRESS,
+        to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
         account: senderAddress,
         data,
         chain: base
@@ -69,7 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     return res.status(200).json({
-      to: LAUNCHPAD_CONTRACT_ADDRESS,
+      to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       amountOut: amountOut.toString(),
       maxAmountIn: maxAmountIn.toString(),
       rawData

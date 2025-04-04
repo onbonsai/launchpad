@@ -8,13 +8,13 @@ import { formatEther, formatUnits } from "viem";
 import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 import BuyUSDCWidget from "./BuyUSDCWidget";
 
-export const BottomInfoComponent = ({ club, address, totalSupply }) => {
+export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
 
-  const { data: clubBalance } = useGetClubBalance(club?.clubId, address);
+  const { data: clubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
   const [balance, setBalance] = useState<string>();
 
   useEffect(() => {
@@ -24,8 +24,9 @@ export const BottomInfoComponent = ({ club, address, totalSupply }) => {
         return;
       }
 
-      // converting to USDC value
-      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), 24), undefined, 2);
+      // NOTE: as long as lens only uses wgho for quote token then the decimal factor is 36
+      const decimalFactor = club.chain === "lens" ? 36 : 24;
+      const _balance = localizeNumber(formatUnits(clubBalance * BigInt(club.currentPrice), decimalFactor), undefined, 2);
 
       setBalance(_balance);
     };
@@ -90,6 +91,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply }) => {
                 setBuyClubModalOpen(false)
                 setBuyUSDCModalOpen(true)
               }}
+              mediaProtocolFeeRecipient={media?.protocolFeeRecipient}
             />
             <BuyUSDCWidget
               open={BuyUSDCModalOpen}

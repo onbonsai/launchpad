@@ -1,6 +1,7 @@
 import { ToggleButton } from "@mui/material";
 import { StyledToggleButtonGroup } from "@pagesComponents/Dashboard/BondingCurveSelector";
 import { useMemo } from "react";
+import useIsMounted from "@src/hooks/useIsMounted";
 
 const tabs = [
   { name: "Feed", id: 1 },
@@ -9,6 +10,7 @@ const tabs = [
 ];
 
 export const Tabs = ({ openTab, setOpenTab, withFeed }) => {
+  const isMounted = useIsMounted();
   const handleChange = (event, newValue) => {
       if (newValue !== null) {
               setOpenTab(newValue);
@@ -24,7 +26,9 @@ export const Tabs = ({ openTab, setOpenTab, withFeed }) => {
       { name: "Trades", id: 2 },
       { name: "Holders", id: 3 },
     ];
-  }, [withFeed])
+  }, [withFeed]);
+
+  if (!isMounted) return null;
 
   return (
     <div className="md:flex justify-end w-full">

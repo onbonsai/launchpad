@@ -1,6 +1,7 @@
 import { ChainId } from "@decent.xyz/box-common";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
-const BONSAI_TOKEN_BASE_ADDRESS = "0x474f4cb764df9da079D94052fED39625c147C12C";
+const BONSAI_TOKEN_BASE_ADDRESS = PROTOCOL_DEPLOYMENT.base.Bonsai as `0x${string}`;
 
 // TODO: switch to zksync
 // Bonsai token on Base

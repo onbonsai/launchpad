@@ -4,16 +4,15 @@ import { getProfileByHandle } from '@src/services/lens/getProfiles';
 import { getBasenameAvatar } from '@src/services/base/basename';
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
-import { formatProfilePicture } from '@madfi/widgets-react';
-import { ProfileFragment } from '@lens-protocol/client';
+import { getProfileImage } from '@src/services/lens/utils';
 
 const fetchClubCreators = async (clubs) => {
   const profiles = await Promise.all(clubs.map(async ({ club: { strategy, handle, clubId } }) => {
     let profile;
     switch (strategy) {
       case 'lens':
-        profile = await getProfileByHandle(`lens/${handle}`) as ProfileFragment;
-        profile = { picture: formatProfilePicture(profile).metadata?.picture?.url };
+        profile = await getProfileByHandle(`lens/${handle}`) as any;
+        profile = { picture: getProfileImage(profile) };
         break;
       case 'basename':
         profile = { picture: await getBasenameAvatar(handle) };

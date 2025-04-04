@@ -6,37 +6,16 @@ import { base, baseSepolia } from "viem/chains";
 
 import { lensClient } from "@src/services/lens/client";
 import { parseJwt } from "@src/services/lens/login";
-import { publicClient, IS_PRODUCTION } from "@src/services/madfi/moneyClubs";
+import { publicClient } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { LAUNCHPAD_CONTRACT_ADDRESS } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
-import { swapExactIn } from "@src/services/uniswap/swap";
-import { bToHexString } from "@src/services/lens/utils";
-
-const swapAgentCreatorFee = async (_clubId: `0x${string}`, txHash: `0x${string}`) => {
-  const client = publicClient();
-  const transactionReceipt = await client.waitForTransactionReceipt({ hash: txHash });
-  const event = getEventFromReceipt({
-    contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
-    transactionReceipt,
-    abi: BonsaiLaunchpadAbi,
-    eventName: "LiquidityReleased",
-  });
-
-  const { agentCreatorAmount, clubId } = event.args;
-  if (bToHexString(clubId) != _clubId) return; // invalid clubId
-
-  const account = privateKeyToAccount(process.env.AGENT_CREATOR_PRIVATE_KEY as `0x${string}`);
-  const chain = IS_PRODUCTION ? base : baseSepolia;
-  const wallet = createWalletClient({ account, chain, transport: http() });
-
-  return await swapExactIn(client as PublicClient, wallet, agentCreatorAmount, chain, account);
-};
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { txHash, strategy, identityToken, token, featureEndAt, updateRecord, handle: _handle } = req.body;
+    let { txHash, strategy, identityToken, token, featureEndAt, updateRecord, handle: _handle, chain } = req.body;
+    chain = chain || "base";
 
     if (updateRecord) {
       const { id, pubId, liquidityReleasedTxHash, clubId } = updateRecord;
@@ -70,10 +49,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       handle = _handle;
     }
 
-    const client = publicClient();
+    const client = publicClient(chain);
     const transactionReceipt = await client.waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
-      contractAddress: LAUNCHPAD_CONTRACT_ADDRESS,
+      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       transactionReceipt,
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",

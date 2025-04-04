@@ -11,7 +11,7 @@ interface HeaderButtonProps {
 const HeaderButton = (props: HeaderButtonProps) => {
     const { label, href, active } = props;
     return (
-        <div className={cx("h-[40px] py-[10px] px-4 flex justify-center items-center rounded-xl hover:opacity-80 hover:cursor-pointer", active ? "bg-button" : "")}>
+        <div className={cx("h-[40px] py-[10px] px-4 flex justify-center items-center rounded-lg hover:opacity-80 hover:cursor-pointer", active ? "bg-button" : "")}>
             <Link
                 key={href}
                 href={href}

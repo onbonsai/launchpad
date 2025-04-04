@@ -1,11 +1,14 @@
+import { Subtitle } from '@src/styles/text';
+import { shortAddress } from '@src/utils/utils';
 import React, { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface WalletButtonProps {
   wallet: string;
+  chain?: string;
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ wallet }) => {
+const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain }) => {
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard
@@ -19,18 +22,20 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet }) => {
   }, [wallet]);
 
   const formattedAddress = useMemo(() => {
-    return `${wallet.slice(0, 6)}...`;
+    return shortAddress(wallet);
   }, [wallet]);
 
   return (
     <button
-        type="button"
-        onClick={copyToClipboard}
-        className="flex items-center pl-2 pr-[10px] py-1 rounded-[10px] bg-backgroundAccent text-[#ffffff] text-sm transition-colors hover:text-[#e5e7eb]"
-      >
-        <img src="/svg/base.svg" alt="Base Logo" className="flex mr-2 h-4 w-4" />
-        {formattedAddress}
-      </button>
+      type="button"
+      onClick={copyToClipboard}
+      className="flex items-center pr-[10px] rounded-[10px] bg-backgroundAccent text-[#ffffff] text-sm transition-colors hover:text-[#e5e7eb]"
+    >
+      {chain && (
+        <img src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" />
+      )}
+      <Subtitle className='text-white'>{formattedAddress}</Subtitle>
+    </button>
   );
 };
 
