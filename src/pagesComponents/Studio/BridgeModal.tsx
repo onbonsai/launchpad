@@ -257,7 +257,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
               size='md'
               variant="accentBrand"
               className="w-full hover:bg-bullish"
-              disabled={!isValid}
+              disabled={!isValid || bridging}
               onClick={handleBridge}
             >
               {(chain?.id !== fromChain?.id) ? `Switch to ${fromChain?.name}` : (
@@ -275,7 +275,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                 rel="noopener noreferrer"
                 className="ml-2 text-bullish hover:underline"
               >
-                Bridging via LayerZero
+                Check LayerZero
               </a>
             </div>
           )}

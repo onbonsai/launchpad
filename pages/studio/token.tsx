@@ -5,6 +5,7 @@ import { Button } from "@src/components/Button";
 import { switchChain } from "@wagmi/core";
 import { useState, useMemo, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
+import ConfettiExplosion from 'react-confetti-explosion';
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { erc20Abi, formatEther } from "viem";
@@ -97,6 +98,7 @@ const TokenPage: NextPage = () => {
   const [bridgeInfo, setBridgeInfo] = useState<{ txHash: `0x${string}` }>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const { stake, unstake } = useStakingTransactions();
 
@@ -241,6 +243,9 @@ const TokenPage: NextPage = () => {
           refetchBonsaiBalance();
           clearInterval(statusInterval);
           setBridgeInfo(undefined);
+          setShowConfetti(true);
+          // Remove confetti after 5 seconds
+          setTimeout(() => setShowConfetti(false), 5000);
         }
       } catch (error) {
         console.error("Error checking bridge status:", error);
@@ -574,6 +579,7 @@ const TokenPage: NextPage = () => {
                   setOpen={setIsBridgeModalOpen}
                   panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
                 >
+                  {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
                 </Modal>
 
