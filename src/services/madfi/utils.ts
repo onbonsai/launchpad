@@ -39,11 +39,11 @@ const PROTOCOL_DEPLOYMENT_MAINNET = {
   },
   lens: {
     Bonsai: "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82",
-    BonsaiNFT: "0xD51C163134Fd3f2403AD68860C02B123503bf3BD",
-    BonsaiLaunchpad: "0x717138EbACFbbD9787b84c220E7BDA230C93dfB8",
-    CreatorNFT: "0xD6d9EF97F10EA133B829928Ebfb606344E60dc7F",
-    Periphery: zeroAddress, // TODO: add periphery address
-    Staking: "0x80f836453113E01a673175CCB9eC66bDd4e2CB5F",
+    BonsaiNFT: "0x40df0F8C263885093DCCEb4698DE3580FC0C9D49",
+    BonsaiLaunchpad: "0x795cc31B44834Ff1F72F7db73985f9159Bd51ac2",
+    CreatorNFT: "0x1D069975eA9a948DF32Fb635ad5FE3f80e5e6271",
+    Periphery: "0xD4100741e3d796b429B47A5D858eF3139363EA63",
+    Staking: "0xD51C163134Fd3f2403AD68860C02B123503bf3BD",
   },
 };
 
@@ -62,11 +62,3 @@ export const LENS_BONSAI_APP = IS_PRODUCTION
 export const LENS_BONSAI_DEFAULT_FEED = IS_PRODUCTION
   ? "0x68F0961bE0cDef06a24984cD590Bb7cD554c7F0b" // todo: mainnet
   : "0x68F0961bE0cDef06a24984cD590Bb7cD554c7F0b"
-
-// {
-//   id: 37111,
-//   name: "Lens Testnet",
-//   nativeCurrency: { name: "Grass", symbol: "GRASS", decimals: 18 },
-//   rpcUrls: { default: { http: ["https://rpc.testnet.lens.dev"] } },
-//   blockExplorers: { default: { name: "Lens Testnet", url: "https://testnet.lens.xyz" } },
-// };
