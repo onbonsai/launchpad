@@ -130,7 +130,7 @@ const HandleSEO = ({ pageProps }) => {
     );
   }
 
-  const description = "Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.";
+  const description = "Create AI-powered content on Bonsai — build and monetize your own Smart Media in minutes.";
 
   return (
     <Head>
