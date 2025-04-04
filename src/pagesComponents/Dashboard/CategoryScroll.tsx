@@ -49,7 +49,7 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
               c.key === categoryFilter
                 ? 'bg-brand-highlight text-white relative group hover:bg-brand-highlight/90'
                 : 'text-secondary/60 hover:bg-card transition-colors',
-              `py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 text-[18px] ${brandFont.className}`,
+              `py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`,
               c.key === categoryFilter ? 'pl-6 pr-10' : 'px-6'
             )}
             onClick={() => setCategoryFilter(c.key === categoryFilter ? undefined : c.key)}

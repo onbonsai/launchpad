@@ -90,7 +90,7 @@ const StudioCreatePage: NextPage = () => {
                     {categories.map((c) => (
                       <button
                         key={c.label}
-                        className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full text-[20px] flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
+                        className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
                         onClick={() => setCategoryFilter(c.key)}
                       >
                         {c.label}
@@ -98,7 +98,7 @@ const StudioCreatePage: NextPage = () => {
                     ))}
                   </div>
 
-                  <div className={clsx("absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full text-[20px]", `${brandFont.className}`)}>
+                  <div className={clsx("absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full", `${brandFont.className}`)}>
                     <button
                       ref={importButtonRef}
                       className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full flex-shrink-0"

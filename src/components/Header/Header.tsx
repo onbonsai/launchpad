@@ -60,7 +60,7 @@ export const Header = () => {
                     href={link.href}
                     passHref
                     className={cx(
-                      "h-full leading-4 font-medium text-[20px] transition-opacity duration-200",
+                      "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
                       route === link.href
                         ? "text-white"
                         : "text-white/50 hover:text-white/80"
@@ -74,7 +74,7 @@ export const Header = () => {
                 className="h-[40px] py-[12px] px-4 justify-center items-center rounded-xl"
                 onClick={() => setOpenHelpModal(true)}
               >
-                <span className="h-full leading-4 font-medium text-[20px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
+                <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
                   Info
                 </span>
               </div>

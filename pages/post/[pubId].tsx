@@ -230,7 +230,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
           className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors mb-4"
         >
           <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
-          <span className="text-lg">{returnTo ? "Back" : "More Posts"}</span>
+          <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>
         </Link>
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">

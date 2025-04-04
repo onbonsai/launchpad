@@ -144,12 +144,12 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
               </div> */}
-              <span className="mt-[12px] ml-2">
+              <span className="mt-[9px] ml-2">
                 <SortIcon />
               </span>
               <select
                 id="sort-select"
-                className={`block appearance-none w-full bg-white border-transparent text-secondary rounded-[10px] text-[16px] focus:ring-transparent focus:border-transparent shadow-sm focus:outline-none md:pl-1 md:pr-8 pr-10 ${brandFont.className}`}
+                className={`block appearance-none w-full bg-white border-transparent text-secondary rounded-[10px] text-sm focus:ring-transparent focus:border-transparent shadow-sm focus:outline-none md:pl-1 md:pr-8 pr-10 ${brandFont.className}`}
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >
@@ -176,7 +176,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               columnClassName="pl-4 bg-clip-padding"
             >
               {sortedPosts.map((post, idx) => (
-                <div key={`post-${post.slug}`} className={`mb-4 relative group ${brandFont.className}`}>
+                <div key={`post-${post.slug}`} className={`mb-4 relative group ${brandFont.className} font-light`}>
                   <Publication
                     key={`preview-${post.slug}`}
                     publicationData={{
