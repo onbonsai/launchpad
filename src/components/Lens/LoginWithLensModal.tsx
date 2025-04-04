@@ -54,7 +54,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-full flex justify-center">
-        <Spinner customClasses="h-6 w-6" color="#E42101" />
+        <Spinner customClasses="h-6 w-6" color="#5be39d" />
       </div>
     );
   }

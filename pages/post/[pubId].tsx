@@ -215,7 +215,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       <div className="bg-background text-secondary min-h-[50vh]">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-28 pb-4">
           <div className="flex justify-center">
-            <Spinner customClasses="h-6 w-6" color="#E42101" />
+            <Spinner customClasses="h-6 w-6" color="#5be39d" />
           </div>
         </main>
       </div>
@@ -238,7 +238,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
-                  <Spinner customClasses="h-6 w-6" color="#E42101" />
+                  <Spinner customClasses="h-6 w-6" color="#5be39d" />
                 </div>
               ) : (
                 <>
@@ -268,7 +268,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                     </>
                   ) : (
                     <div className="flex justify-center pt-8 pb-8">
-                      <Spinner customClasses="h-6 w-6" color="#E42101" />
+                      <Spinner customClasses="h-6 w-6" color="#5be39d" />
                     </div>
                   )}
                   <div className="space-y-6">

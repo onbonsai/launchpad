@@ -243,7 +243,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
       <div className="bg-background text-secondary min-h-[50vh]">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-28 pb-4">
           <div className="flex justify-center">
-            <Spinner customClasses="h-6 w-6" color="#E42101" />
+            <Spinner customClasses="h-6 w-6" color="#5be39d" />
           </div>
         </main>
       </div>
@@ -256,7 +256,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
           <div className="w-full max-w-[900px]">
             {isConnected && isLoading ? (
               <div className="flex justify-center pt-8 pb-8">
-                <Spinner customClasses="h-6 w-6" color="#E42101" />
+                <Spinner customClasses="h-6 w-6" color="#5be39d" />
               </div>
             ) : publication ? (
               <PublicationContainer

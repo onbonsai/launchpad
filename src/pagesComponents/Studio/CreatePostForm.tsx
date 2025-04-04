@@ -117,7 +117,7 @@ const CreatePostForm = ({
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
           {
             isLoadingVeniceImageOptions
-              ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#E42101" /></div>
+              ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
               : <DynamicForm
                 template={template}
                 templateData={templateData}
