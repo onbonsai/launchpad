@@ -177,14 +177,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         open={open}
         onClose={handleClose}
       >
-        {authenticatedProfile?.username?.localName && (
+        {/* {authenticatedProfile?.username?.localName && (
           <MenuItem onClick={() => {
             handleClose();
             router.push(`/profile/${authenticatedProfile?.username?.localName}`);
           }}>
             View profile
           </MenuItem>
-        )}
+        )} */}
         <MenuItem onClick={() => {
           signOut();
           handleClose();

@@ -305,8 +305,8 @@ input[type="number"] {
 
 .gradient-txt {
   --bg-size: 400%;
-  --color-one: hsl(15 90% 55%);
-  --color-two: hsl(40 95% 55%);
+  --color-one: #B6D5C2;
+  --color-two: #52837D;
   background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
   color: transparent;
   background-clip: text;

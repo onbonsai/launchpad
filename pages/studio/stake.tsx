@@ -402,13 +402,12 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* API Capacity Card */}
-                <div className="bg-card rounded-xl p-6">
+                {/* <div className="bg-card rounded-xl p-6">
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-brand-highlight">Capacity Today</h3>
-                          {/* Display both staking and free credits */}
                           <div className="text-2xl font-bold text-secondary">
                             ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
                           </div>
@@ -431,9 +430,7 @@ const TokenPage: NextPage = () => {
                         <div className="flex items-center justify-center">
                           <div className="relative h-24 w-24">
                             <svg className="w-full h-full transform -rotate-90">
-                              {/* Background circle */}
                               <circle cx="48" cy="48" r="44" className="stroke-card-light fill-none" strokeWidth="4" />
-                              {/* Progress circle */}
                               <circle
                                 cx="48"
                                 cy="48"
@@ -476,7 +473,7 @@ const TokenPage: NextPage = () => {
                       </div>
                     )}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || wasReferred) && (
