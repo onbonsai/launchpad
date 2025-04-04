@@ -15,7 +15,7 @@ const Copy = ({ title, text, link, onClickFn }: Props) => (
         {text.length > 45 ? `${text.substring(0, 45)}...` : text}
       </span>
       <button
-        className="hover:bg-[#3c3e3c] rounded-full  pr-2 py-2 flex items-center"
+        className="hover:bg-[#3c3e3c] rounded-full pr-2 py-2 flex items-center group"
         onClick={() => {
           if (onClickFn) onClickFn();
           navigator.clipboard.writeText(link);
@@ -28,7 +28,7 @@ const Copy = ({ title, text, link, onClickFn }: Props) => (
           viewBox="0 0 24 24"
           strokeWidth="1.5"
           stroke="currentColor"
-          className="w-6 h-6 ml-2"
+          className="w-6 h-6 ml-2 transition-colors group-hover:stroke-brand-highlight"
         >
           <path
             strokeLinecap="round"

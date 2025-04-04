@@ -128,7 +128,7 @@ const LoginWithLensModal = ({ closeModal }) => {
           <div className="flex justify-center mt-4 mb-4 text-sm gap-x-4 pb-8">
             <div className="absolute right-8 bottom-2">
               <span
-                className="link link-hover mb-8"
+                className="link link-hover mb-8 text-brand-highlight"
                 onClick={async () => { closeModal(); await signOut(); }}
               >
                 Switch wallets
