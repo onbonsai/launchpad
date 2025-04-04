@@ -294,36 +294,39 @@ const TokenPage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
+      <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-4 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-6 max-w-full">
-          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
-            <div className="md:w-64 flex-shrink-0">
+          <div className="flex flex-col md-plus:flex-row gap-y-10 md-plus:gap-x-6 max-w-full">
+            <div className="md-plus:w-64 flex-shrink-0">
               <Sidebar />
             </div>
             {/* Main Content */}
             <div className="flex-grow">
-              <div className="bg-card rounded-xl p-6">
-                <div className="flex items-center relative">
-                  <div className="flex space-x-4">
-                    <Header2>Bonsai Token</Header2>
-                    <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+              <div className="bg-card rounded-xl p-6 relative">
+                <div className="flex flex-col ">
+                  <div className="flex flex-col">
+                    <div className="flex space-x-4">
+                      <Header2>Bonsai Token</Header2>
+                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                    </div>
+                    <Subtitle className="mt-2 md-plus:mt-4">
+                      Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
+                      Credits reset daily.
+                    </Subtitle>
+                    {/* {isConnected && <Button
+                      onClick={() => setIsReferralModalOpen(true)}
+                      size={"md"}
+                      className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" /> Referrals
+                    </Button>} */}
                   </div>
-                  {/* <Button
-                    onClick={() => setIsReferralModalOpen(true)}
-                    className="absolute right-0 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <GiftIcon className="h-5 w-5 mr-2 text-white" /> Referrals
-                  </Button> */}
                 </div>
-                <Subtitle className="mt-2">
-                  Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
-                  Credits reset daily.
-                </Subtitle>
               </div>
 
               <div className="space-y-8 mt-6">
                 {/* Top Row - Available, Rewards, and Staked Cards */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3">
                   {/* Available Card */}
                   <div className="bg-card rounded-xl p-6">
                     <div className="pb-2">
@@ -334,7 +337,7 @@ const TokenPage: NextPage = () => {
                         <>
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
-                          <div className="mt-4 flex justify-end space-x-2">
+                          <div className="mt-4 flex-wrap justify-end gap-2">
                             <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)}>
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
@@ -365,7 +368,7 @@ const TokenPage: NextPage = () => {
                     <div>
                       <div className="text-2xl font-bold text-secondary">Coming Soon</div>
                       <p className="text-xs text-secondary/60">--% APY</p>
-                      <div className="mt-4 flex justify-end gap-2">
+                      <div className="mt-4 flex flex-wrap justify-end gap-2">
                         <Button variant="accent" size="sm" disabled>
                           Claim
                         </Button>
@@ -405,7 +408,7 @@ const TokenPage: NextPage = () => {
 
                 {/* API Capacity Card */}
                 {/* <div className="bg-card rounded-xl p-6">
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
+                  <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
                         <div className="space-y-2">
@@ -561,7 +564,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsStakeModalOpen(false)}
                   open={isStakeModalOpen}
                   setOpen={setIsStakeModalOpen}
-                  panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+                  panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
                 >
                   <StakeModal
                     maxAmount={formatEther(bonsaiBalance || 0n)}
@@ -579,7 +582,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsBridgeModalOpen(false)}
                   open={isBridgeModalOpen}
                   setOpen={setIsBridgeModalOpen}
-                  panelClassnames="w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+                  panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
                 >
                   {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
@@ -590,7 +593,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsReferralModalOpen(false)}
                   open={isReferralModalOpen}
                   setOpen={setIsReferralModalOpen}
-                  panelClassnames="w-screen h-screen md:h-fit md:w-[500px] text-secondary"
+                  panelClassnames="w-screen h-screen md-plus:h-fit md-plus:w-[500px] text-secondary"
                 >
                   <ReferralModal
                     onClose={() => setIsReferralModalOpen(false)}

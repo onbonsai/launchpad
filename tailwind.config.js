@@ -28,7 +28,7 @@ module.exports = {
     extend: {
       screens: {
         "xs": "510px",
-        "md-plus": "832px",
+        "md-plus": "920px",
       },
       fontFamily: {
         sans: ["Favorit", "sans-serif"],
@@ -97,6 +97,7 @@ module.exports = {
         white: "#F3F6FF",
         black: "#191919",
         secondary: "#F3F6FF",
+        "brand-secondary": "#1D212A",
       },
     },
   },

@@ -14,7 +14,7 @@ import { CreateClub } from "@src/pagesComponents/Dashboard";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
-import { Header as HeaderText } from "@src/styles/text";
+import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { Button } from "../Button";
@@ -49,7 +49,7 @@ export const Header = () => {
         {/* Top row */}
         <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6 justify-between">
           <div className="flex items-center justify-start w-[33%]">
-            <div className="w-max">
+            <div className="w-max text-black">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
             <div className="ml-10 hidden lg:flex items-center space-x-4">
@@ -175,24 +175,24 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames={clsx("bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
+        panelClassnames={clsx("text-md bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
       >
-        <HeaderText>
+        <Header2>
           Bonsai
-        </HeaderText>
-        <p className="mt-4 text-xl text-secondary/70">
+        </Header2>
+        <p className="mt-4 text-secondary/70">
           Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
         </p>
-        <p className="mt-4 text-xl text-secondary/70">
+        <p className="mt-4 text-secondary/70">
           Our intuitive no-code platform empowers anyone to effortlessly create and monetize their own Smart Media content. Creators have access to a diverse selection of curated and third-party templates, making it simple to customize smart media behavior and configure monetization settings.
         </p>
-        <p className="mt-2 text-xl text-secondary/70">
+        <p className="mt-2 text-secondary/70">
           Smart Media posts update their content regularly based on the interactions of users and token holders.
         </p>
-        <p className="mt-4 text-xl text-secondary/70">
+        <p className="mt-4 text-secondary/70">
           Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.
         </p>
-        <div className="mt-2 text-xl text-secondary/70" onClick={() => setOpenHelpModal(false)}>
+        <div className="mt-2 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
             <span className="gradient-txt link-hover cursor-pointer">Learn more.</span>
           </Link>

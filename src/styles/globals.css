@@ -330,6 +330,10 @@ header .bonsaiLogo {
   text-indent: -50000em;
 }
 
+header .bonsaiLogo:hover {
+  filter: brightness(0) saturate(100%) invert(83%) sepia(45%) saturate(458%) hue-rotate(101deg) brightness(92%) contrast(87%);
+}
+
 .dashed-list {
   list-style: none;
   /* Remove default list markers */

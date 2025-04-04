@@ -23,7 +23,7 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
 
   return (
     <div
-      className={clsx("flex flex-col w-full")}
+      className={clsx("flex flex-col w-full p-4 md:p-0")}
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
@@ -34,10 +34,10 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
 
       <div className="mb-6">
         <div className="mb-4 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] p-3 rounded-lg">
-          <p className="text-secondary/80 mb-4">
-            <b>🎉Launch Week Special🎉</b>
+          <p className="text-brand-secondary mb-4">
+            <b>🎉 Launch Week Special 🎉</b>
           </p>
-          <p className="text-secondary/80 mb-4">
+          <p className="text-brand-secondary mb-4">
             Refer at least 1 friend and get a 100% match on your stake up to 10k $BONSAI!
           </p>
         </div>
