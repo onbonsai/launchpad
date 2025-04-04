@@ -497,7 +497,7 @@ const TokenPage: NextPage = () => {
                               </span>
                             </div>
                             <div className="text-xs text-secondary/60">
-                              Coming April 7th
+                              Coming Soon
                             </div>
                           </div>
 
@@ -505,7 +505,7 @@ const TokenPage: NextPage = () => {
                           <div className="flex items-center gap-x-6 relative z-10">
                             <div className="text-right">
                               <div className="text-sm">Coming Soon</div>
-                              <div className="text-xs text-secondary/60">April 7th, 2024</div>
+                              <div className="text-xs text-secondary/60">Coming Soon</div>
                             </div>
                             <Button
                               variant="dark-grey"

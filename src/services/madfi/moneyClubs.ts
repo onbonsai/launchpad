@@ -456,8 +456,7 @@ export const SUBGRAPH_CONFIG = {
     testnet: `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest`
   },
   lens: {
-    // TODO: add lens subgraph
-    mainnet: `https://api.studio.thegraph.com/query/102483/bonsai-launchpad-lens-testnet/version/latest`,
+    mainnet: `https://gateway.thegraph.com/api/${process.env.NEXT_PUBLIC_MONEY_CLUBS_SUBGRAPH_API_KEY}/subgraphs/id/EHPwY2LhhhaxiCindhLuUVJRF4teH9BnzFRfVULsf8px`,
     testnet: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-lens-testnet/version/latest"
   }
 };
