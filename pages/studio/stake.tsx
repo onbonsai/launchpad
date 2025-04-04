@@ -26,6 +26,7 @@ import { GiftIcon } from "@heroicons/react/outline";
 import { useRouter } from 'next/router';
 import axios from "axios";
 import { useGetCredits } from "@src/hooks/useGetCredits";
+import { useModal } from "connectkit";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -100,6 +101,7 @@ const TokenPage: NextPage = () => {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const { setOpen } = useModal();
 
   const { stake, unstake } = useStakingTransactions();
 
@@ -132,8 +134,8 @@ const TokenPage: NextPage = () => {
   }, [stakingData?.summary]);
 
   const stakedUsdValue = useMemo(() => {
-    return (Number(totalStaked) * Number(bonsaiPrice)).toFixed(2);
-  }, [totalStaked, bonsaiPrice]);
+    return (Number(formatEther(BigInt(stakingData?.summary?.totalStaked || "0"))) * Number(bonsaiPrice)).toFixed(2);
+  }, [stakingData, bonsaiPrice]);
 
   const averageMultiplier = useMemo(() => {
     if (!stakingData?.stakes.length) return 1;
@@ -186,13 +188,16 @@ const TokenPage: NextPage = () => {
       if (chain?.id !== lens.id) {
         try {
           await switchChain(configureChainsConfig, { chainId: lens.id });
+          toast("Please re-connect your wallet");
+          setOpen(true);
+          return;
         } catch {
           toast.error("Please switch to Lens");
           return;
         }
       }
 
-      await stake(amount, lockupPeriod);
+      await stake(amount, lockupPeriod, address as `0x${string}`);
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
 
@@ -218,6 +223,9 @@ const TokenPage: NextPage = () => {
       if (chain?.id !== lens.id) {
         try {
           await switchChain(configureChainsConfig, { chainId: lens.id });
+          toast("Please re-connect your wallet");
+          setOpen(true);
+          return;
         } catch {
           toast.error("Please switch to Lens");
           return;

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatEther } from "viem";
 import { subgraphClient } from "@src/services/madfi/moneyClubs";
 import { gql } from "@apollo/client";
+import { kFormatter } from "@src/utils/utils";
 
 interface Stake {
   id: string;
@@ -94,8 +95,7 @@ export const calculateAPR = (lockupPeriod: string): number => {
 };
 
 export const formatStakingAmount = (amount: string): string => {
-  const num = Number(formatEther(BigInt(amount)));
-  return Number.isInteger(num) ? num.toString() : num.toFixed(2);
+  return kFormatter(parseFloat(formatEther(BigInt(amount))), true) as string;
 };
 
 export const getLockupPeriodLabel = (lockupPeriod: string): string => {

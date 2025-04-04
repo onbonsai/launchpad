@@ -9,7 +9,7 @@ export const useStakingTransactions = () => {
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
 
-  const stake = async (amount: string, lockupPeriod: number) => {
+  const stake = async (amount: string, lockupPeriod: number, recipient: `0x${string}`) => {
     if (!walletClient) {
       toast.error('Please connect your wallet');
       return;
@@ -32,18 +32,18 @@ export const useStakingTransactions = () => {
 
       // Send the stake transaction
       stakeToastId = toast.loading('Staking BONSAI tokens...');
-      
+
       const hash = await walletClient.writeContract({
         address: PROTOCOL_DEPLOYMENT.lens.Staking as `0x${string}`,
         abi: stakingAbi,
         functionName: 'stake',
-        args: [parsedAmount, BigInt(lockupPeriod)],
+        args: [parsedAmount, BigInt(lockupPeriod), recipient],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient?.waitForTransactionReceipt({ hash });
+      if (receipt?.status !== "success") throw new Error("Transaction reverted");
 
-      toast.dismiss(stakeToastId);
-      toast.success('Successfully staked BONSAI tokens!');
+      toast.success('Successfully staked BONSAI tokens', { duration: 5000, id: stakeToastId });
       return hash;
     } catch (error: any) {
       toast.error(error.message || 'Failed to stake tokens');
@@ -72,8 +72,7 @@ export const useStakingTransactions = () => {
 
       await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.dismiss(unstakeToastId);
-      toast.success('Successfully unstaked BONSAI tokens!');
+      toast.success('Successfully unstaked BONSAI tokens', { duration: 5000, id: unstakeToastId });
       return hash;
     } catch (error: any) {
       toast.error(error.message || 'Failed to unstake tokens');
@@ -86,4 +85,4 @@ export const useStakingTransactions = () => {
     stake,
     unstake,
   };
-}; 
+};
