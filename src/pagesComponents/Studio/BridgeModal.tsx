@@ -13,10 +13,12 @@ import { Button } from "@src/components/Button";
 import { BodySemiBold, Subtitle } from "@src/styles/text";
 import SelectDropdown from "@src/components/Select/SelectChain";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { useModal } from "connectkit";
 
 export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { setOpen } = useModal();
 
   const [amount, setAmount] = useState("");
   const [bridging, setBridging] = useState(false);
@@ -126,6 +128,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     if (chain?.id !== fromChain?.id) {
       try {
         await switchChain(configureChainsConfig, { chainId: fromChain?.id });
+        setOpen(true);
         return;
       } catch {
         toast.error("Please switch chains");
