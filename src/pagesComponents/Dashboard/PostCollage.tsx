@@ -196,7 +196,6 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       }
                     }}
                     theme={Theme.dark}
-                    fontSize="18px"
                     followButtonDisabled={true}
                     environment={LENS_ENVIRONMENT}
                     profilePictureStyleOverride={publicationProfilePictureStyle}
