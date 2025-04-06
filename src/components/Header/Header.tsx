@@ -12,6 +12,7 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { CreateClub } from "@src/pagesComponents/Dashboard";
 import { SearchClubs } from "../SearchApp/SearchClubs";
+import { Button } from "../Button";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
