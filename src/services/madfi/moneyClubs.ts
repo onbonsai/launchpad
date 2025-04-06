@@ -930,7 +930,7 @@ export const getBalance = async (clubId: string, account: `0x${string}`, chain =
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
-export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`, complete: boolean, chain = "base"): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
+export const getAvailableBalance = async (tokenAddress: `0x${string}`, account: `0x${string}`, chain = "base"): Promise<{ availableBalance: bigint, totalBalance: bigint, vestingBalance: bigint }> => {
   const client = publicClient(chain);
   const [availableBalance, totalBalance] = await client.multicall({
     contracts: [

@@ -9,10 +9,12 @@ import {
   USDC_CONTRACT_ADDRESS,
   MIN_LIQUIDITY_THRESHOLD,
   DEFAULT_HOOK_ADDRESS,
+  WGHO_CONTRACT_ADDRESS,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 
 const WETH = "0x4200000000000000000000000000000000000006";
 
@@ -57,12 +59,15 @@ const getPath = () => {
         router: "0x492e6456d9528771018deb9e87ef7750ef184104",
       };
 
+  // NOTE: only on Lens, only on mainnet
   const swapInfoV3 = {
     path: encodePacked(
-      ["address", "uint24", "address", "uint24", "address"],
-      [USDC_CONTRACT_ADDRESS, 500, WETH, 10000, BONSAI_TOKEN_BASE_ADDRESS],
+      ["address", "uint24", "address"],
+      [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`],
     ),
-    router: IS_PRODUCTION ? "0x2626664c2603336E57B271c5C0b26F421741e481" : "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4",
+    router: "0x6ddD32cd941041D8b61df213B9f515A7D288Dc13",
+    positionManager: "0xC5d0CAaE8aa00032F6DA993A69Ffa6ff80b5F031",
+    factory: "0xe0704DB90bcAA1eAFc00E958FF815Ab7aa11Ef47",
   };
 
   return { swapInfoV4, swapInfoV3 };
@@ -85,12 +90,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let args = [clubId, minAmountOut, swapInfoV4];
     if (chain === "lens") {
-      // TODO: add lens args
-      args = [clubId, minAmountOut, swapInfoV3, swapInfoV4];
+      // TODO: when v4 is available set last arg to false (new clubs)
+      args = [clubId, minAmountOut, swapInfoV3, swapInfoV4, true];
     }
     const hash = await walletClient.writeContract({
       address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
+      abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
       functionName: "releaseLiquidity",
       args,
       chain: chain === "base" ? (IS_PRODUCTION ? base : baseSepolia) : IS_PRODUCTION ? lens : lensTestnet,
@@ -100,7 +105,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const releaseLiquidityEvent = getEventFromReceipt({
       contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       transactionReceipt,
-      abi: BonsaiLaunchpadAbi,
+      abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
       eventName: "LiquidityReleased",
     });
 

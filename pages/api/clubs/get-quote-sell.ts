@@ -1,53 +1,46 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { encodeFunctionData, parseUnits, zeroAddress } from "viem";
 
-import { DECIMALS, getSellPrice, publicClient, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { DECIMALS, getSellPrice, publicClient } from "@src/services/madfi/moneyClubs";
+import { lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { base } from "viem/chains";
 
 type QueryParams = {
-  clubId: string,
-  senderAddress: `0x${string};`
+  clubId: string;
+  senderAddress: `0x${string};`;
   amountIn: string; // token amount user wants to sell (in ether)
   clientAddress?: `0x${string}`;
-  chain?: string;
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  let { chain } = req.query;
+  if (!chain) chain = "lens";
+  if (chain !== "base" && chain !== "lens") return res.status(400).json("chain must be base or lens");
+
   try {
-
-    let {
-      clubId, amountIn, senderAddress, clientAddress, chain
-    } = req.query as Partial<QueryParams>;
-
-    chain = chain || "base";
+    const { clubId, amountIn, senderAddress, clientAddress } = req.query as Partial<QueryParams>;
 
     if (!(clubId && amountIn && senderAddress)) {
       return res.status(400).json({ success: false, message: "Missing required query parameters" });
     }
 
-    const { sellPriceAfterFees: amountOut } = await getSellPrice(senderAddress, clubId, amountIn);
-    const minAmountOut = (amountOut || 0n) * BigInt(95) / BigInt(100) // 5% slippage allowed
+    const { sellPriceAfterFees: amountOut } = await getSellPrice(senderAddress, clubId, amountIn, false, chain);
+    const minAmountOut = ((amountOut || 0n) * BigInt(95)) / BigInt(100); // 5% slippage allowed
 
     const data = encodeFunctionData({
       abi: BonsaiLaunchpadAbi,
-      functionName: 'sellChips',
-      args: [
-        clubId,
-        parseUnits(amountIn, DECIMALS),
-        minAmountOut,
-        clientAddress || zeroAddress
-      ],
+      functionName: "sellChips",
+      args: [clubId, parseUnits(amountIn, DECIMALS), minAmountOut, clientAddress || zeroAddress],
     });
 
     let rawData: any | null = null;
     try {
       const _rawData = await publicClient().prepareTransactionRequest({
-        to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad as `0x${string}`,
         account: senderAddress,
         data,
-        chain: base
+        chain: chain === "base" ? base : lens,
       });
       rawData = {
         ..._rawData,
@@ -68,7 +61,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
       amountOut: amountOut.toString(),
       minAmountOut: minAmountOut.toString(),
-      rawData
+      rawData,
     });
   } catch (e) {
     console.log(e);

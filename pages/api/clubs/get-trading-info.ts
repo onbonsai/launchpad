@@ -86,7 +86,11 @@ async function getGeckoTerminalData(tokenAddress: string, network: string): Prom
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { clubId, chain } = req.query;
+    const { clubId } = req.query;
+
+    let { chain } = req.query;
+    if (!chain) chain = "lens";
+    if (chain !== "base" && chain !== "lens") return res.status(400).json("chain must be base or lens");
 
     const [{ buyPrice }, volume, club] = await Promise.all([
       getBuyPrice(RANDOM_ADDRESS, clubId as string, "1", undefined, chain as string),

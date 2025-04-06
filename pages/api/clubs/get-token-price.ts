@@ -6,27 +6,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { tokenAddress } = req.query;
 
+    let { chain } = req.query;
+    if (!chain) chain = "lens";
+    if (chain !== "base" && chain !== "lens") return res.status(400).json("chain must be base or lens");
+
     const response = await fetch(`${BIRDEYE_API_URL}/defi/price?address=${tokenAddress}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'x-chain': 'base',
-        'X-API-KEY': process.env.BIRDEYE_API_KEY!
-      }
+        "x-chain": chain,
+        "X-API-KEY": process.env.BIRDEYE_API_KEY!,
+      },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch token price');
+      throw new Error("Failed to fetch token price");
     }
 
-    const { data } = (await response.json());
+    const { data } = await response.json();
     const tokenPrice = data?.value;
 
     if (tokenPrice === undefined) {
-      throw new Error('Token price not found');
+      throw new Error("Token price not found");
     }
 
     // cache 15s
-    res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate');
+    res.setHeader("Cache-Control", "public, s-maxage=15, stale-while-revalidate");
 
     return res.status(200).json({ tokenPrice });
   } catch (e) {

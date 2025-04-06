@@ -6,6 +6,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { tokenAddress, account } = req.query;
 
+    let { chain } = req.query;
+    if (!chain) chain = "lens";
+    if (chain !== "base" && chain !== "lens") return res.status(400).json("chain must be base or lens");
+
     if (!(isAddress(tokenAddress as string) && isAddress(account as string)))
       return res.status(400).json("tokenAddress and account must be addresses");
 
@@ -13,7 +17,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       availableBalance,
       vestingBalance,
       totalBalance
-    } = await getAvailableBalance(tokenAddress as `0x${string}`, account as `0x${string}`);
+    } = await getAvailableBalance(tokenAddress as `0x${string}`, account as `0x${string}`, chain as string);
 
     // cache 60s
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate');
