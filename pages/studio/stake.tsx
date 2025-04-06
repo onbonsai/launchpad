@@ -112,7 +112,7 @@ const TokenPage: NextPage = () => {
 
   const referralLink = useMemo(() => {
     if (!address) return '';
-    return `${window.location.origin}/studio/token?ref=${address}`;
+    return `${window.location.origin}/studio/stake?ref=${address}`;
   }, [address]);
 
   useMemo(() => {
@@ -185,12 +185,12 @@ const TokenPage: NextPage = () => {
 
   const handleStake = async (amount: string, lockupPeriod: number) => {
     try {
-      if (chain?.id !== lens.id) {
+      if (chain?.id !== LENS_CHAIN_ID) {
         try {
-          await switchChain(configureChainsConfig, { chainId: lens.id });
-          toast("Please re-connect your wallet");
-          setOpen(true);
-          return;
+          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          // toast("Please re-connect your wallet");
+          // setOpen(true);
+          // return;
         } catch {
           toast.error("Please switch to Lens");
           return;
@@ -220,12 +220,12 @@ const TokenPage: NextPage = () => {
 
   const handleUnstake = async (stakeIndex: number) => {
     try {
-      if (chain?.id !== lens.id) {
+      if (chain?.id !== LENS_CHAIN_ID) {
         try {
-          await switchChain(configureChainsConfig, { chainId: lens.id });
-          toast("Please re-connect your wallet");
-          setOpen(true);
-          return;
+          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          // toast("Please re-connect your wallet");
+          // setOpen(true);
+          // return;
         } catch {
           toast.error("Please switch to Lens");
           return;
@@ -314,9 +314,10 @@ const TokenPage: NextPage = () => {
               <div className="bg-card rounded-lg p-6 relative">
                 <div className="flex flex-col ">
                   <div className="flex flex-col">
-                    <div className="flex space-x-4">
+                    <div className="flex space-x-2">
+                      <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg" />
                       <Header2>Bonsai Token</Header2>
-                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
                       Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.

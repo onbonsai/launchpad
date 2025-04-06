@@ -147,6 +147,9 @@ importers:
       handy-redis:
         specifier: 2.3.1
         version: 2.3.1
+      jose:
+        specifier: ^6.0.10
+        version: 6.0.10
       jsonschema:
         specifier: ^1.4.1
         version: 1.4.1
@@ -3431,6 +3434,9 @@ packages:
   jiti@2.4.2:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
+
+  jose@6.0.10:
+    resolution: {integrity: sha512-skIAxZqcMkOrSwjJvplIPYrlXGpxTPnro2/QWTDCxAdWQrSTV5/KqspMWmi5WAx5+ULswASJiZ0a+1B/Lxt9cw==}
 
   js-sha3@0.8.0:
     resolution: {integrity: sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==}
@@ -10118,6 +10124,8 @@ snapshots:
       - utf-8-validate
 
   jiti@2.4.2: {}
+
+  jose@6.0.10: {}
 
   js-sha3@0.8.0: {}
 

@@ -126,9 +126,10 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     if (chain?.id !== fromChain?.id) {
       try {
         await switchChain(configureChainsConfig, { chainId: fromChain?.id });
-        toast("Please re-connect your wallet");
-        setOpen(true);
-        return;
+        // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
+        // toast("Please re-connect your wallet");
+        // setOpen(true);
+        // return;
       } catch {
         toast.error("Please switch chains");
         return;
