@@ -356,7 +356,7 @@ export const useGetAvailableBalance = (
 ) => {
   return useQuery({
     queryKey: ["club-available-balance", tokenAddress, address],
-    queryFn: () => getAvailableBalance(tokenAddress!, address!, complete, chain),
+    queryFn: () => getAvailableBalance(tokenAddress!, address!, chain),
     enabled: !!address && complete && tokenAddress !== zeroAddress,
     staleTime: 10000,
     gcTime: 60000,
