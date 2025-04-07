@@ -26,6 +26,9 @@ import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 import Link from "next/link";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
+import WidgetButton from "@pagesComponents/ChatWindow/components/WidgetButton";
+import Chat from "@pagesComponents/ChatWindow/components/Chat";
+import { useGetAgentInfo } from "@src/services/madfi/terminal";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -35,6 +38,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const { data: walletClient } = useWalletClient();
   const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
     useLensSignIn(walletClient);
+  const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
 
   // Parse the post data if available from query params
   const passedPostData = useMemo(() => {
@@ -232,6 +236,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
           <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
           <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>
         </Link>
+        {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
+          <WidgetButton agentInfo={agentInfoSage}>
+            <Chat
+              // treating the postId as the agentId in the eliza backend
+              agentId={pubId as string}
+              agentWallet={agentInfoSage.info.wallets[0]}
+              agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+            />
+          </WidgetButton>
+        )}
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={media} />}

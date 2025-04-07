@@ -319,7 +319,7 @@ input[type="number"] {
   background: linear-gradient(90deg, var(--color-one), var(--color-two), var(--color-one)) 0 0 / var(--bg-size) 100%;
 }
 
-header .bonsaiLogo {
+.bonsaiLogo {
   width: 40px;
   height: 40px;
   display: block;
@@ -330,7 +330,7 @@ header .bonsaiLogo {
   transition: filter 0.3s ease;
 }
 
-header .bonsaiLogo:hover {
+.bonsaiLogo:hover {
   filter: brightness(0) saturate(100%) invert(83%) sepia(45%) saturate(458%) hue-rotate(101deg) brightness(92%) contrast(87%);
 }
 
