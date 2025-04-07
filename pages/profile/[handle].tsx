@@ -119,7 +119,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
   const { followers: followersYouKnow, isLoading: isLoadingFollowers } = useFollowersYouKnow(
     authenticatedProfile?.address || '',
-    profile?.owner || ''
+    profile?.address || ''
   );
 
   if (!isMounted) return null;
