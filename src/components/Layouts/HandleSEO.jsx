@@ -26,9 +26,10 @@ const HandleSEO = ({ pageProps }) => {
     const title = trimText(`@${handle}`, 45);
     const image = getProfileImage(profile);
     const description = trimText("Profile on Bonsai", 45);
+    const absoluteImageUrl = image ? (image.startsWith('http') ? image : `${SITE_URL}${image}`) : `${SITE_URL}/opengraph-image.jpg`;
 
     let frameData = frameDataTemplate;
-    frameData.imageUrl = image;
+    frameData.imageUrl = absoluteImageUrl;
     frameData.button.title = `View ${trimText(`@${handle}`, 12)}'s Profile`;
     frameData.button.action.name = `${trimText(`@${handle}`, 12)}'s Profile`;
     frameData.button.action.url = `${SITE_URL}/profile/${handle}`;
@@ -36,23 +37,26 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description}></meta>
-        <meta property="og:title" content={title}></meta>
-        <meta property="og:description" content={description}></meta>
-        <meta property="og:url" content={SITE_URL}></meta>
-        <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta property="og:image:alt" content="opengraph-image.jpg"></meta>
-        <meta property="og:image:width" content="1200"></meta>
-        <meta property="og:image:height" content="630"></meta>
-        <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
-        <meta name="twitter:creator" content="@onbonsai"></meta>
-        <meta name="twitter:card" content="summary_large_image"></meta>
-        <meta name="twitter:title" content={title}></meta>
-        <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta name="theme-color" content="#141414"></meta>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={`${SITE_URL}/profile/${handle}`} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:image" content={absoluteImageUrl} />
+        <meta property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta property="og:image:alt" content={`${handle}'s profile picture`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:site_name" content="Bonsai Smart Media" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@onbonsai" />
+        <meta name="twitter:creator" content="@onbonsai" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={absoluteImageUrl} />
+        <meta name="twitter:image:alt" content={`${handle}'s profile picture`} />
+        <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
@@ -62,8 +66,10 @@ const HandleSEO = ({ pageProps }) => {
     const { handle, content, image, pubId } = pageProps;
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
+    const absoluteImageUrl = image ? (image.startsWith('http') ? image : `${SITE_URL}${image}`) : `${SITE_URL}/opengraph-image.jpg`;
 
     let frameData = frameDataTemplate;
+    frameData.imageUrl = absoluteImageUrl;
     frameData.button.title = `View Post by ${trimText(`@${handle}`, 12)}`;
     frameData.button.action.name = `${trimText(`@${handle}`, 12)}'s Post`;
     frameData.button.action.url = `${SITE_URL}/post/${pubId}`;
@@ -71,23 +77,26 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description}></meta>
-        <meta property="og:title" content={title}></meta>
-        <meta property="og:description" content={description}></meta>
-        <meta property="og:url" content={SITE_URL}></meta>
-        <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta property="og:image:alt" content="madfi.png"></meta>
-        <meta property="og:image:width" content="1200"></meta>
-        <meta property="og:image:height" content="630"></meta>
-        <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
-        <meta name="twitter:creator" content="@onbonsai"></meta>
-        <meta name="twitter:card" content="summary_large_image"></meta>
-        <meta name="twitter:title" content={title}></meta>
-        <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta name="theme-color" content="#141414"></meta>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={`${SITE_URL}/post/${pubId}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content={absoluteImageUrl} />
+        <meta property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta property="og:image:alt" content="Post image" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:site_name" content="Bonsai Smart Media" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@onbonsai" />
+        <meta name="twitter:creator" content="@onbonsai" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={absoluteImageUrl} />
+        <meta name="twitter:image:alt" content="Post image" />
+        <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
@@ -97,10 +106,10 @@ const HandleSEO = ({ pageProps }) => {
     const { club } = pageProps;
     const title = `${club.token.name} ($${club.token.symbol})`;
     const description = trimText(`Buy $${club.token.symbol} on Bonsai`, 45);
-    let image = club.token.image;
+    const absoluteImageUrl = club.token.image ? (club.token.image.startsWith('http') ? club.token.image : `${SITE_URL}${club.token.image}`) : `${SITE_URL}/opengraph-image.jpg`;
 
     let frameData = frameDataTemplate;
-    frameData.imageUrl = image;
+    frameData.imageUrl = absoluteImageUrl;
     frameData.button.title = `💰 Trade $${club.token.symbol} 💰`;
     frameData.button.action.name = `Trade $${club.token.symbol}`;
     frameData.button.action.url = `${SITE_URL}/token/${club.clubId}`;
@@ -108,50 +117,57 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description}></meta>
-        <meta property="og:title" content={title}></meta>
-        <meta property="og:description" content={description}></meta>
-        <meta property="og:url" content={SITE_URL}></meta>
-        <meta property="og:type" content="website"></meta>
-        <meta property="og:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta property="og:image:alt" content="bonsai.png"></meta>
-        <meta property="og:image:width" content="1200"></meta>
-        <meta property="og:image:height" content="630"></meta>
-        <meta property="og:locale" content="en_IE"></meta>
-        <meta property="og:site_name" content="Bonsai Smart Media"></meta>
-        <meta name="twitter:creator" content="@onbonsai"></meta>
-        <meta name="twitter:card" content="summary_large_image"></meta>
-        <meta name="twitter:title" content={title}></meta>
-        <meta name="twitter:description" content={description}></meta>
-        <meta name="twitter:image" content={image || "/opengraph-image.jpg"}></meta>
-        <meta name="theme-color" content="#141414"></meta>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={`${SITE_URL}/token/${club.clubId}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={absoluteImageUrl} />
+        <meta property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta property="og:image:alt" content={`${club.token.name} token image`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:site_name" content="Bonsai Smart Media" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@onbonsai" />
+        <meta name="twitter:creator" content="@onbonsai" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={absoluteImageUrl} />
+        <meta name="twitter:image:alt" content={`${club.token.name} token image`} />
+        <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
   }
 
   const description = "Create AI-powered content on Bonsai — build and monetize your own Smart Media in minutes.";
+  const defaultImageUrl = `${SITE_URL}/opengraph-image.jpg`;
 
   return (
     <Head>
       <title>Bonsai</title>
-      <meta name="description" content={description}></meta>
-      <meta property="og:title" content="Bonsai"></meta>
-      <meta property="og:description" content={description}></meta>
-      <meta property="og:url" content={SITE_URL}></meta>
-      <meta property="og:type" content="website"></meta>
-      <meta property="og:image" content="/opengraph-image.jpg"></meta>
-      <meta property="og:image:alt" content="bonsai.png"></meta>
-      <meta property="og:image:width" content="1200"></meta>
-      <meta property="og:image:height" content="630"></meta>
-      <meta property="og:locale" content="en_IE"></meta>
-      <meta property="og:site_name" content="Bonsai"></meta>
-      <meta name="twitter:creator" content="@onbonsai"></meta>
-      <meta name="twitter:card" content="summary_large_image"></meta>
-      <meta name="twitter:title" content="Bonsai"></meta>
-      <meta name="twitter:description" content={description}></meta>
-      <meta name="twitter:image" content="/opengraph-image.jpg"></meta>
-      <meta name="theme-color" content="#141414"></meta>
+      <meta name="description" content={description} />
+      <meta property="og:title" content="Bonsai" />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={SITE_URL} />
+      <meta property="og:type" content="website" />
+      <meta property="og:image" content={defaultImageUrl} />
+      <meta property="og:image:secure_url" content={defaultImageUrl} />
+      <meta property="og:image:alt" content="Bonsai Smart Media" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:locale" content="en_US" />
+      <meta property="og:site_name" content="Bonsai Smart Media" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@onbonsai" />
+      <meta name="twitter:creator" content="@onbonsai" />
+      <meta name="twitter:title" content="Bonsai" />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={defaultImageUrl} />
+      <meta name="twitter:image:alt" content="Bonsai Smart Media" />
+      <meta name="theme-color" content="#141414" />
       <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
     </Head>
   );
