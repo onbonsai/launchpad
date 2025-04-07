@@ -143,7 +143,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileImage;
     // }
-    return getProfileImage(profile.metadata?.picture)
+    return getProfileImage(profile)
   };
 
   const coverImage = () => {
