@@ -135,7 +135,7 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
         <div className="flex space-x-1 w-full min-h-[123px] overflow-x-auto scrollbar-hide">
           {(nfts ?? []).map((tree, index) => (
             <div className="flex flex-col items-center p-1 rounded-[20px] bg-card-light" key={`bonsai-nft-${index}`}>
-              <BonsaiNFT tree={tree} index={index} size={'91px'} />
+              <BonsaiNFT tree={tree} index={index} size={'91px'} tokenId={tree.tokenId} />
               <Subtitle className="mt-1 text-white">#{tree.tokenId}</Subtitle>
             </div>
           ))}

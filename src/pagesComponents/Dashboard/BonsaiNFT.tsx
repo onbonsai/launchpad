@@ -5,10 +5,14 @@ interface BonsaiNFTProps {
   tree: any;
   index: number;
   size?: string;
+  tokenId: string;
 }
 
+const BONSAI_SVG_URL =
+  "https://www.storj-ipfs.com/ipfs/bafybeicsssc7vljolfhobqyzlkxa3ngdfwko5pnvdqsfmehlvlv7mfemli/bonsai_";
+
 function BonsaiNFT(props: BonsaiNFTProps) {
-  const { tree, index } = props;
+  const { tree, index, tokenId } = props;
   const size = props.size || "91px";
 
   const [svgContent, setSvgContent] = useState<string | null>(null);
@@ -25,8 +29,8 @@ function BonsaiNFT(props: BonsaiNFTProps) {
   const rawUrl = tree.image?.cachedUrl
     ? ipfshHash(tree.image.cachedUrl)
     : tree.metadata?.image
-      ? storjGatewayURL(tree.metadata?.image)
-      : "";
+    ? storjGatewayURL(tree.metadata?.image)
+    : `${BONSAI_SVG_URL}${tokenId}.svg`;
 
   useEffect(() => {
     if (rawUrl) {
@@ -60,18 +64,9 @@ function BonsaiNFT(props: BonsaiNFTProps) {
     >
       <a href={tree.openseaUrl} target="_blank" rel="noreferrer">
         {svgContent ? (
-          <div
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-            style={{ width: "100%", height: "100%" }}
-          />
+          <div dangerouslySetInnerHTML={{ __html: svgContent }} style={{ width: "100%", height: "100%" }} />
         ) : (
-          <img
-            src={rawUrl || ""}
-            loading="lazy"
-            className="object-cover"
-            alt="bonsai"
-            sizes={size}
-          />
+          <img src={rawUrl || ""} loading="lazy" className="object-cover" alt="bonsai" sizes={size} />
         )}
       </a>
     </div>
