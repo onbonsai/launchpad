@@ -40,7 +40,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import { createPost } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { SessionClient } from "@lens-protocol/client";
-import { immutable } from "@lens-chain/storage-client/import";
+import { immutable } from "@lens-chain/storage-client";
 import { storageClient } from "@src/services/lens/client";
 
 type NetworkOption = {
