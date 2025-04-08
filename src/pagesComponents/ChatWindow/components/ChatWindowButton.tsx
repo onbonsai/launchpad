@@ -22,7 +22,7 @@ const XIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-export default function WidgetButton({ children, agentInfo }: { children: React.ReactNode, agentInfo: AgentInfo }) {
+export default function ChatWindowButton({ children, agentInfo }: { children: React.ReactNode, agentInfo: AgentInfo }) {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleChat = () => {
@@ -59,8 +59,6 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
         <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2" style={{ maxHeight: "400px" }}>
           {isOpen && children}
         </div>
-
-        {/* Removed Chat Input Section */}
       </div>
 
       {/* Chat Toggle Button - Styling adapted */}
@@ -69,7 +67,7 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
         variant="primary"
         className={clsx(
           "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-          "bg-background border border-dark-grey hover:bg-background/80",
+          "bg-background border border-dark-grey hover:bg-background",
         )}
       >
         <div className="flex items-center justify-center">

@@ -8,6 +8,7 @@ type UseChatResponse = {
   error?: Error;
   postChat: (input: string, payload?: any, imageURL?: string) => void;
   isLoading: boolean;
+  canMessageAgain: boolean;
 };
 
 type UseChatProps = {
@@ -33,6 +34,7 @@ export default function useChat({
   setCurrentAction,
 }: UseChatProps): UseChatResponse {
   const [isLoading, setIsLoading] = useState(false);
+  const [canMessageAgain, setCanMessageAgain] = useState(true);
   const socket = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -79,9 +81,10 @@ export default function useChat({
       setIsThinking(true);
 
       try {
-        const res = await sendMessage({ agentId, input, payload, imageURL });
-        if (!res) throw new Error("no response");
-        const { action, text, attachments } = res;
+        const { messages, canMessageAgain: _canMessageAgain } = await sendMessage({ agentId, input, payload, imageURL }) || {};
+        if (!messages?.length) throw new Error("no response");
+        const { action, text, attachments } = messages[0];
+        setCanMessageAgain(!!_canMessageAgain);
 
         if (action === "NONE" || action === "CONTINUE") {
           setIsThinking(false);
@@ -105,5 +108,5 @@ export default function useChat({
     [conversationId, onSuccess, agentId, userId, setIsThinking, setCurrentAction],
   );
 
-  return { postChat, isLoading };
+  return { postChat, isLoading, canMessageAgain };
 }

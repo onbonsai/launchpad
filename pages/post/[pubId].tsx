@@ -26,7 +26,7 @@ import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 import Link from "next/link";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
-import WidgetButton from "@pagesComponents/ChatWindow/components/WidgetButton";
+import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { SITE_URL } from "@src/constants/constants";
@@ -238,14 +238,14 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
           <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>
         </Link>
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-          <WidgetButton agentInfo={agentInfoSage}>
+          <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
               // treating the postId as the agentId in the eliza backend
               agentId={pubId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
             />
-          </WidgetButton>
+          </ChatWindowButton>
         )}
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">

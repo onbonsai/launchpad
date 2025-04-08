@@ -89,12 +89,12 @@ export type ChatInputProps = {
   setUserInput: (input: string) => void;
   handleKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   disabled?: boolean;
-  chatEnabled: boolean;
   attachment?: File;
   setAttachment: (file?: File) => void;
   requireBonsaiPayment?: number;
   setRequireBonsaiPayment: (amount?: number) => void;
   showSuggestions?: boolean;
+  placeholder?: string;
 };
 
 export default function ChatInput({
@@ -103,12 +103,12 @@ export default function ChatInput({
   setUserInput,
   handleKeyPress,
   disabled = false,
-  chatEnabled = true,
   attachment,
   setAttachment,
   requireBonsaiPayment,
   setRequireBonsaiPayment,
   showSuggestions,
+  placeholder,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
@@ -161,8 +161,8 @@ export default function ChatInput({
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
-                placeholder={"What's on your mind?"}
+                className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
+                placeholder={placeholder || "Ask anything"}
                 disabled={disabled}
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">

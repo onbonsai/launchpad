@@ -337,7 +337,6 @@ header .bonsaiLogo {
   background: url("/static/images/logo.svg") no-repeat center;
   background-size: 100% auto;
   font-size: 0px;
-  text-indent: -50000em;
   transition: filter 0.3s ease;
 }
 

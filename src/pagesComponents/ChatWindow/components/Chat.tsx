@@ -28,8 +28,8 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { data: messageHistory, isLoading: isLoadingMessageHistory } = useGetMessages(agentId);
-  console.log("messageHistory", messageHistory);
+  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(agentId);
+  const { messages: messageHistory, canMessage } = messageData || {};
   const [userInput, setUserInput] = useState('');
   const [attachment, setAttachment] = useState<File | undefined>();
   const [requestPayload, setRequestPayload] = useState<any|undefined>();
@@ -79,7 +79,7 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
     setStreamEntries((prev) => [...prev, streamEntry]);
   }, []);
 
-  const { postChat, isLoading } = useChat({
+  const { postChat, isLoading, canMessageAgain } = useChat({
     onSuccess: handleSuccess,
     conversationId,
     agentId,
@@ -237,13 +237,13 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
         handleKeyPress={handleKeyPress}
         handleSubmit={handleSubmit}
         setUserInput={setUserInput}
-        disabled={isLoading || !isConnected}
-        chatEnabled={true}
+        disabled={isLoading || !isConnected || !canMessage || !canMessageAgain}
         attachment={attachment}
         setAttachment={setAttachment}
         requireBonsaiPayment={requireBonsaiPayment}
         setRequireBonsaiPayment={setRequireBonsaiPayment}
-        showSuggestions={!streamEntries?.length}
+        showSuggestions={!streamEntries?.length && canMessage && canMessageAgain}
+        placeholder={!(canMessageAgain && canMessage) ? "Stake more tokens in the Studio" : undefined}
       />
     </div>
   );

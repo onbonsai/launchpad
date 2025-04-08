@@ -38,7 +38,7 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   });
 };
 
-export const useGetMessages = (postId?: string): UseQueryResult<Memory[] , Error> => {
+export const useGetMessages = (postId?: string): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
   return useQuery({
     queryKey: ["agent-messages", postId],
     queryFn: async () => {
@@ -55,9 +55,7 @@ export const useGetMessages = (postId?: string): UseQueryResult<Memory[] , Error
         console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
         return [];
       }
-      const info = await response.json();
-      const { messages } = info;
-      return messages;
+      return await response.json();
     },
     enabled: !!postId
   });
@@ -81,7 +79,7 @@ export const sendMessage = async ({
   conversationId,
   payload,
   imageURL
-}: SendMessageProps): Promise<MessageResponse | undefined> => {
+}: SendMessageProps): Promise<{ messages: MessageResponse[], canMessageAgain: boolean } | undefined> => {
   const idToken = await _getIdToken();
   if (!idToken) return;
 
@@ -104,8 +102,7 @@ export const sendMessage = async ({
     return;
   }
 
-  const data = await response.json();
-  return data[0];
+  return await response.json();
 }
 
 const _getIdToken = async (): Promise<string | undefined> => {
