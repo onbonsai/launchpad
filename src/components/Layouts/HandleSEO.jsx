@@ -42,8 +42,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description} />
         <meta property="og:url" content={`${SITE_URL}/profile/${handle}`} />
         <meta property="og:type" content="profile" />
-        <meta property="og:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=profile&handle=${handle}&image=${encodeURIComponent(absoluteImageUrl)}`} />
-        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=profile&handle=${handle}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta property="og:image" content={`${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`} />
+        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`} />
         <meta property="og:image:alt" content={`${handle}'s profile picture`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -54,7 +54,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:creator" content="@onbonsai" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=profile&handle=${handle}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`} />
         <meta name="twitter:image:alt" content={`${handle}'s profile picture`} />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
@@ -82,8 +82,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description} />
         <meta property="og:url" content={`${SITE_URL}/post/${pubId}`} />
         <meta property="og:type" content="article" />
-        <meta property="og:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=article&pubId=${pubId}&image=${encodeURIComponent(absoluteImageUrl)}`} />
-        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=article&pubId=${pubId}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta property="og:image" content={`${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`} />
+        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`} />
         <meta property="og:image:alt" content="Post image" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -94,7 +94,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:creator" content="@onbonsai" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=article&pubId=${pubId}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`} />
         <meta name="twitter:image:alt" content="Post image" />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
@@ -122,8 +122,8 @@ const HandleSEO = ({ pageProps }) => {
         <meta property="og:description" content={description} />
         <meta property="og:url" content={`${SITE_URL}/token/${club.clubId}`} />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=token&tokenSymbol=${club.token.symbol}&image=${encodeURIComponent(absoluteImageUrl)}`} />
-        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=token&tokenSymbol=${club.token.symbol}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta property="og:image" content={`${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`} />
         <meta property="og:image:alt" content={`${club.token.name} token image`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -134,7 +134,7 @@ const HandleSEO = ({ pageProps }) => {
         <meta name="twitter:creator" content="@onbonsai" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&type=token&tokenSymbol=${club.token.symbol}&image=${encodeURIComponent(absoluteImageUrl)}`} />
+        <meta name="twitter:image" content={`${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`} />
         <meta name="twitter:image:alt" content={`${club.token.name} token image`} />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
@@ -153,8 +153,8 @@ const HandleSEO = ({ pageProps }) => {
       <meta property="og:description" content={description} />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
-      <meta property="og:image" content={`${SITE_URL}/api/og-image?title=Bonsai&description=${encodeURIComponent(description)}&type=website&image=${encodeURIComponent(defaultImageUrl)}`} />
-      <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image?title=Bonsai&description=${encodeURIComponent(description)}&type=website&image=${encodeURIComponent(defaultImageUrl)}`} />
+      <meta property="og:image" content={`${SITE_URL}/api/og-image`} />
+      <meta property="og:image:secure_url" content={`${SITE_URL}/api/og-image`} />
       <meta property="og:image:alt" content="Bonsai" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
