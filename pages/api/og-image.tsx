@@ -16,15 +16,6 @@ export default async function handler(req: NextRequest) {
     const pubId = searchParams.get('pubId');
     const tokenSymbol = searchParams.get('tokenSymbol');
     
-    // Get the host from the request URL
-    const host = req.headers.get('host') || 'app.onbons.ai';
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
-    
-    // Use absolute URLs for all images
-    const logoUrl = `${baseUrl}/favicon.png`;
-    const wordMarkUrl = `${baseUrl}/bonsai-word-mark.svg`;
-
     // Create a dynamic image based on the parameters
     return new ImageResponse(
       (
@@ -43,67 +34,6 @@ export default async function handler(req: NextRequest) {
             position: 'relative',
           }}
         >
-          {/* Content overlay */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              padding: '40px 60px',
-              borderRadius: '12px',
-              maxWidth: '80%',
-              zIndex: 10,
-            }}
-          >
-            <h1
-              style={{
-                fontSize: 60,
-                fontWeight: 800,
-                color: 'white',
-                marginBottom: 20,
-                textAlign: 'center',
-                lineHeight: 1.2,
-              }}
-            >
-              {title}
-            </h1>
-            <p
-              style={{
-                fontSize: 30,
-                color: 'rgba(255, 255, 255, 0.8)',
-                textAlign: 'center',
-                lineHeight: 1.4,
-              }}
-            >
-              {description}
-            </p>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginTop: 30,
-              }}
-            >
-              <img
-                src={logoUrl}
-                alt="Bonsai Logo"
-                width={40}
-                height={40}
-                style={{ marginRight: 10 }}
-              />
-              <span
-                style={{
-                  fontSize: 24,
-                  color: 'white',
-                  fontWeight: 600,
-                }}
-              >
-                Bonsai
-              </span>
-            </div>
-          </div>
 
           {/* Bonsai Word Mark in bottom right corner */}
           <div
@@ -115,7 +45,7 @@ export default async function handler(req: NextRequest) {
             }}
           >
             <img
-              src={wordMarkUrl}
+              src="https://launchpad-git-seo-mad-finance.vercel.app/bonsai-brand-mark.png"
               alt="Bonsai Word Mark"
               width={200}
               height={50}
