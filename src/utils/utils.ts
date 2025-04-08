@@ -1,15 +1,18 @@
 import axios from "axios";
-import { z } from 'zod';
+import { z } from "zod";
 import { formatUnits, getAddress, hashMessage, hexToSignature, recoverAddress } from "viem";
 
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
 import { MADFI_BOUNTIES_URL } from "@src/constants/constants";
 import { MetadataAttribute } from "@lens-protocol/metadata";
 
-// only .png files are supported (this is what the publication-image endpoint does by default)
+const bucketToLinkKey = {
+  seo: "jvxdv5ynbbikx455wrdynvc7tyhq",
+  referrals: "jxjnhzuaz5wrox7k2qjvhcwcb5qq",
+};
+
 export const bucketImageLinkStorj = (id: string, bucket = "seo") => {
-  const linkKey = bucket === "referrals" ? "jxjnhzuaz5wrox7k2qjvhcwcb5qq" : "jvxdv5ynbbikx455wrdynvc7tyhq";
-  return `https://link.storjshare.io/raw/${linkKey}/${bucket}/${id}${id.endsWith(".png") ? "" : ".png"}`;
+  return `https://link.storjshare.io/raw/${bucketToLinkKey[bucket]}/${bucket}/${id}`;
 };
 
 export const MAX_UINT256 = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -23,7 +26,7 @@ export const roundedToFixed = (input: number, digits = 4): string => {
   const value = Math.round(input * rounder) / rounder;
   return value.toLocaleString(undefined, {
     minimumFractionDigits: digits,
-    maximumFractionDigits: digits
+    maximumFractionDigits: digits,
   });
 };
 
@@ -60,18 +63,19 @@ export const kFormatter = (num, asInteger = false) => {
 
   return !asInteger
     ? Number((Math.sign(num) * Math.abs(num)).toFixed(2)).toFixed(2)
-    : Number((Math.sign(num) * Math.abs(num)));
+    : Number(Math.sign(num) * Math.abs(num));
 };
 
 export function polygonScanUrl(address: string, chainId?: string | number | undefined, route?: string) {
   chainId = Number(chainId || process.env.NEXT_PUBLIC_CHAIN_ID);
-  return `https://${chainId === 80001 ? "mumbai." : ""}polygonscan.com/${route || 'address'}/${address}`;
+  return `https://${chainId === 80001 ? "mumbai." : ""}polygonscan.com/${route || "address"}/${address}`;
 }
 
 export function openSeaUrl(address: string, tokenId: string, chainId?: string | number) {
   chainId = Number(chainId || process.env.NEXT_PUBLIC_CHAIN_ID);
-  return `https://${chainId === 80001 ? "testnets." : ""}opensea.io/assets/${chainId === 137 ? "matic" : "mumbai"
-    }/${address}/${parseInt(tokenId)}`;
+  return `https://${chainId === 80001 ? "testnets." : ""}opensea.io/assets/${
+    chainId === 137 ? "matic" : "mumbai"
+  }/${address}/${parseInt(tokenId)}`;
 }
 
 export const SUPPORTED_MIMETYPES = [
@@ -115,7 +119,6 @@ export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAd
 export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
   const url = `${window.location.origin}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
   return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
-
 }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
@@ -155,9 +158,7 @@ export const budgetFormatter = (budget: any, decimals = 18, token = "") => {
 };
 
 export const lensterUrl = (_handle: any) => {
-  const handle = typeof _handle !== "string"
-    ? _handle?.localName
-    : _handle;
+  const handle = typeof _handle !== "string" ? _handle?.localName : _handle;
   return process.env.NEXT_PUBLIC_CHAIN_ID! === "137"
     ? `https://hey.xyz/u/${handle}`
     : `https://testnet.hey.xyz/u/${handle}`;
@@ -350,7 +351,7 @@ export const formatFarcasterProfileToMatchLens = (profile) => ({
   metadata: {
     coverPicture: null,
     picture: {
-      optimized: { uri: profile.profileImage }
+      optimized: { uri: profile.profileImage },
     },
     bio: profile.profileBio,
     displayName: profile.profileDisplayName,
@@ -362,9 +363,9 @@ export const formatFarcasterProfileToMatchLens = (profile) => ({
   handle: {
     localName: profile.profileHandle,
     suggestedFormatted: {
-      localName: profile.profileHandle
-    }
-  }
+      localName: profile.profileHandle,
+    },
+  },
 });
 export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37niuhe6d5xpf2kvu7eq/misc%2Ffarcaster.png";
 
@@ -380,10 +381,7 @@ export const parseBase64Image = (imageBase64: string): File | undefined => {
     const mimeType = `image/${imageType}`;
 
     // Convert base64 to buffer
-    const base64Data = imageBase64.replace(
-      /^data:image\/\w+;base64,/,
-      ""
-    );
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const imageBuffer = Buffer.from(base64Data, "base64");
 
     // Create a file object that can be used with FormData
@@ -407,29 +405,29 @@ export const reconstructZodSchema = (shape: any) => {
 
       const description = field.description;
       let type = field.typeName;
-      let nullish = false
+      let nullish = false;
 
       // Recursively unwrap ZodNullable and ZodOptional types
-      while (field.innerType && (field.typeName === 'ZodNullable' || field.typeName === 'ZodOptional')) {
+      while (field.innerType && (field.typeName === "ZodNullable" || field.typeName === "ZodOptional")) {
         nullish = true;
         type = field.innerType._def.typeName;
         field = field.innerType._def;
       }
 
       switch (type) {
-        case 'ZodString':
+        case "ZodString":
           fieldSchema = z.string();
           break;
-        case 'ZodNumber':
+        case "ZodNumber":
           fieldSchema = z.number();
           break;
-        case 'ZodBoolean':
+        case "ZodBoolean":
           fieldSchema = z.boolean();
           break;
-        case 'ZodArray':
+        case "ZodArray":
           fieldSchema = z.array(z.any()); // or recursive if needed
           break;
-        case 'ZodObject':
+        case "ZodObject":
           fieldSchema = reconstructZodSchema(field.shape);
           break;
         default:
@@ -448,9 +446,9 @@ export const reconstructZodSchema = (shape: any) => {
 
       return {
         ...acc,
-        [key]: fieldSchema
+        [key]: fieldSchema,
       };
-    }, {})
+    }, {}),
   );
 };
 
@@ -459,14 +457,15 @@ export const getSmartMediaUrl = (attributes: MetadataAttribute[]): string | unde
 
   if (!isBonsaiPlugin) return;
 
-  return attributes.find(attr => attr.key === "apiUrl")?.value;
-}
+  return attributes.find((attr) => attr.key === "apiUrl")?.value;
+};
 
-export const getPostContentSubstring = (string, length = 100): string => { // 250 characters and we show "Show more"
-  if (!string) return ''
+export const getPostContentSubstring = (string, length = 100): string => {
+  // 250 characters and we show "Show more"
+  if (!string) return "";
   if (string.length <= length) {
-    return string
+    return string;
   } else {
-    return `${string.substring(0, length)}...`
+    return `${string.substring(0, length)}...`;
   }
-}
+};

@@ -61,6 +61,15 @@ const defaultExports = {
         ],
       },
       {
+        source: '/api/og-image',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
         source: '/:path*.jpg',
         headers: [
           {

@@ -88,7 +88,7 @@ export const withBlackSquare = async (
 ) => {
   // Create a rectangle
   const shape = Buffer.from(
-    `<svg><rect x="0" y="0" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fillOpacity="${opacity}"/></svg>`,
+    `<svg><rect x="0" y="0" width="${width}" height="${height}" rx="${borderRadius}" ry="${borderRadius}" fill-opacity="${opacity}"/></svg>`,
   );
 
   // Apply the rectangle to the original image
@@ -111,7 +111,7 @@ export const withWhiteCircle = async (
   const cx = width / 2;
   const cy = height / 2;
   const r = Math.min(width, height) / 2;
-  const circleSvg = `<svg><circle cx="${cx}" cy="${cy}" r="${r}" fill="white" fillOpacity="${opacity}"/></svg>`;
+  const circleSvg = `<svg><circle cx="${cx}" cy="${cy}" r="${r}" fill="white" fill-opacity="${opacity}"/></svg>`;
   const shape = Buffer.from(circleSvg);
 
   // Apply the rectangle to the original image
