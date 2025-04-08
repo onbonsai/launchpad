@@ -32,6 +32,8 @@ class MyDocument extends Document {
           <meta property="og:image" content={`${SITE_URL}/opengraph-image.jpg`} />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
+          <meta property="og:logo" content={`${SITE_URL}/logo.png`} />
+          <meta property="og:image:alt" content="Bonsai" />
           
           {/* Base Twitter Meta Tags */}
           <meta name="twitter:card" content="summary_large_image" />
