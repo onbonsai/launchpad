@@ -45,7 +45,7 @@ export default function StreamItem({ entry, setUserInput, setRequestPayload }: S
             : 'justify-end'}`
           }
         >
-          <span className={`max-w-full whitespace-normal break-words ${isAgent ? '' : 'bg-backgroundAccent px-3 py-[10px] rounded-2xl rounded-br-sm'}`}>
+          <span className={`max-w-full whitespace-normal break-words ${isAgent ? '' : 'bg-dark-grey px-3 py-[10px] rounded-2xl rounded-br-sm'}`}>
             {' '}
             {formatContent(entry?.content)}
           </span>

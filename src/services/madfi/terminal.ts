@@ -13,7 +13,7 @@ export interface AgentInfo {
 
 export const getAgentInfo = async (agentId: string): Promise<AgentInfo | undefined> => {
   try {
-    const response = await fetch(`${TERMINAL_API_URL}/agent/${agentId}/info`, { cache: 'no-cache' });
+    const response = await fetch(`${TERMINAL_API_URL}/agent/${agentId}/info`);
     const info = await response.json();
 
     let account;
@@ -36,5 +36,17 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   return useQuery({
     queryKey: ["agent-info", agentId || GLOBAL_AGENT_ID],
     queryFn: () => getAgentInfo(agentId || GLOBAL_AGENT_ID),
+  });
+};
+
+export const useGetMessages = (postId?: string): UseQueryResult<AgentInfo, Error> => {
+  return useQuery({
+    queryKey: ["agent-messages", postId],
+    queryFn: async () => {
+      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages`, { cache: 'no-cache' });
+      const info = await response.json();
+      const { messages } = info;
+      console.log(messages);
+    },
   });
 };

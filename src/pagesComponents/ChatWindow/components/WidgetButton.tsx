@@ -34,7 +34,7 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
       {/* Chat Window Container - Styling adapted from Balance.tsx / Chat.tsx */}
       <div
         className={clsx(
-          "bg-dark-grey border border-zinc-700 rounded-lg shadow-lg mb-4 w-80 sm:w-96 overflow-hidden transition-all duration-300 ease-in-out flex flex-col", // Use theme colors
+          "bg-background border border-dark-grey rounded-lg shadow-lg mb-4 w-80 sm:w-96 overflow-hidden transition-all duration-300 ease-in-out flex flex-col",
           isOpen ? "opacity-100 max-h-[500px] translate-y-0" : "opacity-0 max-h-0 translate-y-10 pointer-events-none",
         )}
         style={{
@@ -43,7 +43,7 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
       >
         {/* Chat Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center">
               <img
                 src={agentInfo.account?.metadata?.picture?.uri || "/default.png"}
@@ -69,11 +69,11 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
         variant="primary"
         className={clsx(
           "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-          isOpen ? "bg-dark-grey hover:bg-dark-grey/80" : "bg-dark-grey hover:bg-dark-grey/80",
+          "bg-background border border-dark-grey hover:bg-background/80",
         )}
       >
         <div className="flex items-center justify-center">
-          {isOpen ? <XIcon size={24} className="text-white" /> : <span className="bonsaiLogo -mt-1" />}
+          {isOpen ? <XIcon size={24} className="text-white" /> : <span className="bonsaiLogoPattern -mt-2" />}
         </div>
       </Button>
     </div>
