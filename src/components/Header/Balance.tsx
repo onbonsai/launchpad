@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContract, useWalletClient } from "wagmi";
+import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { formatUnits, erc20Abi } from "viem";
 import clsx from "clsx";
 import {
@@ -17,6 +17,8 @@ import Popper from '@mui/material/Popper';
 import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
+import { Tooltip } from "@src/components/Tooltip";
+import { InformationCircleIcon } from "@heroicons/react/solid";
 
 export const Balance = () => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -38,8 +40,14 @@ export const Balance = () => {
     },
   });
 
-  // GHO Balance
-  const { data: ghoBalance } = useReadContract({
+    // GHO Balance
+    const { data: ghoBalance } = useBalance({
+      address,
+      chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
+    })
+
+  // WGHO Balance
+  const { data: wghoBalance } = useReadContract({
     address: WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
     chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
@@ -51,7 +59,7 @@ export const Balance = () => {
     },
   });
 
-  // GHO Balance of Lens Account
+  // WGHO Balance of Lens Account
   const { data: ghoBalanceLensAccount } = useReadContract({
     address: WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
@@ -60,7 +68,7 @@ export const Balance = () => {
     args: [authenticatedProfile?.address as `0x${string}`],
     query: {
       refetchInterval: 10000,
-      enabled: isAuthenticated && authenticatedProfile?.address
+      enabled: false //isAuthenticated && authenticatedProfile?.address
     },
   });
 
@@ -90,9 +98,10 @@ export const Balance = () => {
     },
   });
 
-  const { usdcFormatted, ghoFormatted, bonsaiFormatted, totalFormatted, ghoLensFormatted, bonsaiLensFormatted } = useMemo(() => {
+  const { usdcFormatted, ghoFormatted, wghoFormatted, bonsaiFormatted, totalFormatted, ghoLensFormatted, bonsaiLensFormatted } = useMemo(() => {
     const usdcAmount = usdcBalance ? parseFloat(formatUnits(usdcBalance, USDC_DECIMALS)) : 0;
-    const ghoAmount = ghoBalance ? parseFloat(formatUnits(ghoBalance, 18)) : 0;
+    const wghoAmount = wghoBalance ? parseFloat(formatUnits(wghoBalance, 18)) : 0;
+    const ghoAmount = ghoBalance ? parseFloat(formatUnits(ghoBalance.value, 18)) : 0;
     const ghoLensAmount = ghoBalanceLensAccount ? parseFloat(formatUnits(ghoBalanceLensAccount, 18)) : 0;
     const bonsaiAmount = bonsaiBalance ? parseFloat(formatUnits(bonsaiBalance, 18)) : 0;
     const bonsaiLensAmount = bonsaiBalanceLensAccount ? parseFloat(formatUnits(bonsaiBalanceLensAccount, 18)) : 0;
@@ -100,12 +109,13 @@ export const Balance = () => {
     return {
       usdcFormatted: localizeNumber(usdcAmount, undefined, 2),
       ghoFormatted: localizeNumber(ghoAmount, undefined, 2),
+      wghoFormatted: localizeNumber(wghoAmount, undefined, 2),
       ghoLensFormatted: localizeNumber(ghoLensAmount, undefined, 2),
       bonsaiFormatted: kFormatter(bonsaiAmount, true),
       bonsaiLensFormatted: kFormatter(bonsaiLensAmount, true),
-      totalFormatted: kFormatter(usdcAmount + ghoAmount + ghoLensAmount), // TODO: need to get $ value for bonsai
+      totalFormatted: kFormatter(usdcAmount + wghoAmount + ghoAmount + ghoLensAmount), // TODO: need to get $ value for bonsai
     };
-  }, [usdcBalance, ghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
+  }, [usdcBalance, wghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
 
   const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget);
@@ -140,9 +150,9 @@ export const Balance = () => {
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-6">
-            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-8" />
-            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-4" />
-            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg relative z-10" />
+            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-8 z-20" />
+            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-4 z-10" />
+            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg relative" />
           </div>
           <span className="ml-2">${totalFormatted}</span>
         </div>
@@ -165,7 +175,9 @@ export const Balance = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-4">
-                        <h3 className="font-medium text-white/80">Lens Account</h3>
+                        <Tooltip message="Lens Account address - used for collecting posts" direction="top" classNames="z-100">
+                          <h3 className="font-medium text-white/80">Lens Account</h3>
+                        </Tooltip>
                         <span className="text-xs font-mono text-zinc-500">{truncateAddress(authenticatedProfile?.address || '')}</span>
                         <div className="relative">
                           <button
@@ -198,7 +210,7 @@ export const Balance = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
+                    <div className="p-3 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <img src="/bonsai.png" alt="bonsai" className="w-5 h-5 rounded-full" />
                         <span className="text-sm text-zinc-400">BONSAI</span>
@@ -223,7 +235,10 @@ export const Balance = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-4">
-                      <h3 className="font-medium text-white/80">Connected Wallet</h3>
+                      
+                      <Tooltip message="Connected wallet address - used for trading tokens" direction="top" classNames="z-100">
+                        <h3 className="font-medium text-white/80">Connected Wallet</h3>
+                      </Tooltip>
                       <span className="text-xs font-mono text-zinc-500">{truncateAddress(address || '')}</span>
                       <div className="relative">
                         <button
@@ -256,21 +271,35 @@ export const Balance = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
+                  <div className="p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <img src="/bonsai.png" alt="bonsai" className="w-5 h-5 rounded-full" />
                       <span className="text-sm text-zinc-400">BONSAI</span>
                     </div>
                     <p className="text-lg font-bold">{bonsaiFormatted}</p>
                   </div>
-                  <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
-                      <span className="text-sm text-zinc-400">GHO</span>
+                  <div className="p-3 rounded-md relative">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
+                        <span className="text-sm text-zinc-400">GHO</span>
+                      </div>
+                      <p className="text-lg font-bold">{ghoFormatted}</p>
                     </div>
-                    <p className="text-lg font-bold">{ghoFormatted}</p>
+                    {/* Thread line container */}
+                    <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
+                      {/* Curved corner */}
+                      <div className="absolute left-5 top-0 w-4 h-5 border-b-2 border-l-2 border-zinc-700 rounded-bl-[10px]" />
+                    </div>
+                    <div className="mt-2 pl-7 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img src="/gho.webp" alt="gho" className="w-4 h-4 rounded-full opacity-70" />
+                        <span className="text-xs text-zinc-500">Wrapped GHO</span>
+                      </div>
+                      <p className="text-sm font-medium text-zinc-400">{wghoFormatted}</p>
+                    </div>
                   </div>
-                  <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
+                  <div className="p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <img src="/usdc.png" alt="usdc" className="w-5 h-5 rounded-full" />
                       <span className="text-sm text-zinc-400">USDC (Base)</span>

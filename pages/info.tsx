@@ -157,7 +157,7 @@ const Help = () => {
                           <Disclosure.Panel className="p-2">
                             <p className="text-lg text-secondary">The most consumer-friendly token launchpad, with a focus on crypto social and agentic integrations</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
-                              <li>Bonding curves are priced in USDC for easier fiat onramp</li>
+                              <li>Bonding curves are priced in USDC/Wrapped GHO for easier fiat onramp</li>
                               <li>Sniper protection through early flat pricing and creator-defined vesting</li>
                               <li>Value accrual for $BONSAI holders: graduated tokens are paired with $BONSAI</li>
                               <li>Utility for Bonsai NFT holders: no trading fees on bonding curves and tokens that graduate to Uniswap v4</li>
@@ -170,9 +170,10 @@ const Help = () => {
                             </ul>
                             <p className="text-lg text-secondary pt-8">Trading tokens</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
+                              <li>Tokens are traded in USDC on Base and Wrapped GHO on Lens.</li>
                               <li>The first 200 million tokens are sold at a flat price. After that, the price is set by the bonding curve formula</li>
                               <li>The price increases along the curve until 800m tokens in total have been sold (~21k USDC in liquidity raised)</li>
-                              <li>The USDC is swapped into $BONSAI and paired with 200m newly minted tokens on Uniswap v4 for a total supply of 1 billion tokens</li>
+                              <li>The USDC/WGHO is swapped into $BONSAI and paired with 200m newly minted tokens on Uniswap v4 for a total supply of 1 billion tokens</li>
                             </ul>
                             <p className="text-lg text-secondary pt-8">
                               Creating from the{" "}
@@ -241,6 +242,12 @@ const Help = () => {
                               <li>Create a post in the /bonsai club and tag our agent @bons_ai to create a token (example: "hey @bons_ai create $BLONDE for the all the blondes out there" + attach an image)</li>
                               <li>Share a token link in a post to share a "Copy Trade" component that earns you referral fees</li>
                               <li>Token lists and social charts</li>
+                            </ul>
+                            <p className="text-lg text-secondary pt-8">Lens Wallet</p>
+                            <ul className="list-disc pl-5 mt-4 text-lg/70">
+                              <li>Your Lens account is a smart account that has its own wallet. In order to collect posts you needs $BONSAI in your Lens wallet.</li>
+                              <li>Collected posts are stored on the wallet that owns the Lens account. This is most likely your connected wallet.</li>
+                              <li>Token trading is done from your connected wallet.</li>
                             </ul>
                           </Disclosure.Panel>
                         </DisclosurePanelWithTransition>
