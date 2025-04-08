@@ -20,6 +20,11 @@ class MyDocument extends Document {
             rel="stylesheet"
             type="text/css"
           />
+          
+          {/* Base OpenGraph Meta Tags */}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="Bonsai Smart Media" />
+          <meta property="og:locale" content="en_US" />
         </Head>
         <body>
           <Main />
