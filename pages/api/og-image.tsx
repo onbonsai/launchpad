@@ -41,13 +41,13 @@ export default async function handler(req: NextRequest) {
     if (pubId) {
       let post = await getPost(pubId);
       // @ts-ignore
-      imageUrl = post?.metadata?.image?.item || "";
-      profileImageUrl = post?.author?.metadata?.picture;
-      handle = post?.author?.username?.localName || "";
+      imageUrl = post?.metadata?.image?.item || imageUrl;
+      profileImageUrl = post?.author?.metadata?.picture || profileImageUrl;
+      handle = post?.author?.username?.localName || handle;
     } else if (handle) {
       const profile = await getProfileByHandle(handle);
-      profileImageUrl = profile?.metadata?.picture || "";
-      imageUrl = profile?.metadata?.coverPicture || "";
+      profileImageUrl = profile?.metadata?.picture || profileImageUrl;
+      imageUrl = profile?.metadata?.coverPicture || imageUrl;
     }
 
     if (imageUrl.startsWith("ipfs")) {
