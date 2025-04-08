@@ -270,7 +270,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                         </div>
 
                         {/* Add the FollowersYouKnow component */}
-                        {!isLoadingFollowers && followersYouKnow.length > 0 && (
+                        {!isProfileAdmin && !isLoadingFollowers && followersYouKnow.length > 0 && (
                           <FollowersYouKnow
                             followers={followersYouKnow}
                             className="mt-2"
