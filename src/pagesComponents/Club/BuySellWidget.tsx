@@ -1,6 +1,6 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
+import { useAccount, useWalletClient, useSwitchChain, useBalance } from "wagmi";
 import { formatUnits, parseEther, parseUnits } from "viem";
 import toast from "react-hot-toast";
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -23,6 +23,8 @@ import {
   approveToken,
   MAX_MINTABLE_SUPPLY,
   WGHO_CONTRACT_ADDRESS,
+  WGHO_ABI,
+  publicClient,
 } from "@src/services/madfi/moneyClubs";
 import { SITE_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
@@ -30,7 +32,11 @@ import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
-import { getChain, lens } from "@src/services/madfi/utils";
+import { getChain, IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
+import { bigDecimal } from "@lens-protocol/client";
+import { wrapTokens } from "@lens-protocol/client/actions";
+import { resumeSession } from "@src/hooks/useLensLogin";
+import { handleOperationWith } from "@lens-protocol/client/viem";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -57,6 +63,16 @@ export const BuySellWidget = ({
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
+    // GHO Balance
+    const { data: ghoBalance } = useBalance({
+      address,
+      chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
+      query: {
+        enabled: club.chain === "lens",
+        refetchInterval: 10000,
+      }
+    })
+
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
     initialPrice: club.initialPrice,
@@ -69,7 +85,20 @@ export const BuySellWidget = ({
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
-  const notEnoughFunds = parseUnits(buyPrice || '0', _DECIMALS) > (tokenBalance || 0n)
+  const notEnoughFunds = useMemo(() => {
+    const requiredAmount = parseUnits(buyPrice || '0', _DECIMALS);
+    const currentWGHOBalance = tokenBalance || 0n;
+    
+    if (club.chain === "lens") {
+      // For Lens chain, consider both GHO and WGHO balances
+      const ghoBalanceInWei = ghoBalance?.value || 0n;
+      const totalAvailableBalance = currentWGHOBalance + ghoBalanceInWei;
+      return requiredAmount > totalAvailableBalance;
+    }
+    
+    // For other chains, just check USDC balance as before
+    return requiredAmount > currentWGHOBalance;
+  }, [buyPrice, tokenBalance, ghoBalance?.value, club.chain, _DECIMALS]);
 
   const sellPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(sellPriceAfterFees || 0n, _DECIMALS)), 4)
@@ -109,6 +138,41 @@ export const BuySellWidget = ({
       const maxPrice = buyPriceBigInt * BigInt(105) / BigInt(100) // 5% slippage allowed
       const quoteTokenAddress = club.chain === "lens" ? WGHO_CONTRACT_ADDRESS : USDC_CONTRACT_ADDRESS;
       // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
+
+      if (club.chain === "lens") {
+        // Calculate how much WGHO we need for the transaction
+        const requiredAmount = parseUnits(buyPrice, _DECIMALS);
+        const currentWGHOBalance = tokenBalance || 0n;
+        
+        // If we don't have enough WGHO
+        if (currentWGHOBalance < requiredAmount) {
+          // Calculate how much more WGHO we need
+          const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
+          
+          // Check if user has enough GHO to wrap
+          const ghoBalanceInWei = ghoBalance?.value || 0n;
+          if (ghoBalanceInWei < additionalWGHONeeded) {
+            toast.error("Insufficient GHO balance");
+            setIsBuying(false);
+            return;
+          }
+
+          // Wrap the required amount
+          console.log("Wrapping GHO:", formatUnits(additionalWGHONeeded, _DECIMALS));
+          toast.loading("Wrapping GHO...");
+          // Call the deposit function on the WGHO contract
+          const hash = await walletClient!.writeContract({
+            address: WGHO_CONTRACT_ADDRESS,
+            abi: WGHO_ABI,
+            functionName: 'deposit',
+            args: [],
+            value: additionalWGHONeeded,
+          });
+    
+          await publicClient("lens").waitForTransactionReceipt({ hash });
+        }
+      }
+
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });

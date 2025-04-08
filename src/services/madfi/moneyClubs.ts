@@ -1556,3 +1556,26 @@ export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, 
 
   return data.trader;
 }
+
+// WGHO ABI for the deposit function
+export const WGHO_ABI = [
+  {
+    inputs: [],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "wad",
+        type: "uint256"
+      }
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
