@@ -333,6 +333,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                                 onClick={submitComment}
                                 variant="accentBrand"
                                 size="sm"
+                                className="!py-[12px]"
                               >
                                 Reply
                               </Button>

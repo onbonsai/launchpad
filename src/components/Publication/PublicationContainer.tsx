@@ -253,7 +253,6 @@ const PublicationContainer = ({
   }
 
   const onCollect = async () => {
-    setIsCollecting(true);
     let toastId;
     try {
       toastId = toast.loading("Collecting post...");
@@ -261,13 +260,16 @@ const PublicationContainer = ({
       if (LENS_CHAIN_ID !== chain?.id && switchChain) {
         try {
           await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
-        } catch {
+        } catch (error) {
+          console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
           return;
         }
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
+
+      setIsCollecting(true);
 
       const collected = await collectPost(
         sessionClient,
