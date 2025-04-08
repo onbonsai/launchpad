@@ -197,6 +197,7 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
         handleSubmit={handleSubmit}
         setUserInput={setUserInput}
         disabled={isLoading || !isConnected}
+        chatEnabled={true}
         attachment={attachment}
         setAttachment={setAttachment}
         requireBonsaiPayment={requireBonsaiPayment}

@@ -159,7 +159,7 @@ export default function ChatInput({
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-20"
+                className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
                 placeholder={"What's on your mind?"}
                 disabled={disabled}
               />
