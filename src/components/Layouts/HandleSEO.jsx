@@ -37,25 +37,24 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={`${SITE_URL}/profile/${handle}`} />
-        <meta property="og:type" content="profile" />
-        <meta property="og:image" content={absoluteImageUrl} />
-        <meta property="og:image:secure_url" content={absoluteImageUrl} />
-        <meta property="og:image:alt" content={`${handle}'s profile picture`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:site_name" content="Bonsai Smart Media" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@onbonsai" />
-        <meta name="twitter:creator" content="@onbonsai" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={absoluteImageUrl} />
-        <meta name="twitter:image:alt" content={`${handle}'s profile picture`} />
+        <meta name="title" property="og:title" content={title} />
+        <meta name="description" property="og:description" content={description} />
+        <meta name="url" property="og:url" content={`${SITE_URL}/profile/${handle}`} />
+        <meta name="type" property="og:type" content="profile" />
+        <meta name="image" property="og:image" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:alt" content={`${handle}'s profile picture`} />
+        <meta name="image" property="og:image:width" content="1200" />
+        <meta name="image" property="og:image:height" content="630" />
+        <meta name="locale" property="og:locale" content="en_US" />
+        <meta name="site_name" property="og:site_name" content="Bonsai Smart Media" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:site" content="@onbonsai" />
+        <meta property="twitter:creator" content="@onbonsai" />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+        <meta property="twitter:image" content={absoluteImageUrl} />
+        <meta property="twitter:image:alt" content={`${handle}'s profile picture`} />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -77,25 +76,24 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={`${SITE_URL}/post/${pubId}`} />
-        <meta property="og:type" content="article" />
-        <meta property="og:image" content={absoluteImageUrl} />
-        <meta property="og:image:secure_url" content={absoluteImageUrl} />
-        <meta property="og:image:alt" content="Post image" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:site_name" content="Bonsai Smart Media" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@onbonsai" />
-        <meta name="twitter:creator" content="@onbonsai" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={absoluteImageUrl} />
-        <meta name="twitter:image:alt" content="Post image" />
+        <meta name="title" property="og:title" content={title} />
+        <meta name="description" property="og:description" content={description} />
+        <meta name="url" property="og:url" content={`${SITE_URL}/post/${pubId}`} />
+        <meta name="type" property="og:type" content="article" />
+        <meta name="image" property="og:image" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:alt" content="Post image" />
+        <meta name="image" property="og:image:width" content="1200" />
+        <meta name="image" property="og:image:height" content="630" />
+        <meta name="locale" property="og:locale" content="en_US" />
+        <meta name="site_name" property="og:site_name" content="Bonsai Smart Media" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:site" content="@onbonsai" />
+        <meta property="twitter:creator" content="@onbonsai" />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+        <meta property="twitter:image" content={absoluteImageUrl} />
+        <meta property="twitter:image:alt" content="Post image" />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -117,25 +115,24 @@ const HandleSEO = ({ pageProps }) => {
     return (
       <Head>
         <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={`${SITE_URL}/token/${club.clubId}`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content={absoluteImageUrl} />
-        <meta property="og:image:secure_url" content={absoluteImageUrl} />
-        <meta property="og:image:alt" content={`${club.token.name} token image`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:site_name" content="Bonsai Smart Media" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@onbonsai" />
-        <meta name="twitter:creator" content="@onbonsai" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={absoluteImageUrl} />
-        <meta name="twitter:image:alt" content={`${club.token.name} token image`} />
+        <meta name="title" property="og:title" content={title} />
+        <meta name="description" property="og:description" content={description} />
+        <meta name="url" property="og:url" content={`${SITE_URL}/token/${club.clubId}`} />
+        <meta name="type" property="og:type" content="website" />
+        <meta name="image" property="og:image" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:secure_url" content={absoluteImageUrl} />
+        <meta name="image" property="og:image:alt" content={`${club.token.name} token image`} />
+        <meta name="image" property="og:image:width" content="1200" />
+        <meta name="image" property="og:image:height" content="630" />
+        <meta name="locale" property="og:locale" content="en_US" />
+        <meta name="site_name" property="og:site_name" content="Bonsai Smart Media" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:site" content="@onbonsai" />
+        <meta property="twitter:creator" content="@onbonsai" />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+        <meta property="twitter:image" content={absoluteImageUrl} />
+        <meta property="twitter:image:alt" content={`${club.token.name} token image`} />
         <meta name="theme-color" content="#141414" />
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -148,25 +145,24 @@ const HandleSEO = ({ pageProps }) => {
   return (
     <Head>
       <title>Bonsai</title>
-      <meta name="description" content={description} />
-      <meta property="og:title" content="Bonsai" />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={SITE_URL} />
-      <meta property="og:type" content="website" />
-      <meta property="og:image" content={defaultImageUrl} />
-      <meta property="og:image:secure_url" content={defaultImageUrl} />
-      <meta property="og:image:alt" content="Bonsai Smart Media" />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:locale" content="en_US" />
-      <meta property="og:site_name" content="Bonsai Smart Media" />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@onbonsai" />
-      <meta name="twitter:creator" content="@onbonsai" />
-      <meta name="twitter:title" content="Bonsai" />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={defaultImageUrl} />
-      <meta name="twitter:image:alt" content="Bonsai Smart Media" />
+      <meta name="title" property="og:title" content="Bonsai" />
+      <meta name="description" property="og:description" content={description} />
+      <meta name="url" property="og:url" content={SITE_URL} />
+      <meta name="type" property="og:type" content="website" />
+      <meta name="image" property="og:image" content={defaultImageUrl} />
+      <meta name="image" property="og:image:secure_url" content={defaultImageUrl} />
+      <meta name="image" property="og:image:alt" content="Bonsai Smart Media" />
+      <meta name="image" property="og:image:width" content="1200" />
+      <meta name="image" property="og:image:height" content="630" />
+      <meta name="locale" property="og:locale" content="en_US" />
+      <meta name="site_name" property="og:site_name" content="Bonsai Smart Media" />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:site" content="@onbonsai" />
+      <meta property="twitter:creator" content="@onbonsai" />
+      <meta property="twitter:title" content="Bonsai" />
+      <meta property="twitter:description" content={description} />
+      <meta property="twitter:image" content={defaultImageUrl} />
+      <meta property="twitter:image:alt" content="Bonsai Smart Media" />
       <meta name="theme-color" content="#141414" />
       <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
     </Head>
