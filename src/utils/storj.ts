@@ -74,4 +74,4 @@ export const getViaStorjGateway = async (uriOrHash: string) => {
   return data;
 };
 
-export const storjGatewayURL = (uriOrHash: string) => `${STORJ_API_URL}/ipfs/${_hash(uriOrHash)}`;
+export const storjGatewayURL = (uriOrHash: string, useDefault = false) => `${useDefault ?  "https://ipfs.io" : STORJ_API_URL}/ipfs/${_hash(uriOrHash)}`;

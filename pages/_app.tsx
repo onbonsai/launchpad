@@ -108,7 +108,7 @@ export default function MyApp(props: AppProps) {
                 </ToastBar>
               )}
             </Toaster>
-            <NextNProgress color={"#7B0100"} height={2} />
+            <NextNProgress color="#4D7F79" height={2} />
             <AppLayout>
               <BoxThemeProvider theme={boxTheme}>
                 <Component {...pageProps} />

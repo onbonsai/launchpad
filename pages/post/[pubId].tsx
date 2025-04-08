@@ -29,6 +29,7 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 import WidgetButton from "@pagesComponents/ChatWindow/components/WidgetButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
+import { SITE_URL } from "@src/constants/constants";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -402,9 +403,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
+      title: `Post by ${post?.author.username.localName}`,
+      description: post?.metadata?.content.slice(0, 155),
+      image: `${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`,
       pageName: "singlePublication",
       media: media,
-      image: image,
+      // image: image,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       pubId,

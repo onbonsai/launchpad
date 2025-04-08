@@ -24,7 +24,7 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
               className="relative rounded-full border-2 border-background overflow-hidden w-8 h-8"
             >
               <Image
-                src={getProfileImage(follower.follower.metadata?.picture) || '/default-avatar.png'}
+                src={getProfileImage(follower.follower) || '/default-avatar.png'}
                 alt={follower.follower.username?.localName || 'follower'}
                 width={32}
                 height={32}

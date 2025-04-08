@@ -119,7 +119,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
   const { followers: followersYouKnow, isLoading: isLoadingFollowers } = useFollowersYouKnow(
     authenticatedProfile?.address || '',
-    profile?.owner || ''
+    profile?.address || ''
   );
 
   if (!isMounted) return null;
@@ -143,7 +143,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     // if (isFarcasterProfile(profile)) {
     //   return profile.profileImage;
     // }
-    return getProfileImage(profile.metadata?.picture)
+    return getProfileImage(profile)
   };
 
   const coverImage = () => {
@@ -270,7 +270,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                         </div>
 
                         {/* Add the FollowersYouKnow component */}
-                        {!isLoadingFollowers && followersYouKnow.length > 0 && (
+                        {!isProfileAdmin && !isLoadingFollowers && followersYouKnow.length > 0 && (
                           <FollowersYouKnow
                             followers={followersYouKnow}
                             className="mt-2"
@@ -380,6 +380,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         return {
           props: {
+            title: `Profile of ${handle}`,
+            description: `Profile of ${handle}`,
+            image: `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`,
             profile,
             accountStats,
             type: "lens",

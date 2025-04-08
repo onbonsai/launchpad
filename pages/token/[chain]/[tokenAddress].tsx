@@ -29,6 +29,7 @@ import { capitalizeFirstLetter } from '@src/utils/utils';
 import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
+import { SITE_URL } from '@src/constants/constants';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
@@ -519,6 +520,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
+      title: `${club.token.name} (${club.token.symbol})`,
+      description: `Buy ${club.token.symbol} on Bonsai`,
+      image: `${SITE_URL}/api/og-image?image=${encodeURIComponent(club.token.image)}`,
       pageName: "token",
       club,
       profile: { id: club.profileId || "", ownedBy: club.creator },

@@ -28,19 +28,20 @@ import {
   setLensData,
 } from "@src/services/madfi/moneyClubs";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
-import { pinFile, storjGatewayURL, pinJson } from "@src/utils/storj";
 import { SITE_URL } from "@src/constants/constants";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
 import BondingCurveSelector from "./BondingCurveSelector";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { createPost } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { SessionClient } from "@lens-protocol/client";
+import { immutable } from "@lens-chain/storage-client";
+import { storageClient } from "@src/services/lens/client";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -171,7 +172,7 @@ export const RegisterClubModal = ({
       }
 
       toastId = toast.loading("Creating token...");
-      const _tokenImage = storjGatewayURL(await pinFile(tokenImage[0]));
+      const { gatewayUrl: _tokenImage } = await storageClient.uploadFile(tokenImage[0], { acl: immutable(LENS_CHAIN_ID) });
 
       const { clubId, txHash, tokenAddress } = await registerClubTransaction(walletClient, {
         initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
