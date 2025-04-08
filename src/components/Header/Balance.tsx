@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
+import { useMemo, useState } from "react";
+import { useAccount, useBalance, useReadContract, useSwitchChain, useWalletClient } from "wagmi";
 import { formatUnits, erc20Abi } from "viem";
 import clsx from "clsx";
 import {
@@ -7,10 +7,11 @@ import {
   CONTRACT_CHAIN_ID,
   USDC_CONTRACT_ADDRESS,
   WGHO_CONTRACT_ADDRESS,
-  DECIMALS,
+  WGHO_ABI,
+  publicClient
 } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from "@src/constants/utils";
-import { IS_PRODUCTION, lens, LENS_CHAIN_ID, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getChain, IS_PRODUCTION, lens, LENS_CHAIN_ID, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { kFormatter } from "@src/utils/utils";
 import { brandFont } from "@src/fonts/fonts";
 import Popper from '@mui/material/Popper';
@@ -18,14 +19,18 @@ import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { Tooltip } from "@src/components/Tooltip";
-import { InformationCircleIcon } from "@heroicons/react/solid";
+import toast from "react-hot-toast";
+import { waitForTransactionReceipt } from "viem/actions";
+import { configureChainsConfig } from "@src/utils/wagmi";
 
 export const Balance = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
+  const [isUnwrapping, setIsUnwrapping] = useState(false);
+  const { switchChain } = useSwitchChain();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
@@ -40,11 +45,11 @@ export const Balance = () => {
     },
   });
 
-    // GHO Balance
-    const { data: ghoBalance } = useBalance({
-      address,
-      chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
-    })
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
+  })
 
   // WGHO Balance
   const { data: wghoBalance } = useReadContract({
@@ -133,6 +138,48 @@ export const Balance = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const handleUnwrapGHO = async () => {
+    if (!wghoBalance || wghoBalance === 0n) {
+      toast.error("No WGHO to unwrap");
+      return;
+    }
+    
+    setIsUnwrapping(true);
+    let toastId: string | undefined;
+    try {
+      const targetChainId = getChain("lens").id;
+      if (chainId !== targetChainId) {
+        try {
+          console.log('switching to', targetChainId);
+          switchChain({ chainId: targetChainId });
+        } catch {
+          toast.error("Please switch networks");
+          setIsUnwrapping(false);
+          return;
+        }
+      }
+      
+      toastId = toast.loading("Unwrapping GHO...");
+      
+      // Call the withdraw function on the WGHO contract
+      const hash = await walletClient!.writeContract({
+        address: WGHO_CONTRACT_ADDRESS,
+        abi: WGHO_ABI,
+        functionName: 'withdraw',
+        args: [wghoBalance],
+      });
+      
+      await publicClient("lens").waitForTransactionReceipt({ hash });
+      
+      toast.success("Successfully unwrapped GHO", { id: toastId });
+    } catch (error) {
+      console.error("Error unwrapping GHO:", error);
+      toast.error("Failed to unwrap GHO", { id: toastId });
+    } finally {
+      setIsUnwrapping(false);
+    }
   };
 
   // TODO: fetch bonsai token price from lens
@@ -291,12 +338,27 @@ export const Balance = () => {
                       {/* Curved corner */}
                       <div className="absolute left-5 top-0 w-4 h-5 border-b-2 border-l-2 border-zinc-700 rounded-bl-[10px]" />
                     </div>
-                    <div className="mt-2 pl-7 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <img src="/gho.webp" alt="gho" className="w-4 h-4 rounded-full opacity-70" />
-                        <span className="text-xs text-zinc-500">Wrapped GHO</span>
+                    <div className="mt-2 pl-7 flex flex-col group relative">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <img src="/gho.webp" alt="gho" className="w-4 h-4 rounded-full opacity-70" />
+                          <span className="text-zinc-500">Wrapped GHO</span>
+                        </div>
+                        <div className="relative">
+                          <p className="text-sm font-medium text-zinc-400 group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
+                          <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="accent" 
+                              size="xs"
+                              onClick={handleUnwrapGHO}
+                              disabled={isUnwrapping || wghoBalance === 0n}
+                              className="text-xs -mt-3"
+                            >
+                              {isUnwrapping ? "Unwrapping..." : "Unwrap"}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-medium text-zinc-400">{wghoFormatted}</p>
                     </div>
                   </div>
                   <div className="p-3 rounded-md flex items-center justify-between">
