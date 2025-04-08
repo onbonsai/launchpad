@@ -1,6 +1,7 @@
-import { Account } from "@lens-protocol/client";
+import { Account, SessionClient } from "@lens-protocol/client";
 import { getProfileByHandle } from "../lens/getProfiles";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL || "https://eliza-staging-terminal.onbons.ai"; // client-bonsai-terminal
 export const GLOBAL_AGENT_ID = "c3bd776c-4465-037f-9c7a-bf94dfba78d9"; // Sage
@@ -10,14 +11,12 @@ export interface AgentInfo {
   account?: Account,
   agentId: string;
 };
-
 export const getAgentInfo = async (agentId: string): Promise<AgentInfo | undefined> => {
   try {
     const response = await fetch(`${TERMINAL_API_URL}/agent/${agentId}/info`);
     const info = await response.json();
 
     let account;
-    console.log(info.account.username);
     if (!!info.account?.username) {
       account = await getProfileByHandle(info.account.username);
     }
@@ -39,14 +38,170 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   });
 };
 
-export const useGetMessages = (postId?: string): UseQueryResult<AgentInfo, Error> => {
+export const useGetMessages = (postId?: string): UseQueryResult<Memory[] , Error> => {
   return useQuery({
     queryKey: ["agent-messages", postId],
     queryFn: async () => {
-      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages`, { cache: 'no-cache' });
+      const idToken = await _getIdToken();
+      if (!idToken) return [];
+
+      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer: ${idToken}`
+        },
+      });
+      if (!response.ok) {
+        console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
+        return [];
+      }
       const info = await response.json();
       const { messages } = info;
-      console.log(messages);
+      return messages;
     },
+    enabled: !!postId
   });
 };
+
+type MessageResponse = {
+  text: string
+  action: string
+  attachments: any
+}
+interface SendMessageProps {
+  agentId: string
+  input: string
+  conversationId?: string
+  payload: any
+  imageURL?: string
+}
+export const sendMessage = async ({
+  agentId,
+  input,
+  conversationId,
+  payload,
+  imageURL
+}: SendMessageProps): Promise<MessageResponse | undefined> => {
+  const idToken = await _getIdToken();
+  if (!idToken) return;
+
+  const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer: ${idToken}`
+    },
+    body: JSON.stringify({
+      text: input,
+      roomId: conversationId,
+      payload,
+      imageURL
+    }),
+  });
+
+  if (!response.ok) {
+    console.log(`ERROR terminal:: sendMessage: ${ response.status } - ${ response.statusText }`);
+    return;
+  }
+
+  const data = await response.json();
+  return data[0];
+}
+
+const _getIdToken = async (): Promise<string | undefined> => {
+  const sessionClient = await resumeSession(true);
+
+  if (!sessionClient) {
+    return;
+  } else {
+    const creds = await(sessionClient as SessionClient).getCredentials();
+
+    if (creds.isOk()) {
+      return creds.value?.idToken;
+    }
+  }
+}
+
+/**
+ * Represents a media attachment
+ */
+export type Media = {
+  /** Unique identifier */
+  id: string;
+
+  /** Media URL */
+  url: string;
+
+  /** Media title */
+  title: string;
+
+  /** Media source */
+  source: string;
+
+  /** Media description */
+  description: string;
+
+  /** Text content */
+  text: string;
+
+  /** Content type */
+  contentType?: string;
+};
+
+/**
+ * Represents the content of a message or communication
+ */
+export interface Content {
+  /** The main text content */
+  text: string;
+
+  /** Optional action associated with the message */
+  action?: string;
+
+  /** Optional source/origin of the content */
+  source?: string;
+
+  /** URL of the original message/post (e.g. tweet URL, Discord message link) */
+  url?: string;
+
+  /** UUID of parent message if this is a reply/thread */
+  inReplyTo?: string;
+
+  /** Array of media attachments */
+  attachments?: Media[];
+
+  /** Additional dynamic properties */
+  [key: string]: unknown;
+}
+
+/**
+ * Represents a stored memory/message
+ */
+export interface Memory {
+  /** Optional unique identifier */
+  id?: string;
+
+  /** Associated user ID */
+  userId: string;
+
+  /** Associated agent ID */
+  agentId: string;
+
+  /** Optional creation timestamp */
+  createdAt?: number;
+
+  /** Memory content */
+  content: Content;
+
+  /** Optional embedding vector */
+  embedding?: number[];
+
+  /** Associated room ID */
+  roomId: string;
+
+  /** Whether memory is unique */
+  unique?: boolean;
+
+  /** Embedding similarity score */
+  similarity?: number;
+}

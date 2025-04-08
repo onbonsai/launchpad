@@ -1,9 +1,7 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import { TERMINAL_API_URL } from '@src/services/madfi/terminal';
+import { TERMINAL_API_URL, sendMessage } from '@src/services/madfi/terminal';
 import { AgentMessage } from '../types';
-import { resumeSession } from '@src/hooks/useLensLogin';
-import { SessionClient } from '@lens-protocol/client';
 
 type UseChatResponse = {
   messages?: AgentMessage[];
@@ -81,40 +79,9 @@ export default function useChat({
       setIsThinking(true);
 
       try {
-        let idToken;
-
-        const sessionClient = await resumeSession(true);
-        if (!sessionClient) {
-          return;
-        } else {
-          const creds = await (sessionClient as SessionClient).getCredentials();
-          if (creds.isOk()) {
-            idToken = creds.value?.idToken;
-          } else {
-            return;
-          }
-        }
-        const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer: ${idToken}`
-          },
-          body: JSON.stringify({
-            text: input,
-            roomId: conversationId,
-            userId,
-            payload,
-            imageURL
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const { text, action, attachments } = data[0];
+        const res = await sendMessage({ agentId, input, payload, imageURL });
+        if (!res) throw new Error("no response");
+        const { action, text, attachments } = res;
 
         if (action === "NONE" || action === "CONTINUE") {
           setIsThinking(false);

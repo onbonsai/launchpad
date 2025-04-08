@@ -23,7 +23,7 @@ function PremadeChatInput({ label, setUserInput, input, disabled, setRequirement
         setUserInput(input);
         if (setRequirement) setRequirement();
       }}
-      className={`whitespace-nowrap rounded-[10px] bg-backgroundAccent px-[10px] py-1 text-start text-[#ffffff] text-[16px] leading-tight transition-colors hover:bg-zinc-900 hover:text-[#e5e7eb] ${disabled ? 'cursor-not-allowed bg-[#ffffff] opacity-50' : ''}`}
+      className={`whitespace-nowrap rounded-lg bg-card-light px-3 py-2 text-start text-white/80 text-[14px] tracking-[-0.02em] leading-5 transition-colors hover:bg-dark-grey/80 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       {label}
     </button>
@@ -54,7 +54,7 @@ function AttachmentButton({ attachment, setAttachment }) {
         <button
           type="button"
           onClick={() => setAttachment(undefined)}
-          className="flex justify-between items-center rounded-[10px] p-2 transition-colors bg-[#D00A59] text-white hover:bg-opacity-80"
+          className="flex justify-between items-center rounded-[10px] px-2 py-1 transition-colors bg-[#D00A59] text-white hover:bg-opacity-80"
         >
           <span>{attachment.name}</span>
           <span className="ml-2">x</span>
@@ -94,6 +94,7 @@ export type ChatInputProps = {
   setAttachment: (file?: File) => void;
   requireBonsaiPayment?: number;
   setRequireBonsaiPayment: (amount?: number) => void;
+  showSuggestions?: boolean;
 };
 
 export default function ChatInput({
@@ -107,6 +108,7 @@ export default function ChatInput({
   setAttachment,
   requireBonsaiPayment,
   setRequireBonsaiPayment,
+  showSuggestions,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
@@ -190,6 +192,32 @@ export default function ChatInput({
                     <PaySvg />
                     <span className="ml-2">Pay {requireBonsaiPayment} $BONSAI</span>
                   </button>
+                )}
+              </div>
+            </div>
+            <div className='flex flex-row justify-between mt-2'>
+              <div className='flex space-x-1 overflow-x-auto mr-2'>
+                {!userInput && showSuggestions && (
+                  <>
+                    <PremadeChatInput
+                      setUserInput={disabled ? () => { } : setUserInput}
+                      label="About"
+                      input="What is this post about?"
+                      disabled={disabled}
+                    />
+                    <PremadeChatInput
+                      setUserInput={disabled ? () => { } : setUserInput}
+                      label="Commentary"
+                      input="What is the sentiment in the comments?"
+                      disabled={disabled}
+                    />
+                    <PremadeChatInput
+                      setUserInput={disabled ? () => { } : setUserInput}
+                      label="Author"
+                      input="Who made this post?"
+                      disabled={disabled}
+                    />
+                  </>
                 )}
               </div>
             </div>

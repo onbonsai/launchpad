@@ -30,7 +30,7 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed md:bottom-6 md:right-6 bottom-2 right-2 z-50 flex flex-col items-end">
       {/* Chat Window Container - Styling adapted from Balance.tsx / Chat.tsx */}
       <div
         className={clsx(
@@ -56,7 +56,7 @@ export default function WidgetButton({ children, agentInfo }: { children: React.
         </div>
 
         {/* Chat Content Area - Render children (Chat component) here */}
-        <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: "400px" }}>
+        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2" style={{ maxHeight: "400px" }}>
           {isOpen && children}
         </div>
 
