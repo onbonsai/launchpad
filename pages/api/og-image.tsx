@@ -84,6 +84,10 @@ export default async function handler(req: NextRequest) {
             src={imageUrl}
             style={{
               objectFit: "cover",
+              ...(pubId && truncatedContent ? {
+                filter: "brightness(0.8)",
+                opacity: 0.9
+              } : {})
             }}
           />
           {profileImageUrl && (
@@ -110,7 +114,7 @@ export default async function handler(req: NextRequest) {
               {handle && (
                 <p
                   style={{
-                    fontSize: 48,
+                    fontSize: 64,
                     fontWeight: "900",
                     color: "white",
                     textShadow: "0 2px 4px rgba(0,0,0,0.5)",
@@ -119,7 +123,7 @@ export default async function handler(req: NextRequest) {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
-                    top: 20,
+                    top: 30,
                     left: 230,
                     position: "absolute",
                   }}
@@ -138,13 +142,11 @@ export default async function handler(req: NextRequest) {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                // width: "80%",
                 textAlign: "center",
-                // backgroundColor: "rgba(0, 0, 0, 0.6)",
                 padding: "20px 30px",
                 borderRadius: "12px",
                 maxWidth: "1000px",
-                fontSize: 64,
+                fontSize: 58,
                 fontWeight: "700",
                 color: "white",
                 textShadow: "0 2px 4px rgba(0,0,0,0.5)",
