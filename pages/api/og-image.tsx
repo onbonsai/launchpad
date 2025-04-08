@@ -13,22 +13,22 @@ export const config = {
 const defaultImageUrl = "https://link.storjshare.io/raw/jw4ckl34kudmriswvjxz5n63keha/referrals/opengraph-image.jpg";
 
 const getPost = async (_postId: string) => {
-    try {
-      const result = await fetchPost(lensClient, {
-        post: postId(_postId),
-      });
-  
-      if (result.isErr()) {
-        return console.error(result.error);
-      }
-  
-      const post = result.value;
-      return post;
-    } catch (error) {
-      console.log(error);
-      return null;
+  try {
+    const result = await fetchPost(lensClient, {
+      post: postId(_postId),
+    });
+
+    if (result.isErr()) {
+      return console.error(result.error);
     }
-  };
+
+    const post = result.value;
+    return post;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
 
 export default async function handler(req: NextRequest) {
   try {
@@ -59,7 +59,6 @@ export default async function handler(req: NextRequest) {
     }
 
     // Create a dynamic image based on the parameters
-    // TODO: background image bad size
     return new ImageResponse(
       (
         <div
@@ -71,11 +70,16 @@ export default async function handler(req: NextRequest) {
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#141414",
-            backgroundImage: `url(${imageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
           }}
         >
+          <img
+            width="100%"
+            height="100%"
+            src={imageUrl}
+            style={{
+              objectFit: "cover",
+            }}
+          />
           {profileImageUrl && (
             <div
               style={{
