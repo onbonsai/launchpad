@@ -1,13 +1,34 @@
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
-import { getPost } from "@src/services/lens/posts";
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 import { storjGatewayURL } from "@src/utils/storj";
+import { SessionClient } from "@lens-protocol/client";
+import { lensClient } from "@src/services/lens/client";
+import { fetchPost } from "@lens-protocol/client/actions";
+import { postId } from "@lens-protocol/client";
 export const config = {
   runtime: "edge",
 };
 
 const defaultImageUrl = "https://link.storjshare.io/raw/jw4ckl34kudmriswvjxz5n63keha/referrals/opengraph-image.jpg";
+
+const getPost = async (_postId: string) => {
+    try {
+      const result = await fetchPost(lensClient, {
+        post: postId(_postId),
+      });
+  
+      if (result.isErr()) {
+        return console.error(result.error);
+      }
+  
+      const post = result.value;
+      return post;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  };
 
 export default async function handler(req: NextRequest) {
   try {
@@ -38,6 +59,7 @@ export default async function handler(req: NextRequest) {
     }
 
     // Create a dynamic image based on the parameters
+    // TODO: background image bad size
     return new ImageResponse(
       (
         <div
