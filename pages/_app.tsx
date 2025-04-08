@@ -78,46 +78,45 @@ export default function MyApp(props: AppProps) {
   }, [isSDKLoaded]);
 
   return (
-    <Web3Provider>
+    <>
       <HandleSEO pageProps={pageProps} />
-      <ThemeProvider>
-        <ClubsProvider>
-          <Head>
-            <meta name="viewport" content="initial-scale=1, width=device-width" />
-          </Head>
-          <HotkeysProvider>
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                  color: "white",
-                  fontFamily: brandFont.style.fontFamily,
-                  zIndex: 1001,
-                },
-              }}
-            >
-              {(t) => (
-                <ToastBar toast={t}>
-                  {({ icon, message }) => (
-                    <>
-                      {icon}
-                      {message}
-                    </>
-                  )}
-                </ToastBar>
-              )}
-            </Toaster>
-            <NextNProgress color="#4D7F79" height={2} />
-            <AppLayout>
-              <BoxThemeProvider theme={boxTheme}>
-                <Component {...pageProps} />
-              </BoxThemeProvider>
-            </AppLayout>
-            <Analytics />
-          </HotkeysProvider>
-        </ClubsProvider>
-      </ThemeProvider>
-    </Web3Provider>
+      <Web3Provider>
+        <ThemeProvider>
+          <ClubsProvider>
+            <HotkeysProvider>
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                    color: "white",
+                    fontFamily: brandFont.style.fontFamily,
+                    zIndex: 1001,
+                  },
+                }}
+              >
+                {(t) => (
+                  <ToastBar toast={t}>
+                    {({ icon, message }) => (
+                      <>
+                        {icon}
+                        {message}
+                      </>
+                    )}
+                  </ToastBar>
+                )}
+              </Toaster>
+              <NextNProgress color="#4D7F79" height={2} />
+              <AppLayout>
+                <BoxThemeProvider theme={boxTheme}>
+                  <Component {...pageProps} />
+                </BoxThemeProvider>
+              </AppLayout>
+              <Analytics />
+            </HotkeysProvider>
+          </ClubsProvider>
+        </ThemeProvider>
+      </Web3Provider>
+    </>
   );
 }

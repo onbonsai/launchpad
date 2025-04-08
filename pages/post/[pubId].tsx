@@ -26,6 +26,7 @@ import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 import Link from "next/link";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
+import { SITE_URL } from "@src/constants/constants";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -389,8 +390,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       pageName: "singlePublication",
-      media: media,
-      image: image,
+      media,
+      image,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       pubId,

@@ -29,6 +29,7 @@ import { capitalizeFirstLetter } from '@src/utils/utils';
 import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
+import { SITE_URL } from '@src/constants/constants';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 
