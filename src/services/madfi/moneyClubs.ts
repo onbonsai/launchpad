@@ -1528,9 +1528,9 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   }
 }
 
-export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {
+export const fetchTokenPrice = async (tokenAddress: string, chain = "base"): Promise<number> => {
   try {
-    const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}`, {
+    const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}&chain=${chain}`, {
       method: 'GET',
     });
 
