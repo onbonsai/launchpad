@@ -3,22 +3,26 @@ import { useAccount, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { formatEther } from "viem";
 import toast from "react-hot-toast";
-import { GiftIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
 import { Subtitle, Header2 } from "@src/styles/text";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetBonsaiClaim, claimTokensWithProof } from "@src/services/madfi/claim";
 import { configureChainsConfig } from "@src/utils/wagmi";
-import { kFormatter } from "@src/utils/utils";
 import { useModal } from "connectkit";
+import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
 export const ClaimBonsai = () => {
   const { chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated } = useLensSignIn(walletClient);
+  const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { setOpen } = useModal();
-  const { data: bonsaiClaim, isLoading, refetch } = useGetBonsaiClaim(walletClient, isAuthenticated);
+  const {
+    data: bonsaiClaim,
+    isLoading,
+    refetch
+  } = useGetBonsaiClaim(walletClient, isAuthenticated, authenticatedProfile?.address);
   const { proof, amount } = bonsaiClaim || {};
   const [showTooltip, setShowTooltip] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -57,18 +61,15 @@ export const ClaimBonsai = () => {
   }, [amount]);
 
   const claim = async () => {
-    setIsClaiming(true);
     let toastId;
 
     try {
-      toastId = toast.loading("Claiming", { id: toastId });
-
       if (chainId !== LENS_CHAIN_ID) {
         try {
           await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
           // toast("Please re-connect your wallet");
           // setOpen(true);
-          // return;
+          return;
         } catch {
           toast.error("Please switch networks");
           setIsClaiming(false);
@@ -76,10 +77,13 @@ export const ClaimBonsai = () => {
         }
       }
 
+      setIsClaiming(true);
+      toastId = toast.loading("Claiming", { id: toastId });
+
       const success = await claimTokensWithProof(
         walletClient,
-        proof.proof.split(","),
-        proof.accountAddress,
+        proof.proof.split("."),
+        authenticatedProfile?.address,
         proof.claimScoreBps
       );
 
@@ -117,6 +121,7 @@ export const ClaimBonsai = () => {
       </Button>
       {showTooltip && (
         <EarningsTooltip
+          chainId={chainId}
           isClaiming={isClaiming}
           amountFormatted={amountFormatted}
           claim={claim}
@@ -127,10 +132,12 @@ export const ClaimBonsai = () => {
 };
 
 const EarningsTooltip = ({
+  chainId,
   isClaiming,
   amountFormatted,
   claim,
 }: {
+  chainId?: number;
   isClaiming: boolean;
   amountFormatted: string;
   claim: () => Promise<void>;
@@ -156,7 +163,7 @@ const EarningsTooltip = ({
 
       <div className="pt-4 w-full">
         <Button variant="accent" className="w-full" onClick={claim} disabled={isClaiming}>
-          Claim
+          {chainId !== LENS_CHAIN_ID ? "Switch to Lens Chain" : "Claim"}
         </Button>
       </div>
     </div>

@@ -43,11 +43,6 @@
                 "internalType": "bytes32[]"
             },
             {
-                "name": "accountAddress",
-                "type": "address",
-                "internalType": "address"
-            },
-            {
                 "name": "claimScoreBbps",
                 "type": "uint16",
                 "internalType": "uint16"

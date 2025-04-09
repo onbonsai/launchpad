@@ -10,7 +10,6 @@ import { chains } from "@lens-chain/sdk/viem";
 const fetchClaimableAmount = async (
   walletClient: WalletClient,
   proof: string[],
-  accountAddress: `0x${string}`,
   claimScoreBps: string,
 ): Promise<bigint> => {
   const client = publicClient("lens");
@@ -19,11 +18,14 @@ const fetchClaimableAmount = async (
     address: PROTOCOL_DEPLOYMENT.lens.AccountTokenClaim as `0x${string}`,
     abi: AccountTokenClaimAbi,
     functionName: "claimableAmount",
-    args: [proof, accountAddress, claimScoreBps],
+    args: [proof, claimScoreBps],
   }) as bigint;
 }
 
-export const useGetBonsaiClaim = (walletClient?: WalletClient, isAuthenticated?: boolean): UseQueryResult<any, Error> => {
+export const useGetBonsaiClaim = (
+  walletClient?: WalletClient,
+  isAuthenticated?: boolean,
+): UseQueryResult<any, Error> => {
   return useQuery({
     queryKey: ["bonsai-claim", isAuthenticated],
     queryFn: async () => {
@@ -51,15 +53,14 @@ export const useGetBonsaiClaim = (walletClient?: WalletClient, isAuthenticated?:
       if (!!proof) {
         amount = await fetchClaimableAmount(
           walletClient,
-          proof.proof.split(","),
-          proof.accountAddress,
+          proof.proof.split("."),
           proof.claimScoreBps,
         );
       }
 
       return { proof, amount };
     },
-    enabled: !!walletClient && !!isAuthenticated
+    enabled: !!walletClient && isAuthenticated
   });
 };
 

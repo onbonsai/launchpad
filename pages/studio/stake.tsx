@@ -194,7 +194,7 @@ const TokenPage: NextPage = () => {
           // setOpen(true);
           return false;
         } catch {
-          toast.error("Please switch to Lens");
+          toast.error("Please switch to Lens Chain");
           return false;
         }
       }

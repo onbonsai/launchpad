@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import verifyIdToken from "@src/services/lens/verifyIdToken";
 import { getClientWithBonsaiClaim } from "@src/services/mongo/client";
-import { getAddress } from "viem";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -12,10 +11,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const user = await verifyIdToken(token);
     let record;
     if (!!user) {
-      const accountAddress = getAddress(user.act?.sub as `0x${string}`);
+      const address = (user.sub as `0x${string}`).toLowerCase();
       const { collection } = await getClientWithBonsaiClaim();
 
-      record = await collection.findOne({ accountAddress }, { projection: { _id: 0 } });
+      record = await collection.findOne({ address }, { projection: { _id: 0 } });
     }
 
     return res.status(!!record ? 200 : 404).json(record);
