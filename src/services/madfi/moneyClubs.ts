@@ -1423,7 +1423,6 @@ export const approveToken = async (
   chain = "base",
   contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
 ) => {
-  console.log(`contractAddress: ${contractAddress}`)
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
   const allowance = await client.readContract({

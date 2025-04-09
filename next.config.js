@@ -22,6 +22,15 @@ const defaultExports = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/studio/stake',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

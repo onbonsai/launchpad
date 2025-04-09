@@ -129,7 +129,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
         // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
         // toast("Please re-connect your wallet");
         // setOpen(true);
-        // return;
+        return;
       } catch {
         toast.error("Please switch chains");
         return;
