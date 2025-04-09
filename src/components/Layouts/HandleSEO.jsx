@@ -153,8 +153,7 @@ const HandleSEO = ({ pageProps }) => {
 
   // Default page
   const description = "Create autonomous, agentic content on Lens";
-  const defaultImageUrl = `${SITE_URL}/opengraph-image.jpg`;
-  const ogImageUrl = `${SITE_URL}/api/og-image?title=Bonsai&description=${encodeURIComponent(description)}&type=website&image=${encodeURIComponent(defaultImageUrl)}`;
+  const ogImageUrl = `${SITE_URL}/api/og-image`;
 
   return (
     <Head>

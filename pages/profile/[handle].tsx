@@ -380,9 +380,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         return {
           props: {
-            title: `Profile of ${handle}`,
-            description: `Profile of ${handle}`,
-            image: `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`,
             profile,
             accountStats,
             type: "lens",
