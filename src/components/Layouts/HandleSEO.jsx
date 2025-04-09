@@ -21,7 +21,7 @@ const frameDataTemplate = {
 
 // Helper function to create absolute image URL
 const getAbsoluteImageUrl = (image) => {
-  if (!image) return `${SITE_URL}/opengraph-image.jpg`;
+  if (!image) return defaultImageUrl;
   return image.startsWith('http') ? image : `${SITE_URL}${image}`;
 };
 
@@ -67,6 +67,7 @@ const generateMetaTags = (title, description, url, imageUrl, type = "website", i
       <meta name="twitter:image" content={imageUrl} />
       <meta name="twitter:image:alt" content={imageAlt} />
       <meta name="theme-color" content="#141414" />
+      <link rel="canonical" href={url} />
     </>
   );
 };
@@ -93,6 +94,7 @@ const HandleSEO = ({ pageProps }) => {
 
     return (
       <Head>
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
         {generateMetaTags(title, description, profileUrl, ogImageUrl, "profile", `${handle}'s profile picture`)}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -117,6 +119,7 @@ const HandleSEO = ({ pageProps }) => {
 
     return (
       <Head>
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
         {generateMetaTags(title, description, postUrl, ogImageUrl, "article", "Post image")}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -141,6 +144,7 @@ const HandleSEO = ({ pageProps }) => {
 
     return (
       <Head>
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
         {generateMetaTags(title, description, tokenUrl, ogImageUrl, "website", `${club.token.name} token image`)}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
@@ -154,6 +158,7 @@ const HandleSEO = ({ pageProps }) => {
 
   return (
     <Head>
+      <meta name="viewport" content="initial-scale=1, width=device-width" />
       {generateMetaTags("Bonsai", description, SITE_URL, ogImageUrl)}
       <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
     </Head>

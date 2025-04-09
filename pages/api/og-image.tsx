@@ -10,7 +10,7 @@ export const config = {
   runtime: "edge",
 };
 
-const defaultImageUrl = "https://link.storjshare.io/raw/jw4ckl34kudmriswvjxz5n63keha/referrals/opengraph-image.jpg";
+const defaultImageUrl = "https://onbons.ai/opengraph-image.png";
 
 const getPost = async (_postId: string) => {
   try {
@@ -85,7 +85,7 @@ export default async function handler(req: NextRequest) {
             style={{
               objectFit: "cover",
               ...(pubId && truncatedContent ? {
-                filter: "brightness(0.8)",
+                filter: "brightness(0.7)",
                 opacity: 0.9
               } : {})
             }}
@@ -158,7 +158,7 @@ export default async function handler(req: NextRequest) {
             </p>
           )}
 
-          {imageUrl !== defaultImageUrl && <WordMark />}
+          <WordMark />
         </div>
       ),
       {
