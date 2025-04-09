@@ -19,6 +19,7 @@ import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
+import { ClaimBonsai } from "./ClaimBonsai";
 
 const headerLinks = [];
 
@@ -107,7 +108,8 @@ export const Header = () => {
                 </Button>
               </Link> */}
               <Balance />
-              <ClaimFeesEarned />
+              {/* <ClaimFeesEarned /> */}
+              {/* <ClaimBonsai /> */}
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
             </div>
 

@@ -4,7 +4,7 @@ import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
 import { switchChain } from "@wagmi/core";
 import { useState, useMemo, useEffect } from "react";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import ConfettiExplosion from 'react-confetti-explosion';
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
@@ -53,6 +53,7 @@ const getCreditsMultiplier = (lockupPeriod: number) => {
 
 const TokenPage: NextPage = () => {
   const { address, isConnected, chain } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const [stakeAmount, setStakeAmount] = useState("");
   const router = useRouter();
 
@@ -112,7 +113,7 @@ const TokenPage: NextPage = () => {
 
   const referralLink = useMemo(() => {
     if (!address) return '';
-    return `${window.location.origin}/studio/token?ref=${address}`;
+    return `${window.location.origin}/studio/stake?ref=${address}`;
   }, [address]);
 
   useMemo(() => {
@@ -183,21 +184,22 @@ const TokenPage: NextPage = () => {
     }
   }, [stakingData?.summary, twapPrice, bonsaiPrice]);
 
-  const handleStake = async (amount: string, lockupPeriod: number) => {
+  const handleStake = async (amount: string, lockupPeriod: number): Promise<boolean> => {
     try {
-      if (chain?.id !== lens.id) {
+      if (chain?.id !== LENS_CHAIN_ID) {
         try {
-          await switchChain(configureChainsConfig, { chainId: lens.id });
-          toast("Please re-connect your wallet");
-          setOpen(true);
-          return;
+          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
+          // toast("Please re-connect your wallet");
+          // setOpen(true);
+          return false;
         } catch {
           toast.error("Please switch to Lens");
-          return;
+          return false;
         }
       }
 
-      await stake(amount, lockupPeriod, address as `0x${string}`);
+      await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
 
@@ -213,25 +215,28 @@ const TokenPage: NextPage = () => {
           // Don't throw here - we don't want to revert the stake if referral recording fails
         }
       }
+
+      return true;
     } catch (error) {
       console.error("Staking error:", error);
+      return false;
     }
   };
 
   const handleUnstake = async (stakeIndex: number) => {
     try {
-      if (chain?.id !== lens.id) {
+      if (chain?.id !== LENS_CHAIN_ID) {
         try {
-          await switchChain(configureChainsConfig, { chainId: lens.id });
-          toast("Please re-connect your wallet");
-          setOpen(true);
-          return;
+          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          // toast("Please re-connect your wallet");
+          // setOpen(true);
+          // return;
         } catch {
           toast.error("Please switch to Lens");
           return;
         }
       }
-      await unstake(stakeIndex);
+      await unstake(walletClient, stakeIndex);
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
       setIsStakeModalOpen(false);
@@ -314,21 +319,22 @@ const TokenPage: NextPage = () => {
               <div className="bg-card rounded-lg p-6 relative">
                 <div className="flex flex-col ">
                   <div className="flex flex-col">
-                    <div className="flex space-x-4">
+                    <div className="flex space-x-2">
+                      <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg" />
                       <Header2>Bonsai Token</Header2>
-                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} chain="lens" />
+                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
                       Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
                       Credits reset daily.
                     </Subtitle>
-                    {/* {isConnected && <Button
+                    {isConnected && <Button
                       onClick={() => setIsReferralModalOpen(true)}
                       size={"md"}
                       className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" /> Referrals
-                    </Button>} */}
+                    </Button>}
                   </div>
                 </div>
               </div>
@@ -408,14 +414,13 @@ const TokenPage: NextPage = () => {
                     </div>
                     {isConnected ? (
                       <div>
-                        <div className="text-2xl font-bold text-secondary">Coming Soon</div>
-                        {/* <div className="text-2xl font-bold text-secondary">{totalStaked} $BONSAI</div> */}
+                        <div className="text-2xl font-bold text-secondary">{totalStaked} $BONSAI</div>
                         <p className="text-xs text-secondary/60">${stakedUsdValue}</p>
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-xs font-medium bg-brand-highlight/20 text-brand-highlight px-2 py-0.5 rounded">
                             {averageMultiplier}× Credits
                           </span>
-                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)} disabled>
+                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)}>
                             Stake
                           </Button>
                         </div>

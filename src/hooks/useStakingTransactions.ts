@@ -1,15 +1,13 @@
-import { useWalletClient, usePublicClient } from 'wagmi';
+import { usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
 import { toast } from 'react-hot-toast';
-import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
-import { approveToken } from '@src/services/madfi/moneyClubs';
+import { IS_PRODUCTION, lens, PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
+import { approveToken, publicClient } from '@src/services/madfi/moneyClubs';
 import stakingAbi from '@src/services/madfi/abi/Staking.json';
+import { lensTestnet } from 'viem/chains';
 
 export const useStakingTransactions = () => {
-  const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
-
-  const stake = async (amount: string, lockupPeriod: number, recipient: `0x${string}`) => {
+  const stake = async (walletClient, amount: string, lockupPeriod: number, recipient: `0x${string}`) => {
     if (!walletClient) {
       toast.error('Please connect your wallet');
       return;
@@ -38,21 +36,23 @@ export const useStakingTransactions = () => {
         abi: stakingAbi,
         functionName: 'stake',
         args: [parsedAmount, BigInt(lockupPeriod), recipient],
+        chain: IS_PRODUCTION ? lens : lensTestnet
       });
+      console.log(`hash: ${hash}`);
 
-      const receipt = await publicClient?.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient("lens").waitForTransactionReceipt({ hash });
       if (receipt?.status !== "success") throw new Error("Transaction reverted");
 
       toast.success('Successfully staked BONSAI tokens', { duration: 5000, id: stakeToastId });
       return hash;
     } catch (error: any) {
-      toast.error(error.message || 'Failed to stake tokens');
-      toast.dismiss(stakeToastId);
+      console.log(error);
+      toast.error('Failed to stake tokens', { id: stakeToastId });
       throw error;
     }
   };
 
-  const unstake = async (stakeIndex: number) => {
+  const unstake = async (walletClient, stakeIndex: number) => {
     if (!walletClient) {
       toast.error('Please connect your wallet');
       return;
@@ -70,13 +70,13 @@ export const useStakingTransactions = () => {
         args: [BigInt(stakeIndex)],
       });
 
-      await publicClient?.waitForTransactionReceipt({ hash });
+      await publicClient("lens").waitForTransactionReceipt({ hash });
 
       toast.success('Successfully unstaked BONSAI tokens', { duration: 5000, id: unstakeToastId });
       return hash;
     } catch (error: any) {
-      toast.error(error.message || 'Failed to unstake tokens');
-      toast.dismiss(unstakeToastId);
+      console.log(error);
+      toast.error('Failed to unstake tokens', { id: unstakeToastId });
       throw error;
     }
   };

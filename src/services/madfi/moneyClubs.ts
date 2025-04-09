@@ -1423,7 +1423,6 @@ export const approveToken = async (
   chain = "base",
   contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
 ) => {
-  console.log(`contractAddress: ${contractAddress}`)
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
   const allowance = await client.readContract({
@@ -1528,9 +1527,9 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   }
 }
 
-export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {
+export const fetchTokenPrice = async (tokenAddress: string, chain = "base"): Promise<number> => {
   try {
-    const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}`, {
+    const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}&chain=${chain}`, {
       method: 'GET',
     });
 
@@ -1556,3 +1555,26 @@ export const getTrader = async (variables: { id: `0x${string}`, isBuy: boolean, 
 
   return data.trader;
 }
+
+// WGHO ABI for the deposit function
+export const WGHO_ABI = [
+  {
+    inputs: [],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "wad",
+        type: "uint256"
+      }
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;

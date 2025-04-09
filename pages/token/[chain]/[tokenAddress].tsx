@@ -520,6 +520,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
+      title: `${club.token.name} (${club.token.symbol})`,
+      description: `Buy ${club.token.symbol} on Bonsai`,
+      image: `${SITE_URL}/api/og-image?image=${encodeURIComponent(club.token.image)}`,
       pageName: "token",
       club,
       profile: { id: club.profileId || "", ownedBy: club.creator },

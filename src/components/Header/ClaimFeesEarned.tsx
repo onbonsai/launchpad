@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
+import { switchChain } from "@wagmi/core";
 import { formatUnits } from "viem";
+import { base, baseSepolia } from "viem/chains";
 import toast from "react-hot-toast";
 import { GiftIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
@@ -9,11 +11,10 @@ import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
-import { base, baseSepolia } from "viem/chains";
+import { configureChainsConfig } from "@src/utils/wagmi";
 
 export const ClaimFeesEarned = () => {
   const { address, chainId, isConnected } = useAccount();
-  const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { data: creatorFeesEarned, isLoading, refetch } = useGetFeesEarned(address);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -72,7 +73,7 @@ export const ClaimFeesEarned = () => {
         const targetChainId = IS_PRODUCTION ? base.id : baseSepolia.id;
         if (chainId !== targetChainId) {
           try {
-            switchChain({ chainId: targetChainId });
+            await switchChain(configureChainsConfig, { chainId: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);
@@ -92,7 +93,7 @@ export const ClaimFeesEarned = () => {
         const targetChainId = IS_PRODUCTION ? lens.id : lensTestnet.id;
         if (chainId !== targetChainId) {
           try {
-            switchChain({ chainId: targetChainId });
+            await switchChain(configureChainsConfig, { chainId: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);
@@ -172,7 +173,7 @@ const EarningsTooltip = ({
             <div className="relative">
               <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg" />
             </div>
-            <span className="text-sm text-white">WGHO on Lens</span>
+            <span className="text-sm text-white">WGHO on Lens Chain</span>
           </div>
           <span className="text-sm text-white">
             {formatFee((creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n))}

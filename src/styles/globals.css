@@ -330,7 +330,17 @@ header .bonsaiLogo {
   transition: filter 0.3s ease;
 }
 
-header .bonsaiLogo:hover {
+.bonsaiLogoPattern {
+  width: 45px;
+  height: 45px;
+  display: block;
+  background: url("/static/images/logo.svg") no-repeat center;
+  background-size: 100% auto;
+  font-size: 0px;
+  transition: filter 0.3s ease;
+}
+
+.bonsaiLogoPattern:hover {
   filter: brightness(0) saturate(100%) invert(83%) sepia(45%) saturate(458%) hue-rotate(101deg) brightness(92%) contrast(87%);
 }
 
@@ -496,4 +506,39 @@ header .bonsaiLogo:hover {
 
 .box-dialog-inner {
   border-radius: 16px !important;
+}
+
+@keyframes borderShine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.shining-border {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+.shining-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(90deg, #B6D5C2, #52837D, #B6D5C2);
+  background-size: 200% 100%;
+  animation: borderShine 4s linear infinite;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.shining-border::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: #1A1B1F;
+  border-radius: inherit;
+  z-index: -1;
 }

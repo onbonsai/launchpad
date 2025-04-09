@@ -107,8 +107,7 @@ export const getProfileByHandle = async (forHandle: string, client?: AnyClient) 
     return console.error(result.error);
   }
 
-  const account = result.value;
-  return account;
+  return result.value;
 };
 
 export const getProfilesOwned = async (ownedBy: string) => {

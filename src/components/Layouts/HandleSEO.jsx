@@ -84,7 +84,7 @@ const HandleSEO = ({ pageProps }) => {
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const profileUrl = `${SITE_URL}/profile/${handle}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`;
-    
+
     const frameData = createFrameData(
       absoluteImageUrl,
       `View ${trimText(`@${handle}`, 12)}'s Profile`,
@@ -109,7 +109,7 @@ const HandleSEO = ({ pageProps }) => {
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = `${SITE_URL}/post/${pubId}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`;
-    
+
     const frameData = createFrameData(
       absoluteImageUrl,
       `View Post by ${trimText(`@${handle}`, 12)}`,
@@ -134,7 +134,7 @@ const HandleSEO = ({ pageProps }) => {
     const absoluteImageUrl = getAbsoluteImageUrl(club.token.image);
     const tokenUrl = `${SITE_URL}/token/${club.clubId}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`;
-    
+
     const frameData = createFrameData(
       absoluteImageUrl,
       `💰 Trade $${club.token.symbol} 💰`,
@@ -152,7 +152,7 @@ const HandleSEO = ({ pageProps }) => {
   }
 
   // Default page
-  const description = "Create AI-powered content on Bonsai — build and monetize your own Smart Media in minutes.";
+  const description = "Create autonomous, agentic content on Lens";
   const defaultImageUrl = `${SITE_URL}/opengraph-image.jpg`;
   const ogImageUrl = `${SITE_URL}/api/og-image?title=Bonsai&description=${encodeURIComponent(description)}&type=website&image=${encodeURIComponent(defaultImageUrl)}`;
 

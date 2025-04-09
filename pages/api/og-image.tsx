@@ -6,10 +6,11 @@ import { lensClient } from "@src/services/lens/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { postId } from "@lens-protocol/client";
 import WordMark from "@src/assets/css/workMark";
-
 export const config = {
   runtime: "edge",
 };
+
+const defaultImageUrl = "https://onbons.ai/opengraph-image.png";
 
 const getPost = async (_postId: string) => {
   try {
@@ -28,8 +29,6 @@ const getPost = async (_postId: string) => {
     return null;
   }
 };
-
-const defaultImageUrl = "https://onbons.ai/opengraph-image.png";
 
 export default async function handler(req: NextRequest) {
   try {

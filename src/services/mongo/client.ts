@@ -147,3 +147,12 @@ export const getClientWithStakingReferrals = async () => {
 
   return { collection, database };
 };
+
+
+export const getClientWithBonsaiClaim = async (__client?: any) => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("moonshot");
+  const collection = database.collection("lc-bonsai-claim-1");
+
+  return { collection, database };
+};

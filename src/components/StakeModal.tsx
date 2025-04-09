@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { brandFont } from "@src/fonts/fonts";
 
 interface StakeModalProps {
-  onStake: (amount: string, lockupPeriod: number) => void;
+  onStake: (amount: string, lockupPeriod: number) => Promise<boolean>;
   maxAmount: string;
   calculateCreditsPerDay: (amount: string, lockupPeriod: number) => number;
   twapPrice?: number;
@@ -33,11 +33,13 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
     setAmount(maxAmount);
   };
 
-  const handleStake = () => {
+  const handleStake = async () => {
     if (Number(amount) < MIN_STAKE) return;
-    onStake(amount, selectedPeriod.value);
-    setAmount("");
-    setSelectedPeriod(LOCKUP_PERIODS[0]);
+    const success = await onStake(amount, selectedPeriod.value);
+    if (success) {
+      setAmount("");
+      setSelectedPeriod(LOCKUP_PERIODS[0]);
+    }
   };
 
   const sharedInputClasses =

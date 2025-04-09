@@ -21,7 +21,7 @@ class MyDocument extends Document {
             rel="stylesheet"
             type="text/css"
           />
-          
+
           {/* Base OpenGraph Meta Tags - These will be available to crawlers */}
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content="Bonsai Smart Media" />
@@ -32,7 +32,7 @@ class MyDocument extends Document {
           <meta property="og:image:height" content="630" />
           <meta property="og:logo" content={`${SITE_URL}/logo.png`} />
           <meta property="og:image:alt" content="Bonsai" />
-          
+
           {/* Base Twitter Meta Tags */}
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:site" content="@onbonsai" />
