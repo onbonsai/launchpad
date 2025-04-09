@@ -389,12 +389,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      title: `Post by ${post?.author.username.localName}`,
-      description: post?.metadata?.content.slice(0, 155),
-      image: `${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`,
       pageName: "singlePublication",
-      media: media,
-      // image: image,
+      media,
+      image,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       pubId,
