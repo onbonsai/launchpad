@@ -6,10 +6,7 @@ interface CreditBalance {
   stakingCredits: number;
   creditsUsed: number;
   creditsRemaining: number;
-  nextResetTime: string;
   lastResetTime: string;
-  maxStakingCredits: number;
-  usagePercentage: number;
 }
 
 export const fetchCredits = async (address: string): Promise<CreditBalance> => {
