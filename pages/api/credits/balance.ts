@@ -25,19 +25,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!userCredits) {
       // New user - create with initial allocation
       const now = new Date();
-      const nextResetTime = getNextMidnightUTC();
 
       await collection.insertOne({
         address: normalizedAddress,
-        creditsUsed: 0,
-        lastResetTimestamp: now,
+        totalCredits: FREE_TIER_CREDIT_ALLOCATION,
         freeCredits: FREE_TIER_CREDIT_ALLOCATION,
         stakingCredits: 0,
-        totalCredits: FREE_TIER_CREDIT_ALLOCATION,
+        creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now,
-        nextResetTime: nextResetTime,
-        maxStakingCredits: 100,
       });
 
       return res.status(200).json({
@@ -46,17 +42,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         stakingCredits: 0,
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
-        nextResetTime: nextResetTime.toISOString(),
         lastResetTime: now.toISOString(),
-        maxStakingCredits: 100,
-        usagePercentage: 0,
       });
     }
 
     // Return existing user's credit information with all the new fields
     const creditsRemaining = userCredits.creditsRemaining || userCredits.totalCredits - (userCredits.creditsUsed || 0);
-
-    const usagePercentage = ((userCredits.creditsUsed || 0) / userCredits.totalCredits) * 100;
 
     return res.status(200).json({
       totalCredits: userCredits.totalCredits,
@@ -64,14 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       stakingCredits: userCredits.stakingCredits || 0,
       creditsUsed: userCredits.creditsUsed || 0,
       creditsRemaining: creditsRemaining,
-      nextResetTime: userCredits.nextResetTime
-        ? new Date(userCredits.nextResetTime).toISOString()
-        : getNextMidnightUTC().toISOString(),
-      lastResetTime: userCredits.lastResetTime
-        ? new Date(userCredits.lastResetTime).toISOString()
-        : new Date(userCredits.lastResetTimestamp).toISOString(),
-      maxStakingCredits: userCredits.maxStakingCredits || 100,
-      usagePercentage,
+      lastResetTime: new Date(userCredits.lastResetTime).toISOString(),
     });
   } catch (error) {
     console.error("Error fetching credits:", error);
