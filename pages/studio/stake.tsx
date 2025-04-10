@@ -475,7 +475,7 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* API Capacity Card */}
-                {/* <div className="bg-card rounded-lg p-6">
+                <div className="bg-card rounded-lg p-6">
                   <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
@@ -546,7 +546,7 @@ const TokenPage: NextPage = () => {
                       </div>
                     )}
                   </div>
-                </div> */}
+                </div>
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || wasReferred) && (

@@ -21,18 +21,16 @@ import { Balance } from "./Balance";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { ClaimBonsai } from "./ClaimBonsai";
 
-const headerLinks = [];
-
-// const headerLinks = [
-//   {
-//     label: "Home",
-//     href: "/"
-//   },
-//   {
-//     label: "Tokens",
-//     href: "/tokens"
-//   }
-// ];
+const headerLinks = [
+  {
+    label: "Home",
+    href: "/"
+  },
+  {
+    label: "Tokens",
+    href: "/tokens"
+  }
+];
 
 export const Header = () => {
   const { route } = useRouter();
@@ -88,7 +86,7 @@ export const Header = () => {
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
             <div className="flex justify-center items-center w-[15%]">
-              {/* <SearchClubs /> */}
+              <SearchClubs />
             </div>
           )}
 
@@ -98,7 +96,7 @@ export const Header = () => {
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center gap-2 mr-2">
               {/* <CreateClub /> */}
-              {/* <Link href="/studio">
+              <Link href="/studio">
                 <Button
                   variant="accentBrand"
                   size="md" // This sets the height to 40px and padding appropriately
@@ -106,10 +104,10 @@ export const Header = () => {
                 >
                   Create
                 </Button>
-              </Link> */}
+              </Link>
               <Balance />
-              {/* <ClaimFeesEarned /> */}
-              {/* <ClaimBonsai /> */}
+              <ClaimFeesEarned />
+              <ClaimBonsai />
               {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
             </div>
 

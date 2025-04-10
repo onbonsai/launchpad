@@ -23,7 +23,9 @@ const Menu = styled(MuiMenu)(({ theme }) => ({
     margin: '4px',
     boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
     '& .MuiMenu-list': {
-      padding: '4px'
+      padding: '4px',
+      backgroundColor: '#1A1B1F', // dark-grey background
+      color: '#FFFFFF', // white text
     },
   }
 }));
@@ -194,18 +196,24 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         open={open}
         onClose={handleClose}
       >
-        {/* {authenticatedProfile?.username?.localName && (
-          <MenuItem onClick={() => {
-            handleClose();
-            router.push(`/profile/${authenticatedProfile?.username?.localName}`);
-          }}>
+        {authenticatedProfile?.username?.localName && (
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              router.push(`/profile/${authenticatedProfile?.username?.localName}`);
+            }}
+          >
             View profile
           </MenuItem>
-        )} */}
-        <MenuItem onClick={() => {
-          disconnect();
-          handleClose();
-        }}>Log out</MenuItem>
+        )}
+        <MenuItem
+          onClick={() => {
+            disconnect();
+            handleClose();
+          }}
+        >
+          Log out
+        </MenuItem>
       </Menu>
     </>
   );
