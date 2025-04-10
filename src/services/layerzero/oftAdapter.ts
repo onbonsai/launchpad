@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import * as Sentry from "@sentry/nextjs";
 import { base, zkSync, polygon } from "viem/chains";
 import { createPublicClient, http, erc20Abi, Chain, parseEther, formatEther, pad } from "viem";
 
@@ -119,18 +120,24 @@ export const bridgeTokens = async (fromChain: Chain, toChain: Chain, amount: str
     args: [params, false]
   }) as { nativeFee: bigint, lzTokenFee: bigint };
 
-  toast.loading("Sending bridge transaction...", { id: toastId });
-  const hash = await walletClient.writeContract({
-    address: lzApp,
-    abi: BonsaiOFTAdapterABI,
-    functionName: "send",
-    args: [params, fee, recipient],
-    value: fee.nativeFee
-  });
-  console.log(`tx: ${hash}`);
-  await publicClient.waitForTransactionReceipt({ hash });
+  // sending an extra 10% in case of fee change
+  fee.nativeFee = fee.nativeFee + (fee.nativeFee * 10n) / 100n;
 
-  return hash;
+  try {
+    toast.loading("Sending bridge transaction...", { id: toastId });
+    const hash = await walletClient.writeContract({
+      address: lzApp,
+      abi: BonsaiOFTAdapterABI,
+      functionName: "send",
+      args: [params, fee, recipient],
+      value: fee.nativeFee
+    });
+    console.log(`tx: ${hash}`);
+    await publicClient.waitForTransactionReceipt({ hash });
+    return hash;
+  } catch (error) {
+    Sentry.captureException(error);
+  }
 };
 
 const approveToken = async (
