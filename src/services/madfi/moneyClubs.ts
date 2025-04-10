@@ -161,6 +161,28 @@ const REGISTERED_CLUB_INFO = gql`
   }
 `;
 
+const REGISTERED_CLUB_INFO_BY_ADDRESS = gql`
+  query ClubInfo($tokenAddress: Bytes!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      clubId
+      v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+    }
+  }
+`;
+
 const SEARCH_CLUBS = gql`
   query SearchClubs($query: String!) {
     clubs(where:{or:[{symbol_contains_nocase:$query}, {name_contains_nocase:$query}]}){
@@ -604,7 +626,7 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
   return clubs?.map((club) => {
-    let { name, symbol, image } = club
+    let { name, symbol, uri: image } = club
 
     if (!club.name || !club.symbol || !club.uri) {
       // backup for v1 clubs
@@ -614,6 +636,24 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
     }
     return { name, symbol, image, clubId: club.clubId, id: club.id };
   });
+};
+
+export const getRegisteredClubInfoByAddress = async (tokenAddress, chain = "base") => {
+  const client = subgraphClient(chain);
+  const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO_BY_ADDRESS, variables: { tokenAddress } })
+  const res = clubs?.map((club) => {
+    let { name, symbol, uri: image } = club
+
+    if (!club.name || !club.symbol || !club.uri) {
+      // backup for v1 clubs
+      ;[name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
+    return { name, symbol, image, clubId: club.clubId, id: club.id };
+  });
+
+  return res?.length ? res[0] : null;
 };
 
 export const searchClubs = async (query: string, chain = "base") => {

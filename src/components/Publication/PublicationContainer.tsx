@@ -26,7 +26,6 @@ import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
-import { Tooltip } from "../Tooltip";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -241,6 +240,8 @@ const PublicationContainer = ({
     return false;
   }, [publication]);
 
+  const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
+
   const onCollectButtonClick = async (e: React.MouseEvent) => {
     if (!!collectAmount) {
       e.preventDefault();
@@ -367,19 +368,23 @@ const PublicationContainer = ({
             variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
             className="text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px]"
-            onClick={(e) => { if (!hasCollected) onCollectButtonClick(e) }}
+            onClick={(e) => {
+              if (!hasCollected) onCollectButtonClick(e);
+
+              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}`);
+            }}
           >
             {!hasCollected ? (
               <>
                 <BookmarkAddOutlined />
                 Collect
               </>
-            ) : (
+            ) : media?.agentId ? (
               <>
                 <SwapCalls />
                 Remix
               </>
-            )}
+            ) : <BookmarkOutlined />}
           </Button>
         </div>
       )}
@@ -444,7 +449,7 @@ const PublicationContainer = ({
         postId={publication.id}
         postSlug={publication.slug}
         isCreator={isCreator}
-        mediaUrl={publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value}
+        mediaUrl={mediaUrl}
         media={media}
       />
 

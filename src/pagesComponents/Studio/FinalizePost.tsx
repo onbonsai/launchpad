@@ -31,7 +31,7 @@ const COLLECT_PRICE_TIERS = [
   }
 ];
 
-export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating, addToken, onAddToken }) => {
+export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating, addToken, onAddToken, isRemix }) => {
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
@@ -61,14 +61,14 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
           {/* Token preview */}
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
-              {addToken ? (
+              {addToken || isRemix ? (
                 <>
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">
-                      Token preview
+                      {isRemix ? 'Your remix will use the original token' : 'Token preview'}
                     </Subtitle>
                   </div>
-                  <TokenPreviewCard authenticatedProfile={authenticatedProfile} token={finalTokenData} />
+                  <TokenPreviewCard authenticatedProfile={isRemix ? undefined : authenticatedProfile} token={finalTokenData} />
                 </>
               ) : (
                 <div className="flex flex-col justify-center space-y-4">
@@ -191,9 +191,11 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
         <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
           <TokenInfoHeader />
 
-          <div className="flex flex-row justify-between items-center">
-            <CreatorButton text={authenticatedProfile.username.localName} image={authenticatedProfile.metadata?.picture} />
-          </div>
+          {authenticatedProfile && (
+            <div className="flex flex-row justify-between items-center">
+              <CreatorButton text={authenticatedProfile.username?.localName} image={authenticatedProfile.metadata?.picture} />
+            </div>
+          )}
         </div>
       </div>
     </div>

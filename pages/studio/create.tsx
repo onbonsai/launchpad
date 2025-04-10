@@ -1,10 +1,10 @@
 import { NextPage } from "next"
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useAccount, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { parseUnits, zeroAddress } from "viem";
-import { createSmartMedia, Preview, type Template } from "@src/services/madfi/studio";
+import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
-import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData } from "@src/services/madfi/moneyClubs";
+import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
@@ -35,7 +35,7 @@ import Link from "next/link";
 
 type TokenData = {
   initialSupply: number;
-  uniHook: `0x${string}`;
+  uniHook?: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
   tokenImage: any[];
@@ -46,7 +46,7 @@ type TokenData = {
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName } = router.query;
+  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -60,7 +60,10 @@ const StudioCreatePage: NextPage = () => {
   const [postImage, setPostImage] = useState<any[]>([]);
   const [addToken, setAddToken] = useState(false);
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
+  const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
+  const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
+  const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
+  const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
 
   const template = useMemo(() => {
     if (!isMounted || isLoading) return;
@@ -84,6 +87,24 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
+  // set the default form data to use the remixed version
+  useEffect(() => {
+    if (!isLoading && !!remixMedia) {
+      // @ts-expect-error templateData is unknown
+      setFinalTemplateData(remixMedia.templateData);
+
+      getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
+        setFinalTokenData({
+          tokenName: token.name,
+          tokenSymbol: token.symbol,
+          tokenImage: [{ preview: token.image }],
+          selectedNetwork: remixMedia.token.chain,
+          initialSupply: 0,
+        });
+      });
+    }
+  }, [isLoading, remixMedia]);
+
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -93,10 +114,10 @@ const StudioCreatePage: NextPage = () => {
 
     setIsCreating(true);
 
-    // 1. create token
+    // 1. create token (if not remixing)
     let tokenAddress;
     let txHash;
-    if (addToken && finalTokenData) {
+    if (addToken && finalTokenData && !remixMedia?.agentId) {
       toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
@@ -121,7 +142,7 @@ const StudioCreatePage: NextPage = () => {
           tokenName: finalTokenData.tokenName,
           tokenSymbol: finalTokenData.tokenSymbol,
           tokenImage: storjGatewayURL(await pinFile(finalTokenData.tokenImage[0])),
-          hook: finalTokenData.selectedNetwork === 'base'
+          hook: finalTokenData.selectedNetwork === 'base' && finalTokenData.uniHook
             ? WHITELISTED_UNI_HOOKS[finalTokenData.uniHook].contractAddress as `0x${string}`
             : zeroAddress,
           // TODO: some sensible defaults
@@ -140,6 +161,8 @@ const StudioCreatePage: NextPage = () => {
         setIsCreating(false);
         return;
       }
+    } else if (remixMedia?.token?.address) {
+      tokenAddress = remixMedia.token.address;
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
@@ -259,7 +282,7 @@ const StudioCreatePage: NextPage = () => {
     // 3. create smart media
     toastId = toast.loading("Finalizing...", { id: toastId });
     try {
-      if (tokenAddress) { // link the creator handle and post id in our db
+      if (tokenAddress && !remixMedia?.agentId) { // link the creator handle and post id in our db (if not remixed)
         await setLensData({
           hash: txHash,
           postId,
@@ -280,7 +303,7 @@ const StudioCreatePage: NextPage = () => {
         agentId: preview?.agentId,
         postId,
         uri,
-        token: addToken && finalTokenData ? {
+        token: (addToken || remixMedia?.agentId) && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress
         } : undefined,
@@ -377,6 +400,7 @@ const StudioCreatePage: NextPage = () => {
                           setAddToken(true);
                           setOpenTab(2);
                         }}
+                        isRemix={!!remixMedia?.agentId}
                       />
                     )}
                   </div>

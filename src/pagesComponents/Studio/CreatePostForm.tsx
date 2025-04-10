@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 
@@ -43,6 +43,12 @@ const CreatePostForm = ({
 }: CreatePostProps) => {
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
+
+  useEffect(() => {
+    if (finalTemplateData) {
+      setTemplateData(finalTemplateData);
+    }
+  }, [finalTemplateData]);
 
   const isValid = () => {
     try {
