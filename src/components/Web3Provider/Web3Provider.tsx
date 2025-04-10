@@ -13,14 +13,14 @@ export const Web3Provider = ({ children }) => {
   return (
     <WagmiProvider>
       <siweClient.Provider
-        enabled
+        enabled={false}
         nonceRefetchInterval={300000} // in milliseconds, defaults to 5 minutes
         sessionRefetchInterval={300000}// in milliseconds, defaults to 5 minutes
         signOutOnDisconnect
         signOutOnAccountChange
         signOutOnNetworkChange={false}
       >
-        <ConnectKitProvider>{children}</ConnectKitProvider>
+        <ConnectKitProvider options={{ disableSiweRedirect: true }}>{children}</ConnectKitProvider>
       </siweClient.Provider>
     </WagmiProvider>
   );
