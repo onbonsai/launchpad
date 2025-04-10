@@ -633,6 +633,7 @@ const TokenPage: NextPage = () => {
                   open={isStakeModalOpen}
                   setOpen={setIsStakeModalOpen}
                   panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
+                  static
                 >
                   <StakeModal
                     maxAmount={formatEther(bonsaiBalance || 0n)}
@@ -651,6 +652,7 @@ const TokenPage: NextPage = () => {
                   open={isBridgeModalOpen}
                   setOpen={setIsBridgeModalOpen}
                   panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
+                  static
                 >
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
                 </Modal>

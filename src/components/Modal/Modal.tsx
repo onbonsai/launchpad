@@ -9,6 +9,7 @@ interface ModalProps {
   setOpen: (open: boolean) => void;
   children: ReactNode;
   panelClassnames?: HTMLAttributes<"div">["className"];
+  static?: boolean;
   transitionProps?: {
     enter: string;
     enterFrom: string;
@@ -28,10 +29,15 @@ const TRANSITION = {
   leaveTo: "opacity-0"
 };
 
-export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelClassnames, transitionProps = TRANSITION }) => {
+export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelClassnames, static: isStatic, transitionProps = TRANSITION }) => {
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-150" onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-150"
+        onClose={isStatic ? () => {} : onClose}
+        static={isStatic}
+      >
         <Transition.Child
           as={Fragment}
           {...transitionProps}
