@@ -99,9 +99,9 @@ const LoginWithLensModal = ({ closeModal }) => {
 
                     <div className="flex flex-col text-left col-span-2">
                       <h3 className="font-bold">
-                        {account?.metadata?.name || account?.username.localName}
+                        {account?.metadata?.name || account?.username?.localName || "username"}
                       </h3>
-                      <span className="text-sm">{account.username.localName || `${account.metadata.name}`}</span>
+                      <span className="text-sm">{account.username?.localName || `${account.metadata?.name}`}</span>
                     </div>
 
                     <div className="flex justify-end col-span-2">
