@@ -248,29 +248,70 @@ const TokenPage: NextPage = () => {
   const onBridge = async (txHash: `0x${string}`) => {
     setBridgeInfo({ txHash });
 
+    const MAX_ATTEMPTS = 20; // Maximum number of attempts (10 minutes with exponential backoff)
+    const INITIAL_INTERVAL = 10000; // Start with 10 seconds
+    let attempts = 0;
+    let currentInterval = INITIAL_INTERVAL;
+
     const checkDeliveryStatus = async () => {
       try {
         const response = await fetch(`https://scan.layerzero-api.com/v1/messages/tx/${txHash}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            // 404 is expected initially, just continue polling
+            attempts++;
+            if (attempts >= MAX_ATTEMPTS) {
+              toast.error("Bridge taking longer than expected. Please check LayerZero Explorer.", { duration: 10000 });
+              setBridgeInfo(undefined);
+              return true; // Signal to stop polling
+            }
+            return false; // Continue polling
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
 
         if (data.data[0].status.name === "DELIVERED") {
           refetchBonsaiBalance();
-          clearInterval(statusInterval);
           setBridgeInfo(undefined);
           setShowConfetti(true);
           toast.success("Tokens bridged", { duration: 5000 });
-          // Remove confetti after 5 seconds
           setTimeout(() => setShowConfetti(false), 5000);
+          return true; // Signal successful completion
         }
+
+        // If not delivered, increment attempts and check if we should continue
+        attempts++;
+        if (attempts >= MAX_ATTEMPTS) {
+          toast.error("Bridge taking longer than expected. Please check LayerZero Explorer.", { duration: 10000 });
+          setBridgeInfo(undefined);
+          return true; // Signal to stop polling
+        }
+
+        // Exponential backoff with max of 30 seconds
+        currentInterval = Math.min(INITIAL_INTERVAL * Math.pow(1.5, attempts), 30000);
+        return false; // Continue polling
       } catch (error) {
         console.error("Error checking bridge status:", error);
+        attempts++;
+        if (attempts >= MAX_ATTEMPTS) {
+          toast.error("Error checking bridge status. Please check LayerZero Explorer.", { duration: 10000 });
+          setBridgeInfo(undefined);
+          return true; // Signal to stop polling
+        }
+        return false; // Continue polling
       }
     };
 
-    const statusInterval = setInterval(checkDeliveryStatus, 30000);
+    const poll = async () => {
+      const shouldStop = await checkDeliveryStatus();
+      if (!shouldStop) {
+        setTimeout(poll, currentInterval);
+      }
+    };
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(statusInterval);
+    // Start polling
+    poll();
   };
 
   // Calculate credits per day for a given amount and lockup period

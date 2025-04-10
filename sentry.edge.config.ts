@@ -10,4 +10,9 @@ Sentry.init({
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
+
+  // https://github.com/reown-com/appkit/blob/887e27c9ab0e5a746096ba45b10bcb6c70ab6ea2/apps/demo/sentry.client.config.ts#L15
+  ignoreErrors: [
+    "Proposal expired"
+  ]
 });
