@@ -6,6 +6,7 @@ import { type Account, evmAddress, SessionClient } from "@lens-protocol/client";
 import { currentSession, fetchAccount, fetchAccountsAvailable } from "@lens-protocol/client/actions";
 import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
 import { WalletClient } from "viem";
+import { LENS_BONSAI_APP } from "@src/services/madfi/utils";
 
 export const fetchAvailableAccounts = async (address: string) => {
   return await fetchAccountsAvailable(lensClient, {
@@ -122,7 +123,7 @@ export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: Walle
 
       const authenticated = await lensClient.login({
         accountOwner: {
-          // app: "", // TODO: add app
+          app: LENS_BONSAI_APP,
           owner: address,
           account: loginWithId,
         },
