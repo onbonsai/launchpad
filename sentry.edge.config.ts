@@ -13,6 +13,7 @@ Sentry.init({
 
   // https://github.com/reown-com/appkit/blob/887e27c9ab0e5a746096ba45b10bcb6c70ab6ea2/apps/demo/sentry.client.config.ts#L15
   ignoreErrors: [
-    "Proposal expired"
-  ]
+    "Proposal expired",
+    "Cannot redefine property: ethereum"
+  ],
 });
