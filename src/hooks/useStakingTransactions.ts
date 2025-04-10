@@ -48,7 +48,7 @@ export const useStakingTransactions = () => {
     } catch (error: any) {
       console.log(error);
       toast.error('Failed to stake tokens', { id: stakeToastId });
-      throw error;
+      return;
     }
   };
 
@@ -77,7 +77,7 @@ export const useStakingTransactions = () => {
     } catch (error: any) {
       console.log(error);
       toast.error('Failed to unstake tokens', { id: unstakeToastId });
-      throw error;
+      return;
     }
   };
 
