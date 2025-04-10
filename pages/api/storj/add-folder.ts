@@ -6,7 +6,6 @@ import FormData from "form-data";
 
 import { jsonLtoJson } from "@src/utils/utils";
 import { overlayImage } from "@src/utils/imgUtilsBackend";
-import { overlaybase64 } from "@src/utils/overlaybase64";
 
 const SLS_STAGE = "production";
 const STORJ_API_URL = "https://www.storj-ipfs.com";
@@ -46,7 +45,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             // Convert the image data to base64
             const base64Image = "data:image/png;base64," + Buffer.from(fileData).toString("base64");
             // Overlay the watermark on the base64 image
-            const overlaidImage = await overlayImage(base64Image, overlaybase64);
+            const overlaidImage = base64Image; // await overlayImage(base64Image, overlaybase64);
             return overlaidImage;
           }),
         );

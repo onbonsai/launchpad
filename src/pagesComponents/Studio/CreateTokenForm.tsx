@@ -24,6 +24,7 @@ import { Subtitle } from "@src/styles/text";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -45,6 +46,14 @@ const NETWORK_OPTIONS: NetworkOption[] = [
 ];
 
 const LENS_PRICING_TIERS = {
+  ...(!IS_PRODUCTION && {
+    [PricingTier.TEST]: {
+      label: 'Test',
+      value: 1,
+      icon: 'local-atm',
+      iconLabel: '$1 to graduate'
+    },
+  }),
   [PricingTier.SMALL]: {
     label: 'Small',
     value: 6000,

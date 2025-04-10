@@ -4,7 +4,6 @@ import FormData from "form-data";
 
 import { fetchImagesStorj } from "@src/utils/storj-backend";
 import { overlayImage } from "@src/utils/imgUtilsBackend";
-import { overlaybase64 } from "@src/utils/overlaybase64";
 
 const SLS_STAGE = "production";
 const STORJ_API_URL = "https://www.storj-ipfs.com";
@@ -28,7 +27,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // watermark images
     const overlaidImages = await Promise.all(
       images.map(async (img) => {
-        const overlaidImage = await overlayImage(img, overlaybase64);
+        const overlaidImage = img; // await overlayImage(img, overlaybase64);
         return overlaidImage;
       }),
     );

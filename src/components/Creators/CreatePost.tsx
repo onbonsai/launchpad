@@ -137,11 +137,6 @@ const CreatePost = ({
         const pubIdOrTxHash = typeof broadcastResult === "string"
           ? broadcastResult
           : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile.id}-${broadcastResult?.toString(16)}`;
-        axios.post("/api/seo/publication-image", {
-          pubIdOrTxHash,
-          profile: authenticatedProfile,
-          image_url: parsedToken?.metadata?.image ?? publicationMetadata.lens.image?.item ?? null,
-        });
         setTimeout(fetchGatedPosts, 6000); // give the api some time
         toast.success("Post created", { id: toastId, duration: 5000 });
         setPostContent("");

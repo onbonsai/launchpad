@@ -1289,6 +1289,7 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
 };
 
 export enum PricingTier {
+  TEST = "TEST", // testnet only 1 gho graduation
   SMALL = "SMALL",
   MEDIUM = "MEDIUM",
   LARGE = "LARGE",
@@ -1296,6 +1297,11 @@ export enum PricingTier {
 
 // NOTE: initialPrice values assume 18 decimals in quote token (WGHO)
 const LENS_PRICING_TIERS = {
+  [PricingTier.TEST]: {
+    initialPrice: "588251339500000000000000000", // 1 WGHO
+    flatThreshold: FLAT_THRESHOLD.toString(),
+    targetPriceMultiplier: 2,
+  },
   [PricingTier.SMALL]: {
     initialPrice: "3529508034062500000000000000000",
     flatThreshold: FLAT_THRESHOLD.toString(),
