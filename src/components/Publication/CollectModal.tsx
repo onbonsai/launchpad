@@ -96,7 +96,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-md">
-                Collect to join the post
+                Collect the post to participate & remix
               </Subtitle>
             </div>
           )}
@@ -108,12 +108,12 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           >
             <BookmarkAddOutlined /> {bonsaiCostFormatted} $BONSAI
           </Button>
-          <div className="flex items-center justify-center">
-            <Subtitle className="text-md">
-              Account Balance:
+          {/* <div className="flex items-center justify-center">
+            <Subtitle className="text-md text-white/40">
+              Lens Account
               <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
             </Subtitle>
-          </div>
+          </div> */}
           {insufficientFunds && (
             <div className="flex space-x-1">
               <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>

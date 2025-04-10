@@ -41,7 +41,7 @@ export const TokenInfoComponent = ({ club, media }: { club: Club, media?: SmartM
   );
 
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
-    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-r-xl hover:!bg-bullish/60 cursor-pointer transition-colors duration-200 ease-in-out">
+    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-r-xl hover:!bg-bullish/80 cursor-pointer transition-colors duration-200 ease-in-out">
       <div className="h-8 flex items-center">
         <Button
           variant="dark-grey"

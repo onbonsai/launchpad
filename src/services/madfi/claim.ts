@@ -60,8 +60,7 @@ export const useGetBonsaiClaim = (
 
       return { proof, amount };
     },
-    // enabled: !!walletClient && isAuthenticated
-    enabled: false
+    enabled: !!walletClient && isAuthenticated,
   });
 };
 

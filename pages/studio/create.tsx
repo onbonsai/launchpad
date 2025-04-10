@@ -110,6 +110,7 @@ const StudioCreatePage: NextPage = () => {
           }
         }
 
+        console.log(finalTokenData.totalRegistrationFee)
         if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
           const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
           await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId);
