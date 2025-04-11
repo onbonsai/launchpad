@@ -158,9 +158,10 @@ export const resolveSmartMedia = async (
   attributes: MetadataAttribute[],
   postId: string,
   withVersions?: boolean,
+  _url?: string,
 ): Promise<SmartMedia | null> => {
   try {
-    let url = getSmartMediaUrl(attributes);
+    let url = _url || getSmartMediaUrl(attributes);
     if (!url) return null;
 
     const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
@@ -180,11 +181,12 @@ export const useResolveSmartMedia = (
   attributes?: MetadataAttribute[],
   postId?: string,
   withVersions?: boolean,
+  url?: string,
 ): UseQueryResult<SmartMedia | null, Error> => {
   return useQuery({
     queryKey: ["resolve-smart-media", postId],
-    queryFn: () => resolveSmartMedia(attributes!, postId!, withVersions),
-    enabled: !!postId && !!attributes,
+    queryFn: () => resolveSmartMedia(attributes!, postId!, withVersions, url),
+    enabled: !!postId && !!(attributes || url),
   });
 };
 

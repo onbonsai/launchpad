@@ -8,8 +8,11 @@ import { kFormatter } from '@src/utils/utils';
 import clsx from 'clsx';
 import { brandFont } from "@src/fonts/fonts";
 import WalletButton from "../Creators/WalletButton";
+import { LENS_CHAIN_ID } from '@src/services/madfi/utils';
+import { useAccount } from 'wagmi';
 
 const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setShowCollectModal, isCollecting, isMedia, account, showCollectModal }) => {
+  const { chain } = useAccount();
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
     e.stopPropagation();
     callback?.();
@@ -96,7 +99,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-md">
-                Collect to join the post
+                Collect the post to participate & remix
               </Subtitle>
             </div>
           )}
@@ -106,14 +109,14 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
             disabled={isCollecting || collectAmountBn > bonsaiBalance}
             onClick={(e) => handleButtonClick(e, onCollect)}
           >
-            <BookmarkAddOutlined /> {bonsaiCostFormatted} $BONSAI
+            {(LENS_CHAIN_ID !== chain?.id) ? 'Switch to Lens Chain' : <><BookmarkAddOutlined /> {bonsaiCostFormatted} $BONSAI</>}
           </Button>
-          <div className="flex items-center justify-center">
-            <Subtitle className="text-md">
-              Account Balance:
+          {/* <div className="flex items-center justify-center">
+            <Subtitle className="text-md text-white/40">
+              Lens Account
               <span className="ml-2">{bonsaiBalanceFormatted} $BONSAI</span>
             </Subtitle>
-          </div>
+          </div> */}
           {insufficientFunds && (
             <div className="flex space-x-1">
               <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>

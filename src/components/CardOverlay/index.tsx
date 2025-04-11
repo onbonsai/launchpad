@@ -154,10 +154,10 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
         <div className="self-start">
           {isCollect && (
             <Button
-              variant="accentBrand"
+              variant={hasCollected ? "dark-grey" : "accentBrand"}
               ref={collectButtonRef}
               size="md"
-              className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[10px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
+              className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default': ''}`}
               onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true) })}
             >
               {!hasCollected ? (
@@ -168,7 +168,6 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               ) : (
                 <>
                   <BookmarkOutlined />
-                  Joined
                 </>
               )}
             </Button>

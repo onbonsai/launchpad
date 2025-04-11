@@ -56,7 +56,7 @@ export const ClaimBonsai = () => {
   }, [showTooltip]);
 
   const amountFormatted = useMemo(() => {
-    if (!!amount) return formatEther(amount);
+    if (!!amount) return Number(formatEther(amount)).toLocaleString();
     return "0";
   }, [amount]);
 

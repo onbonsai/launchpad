@@ -251,7 +251,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto">
         <div className="flex flex-col items-center gap-y-1">
           <div className="w-full max-w-[900px]">
             {isConnected && isLoading ? (
@@ -272,7 +272,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
               />
             ) : null}
           </div>
-          <div className="w-full max-w-[500px] space-y-1">
+          <div className="w-full max-w-[500px]">
             <Publications
               publications={sortedComments}
               theme={Theme.dark}
@@ -311,31 +311,53 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
       </div>
 
       {isConnected && isAuthenticated && publication && (
-        <div className={clsx("w-full max-w-[500px] bg-background sticky bottom-0 pt-2")}>
-          <div className="flex items-center gap-x-6 w-full relative">
-            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-            <textarea
-              ref={commentInputRef}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="block w-full resize-none rounded-lg bg-card text-secondary placeholder:text-secondary/70 border-transparent pr-8 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-              placeholder="Add a comment"
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-            />
-            <div className="absolute right-2 top-2">
-              <GenericUploader files={files} setFiles={setFiles} />
+        <div className="mt-2">
+          {/* {replyingToComment && (
+            <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+              <span>Replying to {replyingToUsername}</span>
+              <button
+                onClick={() => setReplyingToComment(null)}
+                className="text-secondary hover:text-secondary/80"
+              >
+                × Cancel
+              </button>
             </div>
-          </div>
-          <div className="flex justify-end mt-2">
-            <Button
-              disabled={isCommenting || !comment}
-              onClick={submitComment}
-              variant="accentBrand"
-              size="sm"
-            >
-              Reply
-            </Button>
+          )} */}
+          <div className="flex items-center gap-x-6">
+            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="relative flex-1">
+                <input
+                  ref={commentInputRef}
+                  type="text"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      submitComment(e);
+                    }
+                  }}
+                  placeholder="Send a reply"
+                  disabled={isCommenting}
+                  autoComplete="off"
+                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                />
+                <div className="absolute right-2 -top-2">
+                  <GenericUploader files={files} setFiles={setFiles} contained />
+                </div>
+              </div>
+              <Button
+                disabled={isCommenting || !comment}
+                onClick={submitComment}
+                variant="accentBrand"
+                size="sm"
+                className="!py-[12px]"
+              >
+                Reply
+              </Button>
+            </div>
           </div>
         </div>
       )}

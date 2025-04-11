@@ -58,8 +58,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0(@lens-protocol/metadata@2.0.0-next.7(typescript@5.1.6)(zod@3.24.2))(@types/react@18.3.20)(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.5.0)(react@18.2.0)(utf-8-validate@5.0.10)
       '@madfi/widgets-react':
-        specifier: ^3.1.6
-        version: 3.1.6(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250403160407(@lens-chain/sdk@1.0.2(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typescript@5.1.6)(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.7(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
+        specifier: ^3.1.7
+        version: 3.1.7(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250403160407(@lens-chain/sdk@1.0.2(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typescript@5.1.6)(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.7(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^5.8.0
         version: 5.8.0(@mui/material@5.13.5(@emotion/react@11.14.0(@types/react@18.3.20)(react@18.2.0))(@emotion/styled@11.13.0(@emotion/react@11.14.0(@types/react@18.3.20)(react@18.2.0))(@types/react@18.3.20)(react@18.2.0))(@types/react@18.3.20)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@types/react@18.3.20)(react@18.2.0)
@@ -122,7 +122,7 @@ importers:
         version: 2.28.0
       eslint-plugin-import:
         specifier: ^2.28.1
-        version: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+        version: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       ethers:
         specifier: ^5.7.2
         version: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -910,8 +910,8 @@ packages:
     resolution: {integrity: sha512-9hldbMK/L1fGP2jE3F29YkD3YcYHj8GfW39H8tVqUs3sHik/NQwVdGBJOHqM9iYPZRI0SUTQ7isiOQoTPUVJpw==}
     engines: {node: '>=18.0.0'}
 
-  '@madfi/widgets-react@3.1.6':
-    resolution: {integrity: sha512-OLEl/aoxPQEvCFwT5+o0DXzhQcIx/45pRF228Or57EOdZEuPabrdNEVcXEt2U4YTPmfcF9/twRfVDDSjsoP//w==}
+  '@madfi/widgets-react@3.1.7':
+    resolution: {integrity: sha512-MFCv2eZQ3flk9erAspeM1BCoZ7yp+wF60ePiicp7EiPHqE7R1h/pB3aLAF0mr+oNSYrvx3yURiYOD4hV7uwowA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@lens-chain/storage-client': '>=1.0.0'
@@ -7378,7 +7378,7 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@madfi/widgets-react@3.1.6(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250403160407(@lens-chain/sdk@1.0.2(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typescript@5.1.6)(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.7(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
+  '@madfi/widgets-react@3.1.7(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250403160407(@lens-chain/sdk@1.0.2(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typescript@5.1.6)(viem@2.26.2(bufferutil@4.0.8)(typescript@5.1.6)(utf-8-validate@5.0.10)(zod@3.24.2)))(@lens-protocol/metadata@2.0.0-next.7(typescript@5.1.6)(zod@3.24.2))(@tanstack/react-query@5.40.1(react@18.2.0))(bufferutil@4.0.8)(encoding@0.1.13)(react@18.2.0)(utf-8-validate@5.0.10)':
     dependencies:
       '@emotion/css': 11.13.5
       '@ethersproject/providers': 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -10519,8 +10519,8 @@ snapshots:
       '@typescript-eslint/parser': 6.21.0(eslint@8.16.0)(typescript@5.1.6)
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0)
-      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0)
+      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.16.0)
       eslint-plugin-react: 7.37.2(eslint@8.16.0)
       eslint-plugin-react-hooks: 5.0.0-canary-7118f5dd7-20230705(eslint@8.16.0)
@@ -10543,7 +10543,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.0(supports-color@5.5.0)
@@ -10555,22 +10555,22 @@ snapshots:
       is-glob: 4.0.3
       stable-hash: 0.0.4
     optionalDependencies:
-      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-plugin-import: 2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 6.21.0(eslint@8.16.0)(typescript@5.1.6)
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-import-resolver-typescript: 3.7.0(eslint-plugin-import@2.28.1)(eslint@8.16.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0):
+  eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -10580,7 +10580,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.28.1(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint@8.16.0))(eslint@8.16.0))(eslint@8.16.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@6.21.0(eslint@8.16.0)(typescript@5.1.6))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.16.0)
       has: 1.0.4
       is-core-module: 2.16.0
       is-glob: 4.0.3

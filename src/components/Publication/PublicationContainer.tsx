@@ -5,7 +5,7 @@ import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
-import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz } from "@mui/icons-material";
+import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -240,6 +240,8 @@ const PublicationContainer = ({
     return false;
   }, [publication]);
 
+  const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
+
   const onCollectButtonClick = async (e: React.MouseEvent) => {
     if (!!collectAmount) {
       e.preventDefault();
@@ -255,20 +257,19 @@ const PublicationContainer = ({
   const onCollect = async () => {
     let toastId;
     try {
-      toastId = toast.loading("Collecting post...");
-
       if (LENS_CHAIN_ID !== chain?.id && switchChain) {
         try {
           await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
         } catch (error) {
           console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
-          return;
         }
+        return;
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
 
+      toastId = toast.loading("Collecting post...");
       setIsCollecting(true);
 
       const collected = await collectPost(
@@ -363,22 +364,29 @@ const PublicationContainer = ({
       {isCollect && (
         <div className="absolute right-4 top-2 z-20">
           <Button
-            variant="accentBrand"
+            variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
-            className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[10px] ${hasCollected ? 'cursor-default bg-dark-grey text-white hover:bg-dark-grey' : ''}`}
-            onClick={(e) => { if (!hasCollected) onCollectButtonClick(e) }}
+            className="text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px]"
+            onClick={(e) => {
+              if (!hasCollected) {
+                onCollectButtonClick(e);
+                return;
+              }
+
+              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}`);
+            }}
           >
             {!hasCollected ? (
               <>
                 <BookmarkAddOutlined />
                 Collect
               </>
-            ) : (
+            ) : media?.agentId ? (
               <>
-                <BookmarkOutlined />
-                Joined
+                <SwapCalls />
+                Remix
               </>
-            )}
+            ) : <BookmarkOutlined />}
           </Button>
         </div>
       )}
@@ -410,16 +418,16 @@ const PublicationContainer = ({
       )}
 
       {!isCreator || media?.agentId && (
-        <div className={`absolute ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}>
-          <Button
+        <div
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}
+          onClick={(e) => { setShowDropdown(!showDropdown) }}
+        >
+          <div
             ref={dropdownButtonRef}
-            variant="dark-grey"
-            size="sm"
-            className={`text-sm font-bold rounded-lg gap-x-1 md:px-1 focus:outline-none focus:ring-0 ${sideBySideMode ? 'py-[6px]' : 'py-[2px] scale-75'}`}
-            onClick={(e) => { setShowDropdown(!showDropdown) }}
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-lg flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : 'p-[2px] scale-75'}`}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
-          </Button>
+          </div>
         </div>
       )}
 
@@ -443,7 +451,7 @@ const PublicationContainer = ({
         postId={publication.id}
         postSlug={publication.slug}
         isCreator={isCreator}
-        mediaUrl={publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value}
+        mediaUrl={mediaUrl}
         media={media}
       />
 
