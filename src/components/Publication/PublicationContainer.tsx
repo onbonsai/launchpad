@@ -257,20 +257,19 @@ const PublicationContainer = ({
   const onCollect = async () => {
     let toastId;
     try {
-      toastId = toast.loading("Collecting post...");
-
       if (LENS_CHAIN_ID !== chain?.id && switchChain) {
         try {
           await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
         } catch (error) {
           console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
-          return;
         }
+        return;
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
 
+      toastId = toast.loading("Collecting post...");
       setIsCollecting(true);
 
       const collected = await collectPost(
@@ -369,7 +368,10 @@ const PublicationContainer = ({
             size="md"
             className="text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px]"
             onClick={(e) => {
-              if (!hasCollected) onCollectButtonClick(e);
+              if (!hasCollected) {
+                onCollectButtonClick(e);
+                return;
+              }
 
               if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}`);
             }}
