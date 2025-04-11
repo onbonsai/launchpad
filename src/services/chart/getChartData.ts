@@ -128,14 +128,14 @@ export const formatTrades = (trades: Trade[], resolution: string): Bar[] => {
   return candleData;
 };
 
-export const getBondingCurveTrades = async (clubId: string, createdAt_gt: number, createdAt_lt: number, countBack: number, resolution: string) => {
+export const getBondingCurveTrades = async (clubId: string, createdAt_gt: number, createdAt_lt: number, countBack: number, resolution: string, chain: string) => {
   let allTrades: any[] = [];
   let hasMore = true;
   let currentPage = 0;
 
   if (createdAt_gt < 0 || createdAt_lt < 0) return [];
 
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   while (hasMore) {
     const { trades, hasMore: more } = await getTrades(client, clubId, createdAt_gt, createdAt_lt, currentPage);
     allTrades = [...allTrades, ...trades];

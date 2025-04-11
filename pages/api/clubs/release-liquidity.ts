@@ -10,15 +10,17 @@ import {
   MIN_LIQUIDITY_THRESHOLD,
   DEFAULT_HOOK_ADDRESS,
   WGHO_CONTRACT_ADDRESS,
+  getRegisteredClubById,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT, getChain } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 
 const WETH = "0x4200000000000000000000000000000000000006";
 
-const getPath = () => {
+const getPath = (chain: string) => {
+  // TODO: this is only for base, lens will need to be updated when v4 is available
   const swapInfoV4 = IS_PRODUCTION
     ? {
         path: [
@@ -38,6 +40,15 @@ const getPath = () => {
           },
         ],
         router: "0x6ff5693b99212da76ad316178a184ab56d299b43",
+        // TODO: add v4 addresses for lens when available
+        ...(chain === "lens"
+          ? {
+              posm: "0x0000000000000000000000000000000000000000",
+              poolManager: "0x0000000000000000000000000000000000000000",
+              allowanceTransfer: "0x000000000022D473030F116dDEE9F6B43aC78BA3", // TODO: add v4 addresses for lens when available
+              hookData: "0x",
+            }
+          : {}),
       }
     : {
         path: [
@@ -67,26 +78,38 @@ const getPath = () => {
     ),
     router: "0x6ddD32cd941041D8b61df213B9f515A7D288Dc13",
     positionManager: "0xC5d0CAaE8aa00032F6DA993A69Ffa6ff80b5F031",
-    factory: "0xe0704DB90bcAA1eAFc00E958FF815Ab7aa11Ef47",
   };
 
   return { swapInfoV4, swapInfoV3 };
 };
 
+const minLiquidityThreshold = {
+  "588251339500000000000000000": 0.6,
+  "3529508034062500000000000000000": 6000,
+  "6471118034062500000000000000000": 11000,
+  "12384118034062500000000000000000": Number(MIN_LIQUIDITY_THRESHOLD),
+};
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     let { clubId, tokenPrice, chain } = req.body;
-    chain = chain || "base";
 
     const account = privateKeyToAccount(process.env.OWNER_PRIVATE_KEY as `0x${string}`);
-    const walletClient = createWalletClient({ account, chain, transport: http() });
+    const walletClient = createWalletClient({ account, chain: getChain(chain || "base"), transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
+    const club = chain === "lens" ? await getRegisteredClubById(clubId, chain) : null;
     const minAmountOut = IS_PRODUCTION
-      ? parseEther((0.82 * Number(MIN_LIQUIDITY_THRESHOLD) * tokenPrice).toString())
+      ? parseEther(
+          (
+            0.82 *
+            (chain === "base" ? Number(MIN_LIQUIDITY_THRESHOLD) : minLiquidityThreshold[club.initialPrice]) *
+            tokenPrice
+          ).toString(),
+        )
       : 0;
 
-    const { swapInfoV3, swapInfoV4 } = getPath();
+    const { swapInfoV3, swapInfoV4 } = getPath(chain);
 
     let args = [clubId, minAmountOut, swapInfoV4];
     if (chain === "lens") {
@@ -98,8 +121,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
       functionName: "releaseLiquidity",
       args,
-      chain: chain === "base" ? (IS_PRODUCTION ? base : baseSepolia) : IS_PRODUCTION ? lens : lensTestnet,
+      gas: 1000000n,
     });
+    console.log("hash", hash);
 
     const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
     const releaseLiquidityEvent = getEventFromReceipt({

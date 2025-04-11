@@ -106,7 +106,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(club.pubId as string);
+  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(club.postId as string);
   const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, club.pubId);
 
   const vestingProgress = useVestingProgress(
@@ -169,7 +169,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.clubId.toString());
+      const token = await releaseLiquidityTransaction(club.clubId.toString(), club.chain);
       toast.success('Pool created!', { id: toastId });
     } catch (error) {
       console.log(error);
@@ -404,7 +404,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           />
                           <div className='border border-card bg-card-light rounded-2xl mt-5'>
                             <div className="rounded-2xl m-2 overflow-hidden">
-                              {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
+                              {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} chain={club.chain} />}
                             </div>
                           </div>
                         </>
@@ -497,7 +497,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   ]);
 
   // Redirect to v1 if clubId < 170 and IS_PRODUCTION is true
-  if (IS_PRODUCTION && parseInt(_club.clubId as string) < 170) {
+  if (IS_PRODUCTION && parseInt(_club.clubId as string) < 170 && _club.chain === "base") {
     return {
       redirect: {
         permanent: false,

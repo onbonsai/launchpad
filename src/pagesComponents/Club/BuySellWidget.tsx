@@ -159,7 +159,7 @@ export const BuySellWidget = ({
 
           // Wrap the required amount
           console.log("Wrapping GHO:", formatUnits(additionalWGHONeeded, _DECIMALS));
-          toast.loading("Wrapping GHO...");
+          toastId = toast.loading("Wrapping GHO...");
           // Call the deposit function on the WGHO contract
           const hash = await walletClient!.writeContract({
             address: WGHO_CONTRACT_ADDRESS,
@@ -170,14 +170,15 @@ export const BuySellWidget = ({
           });
     
           await publicClient("lens").waitForTransactionReceipt({ hash });
+          toast.success("Wrapped GHO", { id: toastId });
         }
       }
 
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
-      console.log(`club.clubId: ${club.clubId}`)
-      console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
+      // console.log(`club.clubId: ${club.clubId}`)
+      // console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
       await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time
@@ -302,7 +303,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
                 {!justBought && (
                   <>
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">

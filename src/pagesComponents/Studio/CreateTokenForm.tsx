@@ -97,12 +97,13 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     args: [address as `0x${string}`]
   });
 
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
+  console.log("totalRegistrationFee", totalRegistrationFee);
   // TODO: might need to check this after registration fees enabled
   const isValid = (() => {
     return tokenName &&
       tokenSymbol &&
-      tokenBalance >= (totalRegistrationFee || 0n) &&
+      tokenBalance && tokenBalance >= (totalRegistrationFee || 0n) &&
       !!tokenImage &&
       ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
   })();
@@ -363,10 +364,10 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               <div className="relative flex flex-col space-y-1 gap-1">
                 <CurrencyInput
                   trailingAmount={`${buyPriceFormatted}`}
-                  trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
-                  tokenBalance={tokenBalance}
-                  price={initialSupply || ""}
-                  isError={tokenBalance < (totalRegistrationFee || 0n)}
+                  trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "GHO"}
+                  tokenBalance={tokenBalance || 0n}
+                  price={initialSupply?.toString() || "0"}
+                  isError={tokenBalance ? tokenBalance < (totalRegistrationFee || 0n) : false}
                   onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                   symbol={tokenSymbol}
                   hideBalance
