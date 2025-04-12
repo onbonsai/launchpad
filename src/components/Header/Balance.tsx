@@ -173,10 +173,10 @@ export const Balance = () => {
       
       await publicClient("lens").waitForTransactionReceipt({ hash });
       
-      toast.success("Successfully unwrapped GHO", { id: toastId });
+      toast.success("Successfully unwrapped GHO", { id: toastId, duration: 2000 });
     } catch (error) {
       console.error("Error unwrapping GHO:", error);
-      toast.error("Failed to unwrap GHO", { id: toastId });
+      toast.error("Failed to unwrap GHO", { id: toastId, duration: 2000 });
     } finally {
       setIsUnwrapping(false);
     }

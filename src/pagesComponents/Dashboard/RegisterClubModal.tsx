@@ -63,6 +63,12 @@ const NETWORK_OPTIONS: NetworkOption[] = [
 ];
 
 const LENS_PRICING_TIERS = {
+  // [PricingTier.TEST]: {
+  //   label: 'Test',
+  //   value: 1,
+  //   icon: 'local-atm',
+  //   iconLabel: '$1 to graduate'
+  // },
   [PricingTier.SMALL]: {
     label: 'Small',
     value: 6000,
@@ -85,7 +91,7 @@ const LENS_PRICING_TIERS = {
 
 const NETWORK_CHAIN_IDS = {
   'base': CONTRACT_CHAIN_ID,
-  'lens': IS_PRODUCTION ? 167004 : 37111
+  'lens': IS_PRODUCTION ? 232 : 37111
 } as const;
 
 export const RegisterClubModal = ({

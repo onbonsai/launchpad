@@ -2,9 +2,6 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
 import { getAddress, createPublicClient, http, zeroAddress } from "viem";
 import { mainnet } from 'viem/chains'
-import { groupBy } from "lodash/collection";
-import { createEnsPublicClient } from '@ensdomains/ensjs'
-import { getName } from '@ensdomains/ensjs/public'
 import {
   getRegisteredClub,
   getRegisteredClubById,
@@ -24,7 +21,6 @@ import {
   getFeaturedClubs,
   searchClubs,
 } from "@src/services/madfi/moneyClubs";
-import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
 
 export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
@@ -288,10 +284,10 @@ export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${str
   });
 };
 
-export const useGetRegistrationFee = (amount: number | string, account?: `0x${string}`) => {
+export const useGetRegistrationFee = (amount: number | string, account?: `0x${string}`, chain = "base", pricingTier?: string) => {
   return useQuery({
     queryKey: ["registration-fee", amount, account],
-    queryFn: () => getRegistrationFee(amount.toString()!, account!),
+    queryFn: () => getRegistrationFee(amount.toString()!, account!, chain, pricingTier),
     enabled: !!account,
     staleTime: 1000,
     gcTime: 2000,

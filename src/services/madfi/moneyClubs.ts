@@ -922,9 +922,8 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
     const { clubs } = await response.json();
 
     try {
-      // TODO: switch to postId?
-      const lensTokens = clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== ""));
-      const publications = await getPosts(lensTokens.map(({ pubId }) => pubId));
+      const lensTokens = clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== ""));
+      const publications = await getPosts(lensTokens.map(({ postId }) => postId));
       const gPublications = groupBy(publications || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
@@ -942,7 +941,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
           if (club.featured) return; // featured clubs are queried elsewhere
-          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          const publication = gPublications[club.postId] ? gPublications[club.postId][0] : undefined;
           return { publication, ..._club, ...club, marketCap, token };
         } else { // not created on our app
           return { ..._club, handle: _club.creator, marketCap, token };
@@ -1001,18 +1000,20 @@ export const getBuyPrice = async (
   clubId: string,
   amount: string,
   supply?: string,
-  chain = "base"
+  chain = "base",
+  _pricingTier?: string
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient(chain);
   let buyPrice
+  let pricingTier = _pricingTier ? LENS_PRICING_TIERS[_pricingTier] : undefined
   try {
     buyPrice = !!supply ?
       await client.readContract({
         address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-        abi: BonsaiLaunchpadAbi,
+        abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
         functionName: "getBuyPrice",
-        args: [parseUnits(supply, DECIMALS), amountWithDecimals]
+        args: chain === "base" ? [parseUnits(supply, DECIMALS), amountWithDecimals] : [parseUnits(supply, DECIMALS), amountWithDecimals, pricingTier?.initialPrice, pricingTier?.flatThreshold, pricingTier?.targetPriceMultiplier]
       })
       : await client.readContract({
         address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
@@ -1203,10 +1204,12 @@ export const getSellPrice = async (
 
 export const getRegistrationFee = async (
   amount: string,
-  account?: `0x${string}`
+  account?: `0x${string}`,
+  chain = "base",
+  pricingTier?: string
 ): Promise<bigint> => {
   if (amount == "0") return BigInt(0);
-  const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
+  const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0", chain, pricingTier)
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
 };
@@ -1329,6 +1332,7 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
 };
 
 export enum PricingTier {
+  TEST = "TEST",
   SMALL = "SMALL",
   MEDIUM = "MEDIUM",
   LARGE = "LARGE",
@@ -1336,6 +1340,11 @@ export enum PricingTier {
 
 // NOTE: initialPrice values assume 18 decimals in quote token (WGHO)
 const LENS_PRICING_TIERS = {
+  [PricingTier.TEST]: {
+    initialPrice: "588251339500000000000000000", // 1 WGHO liquidity total
+    flatThreshold: FLAT_THRESHOLD.toString(),
+    targetPriceMultiplier: 5,
+  },
   [PricingTier.SMALL]: {
     initialPrice: "3529508034062500000000000000000",
     flatThreshold: FLAT_THRESHOLD.toString(),
@@ -1491,7 +1500,7 @@ export const approveToken = async (
 export const releaseLiquidity = async (clubId: string, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
-    clubId, tokenPrice
+    clubId, tokenPrice, chain
   })
 
   await fetch('/api/clubs/update', {
