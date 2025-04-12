@@ -67,14 +67,14 @@ export const SearchClubs = () => {
     <>
       <div className={clsx("lg:min-w-[400px] w-full", brandFont.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
-          Search tokens, profiles, and posts
+          Search anything
         </label>
         <div className="relative flex items-center">
           <input
             type="text"
             name="finder"
             id="finder"
-            placeholder="Search tokens, profiles, and posts..."
+            placeholder="Search anything"
             defaultValue={query}
             autoComplete="off"
             onClick={() => openModal()}
@@ -128,7 +128,7 @@ export const SearchClubs = () => {
                         <Combobox.Input
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
                           displayValue={(profile) => profile?.name ?? ""}
-                          placeholder="Type to search across tokens, profiles, and posts..."
+                          placeholder="Type to search across tokens, profiles, and posts"
                           onChange={handleSelected}
                         />
                       </div>

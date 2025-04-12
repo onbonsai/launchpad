@@ -13,7 +13,7 @@ import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 
-export const ClaimFeesEarned = () => {
+export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { address, chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: creatorFeesEarned, isLoading, refetch } = useGetFeesEarned(address);
@@ -128,7 +128,7 @@ export const ClaimFeesEarned = () => {
       <Button
         variant="dark-grey"
         size="md"
-        className="text-base font-medium md:px-2 rounded-lg"
+        className={`text-base font-medium md:px-2 rounded-lg ${!!openMobileMenu ? 'w-full' : ''}`}
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center">

@@ -12,7 +12,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import { useModal } from "connectkit";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
-export const ClaimBonsai = () => {
+export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated } = useLensSignIn(walletClient);
@@ -109,7 +109,7 @@ export const ClaimBonsai = () => {
       <Button
         variant="dark-grey"
         size="md"
-        className="text-base font-medium md:px-2 rounded-lg shining-border hover:scale-105 transition-transform duration-300"
+        className={`text-base font-medium md:px-2 rounded-lg shining-border hover:scale-105 transition-transform duration-300 ${!!openMobileMenu ? 'w-full' : ''}`}
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
