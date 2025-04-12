@@ -19,13 +19,13 @@ import { getProfileImage } from "@src/services/lens/utils";
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
     border: 'none',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: '#262626',
     borderRadius: '12px',
     margin: '4px',
     boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
     '& .MuiMenu-list': {
       padding: '4px',
-      backgroundColor: '#1A1B1F', // dark-grey background
+      backgroundColor: '#262626',
       color: '#FFFFFF', // white text
     },
   }
@@ -36,19 +36,6 @@ const MenuItem = styled(MuiMenuItem)(({ theme }) => ({
   borderRadius: '12px',
   minWidth: '115px',
   position: 'relative',
-  '&:hover': {
-    padding: '10px 8px',
-    borderRadius: '12px',
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      bottom: '6px',
-      left: '8px',
-      right: '8px',
-      height: '1px',
-      backgroundColor: '#fff',
-    }
-  },
   fontFamily: brandFont.style.fontFamily,
   fontSize: '14px',
 }));
@@ -212,18 +199,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
             handleClose();
             router.push(`/profile/${authenticatedProfile?.username?.localName}`);
           }}>
-            <Tooltip message="View your profile" direction="left">
-              View profile
-            </Tooltip>
+            View profile
           </MenuItem>
         )}
         <MenuItem onClick={() => {
           disconnect();
           handleClose();
         }}>
-          <Tooltip message="Sign out of your account" direction="left">
-            Log out
-          </Tooltip>
+          Log out
         </MenuItem>
       </Menu>
     </>

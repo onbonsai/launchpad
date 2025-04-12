@@ -181,17 +181,19 @@ const EarningsTooltip = ({
         </div>
 
         {/* Base Chain Fees */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex items-center gap-x-2">
-            <div className="relative">
-              <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
+        {(creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n) > 0n && (
+          <div className="flex items-center justify-between py-1">
+            <div className="flex items-center gap-x-2">
+              <div className="relative">
+                <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
+              </div>
+              <span className="text-sm text-white">USDC on Base</span>
             </div>
-            <span className="text-sm text-white">USDC on Base</span>
+            <span className="text-sm text-white">
+              {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n))}
+            </span>
           </div>
-          <span className="text-sm text-white">
-            {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n))}
-          </span>
-        </div>
+        )}
       </div>
 
       <div className="pt-4 w-full">

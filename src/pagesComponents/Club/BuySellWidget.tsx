@@ -315,7 +315,8 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
-                    <Button
+                    {/* TODO: need thirdweb working with gho */}
+                    {/* <Button
                       variant={"primary"}
                       size='md'
                       className="w-full !border-none"
@@ -323,8 +324,8 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      {`Get ${club.chain === "lens" ? "GHO" : "USDC"} on ${club.chain === "lens" ? "Lens Chain" : "Base"}`}
-                    </Button>
+                      Fund wallet
+                    </Button> */}
                   </>
                 )}
                 {/* if the post is a remix, the remixer gets the referral fee */}

@@ -1,6 +1,5 @@
 import { useAccount, useWalletClient } from "wagmi";
 import { PayEmbed } from "thirdweb/react";
-import { base } from "thirdweb/chains";
 import { client, thirdwebWallet, lensChain } from "@src/services/thirdweb/client";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
@@ -48,31 +47,37 @@ const BuyUSDCModal = ({ chain, buyAmount, closeModal }: BuyUSDCModalProps) => {
       activeWallet={activeWallet}
       client={client}
       payOptions={{
-        mode: "direct_payment",
-        buyWithFiat: {
-          preferredProvider: "COINBASE",
-
-          // enable/disable test mode
-          testMode: false,
+        mode: "fund_wallet",
+        metadata: {
+          name: "Get GHO on Lens Chain",
         },
-        buyWithCrypto: false,
-        paymentInfo: {
-          // amount of token to buy
-          amount: buyAmount ? buyAmount.toString() : "25",
-
+        prefillBuy: {
           chain: lensChain,
-
-          // using the EOA until lens account is easier
-          sellerAddress: address as `0x${string}`,
-          // token: {
-          //   address: "0x6bDc36E20D267Ff0dd6097799f82e78907105e2F",
-
-          //   // Making it look like GHO token
-          //   name: "GHO",
-          //   symbol: "GHO",
-          //   icon: "https://explorer.lens.xyz/images/gho.png",
-          // },
+          amount: "100"
         },
+        // buyWithFiat: {
+        //   preferredProvider: "COINBASE",
+
+        //   // enable/disable test mode
+        //   testMode: false,
+        // },
+        // paymentInfo: {
+        //   // amount of token to buy
+        //   amount: buyAmount ? buyAmount.toString() : "100",
+
+        //   chain: lensChain,
+
+        //   // using the EOA until lens account is easier
+        //   sellerAddress: address as `0x${string}`,
+        //   // token: {
+        //   //   address: "0x6bDc36E20D267Ff0dd6097799f82e78907105e2F",
+
+        //   //   // Making it look like GHO token
+        //   //   name: "GHO",
+        //   //   symbol: "GHO",
+        //   //   icon: "https://explorer.lens.xyz/images/gho.png",
+        //   // },
+        // },
         onPurchaseSuccess: (purchase) => {
           console.log("Purchase success", purchase);
           toast.success("Bought GHO")
