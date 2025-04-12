@@ -230,7 +230,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                   <button
                     disabled={!fromChain}
                     onClick={() => setAmount((Math.floor(parseFloat(formatEther(fromChainBalance || 0n)) * 1e6) / 1e6).toFixed(6))}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs !text-bullish"
                   >
                     MAX
                   </button>
@@ -281,7 +281,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                 href={`https://layerzeroscan.com/tx/${bridgeInfo.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-2 text-bullish hover:underline"
+                className="ml-2 !text-bullish hover:underline"
               >
                 Check LayerZero
               </a>

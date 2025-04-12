@@ -362,11 +362,11 @@ const PublicationContainer = ({
       // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
       {isCollect && (
-        <div className="absolute right-4 top-2 z-20">
+        <div className="absolute top-2 right-2 z-20">
           <Button
             variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
-            className="text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px]"
+            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px]"
             onClick={(e) => {
               if (!hasCollected) {
                 onCollectButtonClick(e);
@@ -419,12 +419,12 @@ const PublicationContainer = ({
 
       {!isCreator || media?.agentId && (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-4' : 'bottom-3 right-10'}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-10'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
           <div
             ref={dropdownButtonRef}
-            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-lg flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : 'p-[2px] scale-75'}`}
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[12px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : 'p-[2px] scale-75'}`}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
           </div>

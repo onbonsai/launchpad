@@ -88,12 +88,12 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
               placeholder="0"
               min="1000"
             />
-            <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish">
+            <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs !text-bullish">
               MAX
             </button>
           </div>
           {Number(amount) > 0 && Number(amount) < MIN_STAKE && (
-            <p className="text-xs text-bearish">Minimum stake amount is {MIN_STAKE}</p>
+            <p className="text-xs !text-bearish">Minimum stake amount is {MIN_STAKE}</p>
           )}
         </div>
 
@@ -108,7 +108,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
                 key={period.value}
                 onClick={() => setSelectedPeriod(period)}
                 className={`p-3 rounded-lg text-left transition-colors ${selectedPeriod.value === period.value
-                  ? "bg-bullish/20 text-bullish"
+                  ? "bg-bullish/20 !text-bullish"
                   : "bg-card-light text-secondary hover:bg-bullish/10"
                   }`}
               >

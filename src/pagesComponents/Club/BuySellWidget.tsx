@@ -48,9 +48,11 @@ export const BuySellWidget = ({
   onBuyUSDC,
   defaultBuyAmount,
   mediaProtocolFeeRecipient,
+  useRemixReferral,
+  closeModal,
 }) => {
   const router = useRouter();
-  const referralAddress = router.query.ref as `0x${string}`;
+  const referralAddress = !!useRemixReferral ? useRemixReferral : router.query.ref as `0x${string}`;
   const { chainId, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
@@ -88,14 +90,14 @@ export const BuySellWidget = ({
   const notEnoughFunds = useMemo(() => {
     const requiredAmount = parseUnits(buyPrice || '0', _DECIMALS);
     const currentWGHOBalance = tokenBalance || 0n;
-    
+
     if (club.chain === "lens") {
       // For Lens chain, consider both GHO and WGHO balances
       const ghoBalanceInWei = ghoBalance?.value || 0n;
       const totalAvailableBalance = currentWGHOBalance + ghoBalanceInWei;
       return requiredAmount > totalAvailableBalance;
     }
-    
+
     // For other chains, just check USDC balance as before
     return requiredAmount > currentWGHOBalance;
   }, [buyPrice, tokenBalance, ghoBalance?.value, club.chain, _DECIMALS]);
@@ -143,12 +145,12 @@ export const BuySellWidget = ({
         // Calculate how much WGHO we need for the transaction
         const requiredAmount = parseUnits(buyPrice, _DECIMALS);
         const currentWGHOBalance = tokenBalance || 0n;
-        
+
         // If we don't have enough WGHO
         if (currentWGHOBalance < requiredAmount) {
           // Calculate how much more WGHO we need
           const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
-          
+
           // Check if user has enough GHO to wrap
           const ghoBalanceInWei = ghoBalance?.value || 0n;
           if (ghoBalanceInWei < additionalWGHONeeded) {
@@ -168,7 +170,7 @@ export const BuySellWidget = ({
             args: [],
             value: additionalWGHONeeded,
           });
-    
+
           await publicClient("lens").waitForTransactionReceipt({ hash });
         }
       }
@@ -176,8 +178,6 @@ export const BuySellWidget = ({
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
-      console.log(`club.clubId: ${club.clubId}`)
-      console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
       await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time
@@ -186,6 +186,12 @@ export const BuySellWidget = ({
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+
+      if (!!useRemixReferral) {
+        closeModal();
+        return;
+      }
+
       setJustBought(true);
       setShowConfetti(true);
       setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));
@@ -311,16 +317,17 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                     <Button
                       variant={"primary"}
                       size='md'
-                      className="w-full"
+                      className="w-full !border-none"
                       onClick={() => {
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      Get {club.chain === "lens" ? "Wrapped GHO" : "USDC"}
+                      {`Get ${club.chain === "lens" ? "GHO" : "USDC"} on ${club.chain === "lens" ? "Lens Chain" : "Base"}`}
                     </Button>
                   </>
                 )}
-                {justBought && (
+                {/* if the post is a remix, the remixer gets the referral fee */}
+                {justBought && !useRemixReferral && (
                   <div className="w-full flex flex-col items-center space-y-4">
                     <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
@@ -437,7 +444,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
 
         {!isConnected && (
           <div className="flex items-center justify-center w-full h-full mt-2">
-            <p className="text-bearish">Log In with your wallet to begin trading</p>
+            <p className="!text-bearish">Log In with your wallet to begin trading</p>
           </div>
         )}
       </div>

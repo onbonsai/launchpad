@@ -244,6 +244,7 @@ const StudioCreatePage: NextPage = () => {
           image,
           template,
           tokenAddress,
+          remix: remixMedia?.postId,
           actions: [{
             simpleCollect: {
               payToCollect: {

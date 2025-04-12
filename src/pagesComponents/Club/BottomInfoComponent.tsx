@@ -100,6 +100,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
                 setBuyUSDCModalOpen(false);
                 setBuyClubModalOpen(true);
               }}
+              chain={club.chain || "lens"}
             />
           </div>
         </div>

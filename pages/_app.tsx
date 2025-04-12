@@ -1,4 +1,3 @@
-import Head from "next/head";
 import "./../polyfills.js";
 import { AppProps } from "next/app";
 import "@decent.xyz/the-box/index.css";
@@ -10,6 +9,7 @@ import { keepPreviousData, QueryClient } from "@tanstack/react-query";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
+import { ThirdwebProvider } from "thirdweb/react";
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -81,41 +81,43 @@ export default function MyApp(props: AppProps) {
     <>
       <HandleSEO pageProps={pageProps} />
       <Web3Provider>
-        <ThemeProvider>
-          <ClubsProvider>
-            <HotkeysProvider>
-              <Toaster
-                position="bottom-right"
-                toastOptions={{
-                  style: {
-                    backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                    color: "white",
-                    fontFamily: brandFont.style.fontFamily,
-                    zIndex: 1001,
-                  },
-                }}
-              >
-                {(t) => (
-                  <ToastBar toast={t}>
-                    {({ icon, message }) => (
-                      <>
-                        {icon}
-                        {message}
-                      </>
-                    )}
-                  </ToastBar>
-                )}
-              </Toaster>
-              <NextNProgress color="#4D7F79" height={2} />
-              <AppLayout>
-                <BoxThemeProvider theme={boxTheme}>
-                  <Component {...pageProps} />
-                </BoxThemeProvider>
-              </AppLayout>
-              <Analytics />
-            </HotkeysProvider>
-          </ClubsProvider>
-        </ThemeProvider>
+        <ThirdwebProvider>
+          <ThemeProvider>
+            <ClubsProvider>
+              <HotkeysProvider>
+                <Toaster
+                  position="bottom-right"
+                  toastOptions={{
+                    style: {
+                      backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                      color: "white",
+                      fontFamily: brandFont.style.fontFamily,
+                      zIndex: 1001,
+                    },
+                  }}
+                >
+                  {(t) => (
+                    <ToastBar toast={t}>
+                      {({ icon, message }) => (
+                        <>
+                          {icon}
+                          {message}
+                        </>
+                      )}
+                    </ToastBar>
+                  )}
+                </Toaster>
+                <NextNProgress color="#4D7F79" height={2} />
+                <AppLayout>
+                  <BoxThemeProvider theme={boxTheme}>
+                    <Component {...pageProps} />
+                  </BoxThemeProvider>
+                </AppLayout>s
+                <Analytics />
+              </HotkeysProvider>
+            </ClubsProvider>
+          </ThemeProvider>
+        </ThirdwebProvider>
       </Web3Provider>
     </>
   );

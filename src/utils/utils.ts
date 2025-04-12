@@ -56,7 +56,7 @@ export const kFormatter = (num, asInteger = false) => {
   if (typeof num === "string") return num;
 
   if (Math.abs(num) > 999_999) {
-    return Math.sign(num) * (Math.abs(num) / 1_000_000).toFixed(1) + "mil";
+    return Math.sign(num) * (Math.abs(num) / 1_000_000).toFixed(1) + "m";
   } else if (Math.abs(num) > 999) {
     return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k";
   }

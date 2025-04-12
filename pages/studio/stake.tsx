@@ -421,7 +421,7 @@ const TokenPage: NextPage = () => {
                           href={`https://layerzeroscan.com/tx/${bridgeInfo.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ml-2 text-bullish hover:underline"
+                          className="ml-2 !text-bullish hover:underline"
                         >
                           Check LayerZero
                         </a>

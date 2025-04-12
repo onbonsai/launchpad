@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@src/components/Button"
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
@@ -24,6 +24,20 @@ const XIcon = ({ size = 24, className = "" }) => (
 
 export default function ChatWindowButton({ children, agentInfo }: { children: React.ReactNode, agentInfo: AgentInfo }) {
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, setIsOpen]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen)

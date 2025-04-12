@@ -29,7 +29,6 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
-import { SITE_URL } from "@src/constants/constants";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
@@ -41,18 +40,22 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
 
-  // Parse the post data if available from query params
+  // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
-    if (encodedPostData && typeof encodedPostData === 'string') {
-      try {
-        return JSON.parse(decodeURIComponent(encodedPostData));
-      } catch (e) {
-        console.error("Failed to parse passed post data:", e);
-        return null;
+    if (typeof window !== 'undefined') {
+      const storedData = localStorage.getItem('tempPostData');
+      if (storedData) {
+        try {
+          localStorage.removeItem('tempPostData');
+          return JSON.parse(storedData);
+        } catch (e) {
+          console.error("Failed to parse stored post data:", e);
+          return null;
+        }
       }
     }
     return null;
-  }, [encodedPostData]);
+  }, []);
 
   useEffect(() => {
     if (pubId) {
@@ -102,6 +105,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isLoadingPage = useMemo(() => {
     return isLoading;
   }, [isLoading, isConnected]);
+
+  const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
@@ -249,7 +254,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         )}
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
           <div className="flex flex-col gap-2 h-full">
-            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} />}
+            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
@@ -342,37 +347,39 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                         </div>
                       </>
                     )}
-                    <Publications
-                      publications={showRootPublication ? [publication] : sortedComments}
-                      theme={Theme.dark}
-                      environment={LENS_ENVIRONMENT}
-                      authenticatedProfile={authenticatedProfile}
-                      hideCommentButton={false}
-                      hideQuoteButton={true}
-                      hideShareButton={true}
-                      hasUpvotedComment={hasUpvotedComment}
-                      onLikeButtonClick={onLikeButtonClick}
-                      getOperationsFor={getOperationsFor}
-                      profilePictureStyleOverride={publicationProfilePictureStyle}
-                      containerBorderRadius={'24px'}
-                      containerPadding={'12px'}
-                      profilePadding={'0 0 0 0'}
-                      textContainerStyleOverride={textContainerStyleOverrides}
-                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                      mediaImageStyleOverride={mediaImageStyleOverride}
-                      imageContainerStyleOverride={imageContainerStyleOverride}
-                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                      reactionContainerStyleOverride={reactionContainerStyleOverride}
-                      publicationContainerStyleOverride={publicationContainerStyleOverride}
-                      shareContainerStyleOverride={shareContainerStyleOverride}
-                      markdownStyleBottomMargin={'0px'}
-                      heartIconOverride={true}
-                      messageIconOverride={true}
-                      shareIconOverride={true}
-                      followButtonDisabled={true}
-                      onProfileClick={goToCreatorPage}
-                      hideCollectButton={true}
-                    />
+                    <div className="animate-fade-in-down">
+                      <Publications
+                        publications={showRootPublication ? [publication] : sortedComments}
+                        theme={Theme.dark}
+                        environment={LENS_ENVIRONMENT}
+                        authenticatedProfile={authenticatedProfile}
+                        hideCommentButton={false}
+                        hideQuoteButton={true}
+                        hideShareButton={true}
+                        hasUpvotedComment={hasUpvotedComment}
+                        onLikeButtonClick={onLikeButtonClick}
+                        getOperationsFor={getOperationsFor}
+                        profilePictureStyleOverride={publicationProfilePictureStyle}
+                        containerBorderRadius={'24px'}
+                        containerPadding={'12px'}
+                        profilePadding={'0 0 0 0'}
+                        textContainerStyleOverride={textContainerStyleOverrides}
+                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                        mediaImageStyleOverride={mediaImageStyleOverride}
+                        imageContainerStyleOverride={imageContainerStyleOverride}
+                        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                        reactionContainerStyleOverride={reactionContainerStyleOverride}
+                        publicationContainerStyleOverride={publicationContainerStyleOverride}
+                        shareContainerStyleOverride={shareContainerStyleOverride}
+                        markdownStyleBottomMargin={'0px'}
+                        heartIconOverride={true}
+                        messageIconOverride={true}
+                        shareIconOverride={true}
+                        followButtonDisabled={true}
+                        onProfileClick={goToCreatorPage}
+                        hideCollectButton={true}
+                      />
+                    </div>
                   </div>
                 </>
               )}

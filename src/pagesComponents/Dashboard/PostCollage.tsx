@@ -226,12 +226,11 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       postData={postData[post.slug]}
                       onShare={() => onShareButtonClick(post.slug)}
                       onClick={() => {
-                        const encodedPost = encodeURIComponent(JSON.stringify(post));
+                        localStorage.setItem('tempPostData', JSON.stringify(post));
                         router.push({
                           pathname: `/post/${post.slug}`,
                           query: {
-                            returnTo: '/',
-                            postData: encodedPost
+                            returnTo: '/'
                           }
                         });
                       }}

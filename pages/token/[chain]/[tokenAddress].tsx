@@ -207,7 +207,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
     const priceDelta = tradingInfo ? tradingInfo.priceDeltas[period] : "0";
-    const textColor = priceDelta === "0" || priceDelta === "-0" ? 'text-white/60' : (priceDelta.includes("+") ? "text-bullish" : "text-bearish");
+    const textColor = priceDelta === "0" || priceDelta === "-0" ? 'text-white/60' : (priceDelta.includes("+") ? "!text-bullish" : "!text-bearish");
     return (
       <Subtitle className={clsx(textColor)}>
         {localizeNumber(Number(priceDelta) / 100, "percent")}
