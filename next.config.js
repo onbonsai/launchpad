@@ -29,6 +29,21 @@ const nextConfig = {
         destination: '/studio/stake',
         permanent: false,
       },
+      {
+        source: '/studio/create',
+        destination: '/studio/stake',
+        permanent: false,
+      },
+      {
+        source: '/post/:path*',
+        destination: '/studio/stake',
+        permanent: false,
+      },
+      {
+        source: '/profile/:path*',
+        destination: '/studio/stake',
+        permanent: false,
+      },
     ];
   },
   async headers() {

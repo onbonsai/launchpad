@@ -146,7 +146,7 @@ export const Header = () => {
       {openMobileMenu && (
         <div className="sm:hidden bg-black border-t border-dark-grey px-4 py-3">
           <div className="flex flex-col space-y-2">
-            <CreateClub />
+            {/* <CreateClub /> */}
             <ClaimFeesEarned />
             <div
               className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-lg hover:opacity-80 hover:cursor-pointer"
