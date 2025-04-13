@@ -22,15 +22,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // async redirects() {
-  //   return [
-  //     {
-  //       source: '/',
-  //       destination: '/studio/stake',
-  //       permanent: false,
-  //     },
-  //   ];
-  // },
   async headers() {
     return [
       {
@@ -44,15 +35,6 @@ const nextConfig = {
       },
       {
         source: '/splash.jpg',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/api/seo/:path*',
         headers: [
           {
             key: 'Cache-Control',
