@@ -1,16 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { Cursor, evmAddress, NotificationType, PageSize, postId, PostType, SessionClient } from "@lens-protocol/client";
-import { fetchNotifications, fetchPost, fetchPosts, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
-import promiseLimit from "promise-limit";
-import { lensClient } from "./client";
+import { evmAddress, NotificationType } from "@lens-protocol/client";
+import { fetchNotifications } from "@lens-protocol/client/actions";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { groupBy, sampleSize } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
 
-export const useGetNotifications = (isAuthenticated?: boolean) => {
+export const useGetNotifications = (authenticatedProfileId?: string | null) => {
   return useInfiniteQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", authenticatedProfileId],
     queryFn: async ({ pageParam = null }) => {
       let sessionClient;
       try {
@@ -41,6 +37,7 @@ export const useGetNotifications = (isAuthenticated?: boolean) => {
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!isAuthenticated,
+    enabled: !!authenticatedProfileId,
+    refetchInterval: 60000, // Fetch every minute
   });
 };

@@ -234,10 +234,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
-      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
+      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
         <Link
           href={returnTo ? returnTo as string : "/"}
-          className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors mb-4"
+          className="absolute -left-[90px] top-8 flex items-center text-secondary/60 hover:text-brand-highlight transition-colors w-[100px]"
         >
           <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
           <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>

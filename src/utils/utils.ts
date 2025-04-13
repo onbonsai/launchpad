@@ -469,3 +469,23 @@ export const getPostContentSubstring = (string, length = 100): string => {
     return `${string.substring(0, length)}...`;
   }
 };
+
+export const formatCustomDate = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}h`;
+  }
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+}

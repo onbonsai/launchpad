@@ -53,7 +53,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { disconnect } = useDisconnect();
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
-  const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
+  const { isAuthenticated, signingIn, authenticatedProfileId } = useLensSignIn(walletClient);
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -63,11 +63,10 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       }
     },
     onDisconnect: () => {
-      const asyncLogout = async () => {
-        await lensLogout();
+      if (authenticatedProfileId) {
+        lensLogout();
         fullRefetch() // invalidate cached query data
       }
-      if ((!!authenticatedProfile?.address)) asyncLogout();
     }
   });
   // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({

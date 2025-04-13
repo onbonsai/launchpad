@@ -1,25 +1,62 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Header2, Subtitle } from "@src/styles/text";
-import { BookmarkAddOutlined, ChatBubbleOutline, NotificationsOutlined, PersonOutlined } from "@mui/icons-material";
+import { NotificationsOutlined } from "@mui/icons-material";
+import { HeartIcon, ChatIcon, BookmarkIcon } from "@heroicons/react/outline";
 import { useWalletClient } from "wagmi";
+import { useInView } from "react-intersection-observer";
+import { Account, Post } from "@lens-protocol/client";
+import Link from "next/link";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetNotifications } from "@src/services/lens/getNotifications";
 import Spinner from "../LoadingSpinner/LoadingSpinner";
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
-import { HeartIcon } from "@heroicons/react/outline";
 import { Button } from "../Button";
-import { Account, Post } from "@lens-protocol/client";
 import { getPostContentSubstring } from "@src/utils/utils";
-import Link from "next/link";
+import { ProfilePopper } from "../Profile/ProfilePopper";
 
 export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
+  const { ref, inView } = useInView();
   const { data: walletClient } = useWalletClient();
-  const { isAuthenticated } = useLensSignIn(walletClient);
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } = useGetNotifications(isAuthenticated);
+  const { authenticatedProfileId } = useLensSignIn(walletClient);
+  const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } = useGetNotifications(authenticatedProfileId);
+  const [followed, setFollowed] = useState<Record<string, boolean>>({});
   const notifs = useMemo(() => data?.pages.flatMap(page => page.notifications) || [], [isLoading]);
   const [showTooltip, setShowTooltip] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Group notifications, combining reactions for the same post
+  const groupedNotifications = useMemo(() => {
+    const grouped = notifs.reduce((acc, notification) => {
+      if (notification.__typename === "ReactionNotification") {
+        const postId = notification.post.id;
+        if (!acc[postId]) {
+          // Create new grouped reaction notification
+          acc[postId] = {
+            id: `reaction-${postId}`,
+            __typename: "ReactionNotification",
+            post: notification.post,
+            reactions: [notification.reactions[0]],
+          };
+        } else {
+          // Add to existing group
+          acc[postId].reactions.push(notification.reactions[0]);
+        }
+      } else {
+        // Non-reaction notifications are kept as is
+        acc[notification.id] = notification;
+      }
+      return acc;
+    }, {});
+
+    // Convert back to array and sort by most recent
+    return Object.values(grouped).sort((a: any, b: any) => {
+      const aTime = a.__typename === "ReactionNotification"
+        ? a.reactions[0].reactions[0].reactedAt
+        : a.timestamp;
+      const bTime = b.__typename === "ReactionNotification"
+        ? b.reactions[0].reactions[0].reactedAt
+        : b.timestamp;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
+  }, [notifs]);
 
   // Effect to add and remove the event listener
   useEffect(() => {
@@ -48,9 +85,13 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
     };
   }, [showTooltip]);
 
-  // console.log(notifs);
+  useEffect(() => {
+    if (inView && hasNextPage && !isLoading && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  if (!isAuthenticated) return null;
+  if (!authenticatedProfileId) return null;
 
   return (
     <div ref={containerRef} className="relative">
@@ -69,18 +110,25 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
           top: containerRef.current.getBoundingClientRect().bottom + 8 + 'px',
           left: `${containerRef.current.getBoundingClientRect().left}px`
         }}>
-          <div className="bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px]">
+          <div className="bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px] max-h-[45vh] overflow-y-auto">
             {isLoading && (
               <div className="flex justify-center p-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
             )}
-            {notifs?.map((notification, index) => (
+            {groupedNotifications.map((notification, index) => (
               <NotificationItem
                 key={notification.id}
                 type={notification.__typename}
                 notification={notification}
-                showBorder={index !== notifs.length - 1}
+                showBorder={index !== groupedNotifications.length - 1}
+                followed={followed}
+                setFollowed={setFollowed}
               />
             ))}
+            {hasNextPage && isFetchingNextPage && (
+              <div ref={ref} className="flex justify-center pt-4">
+                <Spinner customClasses="h-6 w-6" color="#5be39d" />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -94,14 +142,122 @@ interface NotificationItemProps {
   type: NotificationType
   notification: any
   showBorder: boolean
+  followed: Record<string, boolean>;
+  setFollowed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
+
+interface GroupedReactionNotificationProps {
+  reactions: any[]
+  postId: string
+  postContent: string
+  maxDisplayedAvatars?: number
+  showBorder: boolean
+  followed: Record<string, boolean>;
+  setFollowed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+}
+
+const GroupedReactionNotification = ({
+  reactions,
+  postId,
+  postContent,
+  maxDisplayedAvatars = 5,
+  showBorder,
+  followed,
+  setFollowed
+}: GroupedReactionNotificationProps) => {
+  const displayedReactions = reactions.slice(0, maxDisplayedAvatars);
+  const firstUser = reactions[0].account;
+
+  if (!firstUser?.metadata) return null;
+
+  return (
+    <Link href={`/post/${postId}`}>
+      <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
+        {/* First Column - Icon */}
+        <div className="flex-shrink-0 pt-1">
+          <HeartIcon className="w-5 h-5 text-white" />
+        </div>
+
+        {/* Second Column - Content */}
+        <div className="flex-1 flex flex-col gap-1.5">
+          {/* Avatars row with overlap */}
+          <div className="flex -space-x-2">
+            {displayedReactions.map((reaction, index) => {
+              const username = reaction.account?.username?.localName;
+              const profile = reaction.account as Account;
+
+              return (
+                // Outer div for sizing and border
+                <div
+                  key={index}
+                  className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative"
+                >
+                  <ProfilePopper profile={profile} followed={followed} setFollowed={setFollowed}>
+                    {/* Link wraps only the image */}
+                    <Link
+                      href={username ? `/profile/${username}` : '#'}
+                      onClick={(e) => {
+                        if (!username) e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      // Apply block and full size to the link to make the image clickable
+                      className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
+                      aria-label={username ? `View profile ${username}` : "Profile image"}
+                    >
+                      {/* Image component */}
+                      <img
+                        src={profile.metadata?.picture || "/default.png"}
+                        alt={username || "profile"}
+                        className="w-full h-full object-cover"
+                      />
+                    </Link>
+                  </ProfilePopper>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Action Text */}
+          <p className="text-white text-sm">
+            <span className="font-bold">{firstUser?.username?.localName}</span>
+            {reactions.length > 1 && (
+              <span> and {reactions.length - 1} others</span>
+            )}
+            <span className="font-normal"> liked your post</span>
+          </p>
+
+          {/* Post Content */}
+          {postContent && (
+            <p className="text-gray-300 text-sm">{getPostContentSubstring(postContent, 35)}</p>
+          )}
+        </div>
+      </div>
+      {showBorder && <div className="h-[1px] bg-[rgba(255,255,255,0.05)]" />}
+    </Link>
+  );
+};
 
 const NotificationItem = ({
   type,
   notification,
   showBorder,
+  followed,
+  setFollowed,
 }: NotificationItemProps) => {
-  let profile: Account;
+  if (type === "ReactionNotification") {
+    return (
+      <GroupedReactionNotification
+        reactions={notification.reactions}
+        postId={notification.post.id}
+        postContent={notification.post.metadata.content}
+        showBorder={showBorder}
+        followed={followed}
+        setFollowed={setFollowed}
+      />
+    );
+  }
+
+  let profile: Account | null = null;
   let entity;
   let postId;
   let timestamp;
@@ -113,34 +269,25 @@ const NotificationItem = ({
     postId = entity.operations.id.split("-")[0];
     timestamp = entity.timestamp;
     textContent = entity.metadata.content;
-  } else if (type === "ReactionNotification") {
-    // The first reaction in the array contains the user who reacted
-    const reactionData = notification.reactions[0];
-    profile = reactionData.account;
-    postId = notification.post.id;
-    timestamp = reactionData.reactions[0].reactedAt;
-    textContent = notification.post.metadata.content;
   }
 
   // TODO: handle collect notifs
 
+  const username = profile?.username?.localName;
+
   const getIcon = () => {
     switch (type) {
-      case "ReactionNotification":
-        return <HeartIcon className="w-6 h-6 text-white" />
       case "CommentNotification":
-        return <ChatBubbleOutline className="w-6 h-6 text-white" />
+        return <ChatIcon className="w-5 h-5 text-white" />
       case "collected":
-        return <BookmarkAddOutlined className="w-6 h-6 text-white" />
+        return <BookmarkIcon className="w-5 h-5 text-white" />
       default:
-        return <HeartIcon className="w-6 h-6 text-white" />
+        return <HeartIcon className="w-5 h-5 text-white" />
     }
   }
 
   const getActionText = () => {
     switch (type) {
-      case "ReactionNotification":
-        return "liked your post"
       case "CommentNotification":
         return "commented on your post"
       case "collected":
@@ -150,28 +297,54 @@ const NotificationItem = ({
     }
   }
 
+  if (!["ReactionNotification", "CommentNotification", "collected"].includes(type)) {
+    return null;
+  }
+
   return (
-    <Link href={`/post/${postId}`}>
-      <div className="py-4 px-4 flex gap-4 cursor-pointer transition-colors hover:bg-white/[0.02]">
+    <Link href={postId ? `/post/${postId}` : '#'} className={!postId ? 'pointer-events-none' : ''}>
+      <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
         {/* First Column - Icon */}
-        <div className="flex-shrink-0 pt-2">{getIcon()}</div>
+        <div className="flex-shrink-0 pt-1">{getIcon()}</div>
 
         {/* Second Column - Content */}
-        <div className="flex-1 flex flex-col gap-2">
+        <div className="flex-1 flex flex-col gap-1.5">
           {/* First Row - Profile Picture */}
-          <div className="h-10 w-10 border border-gray-700 rounded-full overflow-hidden">
-            <img src={profile?.metadata?.picture || "/default.png"} alt={"pfp"} className="w-full h-full object-cover rounded-full" />
-          </div>
+          {profile && (
+            // Outer div for sizing and border
+            <div className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative">
+              <ProfilePopper profile={profile} followed={followed} setFollowed={setFollowed}>
+                {/* Link wraps only the image */}
+                <Link
+                  href={username ? `/profile/${username}` : '#'}
+                  onClick={(e) => {
+                    if (!username) e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  // Apply block and full size to the link to make the image clickable
+                  className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
+                  aria-label={username ? `View profile ${username}` : "Profile image"}
+                >
+                  {/* Image component */}
+                  <img
+                    src={profile.metadata?.picture || "/default.png"}
+                    alt={"pfp"}
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
+              </ProfilePopper>
+            </div>
+          )}
 
           {/* Second Row - Action Text */}
-          <p className="text-white">
-            <span className="font-bold">{profile?.username?.localName}</span>{" "}
+          <p className="text-white text-sm">
+            <span className="font-bold">{username}</span>{" "}
             <span className="font-normal">{getActionText()}</span>
           </p>
 
           {/* Third Row - Post Content */}
           {textContent && (
-            <p className="text-gray-300">{getPostContentSubstring(textContent, 30)}</p>
+            <p className="text-gray-300 text-sm">{getPostContentSubstring(textContent, 35)}</p>
           )}
         </div>
       </div>
