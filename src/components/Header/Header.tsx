@@ -20,6 +20,7 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { ClaimBonsai } from "./ClaimBonsai";
+import { Notifications } from "./Notifications";
 
 const headerLinks = [
   {
@@ -95,6 +96,7 @@ export const Header = () => {
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center gap-2 mr-2">
+              <Notifications />
               <Link href="/studio">
                 <Button
                   variant="accentBrand"
@@ -148,6 +150,8 @@ export const Header = () => {
             <Balance openMobileMenu />
             <ClaimFeesEarned openMobileMenu />
             <ClaimBonsai openMobileMenu />
+            <Notifications openMobileMenu />
+            {/* TODO: move info to a button next to hamburger */}
             <div
               className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
               onClick={() => {

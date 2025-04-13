@@ -236,7 +236,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                                 tooltip.classList.remove('opacity-0');
                                 setTimeout(() => {
                                   tooltip.classList.add('opacity-0');
-                                }, 1000);
+                                }, 750);
                               }
                             }}
                           >
@@ -297,7 +297,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                               tooltip.classList.remove('opacity-0');
                               setTimeout(() => {
                                 tooltip.classList.add('opacity-0');
-                              }, 1000);
+                              }, 750);
                             }
                           }}
                         >
