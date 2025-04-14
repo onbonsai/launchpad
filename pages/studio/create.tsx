@@ -114,15 +114,17 @@ const StudioCreatePage: NextPage = () => {
       // @ts-expect-error templateData is unknown
       setFinalTemplateData(remixMedia.templateData);
 
-      getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
-        setFinalTokenData({
-          tokenName: token.name,
-          tokenSymbol: token.symbol,
-          tokenImage: [{ preview: token.image }],
-          selectedNetwork: remixMedia.token.chain,
-          initialSupply: 0,
+      if (remixMedia.token?.address) {
+        getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
+          setFinalTokenData({
+            tokenName: token.name,
+            tokenSymbol: token.symbol,
+            tokenImage: [{ preview: token.image }],
+            selectedNetwork: remixMedia.token.chain,
+            initialSupply: 0,
+          });
         });
-      });
+      }
     }
   }, [isLoading, remixMedia]);
 

@@ -61,7 +61,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
           {/* Token preview */}
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
-              {addToken || isRemix ? (
+              {(addToken || isRemix) && finalTokenData?.tokenSymbol ? (
                 <>
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">
