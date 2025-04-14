@@ -231,7 +231,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   type="text"
                   value={tokenName}
                   className={clsx("w-full pr-4", sharedInputClasses)}
-                  onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 8).toUpperCase()); }}
+                  onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 10).toUpperCase()); }}
                 />
               </div>
             </div>

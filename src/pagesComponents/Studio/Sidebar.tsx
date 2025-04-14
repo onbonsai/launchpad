@@ -76,7 +76,7 @@ const StudioSidebar = () => {
           </div>
           <div>
             <Header2 className="text-lg font-medium opacity-80">Capacity Today</Header2>
-            <p className="text-sm text-secondary/90 mt-2">~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations</p>
+            <p className="text-sm text-secondary/90 mt-2">~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3).toLocaleString()} post generations</p>
           </div>
         </div>
       </div>
