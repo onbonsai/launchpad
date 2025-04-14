@@ -37,7 +37,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
   } = useLensSignIn(walletClient);
 
   const categories = useMemo(() => {
-    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value');
+    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value').filter((c) => c);
     return _categories.map((c) => ({
       key: c.value,
       label: c.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
