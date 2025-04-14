@@ -9,7 +9,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
 import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } from '@src/services/madfi/studio';
 import { useGetCredits } from '@src/hooks/useGetCredits';
-import { useAccount } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
+import { handleOperationWith } from "@lens-protocol/client/viem";
 
 type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete';
 
@@ -37,6 +38,7 @@ export default ({
   media,
 }: DropdownMenuProps) => {
   const { isConnected, address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected && isCreator);
 
   const estimatedGenerations = useMemo(() => {
@@ -102,7 +104,8 @@ export default ({
     }
   };
 
-  const handleDelete = async (reason: PostReportReason) => {
+  const handleDelete = async () => {
+    let toastId;
     try {
       const sessionClient = await resumeSession(true);
       if (!sessionClient) {
@@ -110,14 +113,16 @@ export default ({
         return;
       }
 
+      toastId = toast.loading("Deleting post...");
+
       const result = await deletePost(sessionClient, {
         post: toPostId(postId),
-      });
+      }).andThen(handleOperationWith(walletClient));
       if (result.isErr()) throw new Error("Result failed");
 
       setShowDropdown(false);
       setCurrentView('initial');
-      toast("Post deleted");
+      toast("Post deleted", { id: toastId });
     } catch (error) {
       console.log(error);
       toast.error("Failed");
