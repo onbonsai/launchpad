@@ -91,7 +91,7 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
     }
   }, [inView, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  if (!authenticatedProfileId) return null;
+  if (!authenticatedProfileId || (!isLoading && notifs.length === 0)) return null;
 
   return (
     <div ref={containerRef} className="relative">

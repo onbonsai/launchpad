@@ -4,11 +4,11 @@ import { Publications, Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef } from "react";
-
+import Link from "next/link";
+import { ArrowBack } from "@mui/icons-material";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
-import { ConnectButton } from "@src/components/ConnectButton";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -24,8 +24,6 @@ import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
-import Link from "next/link";
-import { ChevronLeftIcon } from "@heroicons/react/outline";
 import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
@@ -33,11 +31,10 @@ import { useGetAgentInfo } from "@src/services/madfi/terminal";
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { pubId, returnTo, postData: encodedPostData } = router.query;
+  const { pubId, returnTo } = router.query;
   const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
-    useLensSignIn(walletClient);
+  const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
 
   // Parse the post data if available from localStorage
@@ -64,9 +61,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   }, [pubId]);
 
   // Use the passed post data as initialData if available
-  const { data: publicationWithComments, isLoading: isLoadingPublication } = useGetPublicationWithComments(
+  const { data: publicationWithComments, isLoading: isLoadingPublication, refetch } = useGetPublicationWithComments(
     pubId as string,
-    passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined
+    passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined,
+    authenticatedProfileId
   );
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
@@ -84,7 +82,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState();
+  const [canComment, setCanComment] = useState<boolean>();
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
@@ -146,14 +144,14 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   };
 
   useEffect(() => {
-    if (replyingToComment !== null && commentInputRef.current) {
+    if ((replyingToComment !== null || canComment) && commentInputRef.current) {
       commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const timer = setTimeout(() => {
         commentInputRef.current?.focus();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [replyingToComment]);
+  }, [replyingToComment, canComment]);
 
   const submitComment = async () => {
     if (!authenticatedProfile) {
@@ -235,13 +233,6 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
-        <Link
-          href={returnTo ? returnTo as string : "/"}
-          className="absolute -left-[90px] top-8 flex items-center text-secondary/60 hover:text-brand-highlight transition-colors w-[100px]"
-        >
-          <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
-          <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>
-        </Link>
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
@@ -252,7 +243,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
             />
           </ChatWindowButton>
         )}
-        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
+        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex items-start justify-center h-full gap-4">
+          <Link
+            href={returnTo ? returnTo as string : "/"}
+            className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
+          >
+            <ArrowBack className="h-5 w-5" />
+          </Link>
           <div className="flex flex-col gap-2 h-full">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} />}
             <div className="overflow-y-hidden h-full">
@@ -271,7 +268,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           shouldGoToPublicationPage={false}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
-                          onCollectCallback={() => setCanComment(true)}
+                          onCollectCallback={() => {
+                            setCanComment(true);
+                            refetch();
+                          }}
                           sideBySideMode={true}
                         />
                       </div>
@@ -282,7 +282,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           shouldGoToPublicationPage={false}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
-                          onCollectCallback={() => setCanComment(true)}
+                          onCollectCallback={() => {
+                            setCanComment(true);
+                            refetch();
+                          }}
                         />
                       </div>
                     </>

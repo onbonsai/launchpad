@@ -32,6 +32,7 @@ import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import Link from "next/link";
+import { ArrowBack } from "@mui/icons-material";
 
 type TokenData = {
   initialSupply: number;
@@ -59,6 +60,7 @@ const StudioCreatePage: NextPage = () => {
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
   const [addToken, setAddToken] = useState(false);
+  const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
@@ -117,7 +119,9 @@ const StudioCreatePage: NextPage = () => {
     // 1. create token (if not remixing)
     let tokenAddress;
     let txHash;
-    if (addToken && finalTokenData && !remixMedia?.agentId) {
+    if (!!savedTokenAddress) {
+      tokenAddress = savedTokenAddress;
+    } else if (addToken && finalTokenData && !remixMedia?.agentId) {
       toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
@@ -131,10 +135,9 @@ const StudioCreatePage: NextPage = () => {
           }
         }
 
-        console.log(finalTokenData.totalRegistrationFee)
         if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
           const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
-          await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId);
+          await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId, undefined, finalTokenData.selectedNetwork);
         }
 
         const result = await registerClubTransaction(walletClient, {
@@ -155,6 +158,7 @@ const StudioCreatePage: NextPage = () => {
 
         txHash = result.txHash as string;
         tokenAddress = result.tokenAddress;
+        setSavedTokenAddress(tokenAddress); // save our progress
       } catch (error) {
         console.log(error);
         toast.error("Failed to create token", { id: toastId });
@@ -163,14 +167,17 @@ const StudioCreatePage: NextPage = () => {
       }
     } else if (remixMedia?.token?.address) {
       tokenAddress = remixMedia.token.address;
+      setSavedTokenAddress(tokenAddress); // save our progress
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
     if (LENS_CHAIN_ID !== chain?.id && switchChain) {
       try {
         await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
-      } catch {
+      } catch (error) {
+        console.log(error);
         toast.error("Please switch networks to create your Lens post");
+        setIsCreating(false);
         return;
       }
     }
@@ -317,7 +324,11 @@ const StudioCreatePage: NextPage = () => {
       setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);
-      toast.error("Failed to create smart media", { id: toastId });
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to create smart media", { id: toastId, duration: 5000 });
+      } else {
+        toast.error("Failed to create smart media", { id: toastId });
+      }
       setIsCreating(false);
       return;
     }
@@ -336,13 +347,12 @@ const StudioCreatePage: NextPage = () => {
             <div className="flex-grow">
               {/* Header Card */}
               <div className="bg-card rounded-lg p-6">
-                <div className="flex items-start gap-6">
+                <div className="flex items-start gap-4">
                   <Link
                     href="/studio"
-                    className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors"
+                    className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
                   >
-                    <ChevronLeftIcon className="h-5 w-5 mr-1" />
-                    <span className="text-sm">Back</span>
+                    <ArrowBack className="h-5 w-5" />
                   </Link>
                   <div className="flex-1">
                     <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>

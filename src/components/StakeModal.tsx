@@ -4,6 +4,8 @@ import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
 import { brandFont } from "@src/fonts/fonts";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { useAccount } from "wagmi";
 
 interface StakeModalProps {
   onStake: (amount: string, lockupPeriod: number) => Promise<boolean>;
@@ -23,10 +25,10 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-const MIN_STAKE = 1000;
+const MIN_STAKE = 5000;
 
 export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice, switchNetwork, amount, setAmount }: StakeModalProps) => {
-
+  const { chain } = useAccount();
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
   const handleMax = () => {
@@ -166,7 +168,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
             onClick={handleStake}
             disabled={!amount || Number(amount) < MIN_STAKE}
           >
-            {switchNetwork ? 'Switch to Lens' : 'Stake'}
+            {chain?.id !== LENS_CHAIN_ID ? 'Switch to Lens Chain' : 'Stake'}
           </Button>
         </div>
       </div>

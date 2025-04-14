@@ -243,7 +243,7 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
         requireBonsaiPayment={requireBonsaiPayment}
         setRequireBonsaiPayment={setRequireBonsaiPayment}
         showSuggestions={!streamEntries?.length && canMessage && canMessageAgain}
-        placeholder={!(canMessageAgain && canMessage) ? "Stake more tokens in the Studio" : undefined}
+        placeholder={!(canMessageAgain && canMessage) ? "Insufficient credits" : undefined}
       />
     </div>
   );

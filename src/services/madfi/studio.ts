@@ -127,11 +127,20 @@ export const generatePreview = async (
       }),
     });
 
-    if (!response.ok) throw new Error(`Preview generation failed: ${response.statusText}`);
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Preview generation failed: ${response.statusText}`);
+    }
 
     return await response.json();
   } catch (error) {
     console.error("Error generating preview:", error);
+    throw error;
   }
 };
 
@@ -146,11 +155,20 @@ export const createSmartMedia = async (url: string, idToken: string, body: strin
       body,
     });
 
-    if (!response.ok) throw new Error(`Create failed ${response.statusText}`);
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Create failed ${response.statusText}`);
+    }
 
     return await response.json();
   } catch (error) {
     console.error("Error creating:", error);
+    throw error;
   }
 };
 
@@ -201,14 +219,22 @@ export const requestPostUpdate = async (url: string, postSlug: string, idToken: 
       body: JSON.stringify({ forceUpdate: true })
     });
 
-    if (!response.ok) throw new Error(`Post update failed: ${response.statusText}`);
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Post update failed: ${response.statusText}`);
+    }
 
     return true;
   } catch (error) {
     console.error("Error requestPostUpdate::", error);
-    return false;
+    throw error;
   }
-}
+};
 
 export const requestPostDisable = async (url: string, postSlug: string, idToken: string): Promise<boolean> => {
   try {

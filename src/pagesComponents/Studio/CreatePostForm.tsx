@@ -93,7 +93,11 @@ const CreatePostForm = ({
 
       toast.success("Done", { id: toastId });
     } catch (error) {
-      toast.error("Failed to generate preview", { id: toastId });
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to generate preview", { id: toastId, duration: 5000 });
+      } else {
+        toast.error("Failed to generate preview", { id: toastId });
+      }
     }
 
     setIsGeneratingPreview(false);

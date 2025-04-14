@@ -199,7 +199,8 @@ const TokenPage: NextPage = () => {
         }
       }
 
-      await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
+      const res = await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
+      if (!res) throw new Error("No stake hash");
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
 
@@ -485,8 +486,8 @@ const TokenPage: NextPage = () => {
                             ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {creditBalance?.creditsUsed || 0} credits used of{" "}
-                            {creditBalance?.totalCredits?.toFixed(1) || 0} total
+                            {(creditBalance?.creditsUsed || 0).toFixed(2)} credits used of{" "}
+                            {creditBalance?.totalCredits?.toFixed(2) || 0} total
                           </p>
                         </div>
 
@@ -496,7 +497,7 @@ const TokenPage: NextPage = () => {
                             {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(1) : creditBalance?.totalCredits?.toFixed(1) || 0}
+                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(2) : creditBalance?.totalCredits?.toFixed(1) || 0}
                           </p>
                         </div>
 

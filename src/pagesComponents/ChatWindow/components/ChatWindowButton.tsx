@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@src/components/Button"
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
+import { useAccount } from "wagmi";
 
 const XIcon = ({ size = 24, className = "" }) => (
   <svg
@@ -23,6 +24,7 @@ const XIcon = ({ size = 24, className = "" }) => (
 );
 
 export default function ChatWindowButton({ children, agentInfo }: { children: React.ReactNode, agentInfo: AgentInfo }) {
+  const { isConnected } = useAccount();
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
@@ -75,19 +77,20 @@ export default function ChatWindowButton({ children, agentInfo }: { children: Re
         </div>
       </div>
 
-      {/* Chat Toggle Button - Styling adapted */}
-      <Button
-        onClick={toggleChat}
-        variant="primary"
-        className={clsx(
-          "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-          "bg-background border border-dark-grey hover:bg-background",
-        )}
-      >
-        <div className="flex items-center justify-center">
-          {isOpen ? <XIcon size={24} className="text-white" /> : <span className="bonsaiLogoPattern -mt-2" />}
-        </div>
-      </Button>
+      {isConnected && (
+        <Button
+          onClick={toggleChat}
+          variant="primary"
+          className={clsx(
+            "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
+            "bg-background border border-dark-grey hover:bg-background",
+          )}
+        >
+          <div className="flex items-center justify-center">
+            {isOpen ? <XIcon size={24} className="text-white" /> : <span className="bonsaiLogoPattern -mt-2" />}
+          </div>
+        </Button>
+      )}
     </div>
   )
 }

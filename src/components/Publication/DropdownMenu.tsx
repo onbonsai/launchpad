@@ -5,9 +5,11 @@ import { FlagOutlined, RemoveCircle, RefreshOutlined, Block } from "@mui/icons-m
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
 import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } from '@src/services/madfi/studio';
+import { useGetCredits } from '@src/hooks/useGetCredits';
+import { useAccount } from 'wagmi';
 
 type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable';
 
@@ -34,6 +36,15 @@ export default ({
   mediaUrl,
   media,
 }: DropdownMenuProps) => {
+  const { isConnected, address } = useAccount();
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected && isCreator);
+
+  const estimatedGenerations = useMemo(() => {
+    if (!isLoadingCredits) {
+      return Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
+    }
+    return 0;
+  }, [isLoadingCredits]);
   const [currentView, setCurrentView] = useState<ViewState>('initial');
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
@@ -112,15 +123,18 @@ export default ({
       idToken = await getIdToken(sessionClient as SessionClient);
       if (!idToken) return;
 
-      const success = await requestPostUpdate(mediaUrl, postSlug, idToken);
-      if (!success) throw new Error("Result not successful");
+      await requestPostUpdate(mediaUrl as string, postSlug, idToken);
 
       setShowDropdown(false);
       setCurrentView('initial');
       toast.success("Update requested, please wait up to 60 seconds", { duration: 5000 });
     } catch (error) {
       console.log(error);
-      toast.error("Update failed to send");
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to update post", { duration: 5000 });
+      } else {
+        toast.error("Update failed to send");
+      }
     }
   };
 
@@ -246,14 +260,14 @@ export default ({
           return (
             <>
               <button
-                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
-                onClick={() => setCurrentView('refresh')}
+                className={`w-full py-3 px-4 text-left flex items-center ${estimatedGenerations > 0 ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
+                onClick={() => estimatedGenerations > 0 && setCurrentView('refresh')}
               >
                 <div className="w-4 flex items-center justify-center">
                   <SparkIcon color="rgba(255,255,255,0.8)" height={16} />
                 </div>
                 <span className="ml-2">
-                  Update Post
+                  {estimatedGenerations > 0 ? 'Update Post' : 'Insufficient credits to update'}
                 </span>
               </button>
               {media?.status === SmartMediaStatus.ACTIVE && (

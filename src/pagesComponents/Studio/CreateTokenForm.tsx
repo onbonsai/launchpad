@@ -107,7 +107,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   });
 
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
-  console.log("totalRegistrationFee", totalRegistrationFee);
   // TODO: might need to check this after registration fees enabled
   const isValid = (() => {
     return tokenName &&
