@@ -362,7 +362,13 @@ export const useGetAvailableBalance = (
 export const useSearchClubs = (query?: string) => {
   return useQuery({
     queryKey: ["search-clubs", query],
-    queryFn: () => searchClubs(query!),
+    queryFn: async () => {
+      const [baseResults, lensResults] = await Promise.all([
+        searchClubs(query!, "base"),
+        searchClubs(query!, "lens")
+      ]);
+      return [...lensResults, ...baseResults];
+    },
     enabled: !!query,
     staleTime: 120000,
     gcTime: 300000,

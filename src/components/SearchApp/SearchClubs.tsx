@@ -46,7 +46,7 @@ export const SearchClubs = () => {
     if (!item.v2) {
       push(`${V1_LAUNCHPAD_URL}/token/${item.clubId}`);
     } else {
-      push(`/token/${item.clubId}`);
+      push(`/token/${item.chain}/${item.tokenAddress}`);
     }
   }
 
@@ -139,7 +139,7 @@ export const SearchClubs = () => {
                         leaveTo="opacity-0"
                         afterLeave={() => setQuery("")}
                       >
-                        <Combobox.Options className="mt-1 max-h-80 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Combobox.Options className="mt-1 max-h-[500px] w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
                               <Spinner customClasses="h-6 w-6" color="#5be39d" />
@@ -258,17 +258,18 @@ export const SearchClubs = () => {
                                 >
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
-                                      {data.token.image && (
-                                        <div className="relative items-center pl-4">
-                                          <img
-                                            src={data.token.image}
-                                            alt={"token image"}
-                                            className="w-[12px] h-[12px] object-cover rounded-lg"
-                                          />
-                                        </div>
-                                      )}
-                                      <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
+                                      <span className={`flex truncate ${selected ? "font-medium" : "font-normal"}`}>
+                                        <img
+                                          src={data.uri}
+                                          alt={data.token.name}
+                                          className="h-6 w-6 mr-2 object-cover rounded-full"
+                                        />
                                         {data.token.name} (${data.token.symbol})
+                                        <img
+                                          src={`/${data.chain}.png`}
+                                          alt={data.chain}
+                                          className="h-5 ml-6"
+                                        />
                                       </span>
                                     </div>
                                   )}

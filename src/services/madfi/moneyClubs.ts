@@ -662,7 +662,7 @@ export const searchClubs = async (query: string, chain = "base") => {
   return clubs?.map((club) => {
     const { name, symbol, image } = club
 
-    return { token: { name, symbol, image }, ...club };
+    return { token: { name, symbol, image }, ...club, chain };
   });
 };
 
