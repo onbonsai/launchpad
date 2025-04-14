@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
+import { switchChain } from "@wagmi/core";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
@@ -27,12 +28,14 @@ import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
 import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { configureChainsConfig } from "@src/utils/wagmi";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { pubId, returnTo } = router.query;
-  const { isConnected } = useAccount();
+  const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
@@ -143,15 +146,24 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     setReplyingToUsername(username || null);
   };
 
+  const scrollToReplyInput = () => {
+    commentInputRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const focusAndScrollToReplyInput = () => {
+    scrollToReplyInput();
+    const timer = setTimeout(() => {
+      commentInputRef.current?.focus();
+    }, 500);
+    return timer;
+  }
+
   useEffect(() => {
-    if ((replyingToComment !== null || canComment) && commentInputRef.current) {
-      commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const timer = setTimeout(() => {
-        commentInputRef.current?.focus();
-      }, 500);
+    if ((replyingToComment !== null) && commentInputRef.current) {
+      const timer = focusAndScrollToReplyInput();
       return () => clearTimeout(timer);
     }
-  }, [replyingToComment, canComment]);
+  }, [replyingToComment]);
 
   const submitComment = async () => {
     if (!authenticatedProfile) {
@@ -163,6 +175,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     if (isCommenting) {
       console.log('Already submitting');
       return;
+    }
+
+    if (LENS_CHAIN_ID !== chain?.id) {
+      try {
+        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+      } catch (error) {
+        console.log(error);
+        toast.error("Please switch networks to comment");
+        return;
+      }
     }
 
     setIsCommenting(true);
@@ -179,12 +201,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         return;
       }
 
-      await createPost(
+      const res = await createPost(
         sessionClient,
         walletClient,
         { text: comment, ...asset },
         replyingToComment || pubId as string
       );
+      if (!res?.postId) throw new Error("no resulting post id");
 
       toast.success("Sent", { id: toastId, duration: 3000 });
       setComment("");
@@ -271,6 +294,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           onCollectCallback={() => {
                             setCanComment(true);
                             refetch();
+                            scrollToReplyInput();
                           }}
                           sideBySideMode={true}
                         />
@@ -285,6 +309,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           onCollectCallback={() => {
                             setCanComment(true);
                             refetch();
+                            scrollToReplyInput();
                           }}
                         />
                       </div>

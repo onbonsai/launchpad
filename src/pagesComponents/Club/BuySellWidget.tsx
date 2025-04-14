@@ -65,15 +65,15 @@ export const BuySellWidget = ({
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
-    // GHO Balance
-    const { data: ghoBalance } = useBalance({
-      address,
-      chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
-      query: {
-        enabled: club.chain === "lens",
-        refetchInterval: 10000,
-      }
-    })
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
+    query: {
+      enabled: club.chain === "lens",
+      refetchInterval: 10000,
+    }
+  })
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
@@ -273,11 +273,11 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                     <div className="relative flex flex-col">
                       <CurrencyInput
                         tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
-                        tokenBalance={tokenBalance}
+                        tokenBalance={club.chain === "lens" ? tokenBalance + (ghoBalance?.value || 0n) : tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
+                        symbol={club.chain === "lens" ? "GHO" : "USDC"}
                         showMax
                         chain={club.chain}
                       />

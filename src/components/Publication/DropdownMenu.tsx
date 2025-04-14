@@ -1,6 +1,6 @@
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import { addPostNotInterested, reportPost } from "@lens-protocol/client/actions";
+import { addPostNotInterested, deletePost, reportPost } from "@lens-protocol/client/actions";
 import { FlagOutlined, RemoveCircle, RefreshOutlined, Block } from "@mui/icons-material";
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
@@ -11,7 +11,7 @@ import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } f
 import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount } from 'wagmi';
 
-type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable';
+type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete';
 
 interface DropdownMenuProps {
   showDropdown: boolean;
@@ -96,6 +96,28 @@ export default ({
       setShowDropdown(false);
       setCurrentView('initial');
       toast("Post reported");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed");
+    }
+  };
+
+  const handleDelete = async (reason: PostReportReason) => {
+    try {
+      const sessionClient = await resumeSession(true);
+      if (!sessionClient) {
+        toast.error("Not authenticated");
+        return;
+      }
+
+      const result = await deletePost(sessionClient, {
+        post: toPostId(postId),
+      });
+      if (result.isErr()) throw new Error("Result failed");
+
+      setShowDropdown(false);
+      setCurrentView('initial');
+      toast("Post deleted");
     } catch (error) {
       console.log(error);
       toast.error("Failed");
@@ -256,6 +278,28 @@ export default ({
               </div>
             </>
           );
+        case 'delete':
+          return (
+            <>
+              <div className="px-4 py-3 text-center text-sm">
+                Delete this post?
+              </div>
+              <div className="border-t border-white/10">
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
+                  onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
+                >
+                  Confirm Delete
+                </button>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  onClick={() => setCurrentView('initial')}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          );
         default:
           return (
             <>
@@ -281,6 +325,15 @@ export default ({
                   <span className="ml-2">Disable Updates</span>
                 </button>
               )}
+              <button
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
+                onClick={() => setCurrentView('delete')}
+              >
+                <div className="w-4 flex items-center justify-center">
+                  <RemoveCircle sx={{ fontSize: '1rem', color: "currentColor" }} />
+                </div>
+                <span className="ml-2">Delete Post</span>
+              </button>
               {media && (
                 <div className="px-4 py-2 flex items-center justify-end border-t border-white/10">
                   <div className="relative flex items-center justify-center w-3 h-3">
@@ -357,6 +410,29 @@ export default ({
               ))}
               <button
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 border-t border-white/10"
+                onClick={() => setCurrentView('initial')}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        );
+
+      case 'delete':
+        return (
+          <>
+            <div className="px-4 py-3 text-center text-sm">
+              Delete this post?
+            </div>
+            <div className="border-t border-white/10">
+              <button
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
+                onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
+              >
+                Confirm Delete
+              </button>
+              <button
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                 onClick={() => setCurrentView('initial')}
               >
                 Cancel

@@ -417,7 +417,7 @@ const PublicationContainer = ({
         </div>
       )}
 
-      {!isCreator || media?.agentId && (
+      {!!media?.agentId && (
         <div
           className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-10'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}

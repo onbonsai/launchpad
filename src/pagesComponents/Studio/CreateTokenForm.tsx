@@ -1,6 +1,6 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useBalance, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
 import { Disclosure, Transition } from "@headlessui/react";
@@ -24,7 +24,7 @@ import { Subtitle } from "@src/styles/text";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -97,7 +97,17 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
 
-  // stablecoin balance (GHO on lens, USDC on base)
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: selectedNetwork === "lens",
+      refetchInterval: 10000,
+    }
+  })
+
+  // stablecoin balance (WGHO on lens, USDC on base)
   const { data: tokenBalance } = useReadContract({
     address: selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
@@ -107,14 +117,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   });
 
   const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
-  // TODO: might need to check this after registration fees enabled
-  const isValid = (() => {
-    return tokenName &&
-      tokenSymbol &&
-      tokenBalance && tokenBalance >= (totalRegistrationFee || 0n) &&
-      !!tokenImage &&
-      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
-  })();
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
@@ -127,6 +129,30 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
       label: option.label
     }))
   }], []);
+
+  const notEnoughFunds = useMemo(() => {
+    const requiredAmount = totalRegistrationFee || 0n;
+    const currentWGHOBalance = tokenBalance || 0n;
+
+    if (selectedNetwork === "lens") {
+      // For Lens chain, consider both GHO and WGHO balances
+      const ghoBalanceInWei = ghoBalance?.value || 0n;
+      const totalAvailableBalance = currentWGHOBalance + ghoBalanceInWei;
+      return requiredAmount > totalAvailableBalance;
+    }
+
+    // For other chains, just check USDC balance as before
+    return requiredAmount > currentWGHOBalance;
+  }, [totalRegistrationFee, tokenBalance, ghoBalance?.value, selectedNetwork]);
+
+  // TODO: might need to check this after registration fees enabled
+  const isValid = (() => {
+    return tokenName &&
+      tokenSymbol &&
+      tokenBalance && !notEnoughFunds &&
+      !!tokenImage &&
+      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
+  })();
 
   const setTokenDataBefore = (fn) => {
     setFinalTokenData({
@@ -382,7 +408,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 />
                 <div className="flex justify-end">
                   <Subtitle className="text-xs text-white/70 mr-4">
-                    Balance: {localizeNumber(formatUnits(tokenBalance || 0n, stableDecimals))}
+                    Balance: {localizeNumber(formatUnits(selectedNetwork === "lens" ? (ghoBalance?.value || 0n) + (tokenBalance || 0n) :tokenBalance || 0n, stableDecimals))}
                   </Subtitle>
                 </div>
               </div>

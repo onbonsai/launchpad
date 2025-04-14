@@ -97,15 +97,17 @@ export const Header = () => {
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center gap-2 mr-2">
               <Notifications />
-              <Link href="/studio">
-                <Button
-                  variant="accentBrand"
-                  size="md"
-                  className="text-base font-bold md:px-6 bg-white rounded-lg"
-                >
-                  Create
-                </Button>
-              </Link>
+              {isAuthenticated && (
+                <Link href="/studio">
+                  <Button
+                    variant="accentBrand"
+                    size="md"
+                    className="text-base font-bold md:px-6 bg-white rounded-lg"
+                  >
+                    Create
+                  </Button>
+                </Link>
+              )}
               <Balance />
               <ClaimFeesEarned />
               <ClaimBonsai />
@@ -163,15 +165,17 @@ export const Header = () => {
                 Info
               </span>
             </div>
-            <Link href="/studio" className="w-full">
-              <Button
-                variant="accentBrand"
-                size="md"
-                className="text-base font-bold md:px-6 bg-white rounded-lg w-full"
-              >
-                Create
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <Link href="/studio" className="w-full">
+                <Button
+                  variant="accentBrand"
+                  size="md"
+                  className="text-base font-bold md:px-6 bg-white rounded-lg w-full"
+                >
+                  Create
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

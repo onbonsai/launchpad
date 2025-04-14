@@ -1,9 +1,9 @@
 import { NextPage } from "next"
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react"
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
-import { parseUnits, zeroAddress } from "viem";
+import { erc20Abi, parseUnits, zeroAddress } from "viem";
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
-import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress } from "@src/services/madfi/moneyClubs";
+import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
@@ -66,6 +66,25 @@ const StudioCreatePage: NextPage = () => {
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
+
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: finalTokenData?.selectedNetwork === "lens",
+      refetchInterval: 10000,
+    }
+  })
+
+  // stablecoin balance (WGHO on lens, USDC on base)
+  const { data: tokenBalance } = useReadContract({
+    address: finalTokenData?.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: NETWORK_CHAIN_IDS[finalTokenData?.selectedNetwork as string],
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`],
+  });
 
   const template = useMemo(() => {
     if (!isMounted || isLoading) return;
@@ -136,6 +155,37 @@ const StudioCreatePage: NextPage = () => {
         }
 
         if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
+          if (finalTokenData.selectedNetwork === "lens") {
+            // Calculate how much WGHO we need for the transaction
+            const requiredAmount = finalTokenData.totalRegistrationFee;
+            const currentWGHOBalance = tokenBalance || 0n;
+
+            // If we don't have enough WGHO
+            if (currentWGHOBalance < requiredAmount) {
+              // Calculate how much more WGHO we need
+              const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
+
+              // Check if user has enough GHO to wrap
+              const ghoBalanceInWei = ghoBalance?.value || 0n;
+              if (ghoBalanceInWei < additionalWGHONeeded) {
+                throw new Error("Insufficient WGHO");
+              }
+
+              // Wrap the required amount
+              toastId = toast.loading("Wrapping GHO...", { id: toastId });
+              // Call the deposit function on the WGHO contract
+              const hash = await walletClient!.writeContract({
+                address: WGHO_CONTRACT_ADDRESS,
+                abi: WGHO_ABI,
+                functionName: 'deposit',
+                args: [],
+                value: additionalWGHONeeded,
+              });
+
+              await publicClient("lens").waitForTransactionReceipt({ hash });
+            }
+          }
+
           const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
           await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId, undefined, finalTokenData.selectedNetwork);
         }
