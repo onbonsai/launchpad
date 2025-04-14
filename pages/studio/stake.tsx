@@ -407,7 +407,11 @@ const TokenPage: NextPage = () => {
                                 </div>
                               )}
                             </Button>
-                            <Button variant="accent" size="sm" disabled>
+                            <Button 
+                              variant="accent" 
+                              size="sm" 
+                              onClick={() => window.open('https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079d94052fed39625c147c12c?utm_medium=web', '_blank')}
+                            >
                               Buy $BONSAI
                             </Button>
                           </div>
