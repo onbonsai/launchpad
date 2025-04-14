@@ -1545,13 +1545,23 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   const receipts: any[] = [];
 
   if (feesEarned > 0n) {
-    hash = await walletClient.writeContract({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "withdrawFeesEarned",
-      args: [zeroAddress],
-      chain: getChain(chain)
-    });
+    if (chain === "lens") {
+      hash = await walletClient.writeContract({
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadV3Abi,
+        functionName: "withdrawFeesEarned",
+        args: [zeroAddress, WGHO_CONTRACT_ADDRESS],
+        chain: getChain(chain)
+      });
+    } else {
+      hash = await walletClient.writeContract({
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "withdrawFeesEarned",
+        args: [zeroAddress],
+        chain: getChain(chain)
+      });
+    }
     console.log(`tx: ${hash}`);
     receipts.push(publicClient(chain).waitForTransactionReceipt({ hash }));
   }
