@@ -91,7 +91,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
         <div className="relative z-10 p-2 pb-4 flex flex-col">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="inline-flex">
-              <Tooltip message="View Token" direction="right">
+              {/* <Tooltip message="View Token" direction="right"> */}
                 <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
                   <div className='flex items-center gap-x-4'>
                     <img
@@ -105,7 +105,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
                     </div>
                   </div>
                 </Link>
-              </Tooltip>
+              {/* </Tooltip> */}
             </div>
 
             <div className="flex flex-row items-center mr-2">

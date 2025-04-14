@@ -134,9 +134,9 @@ const CreatePost = ({
       // broadcastResult might be the `pubId` if it was a wallet tx
       if (broadcastResult) {
         // create seo image
-        const pubIdOrTxHash = typeof broadcastResult === "string"
-          ? broadcastResult
-          : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile.id}-${broadcastResult?.toString(16)}`;
+        // const pubIdOrTxHash = typeof broadcastResult === "string"
+        //   ? broadcastResult
+        //   : broadcastResult.id || broadcastResult.txHash || `${authenticatedProfile.id}-${broadcastResult?.toString(16)}`;
         setTimeout(fetchGatedPosts, 6000); // give the api some time
         toast.success("Post created", { id: toastId, duration: 5000 });
         setPostContent("");

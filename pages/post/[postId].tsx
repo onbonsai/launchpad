@@ -34,7 +34,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { pubId, returnTo } = router.query;
+  const { postId, returnTo } = router.query;
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
@@ -58,21 +58,21 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   }, []);
 
   useEffect(() => {
-    if (pubId) {
+    if (postId) {
       fetchComments();
     }
-  }, [pubId]);
+  }, [postId]);
 
   // Use the passed post data as initialData if available
   const { data: publicationWithComments, isLoading: isLoadingPublication, refetch } = useGetPublicationWithComments(
-    pubId as string,
+    postId as string,
     passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined,
     authenticatedProfileId
   );
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
-  const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
+  const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
 
   // Consider data as loaded if we have passed data, even if the hook is still loading
   const isLoading = isLoadingPublication && !passedPostData;
@@ -205,7 +205,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        replyingToComment || pubId as string
+        replyingToComment || postId as string
       );
       if (!res?.postId) throw new Error("no resulting post id");
 
@@ -260,7 +260,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
               // treating the postId as the agentId in the eliza backend
-              agentId={pubId as string}
+              agentId={postId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
             />
@@ -420,10 +420,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const pubId = context.query.pubId!.toString();
+  const postId = context.query.postId!.toString();
   let post;
   try {
-    post = await getPost(pubId);
+    post = await getPost(postId);
   } catch { }
 
   if (!post) return { notFound: true };
@@ -444,7 +444,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       image,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
-      pubId,
+      postId,
     },
   };
 };

@@ -108,7 +108,7 @@ const HandleSEO = ({ pageProps }) => {
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = `${SITE_URL}/post/${pubId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(pubId)}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,

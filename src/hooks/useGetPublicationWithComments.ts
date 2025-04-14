@@ -4,9 +4,12 @@ import { getComments } from "@src/services/lens/getReactions";
 import { resumeSession } from "./useLensLogin";
 
 const fetchData = async (postId: string) => {
+  console.log("fetching publication with comments:", postId);
   try {
     const sessionClient = await resumeSession();
     const [publication, comments] = await Promise.all([getPost(postId, sessionClient), getComments(postId, sessionClient)]);
+
+    console.log("publication:", publication, comments);
 
     return { publication, comments };
   } catch (error) {

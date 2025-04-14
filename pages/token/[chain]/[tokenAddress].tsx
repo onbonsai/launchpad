@@ -100,14 +100,15 @@ const TokenPage: NextPage<TokenPageProps> = ({
   creatorInfo,
   type,
 }: TokenPageProps) => {
+  const postId = club.postId || club.pubId;
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { isReady: ready } = useSIWE();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(club.postId as string);
-  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, club.pubId);
+  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
+  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -117,7 +118,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   );
 
   const [openSignInModal, setOpenSignInModal] = useState(false);
-  const [openTab, setOpenTab] = useState<number>(type === "lens" && !!club.pubId ? 1 : 2);
+  const [openTab, setOpenTab] = useState<number>(type === "lens" && !!postId ? 1 : 2);
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
   const fairLaunchMode = !isLoadingTotalSupply && (totalSupply! < FLAT_THRESHOLD);
@@ -432,13 +433,13 @@ const TokenPage: NextPage<TokenPageProps> = ({
               {/* Feed/Trades/Holders */}
               <div className="lg:col-span-4 h-[calc(100vh-20px)] md:mb-0 relative w-full flex flex-col">
                 <div className="mb-4">
-                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
+                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!postId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 <div className="min-w-[450px] flex-1 overflow-y-auto">
                   {openTab === 1 && type === "lens" && (
                     <Feed
-                      postId={club.pubId}
+                      postId={postId}
                       isLoading={isLoading}
                       publicationWithComments={publicationWithComments}
                     />

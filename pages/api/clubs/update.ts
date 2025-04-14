@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     chain = chain || "base";
 
     if (updateRecord) {
-      const { id, pubId, liquidityReleasedTxHash, clubId } = updateRecord;
+      const { id, postId, liquidityReleasedTxHash, clubId } = updateRecord;
       const { collection } = await getClientWithClubs();
 
       if (liquidityReleasedTxHash) {
@@ -30,7 +30,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         // if (!agentSwapTxHash) return res.status(500).json({ error: "failed to swap" });
         // await collection.updateOne({ clubId }, { $set: { agentSwapTxHash } });
       } else {
-        await collection.updateOne({ _id: new ObjectId(id) }, { $set: { pubId } });
+        await collection.updateOne({ _id: new ObjectId(id) }, { $set: { postId } });
       }
 
       return res.status(200).end();

@@ -33,13 +33,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!club || !club.handle || isAddress(club.handle)) return {
         ..._club,
         ...res,
-        creatorPubId: club?.postId,
+        creatorPostId: club?.postId,
       };
       res = {
         ..._club,
         ...res,
         creatorStrategy: club.strategy,
-        creatorPubId: club.postId,
+        creatorPostId: club.postId,
         creatorHandle: club.handle,
         creatorProfileId: club.profileId
       };
