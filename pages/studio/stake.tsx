@@ -147,9 +147,11 @@ const TokenPage: NextPage = () => {
   }, [stakingData?.stakes]);
 
   // Format the next reset time
-  const formatNextReset = (nextResetTime: string) => {
-    const reset = new Date(nextResetTime);
-    return reset.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatNextReset = () => {
+    const midnight = new Date();
+    midnight.setUTCHours(0, 0, 0, 0);
+    midnight.setUTCDate(midnight.getUTCDate() + 1); // Next day at midnight
+    return midnight.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   // Add safe checks for stakes array
@@ -494,7 +496,7 @@ const TokenPage: NextPage = () => {
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-brand-highlight">Next Reset</h3>
                           <div className="text-2xl font-bold text-secondary">
-                            {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
+                            {creditBalance ? formatNextReset() : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
                             Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(2) : creditBalance?.totalCredits?.toFixed(1) || 0}
