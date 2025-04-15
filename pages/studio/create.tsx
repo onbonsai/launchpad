@@ -143,18 +143,21 @@ const StudioCreatePage: NextPage = () => {
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
     } else if (addToken && finalTokenData && !remixMedia?.agentId) {
-      toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId) {
           try {
             await switchChain(configureChainsConfig, { chainId: targetChainId });
+            // HACK: require lens chain for the whole thing
+            setIsCreating(false);
+            return;
           } catch {
             toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
             setIsCreating(false);
             return;
           }
         }
+        toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
 
         if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
           if (finalTokenData.selectedNetwork === "lens") {
@@ -226,6 +229,9 @@ const StudioCreatePage: NextPage = () => {
     if (LENS_CHAIN_ID !== chain?.id && switchChain) {
       try {
         await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        // HACK: require lens chain for the whole thing
+          setIsCreating(false);
+          return;
       } catch (error) {
         console.log(error);
         toast.error("Please switch networks to create your Lens post");

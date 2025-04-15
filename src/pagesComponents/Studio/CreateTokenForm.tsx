@@ -38,11 +38,11 @@ const NETWORK_OPTIONS: NetworkOption[] = [
     label: 'Lens',
     icon: '/lens.png'
   },
-  {
-    value: 'base',
-    label: 'Base',
-    icon: '/base.png'
-  }
+  // {
+  //   value: 'base',
+  //   label: 'Base',
+  //   icon: '/base.png'
+  // }
 ];
 
 const LENS_PRICING_TIERS = {

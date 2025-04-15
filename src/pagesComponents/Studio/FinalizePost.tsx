@@ -9,6 +9,8 @@ import { fetchTokenPrice } from "@src/services/madfi/moneyClubs";
 import clsx from "clsx";
 import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { useAccount } from "wagmi";
 
 const COLLECT_PRICE_TIERS = [
   {
@@ -32,6 +34,7 @@ const COLLECT_PRICE_TIERS = [
 ];
 
 export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating, addToken, onAddToken, isRemix }) => {
+  const { chain } = useAccount();
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
@@ -77,7 +80,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                       Earn from trading fees by adding a token
                     </Subtitle>
                   </div>
-                  <Button size='md' onClick={onAddToken} variant="dark-grey" className="w-[1/2] hover:bg-bullish">
+                  <Button size='md' onClick={onAddToken} variant="dark-grey" className="w-[1/2] text-base font-medium md:px-2 rounded-lg shining-border hover:scale-105 transition-transform duration-300">
                     Add a token
                   </Button>
                 </div>
@@ -123,7 +126,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
           <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount)} variant="accentBrand" className="w-full hover:bg-bullish">
-            Create
+            {`${LENS_CHAIN_ID !== chain?.id ? 'Switch to Lens Chain' : 'Create'}`}
           </Button>
           <Button size='md' disabled={isCreating} onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
             Back
