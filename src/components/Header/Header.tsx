@@ -30,6 +30,10 @@ const headerLinks = [
   {
     label: "Tokens",
     href: "/tokens"
+  },
+  {
+    label: "Stake",
+    href: "/studio/stake"
   }
 ];
 
