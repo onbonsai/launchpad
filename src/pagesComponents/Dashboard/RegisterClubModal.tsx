@@ -194,17 +194,17 @@ export const RegisterClubModal = ({
       }, selectedNetwork);
       if (!clubId) throw new Error("failed");
 
-      let pubId;
+      let postId;
       if (authenticatedProfile?.address) {
         toastId = toast.loading("Preparing post...", { id: toastId });
-        pubId = await _createPost(tokenAddress as string);
-        if (!pubId) toast.error("Failed to create post");
+        postId = await _createPost(tokenAddress as string);
+        if (!postId) toast.error("Failed to create post");
       }
 
       // link the creator handle and post id
       await setLensData({
         hash: txHash as string,
-        postId: pubId,
+        postId,
         handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
         chain: selectedNetwork
       });

@@ -36,11 +36,11 @@ export default async function handler(req: NextRequest) {
     let imageUrl = searchParams.get("image") || defaultImageUrl;
     let profileImageUrl = searchParams.get("profileImage") || "";
     let handle = searchParams.get("handle") || "";
-    const pubId = searchParams.get("pubId") || "";
+    const postId = searchParams.get("postId") || "";
     let postContent = "";
 
-    if (pubId) {
-      let post = await getPost(pubId);
+    if (postId) {
+      let post = await getPost(postId);
       // @ts-ignore
       imageUrl = post?.metadata?.image?.item || imageUrl;
       profileImageUrl = post?.author?.metadata?.picture || profileImageUrl;
@@ -84,7 +84,7 @@ export default async function handler(req: NextRequest) {
             src={imageUrl}
             style={{
               objectFit: "cover",
-              ...(pubId && truncatedContent ? {
+              ...(postId && truncatedContent ? {
                 filter: "brightness(0.7)",
                 opacity: 0.9
               } : {})
@@ -135,7 +135,7 @@ export default async function handler(req: NextRequest) {
           )}
 
           {/* Display post content in the center if it's a publication */}
-          {pubId && truncatedContent && (
+          {postId && truncatedContent && (
             <p
               style={{
                 position: "absolute",

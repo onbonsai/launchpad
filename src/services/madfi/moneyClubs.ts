@@ -865,7 +865,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
       const publications = await lensClient.publication.fetchAll({
-        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
+        where: { publicationIds: clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== "")).map(({ postId }) => postId) }
       });
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
@@ -875,7 +875,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
         if (club?.hidden) return; // db forced hide
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
-          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          const publication = gPublications[club.postId] ? gPublications[club.postId][0] : undefined;
           return { publication, ..._club, ...club, marketCap };
         } else { // not created on our app
           let { name, symbol, uri: image } = _club;
@@ -1421,7 +1421,7 @@ export const setLensData = async ({
   await fetch('/api/clubs/set-lens-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ txHash: hash, handle, pubId: postId, chain })
+    body: JSON.stringify({ txHash: hash, handle, postId, chain })
   });
 }
 

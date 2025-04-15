@@ -8,7 +8,7 @@ import { getClientWithClubs } from "@src/services/mongo/client";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    let { txHash, pubId, profileId, handle, chain } = req.body;
+    let { txHash, postId, profileId, handle, chain } = req.body;
     chain = chain || "base";
 
     const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
@@ -26,7 +26,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // link the token to a post and creator, for display purposes on the bonsai app
     await collection.updateOne(
       { clubId: parseInt(clubId.toString()) },
-      { $setOnInsert: { pubId, profileId, handle, tokenAddress } },
+      { $setOnInsert: { postId, profileId, handle, tokenAddress } },
       { upsert: true }
     );
 
