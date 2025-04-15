@@ -125,7 +125,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
         {twapPrice && amount && Number(amount) > 0 && (
           <div className="mt-4 p-4 bg-card-light rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Estimated Additional Daily Credits:</span>
+              <span className="text-sm font-medium">Estimated Additional Daily AI Credits:</span>
               <span className="text-lg font-bold text-brand-highlight">{formattedCredits}</span>
             </div>
             <div className="text-xs text-secondary/60 mt-1">

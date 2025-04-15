@@ -369,7 +369,7 @@ const TokenPage: NextPage = () => {
                       <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
-                      Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
+                      Stake $BONSAI on Lens Chain to earn AI generation credits for creating smart media and sending messages. The longer the lockup, the more credits you earn.
                       Credits reset daily.
                     </Subtitle>
                     {isConnected && <Button
@@ -549,7 +549,7 @@ const TokenPage: NextPage = () => {
                       </>
                     ) : (
                       <div className="col-span-3 text-center py-8">
-                        <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your API credits</p>
+                        <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your AI credits</p>
                       </div>
                     )}
                   </div>

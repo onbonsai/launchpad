@@ -294,19 +294,19 @@ const PublicationContainer = ({
   }
 
   let PublicationType = HorizontalPublication;
-  let minWidth = 'sm:min-w-[450px]'
+  let mdMinWidth = 'md:min-w-[700px]'
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
     sideBySideMode = false;
   } else {
     PublicationType = sideBySideMode ? HorizontalPublication : Publication;
     if (sideBySideMode) {
-      minWidth = 'min-w-[900px]'
+      mdMinWidth = 'md:min-w-[900px]'
     }
   }
 
   return (
-    <div className={`mb-4 relative flex justify-center max-h-60vh ${minWidth} ${brandFont.className}}`}>
+    <div className={`mb-4 relative flex justify-center max-h-60vh sm:min-w-[450px] ${mdMinWidth} ${brandFont.className}}`}>
       <PublicationType
         key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
         publicationId={publication?.id ? publication!.id : publicationId}

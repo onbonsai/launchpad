@@ -213,6 +213,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                     heartIconOverride={true}
                     messageIconOverride={true}
                     shareIconOverride={true}
+                    profileMaxWidth={'120px'}
                   />
                   <div className={clsx(
                     "opacity-0 transition-opacity duration-200 z-30",
