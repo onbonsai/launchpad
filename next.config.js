@@ -83,6 +83,8 @@ const nextConfig = {
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
+      "api.grove.storage",
+      "media.firefly.land",
       "lh3.googleusercontent.com",
       "img.seadn.io",
       "ipfs.infura.io",

@@ -197,9 +197,9 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-6">
-            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-8 z-20" />
-            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-4 z-10" />
-            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg relative" />
+            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover absolute right-8 z-20" />
+            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover absolute right-4 z-10" />
+            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover relative" />
           </div>
           <span className="ml-2">${totalFormatted}</span>
         </div>
