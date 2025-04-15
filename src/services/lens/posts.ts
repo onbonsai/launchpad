@@ -108,7 +108,7 @@ interface GetExplorePostsProps {
 export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],
-    queryFn: async ({ pageParam = null }) => {
+    queryFn: async ({ pageParam }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();
@@ -121,7 +121,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
           feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
         },
         pageSize: PageSize.Ten,
-        cursor: pageParam,
+        cursor: pageParam as Cursor | null,
       });
 
       if (result.isErr()) {
@@ -132,7 +132,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
       const { items: posts, pageInfo } = result.value;
       return {
         posts,
-        postData: await getPostData(posts?.map(({ slug }) => slug)),
+        postData: await getPostData(posts?.map(({ slug }) => slug) || []),
         pageInfo,
         nextCursor: pageInfo.next,
       };
