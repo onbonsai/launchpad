@@ -156,3 +156,11 @@ export const getClientWithBonsaiClaim = async (__client?: any) => {
 
   return { collection, database };
 };
+
+export const getClientWithMedia = async (__client?: any) => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("media");
+
+  return { collection, database };
+};

@@ -14,7 +14,7 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { Feed } from "@src/pagesComponents/Club";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
-import { getClientWithClubs } from "@src/services/mongo/client";
+import { getClientWithClubs, getClientWithMedia } from "@src/services/mongo/client";
 import { Tabs, Trades, InfoComponent, HolderDistribution } from "@src/pagesComponents/Club";
 import { Header2, Subtitle, BodySemiBold, SmallSubtitle } from "@src/styles/text";
 import { BottomInfoComponent } from '@pagesComponents/Club/BottomInfoComponent';
@@ -489,11 +489,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const [_club, dbRecord] = await Promise.all([
     getRegisteredClubById("", chain as string, tokenAddress as `0x${string}`),
     (async () => {
-      const { collection } = await getClientWithClubs();
-      return await collection.findOne(
-        { tokenAddress: getAddress(tokenAddress as string) },
-        { projection: { _id: 0 } }
-      );
+      if (chain === "base") {
+        const { collection } = await getClientWithClubs();
+        return await collection.findOne(
+          { tokenAddress: getAddress(tokenAddress as string) },
+          { projection: { _id: 0 } }
+        );
+      } else {
+        const { collection } = await getClientWithMedia();
+        return await collection.findOne(
+          { "token.address": getAddress(tokenAddress as string) },
+          { projection: { _id: 0, postId: 1 } }
+        );
+      }
     })()
   ]);
 
@@ -509,7 +517,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
 
-  if (!dbRecord?.token) {
+  if (!_club?.token?.name) {
     _club.token = {
       name: _club.name,
       symbol: _club.symbol,

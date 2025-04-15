@@ -14,6 +14,7 @@ interface Props {
     chain: string;
     publication: {
       stats: { comments: number };
+      postId: string;
     };
     club: {
       creator: string;
@@ -120,7 +121,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   }
 
   const link = club.v2
-    ? `/token/${chain}/${club?.tokenAddress}`
+    ? `/token/${chain}/${club?.tokenAddress.toLowerCase()}`
     : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`;
 
   const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;

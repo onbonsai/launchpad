@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
-import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters, formatUnits, parseEther } from "viem";
+import { createPublicClient, http, parseUnits, formatEther, TransactionReceipt, zeroAddress, erc20Abi, maxUint256, decodeAbiParameters, formatUnits, parseEther, getAddress } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
@@ -20,6 +20,7 @@ import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { getPosts } from "../lens/posts";
+import { Post } from "@lens-protocol/client";
 
 export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
 
@@ -913,22 +914,31 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
   const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
-    const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
+    let requestBody;
+    if (chain === "lens") {
+      const tokenAddresses = data?.clubs.map(({ tokenAddress }) => getAddress(tokenAddress))
+      requestBody = { tokenAddresses };
+    } else if (chain === "base") {
+      const clubIds = data?.clubs.map(({ clubId }) => parseInt(clubId));
+      requestBody = { clubIds };
+    }
     const response = await fetch('/api/clubs/get-enriched-clubs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clubIds }),
+      body: JSON.stringify(requestBody),
     });
     const { clubs } = await response.json();
 
     try {
       const lensTokens = clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== ""));
-      const publications = await getPosts(lensTokens.map(({ postId }) => postId));
-      const gPublications = groupBy(publications || [], "id");
-      const groupedClubs = groupBy(clubs || [], "clubId");
+      const publications: Post[] = await getPosts(lensTokens.map(({ postId }) => postId)) as unknown[] as Post[];
+      const gPublications = groupBy(publications || [], "slug");
+      const groupedClubs = groupBy(clubs || [], chain === "base" ? "clubId" : "tokenAddress");
       const responseClubs = data?.clubs.map((_club) => {
         const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];
-        const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
+        const club = chain === "base"
+          ? (groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined)
+          : (groupedClubs[_club.tokenAddress] ? groupedClubs[_club.tokenAddress][0] : undefined);
         if (club?.hidden) return; // db forced hide
         let { name, symbol, uri: image } = _club;
         if (!name || !symbol || !image) {
@@ -938,13 +948,13 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
           ], _club.tokenInfo);
         }
         const token = { name, image, symbol };
+        const publication = gPublications[club?.postId] ? gPublications[club.postId][0] : undefined;
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
           if (club.featured) return; // featured clubs are queried elsewhere
-          const publication = gPublications[club.postId] ? gPublications[club.postId][0] : undefined;
-          return { publication, ..._club, ...club, marketCap, token };
+          return { publication, ..._club, ...club, marketCap, token, handle: publication?.author?.username?.localName || _club.creator };
         } else { // not created on our app
-          return { ..._club, handle: _club.creator, marketCap, token };
+          return { ..._club, handle: publication?.author?.username?.localName || _club.creator, marketCap, token, publication };
         }
       }).filter((c) => c);
 
