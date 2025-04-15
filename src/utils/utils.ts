@@ -495,38 +495,15 @@ export const formatCustomDate = (timestamp: string): string => {
 export const formatNextUpdate = (timestamp: number): string => {
   const now = new Date();
   const lastUpdateTime = new Date(timestamp * 1000);
+  const timeSinceUpdate = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 60000); // in minutes
 
-  // Calculate next update time
-  const nextUpdateTime = new Date();
-  const timeSinceLastUpdate = now.getTime() - lastUpdateTime.getTime();
+  // Base minutes until next hour
+  const minutesLeft = 60 - now.getMinutes();
 
-  if (timeSinceLastUpdate < 3600000) { // less than 1 hour ago
-    // Next update will be 1 hour after the last update
-    nextUpdateTime.setTime(lastUpdateTime.getTime() + 3600000);
-  } else {
-    // Next update will be at the top of the next hour
-    nextUpdateTime.setHours(nextUpdateTime.getHours() + 1, 0, 0, 0);
+  // If update was less than an hour ago, add 60 minutes
+  if (timeSinceUpdate < 60) {
+    return `${minutesLeft + 60}m`;
   }
 
-  // If we're past the next update time, return empty string
-  if (nextUpdateTime <= now) return '';
-
-  const timeTill = formatDistanceToNowStrict(nextUpdateTime, { addSuffix: false });
-
-  // Convert to shorthand
-  return timeTill
-    .replace(" seconds", "s")
-    .replace(" second", "s")
-    .replace(" minutes", "m")
-    .replace(" minute", "m")
-    .replace(" hours", "h")
-    .replace(" hour", "h")
-    .replace(" days", "d")
-    .replace(" day", "d")
-    .replace(" weeks", "w")
-    .replace(" week", "w")
-    .replace(" months", "mo")
-    .replace(" month", "mo")
-    .replace(" years", "y")
-    .replace(" year", "y");
+  return `${minutesLeft}m`;
 }

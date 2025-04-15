@@ -149,7 +149,8 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const isValid = (() => {
     return tokenName &&
       tokenSymbol &&
-      tokenBalance && !notEnoughFunds &&
+      (tokenBalance !== undefined) &&
+      !notEnoughFunds &&
       !!tokenImage &&
       ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
   })();

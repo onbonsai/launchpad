@@ -589,7 +589,7 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
       query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
       variables: {
         id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
-        tokenAddress,
+        tokenAddress: tokenAddress?.toLowerCase(),
         twentyFourHoursAgo,
         sixHoursAgo,
         oneHourAgo,
