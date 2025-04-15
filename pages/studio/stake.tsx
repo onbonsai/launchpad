@@ -8,7 +8,7 @@ import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import ConfettiExplosion from 'react-confetti-explosion';
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
-import { erc20Abi, formatEther } from "viem";
+import { erc20Abi, formatEther, parseUnits } from "viem";
 import { useQuery } from "@tanstack/react-query";
 import { useStakingData, formatStakingAmount, getLockupPeriodLabel } from "@src/hooks/useStakingData";
 import { useStakingTransactions } from "@src/hooks/useStakingTransactions";
@@ -350,6 +350,11 @@ const TokenPage: NextPage = () => {
     return 0;
   };
 
+  // Function to find the minimum of two BigInt values
+  const getMinBigInt = (a: bigint, b: bigint): bigint => {
+    return a < b ? a : b;
+  };
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-4 sm:px-6 pt-6">
@@ -570,7 +575,7 @@ const TokenPage: NextPage = () => {
                           <div className="relative z-10">
                             <div className="flex items-center space-x-2">
                               <div className="text-lg font-semibold">
-                                {activeStakes[0] ? formatStakingAmount(activeStakes[0].amount) : '0'} $BONSAI
+                                {activeStakes[0] ? formatStakingAmount(getMinBigInt(BigInt(activeStakes[0].amount), parseUnits('10000', 18)).toString()) : '0'} $BONSAI
                               </div>
                               <span className="text-xs font-medium bg-purple-500/20 text-purple-500 px-2 py-0.5 rounded">
                                 Referral Reward
