@@ -83,6 +83,7 @@ const nextConfig = {
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
+      "arweave.net",
       "api.grove.storage",
       "media.firefly.land",
       "lh3.googleusercontent.com",

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAccount, useBalance, useReadContract, useSwitchChain, useWalletClient } from "wagmi";
-import { formatUnits, erc20Abi } from "viem";
+import { formatUnits, erc20Abi, parseUnits } from "viem";
 import clsx from "clsx";
 import {
   USDC_DECIMALS,
@@ -387,7 +387,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               </div>
             </div>
-            {ghoBalance?.value === 0n && (
+            {ghoBalance?.value && ghoBalance.value <= parseUnits("1", 18) && (
               <div className="mt-4 pt-4 border-t border-zinc-800">
                 <a
                   href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"

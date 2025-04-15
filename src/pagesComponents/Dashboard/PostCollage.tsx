@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { orderBy } from "lodash/collection";
 import { get } from "lodash/object";
 import { useInView } from "react-intersection-observer";
@@ -24,11 +24,16 @@ import { brandFont } from "@src/fonts/fonts";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
   const { data: walletClient } = useWalletClient();
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({
+    threshold: 0.5,
+    rootMargin: '200px',
+    triggerOnce: false,
+  });
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [activeCollectModal, setActiveCollectModal] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
+  const isFetchingRef = useRef(false);
 
   const router = useRouter();
   const {
@@ -58,8 +63,15 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
   });
 
   useEffect(() => {
-    if (inView && !isLoading && hasMore) {
+    if (inView && !isLoading && hasMore && !isFetchingRef.current) {
+      console.log('Infinite scroll triggered:', { inView, isLoading, hasMore });
+      isFetchingRef.current = true;
       fetchNextPage();
+      
+      // Reset the fetching flag after a delay
+      setTimeout(() => {
+        isFetchingRef.current = false;
+      }, 2000);
     }
   }, [inView, isLoading, hasMore, fetchNextPage]);
 
@@ -250,8 +262,8 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               ))}
             </Masonry>
             {hasMore && (
-              <div ref={ref} className="flex justify-center pt-4">
-                <Spinner customClasses="h-6 w-6" color="#5be39d" />
+              <div ref={ref} className="flex justify-center pt-8 pb-4">
+                <Spinner customClasses="h-8 w-8" color="#5be39d" />
               </div>
             )}
           </div>

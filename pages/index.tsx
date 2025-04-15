@@ -11,6 +11,16 @@ import { useGetExplorePosts } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 import { Post } from "@lens-protocol/client";
 
+// Define the type for the page data returned by useGetExplorePosts
+interface ExplorePostPage {
+  posts: Post[];
+  postData: Record<string, any>;
+  pageInfo: {
+    next: string | null;
+  };
+  nextCursor: string | null;
+}
+
 const IndexPage: NextPage = () => {
   const isMounted = useIsMounted();
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
@@ -20,8 +30,13 @@ const IndexPage: NextPage = () => {
     isLoadingAuthenticatedProfile,
     accountAddress: authenticatedProfile?.address
   });
-  const posts = useMemo(() => data?.pages.flatMap(page => page.posts) || [], [isLoadingPosts]);
-  const postData = useMemo(() => data?.pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) || {}, [isLoadingPosts]);
+  
+  // Type assertion for data.pages
+  const pages = data?.pages as ExplorePostPage[] || [];
+  
+  // Update the dependency array to include data instead of pages
+  const posts = useMemo(() => pages.flatMap(page => page.posts) || [], [data]);
+  const postData = useMemo(() => pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) || {}, [data]);
 
   // fix hydration issues
   if (!isMounted) return null;
