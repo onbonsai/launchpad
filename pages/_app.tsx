@@ -112,7 +112,7 @@ export default function MyApp(props: AppProps) {
                   <BoxThemeProvider theme={boxTheme}>
                     <Component {...pageProps} />
                   </BoxThemeProvider>
-                </AppLayout>s
+                </AppLayout>
                 <Analytics />
               </HotkeysProvider>
             </ClubsProvider>
