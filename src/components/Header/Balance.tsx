@@ -333,20 +333,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                         <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
-                      <div className="relative group">
-                        <p className={`text-lg font-bold ${ghoBalance?.value === 0n ? 'opacity-100 group-hover:opacity-0 transition-opacity' : ''}`}>{ghoFormatted}</p>
-                        {ghoBalance?.value === 0n && (
-                          <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <a
-                              target="_blank"
-                              href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-                              className="text-md font-medium text-brand-highlight hover:opacity-80"
-                            >
-                              Bridge
-                            </a>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-lg font-bold">{ghoFormatted}</p>
                     </div>
                     {/* Thread line container */}
                     <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
@@ -364,7 +351,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                           <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="accent"
-                              size="xs"
+                              size="md"
                               onClick={handleUnwrapGHO}
                               disabled={isUnwrapping || wghoBalance === 0n}
                               className="text-xs -mt-3"
@@ -386,6 +373,25 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               </div>
             </div>
+            {ghoBalance?.value === 0n && (
+              <div className="mt-4 pt-4 border-t border-zinc-800">
+                <a
+                  href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
+                  <Button
+                    variant="accent"
+                    size="md"
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
+                    Bridge GHO to Lens
+                  </Button>
+                </a>
+              </div>
+            )}
           </div>
         </Popper>
       </div>
