@@ -293,7 +293,7 @@ const PublicationContainer = ({
   }
 
   let PublicationType = HorizontalPublication;
-  let minWidth = 'min-w-[450px]'
+  let minWidth = 'sm:min-w-[450px]'
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
     sideBySideMode = false;
@@ -366,7 +366,7 @@ const PublicationContainer = ({
           <Button
             variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
-            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px]"
+            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
             onClick={(e) => {
               if (!hasCollected) {
                 onCollectButtonClick(e);
@@ -379,12 +379,12 @@ const PublicationContainer = ({
             {!hasCollected ? (
               <>
                 <BookmarkAddOutlined />
-                Collect
+                <span className="hidden sm:block">Collect</span>
               </>
             ) : media?.agentId ? (
               <>
                 <SwapCalls />
-                Remix
+                <span className="hidden sm:block">Remix</span>
               </>
             ) : <BookmarkOutlined />}
           </Button>

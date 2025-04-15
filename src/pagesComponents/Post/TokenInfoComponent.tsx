@@ -30,10 +30,10 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
-    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 gap-y-1 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 gap-y-1 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl sm:rounded-none', className || "")}>
       {title ? (
         <>
-          <Subtitle className="text-xs">{title}</Subtitle>
+          <Subtitle className="text-xs whitespace-nowrap">{title}</Subtitle>
           <span>{subtitle}</span>
         </>
       ) : (
@@ -45,7 +45,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
   );
 
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
-    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
+    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
       <div className="h-8 flex items-center pt-1">
         <Button
           variant="dark-grey"
@@ -77,7 +77,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
   };
 
   return (
-    <div className="md:col-span-3 rounded-3xl animate-fade-in-down">
+    <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full h-[126px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
           <img
@@ -89,24 +89,29 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 
         <div className="relative z-10 p-2 pb-4 flex flex-col">
-          <div className="flex flex-row justify-between items-center w-full">
-            <div className="inline-flex">
+          <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
+            <div className="w-full flex justify-between">
               {/* <Tooltip message="View Token" direction="right"> */}
-                <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
-                  <div className='flex items-center gap-x-4'>
-                    <img
-                      src={club.token.image}
-                      alt={club.token.name}
-                      className="w-[48px] h-[48px] object-cover rounded-lg"
-                    />
-                    <div className="flex flex-col items-start">
-                      <Header2 className="text-white text-md">${club.token.symbol}</Header2>
-                      <BodySemiBold className="text-white/60 text-sm">{club.token.name}</BodySemiBold>
-                    </div>
+              <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
+                <div className='flex items-center gap-x-4 w-full'>
+                  <img
+                    src={club.token.image}
+                    alt={club.token.name}
+                    className="w-[48px] h-[48px] object-cover rounded-lg"
+                  />
+                  <div className="flex flex-col items-start">
+                    <Header2 className="text-white text-md">${club.token.symbol}</Header2>
+                    <BodySemiBold className="text-white/60 text-sm">{club.token.name}</BodySemiBold>
                   </div>
-                </Link>
+                </div>
+              </Link>
               {/* </Tooltip> */}
+              <div className='sm:hidden'>
+                <ActionCard onClick={(e) => setShowBuyModal(true)} />
+              </div>
+
             </div>
+
 
             <div className="flex flex-row items-center mr-2">
               <InfoCard
@@ -121,8 +126,11 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
               <InfoCard
                 title='Balance'
                 subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, _DECIMALS)))}</Subtitle>}
+                roundedRight
               />
-              <ActionCard onClick={(e) => setShowBuyModal(true)} />
+              <div className='hidden sm:block'>
+                <ActionCard onClick={(e) => setShowBuyModal(true)} />
+              </div>
             </div>
           </div>
         </div>
