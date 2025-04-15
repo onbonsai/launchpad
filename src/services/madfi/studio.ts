@@ -132,6 +132,8 @@ export const generatePreview = async (
         const errorText = await response.text();
         if (errorText.includes("not enough credits")) {
           throw new Error("not enough credits");
+        } else if (errorText.includes("three previews")) {
+          throw new Error("max free previews");
         }
       }
       throw new Error(`Preview generation failed: ${response.statusText}`);

@@ -95,6 +95,8 @@ const CreatePostForm = ({
     } catch (error) {
       if (error instanceof Error && error.message === "not enough credits") {
         toast.error("Not enough credits to generate preview", { id: toastId, duration: 5000 });
+      } else if (error instanceof Error && error.message === "max free previews") {
+        toast.error("Reached limit on free previews for the hour", { id: toastId, duration: 5000 });
       } else {
         toast.error("Failed to generate preview", { id: toastId });
       }
