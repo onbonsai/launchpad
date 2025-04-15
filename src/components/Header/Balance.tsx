@@ -232,7 +232,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                           <button
                             className="h-5 w-5 hover:bg-zinc-700 p-1 rounded group"
                             onClick={() => {
-                              copyToClipboard(address || '');
+                              copyToClipboard(authenticatedProfile?.address || '');
                               const tooltip = document.getElementById('copy-tooltip');
                               if (tooltip) {
                                 tooltip.classList.remove('opacity-0');
