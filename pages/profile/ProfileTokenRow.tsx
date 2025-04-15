@@ -45,9 +45,9 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
 
     const priceColor = () => {
         if (priceDelta.positive) {
-            return "text-bullish"
+            return "!text-bullish"
         } else if (priceDelta.valuePct !== 0) {
-            return "text-bearish"
+            return "!text-bearish"
         }
         return ""
     }
@@ -97,7 +97,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                             </Subtitle>
                         )}
                         {holding?.club.complete && (
-                            <Subtitle className='text-bullish'>graduated!</Subtitle>
+                            <Subtitle className='!text-bullish'>graduated!</Subtitle>
                         )}
                     </div>
                     {/* TODO: not working */}

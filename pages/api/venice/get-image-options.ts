@@ -25,7 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       fetchData(`${BASE_URL}/image/styles`)
     ]);
 
-    // TODO: cache for an hour
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate');
 
     return res.status(200).json({ models: models?.map(({ id }) => id), stylePresets });
   } catch (e) {

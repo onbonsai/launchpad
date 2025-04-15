@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 
@@ -44,6 +44,12 @@ const CreatePostForm = ({
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
 
+  useEffect(() => {
+    if (finalTemplateData) {
+      setTemplateData(finalTemplateData);
+    }
+  }, [finalTemplateData]);
+
   const isValid = () => {
     try {
       template.templateData.form.parse(templateData);
@@ -87,7 +93,13 @@ const CreatePostForm = ({
 
       toast.success("Done", { id: toastId });
     } catch (error) {
-      toast.error("Failed to generate preview", { id: toastId });
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to generate preview", { id: toastId, duration: 5000 });
+      } else if (error instanceof Error && error.message === "max free previews") {
+        toast.error("Reached limit on free previews for the hour", { id: toastId, duration: 5000 });
+      } else {
+        toast.error("Failed to generate preview", { id: toastId });
+      }
     }
 
     setIsGeneratingPreview(false);
@@ -137,7 +149,7 @@ const CreatePostForm = ({
               Generate Preview
             </Button>
           )}
-          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             Next
           </Button>
         </div>
@@ -272,12 +284,15 @@ const DynamicForm = ({
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
         const isRequired = !field.isOptional();
 
+        if (key === 'modelId' && !modelOptions?.length) return null;
+        if (key === 'stylePreset' && !modelOptions?.length) return null;
+
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
 
             {/* Special handling for modelId and stylePreset using SelectDropdown */}
-            {key === 'modelId' && models ? (
+            {key === 'modelId' && modelOptions?.length > 0 ? (
               <SelectDropdown
                 options={modelOptions}
                 onChange={(option) => updateField(key, option.value)}
@@ -285,7 +300,7 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : key === 'stylePreset' && stylePresets ? (
+            ) : key === 'stylePreset' && styleOptions?.length > 0 ? (
               <SelectDropdown
                 options={styleOptions}
                 onChange={(option) => updateField(key, option.value)}

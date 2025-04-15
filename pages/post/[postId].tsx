@@ -4,11 +4,12 @@ import { Publications, Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef } from "react";
-
+import Link from "next/link";
+import { ArrowBack } from "@mui/icons-material";
+import { switchChain } from "@wagmi/core";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
-import { ConnectButton } from "@src/components/ConnectButton";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -24,51 +25,54 @@ import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
-import Link from "next/link";
-import { ChevronLeftIcon } from "@heroicons/react/outline";
 import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
-import { SITE_URL } from "@src/constants/constants";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { configureChainsConfig } from "@src/utils/wagmi";
 
 const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { pubId, returnTo, postData: encodedPostData } = router.query;
-  const { isConnected } = useAccount();
+  const { postId, returnTo } = router.query;
+  const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
-    useLensSignIn(walletClient);
+  const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
 
-  // Parse the post data if available from query params
+  // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
-    if (encodedPostData && typeof encodedPostData === 'string') {
-      try {
-        return JSON.parse(decodeURIComponent(encodedPostData));
-      } catch (e) {
-        console.error("Failed to parse passed post data:", e);
-        return null;
+    if (typeof window !== 'undefined') {
+      const storedData = localStorage.getItem('tempPostData');
+      if (storedData) {
+        try {
+          localStorage.removeItem('tempPostData');
+          return JSON.parse(storedData);
+        } catch (e) {
+          console.error("Failed to parse stored post data:", e);
+          return null;
+        }
       }
     }
     return null;
-  }, [encodedPostData]);
+  }, []);
 
   useEffect(() => {
-    if (pubId) {
+    if (postId) {
       fetchComments();
     }
-  }, [pubId]);
+  }, [postId]);
 
   // Use the passed post data as initialData if available
-  const { data: publicationWithComments, isLoading: isLoadingPublication } = useGetPublicationWithComments(
-    pubId as string,
-    passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined
+  const { data: publicationWithComments, isLoading: isLoadingPublication, refetch } = useGetPublicationWithComments(
+    postId as string,
+    passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined,
+    authenticatedProfileId
   );
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
-  const { data: freshComments, refetch: fetchComments } = useGetComments(pubId as string, false);
+  const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
 
   // Consider data as loaded if we have passed data, even if the hook is still loading
   const isLoading = isLoadingPublication && !passedPostData;
@@ -81,7 +85,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState();
+  const [canComment, setCanComment] = useState<boolean>();
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
@@ -102,6 +106,8 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   const isLoadingPage = useMemo(() => {
     return isLoading;
   }, [isLoading, isConnected]);
+
+  const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
   const profilePictureUrl = useMemo(() => {
     if (authenticatedProfile) {
@@ -140,12 +146,21 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
     setReplyingToUsername(username || null);
   };
 
+  const scrollToReplyInput = () => {
+    commentInputRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const focusAndScrollToReplyInput = () => {
+    scrollToReplyInput();
+    const timer = setTimeout(() => {
+      commentInputRef.current?.focus();
+    }, 500);
+    return timer;
+  }
+
   useEffect(() => {
-    if (replyingToComment !== null && commentInputRef.current) {
-      commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const timer = setTimeout(() => {
-        commentInputRef.current?.focus();
-      }, 500);
+    if ((replyingToComment !== null) && commentInputRef.current) {
+      const timer = focusAndScrollToReplyInput();
       return () => clearTimeout(timer);
     }
   }, [replyingToComment]);
@@ -162,6 +177,16 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
       return;
     }
 
+    if (LENS_CHAIN_ID !== chain?.id) {
+      try {
+        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+      } catch (error) {
+        console.log(error);
+        toast.error("Please switch networks to comment");
+        return;
+      }
+    }
+
     setIsCommenting(true);
     const toastId = toast.loading("Sending reply...");
     try {
@@ -176,12 +201,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
         return;
       }
 
-      await createPost(
+      const res = await createPost(
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        replyingToComment || pubId as string
+        replyingToComment || postId as string
       );
+      if (!res?.postId) throw new Error("no resulting post id");
 
       toast.success("Sent", { id: toastId, duration: 3000 });
       setComment("");
@@ -229,27 +255,26 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
-      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full">
-        <Link
-          href={returnTo ? returnTo as string : "/"}
-          className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors mb-4"
-        >
-          <ChevronLeftIcon className="h-5 mt-1 w-5 mr-1" />
-          <span className="text-sm mt-[6px]">{returnTo ? "Back" : "More Posts"}</span>
-        </Link>
+      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
               // treating the postId as the agentId in the eliza backend
-              agentId={pubId as string}
+              agentId={postId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
             />
           </ChatWindowButton>
         )}
-        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex justify-center h-full">
+        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex items-start justify-center h-full gap-4">
+          <Link
+            href={returnTo ? returnTo as string : "/"}
+            className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
+          >
+            <ArrowBack className="h-5 w-5" />
+          </Link>
           <div className="flex flex-col gap-2 h-full">
-            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} />}
+            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
@@ -266,7 +291,11 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           shouldGoToPublicationPage={false}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
-                          onCollectCallback={() => setCanComment(true)}
+                          onCollectCallback={() => {
+                            setCanComment(true);
+                            refetch();
+                            scrollToReplyInput();
+                          }}
                           sideBySideMode={true}
                         />
                       </div>
@@ -277,7 +306,11 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                           shouldGoToPublicationPage={false}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
-                          onCollectCallback={() => setCanComment(true)}
+                          onCollectCallback={() => {
+                            setCanComment(true);
+                            refetch();
+                            scrollToReplyInput();
+                          }}
                         />
                       </div>
                     </>
@@ -342,37 +375,39 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
                         </div>
                       </>
                     )}
-                    <Publications
-                      publications={showRootPublication ? [publication] : sortedComments}
-                      theme={Theme.dark}
-                      environment={LENS_ENVIRONMENT}
-                      authenticatedProfile={authenticatedProfile}
-                      hideCommentButton={false}
-                      hideQuoteButton={true}
-                      hideShareButton={true}
-                      hasUpvotedComment={hasUpvotedComment}
-                      onLikeButtonClick={onLikeButtonClick}
-                      getOperationsFor={getOperationsFor}
-                      profilePictureStyleOverride={publicationProfilePictureStyle}
-                      containerBorderRadius={'24px'}
-                      containerPadding={'12px'}
-                      profilePadding={'0 0 0 0'}
-                      textContainerStyleOverride={textContainerStyleOverrides}
-                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                      mediaImageStyleOverride={mediaImageStyleOverride}
-                      imageContainerStyleOverride={imageContainerStyleOverride}
-                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                      reactionContainerStyleOverride={reactionContainerStyleOverride}
-                      publicationContainerStyleOverride={publicationContainerStyleOverride}
-                      shareContainerStyleOverride={shareContainerStyleOverride}
-                      markdownStyleBottomMargin={'0px'}
-                      heartIconOverride={true}
-                      messageIconOverride={true}
-                      shareIconOverride={true}
-                      followButtonDisabled={true}
-                      onProfileClick={goToCreatorPage}
-                      hideCollectButton={true}
-                    />
+                    <div className="animate-fade-in-down">
+                      <Publications
+                        publications={showRootPublication ? [publication] : sortedComments}
+                        theme={Theme.dark}
+                        environment={LENS_ENVIRONMENT}
+                        authenticatedProfile={authenticatedProfile}
+                        hideCommentButton={false}
+                        hideQuoteButton={true}
+                        hideShareButton={true}
+                        hasUpvotedComment={hasUpvotedComment}
+                        onLikeButtonClick={onLikeButtonClick}
+                        getOperationsFor={getOperationsFor}
+                        profilePictureStyleOverride={publicationProfilePictureStyle}
+                        containerBorderRadius={'24px'}
+                        containerPadding={'12px'}
+                        profilePadding={'0 0 0 0'}
+                        textContainerStyleOverride={textContainerStyleOverrides}
+                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                        mediaImageStyleOverride={mediaImageStyleOverride}
+                        imageContainerStyleOverride={imageContainerStyleOverride}
+                        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                        reactionContainerStyleOverride={reactionContainerStyleOverride}
+                        publicationContainerStyleOverride={publicationContainerStyleOverride}
+                        shareContainerStyleOverride={shareContainerStyleOverride}
+                        markdownStyleBottomMargin={'0px'}
+                        heartIconOverride={true}
+                        messageIconOverride={true}
+                        shareIconOverride={true}
+                        followButtonDisabled={true}
+                        onProfileClick={goToCreatorPage}
+                        hideCollectButton={true}
+                      />
+                    </div>
                   </div>
                 </>
               )}
@@ -385,10 +420,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const pubId = context.query.pubId!.toString();
+  const postId = context.query.postId!.toString();
   let post;
   try {
-    post = await getPost(pubId);
+    post = await getPost(postId);
   } catch { }
 
   if (!post) return { notFound: true };
@@ -409,7 +444,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       image,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
-      pubId,
+      postId,
     },
   };
 };

@@ -4,6 +4,8 @@ import { Dialog } from "@headlessui/react";
 import { Subtitle } from "@src/styles/text";
 import clsx from "clsx";
 import { brandFont } from "@src/fonts/fonts";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { useAccount } from "wagmi";
 
 interface StakeModalProps {
   onStake: (amount: string, lockupPeriod: number) => Promise<boolean>;
@@ -23,10 +25,10 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-const MIN_STAKE = 1000;
+const MIN_STAKE = 5000;
 
 export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice, switchNetwork, amount, setAmount }: StakeModalProps) => {
-
+  const { chain } = useAccount();
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
 
   const handleMax = () => {
@@ -88,12 +90,12 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
               placeholder="0"
               min="1000"
             />
-            <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-bullish">
+            <button onClick={handleMax} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs !text-bullish">
               MAX
             </button>
           </div>
           {Number(amount) > 0 && Number(amount) < MIN_STAKE && (
-            <p className="text-xs text-bearish">Minimum stake amount is {MIN_STAKE}</p>
+            <p className="text-xs !text-bearish">Minimum stake amount is {MIN_STAKE}</p>
           )}
         </div>
 
@@ -108,7 +110,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
                 key={period.value}
                 onClick={() => setSelectedPeriod(period)}
                 className={`p-3 rounded-lg text-left transition-colors ${selectedPeriod.value === period.value
-                  ? "bg-bullish/20 text-bullish"
+                  ? "bg-bullish/20 !text-bullish"
                   : "bg-card-light text-secondary hover:bg-bullish/10"
                   }`}
               >
@@ -123,7 +125,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
         {twapPrice && amount && Number(amount) > 0 && (
           <div className="mt-4 p-4 bg-card-light rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Estimated Additional Daily Credits:</span>
+              <span className="text-sm font-medium">Estimated Additional Daily AI Credits:</span>
               <span className="text-lg font-bold text-brand-highlight">{formattedCredits}</span>
             </div>
             <div className="text-xs text-secondary/60 mt-1">
@@ -166,7 +168,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
             onClick={handleStake}
             disabled={!amount || Number(amount) < MIN_STAKE}
           >
-            {switchNetwork ? 'Switch to Lens' : 'Stake'}
+            {chain?.id !== LENS_CHAIN_ID ? 'Switch to Lens Chain' : 'Stake'}
           </Button>
         </div>
       </div>

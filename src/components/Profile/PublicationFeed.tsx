@@ -36,9 +36,11 @@ const PublicationFeed = ({
   }, [inView, isLoading, hasNextPage, fetchNextPage]);
 
   return (
-    <div className="flex flex-col flex-grow overflow-y-auto h-[calc(100vh-290px)] lg:h-[calc(100vh-120px)]">
+    <div className="flex flex-col flex-grow overflow-y-auto h-[calc(100vh-290px)] lg:h-[calc(100vh-120px)] w-full">
       {!isLoading && allPosts?.length === 0 && (
-        <h3 className="text-lg tracking-wide leading-6 mt-4">Nothing here.</h3>
+        <div className="flex flex-col items-center justify-center h-full w-full bg-cardBackground rounded-3xl p-8">
+          <h3 className="text-lg tracking-wide leading-6">Nothing here yet.</h3>
+        </div>
       )}
 
       {!isLoading && allPosts?.length > 0 && (

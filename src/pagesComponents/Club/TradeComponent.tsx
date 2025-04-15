@@ -4,12 +4,11 @@ import { useReadContract } from "wagmi";
 import { sampleSize } from "lodash/collection";
 import { useGetClubBalance, useGetBuyPrice, useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import { USDC_CONTRACT_ADDRESS, CONTRACT_CHAIN_ID, WGHO_CONTRACT_ADDRESS } from "@src/services/madfi/moneyClubs";
-import ProfilePics from "@src/components/ProfilePics/ProfilePics";
 import { BuySellWidget } from "./BuySellWidget";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
-export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient }) => {
+export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal }) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
@@ -54,6 +53,8 @@ export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, med
           onBuyUSDC={onBuyUSDC}
           defaultBuyAmount={defaultBuyAmount}
           mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
+          useRemixReferral={useRemixReferral}
+          closeModal={closeModal}
         />
       </div>
     </div>

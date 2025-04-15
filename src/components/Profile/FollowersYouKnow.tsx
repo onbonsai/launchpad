@@ -21,7 +21,7 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
           {displayedFollowers.map((follower, index) => (
             <div
               key={index}
-              className="relative rounded-full border-2 border-background overflow-hidden w-8 h-8"
+              className="relative rounded-full border-2 border-black overflow-hidden w-8 h-8"
             >
               <Image
                 src={getProfileImage(follower.follower) || '/default-avatar.png'}

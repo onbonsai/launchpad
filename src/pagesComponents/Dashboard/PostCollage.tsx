@@ -37,7 +37,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
   } = useLensSignIn(walletClient);
 
   const categories = useMemo(() => {
-    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value').filter((c) => c);
+    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value').filter(c => c);
     return _categories.map((c) => ({
       key: c.value,
       label: c.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
@@ -213,6 +213,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                     heartIconOverride={true}
                     messageIconOverride={true}
                     shareIconOverride={true}
+                    profileMaxWidth={'120px'}
                   />
                   <div className={clsx(
                     "opacity-0 transition-opacity duration-200 z-30",
@@ -226,12 +227,11 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       postData={postData[post.slug]}
                       onShare={() => onShareButtonClick(post.slug)}
                       onClick={() => {
-                        const encodedPost = encodeURIComponent(JSON.stringify(post));
+                        localStorage.setItem('tempPostData', JSON.stringify(post));
                         router.push({
                           pathname: `/post/${post.slug}`,
                           query: {
-                            returnTo: '/',
-                            postData: encodedPost
+                            returnTo: '/'
                           }
                         });
                       }}

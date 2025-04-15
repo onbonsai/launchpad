@@ -115,7 +115,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
           </div>
         )}
         {!showMax && trailingAmount && (
-          <BodySemiBold className={clsx('mr-3', isError ? 'text-bearish/90' : 'text-white/60')}>
+          <BodySemiBold className={clsx('mr-3', isError ? '!text-bearish/90' : 'text-white/60')}>
             {`${trailingAmount} ${trailingAmountSymbol || ""}`}
           </BodySemiBold>
         )}

@@ -11,13 +11,14 @@ interface BuySellModalProps {
     onClose: () => void;
     onBuyUSDC?: (amount: string, amountNeeded: number) => void;
     mediaProtocolFeeRecipient?: `0x${string}`;
+    useRemixReferral?: `0x${string}`;
 }
 
 const BuySellModal = (props: BuySellModalProps) => {
-    const { club, buyAmount, address, open, onClose, onBuyUSDC, mediaProtocolFeeRecipient } = props;
+    const { club, buyAmount, address, open, onClose, onBuyUSDC, mediaProtocolFeeRecipient, useRemixReferral } = props;
     return (
         <Modal
-            onClose={() => onClose()}
+            onClose={onClose}
             open={open}
             setOpen={() => { }}
             panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary"
@@ -28,6 +29,8 @@ const BuySellModal = (props: BuySellModalProps) => {
                 address={address}
                 onBuyUSDC={onBuyUSDC}
                 mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
+                useRemixReferral={useRemixReferral}
+                closeModal={onClose}
             />
         </Modal>
     )

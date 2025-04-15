@@ -1,6 +1,6 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useBalance, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
 import { Disclosure, Transition } from "@headlessui/react";
@@ -24,7 +24,7 @@ import { Subtitle } from "@src/styles/text";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -38,11 +38,11 @@ const NETWORK_OPTIONS: NetworkOption[] = [
     label: 'Lens',
     icon: '/lens.png'
   },
-  {
-    value: 'base',
-    label: 'Base',
-    icon: '/base.png'
-  }
+  // {
+  //   value: 'base',
+  //   label: 'Base',
+  //   icon: '/base.png'
+  // }
 ];
 
 const LENS_PRICING_TIERS = {
@@ -97,7 +97,17 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
 
-  // stablecoin balance (GHO on lens, USDC on base)
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: selectedNetwork === "lens",
+      refetchInterval: 10000,
+    }
+  })
+
+  // stablecoin balance (WGHO on lens, USDC on base)
   const { data: tokenBalance } = useReadContract({
     address: selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
@@ -106,15 +116,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     args: [address as `0x${string}`]
   });
 
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
-  // TODO: might need to check this after registration fees enabled
-  const isValid = (() => {
-    return tokenName &&
-      tokenSymbol &&
-      tokenBalance >= (totalRegistrationFee || 0n) &&
-      !!tokenImage &&
-      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
-  })();
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
@@ -127,6 +129,31 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
       label: option.label
     }))
   }], []);
+
+  const notEnoughFunds = useMemo(() => {
+    const requiredAmount = totalRegistrationFee || 0n;
+    const currentWGHOBalance = tokenBalance || 0n;
+
+    if (selectedNetwork === "lens") {
+      // For Lens chain, consider both GHO and WGHO balances
+      const ghoBalanceInWei = ghoBalance?.value || 0n;
+      const totalAvailableBalance = currentWGHOBalance + ghoBalanceInWei;
+      return requiredAmount > totalAvailableBalance;
+    }
+
+    // For other chains, just check USDC balance as before
+    return requiredAmount > currentWGHOBalance;
+  }, [totalRegistrationFee, tokenBalance, ghoBalance?.value, selectedNetwork]);
+
+  // TODO: might need to check this after registration fees enabled
+  const isValid = (() => {
+    return tokenName &&
+      tokenSymbol &&
+      (tokenBalance !== undefined) &&
+      !notEnoughFunds &&
+      !!tokenImage &&
+      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
+  })();
 
   const setTokenDataBefore = (fn) => {
     setFinalTokenData({
@@ -205,7 +232,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   type="text"
                   value={tokenName}
                   className={clsx("w-full pr-4", sharedInputClasses)}
-                  onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 8).toUpperCase()); }}
+                  onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 10).toUpperCase()); }}
                 />
               </div>
             </div>
@@ -372,17 +399,17 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               <div className="relative flex flex-col space-y-1 gap-1">
                 <CurrencyInput
                   trailingAmount={`${buyPriceFormatted}`}
-                  trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "WGHO"}
-                  tokenBalance={tokenBalance}
-                  price={initialSupply || ""}
-                  isError={tokenBalance < (totalRegistrationFee || 0n)}
+                  trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "GHO"}
+                  tokenBalance={tokenBalance || 0n}
+                  price={initialSupply?.toString() || "0"}
+                  isError={tokenBalance ? tokenBalance < (totalRegistrationFee || 0n) : false}
                   onPriceSet={(e) => setInitialSupply(parseFloat(e))}
                   symbol={tokenSymbol}
                   hideBalance
                 />
                 <div className="flex justify-end">
                   <Subtitle className="text-xs text-white/70 mr-4">
-                    Balance: {localizeNumber(formatUnits(tokenBalance || 0n, stableDecimals))}
+                    Balance: {localizeNumber(formatUnits(selectedNetwork === "lens" ? (ghoBalance?.value || 0n) + (tokenBalance || 0n) :tokenBalance || 0n, stableDecimals))}
                   </Subtitle>
                 </div>
               </div>

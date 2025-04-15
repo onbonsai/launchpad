@@ -22,32 +22,17 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/studio/stake',
-        permanent: false,
-      },
-      {
-        source: '/studio/create',
-        destination: '/studio/stake',
-        permanent: false,
-      },
-      {
-        source: '/post/:path*',
-        destination: '/studio/stake',
-        permanent: false,
-      },
-      {
-        source: '/profile/:path*',
-        destination: '/studio/stake',
-        permanent: false,
-      },
-    ];
-  },
   async headers() {
     return [
+      {
+        source: '/.well-known/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/plain',
+          },
+        ],
+      },
       {
         source: '/opengraph-image.jpg',
         headers: [
@@ -98,6 +83,8 @@ const nextConfig = {
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [
+      "api.grove.storage",
+      "media.firefly.land",
       "lh3.googleusercontent.com",
       "img.seadn.io",
       "ipfs.infura.io",

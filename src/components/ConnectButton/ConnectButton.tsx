@@ -3,6 +3,7 @@ import { styled } from '@mui/material/styles';
 import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
 import { useSIWE, useModal, SIWESession } from "connectkit";
+import { Tooltip } from "@components/Tooltip";
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";
@@ -18,12 +19,14 @@ import { getProfileImage } from "@src/services/lens/utils";
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
     border: 'none',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: '#262626',
     borderRadius: '12px',
     margin: '4px',
     boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
     '& .MuiMenu-list': {
-      padding: '4px'
+      padding: '4px',
+      backgroundColor: '#262626',
+      color: '#FFFFFF', // white text
     },
   }
 }));
@@ -32,10 +35,7 @@ const MenuItem = styled(MuiMenuItem)(({ theme }) => ({
   padding: '10px 8px',
   borderRadius: '12px',
   minWidth: '115px',
-  '&:hover': {
-    padding: '10px 8px',
-    borderRadius: '12px',
-  },
+  position: 'relative',
   fontFamily: brandFont.style.fontFamily,
   fontSize: '14px',
 }));
@@ -53,7 +53,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { disconnect } = useDisconnect();
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
-  const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
+  const { isAuthenticated, signingIn, authenticatedProfileId } = useLensSignIn(walletClient);
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -63,11 +63,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       }
     },
     onDisconnect: () => {
-      const asyncLogout = async () => {
-        await lensLogout();
-        fullRefetch() // invalidate cached query data
-      }
-      if ((!!authenticatedProfile?.address)) asyncLogout();
+      lensLogout();
+      fullRefetch() // invalidate cached query data
     }
   });
   // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
@@ -194,18 +191,20 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         open={open}
         onClose={handleClose}
       >
-        {/* {authenticatedProfile?.username?.localName && (
+        {authenticatedProfile?.username?.localName && (
           <MenuItem onClick={() => {
             handleClose();
             router.push(`/profile/${authenticatedProfile?.username?.localName}`);
           }}>
             View profile
           </MenuItem>
-        )} */}
+        )}
         <MenuItem onClick={() => {
           disconnect();
           handleClose();
-        }}>Log out</MenuItem>
+        }}>
+          Log out
+        </MenuItem>
       </Menu>
     </>
   );

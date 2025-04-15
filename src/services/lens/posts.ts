@@ -143,7 +143,6 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
   });
 };
 
-// TODO: consider using resolveSmartMedia or a batched version to fetch more info
 export const getPostData = async (postIds: string[]): Promise<Object> => {
   const FETCH_ACTORS_BATCH_SIZE = 10;
   let sessionClient;

@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { waitForTransactionReceipt } from "viem/actions";
 import { configureChainsConfig } from "@src/utils/wagmi";
 
-export const Balance = () => {
+export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const { address, isConnected, chainId } = useAccount();
@@ -145,7 +145,7 @@ export const Balance = () => {
       toast.error("No WGHO to unwrap");
       return;
     }
-    
+
     setIsUnwrapping(true);
     let toastId: string | undefined;
     try {
@@ -160,9 +160,9 @@ export const Balance = () => {
           return;
         }
       }
-      
+
       toastId = toast.loading("Unwrapping GHO...");
-      
+
       // Call the withdraw function on the WGHO contract
       const hash = await walletClient!.writeContract({
         address: WGHO_CONTRACT_ADDRESS,
@@ -170,13 +170,13 @@ export const Balance = () => {
         functionName: 'withdraw',
         args: [wghoBalance],
       });
-      
+
       await publicClient("lens").waitForTransactionReceipt({ hash });
-      
-      toast.success("Successfully unwrapped GHO", { id: toastId });
+
+      toast.success("Successfully unwrapped GHO", { id: toastId, duration: 2000 });
     } catch (error) {
       console.error("Error unwrapping GHO:", error);
-      toast.error("Failed to unwrap GHO", { id: toastId });
+      toast.error("Failed to unwrap GHO", { id: toastId, duration: 2000 });
     } finally {
       setIsUnwrapping(false);
     }
@@ -188,18 +188,20 @@ export const Balance = () => {
   //   console.log(price);
   // }, []);
 
+  if (!isConnected) return null;
+
   return (
     <div className={clsx("relative inline-block", brandFont.className)}>
       <div
-        className="bg-dark-grey text-white text-base font-medium rounded-lg md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 w-40 cursor-pointer relative"
+        className={`bg-dark-grey text-white text-base font-medium rounded-lg md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 ${!!openMobileMenu ? 'w-full' : 'w-40'} cursor-pointer relative`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-6">
-            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-8 z-20" />
-            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg absolute right-4 z-10" />
-            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg relative" />
+            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover absolute right-8 z-20" />
+            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover absolute right-4 z-10" />
+            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover relative" />
           </div>
           <span className="ml-2">${totalFormatted}</span>
         </div>
@@ -211,7 +213,7 @@ export const Balance = () => {
           style={{ zIndex: 1400 }}
         >
           <div
-            className="mt-2 bg-dark-grey text-white p-4 rounded-lg shadow-lg min-w-[320px] font-sf-pro-text"
+            className={`mt-2 bg-dark-grey text-white p-4 rounded-lg shadow-lg ${!!openMobileMenu ? 'min-w-[420px]' : 'min-w-[320px]'} font-sf-pro-text`}
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={handleMouseLeave}
           >
@@ -230,13 +232,13 @@ export const Balance = () => {
                           <button
                             className="h-5 w-5 hover:bg-zinc-700 p-1 rounded group"
                             onClick={() => {
-                              copyToClipboard(address || '');
+                              copyToClipboard(authenticatedProfile?.address || '');
                               const tooltip = document.getElementById('copy-tooltip');
                               if (tooltip) {
                                 tooltip.classList.remove('opacity-0');
                                 setTimeout(() => {
                                   tooltip.classList.add('opacity-0');
-                                }, 1000);
+                                }, 750);
                               }
                             }}
                           >
@@ -282,7 +284,7 @@ export const Balance = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-4">
-                      
+
                       <Tooltip message="Connected wallet address - used for trading tokens" direction="top" classNames="z-100">
                         <h3 className="font-medium text-white/80">Connected Wallet</h3>
                       </Tooltip>
@@ -297,7 +299,7 @@ export const Balance = () => {
                               tooltip.classList.remove('opacity-0');
                               setTimeout(() => {
                                 tooltip.classList.add('opacity-0');
-                              }, 1000);
+                              }, 750);
                             }
                           }}
                         >
@@ -331,7 +333,20 @@ export const Balance = () => {
                         <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
-                      <p className="text-lg font-bold">{ghoFormatted}</p>
+                      <div className="relative group">
+                        <p className={`text-lg font-bold ${ghoBalance?.value === 0n ? 'opacity-100 group-hover:opacity-0 transition-opacity' : ''}`}>{ghoFormatted}</p>
+                        {ghoBalance?.value === 0n && (
+                          <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a
+                              target="_blank"
+                              href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
+                              className="text-md font-medium text-brand-highlight hover:opacity-80"
+                            >
+                              Bridge
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     {/* Thread line container */}
                     <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
@@ -347,8 +362,8 @@ export const Balance = () => {
                         <div className="relative">
                           <p className="text-sm font-medium text-zinc-400 group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
                           <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button 
-                              variant="accent" 
+                            <Button
+                              variant="accent"
                               size="xs"
                               onClick={handleUnwrapGHO}
                               disabled={isUnwrapping || wghoBalance === 0n}

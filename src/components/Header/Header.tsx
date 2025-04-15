@@ -20,19 +20,18 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { ClaimBonsai } from "./ClaimBonsai";
+import { Notifications } from "./Notifications";
 
-const headerLinks = [];
-
-// const headerLinks = [
-//   {
-//     label: "Home",
-//     href: "/"
-//   },
-//   {
-//     label: "Tokens",
-//     href: "/tokens"
-//   }
-// ];
+const headerLinks = [
+  {
+    label: "Home",
+    href: "/"
+  },
+  {
+    label: "Tokens",
+    href: "/tokens"
+  }
+];
 
 export const Header = () => {
   const { route } = useRouter();
@@ -49,7 +48,7 @@ export const Header = () => {
     <header className="sticky top-0 z-[100] bg-black border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         {/* Top row */}
-        <div className="flex w-full items-center py-4 lg:border-none px-4 md:px-6 justify-between">
+        <div className="flex w-full items-center py-3 lg:border-none px-4 md:px-6 justify-between">
           <div className="flex items-center justify-start w-[33%]">
             <div className="w-max text-black">
               <a className="bonsaiLogo" href={routesApp.home}></a>
@@ -88,7 +87,7 @@ export const Header = () => {
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
             <div className="flex justify-center items-center w-[15%]">
-              {/* <SearchClubs /> */}
+              <SearchClubs />
             </div>
           )}
 
@@ -97,20 +96,21 @@ export const Header = () => {
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center gap-2 mr-2">
-              {/* <CreateClub /> */}
-              {/* <Link href="/studio">
-                <Button
-                  variant="accentBrand"
-                  size="md" // This sets the height to 40px and padding appropriately
-                  className="text-base font-bold md:px-6 bg-white rounded-lg"
-                >
-                  Create
-                </Button>
-              </Link> */}
+              <Notifications />
+              {isAuthenticated && (
+                <Link href="/studio">
+                  <Button
+                    variant="accentBrand"
+                    size="md"
+                    className="text-base font-bold md:px-6 bg-white rounded-lg"
+                  >
+                    Create
+                  </Button>
+                </Link>
+              )}
               <Balance />
-              {/* <ClaimFeesEarned /> */}
-              {/* <ClaimBonsai /> */}
-              {/* Moved ConnectButton here for desktop layout but kept outside for mobile to always show */}
+              <ClaimFeesEarned />
+              <ClaimBonsai />
             </div>
 
             {/* Keep ConnectButton always visible, now outside the desktop-specific div */}
@@ -135,21 +135,27 @@ export const Header = () => {
         </div>
 
         {/* Mobile-only: Search bar on second line */}
-        {isMobile && (
+        {/* {isMobile && (
           <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-            {/* <SearchClubs /> */}
+            <SearchClubs />
           </div>
-        )}
+        )} */}
       </nav>
 
       {/* Mobile Menu Dropdown */}
       {openMobileMenu && (
         <div className="sm:hidden bg-black border-t border-dark-grey px-4 py-3">
-          <div className="flex flex-col space-y-2">
-            {/* <CreateClub /> */}
-            <ClaimFeesEarned />
+          <div className="flex flex-col space-y-2 w-full">
+            <div className="pb-2 w-full">
+              <SearchClubs />
+            </div>
+            <Balance openMobileMenu />
+            <ClaimFeesEarned openMobileMenu />
+            <ClaimBonsai openMobileMenu />
+            <Notifications openMobileMenu />
+            {/* TODO: move info to a button next to hamburger */}
             <div
-              className="h-[40px] py-[10px] px-4 flex justify-start items-center rounded-lg hover:opacity-80 hover:cursor-pointer"
+              className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
               onClick={() => {
                 setOpenHelpModal(true);
                 setOpenMobileMenu(false);
@@ -159,6 +165,17 @@ export const Header = () => {
                 Info
               </span>
             </div>
+            {isAuthenticated && (
+              <Link href="/studio" className="w-full">
+                <Button
+                  variant="accentBrand"
+                  size="md"
+                  className="text-base font-bold md:px-6 bg-white rounded-lg w-full"
+                >
+                  Create
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

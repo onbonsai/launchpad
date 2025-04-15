@@ -8,18 +8,20 @@ interface BuySellModalProps {
     open: boolean;
     buyAmount: number;
     onClose: () => void;
+    chain: string;
 }
 
 const BuyUSDCWidget = (props: BuySellModalProps) => {
-    const { open, buyAmount, onClose } = props;
+    const { open, buyAmount, onClose, chain } = props;
     return (
         <Modal
             onClose={() => onClose()}
             open={open}
             setOpen={() => { }}
-            panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary"
+            panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary !bg-transparent"
+            disableAnimation
         >
-            <BuyUSDCModal buyAmount={buyAmount} />
+            <BuyUSDCModal buyAmount={buyAmount} closeModal={onClose} chain={chain} />
         </Modal>
     )
 }

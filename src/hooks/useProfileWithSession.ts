@@ -20,7 +20,7 @@ interface ProfileWithSession {
   // ... other profile fields
 }
 
-export const useProfileWithSession = (handle: string) => {
+export const useProfileWithSession = (handle: string, isAuthenticated?: boolean) => {
   const [profileData, setProfileData] = useState<ProfileWithSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -42,7 +42,7 @@ export const useProfileWithSession = (handle: string) => {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+  }, [fetchProfile, isAuthenticated]);
 
   return { profileData, isLoading, error, refetch: fetchProfile };
-}; 
+};

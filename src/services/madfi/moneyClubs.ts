@@ -161,6 +161,28 @@ const REGISTERED_CLUB_INFO = gql`
   }
 `;
 
+const REGISTERED_CLUB_INFO_BY_ADDRESS = gql`
+  query ClubInfo($tokenAddress: Bytes!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      clubId
+      v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+    }
+  }
+`;
+
 const SEARCH_CLUBS = gql`
   query SearchClubs($query: String!) {
     clubs(where:{or:[{symbol_contains_nocase:$query}, {name_contains_nocase:$query}]}){
@@ -567,7 +589,7 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
       query: !tokenAddress ? REGISTERED_CLUB : REGISTERED_CLUB_BY_TOKEN,
       variables: {
         id: !tokenAddress ? toHexString(parseInt(clubId)) : undefined,
-        tokenAddress,
+        tokenAddress: tokenAddress?.toLowerCase(),
         twentyFourHoursAgo,
         sixHoursAgo,
         oneHourAgo,
@@ -604,7 +626,7 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
   return clubs?.map((club) => {
-    let { name, symbol, image } = club
+    let { name, symbol, uri: image } = club
 
     if (!club.name || !club.symbol || !club.uri) {
       // backup for v1 clubs
@@ -616,13 +638,31 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   });
 };
 
+export const getRegisteredClubInfoByAddress = async (tokenAddress, chain = "base") => {
+  const client = subgraphClient(chain);
+  const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO_BY_ADDRESS, variables: { tokenAddress } })
+  const res = clubs?.map((club) => {
+    let { name, symbol, uri: image } = club
+
+    if (!club.name || !club.symbol || !club.uri) {
+      // backup for v1 clubs
+      ;[name, symbol, image] = decodeAbiParameters([
+        { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
+      ], club.tokenInfo);
+    }
+    return { name, symbol, image, clubId: club.clubId, id: club.id };
+  });
+
+  return res?.length ? res[0] : null;
+};
+
 export const searchClubs = async (query: string, chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: SEARCH_CLUBS, variables: { query } })
   return clubs?.map((club) => {
     const { name, symbol, image } = club
 
-    return { token: { name, symbol, image }, ...club };
+    return { token: { name, symbol, image }, ...club, chain };
   });
 };
 
@@ -825,7 +865,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
       const publications = await lensClient.publication.fetchAll({
-        where: { publicationIds: clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== "")).map(({ pubId }) => pubId) }
+        where: { publicationIds: clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== "")).map(({ postId }) => postId) }
       });
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
@@ -835,7 +875,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
         if (club?.hidden) return; // db forced hide
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
-          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          const publication = gPublications[club.postId] ? gPublications[club.postId][0] : undefined;
           return { publication, ..._club, ...club, marketCap };
         } else { // not created on our app
           let { name, symbol, uri: image } = _club;
@@ -882,9 +922,8 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
     const { clubs } = await response.json();
 
     try {
-      // TODO: switch to postId?
-      const lensTokens = clubs.filter(({ strategy, pubId }) => (strategy === "lens" && !!pubId && typeof pubId === "string" && pubId.trim() !== ""));
-      const publications = await getPosts(lensTokens.map(({ pubId }) => pubId));
+      const lensTokens = clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== ""));
+      const publications = await getPosts(lensTokens.map(({ postId }) => postId));
       const gPublications = groupBy(publications || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
       const responseClubs = data?.clubs.map((_club) => {
@@ -902,7 +941,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
         if (club) {
           club.featured = !!club?.featureEndAt && (Date.now() / 1000) < parseInt(club.featureEndAt);
           if (club.featured) return; // featured clubs are queried elsewhere
-          const publication = gPublications[club.pubId] ? gPublications[club.pubId][0] : undefined;
+          const publication = gPublications[club.postId] ? gPublications[club.postId][0] : undefined;
           return { publication, ..._club, ...club, marketCap, token };
         } else { // not created on our app
           return { ..._club, handle: _club.creator, marketCap, token };
@@ -961,18 +1000,20 @@ export const getBuyPrice = async (
   clubId: string,
   amount: string,
   supply?: string,
-  chain = "base"
+  chain = "base",
+  _pricingTier?: string
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient(chain);
   let buyPrice
+  let pricingTier = _pricingTier ? LENS_PRICING_TIERS[_pricingTier] : undefined
   try {
     buyPrice = !!supply ?
       await client.readContract({
         address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-        abi: BonsaiLaunchpadAbi,
+        abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
         functionName: "getBuyPrice",
-        args: [parseUnits(supply, DECIMALS), amountWithDecimals]
+        args: chain === "base" ? [parseUnits(supply, DECIMALS), amountWithDecimals] : [parseUnits(supply, DECIMALS), amountWithDecimals, pricingTier?.initialPrice, pricingTier?.flatThreshold, pricingTier?.targetPriceMultiplier]
       })
       : await client.readContract({
         address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
@@ -1163,10 +1204,12 @@ export const getSellPrice = async (
 
 export const getRegistrationFee = async (
   amount: string,
-  account?: `0x${string}`
+  account?: `0x${string}`,
+  chain = "base",
+  pricingTier?: string
 ): Promise<bigint> => {
   if (amount == "0") return BigInt(0);
-  const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0")
+  const initialBuyPrice = await getBuyPrice(account || zeroAddress, "0", amount, "0", chain, pricingTier)
   // TODO: if registration fee is turned on do something here
   return initialBuyPrice.buyPrice as bigint
 };
@@ -1378,7 +1421,7 @@ export const setLensData = async ({
   await fetch('/api/clubs/set-lens-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ txHash: hash, handle, pubId: postId, chain })
+    body: JSON.stringify({ txHash: hash, handle, postId, chain })
   });
 }
 
@@ -1457,7 +1500,7 @@ export const approveToken = async (
 export const releaseLiquidity = async (clubId: string, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
-    clubId, tokenPrice
+    clubId, tokenPrice, chain
   })
 
   await fetch('/api/clubs/update', {
@@ -1502,13 +1545,23 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   const receipts: any[] = [];
 
   if (feesEarned > 0n) {
-    hash = await walletClient.writeContract({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
-      functionName: "withdrawFeesEarned",
-      args: [zeroAddress],
-      chain: getChain(chain)
-    });
+    if (chain === "lens") {
+      hash = await walletClient.writeContract({
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadV3Abi,
+        functionName: "withdrawFeesEarned",
+        args: [zeroAddress, WGHO_CONTRACT_ADDRESS],
+        chain: getChain(chain)
+      });
+    } else {
+      hash = await walletClient.writeContract({
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadAbi,
+        functionName: "withdrawFeesEarned",
+        args: [zeroAddress],
+        chain: getChain(chain)
+      });
+    }
     console.log(`tx: ${hash}`);
     receipts.push(publicClient(chain).waitForTransactionReceipt({ hash }));
   }

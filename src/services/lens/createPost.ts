@@ -39,6 +39,7 @@ interface PostParams {
     options: { isCanvas?: boolean };
   };
   tokenAddress?: `0x${string}`;
+  remix?: string;
   actions?: {
     simpleCollect: {
       payToCollect: {
@@ -92,7 +93,16 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
     attributes!.push({
       type: MetadataAttributeType.STRING as const,
       key: "tokenAddress",
-      value: params.tokenAddress,
+      value: params.tokenAddress as string,
+    });
+  }
+
+  // include the remix postId for reference
+  if (!!params.template && !!params.remix) {
+    attributes!.push({
+      type: MetadataAttributeType.STRING as const,
+      key: "remix",
+      value: params.remix as string,
     });
   }
 

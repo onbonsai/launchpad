@@ -100,14 +100,15 @@ const TokenPage: NextPage<TokenPageProps> = ({
   creatorInfo,
   type,
 }: TokenPageProps) => {
+  const postId = club.postId || club.pubId;
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { isReady: ready } = useSIWE();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
-  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(club.pubId as string);
-  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, club.pubId);
+  const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
+  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -117,7 +118,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   );
 
   const [openSignInModal, setOpenSignInModal] = useState(false);
-  const [openTab, setOpenTab] = useState<number>(type === "lens" && !!club.pubId ? 1 : 2);
+  const [openTab, setOpenTab] = useState<number>(type === "lens" && !!postId ? 1 : 2);
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
   const fairLaunchMode = !isLoadingTotalSupply && (totalSupply! < FLAT_THRESHOLD);
@@ -169,7 +170,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.clubId.toString());
+      const token = await releaseLiquidityTransaction(club.clubId.toString(), club.chain);
       toast.success('Pool created!', { id: toastId });
     } catch (error) {
       console.log(error);
@@ -207,7 +208,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
     const priceDelta = tradingInfo ? tradingInfo.priceDeltas[period] : "0";
-    const textColor = priceDelta === "0" || priceDelta === "-0" ? 'text-white/60' : (priceDelta.includes("+") ? "text-bullish" : "text-bearish");
+    const textColor = priceDelta === "0" || priceDelta === "-0" ? 'text-white/60' : (priceDelta.includes("+") ? "!text-bullish" : "!text-bearish");
     return (
       <Subtitle className={clsx(textColor)}>
         {localizeNumber(Number(priceDelta) / 100, "percent")}
@@ -404,7 +405,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           />
                           <div className='border border-card bg-card-light rounded-2xl mt-5'>
                             <div className="rounded-2xl m-2 overflow-hidden">
-                              {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} />}
+                              {isScriptReady && <Chart symbol={club.token.symbol} clubId={club.clubId} chain={club.chain} />}
                             </div>
                           </div>
                         </>
@@ -432,13 +433,13 @@ const TokenPage: NextPage<TokenPageProps> = ({
               {/* Feed/Trades/Holders */}
               <div className="lg:col-span-4 h-[calc(100vh-20px)] md:mb-0 relative w-full flex flex-col">
                 <div className="mb-4">
-                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!club.pubId} />
+                  <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!postId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
                 <div className="min-w-[450px] flex-1 overflow-y-auto">
                   {openTab === 1 && type === "lens" && (
                     <Feed
-                      postId={club.pubId}
+                      postId={postId}
                       isLoading={isLoading}
                       publicationWithComments={publicationWithComments}
                     />
@@ -497,7 +498,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   ]);
 
   // Redirect to v1 if clubId < 170 and IS_PRODUCTION is true
-  if (IS_PRODUCTION && parseInt(_club.clubId as string) < 170) {
+  if (IS_PRODUCTION && parseInt(_club.clubId as string) < 170 && _club.chain === "base") {
     return {
       redirect: {
         permanent: false,

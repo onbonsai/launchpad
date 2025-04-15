@@ -21,7 +21,7 @@ const frameDataTemplate = {
 
 // Helper function to create absolute image URL
 const getAbsoluteImageUrl = (image) => {
-  if (!image) return defaultImageUrl;
+  if (!image) return "https://onbons.ai/opengraph-image.png";
   return image.startsWith('http') ? image : `${SITE_URL}${image}`;
 };
 
@@ -108,7 +108,7 @@ const HandleSEO = ({ pageProps }) => {
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = `${SITE_URL}/post/${pubId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?pubId=${encodeURIComponent(pubId)}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(pubId)}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,

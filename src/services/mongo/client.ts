@@ -127,7 +127,7 @@ export const getClientWithHookSubmissions = async () => {
 export const getClientWithApiCredits = async () => {
   // @ts-ignore
   const { database } = await connectToDatabase("client-bonsai");
-  const collection = database.collection("api-credits");
+  const collection = database.collection(IS_PRODUCTION ? "api-credits" : "api-credits-testnet");
 
   return { collection, database };
 };

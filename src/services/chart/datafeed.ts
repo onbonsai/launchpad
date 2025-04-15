@@ -33,8 +33,9 @@ const configurationData = {
 };
 
 export const BONDING_CURVE_BASE_TOKEN = "USDC";
+export const BONDING_CURVE_LENS_TOKEN = "WGHO";
 
-const getAllSymbols = async () => {
+const getAllSymbols = async (chain: string) => {
   const REGISTERED_CLUBS_PAGINATED = gql`
     query Clubs($skip: Int!) {
       clubs(first: 100, skip: $skip) {
@@ -46,7 +47,7 @@ const getAllSymbols = async () => {
       }
     }
   `;
-  const client = subgraphClient();
+  const client = subgraphClient(chain);
   const limit = 100;
   let skip = 0;
   let hasMore = true;
@@ -75,12 +76,12 @@ const getAllSymbols = async () => {
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
       ], club.tokenInfo);
     }
-    const symbol = `${_symbol}/${BONDING_CURVE_BASE_TOKEN}:${club.clubId}`;
+    const symbol = `${_symbol}/${chain === "base" ? BONDING_CURVE_BASE_TOKEN : BONDING_CURVE_LENS_TOKEN}:${club.clubId}`;
 
     return {
       symbol,
       ticker: _symbol,
-      description: `${_symbol}/${BONDING_CURVE_BASE_TOKEN}`,
+      description: `${_symbol}/${chain === "base" ? BONDING_CURVE_BASE_TOKEN : BONDING_CURVE_LENS_TOKEN}`,
       exchange: `${EXCHANGE_BONDING_CURVE}:${club.clubId}`,
       type: 'crypto',
     }
@@ -88,104 +89,111 @@ const getAllSymbols = async () => {
 };
 
 const cache = new Map();
-export const Datafeed = {
-  onReady: (callback) => {
-    setTimeout(() => callback(configurationData));
-  },
-  searchSymbols: async (userInput, exchange, symbolType, onResultReadyCallback) => {
-    const symbols = await getAllSymbols();
-    const newSymbols = symbols.filter(symbol => {
-      const isExchangeValid = exchange === '' || symbol.exchange === exchange;
-      const fullName = `${symbol.exchange}:${symbol.ticker}`;
-      const isFullSymbolContainsInput = fullName
-        .toLowerCase()
-        .indexOf(userInput.toLowerCase()) !== -1;
-      return isExchangeValid && isFullSymbolContainsInput;
-    });
-    onResultReadyCallback(newSymbols);
-  },
-  resolveSymbol: async (symbolName, onSymbolResolvedCallback, onResolveErrorCallback, extension) => {
-    const symbols = await getAllSymbols();
-    const symbolItem = symbols.find(({ symbol }) => symbol === symbolName);
-    if (!symbolItem) {
-      console.log('[resolveSymbol]: Cannot resolve symbol', symbolName);
-      onResolveErrorCallback('Cannot resolve symbol');
-      return;
-    }
-    // Symbol information object
-    const symbolInfo = {
-      ticker: symbolItem.ticker.split("/")[0],
-      name: symbolItem.symbol.split(":")[0],
-      description: symbolItem.description,
-      type: symbolItem.type,
-      session: '24x7',
-      timezone: 'Etc/UTC',
-      exchange: symbolItem.exchange,
-      minmov: 1,
-      pricescale: 100000,
-      visible_plots_set: 'ohlc',
-      has_weekly_and_monthly: false,
-      // has_daily: false,
-      has_intraday: true,
-      supported_resolutions: configurationData.supported_resolutions,
-      volume_precision: 2,
-      data_status: 'streaming',
-    };
-    onSymbolResolvedCallback(symbolInfo);
-  },
-  getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
-    const { from, to, countBack } = periodParams;
-    // console.log('[getBars]: Method call', symbolInfo, resolution, from, to, countBack);
 
-    if (symbolInfo.exchange.includes(EXCHANGE_BONDING_CURVE)) {
-      const [_, clubId] = symbolInfo.exchange.split(":");
-      // console.log('[getBars]: getBondingCurveTrades', clubId, from, to);
-      const bars = await getBondingCurveTrades(clubId, from, to, countBack, resolution);
-      cache.set('close', bars[bars.length - 1] ? bars[bars.length - 1].close : undefined);
-      onHistoryCallback(bars, { noData: bars.length === 0 });
-    }
-  },
-  subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback, chain = "base") => {
-    console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
-    if (resolution != "1S") return;
-    const [_, clubId] = symbolInfo.exchange.split(":");
-
-    const client = publicClient();
-    const unwatch = client.watchContractEvent({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      abi: BonsaiLaunchpadAbi,
-      eventName: "Trade",
-      args: { clubId },
-      onLogs: (logs: any[]) => {
-        const events = logs
-          .map((l) => {
-            try {
-              const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
-              return { event: event.args, transactionHash: l.transactionHash, createdAt: Date.now() } as TradeEvent;
-            } catch { }
-          }).filter((d) => d);
-
-        const trades = events.map((event) => {
-          const res = {
-            price: event!.event!.price.toString(),
-            prevPrice: cache.get('close'),
-            createdAt: event!.createdAt!.toString(),
-          };
-
-          cache.set('close', event!.event!.price);
-
-          return res;
-        });
-
-        trades.forEach((trade) => onRealtimeCallback(formatTrades([trade], resolution)[0]));
+// Create a function to initialize the datafeed with the chain parameter
+export const createDatafeed = (chain: string) => {
+  return {
+    onReady: (callback) => {
+      setTimeout(() => callback(configurationData));
+    },
+    searchSymbols: async (userInput, exchange, symbolType, onResultReadyCallback) => {
+      const symbols = await getAllSymbols(chain);
+      const newSymbols = symbols.filter(symbol => {
+        const isExchangeValid = exchange === '' || symbol.exchange === exchange;
+        const fullName = `${symbol.exchange}:${symbol.ticker}`;
+        const isFullSymbolContainsInput = fullName
+          .toLowerCase()
+          .indexOf(userInput.toLowerCase()) !== -1;
+        return isExchangeValid && isFullSymbolContainsInput;
+      });
+      onResultReadyCallback(newSymbols);
+    },
+    resolveSymbol: async (symbolName, onSymbolResolvedCallback, onResolveErrorCallback, extension) => {
+      const symbols = await getAllSymbols(chain);
+      const symbolItem = symbols.find(({ symbol }) => symbol === symbolName);
+      if (!symbolItem) {
+        console.log('[resolveSymbol]: Cannot resolve symbol', symbolName);
+        onResolveErrorCallback('Cannot resolve symbol');
+        return;
       }
-    });
+      // Symbol information object
+      const symbolInfo = {
+        ticker: symbolItem.ticker.split("/")[0],
+        name: symbolItem.symbol.split(":")[0],
+        description: symbolItem.description,
+        type: symbolItem.type,
+        session: '24x7',
+        timezone: 'Etc/UTC',
+        exchange: symbolItem.exchange,
+        minmov: 1,
+        pricescale: 100000,
+        visible_plots_set: 'ohlc',
+        has_weekly_and_monthly: false,
+        // has_daily: false,
+        has_intraday: true,
+        supported_resolutions: configurationData.supported_resolutions,
+        volume_precision: 2,
+        data_status: 'streaming',
+      };
+      onSymbolResolvedCallback(symbolInfo);
+    },
+    getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
+      const { from, to, countBack } = periodParams;
+      // console.log('[getBars]: Method call', symbolInfo, resolution, from, to, countBack);
 
-    cache.set(subscriberUID, unwatch);
-  },
-  unsubscribeBars: (subscriberUID) => {
-    console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
-    const unwatch = cache.get(subscriberUID);
-    unwatch();
-  },
+      if (symbolInfo.exchange.includes(EXCHANGE_BONDING_CURVE)) {
+        const [_, clubId] = symbolInfo.exchange.split(":");
+        // console.log('[getBars]: getBondingCurveTrades', clubId, from, to);
+        const bars = await getBondingCurveTrades(clubId, from, to, countBack, resolution, chain);
+        cache.set('close', bars[bars.length - 1] ? bars[bars.length - 1].close : undefined);
+        onHistoryCallback(bars, { noData: bars.length === 0 });
+      }
+    },
+    subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
+      console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
+      if (resolution != "1S") return;
+      const [_, clubId] = symbolInfo.exchange.split(":");
+
+      const client = publicClient();
+      const unwatch = client.watchContractEvent({
+        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        abi: BonsaiLaunchpadAbi,
+        eventName: "Trade",
+        args: { clubId },
+        onLogs: (logs: any[]) => {
+          const events = logs
+            .map((l) => {
+              try {
+                const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
+                return { event: event.args, transactionHash: l.transactionHash, createdAt: Date.now() } as TradeEvent;
+              } catch { }
+            }).filter((d) => d);
+
+          const trades = events.map((event) => {
+            const res = {
+              price: event!.event!.price.toString(),
+              prevPrice: cache.get('close'),
+              createdAt: event!.createdAt!.toString(),
+            };
+
+            cache.set('close', event!.event!.price);
+
+            return res;
+          });
+
+          trades.forEach((trade) => onRealtimeCallback(formatTrades([trade], resolution)[0]));
+        }
+      });
+
+      cache.set(subscriberUID, unwatch);
+    },
+    unsubscribeBars: (subscriberUID) => {
+      console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
+      const unwatch = cache.get(subscriberUID);
+      unwatch();
+    },
+  };
 };
+
+// Create a default datafeed with "base" chain for backward compatibility
+export const Datafeed = createDatafeed("base");

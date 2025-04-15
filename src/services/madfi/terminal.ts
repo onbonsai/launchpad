@@ -3,7 +3,7 @@ import { getProfileByHandle } from "../lens/getProfiles";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { resumeSession } from "@src/hooks/useLensLogin";
 
-export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL || "https://eliza-staging-terminal.onbons.ai"; // client-bonsai-terminal
+export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL || "https://eliza-terminal.onbons.ai"; // client-bonsai-terminal
 export const GLOBAL_AGENT_ID = "c3bd776c-4465-037f-9c7a-bf94dfba78d9"; // Sage
 
 export interface AgentInfo {

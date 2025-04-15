@@ -18,7 +18,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner"
 const StudioSidebar = () => {
   const { address, isConnected } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: stakingData, isLoading: isLoadingStaking } = useStakingData(address);
+  const { data: stakingData } = useStakingData(address);
   const { data: postsPaginated, isLoading: isLoadingPosts } = useGetPostsByAuthor(authenticatedProfile?.address);
   const posts = useMemo(() => postsPaginated?.pages.flatMap(page => page.posts) || [], [isLoadingPosts]);
 
@@ -27,13 +27,13 @@ const StudioSidebar = () => {
     return formatStakingAmount(stakingData.summary.totalStaked);
   }, [stakingData?.summary]);
 
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+  const { data: creditBalance } = useGetCredits(address as string, isConnected);
 
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
   const menuItems = [
-    // { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Studio", href: "/studio/create", disabled: false },
-    // { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
+    { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Studio", href: "/studio/create", disabled: false },
+    { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
     { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Stake Bonsai", href: "/studio/stake", disabled: false },
   ]
 
@@ -74,17 +74,17 @@ const StudioSidebar = () => {
             <Header2 className="text-lg font-medium opacity-80">Staked</Header2>
             <p className="text-sm text-secondary/90 mt-2">{kFormatter(totalStaked)} $BONSAI</p>
           </div>
-          {/* <div>
+          <div>
             <Header2 className="text-lg font-medium opacity-80">Capacity Today</Header2>
-            <p className="text-sm text-secondary/90 mt-2">~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations</p>
-          </div> */}
+            <p className="text-sm text-secondary/90 mt-2">~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3).toLocaleString()} post generations</p>
+          </div>
         </div>
       </div>
 
       <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
 
       {/* Recent Posts */}
-      {/* <div className="">
+      <div className="">
         <Header2 className="text-lg font-medium opacity-80 px-2">Recent Posts</Header2>
         {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
         <nav className="mt-2 space-y-2">
@@ -99,7 +99,7 @@ const StudioSidebar = () => {
             </Link>
           ))}
         </nav>
-      </div> */}
+      </div>
 
     </div>
   )

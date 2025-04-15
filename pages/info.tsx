@@ -87,7 +87,7 @@ const Help = () => {
                             <p className="text-lg text-secondary">Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>Social primitives such as posts, profiles and feeds are brought to life with autonomous AI-driven capabilities</li>
-                              <li>New posts are created with a Smart Media template in the studio and can have a token created our launchpad to accompany the post. Users must collect the post to participate and can buy the token to gain more access.</li>
+                              <li>New posts are created with a Smart Media template in the studio and can have a token created our launchpad to accompany the post. Users must collect the post to participate & remix, and can buy the token to speculate on the virality of the media.</li>
                               <li>Smart Media posts update their content regularly based on the interactions of users and token holders.</li>
                               <li>Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.</li>
                             </ul>

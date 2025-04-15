@@ -147,9 +147,11 @@ const TokenPage: NextPage = () => {
   }, [stakingData?.stakes]);
 
   // Format the next reset time
-  const formatNextReset = (nextResetTime: string) => {
-    const reset = new Date(nextResetTime);
-    return reset.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatNextReset = () => {
+    const midnight = new Date();
+    midnight.setUTCHours(0, 0, 0, 0);
+    midnight.setUTCDate(midnight.getUTCDate() + 1); // Next day at midnight
+    return midnight.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   // Add safe checks for stakes array
@@ -199,7 +201,8 @@ const TokenPage: NextPage = () => {
         }
       }
 
-      await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
+      const res = await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
+      if (!res) throw new Error("No stake hash");
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
 
@@ -371,7 +374,7 @@ const TokenPage: NextPage = () => {
                       <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
-                      Stake $BONSAI on Lens Chain to earn API credits for post generations. The longer the lockup, the more credits you earn.
+                      Stake $BONSAI on Lens Chain to earn AI generation credits for creating smart media and sending messages. The longer the lockup, the more credits you earn.
                       Credits reset daily.
                     </Subtitle>
                     {isConnected && <Button
@@ -409,7 +412,11 @@ const TokenPage: NextPage = () => {
                                 </div>
                               )}
                             </Button>
-                            <Button variant="accent" size="sm" disabled>
+                            <Button 
+                              variant="accent" 
+                              size="sm" 
+                              onClick={() => window.open('https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079d94052fed39625c147c12c?utm_medium=web', '_blank')}
+                            >
                               Buy $BONSAI
                             </Button>
                           </div>
@@ -426,7 +433,7 @@ const TokenPage: NextPage = () => {
                           href={`https://layerzeroscan.com/tx/${bridgeInfo.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ml-2 text-bullish hover:underline"
+                          className="ml-2 !text-bullish hover:underline"
                         >
                           Check LayerZero
                         </a>
@@ -480,7 +487,7 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* API Capacity Card */}
-                {/* <div className="bg-card rounded-lg p-6">
+                <div className="bg-card rounded-lg p-6">
                   <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3 mt-4">
                     {isConnected ? (
                       <>
@@ -490,18 +497,18 @@ const TokenPage: NextPage = () => {
                             ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {creditBalance?.creditsUsed || 0} credits used of{" "}
-                            {creditBalance?.totalCredits?.toFixed(1) || 0} total
+                            {(creditBalance?.creditsUsed || 0).toFixed(2)} credits used of{" "}
+                            {creditBalance?.totalCredits?.toFixed(2) || 0} total
                           </p>
                         </div>
 
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-brand-highlight">Next Reset</h3>
                           <div className="text-2xl font-bold text-secondary">
-                            {creditBalance ? formatNextReset(creditBalance.nextResetTime) : "--:--"}
+                            {creditBalance ? formatNextReset() : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(1) : creditBalance?.totalCredits?.toFixed(1) || 0}
+                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(2) : creditBalance?.totalCredits?.toFixed(1) || 0}
                           </p>
                         </div>
 
@@ -547,11 +554,11 @@ const TokenPage: NextPage = () => {
                       </>
                     ) : (
                       <div className="col-span-3 text-center py-8">
-                        <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your API credits</p>
+                        <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your AI credits</p>
                       </div>
                     )}
                   </div>
-                </div> */}
+                </div>
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || wasReferred) && (

@@ -20,12 +20,29 @@ module.exports = {
           success: "#36D399",
           warning: "#FBBD23",
           error: "#F87272",
+          bullish: "#0B9981",
+          bearish: "#CD3030",
         },
       },
     ],
   },
   theme: {
     extend: {
+      keyframes: {
+        'fade-in-down': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(-20px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          },
+        }
+      },
+      animation: {
+        'fade-in-down': 'fade-in-down 0.5s ease-out forwards'
+      },
       screens: {
         "xs": "510px",
         "md-plus": "920px",

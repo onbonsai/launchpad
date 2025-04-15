@@ -15,9 +15,13 @@ const fetchData = async (postId: string) => {
   }
 };
 
-export default (postId?: string, options?: { initialData?: { publication: any; comments: any[] } }) => {
+export default (
+  postId?: string,
+  options?: { initialData?: { publication: any; comments: any[] } },
+  authenticatedProfileId?: string | null
+) => {
   return useQuery({
-    queryKey: ["publication", postId],
+    queryKey: ["publication", postId, authenticatedProfileId],
     queryFn: () => fetchData(postId!),
     enabled: !!postId,
     staleTime: 60000 * 5,

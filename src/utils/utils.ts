@@ -1,6 +1,7 @@
 import axios from "axios";
 import { z } from "zod";
 import { formatUnits, getAddress, hashMessage, hexToSignature, recoverAddress } from "viem";
+import { formatDistanceToNowStrict } from 'date-fns'
 
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
 import { MADFI_BOUNTIES_URL } from "@src/constants/constants";
@@ -56,7 +57,7 @@ export const kFormatter = (num, asInteger = false) => {
   if (typeof num === "string") return num;
 
   if (Math.abs(num) > 999_999) {
-    return Math.sign(num) * (Math.abs(num) / 1_000_000).toFixed(1) + "mil";
+    return Math.sign(num) * (Math.abs(num) / 1_000_000).toFixed(1) + "m";
   } else if (Math.abs(num) > 999) {
     return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "k";
   }
@@ -469,3 +470,40 @@ export const getPostContentSubstring = (string, length = 100): string => {
     return `${string.substring(0, length)}...`;
   }
 };
+
+export const formatCustomDate = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}h`;
+  }
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+// distance in the future
+export const formatNextUpdate = (timestamp: number): string => {
+  const now = new Date();
+  const lastUpdateTime = new Date(timestamp * 1000);
+  const timeSinceUpdate = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 60000); // in minutes
+
+  // Base minutes until next hour
+  const minutesLeft = 60 - now.getMinutes();
+
+  // If update was less than an hour ago, add 60 minutes
+  if (timeSinceUpdate < 60) {
+    return `${minutesLeft + 60}m`;
+  }
+
+  return `${minutesLeft}m`;
+}

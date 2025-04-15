@@ -1,5 +1,6 @@
 // @ts-nocheck
 // disabling ts check due to Expression produces a union type that is too complex to represent. when using transitions
+import Image from "next/image"
 import { useHotkeys } from "react-hotkeys-hook";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { ChangeEvent, Fragment, useState } from "react";
@@ -14,6 +15,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { useSearchProfiles } from "@src/hooks/useSearchProfiles";
 import { useSearchPosts } from "@src/hooks/useSearchPosts";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
+import { getProfileImage } from '@src/services/lens/utils';
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,7 +48,7 @@ export const SearchClubs = () => {
     if (!item.v2) {
       push(`${V1_LAUNCHPAD_URL}/token/${item.clubId}`);
     } else {
-      push(`/token/${item.clubId}`);
+      push(`/token/${item.chain}/${item.tokenAddress}`);
     }
   }
 
@@ -67,14 +69,14 @@ export const SearchClubs = () => {
     <>
       <div className={clsx("lg:min-w-[400px] w-full", brandFont.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
-          Search tokens, profiles, and posts
+          Search anything
         </label>
         <div className="relative flex items-center">
           <input
             type="text"
             name="finder"
             id="finder"
-            placeholder="Search tokens, profiles, and posts..."
+            placeholder="Search anything"
             defaultValue={query}
             autoComplete="off"
             onClick={() => openModal()}
@@ -128,7 +130,7 @@ export const SearchClubs = () => {
                         <Combobox.Input
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
                           displayValue={(profile) => profile?.name ?? ""}
-                          placeholder="Type to search across tokens, profiles, and posts..."
+                          placeholder="Type to search across tokens, profiles, and posts"
                           onChange={handleSelected}
                         />
                       </div>
@@ -139,7 +141,7 @@ export const SearchClubs = () => {
                         leaveTo="opacity-0"
                         afterLeave={() => setQuery("")}
                       >
-                        <Combobox.Options className="mt-1 max-h-80 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Combobox.Options className="mt-1 max-h-[500px] w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
                               <Spinner customClasses="h-6 w-6" color="#5be39d" />
@@ -174,14 +176,22 @@ export const SearchClubs = () => {
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
                                       <div className="relative items-center pl-4">
-                                        <div className="w-[24px] h-[24px] bg-secondary/20 rounded-full flex items-center justify-center text-xs text-secondary">
+                                        <Image
+                                          src={getProfileImage(profile)}
+                                          alt={profile.metadata?.name}
+                                          width={24}
+                                          height={24}
+                                          className="rounded-full"
+                                        />
+                                        {/* <div className="w-[24px] h-[24px] bg-secondary/20 rounded-full flex items-center justify-center text-xs text-secondary">
                                           {profile.username?.localName?.[0]?.toUpperCase() || "?"}
-                                        </div>
+                                        </div> */}
                                       </div>
+                                      <span className="mx-2">{profile.metadata?.name}</span>
                                       <span
-                                        className={`block truncate ml-2 ${selected ? "font-medium" : "font-normal"}`}
+                                        className={`block truncate opacity-75 ${selected ? "font-medium" : "font-normal"}`}
                                       >
-                                        {profile.username?.localName ||
+                                        {profile.username?.localName ? `@${profile.username?.localName}` :
                                           profile.address.slice(0, 6) + "..." + profile.address.slice(-4)}
                                       </span>
                                     </div>
@@ -207,9 +217,16 @@ export const SearchClubs = () => {
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
                                       <div className="relative items-center pl-4">
-                                        <div className="w-[24px] h-[24px] bg-secondary/20 rounded-full flex items-center justify-center text-xs text-secondary">
+                                        <Image
+                                          src={getProfileImage(post.author)}
+                                          alt={post.author?.metadata?.name}
+                                          width={24}
+                                          height={24}
+                                          className="rounded-full"
+                                        />
+                                        {/* <div className="w-[24px] h-[24px] bg-secondary/20 rounded-full flex items-center justify-center text-xs text-secondary">
                                           {post.author.username?.localName?.[0]?.toUpperCase() || "?"}
-                                        </div>
+                                        </div> */}
                                       </div>
                                       <div className="ml-2 flex flex-col">
                                         <span className={`block truncate text-xs text-secondary/60`}>
@@ -251,23 +268,27 @@ export const SearchClubs = () => {
                                 <Combobox.Option
                                   key={data.id}
                                   className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"
-                                    }`
+                                    `relative cursor-pointer select-none py-2  pr-4 ${data.chain === "lens" ? "pl-4" : "pl-6"} ${active ? "bg-secondary/20 text-secondary" : "text-secondary"}`
                                   }
                                   value={data}
                                 >
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
-                                      {data.token.image && (
-                                        <div className="relative items-center pl-4">
-                                          <img
-                                            src={data.token.image}
-                                            alt={"token image"}
-                                            className="w-[12px] h-[12px] object-cover rounded-lg"
-                                          />
-                                        </div>
-                                      )}
-                                      <span className={`block truncate ${selected ? "font-medium" : "font-normal"}`}>
+                                      <span className={`flex truncate ${selected ? "font-medium" : "font-normal"}`}>
+                                        <Image
+                                          src={`/${data.chain}.png`}
+                                          alt={data.chain}
+                                          width={data.chain === "lens" ? 40 : 24}
+                                          height={24}
+                                          className={data.chain === "lens" ? "" : "mr-2"}
+                                        />
+                                        <Image
+                                          src={data.uri}
+                                          alt={data.token.name}
+                                          width={24}
+                                          height={24}
+                                          className="rounded-full mx-2 object-cover"
+                                        />
                                         {data.token.name} (${data.token.symbol})
                                       </span>
                                     </div>

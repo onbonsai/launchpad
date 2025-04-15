@@ -10,14 +10,29 @@ import { Header2, Subtitle } from "@src/styles/text";
 import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
 import { brandFont } from "@src/fonts/fonts";
 import clsx from "clsx";
+import { useGetCredits } from "@src/hooks/useGetCredits";
+import { useAccount } from "wagmi";
+import toast from "react-hot-toast";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
+  const { address, isConnected } = useAccount();
   const importButtonRef = useRef<HTMLButtonElement>(null);
   const [showImportTemplateModal, setShowImportTemplateModal] = useState(false);
   const [importedTemplateURL, setImportedTemplateURL] = useState<string | undefined>();
   const { data: registeredTemplates, isLoading } = useRegisteredTemplates(importedTemplateURL);
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
+
+  const estimatedGenerations = useMemo(() => {
+    if (!isLoadingCredits && creditBalance?.creditsRemaining) {
+      const res = Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
+      if (res === 0) {
+        toast("Stake Bonsai for more credits", { duration: 10000, id: 'insufficient-credits' });
+      }
+      return res;
+    }
+  }, [isLoadingCredits, creditBalance?.creditsRemaining]);
 
   const templatesFiltered = useMemo(() => {
     if (!categoryFilter) {
@@ -118,7 +133,8 @@ const StudioCreatePage: NextPage = () => {
                   {!isLoading && templatesFiltered?.map((template, idx) => (
                     <div
                       key={`template-${idx}`}
-                      className="bg-card-light rounded-lg p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full"
+                      className={`bg-card-light rounded-lg ${estimatedGenerations > 0 ? "cursor-pointer" : ""} p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
+                      onClick={() => { if (estimatedGenerations > 0) selectTemplate(template.name); }}
                     >
                       <div className="rounded-lg overflow-hidden mb-4 border border-dark-grey">
                         <Image
@@ -136,12 +152,18 @@ const StudioCreatePage: NextPage = () => {
                         </p>
                         <div className="flex-1" />
                         <div className="flex justify-end mt-4">
-                          <button
-                            className="bg-brand-highlight text-white px-4 py-1 rounded-full text-sm"
-                            onClick={() => selectTemplate(template.name)}
-                          >
-                            Create
-                          </button>
+                          {!isLoadingCredits && estimatedGenerations !== undefined && (
+                            <button
+                              className={`text-base text-black px-4 py-1 rounded-full text-sm ${
+                                estimatedGenerations === 0
+                                  ? 'bg-brand-highlight/50 cursor-not-allowed'
+                                  : 'bg-brand-highlight hover:bg-brand-highlight/90 transition-colors'
+                              }`}
+                              disabled={estimatedGenerations === 0}
+                            >
+                              {estimatedGenerations > 0 ? "Create" : "Insufficient credits"}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

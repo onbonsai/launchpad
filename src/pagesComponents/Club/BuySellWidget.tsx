@@ -48,9 +48,11 @@ export const BuySellWidget = ({
   onBuyUSDC,
   defaultBuyAmount,
   mediaProtocolFeeRecipient,
+  useRemixReferral,
+  closeModal,
 }) => {
   const router = useRouter();
-  const referralAddress = router.query.ref as `0x${string}`;
+  const referralAddress = !!useRemixReferral ? useRemixReferral : router.query.ref as `0x${string}`;
   const { chainId, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { switchChain } = useSwitchChain();
@@ -63,15 +65,15 @@ export const BuySellWidget = ({
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
-    // GHO Balance
-    const { data: ghoBalance } = useBalance({
-      address,
-      chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
-      query: {
-        enabled: club.chain === "lens",
-        refetchInterval: 10000,
-      }
-    })
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: IS_PRODUCTION ? lens.id : lensTestnet.id,
+    query: {
+      enabled: club.chain === "lens",
+      refetchInterval: 10000,
+    }
+  })
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
@@ -88,14 +90,14 @@ export const BuySellWidget = ({
   const notEnoughFunds = useMemo(() => {
     const requiredAmount = parseUnits(buyPrice || '0', _DECIMALS);
     const currentWGHOBalance = tokenBalance || 0n;
-    
+
     if (club.chain === "lens") {
       // For Lens chain, consider both GHO and WGHO balances
       const ghoBalanceInWei = ghoBalance?.value || 0n;
       const totalAvailableBalance = currentWGHOBalance + ghoBalanceInWei;
       return requiredAmount > totalAvailableBalance;
     }
-    
+
     // For other chains, just check USDC balance as before
     return requiredAmount > currentWGHOBalance;
   }, [buyPrice, tokenBalance, ghoBalance?.value, club.chain, _DECIMALS]);
@@ -143,12 +145,12 @@ export const BuySellWidget = ({
         // Calculate how much WGHO we need for the transaction
         const requiredAmount = parseUnits(buyPrice, _DECIMALS);
         const currentWGHOBalance = tokenBalance || 0n;
-        
+
         // If we don't have enough WGHO
         if (currentWGHOBalance < requiredAmount) {
           // Calculate how much more WGHO we need
           const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
-          
+
           // Check if user has enough GHO to wrap
           const ghoBalanceInWei = ghoBalance?.value || 0n;
           if (ghoBalanceInWei < additionalWGHONeeded) {
@@ -159,7 +161,7 @@ export const BuySellWidget = ({
 
           // Wrap the required amount
           console.log("Wrapping GHO:", formatUnits(additionalWGHONeeded, _DECIMALS));
-          toast.loading("Wrapping GHO...");
+          toastId = toast.loading("Wrapping GHO...");
           // Call the deposit function on the WGHO contract
           const hash = await walletClient!.writeContract({
             address: WGHO_CONTRACT_ADDRESS,
@@ -168,16 +170,15 @@ export const BuySellWidget = ({
             args: [],
             value: additionalWGHONeeded,
           });
-    
+
           await publicClient("lens").waitForTransactionReceipt({ hash });
+          toast.success("Wrapped GHO", { id: toastId });
         }
       }
 
       await approveToken(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain);
 
       toastId = toast.loading("Buying", { id: toastId });
-      console.log(`club.clubId: ${club.clubId}`)
-      console.log(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient)
       await buyChipsTransaction(walletClient, club.clubId, buyAmount!, maxPrice, referralAddress, club.chain, mediaProtocolFeeRecipient);
 
       // give the indexer some time
@@ -186,6 +187,12 @@ export const BuySellWidget = ({
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
       toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+
+      if (!!useRemixReferral) {
+        closeModal();
+        return;
+      }
+
       setJustBought(true);
       setShowConfetti(true);
       setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));
@@ -266,11 +273,11 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                     <div className="relative flex flex-col">
                       <CurrencyInput
                         tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
-                        tokenBalance={tokenBalance}
+                        tokenBalance={club.chain === "lens" ? tokenBalance + (ghoBalance?.value || 0n) : tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
+                        symbol={club.chain === "lens" ? "GHO" : "USDC"}
                         showMax
                         chain={club.chain}
                       />
@@ -302,25 +309,27 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This USDC amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} USDC</p>}
+                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
                 {!justBought && (
                   <>
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
-                    <Button
+                    {/* TODO: need thirdweb working with gho */}
+                    {/* <Button
                       variant={"primary"}
                       size='md'
-                      className="w-full"
+                      className="w-full !border-none"
                       onClick={() => {
                         onBuyUSDC(buyPrice, "100");
                       }}
                     >
-                      Get {club.chain === "lens" ? "Wrapped GHO" : "USDC"}
-                    </Button>
+                      Fund wallet
+                    </Button> */}
                   </>
                 )}
-                {justBought && (
+                {/* if the post is a remix, the remixer gets the referral fee */}
+                {justBought && !useRemixReferral && (
                   <div className="w-full flex flex-col items-center space-y-4">
                     <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
@@ -437,7 +446,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
 
         {!isConnected && (
           <div className="flex items-center justify-center w-full h-full mt-2">
-            <p className="text-bearish">Log In with your wallet to begin trading</p>
+            <p className="!text-bearish">Log In with your wallet to begin trading</p>
           </div>
         )}
       </div>

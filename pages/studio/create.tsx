@@ -1,10 +1,10 @@
 import { NextPage } from "next"
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react"
-import { useAccount, useWalletClient } from "wagmi";
+import { useEffect, useMemo, useState } from "react"
+import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
-import { parseUnits, zeroAddress } from "viem";
-import { createSmartMedia, Preview, type Template } from "@src/services/madfi/studio";
+import { erc20Abi, parseUnits, zeroAddress } from "viem";
+import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
@@ -23,7 +23,7 @@ import toast from "react-hot-toast";
 import { BigDecimal, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
-import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData } from "@src/services/madfi/moneyClubs";
+import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
@@ -32,10 +32,11 @@ import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import Link from "next/link";
+import { ArrowBack } from "@mui/icons-material";
 
 type TokenData = {
   initialSupply: number;
-  uniHook: `0x${string}`;
+  uniHook?: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
   tokenImage: any[];
@@ -46,7 +47,7 @@ type TokenData = {
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName } = router.query;
+  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -59,8 +60,31 @@ const StudioCreatePage: NextPage = () => {
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
   const [addToken, setAddToken] = useState(false);
+  const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: registeredTemplates, isLoading } = useRegisteredTemplates();
+  const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
+  const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
+  const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
+  const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
+
+  // GHO Balance
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: finalTokenData?.selectedNetwork === "lens",
+      refetchInterval: 10000,
+    }
+  })
+
+  // stablecoin balance (WGHO on lens, USDC on base)
+  const { data: tokenBalance } = useReadContract({
+    address: finalTokenData?.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: NETWORK_CHAIN_IDS[finalTokenData?.selectedNetwork as string],
+    functionName: 'balanceOf',
+    args: [address as `0x${string}`],
+  });
 
   const template = useMemo(() => {
     if (!isMounted || isLoading) return;
@@ -84,6 +108,26 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
+  // set the default form data to use the remixed version
+  useEffect(() => {
+    if (!isLoading && !!remixMedia) {
+      // @ts-expect-error templateData is unknown
+      setFinalTemplateData(remixMedia.templateData);
+
+      if (remixMedia.token?.address) {
+        getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
+          setFinalTokenData({
+            tokenName: token.name,
+            tokenSymbol: token.symbol,
+            tokenImage: [{ preview: token.image }],
+            selectedNetwork: remixMedia.token.chain,
+            initialSupply: 0,
+          });
+        });
+      }
+    }
+  }, [isLoading, remixMedia]);
+
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -93,26 +137,62 @@ const StudioCreatePage: NextPage = () => {
 
     setIsCreating(true);
 
-    // 1. create token
+    // 1. create token (if not remixing)
     let tokenAddress;
     let txHash;
-    if (addToken && finalTokenData) {
-      toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
+    if (!!savedTokenAddress) {
+      tokenAddress = savedTokenAddress;
+    } else if (addToken && finalTokenData && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId) {
           try {
             await switchChain(configureChainsConfig, { chainId: targetChainId });
+            // HACK: require lens chain for the whole thing
+            setIsCreating(false);
+            return;
           } catch {
             toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
             setIsCreating(false);
             return;
           }
         }
+        toastId = toast.loading(`Creating your token on ${finalTokenData.selectedNetwork.toUpperCase()}`);
 
         if (finalTokenData.totalRegistrationFee && finalTokenData.totalRegistrationFee > 0n) {
+          if (finalTokenData.selectedNetwork === "lens") {
+            // Calculate how much WGHO we need for the transaction
+            const requiredAmount = finalTokenData.totalRegistrationFee;
+            const currentWGHOBalance = tokenBalance || 0n;
+
+            // If we don't have enough WGHO
+            if (currentWGHOBalance < requiredAmount) {
+              // Calculate how much more WGHO we need
+              const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
+
+              // Check if user has enough GHO to wrap
+              const ghoBalanceInWei = ghoBalance?.value || 0n;
+              if (ghoBalanceInWei < additionalWGHONeeded) {
+                throw new Error("Insufficient WGHO");
+              }
+
+              // Wrap the required amount
+              toastId = toast.loading("Wrapping GHO...", { id: toastId });
+              // Call the deposit function on the WGHO contract
+              const hash = await walletClient!.writeContract({
+                address: WGHO_CONTRACT_ADDRESS,
+                abi: WGHO_ABI,
+                functionName: 'deposit',
+                args: [],
+                value: additionalWGHONeeded,
+              });
+
+              await publicClient("lens").waitForTransactionReceipt({ hash });
+            }
+          }
+
           const token = finalTokenData.selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS;
-          await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId);
+          await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId, undefined, finalTokenData.selectedNetwork);
         }
 
         const result = await registerClubTransaction(walletClient, {
@@ -120,7 +200,7 @@ const StudioCreatePage: NextPage = () => {
           tokenName: finalTokenData.tokenName,
           tokenSymbol: finalTokenData.tokenSymbol,
           tokenImage: storjGatewayURL(await pinFile(finalTokenData.tokenImage[0])),
-          hook: finalTokenData.selectedNetwork === 'base'
+          hook: finalTokenData.selectedNetwork === 'base' && finalTokenData.uniHook
             ? WHITELISTED_UNI_HOOKS[finalTokenData.uniHook].contractAddress as `0x${string}`
             : zeroAddress,
           // TODO: some sensible defaults
@@ -133,20 +213,29 @@ const StudioCreatePage: NextPage = () => {
 
         txHash = result.txHash as string;
         tokenAddress = result.tokenAddress;
+        setSavedTokenAddress(tokenAddress); // save our progress
       } catch (error) {
         console.log(error);
         toast.error("Failed to create token", { id: toastId });
         setIsCreating(false);
         return;
       }
+    } else if (remixMedia?.token?.address) {
+      tokenAddress = remixMedia.token.address;
+      setSavedTokenAddress(tokenAddress); // save our progress
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
     if (LENS_CHAIN_ID !== chain?.id && switchChain) {
       try {
         await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
-      } catch {
+        // HACK: require lens chain for the whole thing
+          setIsCreating(false);
+          return;
+      } catch (error) {
+        console.log(error);
         toast.error("Please switch networks to create your Lens post");
+        setIsCreating(false);
         return;
       }
     }
@@ -220,6 +309,7 @@ const StudioCreatePage: NextPage = () => {
           image,
           template,
           tokenAddress,
+          remix: remixMedia?.postId,
           actions: [{
             simpleCollect: {
               payToCollect: {
@@ -258,7 +348,7 @@ const StudioCreatePage: NextPage = () => {
     // 3. create smart media
     toastId = toast.loading("Finalizing...", { id: toastId });
     try {
-      if (tokenAddress) { // link the creator handle and post id in our db
+      if (tokenAddress && !remixMedia?.agentId) { // link the creator handle and post id in our db (if not remixed)
         await setLensData({
           hash: txHash,
           postId,
@@ -279,7 +369,7 @@ const StudioCreatePage: NextPage = () => {
         agentId: preview?.agentId,
         postId,
         uri,
-        token: addToken && finalTokenData ? {
+        token: (addToken || remixMedia?.agentId) && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress
         } : undefined,
@@ -292,7 +382,11 @@ const StudioCreatePage: NextPage = () => {
       setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);
-      toast.error("Failed to create smart media", { id: toastId });
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to create smart media", { id: toastId, duration: 5000 });
+      } else {
+        toast.error("Failed to create smart media", { id: toastId });
+      }
       setIsCreating(false);
       return;
     }
@@ -311,13 +405,12 @@ const StudioCreatePage: NextPage = () => {
             <div className="flex-grow">
               {/* Header Card */}
               <div className="bg-card rounded-lg p-6">
-                <div className="flex items-start gap-6">
+                <div className="flex items-start gap-4">
                   <Link
                     href="/studio"
-                    className="flex items-center text-secondary/60 hover:text-brand-highlight transition-colors"
+                    className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
                   >
-                    <ChevronLeftIcon className="h-5 w-5 mr-1" />
-                    <span className="text-sm">Back</span>
+                    <ArrowBack className="h-5 w-5" />
                   </Link>
                   <div className="flex-1">
                     <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
@@ -376,6 +469,7 @@ const StudioCreatePage: NextPage = () => {
                           setAddToken(true);
                           setOpenTab(2);
                         }}
+                        isRemix={!!remixMedia?.agentId}
                       />
                     )}
                   </div>

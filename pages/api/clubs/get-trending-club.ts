@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
         return {
           creatorStrategy: club.strategy,
-          creatorPubId: club.pubId,
+          creatorPostId: club.postId || club.pubId,
           creatorHandle: club.handle,
           creatorProfileId: club.profileId,
         };
