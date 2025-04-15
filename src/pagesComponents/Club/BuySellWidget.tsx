@@ -33,10 +33,6 @@ import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
 import { getChain, IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
-import { bigDecimal } from "@lens-protocol/client";
-import { wrapTokens } from "@lens-protocol/client/actions";
-import { resumeSession } from "@src/hooks/useLensLogin";
-import { handleOperationWith } from "@lens-protocol/client/viem";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -238,14 +234,14 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
-  const urlEncodedPostParams = () => {
+  const urlEncodedPostParams = useMemo(() => {
     const params = {
       text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
-${SITE_URL}/token/${club.clubId}?ref=${address}`,
+${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
     };
 
     return new URLSearchParams(params).toString();
-  }
+  }, [club]);
 
   return (
     <div className="flex flex-col w-[calc(100vw-65px)] sm:w-full"
@@ -334,7 +330,7 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                     <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
                     <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
-                      <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                      <a href={`https://orb.club/create-post?${urlEncodedPostParams}`} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button className="w-[150px] bg-black hover:bg-black">
                           <img src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" />
                           Orb
@@ -342,7 +338,8 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                       </a>
                       <a href={tweetIntentTokenReferral({
                         text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai`,
-                        clubId: club.clubId,
+                        chain: club.chain,
+                        tokenAddress: club.tokenAddress,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button variant="accent" className="w-[150px] flex items-center justify-center">
@@ -351,7 +348,8 @@ ${SITE_URL}/token/${club.clubId}?ref=${address}`,
                       </a>
                       <a href={castIntentTokenReferral({
                         text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai`,
-                        clubId: club.clubId,
+                        chain: club.chain,
+                        tokenAddress: club.tokenAddress,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button className="w-[150px] bg-[#472a91] hover:bg-[#472a91] text-white">
