@@ -67,7 +67,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
       console.log('Infinite scroll triggered:', { inView, isLoading, hasMore });
       isFetchingRef.current = true;
       fetchNextPage();
-      
+
       // Reset the fetching flag after a delay
       setTimeout(() => {
         isFetchingRef.current = false;
@@ -182,7 +182,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                 1280: 4,
                 1024: 3,
                 768: 2,
-                640: 2,
+                640: 1,
               }}
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
