@@ -79,13 +79,13 @@ const TokenPage: NextPage = () => {
     refetchInterval: 3600000, // Refetch every hour
   });
 
-  const { data: wasReferred } = useQuery({
+  const { data: referralStatus } = useQuery({
     queryKey: ["referral-status", address],
     queryFn: async () => {
       if (!address) return false;
       try {
         const response = await axios.get(`/api/referrals/status?address=${address}`);
-        return response.data.hasReferrer;
+        return { wasReferred: response.data.hasReferrer, hasReferred: response.data.hasReferred };
       } catch (error) {
         console.error('Error checking referral status:', error);
         return false;
@@ -561,13 +561,13 @@ const TokenPage: NextPage = () => {
                 </div>
 
                 {/* Active Stakes List */}
-                {isConnected && (hasActiveStakes || wasReferred) && (
+                {isConnected && (hasActiveStakes || (referralStatus && referralStatus.wasReferred)) && (
                   <div className="bg-card rounded-lg p-6">
                     <h3 className="text-sm font-medium text-brand-highlight mb-4">Active Stakes</h3>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                       {/* Referral Reward Preview */}
-                      {wasReferred && (
-                        <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-purple-500/50 relative overflow-hidden">
+                      {referralStatus && referralStatus.hasReferred && (
+                        <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-[#B6D5C2]/50 relative overflow-hidden">
                           {/* Gradient overlay */}
                           <div className="absolute inset-0 bg-gradient-to-r from-[#B6D5C2]/10 to-[#52837D]/10" />
 
@@ -577,7 +577,7 @@ const TokenPage: NextPage = () => {
                               <div className="text-lg font-semibold">
                                 {activeStakes[0] ? formatStakingAmount(getMinBigInt(BigInt(activeStakes[0].amount), parseUnits('10000', 18)).toString()) : '0'} $BONSAI
                               </div>
-                              <span className="text-xs font-medium bg-purple-500/20 text-purple-500 px-2 py-0.5 rounded">
+                              <span className="text-xs font-medium bg-[#B6D5C2]/20 text-[#B6D5C2] px-2 py-0.5 rounded">
                                 Referral Reward
                               </span>
                             </div>

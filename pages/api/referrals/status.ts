@@ -23,9 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Check if this user has a referrer
     const referral = await collection.findOne({ user: address });
 
+    // Check if this user has referred others
+    const hasReferred = await collection.findOne({ referrer: address });
+
     return res.status(200).json({ 
       hasReferrer: !!referral,
-      referrer: referral?.referrer || null
+      referrer: referral?.referrer || null,
+      hasReferred: !!hasReferred
     });
   } catch (error) {
     console.error("Error checking referral status:", error);
