@@ -333,32 +333,46 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                         <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
-                      <p className="text-lg font-bold">{ghoFormatted}</p>
+                      <div className="relative group">
+                        <p className={`text-lg font-bold opacity-100 group-hover:opacity-0 transition-opacity`}>{ghoFormatted}</p>
+                        <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a
+                            target="_blank"
+                              href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
+                              className="text-md font-medium text-brand-highlight hover:opacity-80"
+                            >
+                              Bridge
+                            </a>
+                          </div>
+                      </div>
                     </div>
                     {/* Thread line container */}
                     <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
                       {/* Curved corner */}
                       <div className="absolute left-5 top-0 w-4 h-5 border-b-2 border-l-2 border-zinc-700 rounded-bl-[10px]" />
                     </div>
-                    <div className="mt-2 pl-7 flex flex-col group relative">
-                      <div className="flex items-center justify-between">
+                    <div className="mt-2 pl-7 flex flex-col relative">
+                      <div className={`flex items-center justify-between ${wghoBalance && wghoBalance > 0n ? 'group' : ''}`}>
                         <div className="flex items-center gap-2">
                           <img src="/gho.webp" alt="gho" className="w-4 h-4 rounded-full opacity-70" />
                           <span className="text-zinc-500">Wrapped GHO</span>
                         </div>
                         <div className="relative">
-                          <p className="text-sm font-medium text-zinc-400 group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
-                          <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="accent"
-                              size="md"
-                              onClick={handleUnwrapGHO}
-                              disabled={isUnwrapping || wghoBalance === 0n}
-                              className="text-xs -mt-3"
-                            >
-                              {isUnwrapping ? "Unwrapping..." : "Unwrap"}
-                            </Button>
-                          </div>
+                          {wghoBalance && wghoBalance > 0n ? (
+                            <>
+                              <p className="font-medium text-zinc-400 group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
+                              <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p
+                                  onClick={handleUnwrapGHO}
+                                  className="text-md font-medium text-brand-highlight hover:opacity-80 cursor-pointer"
+                                >
+                                  {isUnwrapping ? "Unwrapping..." : "Unwrap"}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="font-medium text-zinc-400">{wghoFormatted}</p>
+                          )}
                         </div>
                       </div>
                     </div>
