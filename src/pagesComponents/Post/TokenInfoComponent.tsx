@@ -20,7 +20,7 @@ enum PriceChangePeriod {
 }
 
 export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, media?: SmartMedia, remixPostId?: string }) => {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
@@ -51,6 +51,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
           variant="dark-grey"
           size="md"
           onClick={onClick}
+          disabled={!isConnected}
           className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 ${brandFont.className}`}
         >
           Buy

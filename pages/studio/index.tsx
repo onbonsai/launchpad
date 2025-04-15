@@ -32,7 +32,6 @@ const StudioCreatePage: NextPage = () => {
       }
       return res;
     }
-    return 0;
   }, [isLoadingCredits, creditBalance?.creditsRemaining]);
 
   const templatesFiltered = useMemo(() => {
@@ -153,7 +152,7 @@ const StudioCreatePage: NextPage = () => {
                         </p>
                         <div className="flex-1" />
                         <div className="flex justify-end mt-4">
-                          {!isLoadingCredits && (
+                          {!isLoadingCredits && estimatedGenerations !== undefined && (
                             <button
                               className={`text-base text-black px-4 py-1 rounded-full text-sm ${
                                 estimatedGenerations === 0

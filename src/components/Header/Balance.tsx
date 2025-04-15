@@ -188,6 +188,8 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   //   console.log(price);
   // }, []);
 
+  if (!isConnected) return null;
+
   return (
     <div className={clsx("relative inline-block", brandFont.className)}>
       <div

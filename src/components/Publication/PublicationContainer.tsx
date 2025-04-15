@@ -19,13 +19,14 @@ import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
-import type { SmartMedia } from "@src/services/madfi/studio";
+import { SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
+import { formatNextUpdate } from "@src/utils/utils";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -361,7 +362,7 @@ const PublicationContainer = ({
         hideCollectButton={!!publication.root}
       // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
       />
-      {isCollect && (
+      {isCollect && isAuthenticated && (
         <div className="absolute top-2 right-2 z-20">
           <Button
             variant={hasCollected ? "dark-grey" : "accentBrand"}
@@ -398,18 +399,20 @@ const PublicationContainer = ({
                 <SparkIcon color="#fff" height={16} />
               </span>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden mr-2">
-                {media?.category && (
-                  <span className="pointer-events-none text-sm ml-1">
-                    {media.category.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-                  </span>
-                )}
-                {media?.category && media?.template && (
-                  <span className="text-white/60">•</span>
-                )}
-                {media?.template && (
-                  <span className="pointer-events-none text-sm text-white/80">
-                    {media.template.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-                  </span>
+                <span className="pointer-events-none text-sm ml-1">
+                  {media.category.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                </span>
+                <span className="text-white/60">•</span>
+                <span className="pointer-events-none text-sm text-white/80">
+                  {media.template.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                </span>
+                {media.status === SmartMediaStatus.ACTIVE && (
+                  <>
+                    <span className="text-white/60">•</span>
+                    <span className="pointer-events-none text-sm text-white/80">
+                      {`updating in ${formatNextUpdate(media.updatedAt)}`}
+                    </span>
+                  </>
                 )}
               </div>
             </div>
@@ -417,7 +420,7 @@ const PublicationContainer = ({
         </div>
       )}
 
-      {!!media?.agentId && (
+      {!!media?.agentId && isAuthenticated && (
         <div
           className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-10'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}

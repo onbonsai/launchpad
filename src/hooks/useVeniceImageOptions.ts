@@ -17,6 +17,7 @@ const fetchImageOptions = async (): Promise<VeniceImageOptionsResponse | undefin
     const response = await fetch('/api/venice/get-image-options');
     if (!response.ok) throw new Error('Failed to fetch image options');
     const res = await response.json();
+    if (!res.models?.length) return undefined;
     const models = res.models.filter((m) => !filterImageModels.includes(m));
     return { models, stylePresets: res.stylePresets };
   } catch (error) {

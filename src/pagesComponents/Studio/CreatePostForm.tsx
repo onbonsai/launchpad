@@ -282,12 +282,15 @@ const DynamicForm = ({
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
         const isRequired = !field.isOptional();
 
+        if (key === 'modelId' && !modelOptions?.length) return null;
+        if (key === 'stylePreset' && !modelOptions?.length) return null;
+
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
 
             {/* Special handling for modelId and stylePreset using SelectDropdown */}
-            {key === 'modelId' && models ? (
+            {key === 'modelId' && modelOptions?.length > 0 ? (
               <SelectDropdown
                 options={modelOptions}
                 onChange={(option) => updateField(key, option.value)}
@@ -295,7 +298,7 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : key === 'stylePreset' && stylePresets ? (
+            ) : key === 'stylePreset' && styleOptions?.length > 0 ? (
               <SelectDropdown
                 options={styleOptions}
                 onChange={(option) => updateField(key, option.value)}
