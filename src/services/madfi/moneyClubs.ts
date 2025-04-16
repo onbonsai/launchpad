@@ -790,9 +790,9 @@ export const getHoldings = async (account: `0x${string}`, page = 0, chain = "bas
     // TODO: enable once birdeye returns v4 token prices
     const balance = false // complete && IS_PRODUCTION
       ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club.tokenAddress))
-      : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, USDC_DECIMALS));
+      : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, chain === "base" ? USDC_DECIMALS : DECIMALS));
 
-    return { ...chips, balance, amount, complete };
+    return { ...chips, balance, amount, complete, chain };
   }));
 
   return { holdings, hasMore: clubChips?.length == limit };
@@ -1235,12 +1235,14 @@ export const calculatePriceDelta = (price: bigint, lastTradePrice: bigint): { va
   };
 };
 
+// Returns fees earned for given or both chains
+// Totals are formatted amounts
 export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "lens"): Promise<{
   base: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
   lens: { feesEarned: bigint, clubFeesTotal: bigint, clubFees: any[] },
-  totalFeesEarned: bigint,
-  totalClubFees: bigint,
-  grandTotal: bigint
+  totalFeesEarned: string,
+  totalClubFees: string,
+  grandTotal: string
 }> => {
   // Helper function to get fees for a specific chain
   const getChainFees = async (chainName: "base" | "lens") => {
@@ -1314,12 +1316,13 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
   // If chain is specified, only get fees for that chain
   if (chain) {
     const fees = await getChainFees(chain);
+    const decimals = chain === "base" ? USDC_DECIMALS : DECIMALS;
     return {
       base: chain === "base" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
       lens: chain === "lens" ? fees : { feesEarned: 0n, clubFeesTotal: 0n, clubFees: [] },
-      totalFeesEarned: fees.feesEarned,
-      totalClubFees: fees.clubFeesTotal,
-      grandTotal: fees.feesEarned + fees.clubFeesTotal
+      totalFeesEarned: formatUnits(fees.feesEarned, decimals),
+      totalClubFees: formatUnits(fees.clubFeesTotal, decimals),
+      grandTotal: formatUnits(fees.feesEarned + fees.clubFeesTotal, decimals)
     };
   }
 
@@ -1329,15 +1332,15 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
     getChainFees("lens")
   ]);
 
-  const totalFeesEarned = baseFees.feesEarned + lensFees.feesEarned;
-  const totalClubFees = baseFees.clubFeesTotal + lensFees.clubFeesTotal;
+  const totalFeesEarned = (baseFees.feesEarned * BigInt(10 ** (DECIMALS - USDC_DECIMALS))) + lensFees.feesEarned;
+  const totalClubFees = (baseFees.clubFeesTotal * BigInt(10 ** (DECIMALS - USDC_DECIMALS))) + lensFees.clubFeesTotal;
 
   return {
     base: baseFees,
     lens: lensFees,
-    totalFeesEarned,
-    totalClubFees,
-    grandTotal: totalFeesEarned + totalClubFees
+    totalFeesEarned: formatUnits(totalFeesEarned, DECIMALS),
+    totalClubFees: formatUnits(totalClubFees, DECIMALS),
+    grandTotal: formatUnits(totalFeesEarned + totalClubFees, DECIMALS)
   };
 };
 

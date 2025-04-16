@@ -34,15 +34,13 @@ const HoldingSection = (props: HoldingSectionProps) => {
             v2={row.club.v2}
             key={`row-${row.club.clubId}`}
             title={row.token.name}
-            count={
-              !row.complete
-                ? roundedToFixed(parseFloat(row.amount), 2)
-                : kFormatter(parseFloat(row.amount))
-            }
+            count={kFormatter(parseFloat(row.amount))}
             logo={<img src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' />}
             symbol={row.token.symbol}
             logoBg={true}
             price={roundedToFixed(row.balance, 2)}
+            chain={row.chain}
+            tokenAddress={row.club.tokenAddress}
           />
         ))}
         {holdings.length === 0 && bonsaiAmount === 0n && (

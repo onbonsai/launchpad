@@ -132,7 +132,7 @@ const HandleSEO = ({ pageProps }) => {
     const title = `${club.token.name} ($${club.token.symbol})`;
     const description = trimText(`Buy $${club.token.symbol} on Bonsai`, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(club.token.image);
-    const tokenUrl = `${SITE_URL}/token/${club.clubId}`;
+    const tokenUrl = `${SITE_URL}/token/${club.chain}/${club.tokenAddress}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`;
 
     const frameData = createFrameData(

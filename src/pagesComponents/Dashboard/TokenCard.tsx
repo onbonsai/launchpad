@@ -11,13 +11,15 @@ interface TokenCardProps {
     price: string;
     clubId: string;
     v2: boolean;
+    chain: string;
+    tokenAddress: string | undefined;
 }
 
 
 const TokenCard = (props: TokenCardProps) => {
-    const { title, count, logo, symbol, logoBg, price, clubId, v2 } = props;
+    const { title, count, logo, symbol, logoBg, price, clubId, v2, chain, tokenAddress } = props;
     const link = v2
-        ? `/token/${clubId}`
+        ? `/token/${chain}/${tokenAddress!}`
         : `${V1_LAUNCHPAD_URL}/token/${clubId}`;
     return (
         <Link href={link} legacyBehavior target="_blank" >

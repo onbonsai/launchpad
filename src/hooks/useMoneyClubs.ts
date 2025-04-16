@@ -244,7 +244,14 @@ export const useGetClubHoldings = (clubId: string, page: number, chain = "base")
 export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
   return useQuery({
     queryKey: ["holdings", account, page],
-    queryFn: () => getHoldings(account!, page!),
+    queryFn: async () => {
+      const [resBase, resLens] = await Promise.all([
+        getHoldings(account!, page!, "base"),
+        getHoldings(account!, page!, "lens")
+      ]);
+      const allHoldings = [...resLens.holdings, ...resBase.holdings];
+      return { holdings: allHoldings, hasMore: resBase.hasMore || resLens.hasMore };
+    },
     enabled: !!account,
     refetchInterval: 60000, // fetch every minute
     staleTime: 120000,

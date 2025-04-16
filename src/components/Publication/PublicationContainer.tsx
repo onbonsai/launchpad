@@ -45,6 +45,7 @@ type PublicationContainerProps = {
   onCollectCallback?: () => void;
   sideBySideMode?: boolean;
   nestedWidget?: ReactNode;
+  mdMinWidth?: string;
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -73,6 +74,7 @@ const PublicationContainer = ({
   onCollectCallback,
   sideBySideMode,
   nestedWidget,
+  mdMinWidth = 'md:min-w-[700px]',
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -294,7 +296,6 @@ const PublicationContainer = ({
   }
 
   let PublicationType = HorizontalPublication;
-  let mdMinWidth = 'md:min-w-[700px]'
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
     sideBySideMode = false;
