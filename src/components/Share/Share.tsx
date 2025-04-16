@@ -23,8 +23,8 @@ const Share = ({ text, url }: { text: string; url: string }) => {
         <div className="flex justify-center space-x-6 mt-4">
           <button onClick={() => shareToLens()}>
             <Image
-              height={26}
-              width={63}
+              height={46}
+              width={46}
               src="/lens.png"
               title="Lens"
               unoptimized={true}
