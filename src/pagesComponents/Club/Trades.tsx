@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 import { getLensPfp, shortAddress, roundedToFixed } from "@src/utils/utils";
 import External from "@src/components/Icons/External";
-import { DECIMALS, USDC_DECIMALS, baseScanUrl } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, lensScanUrl, baseScanUrl } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useGetClubTrades } from "@src/hooks/useMoneyClubs";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -50,7 +50,7 @@ const Row = ({ row, chain }) => {
         </Link>
         : <CreatorButton text={shortAddress(row.trader?.id, 6).split("... ")[0]} image={getLensPfp(row.profile)} />
       }
-      <Link href={baseScanUrl(row.txHash)} target="_blank" className="opacity-100">
+      <Link href={chain === "base" ? baseScanUrl(row.txHash) : lensScanUrl(row.txHash)} target="_blank" className="opacity-100">
         <img src="/svg/external.svg" alt="X Logo" className="bg-card p-[5px] rounded-[10px]" />
       </Link>
     </div>
