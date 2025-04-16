@@ -18,19 +18,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       },
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch token price");
-    }
+    if (!response.ok) throw new Error("Failed to fetch token price");
 
-    const { data } = await response.json();
+    const data = await response.json();
     const tokenPrice = data?.value;
 
-    if (tokenPrice === undefined) {
-      throw new Error("Token price not found");
-    }
+    if (tokenPrice === undefined) throw new Error("Token price not found");
 
-    // cache 15s
-    res.setHeader("Cache-Control", "public, s-maxage=15, stale-while-revalidate");
+    // cache 30s
+    res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate");
 
     return res.status(200).json({ tokenPrice });
   } catch (e) {

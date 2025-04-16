@@ -38,10 +38,15 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
+  const [estimated, setEstimated] = useState(false);
 
   useEffect(() => {
     const fetchBonsaiPrice = async () => {
-      const price = await fetchTokenPrice("0x474f4cb764df9da079D94052fED39625c147C12C"); // TODO: use lens token price?
+      let price = await fetchTokenPrice("0x474f4cb764df9da079D94052fED39625c147C12C"); // TODO: use lens token price?
+      if (!price) {
+        price = 0.005;
+        setEstimated(true);
+      }
       const newcollectAmountOptions: any[] = [];
       for (const tier of COLLECT_PRICE_TIERS) {
         const amountBonsai = Math.ceil(tier.amountStable / price);
@@ -111,12 +116,14 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                       <div className="text-center">
                         <h3 className="text-sm font-semibold">{!data.amountBonsai ? "-" : `${kFormatter(data.amountBonsai as number, true)} $BONSAI`}</h3>
                       </div>
-                      <div className="flex justify-center items-center mt-2">
-                        <span>
-                          <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
-                        </span>
-                        <span className="ml-1 text-white/40 text-sm">{data.label}</span>
-                      </div>
+                      {!estimated && (
+                        <div className="flex justify-center items-center mt-2">
+                          <span>
+                            <LocalAtmOutlined className="max-w-6 max-h-6 inline-block text-white/40" />
+                          </span>
+                          <span className="ml-1 text-white/40 text-sm">{data.label}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

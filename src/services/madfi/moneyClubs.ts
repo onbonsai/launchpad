@@ -1599,21 +1599,18 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   }
 }
 
-export const fetchTokenPrice = async (tokenAddress: string, chain = "base"): Promise<number> => {
+export const fetchTokenPrice = async (tokenAddress: string, chain = "base"): Promise<number | undefined> => {
   try {
     const response = await fetch(`/api/clubs/get-token-price?tokenAddress=${tokenAddress}&chain=${chain}`, {
       method: 'GET',
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch token price');
-    }
-
+    if (!response.ok) return;
     const { tokenPrice } = await response.json();
 
-    if (tokenPrice === undefined) {
-      throw new Error('Token price not found');
-    }
+    // if (tokenPrice === undefined) {
+    //   throw new Error('Token price not found');
+    // }
 
     return tokenPrice;
   } catch (error) {

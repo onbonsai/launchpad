@@ -5,7 +5,7 @@ import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
-import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { BookmarkAddOutlined, BookmarkOutlined, InfoOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -395,27 +395,34 @@ const PublicationContainer = ({
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (
-            <div className="rounded-full bg-dark-grey/80 text-white h-10 flex items-center px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
-              <span className="pointer-events-none">
-                <SparkIcon color="#fff" height={16} />
-              </span>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden mr-2">
-                <span className="pointer-events-none text-sm ml-1">
-                  {media.category.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+            <div className="rounded-2xl bg-dark-grey/80 hover:shining-border text-white flex flex-col px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
+              <div className="h-10 flex items-center overflow-hidden">
+                <span className="pointer-events-none shrink-0">
+                  <SparkIcon color="#fff" height={16} />
                 </span>
-                <span className="text-white/60">•</span>
-                <span className="pointer-events-none text-sm text-white/80">
-                  {media.template.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-                </span>
-                {media.status === SmartMediaStatus.ACTIVE && (
-                  <>
-                    <span className="text-white/60">•</span>
-                    <span className="pointer-events-none text-sm text-white/80">
-                      {`updating in ${formatNextUpdate(media.updatedAt)}`}
-                    </span>
-                  </>
-                )}
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden ml-1 mr-2">
+                  <span className="pointer-events-none text-sm">
+                    {media.category.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                  </span>
+                  <span className="text-white/60">•</span>
+                  <span className="pointer-events-none text-sm text-white/80">
+                    {media.template.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                  </span>
+                  {media.status === SmartMediaStatus.ACTIVE && (
+                    <>
+                      <span className="text-white/60">•</span>
+                      <span className="pointer-events-none text-sm text-white/80">
+                        {`updating in ${formatNextUpdate(media.updatedAt)}`}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
+              {media?.description && (
+                <div className="w-0 h-0 group-hover:h-auto group-hover:w-fit max-w-[500px] opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 ease-in-out">
+                  <span className="pointer-events-none text-sm block whitespace-normal break-words pb-2 ml-2">{media.description}</span>
+                </div>
+              )}
             </div>
           )}
         </div>

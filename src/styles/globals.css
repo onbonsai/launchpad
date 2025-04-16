@@ -519,26 +519,30 @@ header .bonsaiLogo {
 
 .shining-border {
   position: relative;
-  isolation: isolate;
-  background: transparent !important;
 }
 
 .shining-border::before {
   content: '';
   position: absolute;
   inset: -1px;
+  padding: 1px;
   background: linear-gradient(90deg, #B6D5C2, #52837D, #B6D5C2);
   background-size: 200% 100%;
   animation: borderShine 4s linear infinite;
   border-radius: inherit;
-  z-index: -1;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .shining-border::after {
   content: '';
   position: absolute;
   inset: 1px;
-  background: #1A1B1F;
+  background: inherit;
   border-radius: inherit;
   z-index: -1;
 }
