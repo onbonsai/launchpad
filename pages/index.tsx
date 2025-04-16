@@ -10,6 +10,7 @@ import { useClubs } from "@src/context/ClubsContext";
 import { useGetExplorePosts } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 import { Post } from "@lens-protocol/client";
+import { useGetFeaturedPosts } from "@src/services/madfi/studio";
 
 // Define the type for the page data returned by useGetExplorePosts
 interface ExplorePostPage {
@@ -30,13 +31,21 @@ const IndexPage: NextPage = () => {
     isLoadingAuthenticatedProfile,
     accountAddress: authenticatedProfile?.address
   });
+  const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts();
 
   // Type assertion for data.pages
   const pages = data?.pages as ExplorePostPage[] || [];
 
-  // Update the dependency array to include data instead of pages
-  const posts = useMemo(() => pages.flatMap(page => page.posts) || [], [data]);
-  const postData = useMemo(() => pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) || {}, [data]);
+  // Update the dependency array to include data instead of pages, putting featured posts first
+  const posts = useMemo(() => {
+    const featuredPosts = featuredData?.posts || [];
+    const featuredSlugs = new Set(featuredPosts.map(post => post.slug));
+    const explorePosts = pages.flatMap(page =>
+      page.posts.filter(post => !featuredSlugs.has(post.slug))
+    ) || [];
+    return [...featuredPosts, ...explorePosts];
+  }, [data, featuredData]);
+  const postData = useMemo(() => ({ ...(featuredData?.postData || {}), ...pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) }), [data, featuredData]);
 
   // fix hydration issues
   if (!isMounted) return null;
@@ -47,8 +56,7 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
-                {/* return the featured clubs asap, then load the rest */}
-                {isLoadingPosts
+                {(isLoadingPosts || isLoadingFeaturedPosts)
                   ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
                     posts={posts as Post[] ?? []}

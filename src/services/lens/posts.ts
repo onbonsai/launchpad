@@ -27,11 +27,11 @@ export const getPost = async (_postId: string, sessionClient?: SessionClient) =>
 };
 
 // TODO: this is a temporary function to get posts from lens v3; need a way to fetch by ids
-export const getPosts = async (publicationIds: string[]) => {
+export const getPosts = async (publicationIds: string[], sessionClient?: SessionClient) => {
   const FETCH_POSTS_BATCH_SIZE = 15;
   try {
     const limit = promiseLimit(FETCH_POSTS_BATCH_SIZE);
-    const posts = await Promise.all(publicationIds.map(id => limit(() => getPost(id))));
+    const posts = await Promise.all(publicationIds.map(id => limit(() => getPost(id, sessionClient))));
 
     return posts.filter(Boolean);
   } catch (error) {

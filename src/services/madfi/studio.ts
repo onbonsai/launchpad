@@ -4,6 +4,9 @@ import { URI } from "@lens-protocol/metadata";
 import z from "zod";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
+import { getClientWithMedia } from "../mongo/client";
+import { getPostData, getPosts } from "../lens/posts";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://eliza.onbons.ai";
@@ -257,3 +260,30 @@ export const requestPostDisable = async (url: string, postSlug: string, idToken:
     return false;
   }
 }
+
+export const useGetFeaturedPosts = () => {
+  return useQuery({
+    queryKey: ['featured-posts'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/bonsai/get-featured-media');
+        if (!response.ok) throw new Error('Failed to fetch featured media');
+        const { postIds } = await response.json();
+        let sessionClient;
+        try {
+          sessionClient = await resumeSession();
+        } catch { }
+        const [posts, postData] = await Promise.all([
+          getPosts(postIds, sessionClient),
+          getPostData(postIds)
+        ]);
+
+        return { posts, postData };
+      } catch (error) {
+        return { posts: [], postData: [] };
+      }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
