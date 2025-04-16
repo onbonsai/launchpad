@@ -96,6 +96,7 @@ export type SmartMedia = {
     address: `0x${string}`;
   };
   protocolFeeRecipient: `0x${string}`; // media template
+  description?: string;
   isProcessing?: boolean;
   versions?: string[];
   status?: SmartMediaStatus
