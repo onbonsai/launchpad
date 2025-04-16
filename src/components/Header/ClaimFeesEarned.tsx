@@ -6,7 +6,7 @@ import { base, baseSepolia } from "viem/chains";
 import toast from "react-hot-toast";
 import { GiftIcon } from "@heroicons/react/solid";
 import { Button } from "@src/components/Button";
-import { USDC_DECIMALS, withdrawFeesEarned } from "@src/services/madfi/moneyClubs";
+import { DECIMALS, USDC_DECIMALS, withdrawFeesEarned } from "@src/services/madfi/moneyClubs";
 import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
@@ -50,7 +50,7 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
 
   const creatorFeesFormatted = useMemo(() => {
     if (creatorFeesEarned) {
-      return localizeNumber(parseFloat(formatUnits(creatorFeesEarned.grandTotal, USDC_DECIMALS)), undefined, 2);
+      return localizeNumber(parseFloat(creatorFeesEarned.grandTotal), undefined, 2);
     }
     return "0.00";
   }, [creatorFeesEarned]);
@@ -119,7 +119,7 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
     setIsClaiming(false);
   };
 
-  const disabled = !isConnected || isLoading || (!creatorFeesEarned?.grandTotal || creatorFeesEarned?.grandTotal === 0n) || isClaiming;
+  const disabled = !isConnected || isLoading || (!creatorFeesEarned?.grandTotal || Number(creatorFeesEarned?.grandTotal) < 0.01) || isClaiming;
 
   if ((isLoading || disabled) && !isClaiming) return null;
 
@@ -159,7 +159,7 @@ const EarningsTooltip = ({
   creatorFeesEarned: any;
   claimFeesEarned: () => Promise<void>;
 }) => {
-  const formatFee = (value: bigint) => localizeNumber(parseFloat(formatUnits(value, USDC_DECIMALS)), undefined, 2);
+  const formatFee = (value: bigint, chain: string) => localizeNumber(parseFloat(formatUnits(value, chain === "base" ? USDC_DECIMALS : DECIMALS)), undefined, 2);
 
   return (
     <div className="fixed mt-2 right-4 bg-dark-grey text-white p-4 rounded-lg shadow-lg w-[300px] z-[140]">
@@ -176,7 +176,7 @@ const EarningsTooltip = ({
             <span className="text-sm text-white">WGHO on Lens Chain</span>
           </div>
           <span className="text-sm text-white">
-            {formatFee((creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n))}
+            {formatFee((creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n), "lens")}
           </span>
         </div>
 
@@ -190,7 +190,7 @@ const EarningsTooltip = ({
               <span className="text-sm text-white">USDC on Base</span>
             </div>
             <span className="text-sm text-white">
-              {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n))}
+              {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n), "base")}
             </span>
           </div>
         )}

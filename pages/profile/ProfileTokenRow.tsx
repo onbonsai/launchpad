@@ -61,7 +61,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
     };
 
     const link = holding?.club.v2
-        ? `/token/${holding?.club?.clubId}`
+        ? `/token/${holding.chain}/${holding.club.tokenAddress}`
         : `${V1_LAUNCHPAD_URL}/token/${holding?.club?.clubId}`;
 
     return (
