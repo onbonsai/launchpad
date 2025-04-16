@@ -269,6 +269,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
                 hideQuoteButton
                 hideFollowButton={false}
                 sideBySideMode={false}
+                mdMinWidth={'md:min-w-[200px]'}
               />
             ) : null}
           </div>
