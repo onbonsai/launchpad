@@ -268,7 +268,7 @@ export const SearchClubs = () => {
                                 <Combobox.Option
                                   key={data.id}
                                   className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2  pr-4 ${data.chain === "lens" ? "pl-4" : "pl-6"} ${active ? "bg-secondary/20 text-secondary" : "text-secondary"}`
+                                    `relative cursor-pointer select-none py-2  pr-4 pl-6 ${active ? "bg-secondary/20 text-secondary" : "text-secondary"}`
                                   }
                                   value={data}
                                 >
@@ -278,9 +278,9 @@ export const SearchClubs = () => {
                                         <Image
                                           src={`/${data.chain}.png`}
                                           alt={data.chain}
-                                          width={data.chain === "lens" ? 40 : 24}
+                                          width={24}
                                           height={24}
-                                          className={data.chain === "lens" ? "" : "mr-2"}
+                                          className="mr-2"
                                         />
                                         <Image
                                           src={data.uri}
