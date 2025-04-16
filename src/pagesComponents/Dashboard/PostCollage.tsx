@@ -22,7 +22,9 @@ import { getPostContentSubstring } from "@src/utils/utils";
 import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
 import { brandFont } from "@src/fonts/fonts";
 
-export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, sortedBy, setSortedBy }) => {
+export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage,
+  // sortedBy, setSortedBy 
+}) => {
   const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView({
     threshold: 0.5,
@@ -86,18 +88,20 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
         return templateCategory === categoryFilter;
       });
 
-    const orderedPosts = orderBy(filteredByCategory, [post => {
-      const value = get(post, sortedBy);
-      if (sortedBy === 'timestamp') {
-        return value ? new Date(value).getTime() : 0;
-      }
-      return value ? BigInt(value) : 0;
-    }], [direction]);
-    const featuredPosts = orderedPosts.filter((post) => post.featured);
-    const nonFeaturedPosts = orderedPosts.filter((post) => !post.featured);
+    // const orderedPosts = orderBy(filteredByCategory, [post => {
+    //   const value = post;
+    //   if (sortedBy === 'timestamp') {
+    //     return value ? new Date(value).getTime() : 0;
+    //   }
+    //   return value ? BigInt(value) : 0;
+    // }], [direction]);
+    const featuredPosts = filteredByCategory.filter((post) => post.featured);
+    const nonFeaturedPosts = filteredByCategory.filter((post) => !post.featured);
 
     return [...featuredPosts, ...nonFeaturedPosts];
-  }, [sortedBy, filterBy, filteredPosts, posts, showCompleted, categoryFilter]);
+  }, [filterBy, filteredPosts, posts, showCompleted, categoryFilter,
+    // sortedBy,
+  ]);
 
   const onShareButtonClick = (postSlug: string) => {
     navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
@@ -156,7 +160,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               <div className="h-full flex align-center items-center mr-2">
                 <div className="w-[2px] h-[calc(100%-16px)] bg-card-lightest" />
               </div> */}
-              <span className="mt-[9px] ml-2">
+              {/* <span className="mt-[9px] ml-2">
                 <SortIcon />
               </span>
               <select
@@ -167,9 +171,9 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               >
                 <option value="stats.collects">Collects</option>
                 <option value="timestamp">Age</option>
-                {/* <option value="stats.comments">Comments</option> */}
+                <option value="stats.comments">Comments</option>
               </select>
-              <DropDown />
+              <DropDown /> */}
             </div>
           </div>
         </div>

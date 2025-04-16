@@ -112,7 +112,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
       let sessionClient;
       try {
         sessionClient = await resumeSession();
-      } catch {}
+      } catch { }
 
       const result = await fetchPosts(sessionClient || lensClient, {
         filter: {
@@ -120,7 +120,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
           // apps: [evmAddress(LENS_BONSAI_APP)]
           feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
         },
-        pageSize: PageSize.Ten,
+        pageSize: PageSize.Fifty,
         cursor: pageParam as Cursor | null,
       });
 

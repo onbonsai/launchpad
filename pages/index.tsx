@@ -30,10 +30,10 @@ const IndexPage: NextPage = () => {
     isLoadingAuthenticatedProfile,
     accountAddress: authenticatedProfile?.address
   });
-  
+
   // Type assertion for data.pages
   const pages = data?.pages as ExplorePostPage[] || [];
-  
+
   // Update the dependency array to include data instead of pages
   const posts = useMemo(() => pages.flatMap(page => page.posts) || [], [data]);
   const postData = useMemo(() => pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) || {}, [data]);
@@ -60,8 +60,8 @@ const IndexPage: NextPage = () => {
                     isLoading={isLoadingPosts || isFetchingNextPage}
                     hasMore={hasNextPage}
                     fetchNextPage={fetchNextPage}
-                    sortedBy={sortedBy}
-                    setSortedBy={setSortedBy}
+                  // sortedBy={sortedBy}
+                  // setSortedBy={setSortedBy}
                   />
                 }
               </div>
