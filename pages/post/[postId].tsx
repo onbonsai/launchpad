@@ -31,7 +31,7 @@ import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 
-const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
+const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }> = ({ media, rootPostId }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { postId, returnTo } = router.query;
@@ -58,10 +58,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   }, []);
 
   useEffect(() => {
-    if (postId) {
+    if (rootPostId) {
       fetchComments();
     }
-  }, [postId]);
+  }, [rootPostId]);
 
   // Use the passed post data as initialData if available
   const { data: publicationWithComments, isLoading: isLoadingPublication, refetch } = useGetPublicationWithComments(
@@ -72,12 +72,23 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
-  const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
+  const { data: freshComments, refetch: fetchComments } = useGetComments(rootPostId as string, false);
 
   // Consider data as loaded if we have passed data, even if the hook is still loading
   const isLoading = isLoadingPublication && !passedPostData;
 
   const showRootPublication = !!publication?.root;
+
+  useEffect(() => {
+    if (!isLoading && postId !== rootPostId) {
+      setReplyingToComment(postId as string);
+      setReplyingToUsername(publication?.author?.username?.localName);
+    }
+
+    if (showRootPublication) {
+      console.log(`loaded comment: ${publication?.slug}`)
+    }
+  }, [isLoading, postId, rootPostId]);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
@@ -116,7 +127,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia }> = ({ media }) => {
   }, [authenticatedProfile]);
 
   const sortedComments = useMemo(() => {
-    return (freshComments || comments || []).slice().sort((a, b) => {
+    return (freshComments || comments || []).sort((a, b) => {
       // Sort by upvoteReactions descending
       if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
         return b.stats.upvoteReactions - a.stats.upvoteReactions;
@@ -442,6 +453,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       pageName: "singlePublication",
       media,
       image,
+      rootPostId: post.root?.slug || postId,
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       postId,

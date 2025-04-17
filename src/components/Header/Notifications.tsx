@@ -26,7 +26,7 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
   const groupedNotifications = useMemo(() => {
     const grouped = notifs.reduce((acc, notification) => {
       if (notification.__typename === "ReactionNotification") {
-        const postId = notification.post.id;
+        const postId = notification.post.slug;
         if (!acc[postId]) {
           // Create new grouped reaction notification
           acc[postId] = {
@@ -245,10 +245,11 @@ const NotificationItem = ({
   setFollowed,
 }: NotificationItemProps) => {
   if (type === "ReactionNotification") {
+
     return (
       <GroupedReactionNotification
         reactions={notification.reactions}
-        postId={notification.post.id}
+        postId={notification.post.slug}
         postContent={notification.post.metadata.content}
         showBorder={showBorder}
         followed={followed}

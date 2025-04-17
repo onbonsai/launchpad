@@ -63,8 +63,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       }
     },
     onDisconnect: () => {
-      lensLogout();
-      fullRefetch() // invalidate cached query data
+      console.log("onDisconnect");
+      lensLogout().then(fullRefetch)
     }
   });
   // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({

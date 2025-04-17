@@ -35,8 +35,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
-  const { signInWithLens, signingIn, isAuthenticated, authenticatedProfileId, authenticatedProfile } =
-    useLensSignIn(walletClient);
+  const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { publication, comments } =
     publicationWithComments || ({} as { publication: any; comments: any[] });
   const { data: freshComments, refetch: fetchComments } = useGetComments(postId as string, false);
@@ -180,12 +179,6 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
     }
 
     setIsCommenting(false);
-  };
-
-  const onSignInWithLensClick = async (e) => {
-    e.preventDefault();
-
-    signInWithLens();
   };
 
   const handleDecryptPosts = () => {

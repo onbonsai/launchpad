@@ -69,10 +69,14 @@ export const getAuthenticatedSession = async () => {
 };
 
 export const logout = async () => {
+  console.log("lens:: logout")
   const sessionClient = await resumeSession();
   if (!sessionClient) return null;
 
-  await sessionClient.logout();
+  console.log("sessionClient.logout")
+
+  const res = await sessionClient.logout();
+  console.log(res);
 };
 
 export const useAuthenticatedProfileId = () => {
@@ -104,7 +108,7 @@ export const useIsAuthenticated = () => {
 
 // basic login, for more functionality. see `useLensSignIn`
 export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: WalletClient) => {
-  const [selectedProfileId, setSelectedProfileId] = useState<string | undefined>();
+  const [selectedProfile, setSelectedProfile] = useState<Account | undefined>();
 
   const query = useQuery({
     queryKey: ["lens-login"],
@@ -114,21 +118,33 @@ export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: Walle
 
       const [address] = await walletClient.getAddresses();
 
-      let loginWithId = _selectedProfileId || selectedProfileId;
+      let loginWithId = _selectedProfileId || selectedProfile?.address;
       if (!loginWithId) {
         const availableAccounts = await fetchAvailableAccounts(address);
         if (availableAccounts.isErr()) return false;
         loginWithId = availableAccounts.value.items[0].account;
       }
 
-      const authenticated = await lensClient.login({
-        accountOwner: {
-          app: LENS_BONSAI_APP,
-          owner: address,
-          account: loginWithId,
-        },
-        signMessage: (message) => walletClient.signMessage({ account: address, message }),
-      });
+      let authenticated;
+      if (selectedProfile?.owner.toLowerCase() === address.toLowerCase()) { // as account owner
+        authenticated = await lensClient.login({
+          accountOwner: {
+            app: LENS_BONSAI_APP,
+            owner: address,
+            account: loginWithId,
+          },
+          signMessage: (message) => walletClient.signMessage({ account: address, message }),
+        });
+      } else { // as account manager
+        authenticated = await lensClient.login({
+          accountManager: {
+            app: LENS_BONSAI_APP,
+            manager: address,
+            account: loginWithId,
+          },
+          signMessage: (message) => walletClient.signMessage({ account: address, message }),
+        });
+      }
 
       return authenticated;
     },
@@ -138,5 +154,5 @@ export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: Walle
     staleTime: 1000 * 60 * 60 * 24, // 1 day
   });
 
-  return { ...query, setSelectedProfileId, selectedProfileId };
+  return { ...query, setSelectedProfile, selectedProfile };
 };

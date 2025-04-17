@@ -23,8 +23,8 @@ const LoginWithLensModal = ({ closeModal }) => {
     signInWithLens,
     signingIn,
     authenticatedProfileId,
-    setSelectedProfileId,
-    selectedProfileId,
+    setSelectedProfile,
+    selectedProfile,
     fullRefetch,
   } = useLensSignIn(walletClient);
   // const { signOut } = useSIWE({
@@ -40,24 +40,23 @@ const LoginWithLensModal = ({ closeModal }) => {
   useModal({
     onDisconnect: () => {
       if (authenticatedProfileId) {
-        lensLogout();
-        fullRefetch() // invalidate cached query data
+        lensLogout().then(fullRefetch);
       }
     }
   });
 
   useEffect(() => {
-    if (selectedProfileId) { // triggered when we select a profile
+    if (selectedProfile?.address) { // triggered when we select a profile
       if (authenticatedProfileId) lensLogout(); // if switching profiles
-      signInWithLens(selectedProfileId);
+      else signInWithLens(selectedProfile);
     }
-  }, [selectedProfileId]);
+  }, [selectedProfile?.address]);
 
   useEffect(() => {
-    if (!signingIn && authenticatedProfileId === selectedProfileId) {
+    if (!signingIn && authenticatedProfileId === selectedProfile?.address) {
       closeModal();
     }
-  }, [signingIn, authenticatedProfileId, selectedProfileId]);
+  }, [signingIn, authenticatedProfileId, selectedProfile?.address]);
 
   if (isLoading) {
     return (
@@ -122,7 +121,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                       {authenticatedProfileId !== account.address && (
                         <Button
                           className="md:px-8 hover:bg-bullish"
-                          onClick={() => setSelectedProfileId(account.address)}
+                          onClick={() => setSelectedProfile(account)}
                           disabled={signingIn}
                         >
                           Login

@@ -9,14 +9,14 @@ import { useLensLogin, useIsAuthenticated, useAuthenticatedProfileId } from "./u
 type LensSignInReturnType = {
   setOpenSignInModal: (b: boolean) => void;
   openSignInModal: boolean;
-  signInWithLens: (selectedProfileId?: string) => void;
+  signInWithLens: (selectedProfile?: Account) => void;
   signingIn: boolean;
   isAuthenticated?: boolean;
   authenticatedProfileId?: string | null;
   authenticatedProfile?: Account | null;
   authenticatedLensClient?: any | null;
-  setSelectedProfileId: (profileId: string) => void;
-  selectedProfileId?: string;
+  setSelectedProfile: (profile: Account) => void;
+  selectedProfile?: Account;
   fullRefetch: () => void;
 };
 
@@ -26,7 +26,7 @@ export default (walletClient: any): LensSignInReturnType => {
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [authenticatedLensClient, setAuthenticatedLensClient] = useState<any>();
-  const { refetch: loginWithLens, setSelectedProfileId, selectedProfileId } = useLensLogin({}, walletClient);
+  const { refetch: loginWithLens, setSelectedProfile, selectedProfile } = useLensLogin({}, walletClient);
   const { data: isAuthenticated, refetch: fetchIsAuthenticated } = useIsAuthenticated();
   const { data: authenticatedProfileId, refetch: fetchAuthenticatedProfileId } = useAuthenticatedProfileId();
   const { data: authenticatedProfile, refetch: fetchAuthenticatedProfile } = useAuthenticatedLensProfile();
@@ -37,11 +37,11 @@ export default (walletClient: any): LensSignInReturnType => {
     fetchAuthenticatedProfile();
   };
 
-  const signInWithLens = async (selectedProfileId?: string) => {
+  const signInWithLens = async (selectedProfile?: Account) => {
     setSigningIn(true);
     const toastId = toast.loading("Signing in...");
     try {
-      const connected = await loginWithLens({ queryKey: ["lens-login", selectedProfileId] });
+      const connected = await loginWithLens({ queryKey: ["lens-login", selectedProfile?.address] });
       if (!connected) throw new Error();
 
       fullRefetch();
@@ -62,8 +62,8 @@ export default (walletClient: any): LensSignInReturnType => {
     authenticatedProfileId,
     authenticatedProfile,
     authenticatedLensClient,
-    setSelectedProfileId,
-    selectedProfileId,
+    setSelectedProfile,
+    selectedProfile,
     fullRefetch,
   };
 };
