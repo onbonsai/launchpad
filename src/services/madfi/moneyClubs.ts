@@ -22,7 +22,7 @@ import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { getPosts } from "../lens/posts";
 import { Post } from "@lens-protocol/client";
 
-export const V1_LAUNCHPAD_URL = "https://launch-v1.bonsai.meme";
+export const V1_LAUNCHPAD_URL = "https://launch-v1.onbons.ai/";
 
 const REGISTERED_CLUB = gql`
   query Club($id: Bytes!, $twentyFourHoursAgo: Int!, $sixHoursAgo: Int!, $oneHourAgo: Int!, $fiveMinutesAgo: Int!) {

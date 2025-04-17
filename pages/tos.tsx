@@ -445,7 +445,7 @@ const Tos = () => {
               providers (17 U.S.C. § 512, as amended). If you have an intellectual property rights-related complaint
               about any material on the Services, you may contact our Designated Agent at the following address: Bonsai
               Labs DAO, Corp. Attn: Legal 30 N Gould St Ste R, Sheridan, Sheridan County, WY 82801, USA Email:
-              contact@bonsai.meme
+              contact@onbons.ai
               <h1 className="text-xl mt-4">11.3. Procedure for Reporting Claimed Infringement</h1>
               If you believe that Content residing on or accessible through the Services has been used or exploited in a
               manner that infringes an intellectual property right you own or control, please promptly notify us by
@@ -808,7 +808,7 @@ const Tos = () => {
               Terms or of any applicable law or regulation. We may terminate your use or participation in the Services
               or delete any User Content or information that you Post at any time, without warning, in our sole
               discretion. You may terminate your account and these Terms at any time by contacting our Support team at
-              contact@bonsai.meme.
+              contact@onbons.ai.
               <h1 className="text-xl mt-4">19.3. Effect of Termination</h1>
               Upon termination of these Terms: (i) your license rights will terminate and you must immediately cease all
               use of the Services; (ii) you will no longer be authorized to access your account or the Services; (iii)

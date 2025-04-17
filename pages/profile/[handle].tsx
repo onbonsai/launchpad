@@ -103,7 +103,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
 
   // for admin stuff directly related to lens (create post, decrypt)
   const isProfileAdmin = useMemo(() => {
-    if (!authenticatedProfileId) return false;
+    // if (!authenticatedProfileId) return false;
 
     return profile?.owner === authenticatedProfile?.owner;
   }, [profile, authenticatedProfile]);
@@ -129,14 +129,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   // function isFarcasterProfile(profile: ProfileFragment | FarcasterProfile): profile is FarcasterProfile {
   //   return (profile as FarcasterProfile).profileHandle !== undefined;
   // }
-
-  const followingCount = () => {
-    return accountStats?.graphFollowStats?.following ?? 0;
-  };
-
-  const followerCount = () => {
-    return accountStats?.graphFollowStats?.followers ?? 0;
-  };
 
   const handleFollowClick = async () => {
     if (!isConnected || !isAuthenticated) {

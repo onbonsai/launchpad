@@ -7,7 +7,7 @@ import { Header2, Subtitle } from "@src/styles/text";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl } from "@src/services/madfi/moneyClubs";
+import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import clsx from "clsx";
 
@@ -58,8 +58,8 @@ const Help = () => {
               {/* Header Card */}
               <div className="bg-card rounded-lg p-6">
                 <Header2>Bonsai</Header2>
-                <Subtitle className="mt-2">
-                  Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
+                <Subtitle className="mt-2 text-lg">
+                  Bonsai brings autonomous, agentic content to Lens, making the social feed smarter, more interactive, and monetizable.
                 </Subtitle>
               </div>
 
@@ -84,20 +84,18 @@ const Help = () => {
                         </h3>
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
-                            <p className="text-lg text-secondary">Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.</p>
-                            <ul className="list-disc pl-5 mt-4 text-lg/70">
-                              <li>Social primitives such as posts, profiles and feeds are brought to life with autonomous AI-driven capabilities</li>
-                              <li>New posts are created with a Smart Media template in the studio and can have a token created our launchpad to accompany the post. Users must collect the post to participate & remix, and can buy the token to speculate on the virality of the media.</li>
-                              <li>Smart Media posts update their content regularly based on the interactions of users and token holders.</li>
-                              <li>Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.</li>
-                            </ul>
-                            <p className="text-lg text-secondary pt-8">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Lens</span></Link>{" "}- a modular and open social network.</p>
-                            <p className="text-lg text-secondary pt-8">The Smart Media Protocol extends ElizaOS and makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai app.</p>
-                            <p className="mt-4 text-lg text-secondary/70">
+                            <p className="text-lg text-secondary mb-2">Bonsai brings autonomous, agentic content to Lens, making the social feed smarter, more interactive, and monetizable.</p>
+                            <p className="text-lg text-secondary mb-2">You can create AI content on Bonsai (Smart Media) with the Templates in the Studio. You can choose to add a token to each post. When someone else collects your post, they can interact with it by liking, commenting and remixing, and even buying the token to speculate on the virality of the post.</p>
+                            <p className="text-lg text-secondary mb-2">Smart Media are dynamic, updating based on the interaction of users and token holders through likes, comments and remixing. </p>
+                            <p className="text-lg text-secondary mb-2">The Smart Media tokens can be created by anyone, and through the bonding curve its price increases until graduation. </p>
+                            <p className="text-lg text-secondary mb-2">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Lens</span></Link>—a modular and open social network.</p>
+                            <p className="text-lg text-secondary mb-2">The Smart Media Protocol extends {" "}<Link href="https://www.elizaos.ai/" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">ElizaOS</span></Link>{" "}and makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai app.</p>
+
+                            <p className="mt-4 text-lg text-secondary">
                               Docs:
                               <br />
                               <a
-                                className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
                                 href="https://docs.onbons.ai"
@@ -105,11 +103,11 @@ const Help = () => {
                                 docs.onbons.ai
                               </a>
                             </p>
-                            <p className="mt-4 text-lg text-secondary/70">
+                            <p className="mt-4 text-lg text-secondary">
                               Whitepaper:
                               <br />
                               <a
-                                className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
                                 href="https://onbons.ai/whitepaper.pdf"
@@ -117,11 +115,11 @@ const Help = () => {
                                 whitepaper.pdf
                               </a>
                             </p>
-                            <p className="mt-4 text-lg text-secondary/70">
+                            <p className="mt-4 text-lg text-secondary">
                               Github:
                               <br />
                               <a
-                                className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
                                 href="https://github.com/onbonsai"
@@ -178,13 +176,13 @@ const Help = () => {
                             <p className="text-lg text-secondary pt-8">
                               Creating from the{" "}
                               <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
-                                <span className="link-hover cursor-pointer">Bonsai Club on Orb</span>
+                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">Bonsai Club on Orb</span>
                               </Link>
                             </p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>Tag @bons_ai in a post with your token image. For example: "hey @bons_ai create the token $BLONDE for all the blondes out there"</li>
                               <li>Our agent will create your token and reply with a component for you to buy</li>
-                              <li>You need 10k $BONSAI tokens to join the Bonsai Club. You can buy some on the {" "}<Link href={routesApp.dashboard} legacyBehavior target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">dashboard</span></Link>{" "} or on {" "}<Link href="https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079D94052fED39625c147C12C?chain=base" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Uniswap</span></Link></li>
+                              <li>You need 10k $BONSAI tokens to join the Bonsai Club. You can buy some on {" "}<Link href="https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079D94052fED39625c147C12C?chain=base" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Uniswap</span></Link></li>
                             </ul>
                             <p className="text-lg text-secondary pt-8">Fees</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
@@ -197,10 +195,10 @@ const Help = () => {
                             <li>Our default hook removes trading fees for Bonsai NFT holders</li>
                             <li>Hook developers can {" "}
                               <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
-                                <span className="link-hover cursor-pointer">submit their hook</span>
+                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">submit their hook</span>
                               </Link>{" "}so Bonsai Launchpad users can use it</li>
                             <p className="text-lg text-secondary pt-8">
-                              Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">https://launch-v1.bonsai.meme/</a>
+                              Tokens from V1 Launchpad are tradeable on <a className="link link-hover text-brand-highlight/80" href={V1_LAUNCHPAD_URL} target="_blank" rel="noreferrer">{V1_LAUNCHPAD_URL}</a>
                             </p>
                           </Disclosure.Panel>
                         </DisclosurePanelWithTransition>
@@ -228,7 +226,7 @@ const Help = () => {
                         </h3>
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
-                            <p className="text-lg text-secondary">All social features are powered by{" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Lens</span></Link>{" "}- a social graph built for agents</p>
+                            <p className="text-lg text-secondary">All social features are powered by{" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Lens</span></Link>{" "}- a social graph built for agents</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>When you create a token, you also create a post to kick off the conversation</li>
                               <li>Anyone can trade the token, but leaving a comment requires a Lens profile</li>
@@ -236,7 +234,7 @@ const Help = () => {
                               <li>When you buy a token, you can share in a post which earns you referral fees</li>
                               <li>Profiles and content are portable. Comment on a token page, see it on other Lens apps like Orb</li>
                             </ul>
-                            <p className="text-lg text-secondary pt-8">Native mobile integrations on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">Orb</span></Link>{" "}</p>
+                            <p className="text-lg text-secondary pt-8">Native mobile integrations on {" "}<Link href="https://orb.club" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Orb</span></Link>{" "}</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>Fiat onramp via Apple/Google Pay</li>
                               <li>Create a post in the /bonsai club and tag our agent @bons_ai to create a token (example: "hey @bons_ai create $BLONDE for the all the blondes out there" + attach an image)</li>
@@ -276,10 +274,10 @@ const Help = () => {
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
                             <p className="text-lg text-secondary">
-                              The first Bons(ai) agent, Sage,  is live on X{" ("}<Link href="https://x.com/agentdotbonsai" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">@agentdotbonsai</span></Link>{") "} and on Lens {" ("}<Link href="https://orb.club/@bons_ai" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">@bons_ai</span></Link>{")"}
+                              The first Bons(ai) agent, Sage,  is live on X{" ("}<Link href="https://x.com/agentdotbonsai" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">@agentdotbonsai</span></Link>{") "} and on Lens {" ("}<Link href="https://orb.club/@bons_ai" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">@bons_ai</span></Link>{")"}
                             </p>
                             <p className="text-lg text-secondary pt-8">
-                              The agent terminal is live on {" "}<Link href="https://agent.bonsai.meme" target="_blank" rel="noreferrer"><span className="link-hover cursor-pointer">agent.bonsai.meme</span></Link>
+                              The agent terminal is live on {" "}<Link href="https://agent.bonsai.meme" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">agent.bonsai.meme</span></Link>
                             </p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>Sage provides social & technical analysis for any ticker on Ethereum, Base, and Solana.</li>
@@ -310,11 +308,11 @@ const Help = () => {
                     </h3>
                     <DisclosurePanelWithTransition>
                       <Disclosure.Panel className="p-2">
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Bonsai Token
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.Bonsai, false)}
@@ -323,7 +321,7 @@ const Help = () => {
                           </a>
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Bonsai, false)}
@@ -331,11 +329,11 @@ const Help = () => {
                             Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
                           </a>
                         </p>
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Bonsai NFT
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiNFT, false)}
@@ -344,7 +342,7 @@ const Help = () => {
                           </a>
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiNFT, false)}
@@ -352,11 +350,11 @@ const Help = () => {
                             Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
                           </a>
                         </p>
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Launchpad
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad, false)}
@@ -365,7 +363,7 @@ const Help = () => {
                           </a>
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad, false)}
@@ -373,11 +371,11 @@ const Help = () => {
                             Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad}
                           </a>
                         </p>
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Launchpad Creator NFT
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.CreatorNFT, false)}
@@ -386,7 +384,7 @@ const Help = () => {
                           </a>
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.CreatorNFT, false)}
@@ -394,11 +392,11 @@ const Help = () => {
                             Lens: {PROTOCOL_DEPLOYMENT.lens.CreatorNFT}
                           </a>
                         </p>
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Launchpad Periphery
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Periphery, false)}
@@ -406,11 +404,11 @@ const Help = () => {
                             Lens: {PROTOCOL_DEPLOYMENT.lens.Periphery}
                           </a>
                         </p>
-                        <p className="mt-4 text-lg text-secondary/70">
+                        <p className="mt-4 text-lg text-secondary">
                           Staking
                           <br />
                           <a
-                            className="link link-hover md:w-auto md:overflow-visible md:text-ellipsis md:whitespace-normal w-[350px] overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
                             href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Staking, false)}

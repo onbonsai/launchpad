@@ -25,16 +25,16 @@ import { Notifications } from "./Notifications";
 const headerLinks = [
   {
     label: "Home",
-    href: "/"
+    href: "/",
   },
   {
     label: "Tokens",
-    href: "/tokens"
+    href: "/tokens",
   },
   {
     label: "Stake",
-    href: "/studio/stake"
-  }
+    href: "/studio/stake",
+  },
 ];
 
 export const Header = () => {
@@ -59,18 +59,13 @@ export const Header = () => {
             </div>
             <div className="ml-10 hidden lg:flex items-center space-x-4">
               {headerLinks.map((link) => (
-                <div
-                  key={link.href}
-                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
-                >
+                <div key={link.href} className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg">
                   <Link
                     href={link.href}
                     passHref
                     className={cx(
                       "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
-                      route === link.href
-                        ? "text-white"
-                        : "text-white/50 hover:text-white/80"
+                      route === link.href ? "text-white" : "text-white/50 hover:text-white/80",
                     )}
                   >
                     {link.label}
@@ -103,11 +98,7 @@ export const Header = () => {
               <Notifications />
               {isAuthenticated && (
                 <Link href="/studio">
-                  <Button
-                    variant="accentBrand"
-                    size="md"
-                    className="text-base font-bold md:px-6 bg-white rounded-lg"
-                  >
+                  <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 bg-white rounded-lg">
                     Create
                   </Button>
                 </Link>
@@ -129,10 +120,15 @@ export const Header = () => {
               className="sm:hidden ml-2 text-white focus:outline-none"
               onClick={() => setOpenMobileMenu(!openMobileMenu)}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
-                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
@@ -165,9 +161,7 @@ export const Header = () => {
                 setOpenMobileMenu(false);
               }}
             >
-              <span className="leading-4 font-medium text-white text-[16px] hover:opacity-100">
-                Info
-              </span>
+              <span className="leading-4 font-medium text-white text-[16px] hover:opacity-100">Info</span>
             </div>
             {isAuthenticated && (
               <Link href="/studio" className="w-full">
@@ -199,29 +193,33 @@ export const Header = () => {
         onClose={() => setOpenHelpModal(false)}
         open={openHelpModal}
         setOpen={setOpenHelpModal}
-        panelClassnames={clsx("text-md bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[200000px] lg:max-w-[500px] text-secondary md:mx-8", brandFont.className)}
+        panelClassnames={clsx(
+          "text-md bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8",
+          brandFont.className,
+        )}
       >
-        <Header2>
-          Bonsai
-        </Header2>
+        <Header2>Bonsai</Header2>
         <p className="mt-4 text-secondary/70">
-          Bonsai brings autonomous, agentic content to Lens—making the social feed smarter, more interactive, and monetizable in innovative ways.
+          With Bonsai, you can create and monetize AI content on Lens. This new format is called Smart Media.
         </p>
         <p className="mt-4 text-secondary/70">
-          Our intuitive no-code platform empowers anyone to effortlessly create and monetize their own Smart Media content. Creators have access to a diverse selection of curated and third-party templates, making it simple to customize smart media behavior and configure monetization settings.
+          Creators can choose from a selection of templates that make it easy to create Smart Media and experiment with
+          tokenization. Smart Media are dynamic, updating based on the interaction of users and token holders through
+          likes, comments and remixing.
         </p>
         <p className="mt-2 text-secondary/70">
-          Smart Media posts update their content regularly based on the interactions of users and token holders.
+          The Smart Media tokens can be created by anyone, and through the bonding curve its price increases until
+          graduation.
         </p>
         <p className="mt-4 text-secondary/70">
-          Tokens begin at a flat price and then the bonding curve kicks in, increasing the price until the full supply is minted.
+          Tokens from V1 Launchpad are tradeable on{" "}
+          <a className="link-hover cursor-pointer" href={V1_LAUNCHPAD_URL} target="_blank" rel="noreferrer">
+            {V1_LAUNCHPAD_URL}
+          </a>
         </p>
-        <p className="mt-4 text-secondary/70">
-          Tokens from V1 Launchpad are tradeable on <a className="link-hover cursor-pointer">{V1_LAUNCHPAD_URL}</a>
-        </p>
-        <div className="mt-2 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
+        <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
-            <span className="gradient-txt link-hover cursor-pointer">Learn more.</span>
+            <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
           </Link>
         </div>
       </Modal>
