@@ -37,6 +37,11 @@ const PublicationFeed = ({
 
   return (
     <div className="flex flex-col flex-grow overflow-y-auto h-[calc(100vh-290px)] lg:h-[calc(100vh-120px)] w-full">
+      {isLoading && (
+        <div className="flex flex-col items-center w-full bg-cardBackground rounded-3xl p-12">
+          <Spinner customClasses="h-6 w-6" color="#5be39d" />
+        </div>
+      )}
       {!isLoading && allPosts?.length === 0 && (
         <div className="flex flex-col items-center justify-center h-full w-full bg-cardBackground rounded-3xl p-8">
           <h3 className="text-lg tracking-wide leading-6">Nothing here yet.</h3>

@@ -49,7 +49,11 @@ export const useGetPost = (publicationId?: string) => {
 };
 
 export const getPostsByAuthor = async (authorId: string, cursor?: Cursor | null) => {
-  return await fetchPosts(lensClient, {
+  let sessionClient;
+  try {
+    sessionClient = await resumeSession();
+  } catch { }
+  return await fetchPosts(sessionClient || lensClient, {
     filter: {
       authors: [evmAddress(authorId)],
       postTypes: [PostType.Root],
@@ -61,7 +65,11 @@ export const getPostsByAuthor = async (authorId: string, cursor?: Cursor | null)
 };
 
 export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | null) => {
-  return await fetchPosts(lensClient, {
+  let sessionClient;
+  try {
+    sessionClient = await resumeSession();
+  } catch { }
+  return await fetchPosts(sessionClient || lensClient, {
     filter: {
       postTypes: [PostType.Root],
       feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }],
@@ -77,8 +85,8 @@ export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = f
     queryKey: ["get-posts-by-author", authorId, getCollected],
     queryFn: async ({ pageParam = null }) => {
       const result = !getCollected
-        ? await getPostsByAuthor(authorId, pageParam)
-        : await getPostsCollectedBy(authorId, pageParam);
+        ? await getPostsByAuthor(authorId!, pageParam)
+        : await getPostsCollectedBy(authorId!, pageParam);
 
       if (result.isErr()) {
         console.log(result.error);

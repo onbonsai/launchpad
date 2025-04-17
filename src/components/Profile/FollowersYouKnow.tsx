@@ -36,9 +36,18 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
         <div className="ml-3 text-sm">
           <span>
             {displayedFollowers
-              .map(f => f.follower.username?.localName)
-              .filter(Boolean)
-              .join(', ')}
+              .filter(f => f.follower.username?.localName)
+              .map((f, index, arr) => (
+                <>
+                  <a 
+                    href={`/profile/${f.follower.username?.localName}`}
+                    className="hover:underline"
+                  >
+                    {f.follower.username?.localName}
+                  </a>
+                  {index < arr.length - 1 && ', '}
+                </>
+              ))}
             {remainingCount > 0 && ` and ${remainingCount} others`}
           </span>
         </div>

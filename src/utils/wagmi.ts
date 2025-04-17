@@ -24,7 +24,7 @@ export const config = getDefaultConfig({
   appName: "Bonsai",
   appDescription: "Create autonomous, agentic content on Lens",
   appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai",
-  appIcon: "/static/images/logo.png", // IS_PRODUCTION ? "https://app.onbons.ai/static/images/logo.png" : "https://testnet.bonsai.meme/static/images/logo.png",
+  appIcon: "/static/images/logo.png",
 });
 
 
