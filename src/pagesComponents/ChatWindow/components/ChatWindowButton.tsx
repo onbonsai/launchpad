@@ -83,7 +83,7 @@ export default function ChatWindowButton({ children, agentInfo }: { children: Re
           variant="primary"
           className={clsx(
             "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-            "bg-background border border-dark-grey hover:bg-background",
+            "bg-background border border-dark-grey hover:bg-background shining-border",
           )}
         >
           <div className="flex items-center justify-center">

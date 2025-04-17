@@ -57,6 +57,9 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
     return null;
   }, []);
 
+  // Use router.query.postId instead of postId from destructuring
+  const currentPostId = router.query.postId as string;
+
   useEffect(() => {
     if (rootPostId) {
       fetchComments();
@@ -65,7 +68,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
 
   // Use the passed post data as initialData if available
   const { data: publicationWithComments, isLoading: isLoadingPublication, refetch } = useGetPublicationWithComments(
-    postId as string,
+    currentPostId,
     passedPostData ? { initialData: { publication: passedPostData, comments: [] } } : undefined,
     authenticatedProfileId
   );
@@ -79,16 +82,12 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
 
   const showRootPublication = !!publication?.root;
 
-  useEffect(() => {
-    if (!isLoading && postId !== rootPostId) {
-      setReplyingToComment(postId as string);
-      setReplyingToUsername(publication?.author?.username?.localName);
-    }
-
-    if (showRootPublication) {
-      console.log(`loaded comment: ${publication?.slug}`)
-    }
-  }, [isLoading, postId, rootPostId]);
+  // useEffect(() => {
+  //   if (!isLoading && showRootPublication && currentPostId !== rootPostId) {
+  //     setReplyingToComment(currentPostId);
+  //     setReplyingToUsername(publication?.author?.username?.localName);
+  //   }
+  // }, [isLoading, currentPostId, rootPostId, publication?.author?.username?.localName]);
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
@@ -98,6 +97,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
   const [canComment, setCanComment] = useState<boolean>();
   const commentInputRef = useRef<HTMLInputElement>(null);
+  const [popperAnchor, setPopperAnchor] = useState<HTMLElement | null>(null);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -151,10 +151,14 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
     );
   }, [publication]);
 
-  const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string) => {
+  const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string, isThread?: boolean) => {
     e.preventDefault();
     setReplyingToComment(commentId || null);
     setReplyingToUsername(username || null);
+
+    if (isThread) {
+      setPopperAnchor(e.currentTarget as HTMLElement);
+    }
   };
 
   const scrollToReplyInput = () => {
@@ -170,7 +174,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
   }
 
   useEffect(() => {
-    if ((replyingToComment !== null) && commentInputRef.current) {
+    if ((replyingToComment !== null) && commentInputRef.current && !popperAnchor) {
       const timer = focusAndScrollToReplyInput();
       return () => clearTimeout(timer);
     }
@@ -216,7 +220,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        replyingToComment || postId as string
+        replyingToComment || currentPostId
       );
       if (!res?.postId) throw new Error("no resulting post id");
 
@@ -271,7 +275,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
               // treating the postId as the agentId in the eliza backend
-              agentId={postId as string}
+              agentId={currentPostId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
             />
@@ -299,7 +303,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                         <PublicationContainer
                           publication={showRootPublication ? publication.root : publication}
                           onCommentButtonClick={onCommentButtonClick}
-                          shouldGoToPublicationPage={false}
+                          shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
                           onCollectCallback={() => {
@@ -314,7 +318,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                         <PublicationContainer
                           publication={showRootPublication ? publication.root : publication}
                           onCommentButtonClick={onCommentButtonClick}
-                          shouldGoToPublicationPage={false}
+                          shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
                           media={media}
                           onCollectCallback={() => {
@@ -330,6 +334,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                       <Spinner customClasses="h-6 w-6" color="#5be39d" />
                     </div>
                   )}
+                  {/* Comment */}
                   <div className="space-y-6">
                     {isConnected && isAuthenticated && (
                       <>
@@ -417,6 +422,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                         followButtonDisabled={true}
                         onProfileClick={goToCreatorPage}
                         hideCollectButton={true}
+                        onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
                       />
                     </div>
                   </div>

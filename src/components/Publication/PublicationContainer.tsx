@@ -129,15 +129,13 @@ const PublicationContainer = ({
   const goToPublicationPage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
-    router.push(`/post/${_publicationId}`);
+    router.replace(`/post/${_publicationId}`, undefined, { shallow: false });
   };
 
   const goToCreatorPage = (e: React.MouseEvent, username?: string) => {
     e.preventDefault();
     e.stopPropagation();
-    // router.push(`/post/${_publicationId}${returnToPage ? `?returnTo=${encodeURIComponent(returnToPage!) }` : ''}`);
-    router.push(`/profile/${username}`);
+    router.replace(`/profile/${username}`, undefined, { shallow: false });
   };
 
   // stub the encrypted pub metadata to render something nicer

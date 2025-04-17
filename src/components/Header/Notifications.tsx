@@ -122,6 +122,7 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
                 showBorder={index !== groupedNotifications.length - 1}
                 followed={followed}
                 setFollowed={setFollowed}
+                closeTooltip={() => setShowTooltip(false)}
               />
             ))}
             {hasNextPage && isFetchingNextPage && (
@@ -144,6 +145,7 @@ interface NotificationItemProps {
   showBorder: boolean
   followed: Record<string, boolean>;
   setFollowed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  closeTooltip: () => void;
 }
 
 interface GroupedReactionNotificationProps {
@@ -154,6 +156,7 @@ interface GroupedReactionNotificationProps {
   showBorder: boolean
   followed: Record<string, boolean>;
   setFollowed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  closeTooltip: () => void;
 }
 
 const GroupedReactionNotification = ({
@@ -163,7 +166,8 @@ const GroupedReactionNotification = ({
   maxDisplayedAvatars = 5,
   showBorder,
   followed,
-  setFollowed
+  setFollowed,
+  closeTooltip,
 }: GroupedReactionNotificationProps) => {
   const displayedReactions = reactions.slice(0, maxDisplayedAvatars);
   const firstUser = reactions[0].account;
@@ -171,7 +175,7 @@ const GroupedReactionNotification = ({
   if (!firstUser?.metadata) return null;
 
   return (
-    <Link href={`/post/${postId}`}>
+    <Link href={`/post/${postId}`} onClick={closeTooltip}>
       <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
         {/* First Column - Icon */}
         <div className="flex-shrink-0 pt-1">
@@ -199,6 +203,7 @@ const GroupedReactionNotification = ({
                       onClick={(e) => {
                         if (!username) e.preventDefault();
                         e.stopPropagation();
+                        closeTooltip();
                       }}
                       // Apply block and full size to the link to make the image clickable
                       className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
@@ -243,6 +248,7 @@ const NotificationItem = ({
   showBorder,
   followed,
   setFollowed,
+  closeTooltip,
 }: NotificationItemProps) => {
   if (type === "ReactionNotification") {
 
@@ -254,6 +260,7 @@ const NotificationItem = ({
         showBorder={showBorder}
         followed={followed}
         setFollowed={setFollowed}
+        closeTooltip={closeTooltip}
       />
     );
   }
@@ -303,7 +310,7 @@ const NotificationItem = ({
   }
 
   return (
-    <Link href={postId ? `/post/${postId}` : '#'} className={!postId ? 'pointer-events-none' : ''}>
+    <Link href={postId ? `/post/${postId}` : '#'} className={!postId ? 'pointer-events-none' : ''} onClick={closeTooltip}>
       <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
         {/* First Column - Icon */}
         <div className="flex-shrink-0 pt-1">{getIcon()}</div>
@@ -321,6 +328,7 @@ const NotificationItem = ({
                   onClick={(e) => {
                     if (!username) e.preventDefault();
                     e.stopPropagation();
+                    closeTooltip();
                   }}
                   // Apply block and full size to the link to make the image clickable
                   className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}

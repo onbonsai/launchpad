@@ -14,16 +14,40 @@ export const ProfilePopper = ({ children, profile, followed, setFollowed }: Prof
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const popperRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const targetRef = useRef<HTMLElement | null>(null);
 
   const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    setAnchorEl(event.currentTarget);
+
+    // Store the target element
+    targetRef.current = event.currentTarget;
+
+    // Clear any existing debounce timer
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // Set a new debounce timer
+    debounceRef.current = setTimeout(() => {
+      if (targetRef.current) {
+        setAnchorEl(targetRef.current);
+      }
+    }, 500);
   };
 
   const handleMouseLeave = () => {
+    // Clear the debounce timer if it exists
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    targetRef.current = null;
+
     timeoutRef.current = setTimeout(() => {
       setAnchorEl(null);
     }, 150);
@@ -33,6 +57,14 @@ export const ProfilePopper = ({ children, profile, followed, setFollowed }: Prof
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
+    }
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    // Keep the popper open when mouse enters it
+    if (targetRef.current) {
+      setAnchorEl(targetRef.current);
     }
   };
 
