@@ -11,6 +11,7 @@ import { useGetExplorePosts } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 import { Post } from "@lens-protocol/client";
 import { useGetFeaturedPosts } from "@src/services/madfi/studio";
+import useScrollRestoration from "@src/hooks/useScrollRestoration";
 
 // Define the type for the page data returned by useGetExplorePosts
 interface ExplorePostPage {
@@ -47,11 +48,13 @@ const IndexPage: NextPage = () => {
   }, [data, featuredData]);
   const postData = useMemo(() => ({ ...(featuredData?.postData || {}), ...pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) }), [data, featuredData]);
 
+  useScrollRestoration('posts-page-scroll', isMounted && !isLoadingPosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
+
   // fix hydration issues
   if (!isMounted) return null;
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
-      <div>
+      < div >
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 lg:px-8 pt-6">
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">

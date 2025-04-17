@@ -116,7 +116,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
 
   return (
     <div className="bg-background text-secondary font-sf-pro-text">
-      <main className="mx-auto max-w-full">
+      <main className="mx-auto max-w-full overflow-hidden">
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
           <div className="flex-1">
