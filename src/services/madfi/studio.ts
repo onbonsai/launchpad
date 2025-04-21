@@ -10,6 +10,11 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://eliza.onbons.ai";
+export const ELEVENLABS_VOICES = [
+  { label: 'Italian (Male)', value: 'zcAOhNBS3c14rBihAFp1' },
+  { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
+  { label: 'Serious (Male)', value: 'U2VUL94XlY3UYSlQvsxF' },
+];
 
 /**
  * SmartMedia categories and templates
@@ -77,10 +82,15 @@ export type Template = {
 
 export type Preview = {
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
-  text: string;
+  text?: string;
   image?: any;
   imagePreview?: string;
-  video?: string;
+  video?: {
+    mimeType: string;
+    size: number;
+    blob: Blob; // This can be used to create an object URL or process the video
+    url: string;
+  };
 };
 
 export type SmartMedia = {
@@ -108,7 +118,6 @@ export type SmartMedia = {
 interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
-  acl: WalletAddressAcl;
 }
 
 export const generatePreview = async (
@@ -116,19 +125,20 @@ export const generatePreview = async (
   idToken: string,
   template: Template,
   templateData: any,
+  image?: File,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify({
+      category: template.category,
+      templateName: template.name,
+      templateData
+    }));
+    if (image) formData.append('image', image);
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({
-        templateName: template.name,
-        category: template.category,
-        templateData,
-      }),
+      headers: { Authorization: `Bearer ${idToken}` },
+      body: formData,
     });
 
     if (!response.ok) {
@@ -143,7 +153,27 @@ export const generatePreview = async (
       throw new Error(`Preview generation failed: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    if (data.preview?.video) {
+      const videoData = new Uint8Array(data.preview.video.buffer);
+      const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
+      return {
+        preview: {
+          video: {
+            mimeType: data.preview.video.mimeType,
+            size: videoBlob.size,
+            blob: videoBlob,
+            url: URL.createObjectURL(videoBlob),
+          },
+          ...(data.preview.image && { image: data.preview.image }),
+          text: data.preview.text,
+        },
+        agentId: data.agentId
+      };
+    }
+
+    return data;
   } catch (error) {
     console.error("Error generating preview:", error);
     throw error;

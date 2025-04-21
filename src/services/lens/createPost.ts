@@ -111,7 +111,7 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
       content: params.text,
       attributes
     });
-  } else if (params.image) {
+  } else if (params.image && !params.video) {
     return image({
       content: params.text,
       image: {
@@ -127,7 +127,7 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
       content: params.text,
       video: {
         item: params.video.url,
-        cover: params.video.cover,
+        cover: params.image?.url,
         type: params.video.type,
         license: MetadataLicenseType.CCO,
       },
@@ -156,6 +156,22 @@ export const uploadImageBase64 = async (
   return {
     uri: uri(hash),
     type: file.type as MediaImageMimeType
+  };
+};
+
+export const uploadVideo = async (
+  videoBlob: Blob,
+  mimeType: string,
+  _acl?: WalletAddressAcl
+): Promise<{ uri: URI, type: string }> => {
+  // Convert Blob to File with a name
+  const file = new File([videoBlob], `bonsai_generated_${Date.now()}.mp4`, { type: mimeType });
+  const acl = _acl || immutable(LENS_CHAIN_ID);
+  const { uri: hash } = await storageClient.uploadFile(file, { acl });
+  // console.log(`video hash: ${hash}`);
+  return {
+    uri: uri(hash),
+    type: mimeType
   };
 };
 

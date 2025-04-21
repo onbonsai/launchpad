@@ -121,10 +121,13 @@ const TokenPage: NextPage = () => {
       setBonsaiPrice(0);
       return;
     }
-    const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
-    setBonsaiPrice(tokenPrice);
-    const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiBalance));
-    setTokenHoldings(tokenPrice * bonsaiHoldings);
+    const fetchPrice = async () => {
+      const tokenPrice = await queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+      setBonsaiPrice(tokenPrice);
+      const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiBalance));
+      setTokenHoldings(tokenPrice * bonsaiHoldings);
+    }
+    fetchPrice();
   }, [bonsaiBalance]);
 
   const formattedBalance = kFormatter(parseFloat(formatEther(bonsaiBalance || 0n)), true);
@@ -412,9 +415,9 @@ const TokenPage: NextPage = () => {
                                 </div>
                               )}
                             </Button>
-                            <Button 
-                              variant="accent" 
-                              size="sm" 
+                            <Button
+                              variant="accent"
+                              size="sm"
                               onClick={() => window.open('https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079d94052fed39625c147c12c?utm_medium=web', '_blank')}
                             >
                               Buy $BONSAI

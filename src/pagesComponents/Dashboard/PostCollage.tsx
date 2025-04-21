@@ -23,7 +23,7 @@ import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
 import { brandFont } from "@src/fonts/fonts";
 
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage,
-  // sortedBy, setSortedBy 
+  // sortedBy, setSortedBy
 }) => {
   const { data: walletClient } = useWalletClient();
   const { ref, inView } = useInView({
@@ -244,12 +244,7 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
                       onShare={() => onShareButtonClick(post.slug)}
                       onClick={() => {
                         localStorage.setItem('tempPostData', JSON.stringify(post));
-                        router.push({
-                          pathname: `/post/${post.slug}`,
-                          query: {
-                            returnTo: '/'
-                          }
-                        });
+                        router.push({ pathname: `/post/${post.slug}` });
                       }}
                       className={clsx(
                         "opacity-0 transition-all duration-300 ease-in-out z-30",
