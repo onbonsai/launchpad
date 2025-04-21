@@ -105,7 +105,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           )}
           <Button
             variant="accent"
-            className="w-full md:mb-0 text-base gap-x-1"
+            className="w-full md:mb-0 text-base gap-x-1 p-0"
             disabled={isCollecting || collectAmountBn > bonsaiBalance}
             onClick={(e) => handleButtonClick(e, onCollect)}
           >
