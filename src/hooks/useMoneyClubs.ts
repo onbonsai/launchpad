@@ -280,11 +280,11 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base", options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string }) => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base", options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string, completed?: boolean }) => {
   return useQuery({
     queryKey: ["buy-amount", tokenAddress, spendAmount],
     queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!, undefined, chain, options),
-    enabled: !!tokenAddress && !!spendAmount && !!account,
+    enabled: !!tokenAddress && !!spendAmount && !!account && !options?.completed,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,
     gcTime: 5000,

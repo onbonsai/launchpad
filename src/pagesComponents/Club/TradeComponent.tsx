@@ -8,7 +8,7 @@ import { BuySellWidget } from "./BuySellWidget";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
-export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal }) => {
+export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal, postId = undefined }) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
@@ -55,6 +55,7 @@ export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, med
           mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
           useRemixReferral={useRemixReferral}
           closeModal={closeModal}
+          postId={postId}
         />
       </div>
     </div>

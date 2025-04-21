@@ -19,7 +19,7 @@ enum PriceChangePeriod {
   twentyFourHours = '24h',
 }
 
-export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, media?: SmartMedia, remixPostId?: string }) => {
+export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club: Club, media?: SmartMedia, remixPostId?: string, postId?: string }) => {
   const { address, isConnected } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -151,6 +151,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId }: { club: Club, m
             setShowBuyModal(false)
             setBuyUSDCModalOpen(true)
           }}
+          postId={postId}
         />
         <BuyUSDCWidget
           open={buyUSDCModalOpen}
