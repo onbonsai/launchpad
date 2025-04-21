@@ -73,7 +73,11 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                 <>
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">
-                      {isRemix ? 'Your remix will use the original token' : 'Token preview'}
+                      {isRemix ? <>Your remix will use the original token
+                        <span className="ml-1 text-brand-highlight">
+                          and you'll earn a commission on all trades from your post
+                        </span>
+                      </> : 'Token preview'}
                     </Subtitle>
                   </div>
                   <TokenPreviewCard authenticatedProfile={isRemix ? undefined : authenticatedProfile} token={finalTokenData} />

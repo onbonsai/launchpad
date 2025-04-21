@@ -1356,7 +1356,7 @@ const LENS_PRICING_TIERS = {
   [PricingTier.TEST]: {
     initialPrice: "588251339500000000000000000", // 1 WGHO
     flatThreshold: FLAT_THRESHOLD.toString(),
-    targetPriceMultiplier: 2,
+    targetPriceMultiplier: 5,
   },
   [PricingTier.SMALL]: {
     initialPrice: "3529508034062500000000000000000",
@@ -1483,7 +1483,8 @@ export const approveToken = async (
   toastId?,
   approveMessage = "Approving tokens...",
   chain = "base",
-  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
+  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+  onlyApproveAmount = false
 ) => {
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
@@ -1500,7 +1501,7 @@ export const approveToken = async (
       address: token,
       abi: erc20Abi,
       functionName: "approve",
-      args: [contractAddress, maxUint256],
+      args: [contractAddress, onlyApproveAmount ? amount : maxUint256],
       chain: getChain(chain)
     });
     console.log(`hash: ${hash}`)
@@ -1510,10 +1511,10 @@ export const approveToken = async (
   }
 };
 
-export const releaseLiquidity = async (clubId: string, chain = "base") => {
+export const releaseLiquidity = async (clubId: string, clubCreator: `0x${string}`, tokenAddress: `0x${string}`, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
-    clubId, tokenPrice, chain
+    clubId, tokenPrice, chain, clubCreator, tokenAddress
   })
 
   await fetch('/api/clubs/update', {

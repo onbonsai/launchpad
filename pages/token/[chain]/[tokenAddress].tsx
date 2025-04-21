@@ -170,7 +170,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
     try {
       toastId = toast.loading("Creating pool...");
       // also triggers token swap in the backend
-      const token = await releaseLiquidityTransaction(club.clubId.toString(), club.chain);
+      await releaseLiquidityTransaction(club.clubId.toString(), club.creator as `0x${string}`, club.tokenAddress as `0x${string}`, club.chain);
       toast.success('Pool created!', { id: toastId });
     } catch (error) {
       console.log(error);
