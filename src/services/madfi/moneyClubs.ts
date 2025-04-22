@@ -972,10 +972,20 @@ export const publicClient = (chain = "base") => {
   return createPublicClient({ chain: _chain, transport: http(ChainRpcs[_chain.id]) });
 };
 
-export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base"): Promise<bigint> => {
+export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base", complete?: boolean, tokenAddress?: `0x${string}`): Promise<bigint> => {
+  if (complete) {
+    const client = publicClient(chain);
+    const balance = await client.readContract({
+      address: tokenAddress!,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [account],
+    });
+    return balance as bigint;
+  }
   const id = toHexString(parseInt(clubId));
   const client = subgraphClient(chain);
-  const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account, club: id } });
+  const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account.toLowerCase(), club: id } });
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 

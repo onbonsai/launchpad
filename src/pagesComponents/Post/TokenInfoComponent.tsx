@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { formatUnits } from "viem";
+import { erc20Abi, formatUnits } from "viem";
 import { ReactNode, useState } from "react";
 import { Subtitle, BodySemiBold, Header2 } from "@src/styles/text";
 import { Club, DECIMALS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
@@ -9,11 +9,12 @@ import { Tooltip } from "@src/components/Tooltip";
 import Link from 'next/link';
 import { Button } from '@src/components/Button';
 import BuySellModal from '@pagesComponents/Club/BuySellModal';
-import { useAccount } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { SmartMedia } from '@src/services/madfi/studio';
 import { kFormatter } from '@src/utils/utils';
 import { brandFont } from '@src/fonts/fonts';
 import BuyUSDCWidget from '@pagesComponents/Club/BuyUSDCWidget';
+import { getChain } from '@src/services/madfi/utils';
 
 enum PriceChangePeriod {
   twentyFourHours = '24h',
@@ -26,7 +27,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
-  const { data: clubBalance } = useGetClubBalance(club.clubId.toString(), address, club.chain);
+  const { data: clubBalance } = useGetClubBalance(club.clubId.toString(), address, club.chain, club.complete, club.tokenAddress);
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (

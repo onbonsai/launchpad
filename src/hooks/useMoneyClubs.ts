@@ -259,10 +259,10 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
   });
 };
 
-export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chain = "base") => {
+export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chain = "base", complete?: boolean, tokenAddress?: `0x${string}`) => {
   return useQuery({
     queryKey: ["club-balance", clubId, address],
-    queryFn: () => getBalance(clubId!, address!, chain),
+    queryFn: () => getBalance(clubId!, address!, chain, complete, tokenAddress),
     enabled: !!clubId && !!address,
     staleTime: 10000,
     gcTime: 60000,

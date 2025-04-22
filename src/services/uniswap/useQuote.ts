@@ -28,7 +28,7 @@ const useQuoter = ({
   enabled = true,
 }: {
   account?: `0x${string}`;
-  path: `0x${string}`[];
+  path: `0x${string}`;
   amountIn: bigint;
   enabled?: boolean;
 }) => {

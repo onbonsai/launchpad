@@ -42,8 +42,8 @@ interface UnknownAction {
   unknown: {
     params?: {
       raw: {
-        data: BlockchainData;
         key: BlockchainData;
+        data: BlockchainData;
       };
     }[] | null | undefined;
     address: EvmAddress;
@@ -219,6 +219,8 @@ export const createPost = async (
   })
     .andThen(handleOperationWith(walletClient))
     .andThen(sessionClient.waitForTransaction);
+
+  console.log("post result", result);
 
   if (result.isOk()) {
     let post;

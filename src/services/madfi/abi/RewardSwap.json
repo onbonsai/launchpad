@@ -178,6 +178,16 @@
   },
   {
     "type": "function",
+    "name": "setAddresses",
+    "inputs": [
+      { "name": "newRouter", "type": "address", "internalType": "address" },
+      { "name": "newLaunchpad", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setDisabled",
     "inputs": [
       { "name": "originalMsgSender", "type": "address", "internalType": "address" },
@@ -253,6 +263,15 @@
     "inputs": [{ "name": "token", "type": "address", "internalType": "address" }],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "AddressesUpdated",
+    "inputs": [
+      { "name": "newRouter", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "newLaunchpad", "type": "address", "indexed": true, "internalType": "address" }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",

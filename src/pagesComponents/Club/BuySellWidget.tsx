@@ -249,8 +249,6 @@ export const BuySellWidget = ({
     enabled: !!buyPrice && !!club.tokenAddress && club.chain === "lens" && club.complete,
   });
 
-  // console.log(postId, quoteResult, club.complete, buyAmount, formatUnits(quoteResult?.[0], DECIMALS));
-
   const buyRewardSwap = async (e) => {
     e.preventDefault();
     setIsBuying(true);
@@ -316,6 +314,7 @@ export const BuySellWidget = ({
       }
 
       toastId = toast.loading("Buying", { id: toastId });
+      let _buyAmount = quoteResult[0];
       const hash = await walletClient!.writeContract({
         address: ACTION_HUB_ADDRESS,
         abi: ActionHubAbi,
@@ -340,7 +339,7 @@ export const BuySellWidget = ({
       setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
 
       if (!!useRemixReferral) {
         closeModal();
@@ -349,7 +348,7 @@ export const BuySellWidget = ({
 
       setJustBought(true);
       setShowConfetti(true);
-      setJustBoughtAmount(formatUnits(buyAmount!, DECIMALS));
+      setJustBoughtAmount(formatUnits(_buyAmount, DECIMALS));
       // Remove confetti after 5 seconds
       setTimeout(() => setShowConfetti(false), 5000);
     } catch (error) {
@@ -433,7 +432,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 {!club.complete && BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
                 {!justBought && (
                   <>
-                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : true || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
+                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : false || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
                     {/* TODO: need thirdweb working with gho */}

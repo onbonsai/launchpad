@@ -10,7 +10,7 @@ import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal, postId = undefined }) => {
   const [friendCount, setFriendCount] = useState(0);
-  const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
+  const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain, club.complete, club.tokenAddress);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
   const { refetch: refetchClubPrice } = useGetBuyPrice(address, club?.clubId, "1", club.chain);
 

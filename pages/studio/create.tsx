@@ -345,14 +345,14 @@ const StudioCreatePage: NextPage = () => {
       if (tokenAddress && finalTokenData?.selectedNetwork === "lens") {
         actions.push({
           unknown: {
+            address: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.RewardSwap),
             params: [{
               raw: {
                 // keccak256("lens.param.token")
-                data: blockchainData("0xee737c77be2981e91c179485406e6d793521b20aca5e2137b6c497949a74bc94"),
-                key: blockchainData(encodeAbi(['address'], [tokenAddress]))
+                key: blockchainData("0xee737c77be2981e91c179485406e6d793521b20aca5e2137b6c497949a74bc94"),
+                data: blockchainData(encodeAbi(['address'], [tokenAddress]))
               }
             }],
-            address: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.RewardSwap)
           }
         })
       }

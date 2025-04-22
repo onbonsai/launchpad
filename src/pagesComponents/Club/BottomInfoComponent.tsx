@@ -14,7 +14,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
 
-  const { data: clubBalance } = useGetClubBalance(club?.clubId, address, club.chain);
+  const { data: clubBalance } = useGetClubBalance(club?.clubId, address, club.chain, club.complete, club.tokenAddress);
   const [balance, setBalance] = useState<string>();
 
   useEffect(() => {
