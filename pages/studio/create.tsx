@@ -232,16 +232,16 @@ const StudioCreatePage: NextPage = () => {
               PROTOCOL_DEPLOYMENT.lens.RewardSwap,
               true
             )
+            toastId = toast.loading("Initializing swap action...", { id: toastId });
+            const hash = await walletClient!.writeContract({
+              address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+              abi: RewardSwapAbi,
+              functionName: 'createRewardsPool',
+              args: [tokenAddress, 0, 200, 50n * parseUnits(rewardPoolAmount !== "0" ? rewardPoolAmount : "80000000", DECIMALS) / 100_00n, result.clubId, zeroAddress],
+            });
+            await publicClient("lens").waitForTransactionReceipt({ hash });
+            toast.success("Swap action initialized", { id: toastId });
           }
-          toastId = toast.loading("Initializing swap action...", { id: toastId });
-          const hash = await walletClient!.writeContract({
-            address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
-            abi: RewardSwapAbi,
-            functionName: 'createRewardsPool',
-            args: [tokenAddress, 0, 200, 50n * parseUnits(rewardPoolAmount !== "0" ? rewardPoolAmount : "80000000", DECIMALS) / 100_00n, result.clubId, zeroAddress],
-          });
-          await publicClient("lens").waitForTransactionReceipt({ hash });
-          toast.success("Swap action initialized", { id: toastId });
         }
       } catch (error) {
         console.log(error);
