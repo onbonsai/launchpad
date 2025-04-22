@@ -297,6 +297,8 @@ const DynamicForm = ({
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
+        console.log(field)
+
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
@@ -326,13 +328,13 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : field instanceof z.ZodString && (
-              field._def.maxLength ? (
+            ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
+              (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
                 <textarea
                   value={templateData[key] || ''}
                   onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-                  maxLength={field._def.maxLength?.value}
+                  maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
                 />
               ) : (
                 <input
@@ -342,9 +344,7 @@ const DynamicForm = ({
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )
-            )}
-
-            {field instanceof z.ZodNumber && (
+            ) : field instanceof z.ZodNumber && (
               <input
                 type="number"
                 value={templateData[key] || ''}
