@@ -46,14 +46,12 @@ const NETWORK_OPTIONS: NetworkOption[] = [
 ];
 
 const LENS_PRICING_TIERS = {
-  ...(!false && {
-    [PricingTier.TEST]: {
-      label: 'Test',
-      value: 1,
-      icon: 'local-atm',
-      iconLabel: '$1 to graduate'
-    },
-  }),
+  // [PricingTier.TEST]: {
+  //   label: 'Test',
+  //   value: 1,
+  //   icon: 'local-atm',
+  //   iconLabel: '$1 to graduate'
+  // },
   [PricingTier.SMALL]: {
     label: 'Small',
     value: 6000,
