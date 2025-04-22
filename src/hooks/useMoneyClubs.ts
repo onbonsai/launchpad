@@ -20,6 +20,7 @@ import {
   getBuyAmount,
   getFeaturedClubs,
   searchClubs,
+  getRewardPool,
 } from "@src/services/madfi/moneyClubs";
 
 export const useRegisteredClubById = (clubId: string) => {
@@ -379,5 +380,13 @@ export const useSearchClubs = (query?: string) => {
     enabled: !!query,
     staleTime: 120000,
     gcTime: 300000,
+  });
+};
+
+export const useGetRewardPool = (address: `0x${string}`) => {
+  return useQuery({
+    queryKey: ["reward-pool", address],
+    queryFn: () => getRewardPool(address!),
+    enabled: !!address,
   });
 };

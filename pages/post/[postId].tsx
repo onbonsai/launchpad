@@ -308,6 +308,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                             scrollToReplyInput();
                           }}
                           sideBySideMode={true}
+                          token={{
+                            address: club?.tokenAddress,
+                            ticker: club?.symbol,
+                          }}
                         />
                       </div>
                       <div className="sm:hidden">

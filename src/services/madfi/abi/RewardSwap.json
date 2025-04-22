@@ -321,16 +321,9 @@
     "type": "event",
     "name": "RewardsPaid",
     "inputs": [
-      { "name": "amountOut", "type": "uint256", "indexed": false, "internalType": "uint256" },
-      { "name": "totalRewards", "type": "uint256", "indexed": false, "internalType": "uint256" },
-      { "name": "posterReward", "type": "uint256", "indexed": false, "internalType": "uint256" },
-      {
-        "name": "referrerReward",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      { "name": "clientReward", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      { "name": "token", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "isDirectPromotion", "type": "bool", "indexed": false, "internalType": "bool" },
+      { "name": "totalRewards", "type": "uint256", "indexed": false, "internalType": "uint256" }
     ],
     "anonymous": false
   },

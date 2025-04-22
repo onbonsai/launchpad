@@ -1,7 +1,7 @@
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { addPostNotInterested, deletePost, reportPost } from "@lens-protocol/client/actions";
-import { FlagOutlined, RemoveCircle, RefreshOutlined, Block } from "@mui/icons-material";
+import { FlagOutlined, RemoveCircle, RefreshOutlined, Block, AccountBalanceWallet } from "@mui/icons-material";
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
@@ -9,10 +9,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
 import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } from '@src/services/madfi/studio';
 import { useGetCredits } from '@src/hooks/useGetCredits';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { handleOperationWith } from "@lens-protocol/client/viem";
+import { useGetRewardPool } from '@src/hooks/useMoneyClubs';
+import { kFormatter } from '@src/utils/utils';
+import { formatEther, parseEther } from 'viem';
+import { approveToken, topUpRewards, withdrawRewards } from '@src/services/madfi/moneyClubs';
+import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 
-type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete';
+type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete' | 'rewards' | 'topup';
 
 interface DropdownMenuProps {
   showDropdown: boolean;
@@ -24,6 +29,10 @@ interface DropdownMenuProps {
   postSlug: string;
   mediaUrl?: string;
   media?: SmartMedia;
+  token?: {
+    address: `0x${string}`;
+    ticker: string;
+  }
 }
 
 export default ({
@@ -36,10 +45,18 @@ export default ({
   postSlug,
   mediaUrl,
   media,
+  token,
 }: DropdownMenuProps) => {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected && isCreator);
+  const { data: rewardPoolData, isLoading: isLoadingRewards } = useGetRewardPool(token?.address as `0x${string}`);
+  const { data: balance } = useBalance({
+    address: address,
+    token: token?.address,
+  });
+  const [topUpAmount, setTopUpAmount] = useState('');
+  const [currentView, setCurrentView] = useState<ViewState>('initial');
 
   const estimatedGenerations = useMemo(() => {
     if (!isLoadingCredits) {
@@ -47,7 +64,6 @@ export default ({
     }
     return 0;
   }, [isLoadingCredits]);
-  const [currentView, setCurrentView] = useState<ViewState>('initial');
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
     e.stopPropagation();
@@ -188,6 +204,41 @@ export default ({
     }
   };
 
+  const handleWithdrawRewards = async () => {
+    let toastId = toast.loading("Withdrawing rewards...");
+    try {
+      await withdrawRewards(walletClient, token?.address as `0x${string}`);
+      toast.success("Rewards withdrawn", { id: toastId });
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to withdraw rewards", { id: toastId });
+    }
+  };
+
+  const handleTopUpRewards = async () => {
+    if (!topUpAmount || isNaN(Number(topUpAmount)) || Number(topUpAmount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    const amount = parseEther(topUpAmount);
+    if (amount > (balance?.value || 0n)) {
+      toast.error("Insufficient balance");
+      return;
+    }
+
+    let toastId = toast.loading("Topping up rewards...");
+    try {
+      await approveToken(token?.address as `0x${string}`, amount, walletClient, toastId, "Approving token", "lens", PROTOCOL_DEPLOYMENT.lens.RewardSwap, true);
+      await topUpRewards(walletClient, token?.address as `0x${string}`, amount);
+      toast.success("Rewards topped up", { id: toastId });
+      setTopUpAmount('');
+      setCurrentView('rewards');
+    } catch (error) {
+      toast.error("Failed to top up rewards", { id: toastId });
+    }
+  };
+
   useEffect(() => {
     if (!showDropdown) return;
 
@@ -305,6 +356,82 @@ export default ({
               </div>
             </>
           );
+        case 'topup':
+          return (
+            <>
+              <div className="px-4 py-3 text-center text-sm">
+                Top Up Rewards
+              </div>
+              <div className="border-t border-white/10">
+                <div className="px-4 py-3 text-sm">
+                  <div className="text-gray-400">Your Balance</div>
+                  <div className="text-lg font-semibold">
+                    {balance ? `${kFormatter(Number(formatEther(balance.value)), true)} ${token?.ticker}` : 'Loading...'}
+                  </div>
+                </div>
+                <div className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={topUpAmount}
+                    onChange={(e) => setTopUpAmount(e.target.value)}
+                    placeholder={`Amount in ${token?.ticker}`}
+                    className="w-full px-3 py-2 bg-black/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-highlight"
+                    min="0"
+                    step="0.000000000000000001"
+                  />
+                </div>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  onClick={(e) => handleButtonClick(e, handleTopUpRewards)}
+                >
+                  Confirm Top Up
+                </button>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  onClick={() => setCurrentView('rewards')}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          );
+        case 'rewards':
+          return (
+            <>
+              <div className="px-4 py-3 text-center text-sm">
+                Manage Trading Rewards
+              </div>
+              <div className="border-t border-white/10">
+                <div className="px-4 py-3 text-sm">
+                  <div className="text-gray-400">Current Balance</div>
+                  <div className="text-lg font-semibold">
+                    {isLoadingRewards ? 'Loading...' : `${kFormatter(Number(formatEther(rewardPoolData?.rewardsAmount || 0n)), true)} ${token?.ticker}`}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Total Paid: {isLoadingRewards ? 'Loading...' : `${kFormatter(Number(formatEther(rewardPoolData?.totalRewardsPaid || 0n)), true)} ${token?.ticker}`}
+                  </div>
+                </div>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  onClick={(e) => handleButtonClick(e, handleWithdrawRewards)}
+                >
+                  Withdraw Rewards
+                </button>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  onClick={() => setCurrentView('topup')}
+                >
+                  Top Up Rewards
+                </button>
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  onClick={() => setCurrentView('initial')}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          );
         default:
           return (
             <>
@@ -339,6 +466,17 @@ export default ({
                 </div>
                 <span className="ml-2">Delete Post</span>
               </button>
+              {token && (
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
+                  onClick={() => setCurrentView('rewards')}
+                >
+                  <div className="w-4 flex items-center justify-center">
+                    <AccountBalanceWallet sx={{ fontSize: '1rem', color: "rgba(255,255,255,0.8)" }} />
+                  </div>
+                  <span className="ml-2">Manage Rewards</span>
+                </button>
+              )}
               {media && (
                 <div className="px-4 py-2 flex items-center justify-end border-t border-white/10">
                   <div className="relative flex items-center justify-center w-3 h-3">

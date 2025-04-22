@@ -198,6 +198,7 @@ const StudioCreatePage: NextPage = () => {
           await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId, undefined, finalTokenData.selectedNetwork);
         }
 
+        toastId = toast.loading("Registering your token...", { id: toastId });
         const result = await registerClubTransaction(walletClient, {
           initialSupply: parseUnits((finalTokenData.initialSupply || 0).toString(), DECIMALS).toString(),
           tokenName: finalTokenData.tokenName,

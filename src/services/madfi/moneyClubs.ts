@@ -15,6 +15,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
+import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 
 import { lensClient } from "../lens/client";
 import axios from "axios";
@@ -1658,3 +1659,42 @@ export const WGHO_ABI = [
     type: "function",
   },
 ] as const;
+
+const REWARD_POOL_QUERY = gql`
+  query GetRewardPool($id: ID!) {
+    rewardPool(id: $id) {
+      rewardsAmount
+      totalRewardsPaid
+    }
+  }
+`;
+
+export const getRewardPool = async (address: `0x${string}`) => {
+  const { data } = await subgraphClient("lens").query({ query: REWARD_POOL_QUERY, variables: { id: address } });
+
+  return data.rewardPool;
+}
+
+export const withdrawRewards = async (walletClient: any, tokenAddress: `0x${string}`) => {
+  const hash = await walletClient.writeContract({
+    address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+    abi: RewardSwapAbi,
+    functionName: "withdrawRewards",
+    args: [tokenAddress],
+    chain: getChain("lens")
+  });
+
+  await publicClient("lens").waitForTransactionReceipt({ hash });
+}
+
+export const topUpRewards = async (walletClient: any, tokenAddress: `0x${string}`, amount: bigint) => {
+  const hash = await walletClient.writeContract({
+    address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+    abi: RewardSwapAbi,
+    functionName: "topUpRewards",
+    args: [tokenAddress, amount, zeroAddress],
+    chain: getChain("lens")
+  });
+
+  await publicClient("lens").waitForTransactionReceipt({ hash });
+}
