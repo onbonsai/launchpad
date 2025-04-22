@@ -8,7 +8,7 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, ImageRequirement, Preview, Template } from "@src/services/madfi/studio";
+import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -80,7 +80,13 @@ const CreatePostForm = ({
     let toastId = toast.loading("Generating preview...");
 
     try {
-      const res = await generatePreview(template.apiUrl, idToken, template, templateData);
+      const res = await generatePreview(
+        template.apiUrl,
+        idToken,
+        template,
+        templateData,
+        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined
+      );
       if (!res) throw new Error();
       const { agentId, preview } = res;
 
@@ -88,6 +94,7 @@ const CreatePostForm = ({
       console.log("setting preview", preview)
       setPreview({
         ...preview,
+        text: preview.text || postContent,
         agentId,
       } as Preview);
 
@@ -106,11 +113,13 @@ const CreatePostForm = ({
   }
 
   const handleNext = () => {
-    if ((postContent || postImage?.length)) {
+    if ((postContent || (postImage?.length && !preview?.image))) {
       setPreview({
         text: postContent || "",
         image: postImage?.length ? postImage[0] : undefined,
-        imagePreview: postImage?.length ? postImage[0].preview : undefined
+        imagePreview: postImage?.length ? postImage[0].preview : undefined,
+        video: preview?.video,
+        agentId: preview?.agentId
       });
     }
     next(templateData);
@@ -193,6 +202,7 @@ const DynamicForm = ({
   setPostImage: (i: any) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
+  const removeImageModelOptions = !!postImage?.length;
 
   // Format options for SelectDropdown
   const modelOptions = useMemo(() => {
@@ -284,14 +294,14 @@ const DynamicForm = ({
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
         const isRequired = !field.isOptional();
 
-        if (key === 'modelId' && !modelOptions?.length) return null;
-        if (key === 'stylePreset' && !modelOptions?.length) return null;
+        if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
+        if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
 
-            {/* Special handling for modelId and stylePreset using SelectDropdown */}
+            {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
               <SelectDropdown
                 options={modelOptions}
@@ -305,6 +315,14 @@ const DynamicForm = ({
                 options={styleOptions}
                 onChange={(option) => updateField(key, option.value)}
                 value={styleOptions[0].options.find(opt => opt.value === templateData[key]) || styleOptions[0].options[0]}
+                isMulti={false}
+                zIndex={1001}
+              />
+            ) : key === 'elevenLabsVoiceId' ? (
+              <SelectDropdown
+                options={[{ label: 'Voices', options: ELEVENLABS_VOICES }]}
+                onChange={(option) => updateField(key, option.value)}
+                value={ELEVENLABS_VOICES.find(opt => opt.value === templateData[key]) || ELEVENLABS_VOICES[0]}
                 isMulti={false}
                 zIndex={1001}
               />

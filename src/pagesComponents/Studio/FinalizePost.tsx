@@ -11,6 +11,7 @@ import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { useAccount } from "wagmi";
+import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 const COLLECT_PRICE_TIERS = [
   {
@@ -42,7 +43,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
 
   useEffect(() => {
     const fetchBonsaiPrice = async () => {
-      let price = await fetchTokenPrice("0x474f4cb764df9da079D94052fED39625c147C12C"); // TODO: use lens token price?
+      let price = await queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C"); // TODO: use lens token price?
       if (!price) {
         price = 0.005;
         setEstimated(true);

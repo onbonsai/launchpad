@@ -17,7 +17,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
-import { Action, createPost, uploadFile, uploadImageBase64 } from "@src/services/lens/createPost";
+import { Action, createPost, uploadFile, uploadImageBase64, uploadVideo } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client";
@@ -289,6 +289,12 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     try {
       let image;
+      let video;
+      if (preview?.video) {
+        const { uri: videoUri, type } = await uploadVideo(preview.video.blob, preview.video.mimeType, template?.acl);
+        video = { url: videoUri, type };
+      }
+
       if (postImage && postImage.length > 0) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
       } else if (preview?.image) {
@@ -364,6 +370,7 @@ const StudioCreatePage: NextPage = () => {
         {
           text: postContent || preview?.text || template.displayName,
           image,
+          video,
           template,
           tokenAddress,
           remix: remixMedia?.postId,
@@ -557,15 +564,18 @@ const StudioCreatePage: NextPage = () => {
                           author: authenticatedProfile,
                           timestamp: new Date(),
                           metadata: {
-                            __typename: !!preview?.image
-                              ? "ImageMetadata"
-                              : (preview.video ? "VideoMetadata" : "TextOnlyMetadata"),
-                            content: preview.text,
+                            __typename: preview?.video
+                              ? "VideoMetadata"
+                              : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
+                            content: preview.text || postContent,
+                            video: preview.video
+                              ? {
+                                  item: preview.video.url,
+                                  cover: (typeof preview.image === 'string' ? preview.image : preview.imagePreview)
+                                }
+                              : undefined,
                             image: preview.image
                               ? { item: typeof preview.image === 'string' ? preview.image : preview.imagePreview }
-                              : undefined,
-                            video: preview.video
-                              ? { item: preview.video }
                               : undefined
                           }
                         }}

@@ -85,10 +85,13 @@ const ProfileHoldings = (props: ProfileHoldingsProps) => {
       setBonsaiPrice(0);
       return;
     }
-    const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
-    const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiAmount));
-    const tokenHoldings = tokenPrice * bonsaiHoldings;
-    setBonsaiPrice(tokenHoldings);
+    const fetchPrice = async () => {
+      const tokenPrice = await queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+      const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiAmount));
+      const tokenHoldings = tokenPrice * bonsaiHoldings;
+      setBonsaiPrice(tokenHoldings);
+    }
+    fetchPrice()
   }, [bonsaiAmount]);
 
   const totalBalance = useMemo(() => {

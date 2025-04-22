@@ -1523,7 +1523,7 @@ export const approveToken = async (
 };
 
 export const releaseLiquidity = async (clubId: string, clubCreator: `0x${string}`, tokenAddress: `0x${string}`, chain = "base") => {
-  const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
+  const tokenPrice = await queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
     clubId, tokenPrice, chain, clubCreator, tokenAddress
   })
