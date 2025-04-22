@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { privateKeyToAccount } from "viem/accounts";
-import { http, createWalletClient, TransactionReceipt, zeroAddress, parseEther, encodePacked } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { http, createWalletClient, zeroAddress, parseEther, encodePacked } from "viem";
 
 import {
   publicClient,
@@ -12,10 +11,11 @@ import {
   WGHO_CONTRACT_ADDRESS,
   getRegisteredClubById,
 } from "@src/services/madfi/moneyClubs";
-import { getEventFromReceipt } from "@src/utils/viem";
 import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT, getChain } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
+import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
+import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 
 const WETH = "0x4200000000000000000000000000000000000006";
 
@@ -23,7 +23,7 @@ const getPath = (chain: string) => {
   // TODO: this is only for base, lens will need to be updated when v4 is available
   const swapInfoV4 = IS_PRODUCTION
     ? {
-        path: [
+        path: chain === "base" ? [
           {
             intermediateCurrency: zeroAddress,
             fee: 500,
@@ -38,8 +38,8 @@ const getPath = (chain: string) => {
             hooks: zeroAddress, // DEFAULT_HOOK_ADDRESS,
             hookData: "0x",
           },
-        ],
-        router: "0x6ff5693b99212da76ad316178a184ab56d299b43",
+        ] : [],
+        router: "0x6fF5693b99212Da76ad316178A184AB56D299b43",
         // TODO: add v4 addresses for lens when available
         ...(chain === "lens"
           ? {
@@ -92,7 +92,7 @@ const minLiquidityThreshold = {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    let { clubId, tokenPrice, chain } = req.body;
+    let { clubId, clubCreator, tokenAddress, tokenPrice, chain } = req.body;
 
     const account = privateKeyToAccount(process.env.OWNER_PRIVATE_KEY as `0x${string}`);
     const walletClient = createWalletClient({ account, chain: getChain(chain || "base"), transport: http() });
@@ -125,18 +125,44 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
     console.log("hash", hash);
 
-    const transactionReceipt: TransactionReceipt = await publicClient().waitForTransactionReceipt({ hash });
-    const releaseLiquidityEvent = getEventFromReceipt({
-      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
-      transactionReceipt,
-      abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
-      eventName: "LiquidityReleased",
-    });
+    const _publicClient = publicClient(chain);
+    await _publicClient.waitForTransactionReceipt({ hash });
 
-    // TODO: do we need token? doesn't seem to be getting used when returned
-    const { token } = releaseLiquidityEvent.args;
+    // Create reward pool if applicable (only for Lens)
+    if (chain === "lens" && tokenAddress && clubCreator) {
+      try {
+        // Check allowance for the reward swap contract
+        const allowance = await _publicClient.readContract({
+          address: tokenAddress,
+          abi: VestingERC20Abi,
+          functionName: "allowance",
+          args: [clubCreator, PROTOCOL_DEPLOYMENT.lens.RewardSwap],
+        });
+        console.log("allowance", allowance);
 
-    res.status(200).json({ token, hash });
+        // If allowance is greater than 0, topup the rewards pool
+        if ((allowance as bigint) > 0n) {
+          const rewardSwapHash = await walletClient.writeContract({
+            address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+            abi: RewardSwapAbi,
+            functionName: "topUpRewards",
+            args: [tokenAddress, allowance, clubCreator],
+            gas: 1000000n,
+          });
+
+          console.log("Reward pool created with hash:", rewardSwapHash);
+
+          // Wait for the transaction to be mined
+          await _publicClient.waitForTransactionReceipt({ hash: rewardSwapHash });
+        } else {
+          console.log("No allowance found for reward swap contract");
+        }
+      } catch (error) {
+        console.error("Error creating rewards pool:", error);
+      }
+    }
+
+    res.status(200).json({ token: tokenAddress, hash });
   } catch (e) {
     console.log(e);
     res.status(500).json({ success: false });

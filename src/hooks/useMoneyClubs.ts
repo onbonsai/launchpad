@@ -20,6 +20,7 @@ import {
   getBuyAmount,
   getFeaturedClubs,
   searchClubs,
+  getRewardPool,
 } from "@src/services/madfi/moneyClubs";
 
 export const useRegisteredClubById = (clubId: string) => {
@@ -259,10 +260,10 @@ export const useGetHoldings = (account?: `0x${string}`, page?: number) => {
   });
 };
 
-export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chain = "base") => {
+export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chain = "base", complete?: boolean, tokenAddress?: `0x${string}`) => {
   return useQuery({
     queryKey: ["club-balance", clubId, address],
-    queryFn: () => getBalance(clubId!, address!, chain),
+    queryFn: () => getBalance(clubId!, address!, chain, complete, tokenAddress),
     enabled: !!clubId && !!address,
     staleTime: 10000,
     gcTime: 60000,
@@ -280,11 +281,11 @@ export const useGetBuyPrice = (account?: `0x${string}`, clubId?: string, amount?
   });
 };
 
-export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base", options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string }) => {
+export const useGetBuyAmount = (account?: `0x${string}`, tokenAddress?: `0x${string}`, spendAmount?: string, chain = "base", options?: { initialPrice?: string, targetPriceMultiplier?: string, flatThreshold?: string, completed?: boolean }) => {
   return useQuery({
     queryKey: ["buy-amount", tokenAddress, spendAmount],
     queryFn: () => getBuyAmount(account!, tokenAddress!, spendAmount!, undefined, chain, options),
-    enabled: !!tokenAddress && !!spendAmount && !!account,
+    enabled: !!tokenAddress && !!spendAmount && !!account && !options?.completed,
     refetchInterval: 5000, // refetch every 5 seconds
     staleTime: 1000,
     gcTime: 5000,
@@ -379,5 +380,13 @@ export const useSearchClubs = (query?: string) => {
     enabled: !!query,
     staleTime: 120000,
     gcTime: 300000,
+  });
+};
+
+export const useGetRewardPool = (address: `0x${string}`) => {
+  return useQuery({
+    queryKey: ["reward-pool", address],
+    queryFn: () => getRewardPool(address!),
+    enabled: !!address,
   });
 };

@@ -17,10 +17,10 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
-import { createPost, uploadFile, uploadImageBase64, uploadVideo } from "@src/services/lens/createPost";
+import { Action, createPost, uploadFile, uploadImageBase64, uploadVideo } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
-import { BigDecimal, SessionClient } from "@lens-protocol/client";
+import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
@@ -33,9 +33,12 @@ import axios from "axios";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
+import { encodeAbi } from "@src/utils/viem";
+import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 
 type TokenData = {
   initialSupply: number;
+  rewardPoolPercentage?: number;
   uniHook?: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
@@ -195,6 +198,7 @@ const StudioCreatePage: NextPage = () => {
           await approveToken(token, finalTokenData.totalRegistrationFee, walletClient, toastId, undefined, finalTokenData.selectedNetwork);
         }
 
+        toastId = toast.loading("Registering your token...", { id: toastId });
         const result = await registerClubTransaction(walletClient, {
           initialSupply: parseUnits((finalTokenData.initialSupply || 0).toString(), DECIMALS).toString(),
           tokenName: finalTokenData.tokenName,
@@ -214,6 +218,32 @@ const StudioCreatePage: NextPage = () => {
         txHash = result.txHash as string;
         tokenAddress = result.tokenAddress;
         setSavedTokenAddress(tokenAddress); // save our progress
+
+        // Approve token for reward pool
+        if (finalTokenData.selectedNetwork === "lens") {
+          const rewardPoolAmount = Math.floor((finalTokenData.rewardPoolPercentage || 0) * finalTokenData.initialSupply / 100).toString();
+          if (rewardPoolAmount !== "0") {
+            await approveToken(
+              tokenAddress,
+              parseUnits(rewardPoolAmount, DECIMALS),
+              walletClient,
+              toastId,
+              `Approving ${rewardPoolAmount} ${finalTokenData.tokenSymbol} for reward pool`,
+              "lens",
+              PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+              true
+            )
+            toastId = toast.loading("Initializing swap action...", { id: toastId });
+            const hash = await walletClient!.writeContract({
+              address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+              abi: RewardSwapAbi,
+              functionName: 'createRewardsPool',
+              args: [tokenAddress, 0, 200, 50n * parseUnits(rewardPoolAmount !== "0" ? rewardPoolAmount : "80000000", DECIMALS) / 100_00n, result.clubId, zeroAddress],
+            });
+            await publicClient("lens").waitForTransactionReceipt({ hash });
+            toast.success("Swap action initialized", { id: toastId });
+          }
+        }
       } catch (error) {
         console.log(error);
         toast.error("Failed to create token", { id: toastId });
@@ -306,6 +336,33 @@ const StudioCreatePage: NextPage = () => {
           }
         ];
       }
+      
+      let actions: Action[] = [{
+        simpleCollect: {
+          payToCollect: {
+            amount: {
+              currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
+              value: collectAmount.toString() as BigDecimal
+            },
+            recipients,
+            referralShare: 5,
+          }
+        }
+      }]
+      if (tokenAddress && finalTokenData?.selectedNetwork === "lens") {
+        actions.push({
+          unknown: {
+            address: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.RewardSwap),
+            params: [{
+              raw: {
+                // keccak256("lens.param.token")
+                key: blockchainData("0xee737c77be2981e91c179485406e6d793521b20aca5e2137b6c497949a74bc94"),
+                data: blockchainData(encodeAbi(['address'], [tokenAddress]))
+              }
+            }],
+          }
+        })
+      }
 
       const result = await createPost(
         sessionClient as SessionClient,
@@ -317,18 +374,7 @@ const StudioCreatePage: NextPage = () => {
           template,
           tokenAddress,
           remix: remixMedia?.postId,
-          actions: [{
-            simpleCollect: {
-              payToCollect: {
-                amount: {
-                  currency: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.Bonsai),
-                  value: collectAmount.toString() as BigDecimal
-                },
-                recipients,
-                referralShare: 5,
-              }
-            }
-          }]
+          actions
         }
       );
 

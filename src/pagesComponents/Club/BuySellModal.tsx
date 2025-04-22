@@ -12,10 +12,11 @@ interface BuySellModalProps {
     onBuyUSDC?: (amount: string, amountNeeded: number) => void;
     mediaProtocolFeeRecipient?: `0x${string}`;
     useRemixReferral?: `0x${string}`;
+    postId?: string;
 }
 
 const BuySellModal = (props: BuySellModalProps) => {
-    const { club, buyAmount, address, open, onClose, onBuyUSDC, mediaProtocolFeeRecipient, useRemixReferral } = props;
+    const { club, buyAmount, address, open, onClose, onBuyUSDC, mediaProtocolFeeRecipient, useRemixReferral, postId } = props;
     return (
         <Modal
             onClose={onClose}
@@ -31,6 +32,7 @@ const BuySellModal = (props: BuySellModalProps) => {
                 mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
                 useRemixReferral={useRemixReferral}
                 closeModal={onClose}
+                postId={postId}
             />
         </Modal>
     )

@@ -1,7 +1,7 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useAccount, useWalletClient, useSwitchChain, useBalance } from "wagmi";
-import { formatUnits, parseEther, parseUnits } from "viem";
+import { encodeAbiParameters, formatUnits, parseEther, parseUnits, zeroAddress } from "viem";
 import toast from "react-hot-toast";
 import ConfettiExplosion from 'react-confetti-explosion';
 import clsx from "clsx";
@@ -32,7 +32,13 @@ import { ArrowDownIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
-import { getChain, IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
+import { ACTION_HUB_ADDRESS, getChain, IS_PRODUCTION, lens, LENS_BONSAI_DEFAULT_FEED, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
+import { calculatePath, PARAM__CLIENT_ADDRESS, PARAM__REFERRALS } from "@src/services/lens/rewardSwap";
+import { PARAM__AMOUNT_OUT_MINIMUM } from "@src/services/lens/rewardSwap";
+import { PARAM__AMOUNT_IN } from "@src/services/lens/rewardSwap";
+import { PARAM__PATH } from "@src/services/lens/rewardSwap";
+import useQuoter from "@src/services/uniswap/useQuote";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -46,6 +52,7 @@ export const BuySellWidget = ({
   mediaProtocolFeeRecipient,
   useRemixReferral,
   closeModal,
+  postId = undefined,
 }) => {
   const router = useRouter();
   const referralAddress = !!useRemixReferral ? useRemixReferral : router.query.ref as `0x${string}`;
@@ -75,7 +82,8 @@ export const BuySellWidget = ({
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
     initialPrice: club.initialPrice,
     targetPriceMultiplier: club.targetPriceMultiplier,
-    flatThreshold: club.flatThreshold
+    flatThreshold: club.flatThreshold,
+    completed: club.complete
   } : undefined);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
@@ -234,6 +242,122 @@ export const BuySellWidget = ({
     setIsSelling(false);
   }
 
+  const { data: quoteResult, isLoading: isLoadingQuote } = useQuoter({
+    account: address as `0x${string}`,
+    path: calculatePath(club.tokenAddress as `0x${string}`),
+    amountIn: parseUnits(buyPrice, _DECIMALS),
+    enabled: !!buyPrice && !!club.tokenAddress && club.chain === "lens" && club.complete,
+  });
+
+  const buyRewardSwap = async (e) => {
+    e.preventDefault();
+    setIsBuying(true);
+    let toastId;
+
+    const targetChainId = getChain("lens").id;
+    if (chainId !== targetChainId) {
+      try {
+        console.log('switching to', targetChainId);
+        switchChain({ chainId: targetChainId });
+      } catch {
+        toast.error("Please switch networks");
+        setIsBuying(false);
+        return;
+      }
+    }
+
+    try {
+      const quoteTokenAddress = WGHO_CONTRACT_ADDRESS;
+      // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
+
+      if (club.chain === "lens") {
+        // Calculate how much WGHO we need for the transaction
+        const requiredAmount = parseUnits(buyPrice, _DECIMALS);
+        const currentWGHOBalance = tokenBalance || 0n;
+
+        // If we don't have enough WGHO
+        if (currentWGHOBalance < requiredAmount) {
+          // Calculate how much more WGHO we need
+          const additionalWGHONeeded = requiredAmount - currentWGHOBalance;
+
+          // Check if user has enough GHO to wrap
+          const ghoBalanceInWei = ghoBalance?.value || 0n;
+          if (ghoBalanceInWei < additionalWGHONeeded) {
+            toast.error("Insufficient GHO balance");
+            setIsBuying(false);
+            return;
+          }
+
+          // Wrap the required amount
+          console.log("Wrapping GHO:", formatUnits(additionalWGHONeeded, _DECIMALS));
+          toastId = toast.loading("Wrapping GHO...");
+          // Call the deposit function on the WGHO contract
+          const hash = await walletClient!.writeContract({
+            address: WGHO_CONTRACT_ADDRESS,
+            abi: WGHO_ABI,
+            functionName: 'deposit',
+            args: [],
+            value: additionalWGHONeeded,
+          });
+
+          await publicClient("lens").waitForTransactionReceipt({ hash });
+          toast.success("Wrapped GHO", { id: toastId });
+        }
+      }
+
+      const parsedBuyPrice = parseUnits(buyPrice, _DECIMALS);
+      await approveToken(quoteTokenAddress, parsedBuyPrice, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
+
+      if (!quoteResult) {
+        console.error("Can't calculate min amount out");
+        return;
+      }
+
+      toastId = toast.loading("Buying", { id: toastId });
+      let _buyAmount = quoteResult[0];
+      const hash = await walletClient!.writeContract({
+        address: ACTION_HUB_ADDRESS,
+        abi: ActionHubAbi,
+        functionName: "executePostAction",
+        args: [
+          PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+          LENS_BONSAI_DEFAULT_FEED,
+          postId,
+          [
+            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress)]) },
+            { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parsedBuyPrice]) },
+            { key: PARAM__AMOUNT_OUT_MINIMUM, value: encodeAbiParameters([{ type: 'uint256' }], [(9n * quoteResult[0]) / 10n]) },
+            { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: 'address' }], [zeroAddress]) },
+            { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: 'address[]' }], [[]]) },
+          ],
+        ],
+      });
+
+      await publicClient("lens").waitForTransactionReceipt({ hash });
+      // give the indexer some time
+      setTimeout(refetchClubBalance, 5000);
+      setTimeout(refreshTradingInfo, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
+
+      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+
+      if (!!useRemixReferral) {
+        closeModal();
+        return;
+      }
+
+      setJustBought(true);
+      setShowConfetti(true);
+      setJustBoughtAmount(formatUnits(_buyAmount, DECIMALS));
+      // Remove confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to buy", { id: toastId });
+    }
+    setIsBuying(false);
+  }
+
   const urlEncodedPostParams = useMemo(() => {
     const params = {
       text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
@@ -250,7 +374,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
       }
       }>
       <div className="flex items-center justify-between mb-4">
-        <Tabs openTab={openTab} setOpenTab={setOpenTab} />
+        <Tabs openTab={openTab} setOpenTab={setOpenTab} completed={club.complete} />
         {/* {(!!bonsaiBalanceNFT && bonsaiBalanceNFT > 0n) && (
           <label className="text-xs font-medium text-secondary/70 whitespace-nowrap mt-4">
             Trading Fee: $0
@@ -289,7 +413,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                       <CurrencyInput
                         tokenImage={club.token.image}
                         tokenBalance={clubBalance}
-                        price={`${buyPrice && buyAmount ? formatUnits(buyAmount, DECIMALS) : 0}`}
+                        price={club.complete ? `${quoteResult ? formatUnits(quoteResult[0], DECIMALS) : 0}` : `${buyPrice && buyAmount ? formatUnits(buyAmount, DECIMALS) : 0}`}
                         isError={false}
                         onPriceSet={() => {
                           // TODO: Set USDC amount based on the token amount
@@ -305,10 +429,10 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
+                {!club.complete && BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
                 {!justBought && (
                   <>
-                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying || !buyPrice || isLoadingBuyAmount || !buyAmount || notEnoughFunds} onClick={buyChips} variant="accentBrand">
+                    <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : false || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
                     {/* TODO: need thirdweb working with gho */}
@@ -452,7 +576,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
   );
 };
 
-const Tabs = ({ openTab, setOpenTab }) => {
+const Tabs = ({ openTab, setOpenTab, completed }) => {
   return (
     <div
       className="flex w-full"
@@ -484,9 +608,10 @@ const Tabs = ({ openTab, setOpenTab }) => {
             </Header2Text>
           </button>
         </li>
-        <li className="nav-item" role="presentation">
-          <button
-            onClick={() => setOpenTab(2)}
+        {!completed && (
+          <li className="nav-item" role="presentation">
+            <button
+              onClick={() => setOpenTab(2)}
             className={clsx(`
             nav-link
             block
@@ -501,8 +626,9 @@ const Tabs = ({ openTab, setOpenTab }) => {
             <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
               Sell
             </Header2Text>
-          </button>
-        </li>
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );
