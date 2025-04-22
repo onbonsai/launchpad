@@ -11,9 +11,9 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://eliza.onbons.ai";
 export const ELEVENLABS_VOICES = [
-  { label: 'Italian (Male)', value: 'zcAOhNBS3c14rBihAFp1' },
-  { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
   { label: 'Serious (Male)', value: 'U2VUL94XlY3UYSlQvsxF' },
+  { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
+  { label: 'Italian Brainrot', value: 'pNInz6obpgDQGcFmaJgB' },
 ];
 
 /**
