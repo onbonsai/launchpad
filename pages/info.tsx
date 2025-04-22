@@ -232,6 +232,7 @@ const Help = () => {
                               <li>Anyone can trade the token, but leaving a comment requires a Lens profile</li>
                               <li>Follow other profiles to grow your social graph and know who's in the trenches with you</li>
                               <li>When you buy a token, you can share in a post which earns you referral fees</li>
+                              <li>Remixing a post will use the original token and you'll earn a commission on all trades from your post. This will be 0.25% of the trade value or 2% if the creator has funded a reward pool.</li>
                               <li>Profiles and content are portable. Comment on a token page, see it on other Lens apps like Orb</li>
                             </ul>
                             <p className="text-lg text-secondary pt-8">Native mobile integrations on {" "}<Link href="https://orb.club" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Orb</span></Link>{" "}</p>

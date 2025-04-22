@@ -15,6 +15,7 @@ import { roundedToFixed } from "@src/utils/utils";
 import { encodeAbi } from "@src/utils/viem";
 import { getEventFromReceipt } from "@src/utils/viem";
 import { MADFI_WALLET_ADDRESS } from "@src/constants/constants";
+import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 
 import { lensClient } from "../lens/client";
 import axios from "axios";
@@ -972,10 +973,20 @@ export const publicClient = (chain = "base") => {
   return createPublicClient({ chain: _chain, transport: http(ChainRpcs[_chain.id]) });
 };
 
-export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base"): Promise<bigint> => {
+export const getBalance = async (clubId: string, account: `0x${string}`, chain = "base", complete?: boolean, tokenAddress?: `0x${string}`): Promise<bigint> => {
+  if (complete) {
+    const client = publicClient(chain);
+    const balance = await client.readContract({
+      address: tokenAddress!,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [account],
+    });
+    return balance as bigint;
+  }
   const id = toHexString(parseInt(clubId));
   const client = subgraphClient(chain);
-  const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account, club: id } });
+  const { data: { clubChips } } = await client.query({ query: CLUB_BALANCE, variables: { trader: account.toLowerCase(), club: id } });
   return clubChips && clubChips.length > 0 ? BigInt(clubChips[0].amount) : 0n
 };
 
@@ -1356,7 +1367,7 @@ const LENS_PRICING_TIERS = {
   [PricingTier.TEST]: {
     initialPrice: "588251339500000000000000000", // 1 WGHO
     flatThreshold: FLAT_THRESHOLD.toString(),
-    targetPriceMultiplier: 2,
+    targetPriceMultiplier: 5,
   },
   [PricingTier.SMALL]: {
     initialPrice: "3529508034062500000000000000000",
@@ -1483,7 +1494,8 @@ export const approveToken = async (
   toastId?,
   approveMessage = "Approving tokens...",
   chain = "base",
-  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad
+  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+  onlyApproveAmount = false
 ) => {
   const [user] = await walletClient.getAddresses();
   const client = publicClient(chain);
@@ -1500,7 +1512,7 @@ export const approveToken = async (
       address: token,
       abi: erc20Abi,
       functionName: "approve",
-      args: [contractAddress, maxUint256],
+      args: [contractAddress, onlyApproveAmount ? amount : maxUint256],
       chain: getChain(chain)
     });
     console.log(`hash: ${hash}`)
@@ -1510,10 +1522,10 @@ export const approveToken = async (
   }
 };
 
-export const releaseLiquidity = async (clubId: string, chain = "base") => {
+export const releaseLiquidity = async (clubId: string, clubCreator: `0x${string}`, tokenAddress: `0x${string}`, chain = "base") => {
   const tokenPrice = queryFiatViaLIFI(8453, "0x474f4cb764df9da079D94052fED39625c147C12C");
   const { data: { token, hash } } = await axios.post(`/api/clubs/release-liquidity`, {
-    clubId, tokenPrice, chain
+    clubId, tokenPrice, chain, clubCreator, tokenAddress
   })
 
   await fetch('/api/clubs/update', {
@@ -1647,3 +1659,42 @@ export const WGHO_ABI = [
     type: "function",
   },
 ] as const;
+
+const REWARD_POOL_QUERY = gql`
+  query GetRewardPool($id: ID!) {
+    rewardPool(id: $id) {
+      rewardsAmount
+      totalRewardsPaid
+    }
+  }
+`;
+
+export const getRewardPool = async (address: `0x${string}`) => {
+  const { data } = await subgraphClient("lens").query({ query: REWARD_POOL_QUERY, variables: { id: address } });
+
+  return data.rewardPool;
+}
+
+export const withdrawRewards = async (walletClient: any, tokenAddress: `0x${string}`) => {
+  const hash = await walletClient.writeContract({
+    address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+    abi: RewardSwapAbi,
+    functionName: "withdrawRewards",
+    args: [tokenAddress],
+    chain: getChain("lens")
+  });
+
+  await publicClient("lens").waitForTransactionReceipt({ hash });
+}
+
+export const topUpRewards = async (walletClient: any, tokenAddress: `0x${string}`, amount: bigint) => {
+  const hash = await walletClient.writeContract({
+    address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+    abi: RewardSwapAbi,
+    functionName: "topUpRewards",
+    args: [tokenAddress, amount, zeroAddress],
+    chain: getChain("lens")
+  });
+
+  await publicClient("lens").waitForTransactionReceipt({ hash });
+}

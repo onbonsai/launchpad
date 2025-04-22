@@ -289,7 +289,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
             <ArrowBack className="h-5 w-5" />
           </Link>
           <div className="flex flex-col gap-2 h-full">
-            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} />}
+            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} postId={publication?.id} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
@@ -312,6 +312,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                             scrollToReplyInput();
                           }}
                           sideBySideMode={true}
+                          token={{
+                            address: club?.tokenAddress,
+                            ticker: club?.symbol,
+                          }}
                         />
                       </div>
                       <div className="sm:hidden">

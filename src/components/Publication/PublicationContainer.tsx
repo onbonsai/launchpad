@@ -46,6 +46,10 @@ type PublicationContainerProps = {
   sideBySideMode?: boolean;
   nestedWidget?: ReactNode;
   mdMinWidth?: string;
+  token?: {
+    address: `0x${string}`;
+    ticker: string;
+  }
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -75,6 +79,7 @@ const PublicationContainer = ({
   sideBySideMode,
   nestedWidget,
   mdMinWidth = 'md:min-w-[700px]',
+  token,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -462,6 +467,7 @@ const PublicationContainer = ({
         isCreator={isCreator}
         mediaUrl={mediaUrl}
         media={media}
+        token={token}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (

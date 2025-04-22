@@ -1,4 +1,4 @@
-import { type SessionClient, uri, postId, type URI, BigDecimal, txHash, evmAddress } from "@lens-protocol/client";
+import { type SessionClient, uri, postId, type URI, BigDecimal, txHash, evmAddress, BlockchainData } from "@lens-protocol/client";
 import { fetchPost, post } from "@lens-protocol/client/actions";
 import {
   textOnly,
@@ -20,6 +20,38 @@ import { LENS_BONSAI_DEFAULT_FEED, LENS_CHAIN_ID } from "../madfi/utils";
 import { parseBase64Image } from "@src/utils/utils";
 import { lensClient } from "./client";
 
+interface SimpleCollect {
+  simpleCollect: {
+    payToCollect: {
+      amount?: {
+        currency: EvmAddress;
+        value: BigDecimal;
+      };
+      recipients?: {
+        address: EvmAddress;
+        percent: number;
+      }[];
+      referralShare?: number;
+      collectLimit?: number;
+      endsAt?: string;
+    }
+  }
+} 
+
+interface UnknownAction {
+  unknown: {
+    params?: {
+      raw: {
+        key: BlockchainData;
+        data: BlockchainData;
+      };
+    }[] | null | undefined;
+    address: EvmAddress;
+  }
+}
+
+export type Action = SimpleCollect | UnknownAction;
+
 interface PostParams {
   text: string;
   image?: {
@@ -40,23 +72,7 @@ interface PostParams {
   };
   tokenAddress?: `0x${string}`;
   remix?: string;
-  actions?: {
-    simpleCollect: {
-      payToCollect: {
-        amount?: {
-          currency: EvmAddress;
-          value: BigDecimal;
-        };
-        recipients?: {
-          address: EvmAddress;
-          percent: number;
-        }[];
-        referralShare?: number;
-        collectLimit?: number;
-        endsAt?: string;
-      }
-    };
-  }[];
+  actions?: Action[];
 }
 
 const baseMetadata = {
@@ -203,6 +219,8 @@ export const createPost = async (
   })
     .andThen(handleOperationWith(walletClient))
     .andThen(sessionClient.waitForTransaction);
+
+  console.log("post result", result);
 
   if (result.isOk()) {
     let post;

@@ -46,14 +46,12 @@ const NETWORK_OPTIONS: NetworkOption[] = [
 ];
 
 const LENS_PRICING_TIERS = {
-  ...(!IS_PRODUCTION && {
-    [PricingTier.TEST]: {
-      label: 'Test',
-      value: 1,
-      icon: 'local-atm',
-      iconLabel: '$1 to graduate'
-    },
-  }),
+  // [PricingTier.TEST]: {
+  //   label: 'Test',
+  //   value: 1,
+  //   icon: 'local-atm',
+  //   iconLabel: '$1 to graduate'
+  // },
   [PricingTier.SMALL]: {
     label: 'Small',
     value: 6000,
@@ -89,6 +87,7 @@ const DisclosurePanelWithTransition = ({ children }) => {
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next, postImage }) => {
   const { address } = useAccount();
   const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
+  const [rewardPoolPercentage, setRewardPoolPercentage] = useState<number>(finalTokenData?.rewardPoolPercentage || 0);
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
   const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
@@ -158,6 +157,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const setTokenDataBefore = (fn) => {
     setFinalTokenData({
       initialSupply,
+      rewardPoolPercentage,
       uniHook,
       tokenName,
       tokenSymbol,
@@ -413,6 +413,43 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   </Subtitle>
                 </div>
               </div>
+
+              {/* Reward Pool Slider */}
+              {initialSupply ? <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1">
+                    <Subtitle className="text-white/70">
+                      Swap rewards for reposts and remixes
+                    </Subtitle>
+                    <div className="text-sm inline-block">
+                      <Tooltip message="Allocate a percentage of your tokens for trading incentives. These will be deposited from your wallet into a reward pool on graduation. You can still sell back to the Launchpad before then and withdraw or topup the rewards anytime after." direction="top">
+                        <InfoOutlined
+                          className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
+                        />
+                      </Tooltip>
+                    </div>
+                  </div>
+                  <Subtitle className="text-white/70">
+                    {rewardPoolPercentage}%
+                  </Subtitle>
+                </div>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    value={rewardPoolPercentage}
+                    onChange={(e) => setRewardPoolPercentage(parseInt(e.target.value))}
+                    className="w-full h-2 bg-card-light rounded-lg appearance-none cursor-pointer accent-brand-highlight [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-highlight [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-none [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-highlight [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-none"
+                    style={{
+                      background: `linear-gradient(to right, #5be39d ${rewardPoolPercentage * 2}%, #1A1A1A ${rewardPoolPercentage * 2}%)`
+                    }}
+                  />
+                </div>
+                <div className="mt-2 text-sm text-white/60">
+                  {initialSupply ? `${localizeNumber((initialSupply * rewardPoolPercentage) / 100, "decimal", 0)} ${tokenSymbol} will be deposited from your wallet on graduation.` : 'Enter initial supply first'}
+                </div>
+              </div>: null}
             </div>
           </div>
         </div>

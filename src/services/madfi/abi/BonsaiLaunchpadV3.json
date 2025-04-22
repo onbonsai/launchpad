@@ -154,8 +154,7 @@
             "name": "positionManager",
             "type": "address",
             "internalType": "contract INonfungiblePositionManager"
-          },
-          { "name": "factory", "type": "address", "internalType": "contract IUniswapV3Factory" }
+          }
         ]
       },
       {
@@ -178,6 +177,7 @@
           { "name": "router", "type": "address", "internalType": "contract IUniversalRouter" },
           { "name": "posm", "type": "address", "internalType": "contract IPositionManager" },
           { "name": "poolManager", "type": "address", "internalType": "contract IPoolManager" },
+          { "name": "allowanceTransfer", "type": "address", "internalType": "address" },
           { "name": "hookData", "type": "bytes", "internalType": "bytes" }
         ]
       },
