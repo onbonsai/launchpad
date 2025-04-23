@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { TransactionReceipt } from "viem";
 import { publicClient } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getLaunchpadAddress } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
 
@@ -13,7 +13,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
-      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      contractAddress: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
       transactionReceipt,
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",

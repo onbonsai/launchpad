@@ -3,7 +3,7 @@ import { decodeAbiParameters, decodeEventLog } from "viem";
 import { subgraphClient, publicClient } from "../madfi/moneyClubs";
 import { getBondingCurveTrades, formatTrades } from "./getChartData";
 import BonsaiLaunchpadAbi from "./../madfi/abi/BonsaiLaunchpad.json";
-import { PROTOCOL_DEPLOYMENT } from "../madfi/utils";
+import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "../madfi/utils";
 
 const EXCHANGE_BONDING_CURVE = "Bonsai";
 const EXCHANGE_UNI_V4 = "uniswap_v4";
@@ -156,7 +156,7 @@ export const createDatafeed = (chain: string) => {
 
       const client = publicClient();
       const unwatch = client.watchContractEvent({
-        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
         abi: BonsaiLaunchpadAbi,
         eventName: "Trade",
         args: { clubId },

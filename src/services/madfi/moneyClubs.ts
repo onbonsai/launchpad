@@ -4,7 +4,7 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress, } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
@@ -1031,13 +1031,13 @@ export const getBuyPrice = async (
   try {
     buyPrice = !!supply ?
       await client.readContract({
-        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
         abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
         functionName: "getBuyPrice",
         args: chain === "base" ? [parseUnits(supply, DECIMALS), amountWithDecimals] : [parseUnits(supply, DECIMALS), amountWithDecimals, pricingTier?.initialPrice, pricingTier?.flatThreshold, pricingTier?.targetPriceMultiplier]
       })
       : await client.readContract({
-        address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+        address: getLaunchpadAddress(chain == "base" ? "BonsaiLaunchpad" : "Periphery", clubId, chain),
         abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
         functionName: "getBuyPriceByClub",
         args: [clubId, amountWithDecimals]
@@ -1211,7 +1211,7 @@ export const getSellPrice = async (
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient(chain);
   const sellPrice = await client.readContract({
-    address: chain == "base" ? PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad : PROTOCOL_DEPLOYMENT[chain].Periphery,
+    address: getLaunchpadAddress(chain == "base" ? "BonsaiLaunchpad" : "Periphery", clubId, chain),
     abi: chain == "base" ? BonsaiLaunchpadAbi : PeripheryAbi,
     functionName: "getSellPriceByClub",
     args: [clubId, amountWithDecimals],
@@ -1275,14 +1275,14 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
     const contracts = [
       // Get total fees earned
       {
-        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", 0, chainName),
         abi: chainName === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
         functionName: "feesEarned",
         args: feesEarnedArgs,
       },
       // Get fees earned for each club
       ...creatorNFTList.map(id => ({
-        address: PROTOCOL_DEPLOYMENT[chainName].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", id, chainName),
         abi: BonsaiLaunchpadAbi,
         functionName: "clubFeesEarned",
         args: [id],
@@ -1412,7 +1412,7 @@ export const registerClubTransaction = async (
     args.push(WGHO_CONTRACT_ADDRESS); // quote token
   }
   const hash = await walletClient.writeContract({
-    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    address: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
     abi: chain == "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
     functionName: "registerClub",
     args,
@@ -1422,7 +1422,7 @@ export const registerClubTransaction = async (
 
   const receipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash });
   const event = getEventFromReceipt({
-    contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    contractAddress: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
     transactionReceipt: receipt,
     abi: BonsaiLaunchpadAbi,
     eventName: "RegisteredClub",
@@ -1460,7 +1460,7 @@ export const buyChips = async (
 ) => {
   const [recipient] = await walletClient.getAddresses();
   const hash = await walletClient.writeContract({
-    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
     abi: BonsaiLaunchpadAbi,
     functionName: "buyChips",
     args: [clubId, amount, maxPrice, clientAddress || zeroAddress, recipient, referral || zeroAddress],
@@ -1475,7 +1475,7 @@ export const buyChips = async (
 export const sellChips = async (walletClient: any, clubId: string, sellAmount: string, minAmountOut: bigint, chain = "base") => {
   const amountWithDecimals = parseUnits(sellAmount, DECIMALS);
   const hash = await walletClient.writeContract({
-    address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+    address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
     abi: BonsaiLaunchpadAbi,
     functionName: "sellChips",
     args: [clubId, amountWithDecimals, minAmountOut, zeroAddress],
@@ -1494,7 +1494,7 @@ export const approveToken = async (
   toastId?,
   approveMessage = "Approving tokens...",
   chain = "base",
-  contractAddress = PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+  contractAddress = getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
   onlyApproveAmount = false
 ) => {
   const [user] = await walletClient.getAddresses();
@@ -1572,7 +1572,7 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
   if (feesEarned > 0n) {
     if (chain === "lens") {
       hash = await walletClient.writeContract({
-        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", Number(clubIds[0]), chain),
         abi: BonsaiLaunchpadV3Abi,
         functionName: "withdrawFeesEarned",
         args: [zeroAddress, WGHO_CONTRACT_ADDRESS],
@@ -1580,7 +1580,7 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
       });
     } else {
       hash = await walletClient.writeContract({
-        address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+        address: getLaunchpadAddress("BonsaiLaunchpad", Number(clubIds[0]), chain),
         abi: BonsaiLaunchpadAbi,
         functionName: "withdrawFeesEarned",
         args: [zeroAddress],
@@ -1593,7 +1593,7 @@ export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubI
 
   if (clubIds && clubIds.length > 0) {
     hash = await walletClient.writeContract({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      address: getLaunchpadAddress("BonsaiLaunchpad", Number(clubIds[0]), chain),
       abi: BonsaiLaunchpadAbi,
       functionName: "withdrawClubFeesEarned",
       args: [clubIds],

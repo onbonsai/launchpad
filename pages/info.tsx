@@ -8,7 +8,7 @@ import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import clsx from "clsx";
 
 const DisclosurePanelWithTransition = ({ children }) => {
@@ -358,18 +358,18 @@ const Help = () => {
                             className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
-                            href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad, false)}
+                            href={baseScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "base"), false)}
                           >
-                            Base: {PROTOCOL_DEPLOYMENT.base.BonsaiLaunchpad}
+                            Base: {getLaunchpadAddress("BonsaiLaunchpad", 0, "base")}
                           </a>
                           <br />
                           <a
                             className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad, false)}
+                            href={lensScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "lens"), false)}
                           >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiLaunchpad}
+                            Lens: {getLaunchpadAddress("BonsaiLaunchpad", 0, "lens")}
                           </a>
                         </p>
                         <p className="mt-4 text-lg text-secondary">
@@ -379,18 +379,18 @@ const Help = () => {
                             className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
-                            href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.CreatorNFT, false)}
+                            href={baseScanUrl(getLaunchpadAddress("CreatorNFT", 0, "base"), false)}
                           >
-                            Base: {PROTOCOL_DEPLOYMENT.base.CreatorNFT}
+                            Base: {getLaunchpadAddress("CreatorNFT", 0, "base")}
                           </a>
                           <br />
                           <a
                             className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.CreatorNFT, false)}
+                            href={lensScanUrl(getLaunchpadAddress("CreatorNFT", 0, "lens"), false)}
                           >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.CreatorNFT}
+                            Lens: {getLaunchpadAddress("CreatorNFT", 0, "lens")}
                           </a>
                         </p>
                         <p className="mt-4 text-lg text-secondary">
@@ -400,9 +400,9 @@ const Help = () => {
                             className="link link-hover text-brand-highlight/80"
                             target="_blank"
                             rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Periphery, false)}
+                            href={lensScanUrl(getLaunchpadAddress("Periphery", 0, "lens"), false)}
                           >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.Periphery}
+                            Lens: {getLaunchpadAddress("Periphery", 0, "lens")}
                           </a>
                         </p>
                         <p className="mt-4 text-lg text-secondary">
