@@ -45,9 +45,9 @@ const PROTOCOL_DEPLOYMENT_MAINNET = {
     BonsaiNFT: "0xf060fd6b66B13421c1E514e9f10BedAD52cF241e",
     BonsaiLaunchpad: "0xb43a85C7369FA6535abCbBB9Da71f8eDCE067E03",
     CreatorNFT: "0x598cbeAce49CfE711D5AD75fb71e81e5B81c2eB5",
-    // v3 with token vesting fix
-    BonsaiLaunchpadFix: "",
-    CreatorNFTFix: "",
+    // v2 with token vesting fix
+    BonsaiLaunchpadFix: "0xC0Ffb22aCF44b5E8E66DAE180e5A23380C7ece16",
+    CreatorNFTFix: "0x4DC6CC80198aB90cD094Ab13F3c582afbF0AAE74",
   },
   lens: {
     Bonsai: "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82",
@@ -59,9 +59,9 @@ const PROTOCOL_DEPLOYMENT_MAINNET = {
     AccountTokenClaim: "0xDD25E29840daB77Daab42FeEB4174364A89037d1",
     RewardSwap: "0x80Dc28a9Dc227ee5EC717C509c8d6ceB7Bd43C25",
     // v3 with token vesting fix
-    BonsaiLaunchpadFix: "",
-    CreatorNFTFix: "",
-    PeripheryFix: "",
+    BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
+    CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
+    PeripheryFix: "0xAFcE1C785dD1c33F215B7aB5B2C23aF1Ed7cB7b9",
   },
 };
 
@@ -97,17 +97,16 @@ interface ContractThresholds {
   };
 }
 
-// TODO: update mainnet clubId thresholds
 const CONTRACT_THRESHOLDS: ContractThresholds = {
   base: {
-    BonsaiLaunchpad: 150,
-    CreatorNFT: 150,
-    Periphery: 150,
+    BonsaiLaunchpad: 306,
+    CreatorNFT: 306,
+    Periphery: 306,
   },
   lens: {
-    BonsaiLaunchpad: 150,
-    CreatorNFT: 150,
-    Periphery: 150,
+    BonsaiLaunchpad: 177,
+    CreatorNFT: 177,
+    Periphery: 177,
   },
 };
 
