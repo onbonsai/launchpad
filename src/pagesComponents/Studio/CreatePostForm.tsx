@@ -77,7 +77,7 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
-    let toastId = toast.loading("Generating preview...");
+    let toastId = toast.loading("Generating preview. This could take a minute...");
 
     try {
       const res = await generatePreview(
