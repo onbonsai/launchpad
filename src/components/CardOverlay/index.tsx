@@ -118,7 +118,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const collectorsText = useMemo(() => {
     if (!!postData?.actors?.length) {
       const word = postData.actors.length === 1 ? "has" : "have";
-      return postData.actors.map(actor => `@${actor.account.username.localName}`).join(', ') + ` ${word} joined`;
+      return postData.actors.map(actor => `@${actor.account.username?.localName}`).join(', ') + ` ${word} joined`;
     }
     return ""
   }, [postData?.actors]);
