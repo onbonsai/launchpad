@@ -72,7 +72,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               placeholder="0"
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              value={parseFloat(price)}
+              value={price ? parseFloat(price) : ""}
               className={clsx(
                 "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
                 isError ? 'text-brand-highlight/90' : 'text-secondary',

@@ -13,4 +13,5 @@ export const routesApp = {
   createBadge: "/badges/create",
   plugins: "/plugins",
   hooks: "/hooks",
+  stake: "/studio/stake",
 };

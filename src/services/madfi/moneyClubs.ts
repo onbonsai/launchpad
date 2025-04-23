@@ -1021,7 +1021,7 @@ export const getBuyPrice = async (
   clubId: string,
   amount: string,
   supply?: string,
-  chain = "base",
+  chain = "lens",
   _pricingTier?: string
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);

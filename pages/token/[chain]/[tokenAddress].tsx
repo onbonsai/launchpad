@@ -117,8 +117,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
   const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
 
-  console.log('vestingData', vestingData)
-
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
     vestingData?.vestingBalance || 0n,
