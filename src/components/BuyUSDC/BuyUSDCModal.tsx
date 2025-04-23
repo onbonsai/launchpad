@@ -47,37 +47,38 @@ const BuyUSDCModal = ({ chain, buyAmount, closeModal }: BuyUSDCModalProps) => {
       activeWallet={activeWallet}
       client={client}
       payOptions={{
-        mode: "fund_wallet",
+        mode: "direct_payment",
         metadata: {
           name: "Get GHO on Lens Chain",
         },
-        prefillBuy: {
-          chain: lensChain,
-          amount: "100"
-        },
-        // buyWithFiat: {
-        //   preferredProvider: "COINBASE",
-
-        //   // enable/disable test mode
-        //   testMode: false,
-        // },
-        // paymentInfo: {
-        //   // amount of token to buy
-        //   amount: buyAmount ? buyAmount.toString() : "100",
-
+        // prefillBuy: {
         //   chain: lensChain,
-
-        //   // using the EOA until lens account is easier
-        //   sellerAddress: address as `0x${string}`,
-        //   // token: {
-        //   //   address: "0x6bDc36E20D267Ff0dd6097799f82e78907105e2F",
-
-        //   //   // Making it look like GHO token
-        //   //   name: "GHO",
-        //   //   symbol: "GHO",
-        //   //   icon: "https://explorer.lens.xyz/images/gho.png",
-        //   // },
+        //   amount: "100"
         // },
+        buyWithFiat: {
+          preferredProvider: "COINBASE",
+
+          // enable/disable test mode
+          testMode: false,
+        },
+        buyWithCrypto: false,
+        paymentInfo: {
+          // amount of token to buy
+          amount: buyAmount ? buyAmount.toString() : "100",
+
+          chain: lensChain,
+
+          // using the EOA until lens account is easier
+          sellerAddress: address as `0x${string}`,
+          token: {
+            address: "0x000000000000000000000000000000000000800A",
+
+            // Making it look like GHO token
+            name: "GHO",
+            symbol: "GHO",
+            icon: "https://explorer.lens.xyz/images/gho.png",
+          },
+        },
         onPurchaseSuccess: (purchase) => {
           console.log("Purchase success", purchase);
           toast.success("Bought GHO")

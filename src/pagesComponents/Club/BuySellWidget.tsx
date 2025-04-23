@@ -435,7 +435,6 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : false || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
-                    {/* TODO: need thirdweb working with gho */}
                     {/* <Button
                       variant={"primary"}
                       size='md'
