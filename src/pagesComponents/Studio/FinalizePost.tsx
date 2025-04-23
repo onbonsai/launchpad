@@ -67,7 +67,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
           {/* Token preview */}
-          <div className="sm:col-span-6 flex flex-col">
+          {/* <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
               {(addToken || isRemix) && finalTokenData?.tokenSymbol ? (
                 <>
@@ -95,7 +95,7 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Collect settings */}
           <div className="sm:col-span-6 flex flex-col">
