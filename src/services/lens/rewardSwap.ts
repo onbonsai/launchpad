@@ -12,6 +12,12 @@ export const PARAM__CLIENT_ADDRESS = "0xa2e2b831586f148ebb0c7311ada7371940ec2150
 export const PARAM__REFERRALS = "0x183a1b7fdb9626f5ae4e8cac88ee13cc03b29800d2690f61e2a2566f76d8773f" as const;
 
 export const calculatePath = (tokenAddress: `0x${string}`) => {
+  if (tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
+    return encodePacked(
+      ["address", "uint24", "address"],
+      [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai],
+    );
+  }
   return encodePacked(
     ["address", "uint24", "address", "uint24", "address"],
     [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, tokenAddress],

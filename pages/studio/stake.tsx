@@ -27,6 +27,7 @@ import { useRouter } from 'next/router';
 import axios from "axios";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useModal } from "connectkit";
+import BuySellModal from '@pagesComponents/Club/BuySellModal';
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -103,6 +104,8 @@ const TokenPage: NextPage = () => {
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const { setOpen } = useModal();
+
+  const [showBuyModal, setShowBuyModal] = useState(false);
 
   const { stake, unstake } = useStakingTransactions();
 
@@ -415,7 +418,7 @@ const TokenPage: NextPage = () => {
                             <Button 
                               variant="accent" 
                               size="sm" 
-                              onClick={() => window.open('https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079d94052fed39625c147c12c?utm_medium=web', '_blank')}
+                              onClick={() => setShowBuyModal(true)}
                             >
                               Buy $BONSAI
                             </Button>
@@ -681,6 +684,31 @@ const TokenPage: NextPage = () => {
                     referralLink={referralLink}
                   />
                 </Modal>
+
+                {/* Buy Modal for BONSAI */}
+                <BuySellModal
+                  club={{
+                    tokenAddress: PROTOCOL_DEPLOYMENT.lens.Bonsai,
+                    chain: "lens",
+                    clubId: 0,
+                    complete: true,
+                    createdAt: 1743715358,
+                    supply: 1_000_000_000,
+                    initialPrice: 1,
+                    currentPrice: 1,
+                    token: {
+                      symbol: "BONSAI",
+                      image: "/bonsai.png",
+                    }
+                  }}
+                  address={address as string}
+                  open={showBuyModal}
+                  onClose={() => {
+                    setShowBuyModal(false);
+                  }}
+                  // specific post with reward swap bonsai attached to it
+                  postId={"84460185073799618504887246999943361907970590830957975660461666922692652187007"}
+                />
               </div>
             </div>
           </div>

@@ -28,11 +28,11 @@ import {
 } from "@src/services/madfi/moneyClubs";
 import { SITE_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
-import { ArrowDownIcon } from "@heroicons/react/outline";
+import { ArrowDownIcon, ExternalLinkIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { localizeNumber } from "@src/constants/utils";
-import { ACTION_HUB_ADDRESS, getChain, IS_PRODUCTION, lens, LENS_BONSAI_DEFAULT_FEED, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { ACTION_HUB_ADDRESS, getChain, IS_PRODUCTION, lens, LENS_BONSAI_DEFAULT_FEED, LENS_GLOBAL_FEED, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
 import { calculatePath, PARAM__CLIENT_ADDRESS, PARAM__REFERRALS } from "@src/services/lens/rewardSwap";
 import { PARAM__AMOUNT_OUT_MINIMUM } from "@src/services/lens/rewardSwap";
@@ -87,7 +87,7 @@ export const BuySellWidget = ({
   } : undefined);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
   const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
-  const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId);
+  const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
@@ -321,7 +321,8 @@ export const BuySellWidget = ({
         functionName: "executePostAction",
         args: [
           PROTOCOL_DEPLOYMENT.lens.RewardSwap,
-          LENS_BONSAI_DEFAULT_FEED,
+          // if output is Bonsai, use the global feed, since its a specific post
+          club.tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
           postId,
           [
             { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress)]) },
@@ -435,6 +436,11 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : false || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
                       Buy ${club.token.symbol}
                     </Button>
+                    {club.tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai && (
+                      <a className="link link-hover text-brand-highlight/80 cursor-pointer flex text-sm" href="https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079d94052fed39625c147c12c?utm_medium=web" target="_blank" rel="noopener noreferrer">
+                        Trade on Base <ExternalLinkIcon className="ml-1 mt-1 w-4 h-4" />
+                      </a>
+                    )}
                     {/* TODO: need thirdweb working with gho */}
                     {/* <Button
                       variant={"primary"}
