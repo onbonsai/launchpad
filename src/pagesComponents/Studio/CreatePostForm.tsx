@@ -297,8 +297,6 @@ const DynamicForm = ({
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
-        console.log(field)
-
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
