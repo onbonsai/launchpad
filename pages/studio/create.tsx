@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
+import CashIcon from "@heroicons/react/solid/CashIcon"
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
@@ -35,6 +36,7 @@ import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
+import { Tooltip } from "@mui/material";
 
 type TokenData = {
   initialSupply: number;
@@ -336,7 +338,7 @@ const StudioCreatePage: NextPage = () => {
           }
         ];
       }
-      
+
       let actions: Action[] = [{
         simpleCollect: {
           payToCollect: {
@@ -466,8 +468,16 @@ const StudioCreatePage: NextPage = () => {
                     <ArrowBack className="h-5 w-5" />
                   </Link>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
-                    <Subtitle className="items-start text-lg leading-tight mt-2 mr-8">{template?.description}</Subtitle>
+                    <div className="flex flex-row space-x-4">
+                      <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
+                      {template?.estimatedCost && (
+                        <span className="flex items-center text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1">
+                          <CashIcon className="h-4 w-4 mr-2" />
+                          ~{template.estimatedCost.toFixed(2)} credits
+                        </span>
+                      )}
+                    </div>
+                    <Subtitle className="items-start text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
                   </div>
                 </div>
               </div>

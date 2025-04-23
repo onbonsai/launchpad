@@ -40,8 +40,11 @@ export const getAuthenticatedProfile = async (): Promise<Account | null> => {
   const user = sessionClient.getAuthenticatedUser();
   if (user.isErr()) return null;
 
-  const account = await fetchAccount(sessionClient, { address: user.value.address  });
+  const result = await fetchAuthenticatedSessions(sessionClient);
+  const isOk = result.isOk() && result.value.items.length > 0;
+  if (!isOk) return null;
 
+  const account = await fetchAccount(sessionClient, { address: user.value.address  });
   return account.isOk() ? account.value : null;
 };
 
@@ -69,20 +72,17 @@ export const getAuthenticatedSession = async () => {
 };
 
 export const logout = async () => {
-  console.log("lens:: logout")
   const sessionClient = await resumeSession();
   if (!sessionClient) return null;
 
-  console.log("sessionClient.logout")
-
-  const res = await sessionClient.logout();
-  console.log(res);
+  await sessionClient.logout();
 };
 
 export const useAuthenticatedProfileId = () => {
   const result = useQuery({
     queryKey: ["lens-authenticated-profileId"],
     queryFn: async () => {
+
       const res = await getAuthenticatedProfileId();
       return res || null;
     },

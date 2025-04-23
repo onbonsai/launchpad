@@ -7,14 +7,18 @@ import { getSmartMediaUrl } from "@src/utils/utils";
 import { getClientWithMedia } from "../mongo/client";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { IS_PRODUCTION } from "./utils";
 
 export const APP_ID = "BONSAI";
-export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL || "https://eliza.onbons.ai";
+export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
+  (IS_PRODUCTION ? "https://eliza.onbons.ai" : "https://eliza-staging.onbons.ai");
 export const ELEVENLABS_VOICES = [
   { label: 'Serious (Male)', value: 'U2VUL94XlY3UYSlQvsxF' },
   { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
   { label: 'Italian Brainrot', value: 'pNInz6obpgDQGcFmaJgB' },
 ];
+// only for stakers, no free generations (generally because they are expensive)
+export const PREMIUM_TEMPLATES = ["video_dot_fun"];
 
 /**
  * SmartMedia categories and templates
@@ -63,6 +67,7 @@ export type Template = {
   apiUrl: string;
   acl: WalletAddressAcl;
   protocolFeeRecipient: `0x${string}`;
+  estimatedCost?: number;
   category: TemplateCategory;
   name: string;
   displayName: string;
@@ -112,7 +117,8 @@ export type SmartMedia = {
   description?: string;
   isProcessing?: boolean;
   versions?: string[];
-  status?: SmartMediaStatus
+  status?: SmartMediaStatus;
+  estimatedCost?: number; // estimated credits per generation
 };
 
 interface GeneratePreviewResponse {

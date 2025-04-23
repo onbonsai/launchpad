@@ -155,7 +155,8 @@ const CreatePostForm = ({
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
           {template.options.allowPreview && (
             <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-              Generate Preview
+              Generate
+              {template.estimatedCost && <span className="ml-1">{`(~${template.estimatedCost.toFixed(2)} credits)`}</span>}
             </Button>
           )}
           <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
@@ -202,7 +203,7 @@ const DynamicForm = ({
   setPostImage: (i: any) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
-  const removeImageModelOptions = !!postImage?.length;
+  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
 
   // Format options for SelectDropdown
   const modelOptions = useMemo(() => {

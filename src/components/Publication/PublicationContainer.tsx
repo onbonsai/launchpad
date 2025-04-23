@@ -96,6 +96,7 @@ const PublicationContainer = ({
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
   const [hasMirrored, setHasMirrored] = useState<boolean>(!!publication?.operations?.hasReposted?.onchain || false);
   const [hasCollected, setHasCollected] = useState<boolean>(publication.operations?.hasSimpleCollected || false);
+  const [isProcessing, setIsProcessing] = useState(media?.isProcessing || false);
   const [collectAmount, setCollectAmount] = useState<string>();
   const [isCollecting, setIsCollecting] = useState(false);
   const [showCollectModal, setShowCollectModal] = useState(false);
@@ -401,7 +402,7 @@ const PublicationContainer = ({
             <div className="rounded-2xl bg-dark-grey/80 hover:shining-border text-white flex flex-col px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
               <div className="h-10 flex items-center overflow-hidden">
                 <span className="pointer-events-none shrink-0">
-                  <SparkIcon color="#fff" height={16} />
+                  <SparkIcon color={!isProcessing ? "#fff" : "#5be39d"} height={16} />
                 </span>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden ml-1 mr-2">
                   <span className="pointer-events-none text-sm">
@@ -414,8 +415,12 @@ const PublicationContainer = ({
                   {media.status === SmartMediaStatus.ACTIVE && (
                     <>
                       <span className="text-white/60">•</span>
-                      <span className="pointer-events-none text-sm text-white/80">
-                        {`updating in ${formatNextUpdate(media.updatedAt)}`}
+                      <span className={`pointer-events-none text-sm ${isProcessing ? 'text-brand-highlight' : 'text-white/80'}`}>
+                        {
+                          isProcessing
+                            ? `updating now`
+                            : `updating in ${formatNextUpdate(media.updatedAt)}`
+                        }
                       </span>
                     </>
                   )}
@@ -468,6 +473,7 @@ const PublicationContainer = ({
         mediaUrl={mediaUrl}
         media={media}
         token={token}
+        onRequestGeneration={() => setIsProcessing(true)}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (

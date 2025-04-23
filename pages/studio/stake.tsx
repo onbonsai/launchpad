@@ -497,11 +497,11 @@ const TokenPage: NextPage = () => {
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium text-brand-highlight">Capacity Today</h3>
                           <div className="text-2xl font-bold text-secondary">
-                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} post generations
+                            {(creditBalance?.creditsRemaining || 0).toFixed(2)} credits /
+                            <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0} total</span>
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {(creditBalance?.creditsUsed || 0).toFixed(2)} credits used of{" "}
-                            {creditBalance?.totalCredits?.toFixed(2) || 0} total
+                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} generations (non-premium templates)
                           </p>
                         </div>
 

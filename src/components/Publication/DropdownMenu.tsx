@@ -33,6 +33,7 @@ interface DropdownMenuProps {
     address: `0x${string}`;
     ticker: string;
   }
+  onRequestGeneration: () => void;
 }
 
 export default ({
@@ -46,6 +47,7 @@ export default ({
   mediaUrl,
   media,
   token,
+  onRequestGeneration,
 }: DropdownMenuProps) => {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -167,6 +169,7 @@ export default ({
       if (!idToken) return;
 
       await requestPostUpdate(mediaUrl as string, postSlug, idToken);
+      onRequestGeneration();
 
       setShowDropdown(false);
       setCurrentView('initial');
@@ -294,14 +297,15 @@ export default ({
           return (
             <>
               <div className="px-4 py-3 text-center text-sm">
-                Request a post update
+                Request a generation?
+                {media?.estimatedCost && <span className="ml-1"><br />~ {media.estimatedCost.toFixed(2)} credits</span>}
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
                   onClick={(e) => handleButtonClick(e, onRefreshMetadata)}
                 >
-                  Confirm
+                  Generate
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -316,14 +320,14 @@ export default ({
           return (
             <>
               <div className="px-4 py-3 text-center text-sm">
-                Disable post updates
+                Disable post updates?
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
                   onClick={(e) => handleButtonClick(e, onDisableMetadata)}
                 >
-                  Confirm
+                  Disable
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -342,10 +346,10 @@ export default ({
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
                   onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
                 >
-                  Confirm Delete
+                  Delete
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -411,14 +415,16 @@ export default ({
                     Total Paid: {isLoadingRewards ? 'Loading...' : `${kFormatter(Number(formatEther(rewardPoolData?.totalRewardsPaid || 0n)), true)} ${token?.ticker}`}
                   </div>
                 </div>
+                {(rewardPoolData?.rewardsAmount || 0n) > 0n && (
+                  <button
+                    className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                    onClick={(e) => handleButtonClick(e, handleWithdrawRewards)}
+                  >
+                    Withdraw Rewards
+                  </button>
+                )}
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
-                  onClick={(e) => handleButtonClick(e, handleWithdrawRewards)}
-                >
-                  Withdraw Rewards
-                </button>
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                   onClick={() => setCurrentView('topup')}
                 >
                   Top Up Rewards
@@ -433,17 +439,20 @@ export default ({
             </>
           );
         default:
+          const insufficientCredits = media?.estimatedCost && creditBalance?.creditsRemaining
+            ?  media.estimatedCost > creditBalance.creditsRemaining
+            : false;
           return (
             <>
               <button
-                className={`w-full py-3 px-4 text-left flex items-center ${estimatedGenerations > 0 ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
-                onClick={() => estimatedGenerations > 0 && setCurrentView('refresh')}
+                className={`w-full py-3 px-4 text-left flex items-center ${!insufficientCredits ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
+                onClick={() => !insufficientCredits && setCurrentView('refresh')}
               >
                 <div className="w-4 flex items-center justify-center">
                   <SparkIcon color="rgba(255,255,255,0.8)" height={16} />
                 </div>
                 <span className="ml-2">
-                  {estimatedGenerations > 0 ? 'Update Post' : 'Insufficient credits to update'}
+                  {!insufficientCredits ? 'Post generation' : 'Insufficient credits to update'}
                 </span>
               </button>
               {media?.status === SmartMediaStatus.ACTIVE && (
@@ -466,7 +475,7 @@ export default ({
                 </div>
                 <span className="ml-2">Delete Post</span>
               </button>
-              {token && (
+              {token?.address && (
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
                   onClick={() => setCurrentView('rewards')}
@@ -572,7 +581,7 @@ export default ({
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
                 onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
               >
-                Confirm Delete
+                Delete
               </button>
               <button
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"

@@ -47,7 +47,7 @@ const LoginWithLensModal = ({ closeModal }) => {
 
   useEffect(() => {
     if (selectedProfile?.address) { // triggered when we select a profile
-      if (authenticatedProfileId) lensLogout(); // if switching profiles
+      if (authenticatedProfileId) lensLogout().then(fullRefetch); // if switching profiles
       else signInWithLens(selectedProfile);
     }
   }, [selectedProfile?.address]);

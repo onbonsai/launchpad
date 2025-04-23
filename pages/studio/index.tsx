@@ -2,7 +2,7 @@ import { NextPage } from "next"
 import Image from "next/image"
 import { useRouter } from "next/router";
 import { useMemo, useRef, useState } from "react"
-import { CATEGORIES, TemplateCategory } from "@src/services/madfi/studio";
+import { CATEGORIES, PREMIUM_TEMPLATES, TemplateCategory } from "@src/services/madfi/studio";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -13,6 +13,7 @@ import clsx from "clsx";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import toast from "react-hot-toast";
+import { useStakingData } from "@src/hooks/useStakingData";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -22,6 +23,7 @@ const StudioCreatePage: NextPage = () => {
   const [importedTemplateURL, setImportedTemplateURL] = useState<string | undefined>();
   const { data: registeredTemplates, isLoading } = useRegisteredTemplates(importedTemplateURL);
   const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+  const { data: stakingData } = useStakingData(address as string);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
 
   const estimatedGenerations = useMemo(() => {
@@ -67,13 +69,14 @@ const StudioCreatePage: NextPage = () => {
     ];
   }, [CATEGORIES, registeredTemplates]);
 
+  const totalStaked = useMemo(() => {
+    if (!stakingData?.summary?.totalStaked) return 0n;
+    return BigInt(stakingData?.summary?.totalStaked || "0")
+  }, [stakingData?.summary]);
+
   const selectTemplate = (template: string) => {
     router.push(`/studio/create?template=${template}`);
   }
-
-  const onSubmit = (link: string) => {
-    ;
-  };
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -130,44 +133,50 @@ const StudioCreatePage: NextPage = () => {
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Templates</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
-                  {!isLoading && templatesFiltered?.map((template, idx) => (
-                    <div
-                      key={`template-${idx}`}
-                      className={`bg-card-light rounded-lg ${estimatedGenerations > 0 ? "cursor-pointer" : ""} p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
-                      onClick={() => { if (estimatedGenerations > 0) selectTemplate(template.name); }}
-                    >
-                      <div className="rounded-lg overflow-hidden mb-4 border border-dark-grey">
-                        <Image
-                          src={template.image || "/placeholder.svg?height=200&width=300"}
-                          alt={template.displayName}
-                          width={300}
-                          height={200}
-                          className="w-full h-auto aspect-[1.5/1] object-cover"
-                        />
-                      </div>
-                      <div className="flex flex-col flex-1">
-                        <h3 className="font-semibold text-lg text-brand-highlight">{template.displayName}</h3>
-                        <p className="text-sm text-secondary/60">
-                          {template.description}
-                        </p>
-                        <div className="flex-1" />
-                        <div className="flex justify-end mt-4">
-                          {!isLoadingCredits && estimatedGenerations !== undefined && (
-                            <button
-                              className={`text-base text-black px-4 py-1 rounded-full text-sm ${
-                                estimatedGenerations === 0
-                                  ? 'bg-brand-highlight/50 cursor-not-allowed'
-                                  : 'bg-brand-highlight hover:bg-brand-highlight/90 transition-colors'
-                              }`}
-                              disabled={estimatedGenerations === 0}
-                            >
-                              {estimatedGenerations > 0 ? "Create" : "Insufficient credits"}
-                            </button>
-                          )}
+                  {!isLoading && templatesFiltered?.map((template, idx) => {
+                    const disabled = estimatedGenerations === 0 || (PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n);
+                    return (
+                      <div
+                        key={`template-${idx}`}
+                        className={`bg-card-light rounded-lg ${!disabled ? "cursor-pointer" : ""} p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
+                        onClick={() => { if (!disabled) selectTemplate(template.name); }}
+                      >
+                        <div className="rounded-lg overflow-hidden mb-4 border border-dark-grey">
+                          <Image
+                            src={template.image || "/placeholder.svg?height=200&width=300"}
+                            alt={template.displayName}
+                            width={300}
+                            height={200}
+                            className="w-full h-auto aspect-[1.5/1] object-cover"
+                          />
+                        </div>
+                        <div className="flex flex-col flex-1">
+                          <h3 className="font-semibold text-lg text-brand-highlight">{template.displayName}</h3>
+                          <p className="text-sm text-secondary/60">
+                            {template.description}
+                          </p>
+                          <div className="flex-1" />
+                          <div className="flex justify-end mt-4">
+                            {!isLoadingCredits && estimatedGenerations !== undefined && (
+                              <button
+                                className={`text-base text-black px-4 py-1 rounded-full text-sm ${
+                                  disabled
+                                    ? 'bg-brand-highlight/50 cursor-not-allowed'
+                                    : 'bg-brand-highlight hover:bg-brand-highlight/90 transition-colors'
+                                }`}
+                                disabled={disabled}
+                              >
+                                {(PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n)
+                                  ? "Only stakers"
+                                  : (estimatedGenerations > 0 ? "Create" : "Insufficient credits")
+                                }
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 
