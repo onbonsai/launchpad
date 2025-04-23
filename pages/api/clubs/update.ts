@@ -8,7 +8,7 @@ import { lensClient } from "@src/services/lens/client";
 import { parseJwt } from "@src/services/lens/login";
 import { publicClient } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
-import { IS_PRODUCTION, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getLaunchpadAddress, IS_PRODUCTION, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
 
@@ -52,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const client = publicClient(chain);
     const transactionReceipt = await client.waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
-      contractAddress: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      contractAddress: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
       transactionReceipt,
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",

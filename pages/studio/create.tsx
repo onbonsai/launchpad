@@ -221,7 +221,7 @@ const StudioCreatePage: NextPage = () => {
 
         // Approve token for reward pool
         if (finalTokenData.selectedNetwork === "lens") {
-          const rewardPoolAmount = Math.floor((finalTokenData.rewardPoolPercentage || 0) * finalTokenData.initialSupply / 100).toString();
+          const rewardPoolAmount = Math.floor((finalTokenData.rewardPoolPercentage || 0) * (finalTokenData.initialSupply || 0) / 100).toString();
           if (rewardPoolAmount !== "0") {
             await approveToken(
               tokenAddress,

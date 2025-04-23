@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { encodeFunctionData, parseUnits, zeroAddress } from "viem";
 
 import { DECIMALS, getBuyAmount, publicClient, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
-import { lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getLaunchpadAddress, lens, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { base } from "viem/chains";
 
@@ -50,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let rawData: any | null = null;
     try {
       const _rawData = await publicClient().prepareTransactionRequest({
-        to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad as `0x${string}`,
+        to: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain) as `0x${string}`,
         account: senderAddress,
         data,
         chain: chain === "base" ? base : lens,
@@ -71,7 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     return res.status(200).json({
-      to: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      to: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
       amountOut: amountOut.toString(),
       maxAmountIn: maxAmountIn.toString(),
       rawData,

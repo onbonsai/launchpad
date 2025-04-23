@@ -11,7 +11,7 @@ import {
   WGHO_CONTRACT_ADDRESS,
   getRegisteredClubById,
 } from "@src/services/madfi/moneyClubs";
-import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT, getChain } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
@@ -117,7 +117,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       args = [clubId, minAmountOut, swapInfoV3, swapInfoV4, true];
     }
     const hash = await walletClient.writeContract({
-      address: PROTOCOL_DEPLOYMENT[chain].BonsaiLaunchpad,
+      address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
       abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
       functionName: "releaseLiquidity",
       args,
