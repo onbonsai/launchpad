@@ -59,6 +59,9 @@ const useVestingProgress = (
     vesting: vestingBalance
   });
 
+  // Store the initial timestamp when the hook is first called
+  const [initialTimestamp] = useState(Math.floor(Date.now() / 1000));
+
   useEffect(() => {
     if (!liquidityReleasedAt) {
       return;
@@ -66,10 +69,14 @@ const useVestingProgress = (
 
     const calculateProgress = () => {
       const now = Math.floor(Date.now() / 1000);
-      const timeElapsed = now - liquidityReleasedAt;
+      // Calculate time elapsed from when the hook was initialized
+      const timeElapsed = now - initialTimestamp;
       const totalDuration = Number(vestingDuration);
+      
+      // Calculate remaining duration from when hook was initialized
+      const remainingDuration = totalDuration - (initialTimestamp - liquidityReleasedAt);
 
-      if (timeElapsed >= totalDuration) {
+      if (timeElapsed >= remainingDuration) {
         setCurrent({
           available: availableBalance + vestingBalance,
           vesting: 0n
@@ -77,19 +84,19 @@ const useVestingProgress = (
         return;
       }
 
-      const progress = timeElapsed / totalDuration;
-      const vestedAmount = vestingBalance * BigInt(Math.floor(progress * 1e18)) / BigInt(1e18);
+      const progress = timeElapsed / remainingDuration;
+      const additionalVestedAmount = vestingBalance * BigInt(Math.floor(progress * 1e18)) / BigInt(1e18);
 
       setCurrent({
-        available: availableBalance + vestedAmount,
-        vesting: vestingBalance - vestedAmount
+        available: availableBalance + additionalVestedAmount,
+        vesting: vestingBalance - additionalVestedAmount
       });
     };
 
     calculateProgress();
     const interval = setInterval(calculateProgress, 1000);
     return () => clearInterval(interval);
-  }, [availableBalance, vestingBalance, liquidityReleasedAt, vestingDuration]);
+  }, [availableBalance, vestingBalance, liquidityReleasedAt, vestingDuration, initialTimestamp]);
 
   return current;
 };
@@ -109,6 +116,8 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
   const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
+
+  console.log('vestingData', vestingData)
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
