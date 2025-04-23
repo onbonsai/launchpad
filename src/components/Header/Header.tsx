@@ -211,12 +211,17 @@ export const Header = () => {
           The Smart Media tokens can be created by anyone, and through the bonding curve its price increases until
           graduation.
         </p>
-        <p className="mt-4 text-secondary/70">
-          Tokens from V1 Launchpad are tradeable on{" "}
-          <a className="link-hover cursor-pointer" href={V1_LAUNCHPAD_URL} target="_blank" rel="noreferrer">
-            {V1_LAUNCHPAD_URL}
-          </a>
+
+        <p className="mt-2 text-secondary/70">
+          Head to the{" "}
+          <Link href={routesApp.stake}>
+            <span className="text-brand-highlight/80 link-hover cursor-pointer" onClick={() => setOpenHelpModal(false)}>
+              staking page
+            </span>
+          </Link>{" "}
+          to bridge or buy $BONSAI tokens.
         </p>
+
         <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
           <Link href={routesApp.info} legacyBehavior target="_blank">
             <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
