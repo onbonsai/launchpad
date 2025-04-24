@@ -1,13 +1,13 @@
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { addPostNotInterested, deletePost, reportPost } from "@lens-protocol/client/actions";
-import { FlagOutlined, RemoveCircle, RefreshOutlined, Block, AccountBalanceWallet } from "@mui/icons-material";
+import { FlagOutlined, RemoveCircle, Block, AccountBalanceWallet, Star, StarBorderOutlined, StarOutline} from "@mui/icons-material";
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
-import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } from '@src/services/madfi/studio';
+import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus, SET_FEATURED_ADMINS, setFeatured } from '@src/services/madfi/studio';
 import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { handleOperationWith } from "@lens-protocol/client/viem";
@@ -17,7 +17,7 @@ import { formatEther, parseEther } from 'viem';
 import { approveToken, topUpRewards, withdrawRewards } from '@src/services/madfi/moneyClubs';
 import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 
-type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete' | 'rewards' | 'topup';
+type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete' | 'rewards' | 'topup' | 'feature';
 
 interface DropdownMenuProps {
   showDropdown: boolean;
@@ -59,6 +59,8 @@ export default ({
   });
   const [topUpAmount, setTopUpAmount] = useState('');
   const [currentView, setCurrentView] = useState<ViewState>('initial');
+  const [isFeatured, setIsFeatured] = useState(media?.featured || false);
+  const showFeaturedToggle = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()) && mediaUrl?.includes("onbons.ai"), [mediaUrl, address]);
 
   const estimatedGenerations = useMemo(() => {
     if (!isLoadingCredits) {
@@ -241,6 +243,36 @@ export default ({
       toast.error("Failed to top up rewards", { id: toastId });
     }
   };
+
+  const handleFeatured = async () => {
+    if (!showFeaturedToggle) {
+      toast.error("Not admin or not a bonsai media");
+      return;
+    }
+
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) return;
+
+    const creds = await sessionClient.getCredentials();
+
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+    }
+
+    let toastId = toast.loading(`Setting post as ${isFeatured ? 'not featured' : 'featured'}`);
+    try {
+      const res = await setFeatured(idToken, media?.postId as string, !isFeatured);
+      if (res) {
+        toast.success("Success", { id: toastId });
+        setIsFeatured(!isFeatured);
+      } else toast.error("Failed to featured", { id: toastId });
+    } catch (error) {
+      toast.error("Failed to set featured", { id: toastId });
+    }
+  }
 
   useEffect(() => {
     if (!showDropdown) return;
@@ -444,6 +476,18 @@ export default ({
             : false;
           return (
             <>
+              {showFeaturedToggle && (
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  onClick={handleFeatured}
+                >
+                  {!isFeatured
+                    ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                    : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                  }
+                  <span className="ml-2">{!isFeatured ? "Feature" : "Remove Feature"}</span>
+                </button>
+              )}
               <button
                 className={`w-full py-3 px-4 text-left flex items-center ${!insufficientCredits ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
                 onClick={() => !insufficientCredits && setCurrentView('refresh')}
@@ -596,6 +640,18 @@ export default ({
       default:
         return (
           <>
+            {showFeaturedToggle && (
+              <button
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                onClick={handleFeatured}
+              >
+                {!isFeatured
+                  ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                  : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                }
+                <span className="ml-2">{!isFeatured ? "Feature" : "Remove Feature"}</span>
+              </button>
+            )}
             <button
               className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
               onClick={() => setCurrentView('notInterested')}

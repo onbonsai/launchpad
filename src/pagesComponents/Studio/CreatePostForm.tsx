@@ -214,7 +214,7 @@ const DynamicForm = ({
         { value: "", label: "Default" },
         ...models.map(model => ({
           value: model,
-          label: `${model}: ${imageModelDescriptions[model]}`,
+          label: `${model}: ${imageModelDescriptions[model] || ''}`,
         }))
       ]
     }];

@@ -19,6 +19,12 @@ export const ELEVENLABS_VOICES = [
 ];
 // only for stakers, no free generations (generally because they are expensive)
 export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video"];
+// so we can quickly feature posts
+export const SET_FEATURED_ADMINS = [
+  "0xdc4471ee9dfca619ac5465fde7cf2634253a9dc6",
+  "0x28ff8e457fef9870b9d1529fe68fbb95c3181f64",
+  "0x21af1185734d213d45c6236146fb81e2b0e8b821" // bonsai deployer
+];
 
 /**
  * SmartMedia categories and templates
@@ -119,6 +125,7 @@ export type SmartMedia = {
   versions?: string[];
   status?: SmartMediaStatus;
   estimatedCost?: number; // estimated credits per generation
+  featured?: boolean; // whether the post should be featured
 };
 
 interface GeneratePreviewResponse {
@@ -224,15 +231,59 @@ export const resolveSmartMedia = async (
     let url = _url || getSmartMediaUrl(attributes);
     if (!url) return null;
 
-    const response = await fetch(`${url}/post/${postId}?withVersions=${withVersions}`);
-    if (!response.ok) {
-      // console.log(`Smart media not found for post ${postId}: ${response.status} ${response.statusText}`);
+    // Validate URL format
+    try {
+      new URL(url);
+    } catch {
+      // Invalid URL format, fail fast
       return null;
     }
 
-    return  await response.json();
+    const controller = new AbortController();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        controller.abort();
+        reject(new Error('Request timeout'));
+      }, 5000);
+    });
+
+    const fetchPromise = fetch(`${url}/post/${postId}?withVersions=${withVersions}`, {
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+      },
+    }).then(async (response) => {
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data) {
+        throw new Error('No data received');
+      }
+      return data;
+    }).catch(error => {
+      // Handle network errors (DNS failure, connection refused, etc)
+      if (error instanceof TypeError && error.message.includes('fetch failed')) {
+        // Server is unreachable, fail fast
+        return null;
+      }
+      throw error;
+    });
+
+    return await Promise.race([fetchPromise, timeoutPromise]) as SmartMedia | null;
   } catch (error) {
-    console.log(error);
+    if (error instanceof Error) {
+      // Only log if it's not a timeout, abort, or network error
+      if (!error.message.includes('abort') &&
+          !error.message.includes('timeout') &&
+          !(error instanceof TypeError && error.message.includes('fetch failed'))) {
+        console.error(`Failed to resolve smart media for post ${postId}:`, error.message);
+      }
+    }
     return null;
   }
 };
@@ -247,6 +298,10 @@ export const useResolveSmartMedia = (
     queryKey: ["resolve-smart-media", postId],
     queryFn: () => resolveSmartMedia(attributes!, postId!, withVersions, url),
     enabled: !!postId && !!(attributes || url),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: false, // Don't retry failed requests
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: false, // Don't refetch when component mounts
   });
 };
 
@@ -322,4 +377,25 @@ export const useGetFeaturedPosts = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
+};
+
+export const setFeatured = async (idToken: string, postId: string, featured: boolean): Promise<boolean> => {
+  try {
+    console.log({ postId, featured })
+    const response = await fetch("/api/bonsai/set-featured", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ postId, featured }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to set featured: ${response.statusText}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error:", error);
+    return false;
+  }
 };
