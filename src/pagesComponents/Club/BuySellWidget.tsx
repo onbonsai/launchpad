@@ -65,6 +65,7 @@ export const BuySellWidget = ({
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [useBonsaiAsInput, setUseBonsaiAsInput] = useState(false);
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
@@ -80,7 +81,7 @@ export const BuySellWidget = ({
 
     // GHO/USDC Balance
     const { data: tokenBalance } = useReadContract({
-      address: club.chain === "lens" ? (club.complete && openTab === 2 ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
+      address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
       abi: erc20Abi,
       chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
       functionName: "balanceOf",
@@ -259,7 +260,7 @@ export const BuySellWidget = ({
     path:
       club.chain === "lens" && club.complete && openTab === 2
         ? calculatePath(PROTOCOL_DEPLOYMENT.lens.Bonsai, club.tokenAddress)
-        : calculatePath(club.tokenAddress),
+        : calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined),
     amountIn: parseUnits(openTab === 1 ? buyPrice : sellAmount, _DECIMALS),
     enabled: (!!buyPrice || !!sellAmount) && !!club.tokenAddress && club.chain === "lens" && club.complete,
   });
@@ -285,7 +286,7 @@ export const BuySellWidget = ({
       const quoteTokenAddress = WGHO_CONTRACT_ADDRESS;
       // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
 
-      if (club.chain === "lens") {
+      if (club.chain === "lens" && !useBonsaiAsInput) {
         // Calculate how much WGHO we need for the transaction
         const requiredAmount = parseUnits(buyPrice, _DECIMALS);
         const currentWGHOBalance = tokenBalance || 0n;
@@ -326,7 +327,7 @@ export const BuySellWidget = ({
       }
 
       const parsedBuyPrice = parseUnits(buyPrice, _DECIMALS);
-      await approveToken(quoteTokenAddress, parsedBuyPrice, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
+      await approveToken(useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : quoteTokenAddress, parsedBuyPrice, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
 
       toastId = toast.loading("Buying", { id: toastId });
       let _buyAmount = quoteResult[0];
@@ -340,7 +341,7 @@ export const BuySellWidget = ({
           club.tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
           postId,
           [
-            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress)]) },
+            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined)]) },
             { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parsedBuyPrice]) },
             { key: PARAM__AMOUNT_OUT_MINIMUM, value: encodeAbiParameters([{ type: 'uint256' }], [(9n * quoteResult[0]) / 10n]) },
             { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: 'address' }], [zeroAddress]) },
@@ -462,7 +463,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
       }
       }>
       <div className="flex items-center justify-between mb-4">
-        <Tabs openTab={openTab} setOpenTab={setOpenTab} setJustBought={setJustBought} />
+        <Tabs openTab={openTab} setOpenTab={setOpenTab} setJustBought={setJustBought} disableSell={postId === SWAP_TO_BONSAI_POST_ID} />
         {/* {(!!bonsaiBalanceNFT && bonsaiBalanceNFT > 0n) && (
           <label className="text-xs font-medium text-secondary/70 whitespace-nowrap mt-4">
             Trading Fee: $0
@@ -480,14 +481,19 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
                       <CurrencyInput
-                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
-                        tokenBalance={club.chain === "lens" ? (tokenBalance || 0n) + (ghoBalance?.value || 0n) : tokenBalance}
+                        tokenImage={club.chain === "lens" ? (useBonsaiAsInput ? "/bonsai.png" : "/gho.webp") : "/usdc.png"}
+                        tokenBalance={club.chain === "lens" ? (useBonsaiAsInput ? tokenBalance : (tokenBalance || 0n) + (ghoBalance?.value || 0n)) : tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol={club.chain === "lens" ? "GHO" : "USDC"}
+                        symbol={club.chain === "lens" ? (useBonsaiAsInput ? "BONSAI" : "GHO") : "USDC"}
                         showMax
                         chain={club.chain}
+                        secondaryToken={club.chain === "lens" && club.complete ? {
+                          image: useBonsaiAsInput ? "/gho.webp" : "/bonsai.png",
+                          symbol: useBonsaiAsInput ? "GHO" : "BONSAI",
+                          onClick: () => setUseBonsaiAsInput(!useBonsaiAsInput)
+                        } : undefined}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -669,7 +675,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
   );
 };
 
-const Tabs = ({ openTab, setOpenTab, setJustBought }) => {
+const Tabs = ({ openTab, setOpenTab, setJustBought, disableSell = false }) => {
   return (
     <div
       className="flex w-full"
@@ -697,13 +703,14 @@ const Tabs = ({ openTab, setOpenTab, setJustBought }) => {
             <Header2Text className={clsx("font-sans", openTab === 1 ? "text-white" : "text-white/30")}>Buy</Header2Text>
           </button>
         </li>
-        <li className="nav-item" role="presentation">
-          <button
-            onClick={() => {
-              setOpenTab(2);
-              setJustBought(false);
-            }}
-            className={clsx(`
+        {!disableSell && (
+          <li className="nav-item" role="presentation">
+            <button
+              onClick={() => {
+                setOpenTab(2);
+                setJustBought(false);
+              }}
+              className={clsx(`
           nav-link
           block
           rounded
@@ -712,10 +719,11 @@ const Tabs = ({ openTab, setOpenTab, setJustBought }) => {
           md:w-auto
           mr-2
           focus:outline-none focus:ring-0`)}
-          >
-            <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>Sell</Header2Text>
-          </button>
-        </li>
+            >
+              <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>Sell</Header2Text>
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );

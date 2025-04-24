@@ -19,6 +19,12 @@ export const calculatePath = (tokenAddress: `0x${string}` | string, fromAddress?
       [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai],
     );
   }
+  if (fromAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
+    return encodePacked(
+      ["address", "uint24", "address"],
+      [PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, tokenAddress],
+    );
+  }
   return encodePacked(
     ["address", "uint24", "address", "uint24", "address"],
     [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, tokenAddress],
