@@ -1,7 +1,5 @@
 import { createThirdwebClient, defineChain } from "thirdweb";
-
 import { viemAdapter } from "thirdweb/adapters/viem";
-import { IS_PRODUCTION, LENS_CHAIN_ID } from "../madfi/utils";
 
 export const lensChain = defineChain({ id: 232 });
 

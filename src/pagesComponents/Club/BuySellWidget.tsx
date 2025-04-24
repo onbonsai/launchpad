@@ -440,7 +440,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                       size='md'
                       className="w-full !border-none"
                       onClick={() => {
-                        onBuyUSDC(buyPrice, "100");
+                        onBuyUSDC(buyPrice);
                       }}
                     >
                       Fund wallet

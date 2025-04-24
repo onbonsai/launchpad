@@ -59,7 +59,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             <span
               className={clsx(
                 "flex-shrink border-transparent bg-transparent shadow-sm md:text-2xl text-white sm:text-sm pt-2 pr-0 pb-2 pl-2 rounded-2xl",
-                isError ? 'text-brand-highlight/90' : 'text-secondary',
+                isError ? 'text-bearish/90' : 'text-secondary',
               )}
             >
               {localizeNumber(parseFloat(price), symbol === "USDC" ? "currency" : "decimal", symbol === "USDC" ? 2 : undefined)}
@@ -75,7 +75,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               value={price ? parseFloat(price) : ""}
               className={clsx(
                 "flex-shrink border-transparent bg-transparent focus:bg-transparent shadow-sm focus:border-transparent focus:ring-transparent md:text-2xl text-white sm:text-sm pl-2 pr-0 rounded-2xl",
-                isError ? 'text-brand-highlight/90' : 'text-secondary',
+                isError ? 'text-bearish/90' : 'text-secondary',
                 "placeholder:text-secondary/70"
               )}
               onChange={(e) => {

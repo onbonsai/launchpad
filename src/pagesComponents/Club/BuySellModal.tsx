@@ -9,7 +9,7 @@ interface BuySellModalProps {
     open: boolean;
     buyAmount?: string;
     onClose: () => void;
-    onBuyUSDC?: (amount: string, amountNeeded: number) => void;
+    onBuyUSDC?: (amount: string) => void;
     mediaProtocolFeeRecipient?: `0x${string}`;
     useRemixReferral?: `0x${string}`;
     postId?: string;
