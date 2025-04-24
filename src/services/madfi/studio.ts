@@ -18,7 +18,7 @@ export const ELEVENLABS_VOICES = [
   { label: 'Italian Brainrot', value: 'pNInz6obpgDQGcFmaJgB' },
 ];
 // only for stakers, no free generations (generally because they are expensive)
-export const PREMIUM_TEMPLATES = ["video_dot_fun"];
+export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video"];
 
 /**
  * SmartMedia categories and templates
