@@ -489,7 +489,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         symbol={club.chain === "lens" ? (useBonsaiAsInput ? "BONSAI" : "GHO") : "USDC"}
                         showMax
                         chain={club.chain}
-                        secondaryToken={club.chain === "lens" && club.complete ? {
+                        secondaryToken={club.chain === "lens" && club.complete && postId !== SWAP_TO_BONSAI_POST_ID ? {
                           image: useBonsaiAsInput ? "/gho.webp" : "/bonsai.png",
                           symbol: useBonsaiAsInput ? "GHO" : "BONSAI",
                           onClick: () => setUseBonsaiAsInput(!useBonsaiAsInput)
