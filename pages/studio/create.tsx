@@ -594,7 +594,7 @@ const StudioCreatePage: NextPage = () => {
                         environment={LENS_ENVIRONMENT}
                         profilePictureStyleOverride={publicationProfilePictureStyle}
                         containerBorderRadius={'24px'}
-                        containerPadding={'12px'}
+                        containerPadding={'10px'}
                         profilePadding={'0 0 0 0'}
                         textContainerStyleOverride={textContainerStyleOverrides}
                         backgroundColorOverride={'rgba(255,255,255, 0.08)'}

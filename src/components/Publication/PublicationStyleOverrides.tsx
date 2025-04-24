@@ -26,7 +26,7 @@ export const commentPublicationProfilePictureStyle = css`
 `;
 
 export const textContainerStyleOverrides = css`
-  padding-top: 20px;
+  padding-top: 10px;
   font-size: 20px;
   line-height: 20px;
   font-family: inherit;
