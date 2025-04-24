@@ -2,7 +2,7 @@ import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import { ImageResponse } from "@vercel/og";
 import { NextRequest } from "next/server";
 import { storjGatewayURL } from "@src/utils/storj";
-import { lensClient } from "@src/services/lens/client";
+import { lensClient, storageClient } from "@src/services/lens/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { postId } from "@lens-protocol/client";
 import WordMark from "@src/assets/css/workMark";
@@ -55,6 +55,8 @@ export default async function handler(req: NextRequest) {
 
     if (imageUrl.startsWith("ipfs")) {
       imageUrl = storjGatewayURL(imageUrl, true);
+    } else if (imageUrl.startsWith("lens")) {
+      imageUrl = await storageClient.resolve(imageUrl);
     }
 
     if (profileImageUrl.startsWith("ipfs")) {
