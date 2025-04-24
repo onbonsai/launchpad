@@ -22,6 +22,7 @@ import {
   searchClubs,
   getRewardPool,
 } from "@src/services/madfi/moneyClubs";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
@@ -264,7 +265,7 @@ export const useGetClubBalance = (clubId?: string, address?: `0x${string}`, chai
   return useQuery({
     queryKey: ["club-balance", clubId, address],
     queryFn: () => getBalance(clubId!, address!, chain, complete, tokenAddress),
-    enabled: !!clubId && !!address,
+    enabled: (!!clubId && !!address) || (tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai),
     staleTime: 10000,
     gcTime: 60000,
   });
@@ -346,7 +347,7 @@ export const useGetTradingInfo = (clubId?: number, chain = "base") => {
         .then(response => response.json());
       return data;
     },
-    enabled: !!clubId,
+    enabled: !!clubId && clubId !== 0,
     staleTime: 60000,
     gcTime: 60000 * 5,
   });

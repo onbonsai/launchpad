@@ -84,9 +84,12 @@ export const LENS_BONSAI_DEFAULT_FEED = IS_PRODUCTION
   ? process.env.NEXT_PUBLIC_LENS_DEFAULT_FEED || "0x075083417a0e58cE665c7E0E9970187f4053928F"
   : "0xeCb72dCabFC9288CB96aA65042b9f9cF93d10DB1";
 
+export const LENS_GLOBAL_FEED = IS_PRODUCTION
+  ? "0xcB5E109FFC0E15565082d78E68dDDf2573703580"
+  : "0x31232Cb7dE0dce17949ffA58E9E38EEeB367C871";
 
 // HELPER FUNCTIONS FOR CORRECT LAUNCHPAD DEPLOYMENT
-type ContractType = 'BonsaiLaunchpad' | 'CreatorNFT' | 'Periphery';
+type ContractType = "BonsaiLaunchpad" | "CreatorNFT" | "Periphery";
 
 interface ContractThresholds {
   base: {
@@ -123,23 +126,19 @@ const TESTNET_THRESHOLDS: ContractThresholds = {
   },
 };
 
-export const getLaunchpadAddress = (
-  contractType: ContractType,
-  clubId: number | string,
-  chain: string
-): string => {
+export const getLaunchpadAddress = (contractType: ContractType, clubId: number | string, chain: string): string => {
   const thresholds = IS_PRODUCTION ? CONTRACT_THRESHOLDS : TESTNET_THRESHOLDS;
   const deployment = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET : PROTOCOL_DEPLOYMENT_TESTNET;
-  
+
   const chainKey = chain === "base" ? "base" : "lens";
-  
+
   // Special case: clubId 0 always uses the fixed version
   if (Number(clubId) === 0) {
     return deployment[chainKey][`${contractType}Fix`];
   }
-  
+
   const threshold = thresholds[chainKey][contractType];
   const contractKey = Number(clubId) <= threshold ? contractType : `${contractType}Fix`;
-  
+
   return deployment[chainKey][contractKey];
 };
