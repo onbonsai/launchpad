@@ -1,20 +1,20 @@
 import clsx from 'clsx';
-import { erc20Abi, formatUnits } from "viem";
+import { formatUnits } from "viem";
 import { ReactNode, useState } from "react";
 import { Subtitle, BodySemiBold, Header2 } from "@src/styles/text";
 import { Club, DECIMALS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import { useGetTradingInfo, useGetClubBalance } from "@src/hooks/useMoneyClubs";
-import { Tooltip } from "@src/components/Tooltip";
 import Link from 'next/link';
 import { Button } from '@src/components/Button';
-import BuySellModal from '@pagesComponents/Club/BuySellModal';
-import { useAccount, useReadContract } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { SmartMedia } from '@src/services/madfi/studio';
 import { kFormatter } from '@src/utils/utils';
 import { brandFont } from '@src/fonts/fonts';
 import BuyUSDCWidget from '@pagesComponents/Club/BuyUSDCWidget';
-import { getChain } from '@src/services/madfi/utils';
+import dynamic from 'next/dynamic';
+
+const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
 enum PriceChangePeriod {
   twentyFourHours = '24h',
@@ -64,7 +64,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
   );
 
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
-    const priceDelta = tradingInfo ? tradingInfo.priceDeltas[period] : "0";
+    const priceDelta = tradingInfo && tradingInfo.priceDeltas?.[period] ? tradingInfo.priceDeltas[period] : "0";
 
     let textColorClass = 'text-white/60';
     if (priceDelta !== "0" && priceDelta !== "-0") {

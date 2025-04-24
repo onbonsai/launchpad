@@ -389,5 +389,8 @@ export const useGetRewardPool = (address: `0x${string}`) => {
     queryKey: ["reward-pool", address],
     queryFn: () => getRewardPool(address!),
     enabled: !!address,
+    staleTime: 10000,
+    gcTime: 60000,
+    refetchOnWindowFocus: false,
   });
 };

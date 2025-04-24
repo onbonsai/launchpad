@@ -1,7 +1,5 @@
-import { PROTOCOL_DEPLOYMENT } from "../madfi/utils";
-
 import { encodePacked } from "viem";
-
+import { PROTOCOL_DEPLOYMENT } from "../madfi/utils";
 import { WGHO_CONTRACT_ADDRESS } from "../madfi/moneyClubs";
 
 // Lens reward swap parameter constants
@@ -11,8 +9,11 @@ export const PARAM__AMOUNT_OUT_MINIMUM = "0x2e31dac88fd210e9e7136637af05b767ae55
 export const PARAM__CLIENT_ADDRESS = "0xa2e2b831586f148ebb0c7311ada7371940ec21502df651de9a65455f55f8d580" as const;
 export const PARAM__REFERRALS = "0x183a1b7fdb9626f5ae4e8cac88ee13cc03b29800d2690f61e2a2566f76d8773f" as const;
 
-export const calculatePath = (tokenAddress: `0x${string}`) => {
+export const calculatePath = (tokenAddress: `0x${string}` | string, fromAddress?: `0x${string}` | string) => {
   if (tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
+    if (fromAddress) {
+      return encodePacked(["address", "uint24", "address"], [fromAddress, 10000, PROTOCOL_DEPLOYMENT.lens.Bonsai]);
+    }
     return encodePacked(
       ["address", "uint24", "address"],
       [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai],

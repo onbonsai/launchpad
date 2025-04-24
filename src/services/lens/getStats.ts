@@ -27,6 +27,16 @@ const GET_ACCOUNT_STATS = gql`
   }
 `;
 
+const GET_POST_ID = gql`
+  query Posts($request: PostRequest!) {
+    post(request: $request) {
+      ... on Post {
+        id
+      }
+    }
+  }
+`;
+
 export const getAccountStats = async (localName: string): Promise<AccountStats | null> => {
   try {
     const { data } = await apolloClient.query({
@@ -34,15 +44,33 @@ export const getAccountStats = async (localName: string): Promise<AccountStats |
       variables: {
         request: {
           username: {
-            localName
-          }
-        }
-      }
+            localName,
+          },
+        },
+      },
     });
-    
+
     return data.accountStats;
   } catch (error) {
-    console.error('Error fetching account stats:', error);
+    console.error("Error fetching account stats:", error);
     return null;
   }
-}; 
+};
+
+export const getPostId = async (slug: string): Promise<string | undefined> => {
+  try {
+    const { data } = await apolloClient.query({
+      query: GET_POST_ID,
+      variables: {
+        request: {
+          post: slug,
+        },
+      },
+    });
+
+    return data.post.id;
+  } catch (error) {
+    console.error("Error fetching post id:", error);
+    return undefined;
+  }
+};
