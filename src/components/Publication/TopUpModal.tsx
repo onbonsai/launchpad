@@ -13,6 +13,7 @@ import { swapGhoForBonsai, calculatePath } from "@src/services/lens/rewardSwap";
 import useQuoter from "@src/services/uniswap/useQuote";
 import { readContract } from "viem/actions";
 import { toast } from "react-hot-toast";
+import useLensSignIn from "@src/hooks/useLensSignIn";
 
 interface TopUpOption {
   bonsai: number;
@@ -22,14 +23,14 @@ interface TopUpOption {
 }
 
 interface TopUpModalProps {
-  requiredAmount?: number;
-  authenticatedProfileAddress?: `0x${string}`;
+  requiredAmount?: bigint;
 }
 
-export const TopUpModal = ({ requiredAmount, authenticatedProfileAddress }: TopUpModalProps) => {
+export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
+  const { authenticatedProfile } = useLensSignIn(walletClient);
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -56,10 +57,10 @@ export const TopUpModal = ({ requiredAmount, authenticatedProfileAddress }: TopU
     abi: erc20Abi,
     chainId: LENS_CHAIN_ID,
     functionName: "balanceOf",
-    args: [authenticatedProfileAddress as `0x${string}`],
+    args: [authenticatedProfile?.address as `0x${string}`],
     query: {
       refetchInterval: 10000,
-      enabled: !!authenticatedProfileAddress,
+      enabled: !!authenticatedProfile?.address,
     },
   });
 
@@ -98,9 +99,9 @@ export const TopUpModal = ({ requiredAmount, authenticatedProfileAddress }: TopU
     // Calculate first option based on requiredAmount or default $2.50
     const firstOption = requiredAmount
       ? {
-          bonsai: requiredAmount,
-          price: Number((requiredAmount / bonsaiPerGho).toFixed(2)),
-          ghoRequired: parseUnits((requiredAmount / bonsaiPerGho).toString(), DECIMALS),
+          bonsai: Number(formatEther(requiredAmount)),
+          price: Number((Number(formatEther(requiredAmount)) / bonsaiPerGho).toFixed(2)),
+          ghoRequired: parseUnits((Number(formatEther(requiredAmount)) / bonsaiPerGho).toString(), DECIMALS),
           highlight: true,
         }
       : {
@@ -205,7 +206,7 @@ export const TopUpModal = ({ requiredAmount, authenticatedProfileAddress }: TopU
       address: PROTOCOL_DEPLOYMENT.lens.Bonsai,
       abi: erc20Abi,
       functionName: "transfer",
-      args: [authenticatedProfileAddress, amountToTransfer],
+      args: [authenticatedProfile?.address as `0x${string}`, amountToTransfer],
       chain: getChain("lens"),
     });
 
