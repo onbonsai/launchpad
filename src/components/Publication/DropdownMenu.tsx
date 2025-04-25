@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
 import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus, SET_FEATURED_ADMINS, setFeatured } from '@src/services/madfi/studio';
-import { useGetCredits } from '@src/hooks/useGetCredits';
+import { CreditBalance, useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { useGetRewardPool } from '@src/hooks/useMoneyClubs';
@@ -34,6 +34,8 @@ interface DropdownMenuProps {
     ticker: string;
   }
   onRequestGeneration: () => void;
+  creditBalance?: CreditBalance;
+  insufficientCredits?: boolean;
 }
 
 export default ({
@@ -48,10 +50,11 @@ export default ({
   media,
   token,
   onRequestGeneration,
+  creditBalance,
+  insufficientCredits,
 }: DropdownMenuProps) => {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected && isCreator);
   const { data: rewardPoolData, isLoading: isLoadingRewards } = useGetRewardPool(token?.address as `0x${string}`);
   const { data: balance } = useBalance({
     address: address,
@@ -61,13 +64,6 @@ export default ({
   const [currentView, setCurrentView] = useState<ViewState>('initial');
   const [isFeatured, setIsFeatured] = useState(media?.featured || false);
   const showFeaturedToggle = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()) && mediaUrl?.includes("onbons.ai"), [mediaUrl, address]);
-
-  const estimatedGenerations = useMemo(() => {
-    if (!isLoadingCredits) {
-      return Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
-    }
-    return 0;
-  }, [isLoadingCredits]);
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
     e.stopPropagation();
@@ -471,9 +467,6 @@ export default ({
             </>
           );
         default:
-          const insufficientCredits = media?.estimatedCost && creditBalance?.creditsRemaining
-            ?  media.estimatedCost > creditBalance.creditsRemaining
-            : false;
           return (
             <>
               {showFeaturedToggle && (

@@ -30,6 +30,7 @@ import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { Post } from "@lens-protocol/client";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -136,7 +137,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     }
   }, [authenticatedProfile]);
 
-  const sortedComments = useMemo(() => {
+  const sortedComments: Post[] = useMemo(() => {
     return (freshComments || comments || []).sort((a, b) => {
       // Sort by upvoteReactions descending
       if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
@@ -152,6 +153,15 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
 
     return publication?.by.id === authenticatedProfileId;
   }, [publication, authenticatedProfileId]);
+
+  const enoughActivity = useMemo(() => {
+    if (!sortedComments?.length || !media?.updatedAt) return false;
+
+    return sortedComments.some(comment => {
+      const commentTimestamp = Math.floor(new Date(comment.timestamp).getTime() / 1000);
+      return commentTimestamp > media.updatedAt;
+    });
+  }, [sortedComments, media]);
 
   useEffect(() => {
     setCanComment(
@@ -330,6 +340,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             address: club?.tokenAddress,
                             ticker: club?.symbol,
                           }}
+                          enoughActivity={enoughActivity}
                         />
                       </div>
                       <div className="sm:hidden">
@@ -344,6 +355,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             refetch();
                             scrollToReplyInput();
                           }}
+                          enoughActivity={enoughActivity}
                         />
                       </div>
                     </>

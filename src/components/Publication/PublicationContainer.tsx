@@ -27,6 +27,7 @@ import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
+import { useGetCredits } from "@src/hooks/useGetCredits";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -49,7 +50,8 @@ type PublicationContainerProps = {
   token?: {
     address: `0x${string}`;
     ticker: string;
-  }
+  };
+  enoughActivity?: boolean; // does the smart media have any new comments since the last time it was updated
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -80,6 +82,7 @@ const PublicationContainer = ({
   nestedWidget,
   mdMinWidth = 'md:min-w-[700px]',
   token,
+  enoughActivity,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
@@ -91,6 +94,7 @@ const PublicationContainer = ({
     authenticatedProfileId,
   } = useLensSignIn(walletClient);
   const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, publication?.by?.id);
+  const { data: creatorCreditBalance } = useGetCredits(media?.creator as string, !!media?.creator);
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
@@ -246,6 +250,12 @@ const PublicationContainer = ({
 
     return false;
   }, [publication]);
+
+  const creatorInsufficientCredits = useMemo(() => {
+    return media?.estimatedCost && creatorCreditBalance?.creditsRemaining
+      ? media.estimatedCost > creatorCreditBalance.creditsRemaining
+      : false;
+  }, [media?.estimatedCost, creatorCreditBalance?.creditsRemaining]);
 
   const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
 
@@ -417,9 +427,11 @@ const PublicationContainer = ({
                       <span className="text-white/60">•</span>
                       <span className={`pointer-events-none text-sm ${isProcessing ? 'text-brand-highlight' : 'text-white/80'}`}>
                         {
-                          isProcessing
-                            ? `updating now`
-                            : `updating in ${formatNextUpdate(media.updatedAt)}`
+                          creatorInsufficientCredits
+                            ? 'insufficient credits for today'
+                            : isProcessing
+                              ? `updating now`
+                              : (enoughActivity ? `updating in ${formatNextUpdate(media.updatedAt)}` : 'no new activity')
                         }
                       </span>
                     </>
@@ -474,6 +486,8 @@ const PublicationContainer = ({
         media={media}
         token={token}
         onRequestGeneration={() => setIsProcessing(true)}
+        creditBalance={creatorCreditBalance}
+        insufficientCredits={creatorInsufficientCredits}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
