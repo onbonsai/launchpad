@@ -30,16 +30,6 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 
-const Modal = dynamic(() => import("../Modal").then(mod => mod.Modal), {
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-});
-
-const TopUpModal = dynamic(() => import("./TopUpModal").then(mod => mod.TopUpModal), {
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-});
-
 type PublicationContainerProps = {
   publicationId?: string;
   publication?: PostFragmentPotentiallyDecrypted;
@@ -139,11 +129,9 @@ const PublicationContainer = ({
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [amountNeeded, setAmountNeeded] = useState<bigint>(0n);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
-  const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -363,10 +351,8 @@ const PublicationContainer = ({
         authenticatedProfile?.address as `0x${string}`,
         bonsaiBalance || BigInt(0)
       );
-      setAmountNeeded(amountNeeded);
 
       if (amountNeeded > 0n) {
-        setIsOpenTopUpModal(true);
         toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
@@ -590,17 +576,6 @@ const PublicationContainer = ({
         creditBalance={creatorCreditBalance}
         insufficientCredits={creatorInsufficientCredits}
       />
-
-      {/* Top Up Modal */}
-      <Modal
-        onClose={() => setIsOpenTopUpModal(false)}
-        open={isOpenTopUpModal}
-        setOpen={setIsOpenTopUpModal}
-        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
-        static
-      >
-        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} requiredAmount={Number(formatEther(amountNeeded))} />
-      </Modal>
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-lg">
