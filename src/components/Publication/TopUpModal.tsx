@@ -229,6 +229,11 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
     toast.success("BONSAI tokens transferred to lens account", { id: transferToastId });
   };
 
+  const hasSufficientGho = useMemo(() => {
+    if (!selectedOption || !totalGhoBalance) return false;
+    return totalGhoBalance >= selectedOption.ghoRequired;
+  }, [selectedOption, totalGhoBalance]);
+
   return (
     <div
       className="p-4 space-y-4 min-w-[600px] text-white"
@@ -303,14 +308,15 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
       </div>
 
       <Button
-        className={clsx(
-          "w-full py-3 text-base font-semibold transition-colors",
-          selectedOption ? "bg-[#0891B2] hover:bg-[#0891B2]/90" : "bg-gray-700 cursor-not-allowed",
-        )}
+        className={clsx("w-full py-3 text-base font-semibold transition-colors bg-[#0891B2] hover:bg-[#0891B2]/90")}
         onClick={topUp}
-        disabled={!selectedOption}
+        disabled={!selectedOption || !hasSufficientGho}
       >
-        {selectedOption ? `Pay ${selectedOption.price} GHO` : "Select an amount"}
+        {!selectedOption
+          ? "Select an amount"
+          : !hasSufficientGho
+          ? "Insufficient GHO"
+          : `Pay ${selectedOption.price} GHO`}
       </Button>
       <a
         href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
