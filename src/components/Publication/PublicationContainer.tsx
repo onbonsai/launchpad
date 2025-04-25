@@ -356,11 +356,9 @@ const PublicationContainer = ({
       );
 
       if (amountNeeded > 0n) {
-        // openTopUpModal(Number(formatEther(amountNeeded)));
-        // toast("Add BONSAI to your wallet to collect", { id: toastId });
-        // setIsCollecting(false);
-        // return;
-        toast.error("Insufficient balance");
+        openTopUpModal(Number(formatEther(amountNeeded)));
+        toast("Add BONSAI to your wallet to collect", { id: toastId });
+        setIsCollecting(false);
         return;
       }
 

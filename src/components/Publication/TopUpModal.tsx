@@ -308,7 +308,7 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
       </div>
 
       <Button
-        className={clsx("w-full py-3 text-base font-semibold transition-colors bg-[#0891B2] hover:bg-[#0891B2]/90")}
+        className={clsx("w-full py-3 text-base font-semibold transition-colors bg-[#0891B2] hover:bg-[#0891B2]/60")}
         onClick={topUp}
         disabled={!selectedOption || !hasSufficientGho}
       >
