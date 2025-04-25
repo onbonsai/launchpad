@@ -139,13 +139,17 @@ export const generatePreview = async (
   template: Template,
   templateData: any,
   image?: File,
+  aspectRatio?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
     formData.append('data', JSON.stringify({
       category: template.category,
       templateName: template.name,
-      templateData
+      templateData: {
+        ...templateData,
+        aspectRatio
+      },
     }));
     if (image) formData.append('image', image);
     const response = await fetch(`${url}/post/create-preview`, {

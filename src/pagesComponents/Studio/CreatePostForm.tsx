@@ -13,6 +13,7 @@ import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVen
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
+import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
 
 type CreatePostProps = {
   template: Template;
@@ -43,6 +44,7 @@ const CreatePostForm = ({
 }: CreatePostProps) => {
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -77,7 +79,7 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
-    let toastId = toast.loading("Generating preview. This could take a minute...");
+    let toastId = toast.loading("Generating - this could take a minute...");
 
     try {
       const res = await generatePreview(
@@ -85,7 +87,8 @@ const CreatePostForm = ({
         idToken,
         template,
         templateData,
-        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined
+        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
+        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? selectedAspectRatio : undefined,
       );
       if (!res) throw new Error();
       const { agentId, preview } = res;
@@ -149,6 +152,8 @@ const CreatePostForm = ({
                 setPostContent={setPostContent}
                 postImage={postImage}
                 setPostImage={setPostImage}
+                selectedAspectRatio={selectedAspectRatio}
+                setSelectedAspectRatio={setSelectedAspectRatio}
               />
           }
         </div>
@@ -191,6 +196,8 @@ const DynamicForm = ({
   setPostContent,
   postImage,
   setPostImage,
+  selectedAspectRatio,
+  setSelectedAspectRatio,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -201,6 +208,8 @@ const DynamicForm = ({
   setPostContent: (s: string) => void;
   postImage?: any;
   setPostImage: (i: any) => void;
+  selectedAspectRatio: AspectRatio;
+  setSelectedAspectRatio: (ratio: AspectRatio) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
@@ -286,7 +295,14 @@ const DynamicForm = ({
                 : "Optionally add an image to your post."
             }
           />
-          <ImageUploader files={postImage} setFiles={setPostImage} maxFiles={1} />
+          <ImageUploader
+            files={postImage}
+            setFiles={setPostImage}
+            maxFiles={1}
+            enableCrop
+            selectedAspectRatio={selectedAspectRatio}
+            onAspectRatioChange={setSelectedAspectRatio}
+          />
         </div>
       )}
 
