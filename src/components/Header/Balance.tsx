@@ -19,8 +19,9 @@ import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Tooltip } from "@src/components/Tooltip";
 import toast from "react-hot-toast";
+import { useTopUpModal } from "@src/context/TopUpContext";
 
-export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: boolean, openTopUpModal: () => void }) => {
+export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const { address, isConnected, chainId } = useAccount();
@@ -28,6 +29,7 @@ export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: b
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [isUnwrapping, setIsUnwrapping] = useState(false);
   const { switchChain } = useSwitchChain();
+  const { openTopUpModal } = useTopUpModal();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
@@ -384,7 +386,7 @@ export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: b
                 </div>
               </div>
             </div>
-            {/* <div className="mt-2 pt-4 border-t border-zinc-800">
+            <div className="mt-2 pt-4 border-t border-zinc-800">
               <Button
                 variant="primary"
                 size="md"
@@ -393,7 +395,7 @@ export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: b
               >
                 Top Up Wallet
               </Button>
-            </div> */}
+            </div>
           </div>
         </Popper>
       </div>

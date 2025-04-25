@@ -5,7 +5,7 @@ import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
-import { erc20Abi, formatEther } from "viem";
+import { erc20Abi } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -29,6 +29,7 @@ import { SparkIcon } from "../Icons/SparkIcon";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
+import { useTopUpModal } from "@src/context/TopUpContext";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -132,6 +133,7 @@ const PublicationContainer = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
+  const { openTopUpModal } = useTopUpModal();
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -353,6 +355,7 @@ const PublicationContainer = ({
       );
 
       if (amountNeeded > 0n) {
+        openTopUpModal(amountNeeded);
         toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;

@@ -15,18 +15,7 @@ import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
-import { formatEther } from "viem";
-import dynamic from 'next/dynamic';
-
-const Modal = dynamic(() => import("../Modal").then(mod => mod.Modal), {
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-});
-
-const TopUpModal = dynamic(() => import("../Publication/TopUpModal").then(mod => mod.TopUpModal), {
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-});
+import { useTopUpModal } from "@src/context/TopUpContext";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -65,8 +54,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
   const isCreator = post.author.address === authenticatedProfile?.address;
-  const [amountNeeded, setAmountNeeded] = useState<bigint>(0n);
-  const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
+  const { openTopUpModal } = useTopUpModal();
 
   const isCollect = useMemo(() => {
     const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
@@ -118,10 +106,9 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
         authenticatedProfile?.address as `0x${string}`,
         bonsaiBalance || BigInt(0)
       );
-      setAmountNeeded(amountNeeded);
 
       if (amountNeeded > 0n) {
-        setIsOpenTopUpModal(true);
+        openTopUpModal(amountNeeded);
         toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
@@ -275,17 +262,6 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
           </div>
         )}
       </div>
-
-      {/* Top Up Modal */}
-      <Modal
-        onClose={() => setIsOpenTopUpModal(false)}
-        open={isOpenTopUpModal}
-        setOpen={setIsOpenTopUpModal}
-        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
-        static
-      >
-        <TopUpModal authenticatedProfileAddress={authenticatedProfile?.address} requiredAmount={Number(formatEther(amountNeeded))} />
-      </Modal>
     </div>
   )
 }

@@ -3,7 +3,6 @@ import { AppProps } from "next/app";
 import "@decent.xyz/the-box/index.css";
 import "@styles/globals.css";
 import "@styles/calendar-override.css";
-import { HotkeysProvider } from "react-hotkeys-hook";
 import { Analytics } from "@vercel/analytics/react";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
@@ -19,6 +18,7 @@ import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
 import { useRouter } from "next/router.js";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
+import { TopUpModalProvider } from "@src/context/TopUpContext";
 
 const boxTheme = {
   mainBgColor: "#141414",
@@ -73,7 +73,7 @@ export default function MyApp(props: AppProps) {
         <ThirdwebProvider>
           <ThemeProvider>
             <ClubsProvider>
-              <HotkeysProvider>
+              <TopUpModalProvider>
                 <Toaster
                   position="bottom-right"
                   toastOptions={{
@@ -103,7 +103,7 @@ export default function MyApp(props: AppProps) {
                   </BoxThemeProvider>
                 </AppLayout>
                 <Analytics />
-              </HotkeysProvider>
+              </TopUpModalProvider>
             </ClubsProvider>
           </ThemeProvider>
         </ThirdwebProvider>
