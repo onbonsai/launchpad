@@ -29,7 +29,7 @@ import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
-// import { useTopUpModal } from "@src/contexts/TopUpModalContext";
+import { useTopUpModal } from "@src/contexts/TopUpModalContext";
 import useIsMounted from "@src/hooks/useIsMounted";
 
 type PublicationContainerProps = {
@@ -134,7 +134,7 @@ const PublicationContainer = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
-  // const { openTopUpModal } = useTopUpModal();
+  const { openTopUpModal } = useTopUpModal();
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
