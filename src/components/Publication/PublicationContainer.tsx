@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
-import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
+import dynamic from 'next/dynamic';
+import { Theme } from "@madfi/widgets-react";
 import { erc20Abi, formatEther, parseEther } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, InfoOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
@@ -29,6 +30,7 @@ import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useTopUpModal } from "@src/contexts/TopUpModalContext";
+import useIsMounted from "@src/hooks/useIsMounted";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -59,6 +61,17 @@ export type PostFragmentPotentiallyDecrypted = any & {
   isDecrypted?: boolean;
 };
 
+// Lazy load the Publication components
+const Publication = dynamic(
+  () => import("@madfi/widgets-react").then(mod => mod.Publication),
+  { ssr: false }
+);
+
+const HorizontalPublication = dynamic(
+  () => import("@madfi/widgets-react").then(mod => mod.HorizontalPublication),
+  { ssr: false }
+);
+
 // handles all the mf buttons
 // - decrypt
 // - subscribe to view (TODO: maybe abstract to whatever the gated condition is)
@@ -86,6 +99,7 @@ const PublicationContainer = ({
   enoughActivity,
 }: PublicationContainerProps) => {
   const router = useRouter();
+  const isMounted = useIsMounted();
   const referralAddress = router.query.ref as `0x${string}`;
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -338,62 +352,63 @@ const PublicationContainer = ({
   }
 
   return (
-    <div className={`mb-4 relative flex justify-center max-h-60vh sm:min-w-[450px] ${mdMinWidth} ${brandFont.className}}`}>
-      <PublicationType
-        key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
-        publicationId={publication?.id ? publication!.id : publicationId}
-        publicationData={publication ? getPublicationDataPotentiallyEncrypted(publication) : undefined}
-        theme={Theme.dark}
-        environment={LENS_ENVIRONMENT}
-        authenticatedProfile={authenticatedProfile || undefined}
-        walletClient={walletClient || undefined}
-        onClick={shouldGoToPublicationPage ? (e) => goToPublicationPage(e) : undefined}
-        onProfileClick={!shouldGoToPublicationPage ? (e) => goToCreatorPage(e, publication?.author.username.localName) : undefined}
-        onShareButtonClick={(e) => onShareButtonClick(e)}
-        onCommentButtonClick={handleCommentButton}
-        onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}
-        onMirrorButtonClick={!hasMirrored ? onMirrorButtonClick : undefined}
-        // @ts-ignore
-        operations={{
-          ...publication?.operations || {},
-          hasUpvoted: publication?.operations?.hasUpvoted || hasUpvoted,
-          hasMirrored: publication?.operations?.hasMirrored || hasMirrored,
-          hasCollected: publication?.operations?.hasSimpleCollected || hasCollected,
-          canComment: media?.agentId ? hasCollected : undefined,
-        }}
-        useToast={toast}
-        rpcURLs={ChainRpcs}
-        appDomainWhitelistedGasless={true}
-        // handlePinMetadata={handlePinMetadata}
-        // onActButtonClick={_onActButtonClick}
-        // renderActButtonWithCTA={_renderActButtonWithCTA}
-        hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
-        onFollowPress={onFollowClick}
-        followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
-        followButtonDisabled={!isConnected}
-        isFollowed={_isFollowed || isFollowed}
-        hideQuoteButton={hideQuoteButton}
-        profilePictureStyleOverride={publicationProfilePictureStyle}
-        containerBorderRadius={'24px'}
-        containerPadding={'12px'}
-        profilePadding={'0 0 0 0'}
-        textContainerStyleOverride={textContainerStyleOverrides}
-        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-        mediaImageStyleOverride={mediaImageStyleOverride}
-        imageContainerStyleOverride={imageContainerStyleOverride}
-        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-        reactionContainerStyleOverride={reactionContainerStyleOverride}
-        shareContainerStyleOverride={shareContainerStyleOverride}
-        actButtonContainerStyleOverride={actButtonContainerStyleOverride}
-        markdownStyleBottomMargin={'0'}
-        heartIconOverride={true}
-        messageIconOverride={true}
-        shareIconOverride={true}
-        nestedWidget={nestedWidget}
-        updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
-        hideCollectButton={!!publication.root}
-      // onCollectButtonClick={!hasCollected ? onCollectButtonClick : undefined}
-      />
+    <div className="relative">
+      {isMounted && (
+        <PublicationType
+          key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
+          publicationId={publication?.id ? publication!.id : publicationId}
+          publicationData={publication ? getPublicationDataPotentiallyEncrypted(publication) : undefined}
+          theme={Theme.dark}
+          environment={LENS_ENVIRONMENT}
+          authenticatedProfile={authenticatedProfile || undefined}
+          walletClient={walletClient || undefined}
+          onClick={shouldGoToPublicationPage ? (e) => goToPublicationPage(e) : undefined}
+          onProfileClick={!shouldGoToPublicationPage ? (e) => goToCreatorPage(e, publication?.author.username.localName) : undefined}
+          onShareButtonClick={(e) => onShareButtonClick(e)}
+          onCommentButtonClick={handleCommentButton}
+          onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}
+          onMirrorButtonClick={!hasMirrored ? onMirrorButtonClick : undefined}
+          // @ts-ignore
+          operations={{
+            ...publication?.operations || {},
+            hasUpvoted: publication?.operations?.hasUpvoted || hasUpvoted,
+            hasMirrored: publication?.operations?.hasMirrored || hasMirrored,
+            hasCollected: publication?.operations?.hasSimpleCollected || hasCollected,
+            canComment: media?.agentId ? hasCollected : undefined,
+          }}
+          useToast={toast}
+          rpcURLs={ChainRpcs}
+          appDomainWhitelistedGasless={true}
+          // handlePinMetadata={handlePinMetadata}
+          // onActButtonClick={_onActButtonClick}
+          // renderActButtonWithCTA={_renderActButtonWithCTA}
+          hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
+          onFollowPress={onFollowClick}
+          followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
+          followButtonDisabled={!isConnected}
+          isFollowed={_isFollowed || isFollowed}
+          hideQuoteButton={hideQuoteButton}
+          profilePictureStyleOverride={publicationProfilePictureStyle}
+          containerBorderRadius={'24px'}
+          containerPadding={'12px'}
+          profilePadding={'0 0 0 0'}
+          textContainerStyleOverride={textContainerStyleOverrides}
+          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+          mediaImageStyleOverride={mediaImageStyleOverride}
+          imageContainerStyleOverride={imageContainerStyleOverride}
+          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+          reactionContainerStyleOverride={reactionContainerStyleOverride}
+          shareContainerStyleOverride={shareContainerStyleOverride}
+          actButtonContainerStyleOverride={actButtonContainerStyleOverride}
+          markdownStyleBottomMargin={'0'}
+          heartIconOverride={true}
+          messageIconOverride={true}
+          shareIconOverride={true}
+          nestedWidget={nestedWidget}
+          updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
+          hideCollectButton={!!publication.root}
+        />
+      )}
       {isCollect && isAuthenticated && (
         <div className="absolute top-2 right-2 z-20">
           <Button
@@ -554,8 +569,5 @@ const PublicationContainer = ({
     </div>
   )
 };
-
-
-
 
 export default PublicationContainer;
