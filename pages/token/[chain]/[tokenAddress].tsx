@@ -11,7 +11,7 @@ import { useSIWE } from 'connectkit';
 import { Modal } from "@src/components/Modal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { Feed } from "@src/pagesComponents/Club";
+import { Feed } from "@src/pagesComponents/Club/Feed";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import { getRegisteredClubById, FLAT_THRESHOLD, WHITELISTED_UNI_HOOKS, type Club, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getClientWithClubs, getClientWithMedia } from "@src/services/mongo/client";
@@ -29,9 +29,10 @@ import { capitalizeFirstLetter } from '@src/utils/utils';
 import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
-import { SITE_URL } from '@src/constants/constants';
+import { getPostId } from '@src/services/lens/getStats';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
+const TradeComponent = dynamic(() => import("@src/pagesComponents/Club/TradeComponent"), { ssr: false });
 
 interface TokenPageProps {
   club: Club;
@@ -348,28 +349,39 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
-                        <Button variant="accentBrand" className="text-white mt-4">
-                          Trade on Kyberswap
-                        </Button>
-                      </a>
+                      { 
+                        club.chain === "base"  ? 
+                        <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
+                          <Button variant="accentBrand" className="text-white mt-4">
+                            Trade on Kyberswap
+                          </Button>
+                        </a> : 
+                        <div className='mt-4'>
+                          <TradeComponent
+                              defaultBuyAmount={''}
+                              club={club}
+                              address={address as `0x${string}`}
+                              postId={club.postIdInt}
+                          />
+                        </div>
+                      }
                       <p>{`${hookInfo[club.hook].name}: ${hookInfo[club.hook].label}`}</p>
                       <div className='mt-6 text-center'>
                         {club.liquidityReleasedAt && vestingData && (
-                          <>
-                            <div className='flex justify-center items-center space-x-2'>
+                          <div className='justify-center items-center'>
+                            <div className='space-x-2'>
                               <span className='text-xl'>Available balance:</span>
                               <span className='text-xl font-mono min-w-[120px] text-left'>
                                 {localizeNumber(formatUnits(vestingProgress.available, 18), "decimal", 2)}
                               </span>
                             </div>
-                            <div className='flex justify-center items-center space-x-2'>
+                            <div className='space-x-2'>
                               <span className='text-xl'>Vesting balance:</span>
                               <span className='text-xl font-mono min-w-[120px] text-left'>
                                 {localizeNumber(formatUnits(vestingProgress.vesting, 18), "decimal", 2)}
                               </span>
                             </div>
-                            <div className='flex justify-center items-center space-x-2'>
+                            <div className='space-x-2'>
                               <span className='text-xl'>Total balance:</span>
                               <span className='text-xl font-mono min-w-[120px] text-left'>
                                 {localizeNumber(formatUnits(vestingData.totalBalance || 0n, 18), "decimal", 2)}
@@ -377,7 +389,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             </div>
                             <hr className='my-4 opacity-70' />
                             <p className='mt-4 text-md'>Vesting Complete: {new Date((club.liquidityReleasedAt + Number(club.vestingDuration)) * 1000).toLocaleString()}</p>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -532,7 +544,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
-  const club = JSON.parse(JSON.stringify({ ..._club, ...dbRecord, featured }));
+  const postIdInt = await getPostId(dbRecord.postId);
+
+  const club = JSON.parse(JSON.stringify({ ..._club, ...dbRecord, featured, postIdInt }));
 
   return {
     props: {

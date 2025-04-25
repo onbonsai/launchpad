@@ -20,17 +20,22 @@ interface CurrencyInputProps {
   hideBalance?: boolean; // for register club modal
   disabled?: boolean; // no input on buy / sell price
   chain?: string;
+  secondaryToken?: {
+    image: string;
+    symbol: string;
+    onClick: () => void;
+  };
 }
 
 const CurrencyInput = (props: CurrencyInputProps) => {
-  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled, chain } = props;
+  const { symbol, trailingAmount, trailingAmountSymbol, tokenImage, tokenBalance, price, isError, onPriceSet, showMax, overridePrice, hideBalance, disabled, chain, secondaryToken } = props;
   const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef(null);
-  const measureRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (measureRef.current && inputRef.current) {
-      measureRef.current.textContent = parseFloat(price || "0");
+      measureRef.current.textContent = parseFloat(price || "0").toString();
       const measureWidth = measureRef.current.offsetWidth;
       inputRef.current.style.width = `${measureWidth + (price.length > 0 ? 10 : 4)}px`;
     }
@@ -49,11 +54,21 @@ const CurrencyInput = (props: CurrencyInputProps) => {
               alt={'token image'}
               className="w-[24px] h-[24px] object-cover rounded-lg"
             />
-            {/* <img
-              src={chain === "lens" ? '/lens.png' : '/base.png'}
-              alt={chain}
-              className="absolute top-4 left-8 h-[12px]"
-            /> */}
+            {secondaryToken && (
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  secondaryToken.onClick();
+                }}
+                className="absolute -right-2 -bottom-2 w-[20px] h-[20px] rounded-full bg-[#333] border border-card cursor-pointer hover:bg-[#444] transition-colors"
+              >
+                <img
+                  src={secondaryToken.image}
+                  alt={secondaryToken.symbol}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
+            )}
           </div>}
           {disabled ? (
             <span

@@ -28,6 +28,7 @@ import axios from "axios";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useModal } from "connectkit";
 import BuySellModal from '@pagesComponents/Club/BuySellModal';
+import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -710,7 +711,7 @@ const TokenPage: NextPage = () => {
                     setShowBuyModal(false);
                   }}
                   // specific post with reward swap bonsai attached to it
-                  postId={"84460185073799618504887246999943361907970590830957975660461666922692652187007"}
+                  postId={SWAP_TO_BONSAI_POST_ID}
                 />
               </div>
             </div>

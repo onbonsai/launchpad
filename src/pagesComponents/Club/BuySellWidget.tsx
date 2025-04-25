@@ -1,7 +1,7 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
-import { useAccount, useWalletClient, useSwitchChain, useBalance } from "wagmi";
-import { encodeAbiParameters, formatUnits, parseEther, parseUnits, zeroAddress } from "viem";
+import { useAccount, useWalletClient, useSwitchChain, useBalance, useReadContract } from "wagmi";
+import { encodeAbiParameters, erc20Abi, formatUnits, parseEther, parseUnits, zeroAddress } from "viem";
 import toast from "react-hot-toast";
 import ConfettiExplosion from 'react-confetti-explosion';
 import clsx from "clsx";
@@ -25,6 +25,7 @@ import {
   WGHO_CONTRACT_ADDRESS,
   WGHO_ABI,
   publicClient,
+  SWAP_TO_BONSAI_POST_ID,
 } from "@src/services/madfi/moneyClubs";
 import { SITE_URL } from "@src/constants/constants";
 import CurrencyInput from "./CurrencyInput";
@@ -45,14 +46,13 @@ export const BuySellWidget = ({
   refetchClubPrice,
   club,
   clubBalance,
-  tokenBalance, // balance in USDC
   openTab: _openTab,
   onBuyUSDC,
   defaultBuyAmount,
   mediaProtocolFeeRecipient,
   useRemixReferral,
   closeModal,
-  postId = undefined,
+  postId,
 }) => {
   const router = useRouter();
   const referralAddress = !!useRemixReferral ? useRemixReferral : router.query.ref as `0x${string}`;
@@ -65,6 +65,7 @@ export const BuySellWidget = ({
   const [isBuying, setIsBuying] = useState(false);
   const [isSelling, setIsSelling] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [useBonsaiAsInput, setUseBonsaiAsInput] = useState(false);
 
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
@@ -77,6 +78,18 @@ export const BuySellWidget = ({
       refetchInterval: 10000,
     }
   })
+
+    // GHO/USDC Balance
+    const { data: tokenBalance } = useReadContract({
+      address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
+      abi: erc20Abi,
+      chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
+      functionName: "balanceOf",
+      args: [address!],
+      query: {
+        refetchInterval: 5000,
+      },
+    });
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
@@ -244,9 +257,12 @@ export const BuySellWidget = ({
 
   const { data: quoteResult, isLoading: isLoadingQuote } = useQuoter({
     account: address as `0x${string}`,
-    path: calculatePath(club.tokenAddress as `0x${string}`),
-    amountIn: parseUnits(buyPrice, _DECIMALS),
-    enabled: !!buyPrice && !!club.tokenAddress && club.chain === "lens" && club.complete,
+    path:
+      club.chain === "lens" && club.complete && openTab === 2
+        ? calculatePath(PROTOCOL_DEPLOYMENT.lens.Bonsai, club.tokenAddress)
+        : calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined),
+    amountIn: parseUnits(openTab === 1 ? buyPrice : sellAmount, _DECIMALS),
+    enabled: (!!buyPrice || !!sellAmount) && !!club.tokenAddress && club.chain === "lens" && club.complete,
   });
 
   const buyRewardSwap = async (e) => {
@@ -270,7 +286,7 @@ export const BuySellWidget = ({
       const quoteTokenAddress = WGHO_CONTRACT_ADDRESS;
       // console.log(quoteTokenAddress, maxPrice, walletClient, toastId, undefined, club.chain)
 
-      if (club.chain === "lens") {
+      if (club.chain === "lens" && !useBonsaiAsInput) {
         // Calculate how much WGHO we need for the transaction
         const requiredAmount = parseUnits(buyPrice, _DECIMALS);
         const currentWGHOBalance = tokenBalance || 0n;
@@ -305,13 +321,13 @@ export const BuySellWidget = ({
         }
       }
 
-      const parsedBuyPrice = parseUnits(buyPrice, _DECIMALS);
-      await approveToken(quoteTokenAddress, parsedBuyPrice, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
-
       if (!quoteResult) {
         console.error("Can't calculate min amount out");
         return;
       }
+
+      const parsedBuyPrice = parseUnits(buyPrice, _DECIMALS);
+      await approveToken(useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : quoteTokenAddress, parsedBuyPrice, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
 
       toastId = toast.loading("Buying", { id: toastId });
       let _buyAmount = quoteResult[0];
@@ -325,7 +341,7 @@ export const BuySellWidget = ({
           club.tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
           postId,
           [
-            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress)]) },
+            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined)]) },
             { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parsedBuyPrice]) },
             { key: PARAM__AMOUNT_OUT_MINIMUM, value: encodeAbiParameters([{ type: 'uint256' }], [(9n * quoteResult[0]) / 10n]) },
             { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: 'address' }], [zeroAddress]) },
@@ -359,6 +375,78 @@ export const BuySellWidget = ({
     setIsBuying(false);
   }
 
+  const sellRewardSwap = async (e) => {
+    e.preventDefault();
+    setIsSelling(true);
+    let toastId;
+
+    const targetChainId = getChain("lens").id;
+    if (chainId !== targetChainId) {
+      try {
+        console.log('switching to', targetChainId);
+        switchChain({ chainId: targetChainId });
+      } catch {
+        toast.error("Please switch networks");
+        setIsSelling(false);
+        return;
+      }
+    }
+
+    try {
+      if (!quoteResult) {
+        console.error("Can't calculate min amount out");
+        return;
+      }
+
+      const parsedSellAmount = parseUnits(sellAmount, _DECIMALS);
+      await approveToken(club.tokenAddress, parsedSellAmount, walletClient, toastId, undefined, club.chain, PROTOCOL_DEPLOYMENT.lens.RewardSwap);
+
+      toastId = toast.loading("Selling", { id: toastId });
+      let _buyAmount = quoteResult[0];
+      const hash = await walletClient!.writeContract({
+        address: ACTION_HUB_ADDRESS,
+        abi: ActionHubAbi,
+        functionName: "executePostAction",
+        args: [
+          PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+          // use the global feed and specific post
+          LENS_GLOBAL_FEED,
+          SWAP_TO_BONSAI_POST_ID,
+          [
+            { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(PROTOCOL_DEPLOYMENT.lens.Bonsai, club.tokenAddress)]) },
+            { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parsedSellAmount]) },
+            { key: PARAM__AMOUNT_OUT_MINIMUM, value: encodeAbiParameters([{ type: 'uint256' }], [(9n * quoteResult[0]) / 10n]) },
+            { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: 'address' }], [zeroAddress]) },
+            { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: 'address[]' }], [[]]) },
+          ],
+        ],
+      });
+
+      await publicClient("lens").waitForTransactionReceipt({ hash });
+      // give the indexer some time
+      setTimeout(refetchClubBalance, 5000);
+      setTimeout(refreshTradingInfo, 5000);
+      // setTimeout(refetchClubPrice, 5000); // don't refetch price
+
+      toast.success(`Sold ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+
+      if (!!useRemixReferral) {
+        closeModal();
+        return;
+      }
+
+      setJustBought(true);
+      setShowConfetti(true);
+      setJustBoughtAmount(formatUnits(_buyAmount, DECIMALS));
+      // Remove confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to sell", { id: toastId });
+    }
+    setIsSelling(false);
+  }
+
   const urlEncodedPostParams = useMemo(() => {
     const params = {
       text: `Just aped into $${club.token.symbol} on the Launchpad @bonsai
@@ -375,7 +463,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
       }
       }>
       <div className="flex items-center justify-between mb-4">
-        <Tabs openTab={openTab} setOpenTab={setOpenTab} completed={club.complete} />
+        <Tabs openTab={openTab} setOpenTab={setOpenTab} setJustBought={setJustBought} disableSell={postId === SWAP_TO_BONSAI_POST_ID} />
         {/* {(!!bonsaiBalanceNFT && bonsaiBalanceNFT > 0n) && (
           <label className="text-xs font-medium text-secondary/70 whitespace-nowrap mt-4">
             Trading Fee: $0
@@ -393,14 +481,19 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                   <div className="flex flex-col justify-between gap-2">
                     <div className="relative flex flex-col">
                       <CurrencyInput
-                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
-                        tokenBalance={club.chain === "lens" ? tokenBalance + (ghoBalance?.value || 0n) : tokenBalance}
+                        tokenImage={club.chain === "lens" ? (useBonsaiAsInput ? "/bonsai.png" : "/gho.webp") : "/usdc.png"}
+                        tokenBalance={club.chain === "lens" ? (useBonsaiAsInput ? tokenBalance : (tokenBalance || 0n) + (ghoBalance?.value || 0n)) : tokenBalance}
                         price={buyPrice}
                         isError={notEnoughFunds}
                         onPriceSet={setBuyPrice}
-                        symbol={club.chain === "lens" ? "GHO" : "USDC"}
+                        symbol={club.chain === "lens" ? (useBonsaiAsInput ? "BONSAI" : "GHO") : "USDC"}
                         showMax
                         chain={club.chain}
+                        secondaryToken={club.chain === "lens" && club.complete && postId !== SWAP_TO_BONSAI_POST_ID ? {
+                          image: useBonsaiAsInput ? "/gho.webp" : "/bonsai.png",
+                          symbol: useBonsaiAsInput ? "GHO" : "BONSAI",
+                          onClick: () => setUseBonsaiAsInput(!useBonsaiAsInput)
+                        } : undefined}
                       />
 
                       <div className="relative w-full min-h-[16px] max-h-[16px] flex justify-center">
@@ -522,12 +615,12 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                       </div>
 
                       <CurrencyInput
-                        tokenImage={club.chain === "lens" ? "/gho.webp" : "/usdc.png"}
-                        tokenBalance={tokenBalance}
-                        price={sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
+                        tokenImage={club.chain === "lens" ? (club.complete ? "/bonsai.png" : "/gho.webp") : "/usdc.png"}
+                        tokenBalance={tokenBalance || 0n}
+                        price={club.complete ? `${quoteResult ? formatUnits(quoteResult[0], DECIMALS) : 0}` : sellPrice && sellAmount ? sellPriceFormatted.replaceAll(",", "") : "0"}
                         isError={false}
                         onPriceSet={() => { }}
-                        symbol={club.chain === "lens" ? "WGHO" : "USDC"}
+                        symbol={club.chain === "lens" ? (club.complete ? "BONSAI" : "WGHO") : "USDC"}
                         disabled
                         chain={club.chain}
                       />
@@ -565,7 +658,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={sellChips} variant="accentBrand">
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={club.complete ? sellRewardSwap : sellChips} variant="accentBrand">
                   Sell ${club.token.symbol}
                 </Button>
               </div>
@@ -583,7 +676,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
   );
 };
 
-const Tabs = ({ openTab, setOpenTab, completed }) => {
+const Tabs = ({ openTab, setOpenTab, setJustBought, disableSell = false }) => {
   return (
     <div
       className="flex w-full"
@@ -591,14 +684,13 @@ const Tabs = ({ openTab, setOpenTab, completed }) => {
         fontFamily: brandFont.style.fontFamily,
       }}
     >
-      <ul
-        className="nav nav-pills flex flex-row flex-wrap list-none w-full"
-        id="pills-tab"
-        role="tablist"
-      >
+      <ul className="nav nav-pills flex flex-row flex-wrap list-none w-full" id="pills-tab" role="tablist">
         <li className="nav-item" role="presentation">
           <button
-            onClick={() => setOpenTab(1)}
+            onClick={() => {
+              setOpenTab(1);
+              setJustBought(false);
+            }}
             className={clsx(`
             nav-link
             block
@@ -607,36 +699,33 @@ const Tabs = ({ openTab, setOpenTab, completed }) => {
             text-center
             md:w-auto
             mr-2
-            focus:outline-none focus:ring-0`,
-            )}
+            focus:outline-none focus:ring-0`)}
           >
-            <Header2Text className={clsx('font-sans', openTab === 1 ? "text-white" : "text-white/30")}>
-              Buy
-            </Header2Text>
+            <Header2Text className={clsx("font-sans", openTab === 1 ? "text-white" : "text-white/30")}>Buy</Header2Text>
           </button>
         </li>
-        {!completed && (
+        {!disableSell && (
           <li className="nav-item" role="presentation">
             <button
-              onClick={() => setOpenTab(2)}
-            className={clsx(`
-            nav-link
-            block
-            rounded
-            w-full
-            text-center
-            md:w-auto
-            mr-2
-            focus:outline-none focus:ring-0`,
-            )}
-          >
-            <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>
-              Sell
-            </Header2Text>
+              onClick={() => {
+                setOpenTab(2);
+                setJustBought(false);
+              }}
+              className={clsx(`
+          nav-link
+          block
+          rounded
+          w-full
+          text-center
+          md:w-auto
+          mr-2
+          focus:outline-none focus:ring-0`)}
+            >
+              <Header2Text className={clsx(openTab === 2 ? "text-white" : "text-white/30")}>Sell</Header2Text>
             </button>
           </li>
         )}
       </ul>
     </div>
   );
-}
+};

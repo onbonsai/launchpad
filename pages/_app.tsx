@@ -15,6 +15,7 @@ import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
+import { TopUpModalProvider } from "@src/contexts/TopUpModalContext";
 import { brandFont } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import sdk from "@src/utils/farcaster.mjs";
@@ -84,37 +85,39 @@ export default function MyApp(props: AppProps) {
         <ThirdwebProvider>
           <ThemeProvider>
             <ClubsProvider>
-              <HotkeysProvider>
-                <Toaster
-                  position="bottom-right"
-                  toastOptions={{
-                    style: {
-                      backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                      color: "white",
-                      fontFamily: brandFont.style.fontFamily,
-                      zIndex: 1001,
-                    },
-                  }}
-                >
-                  {(t) => (
-                    <ToastBar toast={t}>
-                      {({ icon, message }) => (
-                        <>
-                          {icon}
-                          {message}
-                        </>
-                      )}
-                    </ToastBar>
-                  )}
-                </Toaster>
-                <NextNProgress color="#4D7F79" height={2} />
-                <AppLayout>
-                  <BoxThemeProvider theme={boxTheme}>
-                    <Component {...pageProps} />
-                  </BoxThemeProvider>
-                </AppLayout>
-                <Analytics />
-              </HotkeysProvider>
+              <TopUpModalProvider>
+                <HotkeysProvider>
+                  <Toaster
+                    position="bottom-right"
+                    toastOptions={{
+                      style: {
+                        backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                        color: "white",
+                        fontFamily: brandFont.style.fontFamily,
+                        zIndex: 1001,
+                      },
+                    }}
+                  >
+                    {(t) => (
+                      <ToastBar toast={t}>
+                        {({ icon, message }) => (
+                          <>
+                            {icon}
+                            {message}
+                          </>
+                        )}
+                      </ToastBar>
+                    )}
+                  </Toaster>
+                  <NextNProgress color="#4D7F79" height={2} />
+                  <AppLayout>
+                    <BoxThemeProvider theme={boxTheme}>
+                      <Component {...pageProps} />
+                    </BoxThemeProvider>
+                  </AppLayout>
+                  <Analytics />
+                </HotkeysProvider>
+              </TopUpModalProvider>
             </ClubsProvider>
           </ThemeProvider>
         </ThirdwebProvider>
