@@ -284,7 +284,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
         panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
         static
       >
-        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} requiredAmount={Number(formatEther(amountNeeded))} />
+        <TopUpModal authenticatedProfileAddress={authenticatedProfile?.address} requiredAmount={Number(formatEther(amountNeeded))} />
       </Modal>
     </div>
   )

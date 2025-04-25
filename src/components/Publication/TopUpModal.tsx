@@ -11,7 +11,6 @@ import { DECIMALS, WGHO_CONTRACT_ADDRESS, publicClient, WGHO_ABI } from "@src/se
 import { formatUnits } from "viem";
 import { swapGhoForBonsai, calculatePath } from "@src/services/lens/rewardSwap";
 import useQuoter from "@src/services/uniswap/useQuote";
-import useLensSignIn from "@src/hooks/useLensSignIn";
 import { readContract } from "viem/actions";
 import { toast } from "react-hot-toast";
 
@@ -23,15 +22,13 @@ interface TopUpOption {
 }
 
 interface TopUpModalProps {
-  switchNetwork: () => void;
   requiredAmount?: number;
-  onClose: () => void;
+  authenticatedProfileAddress?: `0x${string}`;
 }
 
-export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModalProps) => {
+export const TopUpModal = ({ requiredAmount, authenticatedProfileAddress }: TopUpModalProps) => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
 
   // GHO Balance
@@ -59,10 +56,10 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
     abi: erc20Abi,
     chainId: LENS_CHAIN_ID,
     functionName: "balanceOf",
-    args: [authenticatedProfile?.address as `0x${string}`],
+    args: [authenticatedProfileAddress as `0x${string}`],
     query: {
       refetchInterval: 10000,
-      enabled: isAuthenticated && authenticatedProfile?.address,
+      enabled: !!authenticatedProfileAddress,
     },
   });
 
@@ -125,14 +122,6 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
       toast.error("No selected option");
       throw new Error("No selected option");
     }
-
-    // Check EOA BONSAI balance
-    const eoaBonsaiBalance = await readContract(walletClient, {
-      address: PROTOCOL_DEPLOYMENT.lens.Bonsai,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [address],
-    });
 
     const _publicClient = publicClient("lens");
 
@@ -216,7 +205,7 @@ export const TopUpModal = ({ switchNetwork, requiredAmount, onClose }: TopUpModa
       address: PROTOCOL_DEPLOYMENT.lens.Bonsai,
       abi: erc20Abi,
       functionName: "transfer",
-      args: [authenticatedProfile?.address, amountToTransfer],
+      args: [authenticatedProfileAddress, amountToTransfer],
       chain: getChain("lens"),
     });
 

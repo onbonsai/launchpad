@@ -39,7 +39,7 @@ const headerLinks = [
 export const Header = () => {
   const { route } = useRouter();
   const { data: walletClient } = useWalletClient();
-  const { openSignInModal, setOpenSignInModal, isAuthenticated } = useLensSignIn(walletClient);
+  const { openSignInModal, setOpenSignInModal, isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
@@ -189,15 +189,15 @@ export const Header = () => {
       </Modal>
 
       {/* Top Up Modal */}
-      <Modal
+      {/* <Modal
         onClose={() => setIsOpenTopUpModal(false)}
         open={isOpenTopUpModal}
         setOpen={setIsOpenTopUpModal}
         panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
         static
       >
-        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} />
-      </Modal>
+        <TopUpModal authenticatedProfileAddress={authenticatedProfile?.address} />
+      </Modal> */}
 
       {/* Help Modal */}
       <Modal

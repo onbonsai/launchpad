@@ -384,7 +384,7 @@ export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: b
                 </div>
               </div>
             </div>
-            <div className="mt-2 pt-4 border-t border-zinc-800">
+            {/* <div className="mt-2 pt-4 border-t border-zinc-800">
               <Button
                 variant="primary"
                 size="md"
@@ -393,7 +393,7 @@ export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: b
               >
                 Top Up Wallet
               </Button>
-            </div>
+            </div> */}
           </div>
         </Popper>
       </div>
