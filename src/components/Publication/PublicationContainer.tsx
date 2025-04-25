@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
-import { erc20Abi } from "viem";
+import { erc20Abi, parseEther } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, InfoOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -17,7 +17,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { collectPost } from "@src/services/lens/collect";
+import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
@@ -277,6 +277,13 @@ const PublicationContainer = ({
 
       toastId = toast.loading("Collecting post...");
       setIsCollecting(true);
+
+      await checkCollectAmount(
+        walletClient,
+        collectAmount || "0",
+        authenticatedProfile?.address as `0x${string}`,
+        bonsaiBalance || BigInt(0)
+      );
 
       const collected = await collectPost(
         sessionClient,

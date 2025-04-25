@@ -9,7 +9,7 @@ import { Button } from "../Button";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { collectPost } from "@src/services/lens/collect";
+import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";
 import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
@@ -97,6 +97,13 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
+
+      await checkCollectAmount(
+        walletClient,
+        collectAmount || "0",
+        authenticatedProfile?.address as `0x${string}`,
+        bonsaiBalance || BigInt(0)
+      );
 
       const collected = await collectPost(
         sessionClient,
