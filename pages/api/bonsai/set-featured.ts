@@ -9,8 +9,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  const { postId, featured } = req.body;
-  if (!(!!postId && featured !== undefined)) {
+  let { postId, featured } = req.body;
+  if (!(!!postId)) {
     res.status(400).json({ message: "Missing postId or featured" });
     return;
   }
@@ -37,10 +37,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { collection } = await getClientWithMedia();
 
-    await collection.updateOne(
-      { postId },
-      { $set: { featured } }
-    );
+    if (featured === undefined) {
+      const record = await collection.findOne({ postId });
+      featured = record.featured === undefined ? true : !record.featured;
+      await collection.updateOne(
+        { postId },
+        { $set: { featured } }
+      );
+    } else {
+      await collection.updateOne(
+        { postId },
+        { $set: { featured } }
+      );
+    }
 
     res.status(200).end();
   } catch (error) {

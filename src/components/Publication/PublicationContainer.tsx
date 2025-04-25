@@ -19,7 +19,7 @@ import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
-import { SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
+import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
@@ -86,7 +86,7 @@ const PublicationContainer = ({
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
-  const { isConnected, chain } = useAccount();
+  const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const {
     isAuthenticated,
@@ -108,6 +108,7 @@ const PublicationContainer = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
+  const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -433,6 +434,23 @@ const PublicationContainer = ({
                               ? `updating now`
                               : (enoughActivity ? `updating in ${formatNextUpdate(media.updatedAt)}` : 'no new activity')
                         }
+                      </span>
+                    </>
+                  )}
+                  {media.status === SmartMediaStatus.DISABLED && (
+                    <>
+                      <span className="text-white/60">•</span>
+                      <span className={`pointer-events-none text-sm text-white/80`}>
+                        media has been disabled
+                      </span>
+                    </>
+                  )}
+                  {/* helpful for admins to know of failures */}
+                  {isAdmin && media.status === SmartMediaStatus.FAILED && (
+                    <>
+                      <span className="text-white/60">•</span>
+                      <span className={`pointer-events-none text-sm text-bearish/80`}>
+                        media update failed
                       </span>
                     </>
                   )}

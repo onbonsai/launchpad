@@ -23,15 +23,137 @@ import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
 import { brandFont } from "@src/fonts/fonts";
 import useIsMobile from "@src/hooks/useIsMobile";
 
+interface PostItemProps {
+  post: any;
+  isMobile: boolean;
+  onVisibilityChange: (slug: string, inView: boolean) => void;
+  hoveredPostSlug: string | null;
+  setHoveredPostSlug: (slug: string | null) => void;
+  activeDropdown: string | null;
+  setActiveDropdown: (slug: string | null) => void;
+  activeCollectModal: string | null;
+  setActiveCollectModal: (slug: string | null) => void;
+  authenticatedProfile: any;
+  bonsaiBalance: any;
+  postData: any;
+  onShareButtonClick: (slug: string) => void;
+  router: any;
+}
+
+const PostItem = ({
+  post,
+  isMobile,
+  onVisibilityChange,
+  hoveredPostSlug,
+  setHoveredPostSlug,
+  activeDropdown,
+  setActiveDropdown,
+  activeCollectModal,
+  setActiveCollectModal,
+  authenticatedProfile,
+  bonsaiBalance,
+  postData,
+  onShareButtonClick,
+  router
+}: PostItemProps) => {
+  const { ref: postRef, inView: postInView } = useInView({
+    threshold: 0.5,
+    triggerOnce: false,
+  });
+
+  useEffect(() => {
+    if (isMobile) {
+      onVisibilityChange(post.slug, postInView);
+    }
+  }, [postInView, post.slug, onVisibilityChange, isMobile]);
+
+  return (
+    <div
+      ref={postRef}
+      key={`post-${post.slug}`}
+      className={`mb-4 relative group ${brandFont.className} font-light`}
+      onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
+      onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
+    >
+      <Publication
+        key={`preview-${post.slug}`}
+        publicationData={{
+          author: post.author,
+          timestamp: post.timestamp,
+          metadata: {
+            __typename: post.metadata?.image
+              ? "ImageMetadata"
+              : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+            content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
+            image: post.metadata?.image
+              ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+              : undefined,
+            video: post.metadata?.video
+              ? { item: post.metadata.video.item }
+              : undefined
+          }
+        }}
+        theme={Theme.dark}
+        followButtonDisabled={true}
+        environment={LENS_ENVIRONMENT}
+        profilePictureStyleOverride={publicationProfilePictureStyle}
+        containerBorderRadius={'24px'}
+        containerPadding={'12px'}
+        profilePadding={'0 0 0 0'}
+        textContainerStyleOverride={postCollageTextContainerStyleOverrides}
+        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+        mediaImageStyleOverride={mediaImageStyleOverride}
+        imageContainerStyleOverride={imageContainerStyleOverride}
+        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+        reactionContainerStyleOverride={reactionContainerStyleOverride}
+        shareContainerStyleOverride={shareContainerStyleOverride}
+        markdownStyleBottomMargin={'0'}
+        heartIconOverride={true}
+        messageIconOverride={true}
+        shareIconOverride={true}
+        profileMaxWidth={'120px'}
+        fullVideoHeight
+        playVideo={
+          (isMobile && postInView) ||
+          (!isMobile && hoveredPostSlug === post.slug) ||
+          activeDropdown === post.slug
+        }
+        hideVideoControls
+      />
+      <div className={clsx(
+        "opacity-0 transition-opacity duration-200 z-30",
+        !isMobile && "group-hover:opacity-100",
+        (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+      )}>
+        <CardOverlay
+          authenticatedProfile={authenticatedProfile}
+          bonsaiBalance={bonsaiBalance}
+          post={post}
+          postData={postData[post.slug]}
+          onShare={() => onShareButtonClick(post.slug)}
+          onClick={() => {
+            localStorage.setItem('tempPostData', JSON.stringify(post));
+            router.push({ pathname: `/post/${post.slug}` });
+          }}
+          className={clsx(
+            "opacity-0 transition-all duration-300 ease-in-out z-30",
+            !isMobile && "group-hover:opacity-100",
+            (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+          )}
+          showDropdown={activeDropdown === post.slug}
+          setShowDropdown={(show) => setActiveDropdown(show ? post.slug : null)}
+          showCollectModal={activeCollectModal === post.slug}
+          setShowCollectModal={(show) => setActiveCollectModal(show ? post.slug : null)}
+        />
+      </div>
+    </div>
+  );
+};
+
 export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage,
   // sortedBy, setSortedBy
 }) => {
   const { data: walletClient } = useWalletClient();
-  const { ref, inView } = useInView({
-    threshold: 0.5,
-    rootMargin: '200px',
-    triggerOnce: false,
-  });
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [activeCollectModal, setActiveCollectModal] = useState<string | null>(null);
@@ -45,6 +167,12 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     isAuthenticated,
     authenticatedProfile,
   } = useLensSignIn(walletClient);
+
+  const { ref, inView } = useInView({
+    threshold: 0.5,
+    rootMargin: '200px',
+    triggerOnce: false,
+  });
 
   const categories = useMemo(() => {
     const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value').filter(c => c);
@@ -202,100 +330,25 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
               className="flex w-auto -ml-4"
               columnClassName="pl-4 bg-clip-padding"
             >
-              {sortedPosts.map((post, idx) => {
-                const { ref: postRef, inView: postInView } = useInView({
-                  threshold: 0.5,
-                  triggerOnce: false,
-                });
-
-                useEffect(() => {
-                  if (isMobile) {
-                    handleVisibilityChange(post.slug, postInView);
-                  }
-                }, [postInView, post.slug, handleVisibilityChange, isMobile]);
-
-                return (
-                  <div
-                    ref={postRef}
-                    key={`post-${post.slug}`}
-                    className={`mb-4 relative group ${brandFont.className} font-light`}
-                    onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
-                    onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
-                  >
-                    <Publication
-                      key={`preview-${post.slug}`}
-                      publicationData={{
-                        author: post.author,
-                        timestamp: post.timestamp,
-                        metadata: {
-                          __typename: post.metadata?.image
-                            ? "ImageMetadata"
-                            : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
-                          content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
-                          image: post.metadata?.image
-                            ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
-                            : undefined,
-                          video: post.metadata?.video
-                            ? { item: post.metadata.video.item }
-                            : undefined
-                        }
-                      }}
-                      theme={Theme.dark}
-                      followButtonDisabled={true}
-                      environment={LENS_ENVIRONMENT}
-                      profilePictureStyleOverride={publicationProfilePictureStyle}
-                      containerBorderRadius={'24px'}
-                      containerPadding={'12px'}
-                      profilePadding={'0 0 0 0'}
-                      textContainerStyleOverride={postCollageTextContainerStyleOverrides}
-                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                      mediaImageStyleOverride={mediaImageStyleOverride}
-                      imageContainerStyleOverride={imageContainerStyleOverride}
-                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                      reactionContainerStyleOverride={reactionContainerStyleOverride}
-                      shareContainerStyleOverride={shareContainerStyleOverride}
-                      markdownStyleBottomMargin={'0'}
-                      heartIconOverride={true}
-                      messageIconOverride={true}
-                      shareIconOverride={true}
-                      profileMaxWidth={'120px'}
-                      fullVideoHeight
-                      playVideo={
-                        (isMobile && inViewPostSlug === post.slug) ||
-                        (!isMobile && hoveredPostSlug === post.slug) ||
-                        activeDropdown === post.slug
-                      }
-                      hideVideoControls
-                    />
-                    <div className={clsx(
-                      "opacity-0 transition-opacity duration-200 z-30",
-                      !isMobile && "group-hover:opacity-100",
-                      (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
-                    )}>
-                      <CardOverlay
-                        authenticatedProfile={authenticatedProfile}
-                        bonsaiBalance={bonsaiBalance}
-                        post={post}
-                        postData={postData[post.slug]}
-                        onShare={() => onShareButtonClick(post.slug)}
-                        onClick={() => {
-                          localStorage.setItem('tempPostData', JSON.stringify(post));
-                          router.push({ pathname: `/post/${post.slug}` });
-                        }}
-                        className={clsx(
-                          "opacity-0 transition-all duration-300 ease-in-out z-30",
-                          !isMobile && "group-hover:opacity-100",
-                          (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
-                        )}
-                        showDropdown={activeDropdown === post.slug}
-                        setShowDropdown={(show) => setActiveDropdown(show ? post.slug : null)}
-                        showCollectModal={activeCollectModal === post.slug}
-                        setShowCollectModal={(show) => setActiveCollectModal(show ? post.slug : null)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              {sortedPosts.map((post) => (
+                <PostItem
+                  key={post.slug}
+                  post={post}
+                  isMobile={isMobile}
+                  onVisibilityChange={handleVisibilityChange}
+                  hoveredPostSlug={hoveredPostSlug}
+                  setHoveredPostSlug={setHoveredPostSlug}
+                  activeDropdown={activeDropdown}
+                  setActiveDropdown={setActiveDropdown}
+                  activeCollectModal={activeCollectModal}
+                  setActiveCollectModal={setActiveCollectModal}
+                  authenticatedProfile={authenticatedProfile}
+                  bonsaiBalance={bonsaiBalance}
+                  postData={postData}
+                  onShareButtonClick={onShareButtonClick}
+                  router={router}
+                />
+              ))}
             </Masonry>
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-8 pb-4">

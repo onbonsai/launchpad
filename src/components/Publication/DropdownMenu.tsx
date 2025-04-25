@@ -258,9 +258,9 @@ export default ({
       toast.error("Must be logged in");
     }
 
-    let toastId = toast.loading(`Setting post as ${isFeatured ? 'not featured' : 'featured'}`);
+    let toastId = toast.loading(!!media?.featured ? `Setting post as ${isFeatured ? 'not featured' : 'featured'}` : 'Toggling featured');
     try {
-      const res = await setFeatured(idToken, media?.postId as string, !isFeatured);
+      const res = await setFeatured(idToken, postSlug, media?.featured);
       if (res) {
         toast.success("Success", { id: toastId });
         setIsFeatured(!isFeatured);
@@ -478,7 +478,7 @@ export default ({
                     ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
                     : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
                   }
-                  <span className="ml-2">{!isFeatured ? "Feature" : "Remove Feature"}</span>
+                  <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
                 </button>
               )}
               <button
@@ -642,7 +642,7 @@ export default ({
                   ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
                   : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
                 }
-                <span className="ml-2">{!isFeatured ? "Feature" : "Remove Feature"}</span>
+                <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
               </button>
             )}
             <button

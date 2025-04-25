@@ -379,9 +379,8 @@ export const useGetFeaturedPosts = () => {
   });
 };
 
-export const setFeatured = async (idToken: string, postId: string, featured: boolean): Promise<boolean> => {
+export const setFeatured = async (idToken: string, postId: string, featured?: boolean): Promise<boolean> => {
   try {
-    console.log({ postId, featured })
     const response = await fetch("/api/bonsai/set-featured", {
       method: "POST",
       headers: {
