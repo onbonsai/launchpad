@@ -1,6 +1,7 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import { Publications, Theme } from "@madfi/widgets-react";
+import dynamic from 'next/dynamic';
+import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef } from "react";
@@ -41,6 +42,12 @@ interface PublicationProps {
   handle?: string;
   postId: string;
 }
+
+// Lazy load the Publications component
+const Publications = dynamic(
+  () => import("@madfi/widgets-react").then(mod => mod.Publications),
+  { ssr: false }
+);
 
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
   const isMounted = useIsMounted();
@@ -422,38 +429,40 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                       </>
                     )}
                     <div className="animate-fade-in-down">
-                      <Publications
-                        publications={showRootPublication ? [publication] : sortedComments}
-                        theme={Theme.dark}
-                        environment={LENS_ENVIRONMENT}
-                        authenticatedProfile={authenticatedProfile}
-                        hideCommentButton={false}
-                        hideQuoteButton={true}
-                        hideShareButton={true}
-                        hasUpvotedComment={hasUpvotedComment}
-                        onLikeButtonClick={onLikeButtonClick}
-                        getOperationsFor={getOperationsFor}
-                        profilePictureStyleOverride={publicationProfilePictureStyle}
-                        containerBorderRadius={'24px'}
-                        containerPadding={'12px'}
-                        profilePadding={'0 0 0 0'}
-                        textContainerStyleOverride={textContainerStyleOverrides}
-                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                        mediaImageStyleOverride={mediaImageStyleOverride}
-                        imageContainerStyleOverride={imageContainerStyleOverride}
-                        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                        reactionContainerStyleOverride={reactionContainerStyleOverride}
-                        publicationContainerStyleOverride={publicationContainerStyleOverride}
-                        shareContainerStyleOverride={shareContainerStyleOverride}
-                        markdownStyleBottomMargin={'0px'}
-                        heartIconOverride={true}
-                        messageIconOverride={true}
-                        shareIconOverride={true}
-                        followButtonDisabled={true}
-                        onProfileClick={goToCreatorPage}
-                        hideCollectButton={true}
-                        onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
-                      />
+                      {isMounted && (
+                        <Publications
+                          publications={showRootPublication ? [publication] : sortedComments}
+                          theme={Theme.dark}
+                          environment={LENS_ENVIRONMENT}
+                          authenticatedProfile={authenticatedProfile}
+                          hideCommentButton={false}
+                          hideQuoteButton={true}
+                          hideShareButton={true}
+                          hasUpvotedComment={hasUpvotedComment}
+                          onLikeButtonClick={onLikeButtonClick}
+                          getOperationsFor={getOperationsFor}
+                          profilePictureStyleOverride={publicationProfilePictureStyle}
+                          containerBorderRadius={'24px'}
+                          containerPadding={'12px'}
+                          profilePadding={'0 0 0 0'}
+                          textContainerStyleOverride={textContainerStyleOverrides}
+                          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                          mediaImageStyleOverride={mediaImageStyleOverride}
+                          imageContainerStyleOverride={imageContainerStyleOverride}
+                          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                          reactionContainerStyleOverride={reactionContainerStyleOverride}
+                          publicationContainerStyleOverride={publicationContainerStyleOverride}
+                          shareContainerStyleOverride={shareContainerStyleOverride}
+                          markdownStyleBottomMargin={'0px'}
+                          heartIconOverride={true}
+                          messageIconOverride={true}
+                          shareIconOverride={true}
+                          followButtonDisabled={true}
+                          onProfileClick={goToCreatorPage}
+                          hideCollectButton={true}
+                          onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                        />
+                      )}
                     </div>
                   </div>
                 </>
