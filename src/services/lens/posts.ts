@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Cursor, evmAddress, PageSize, postId, PostType, SessionClient } from "@lens-protocol/client";
-import { fetchPost, fetchPosts, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
+import { fetchPost, fetchPosts, fetchTimeline, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
 import promiseLimit from "promise-limit";
 import { lensClient } from "./client";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { groupBy, sampleSize } from "lodash";
+import { groupBy, sampleSize, uniqBy } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
+import { LENS_BONSAI_APP, LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -148,6 +148,51 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: isLoadingAuthenticatedProfile === false,
+  });
+};
+
+export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+  return useInfiniteQuery({
+    queryKey: ["timeline", accountAddress],
+    queryFn: async ({ pageParam }) => {
+      let sessionClient;
+      try {
+        sessionClient = await resumeSession();
+      } catch { }
+
+      const result = await fetchTimeline(sessionClient || lensClient, {
+        account: evmAddress(accountAddress as string),
+        filter: {
+          // apps: [evmAddress(LENS_BONSAI_APP)]
+          feeds: [
+            {
+              feed: evmAddress(LENS_BONSAI_DEFAULT_FEED)
+            }
+          ]
+        },
+        cursor: pageParam as Cursor | null,
+      });
+
+      if (result.isErr()) {
+        console.log(result.error);
+        throw result.error;
+      }
+
+      // NOTE: we only show root posts, in the future we might want to show comments / reposts
+      const { items: timelineItems, pageInfo } = result.value;
+      console.log(timelineItems)
+      const posts = uniqBy(timelineItems.map((t) => t.primary), 'slug');
+
+      return {
+        posts,
+        postData: await getPostData(posts?.map(({ slug }) => slug) || []),
+        pageInfo,
+        nextCursor: pageInfo.next,
+      };
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: isLoadingAuthenticatedProfile === false && !!accountAddress,
   });
 };
 

@@ -103,12 +103,12 @@ const HandleSEO = ({ pageProps }) => {
 
   // Single publication page
   if (pageName === "singlePublication") {
-    const { handle, content, image, pubId } = pageProps;
+    const { handle, content, image, postId } = pageProps;
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
-    const postUrl = `${SITE_URL}/post/${pubId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(pubId)}`;
+    const postUrl = `${SITE_URL}/post/${postId}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,

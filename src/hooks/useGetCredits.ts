@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-interface CreditBalance {
+export type CreditBalance = {
   totalCredits: number;
   freeCredits: number;
   stakingCredits: number;

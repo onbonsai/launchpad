@@ -19,7 +19,7 @@ import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
-import { SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
+import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
@@ -27,6 +27,7 @@ import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
+import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useTopUpModal } from "@src/contexts/TopUpModalContext";
 
 type PublicationContainerProps = {
@@ -50,7 +51,8 @@ type PublicationContainerProps = {
   token?: {
     address: `0x${string}`;
     ticker: string;
-  }
+  };
+  enoughActivity?: boolean; // does the smart media have any new comments since the last time it was updated
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -81,10 +83,11 @@ const PublicationContainer = ({
   nestedWidget,
   mdMinWidth = 'md:min-w-[700px]',
   token,
+  enoughActivity,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const referralAddress = router.query.ref as `0x${string}`;
-  const { isConnected, chain } = useAccount();
+  const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const {
     isAuthenticated,
@@ -92,11 +95,13 @@ const PublicationContainer = ({
     authenticatedProfileId,
   } = useLensSignIn(walletClient);
   const { data: isFollowedResponse } = useIsFollowed(authenticatedProfileId, publication?.by?.id);
+  const { data: creatorCreditBalance } = useGetCredits(media?.creator as string, !!media?.creator);
   const { canFollow, isFollowed: _isFollowed } = isFollowedResponse || {};
   const [isFollowed, setIsFollowed] = useState(_isFollowed);
   const [hasUpvoted, setHasUpvoted] = useState<boolean>(publication?.operations?.hasUpvoted || false);
   const [hasMirrored, setHasMirrored] = useState<boolean>(!!publication?.operations?.hasReposted?.onchain || false);
   const [hasCollected, setHasCollected] = useState<boolean>(publication.operations?.hasSimpleCollected || false);
+  const [isProcessing, setIsProcessing] = useState(media?.isProcessing || false);
   const [collectAmount, setCollectAmount] = useState<string>();
   const [isCollecting, setIsCollecting] = useState(false);
   const [showCollectModal, setShowCollectModal] = useState(false);
@@ -104,6 +109,7 @@ const PublicationContainer = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
+  const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
   const { openTopUpModal } = useTopUpModal();
 
   // bonsai balance of Lens Account
@@ -247,6 +253,12 @@ const PublicationContainer = ({
 
     return false;
   }, [publication]);
+
+  const creatorInsufficientCredits = useMemo(() => {
+    return media?.estimatedCost && creatorCreditBalance?.creditsRemaining
+      ? media.estimatedCost > creatorCreditBalance.creditsRemaining
+      : false;
+  }, [media?.estimatedCost, creatorCreditBalance?.creditsRemaining]);
 
   const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
 
@@ -417,7 +429,7 @@ const PublicationContainer = ({
             <div className="rounded-2xl bg-dark-grey/80 hover:shining-border text-white flex flex-col px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
               <div className="h-10 flex items-center overflow-hidden">
                 <span className="pointer-events-none shrink-0">
-                  <SparkIcon color="#fff" height={16} />
+                  <SparkIcon color={!isProcessing ? "#fff" : "#5be39d"} height={16} />
                 </span>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden ml-1 mr-2">
                   <span className="pointer-events-none text-sm">
@@ -430,8 +442,31 @@ const PublicationContainer = ({
                   {media.status === SmartMediaStatus.ACTIVE && (
                     <>
                       <span className="text-white/60">•</span>
-                      <span className="pointer-events-none text-sm text-white/80">
-                        {`updating in ${formatNextUpdate(media.updatedAt)}`}
+                      <span className={`pointer-events-none text-sm ${isProcessing ? 'text-brand-highlight' : 'text-white/80'}`}>
+                        {
+                          creatorInsufficientCredits
+                            ? 'insufficient credits for today'
+                            : isProcessing
+                              ? `updating now`
+                              : (enoughActivity ? `updating in ${formatNextUpdate(media.updatedAt)}` : 'no new activity')
+                        }
+                      </span>
+                    </>
+                  )}
+                  {media.status === SmartMediaStatus.DISABLED && (
+                    <>
+                      <span className="text-white/60">•</span>
+                      <span className={`pointer-events-none text-sm text-white/80`}>
+                        media has been disabled
+                      </span>
+                    </>
+                  )}
+                  {/* helpful for admins to know of failures */}
+                  {isAdmin && media.status === SmartMediaStatus.FAILED && (
+                    <>
+                      <span className="text-white/60">•</span>
+                      <span className={`pointer-events-none text-sm text-bearish/80`}>
+                        media update failed
                       </span>
                     </>
                   )}
@@ -484,6 +519,9 @@ const PublicationContainer = ({
         mediaUrl={mediaUrl}
         media={media}
         token={token}
+        onRequestGeneration={() => setIsProcessing(true)}
+        creditBalance={creatorCreditBalance}
+        insufficientCredits={creatorInsufficientCredits}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (

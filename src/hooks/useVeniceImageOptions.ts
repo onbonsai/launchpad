@@ -33,7 +33,7 @@ export const imageModelDescriptions = {
   "pony-realism": "Uncensored",
   "stable-diffusion-3.5": "Most artistic (old)",
   "lustify-sdxl": "Uncensored",
-  "venice-sd-35": "Most artistic"
+  "venice-sd35": "Most artistic"
 }
 
 export const useVeniceImageOptions = () => {

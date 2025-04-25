@@ -146,9 +146,9 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
           }}
           mediaProtocolFeeRecipient={media?.protocolFeeRecipient}
           useRemixReferral={!!remixPostId ? media?.creator : undefined}
-          onBuyUSDC={(amount: string, amountNeeded: number) => {
+          onBuyUSDC={(amount: string) => {
             setUsdcBuyAmount(amount)
-            setUsdcAmountNeeded(amountNeeded)
+            setUsdcAmountNeeded(amount)
             setShowBuyModal(false)
             setBuyUSDCModalOpen(true)
           }}
@@ -156,7 +156,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
         />
         <BuyUSDCWidget
           open={buyUSDCModalOpen}
-          buyAmount={usdcAmountNeeded}
+          buyAmount={usdcBuyAmount}
           onClose={() => {
             setBuyUSDCModalOpen(false);
             setShowBuyModal(true);

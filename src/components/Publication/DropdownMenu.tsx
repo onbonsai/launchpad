@@ -1,14 +1,14 @@
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { addPostNotInterested, deletePost, reportPost } from "@lens-protocol/client/actions";
-import { FlagOutlined, RemoveCircle, RefreshOutlined, Block, AccountBalanceWallet } from "@mui/icons-material";
+import { FlagOutlined, RemoveCircle, Block, AccountBalanceWallet, Star, StarBorderOutlined, StarOutline} from "@mui/icons-material";
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
-import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus } from '@src/services/madfi/studio';
-import { useGetCredits } from '@src/hooks/useGetCredits';
+import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus, SET_FEATURED_ADMINS, setFeatured } from '@src/services/madfi/studio';
+import { CreditBalance, useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { handleOperationWith } from "@lens-protocol/client/viem";
 import { useGetRewardPool } from '@src/hooks/useMoneyClubs';
@@ -17,7 +17,7 @@ import { formatEther, parseEther } from 'viem';
 import { approveToken, topUpRewards, withdrawRewards } from '@src/services/madfi/moneyClubs';
 import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 
-type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete' | 'rewards' | 'topup';
+type ViewState = 'initial' | 'report' | 'notInterested' | 'refresh' | 'disable' | 'delete' | 'rewards' | 'topup' | 'feature';
 
 interface DropdownMenuProps {
   showDropdown: boolean;
@@ -33,6 +33,9 @@ interface DropdownMenuProps {
     address: `0x${string}`;
     ticker: string;
   }
+  onRequestGeneration: () => void;
+  creditBalance?: CreditBalance;
+  insufficientCredits?: boolean;
 }
 
 export default ({
@@ -46,10 +49,12 @@ export default ({
   mediaUrl,
   media,
   token,
+  onRequestGeneration,
+  creditBalance,
+  insufficientCredits,
 }: DropdownMenuProps) => {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected && isCreator);
   const { data: rewardPoolData, isLoading: isLoadingRewards } = useGetRewardPool(token?.address as `0x${string}`);
   const { data: balance } = useBalance({
     address: address,
@@ -57,13 +62,8 @@ export default ({
   });
   const [topUpAmount, setTopUpAmount] = useState('');
   const [currentView, setCurrentView] = useState<ViewState>('initial');
-
-  const estimatedGenerations = useMemo(() => {
-    if (!isLoadingCredits) {
-      return Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
-    }
-    return 0;
-  }, [isLoadingCredits]);
+  const [isFeatured, setIsFeatured] = useState(media?.featured || false);
+  const showFeaturedToggle = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()) && mediaUrl?.includes("onbons.ai"), [mediaUrl, address]);
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
     e.stopPropagation();
@@ -167,6 +167,7 @@ export default ({
       if (!idToken) return;
 
       await requestPostUpdate(mediaUrl as string, postSlug, idToken);
+      onRequestGeneration();
 
       setShowDropdown(false);
       setCurrentView('initial');
@@ -239,6 +240,36 @@ export default ({
     }
   };
 
+  const handleFeatured = async () => {
+    if (!showFeaturedToggle) {
+      toast.error("Not admin or not a bonsai media");
+      return;
+    }
+
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) return;
+
+    const creds = await sessionClient.getCredentials();
+
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+    }
+
+    let toastId = toast.loading(!!media?.featured ? `Setting post as ${isFeatured ? 'not featured' : 'featured'}` : 'Toggling featured');
+    try {
+      const res = await setFeatured(idToken, postSlug, media?.featured);
+      if (res) {
+        toast.success("Success", { id: toastId });
+        setIsFeatured(!isFeatured);
+      } else toast.error("Failed to featured", { id: toastId });
+    } catch (error) {
+      toast.error("Failed to set featured", { id: toastId });
+    }
+  }
+
   useEffect(() => {
     if (!showDropdown) return;
 
@@ -294,14 +325,15 @@ export default ({
           return (
             <>
               <div className="px-4 py-3 text-center text-sm">
-                Request a post update
+                Request a generation?
+                {media?.estimatedCost && <span className="ml-1"><br />~ {media.estimatedCost.toFixed(2)} credits</span>}
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
                   onClick={(e) => handleButtonClick(e, onRefreshMetadata)}
                 >
-                  Confirm
+                  Generate
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -316,14 +348,14 @@ export default ({
           return (
             <>
               <div className="px-4 py-3 text-center text-sm">
-                Disable post updates
+                Disable post updates?
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
                   onClick={(e) => handleButtonClick(e, onDisableMetadata)}
                 >
-                  Confirm
+                  Disable
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -342,10 +374,10 @@ export default ({
               </div>
               <div className="border-t border-white/10">
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
                   onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
                 >
-                  Confirm Delete
+                  Delete
                 </button>
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -411,14 +443,16 @@ export default ({
                     Total Paid: {isLoadingRewards ? 'Loading...' : `${kFormatter(Number(formatEther(rewardPoolData?.totalRewardsPaid || 0n)), true)} ${token?.ticker}`}
                   </div>
                 </div>
+                {(rewardPoolData?.rewardsAmount || 0n) > 0n && (
+                  <button
+                    className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                    onClick={(e) => handleButtonClick(e, handleWithdrawRewards)}
+                  >
+                    Withdraw Rewards
+                  </button>
+                )}
                 <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
-                  onClick={(e) => handleButtonClick(e, handleWithdrawRewards)}
-                >
-                  Withdraw Rewards
-                </button>
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
                   onClick={() => setCurrentView('topup')}
                 >
                   Top Up Rewards
@@ -435,15 +469,27 @@ export default ({
         default:
           return (
             <>
+              {showFeaturedToggle && (
+                <button
+                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                  onClick={handleFeatured}
+                >
+                  {!isFeatured
+                    ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                    : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                  }
+                  <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
+                </button>
+              )}
               <button
-                className={`w-full py-3 px-4 text-left flex items-center ${estimatedGenerations > 0 ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
-                onClick={() => estimatedGenerations > 0 && setCurrentView('refresh')}
+                className={`w-full py-3 px-4 text-left flex items-center ${!insufficientCredits ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
+                onClick={() => !insufficientCredits && setCurrentView('refresh')}
               >
                 <div className="w-4 flex items-center justify-center">
                   <SparkIcon color="rgba(255,255,255,0.8)" height={16} />
                 </div>
                 <span className="ml-2">
-                  {estimatedGenerations > 0 ? 'Update Post' : 'Insufficient credits to update'}
+                  {!insufficientCredits ? 'Post generation' : 'Insufficient credits to update'}
                 </span>
               </button>
               {media?.status === SmartMediaStatus.ACTIVE && (
@@ -466,7 +512,7 @@ export default ({
                 </div>
                 <span className="ml-2">Delete Post</span>
               </button>
-              {token && (
+              {token?.address && (
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
                   onClick={() => setCurrentView('rewards')}
@@ -572,7 +618,7 @@ export default ({
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
                 onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
               >
-                Confirm Delete
+                Delete
               </button>
               <button
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
@@ -587,6 +633,18 @@ export default ({
       default:
         return (
           <>
+            {showFeaturedToggle && (
+              <button
+                className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+                onClick={handleFeatured}
+              >
+                {!isFeatured
+                  ? <Star sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                  : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
+                }
+                <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
+              </button>
+            )}
             <button
               className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
               onClick={() => setCurrentView('notInterested')}

@@ -1,5 +1,6 @@
 import { useAccount, useWalletClient } from "wagmi";
 import { PayEmbed } from "thirdweb/react";
+import { NATIVE_TOKEN_ADDRESS } from "thirdweb";
 import { client, thirdwebWallet, lensChain } from "@src/services/thirdweb/client";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
@@ -14,7 +15,7 @@ import Spinner from "../LoadingSpinner/LoadingSpinner";
 
 interface BuyUSDCModalProps {
   chain: string; // base | lens
-  buyAmount: number;
+  buyAmount: string;
   closeModal: () => void;
 }
 
@@ -47,37 +48,28 @@ const BuyUSDCModal = ({ chain, buyAmount, closeModal }: BuyUSDCModalProps) => {
       activeWallet={activeWallet}
       client={client}
       payOptions={{
-        mode: "fund_wallet",
+        mode: "direct_payment",
         metadata: {
           name: "Get GHO on Lens Chain",
         },
-        prefillBuy: {
-          chain: lensChain,
-          amount: "100"
+        buyWithFiat: {
+          preferredProvider: "COINBASE",
+          testMode: false,
         },
-        // buyWithFiat: {
-        //   preferredProvider: "COINBASE",
-
-        //   // enable/disable test mode
-        //   testMode: false,
-        // },
-        // paymentInfo: {
-        //   // amount of token to buy
-        //   amount: buyAmount ? buyAmount.toString() : "100",
-
-        //   chain: lensChain,
-
-        //   // using the EOA until lens account is easier
-        //   sellerAddress: address as `0x${string}`,
-        //   // token: {
-        //   //   address: "0x6bDc36E20D267Ff0dd6097799f82e78907105e2F",
-
-        //   //   // Making it look like GHO token
-        //   //   name: "GHO",
-        //   //   symbol: "GHO",
-        //   //   icon: "https://explorer.lens.xyz/images/gho.png",
-        //   // },
-        // },
+         buyWithCrypto: {
+          testMode: false,
+        },
+        paymentInfo: {
+          chain: lensChain,
+          amount: buyAmount || "100",
+          sellerAddress: address as `0x${string}`, // using the EOA until lens account is easier
+          token: {
+            address: NATIVE_TOKEN_ADDRESS,
+            name: "GHO",
+            symbol: "GHO",
+            icon: "https://explorer.lens.xyz/images/gho.png",
+          },
+        },
         onPurchaseSuccess: (purchase) => {
           console.log("Purchase success", purchase);
           toast.success("Bought GHO")

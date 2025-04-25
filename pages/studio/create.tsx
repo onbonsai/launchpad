@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
+import CashIcon from "@heroicons/react/solid/CashIcon"
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
@@ -17,7 +18,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
-import { Action, createPost, uploadFile, uploadImageBase64 } from "@src/services/lens/createPost";
+import { Action, createPost, uploadFile, uploadImageBase64, uploadVideo } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client";
@@ -35,6 +36,7 @@ import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
+import { Tooltip } from "@mui/material";
 
 type TokenData = {
   initialSupply: number;
@@ -289,6 +291,12 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     try {
       let image;
+      let video;
+      if (preview?.video) {
+        const { uri: videoUri, type } = await uploadVideo(preview.video.blob, preview.video.mimeType, template?.acl);
+        video = { url: videoUri, type };
+      }
+
       if (postImage && postImage.length > 0) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
       } else if (preview?.image) {
@@ -330,7 +338,7 @@ const StudioCreatePage: NextPage = () => {
           }
         ];
       }
-      
+
       let actions: Action[] = [{
         simpleCollect: {
           payToCollect: {
@@ -364,6 +372,7 @@ const StudioCreatePage: NextPage = () => {
         {
           text: postContent || preview?.text || template.displayName,
           image,
+          video,
           template,
           tokenAddress,
           remix: remixMedia?.postId,
@@ -459,8 +468,16 @@ const StudioCreatePage: NextPage = () => {
                     <ArrowBack className="h-5 w-5" />
                   </Link>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
-                    <Subtitle className="items-start text-lg leading-tight mt-2 mr-8">{template?.description}</Subtitle>
+                    <div className="flex flex-row space-x-4">
+                      <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
+                      {template?.estimatedCost && (
+                        <span className="flex items-center text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1">
+                          <CashIcon className="h-4 w-4 mr-2" />
+                          ~{template.estimatedCost.toFixed(2)} credits
+                        </span>
+                      )}
+                    </div>
+                    <Subtitle className="items-start text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
                   </div>
                 </div>
               </div>
@@ -557,15 +574,18 @@ const StudioCreatePage: NextPage = () => {
                           author: authenticatedProfile,
                           timestamp: new Date(),
                           metadata: {
-                            __typename: !!preview?.image
-                              ? "ImageMetadata"
-                              : (preview.video ? "VideoMetadata" : "TextOnlyMetadata"),
-                            content: preview.text,
+                            __typename: preview?.video
+                              ? "VideoMetadata"
+                              : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
+                            content: preview.text || postContent,
+                            video: preview.video
+                              ? {
+                                  item: preview.video.url,
+                                  cover: (typeof preview.image === 'string' ? preview.image : preview.imagePreview)
+                                }
+                              : undefined,
                             image: preview.image
                               ? { item: typeof preview.image === 'string' ? preview.image : preview.imagePreview }
-                              : undefined,
-                            video: preview.video
-                              ? { item: preview.video }
                               : undefined
                           }
                         }}
@@ -574,7 +594,7 @@ const StudioCreatePage: NextPage = () => {
                         environment={LENS_ENVIRONMENT}
                         profilePictureStyleOverride={publicationProfilePictureStyle}
                         containerBorderRadius={'24px'}
-                        containerPadding={'12px'}
+                        containerPadding={'10px'}
                         profilePadding={'0 0 0 0'}
                         textContainerStyleOverride={textContainerStyleOverrides}
                         backgroundColorOverride={'rgba(255,255,255, 0.08)'}

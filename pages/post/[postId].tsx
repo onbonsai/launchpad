@@ -30,8 +30,19 @@ import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { Post } from "@lens-protocol/client";
 
-const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }> = ({ media, rootPostId }) => {
+interface PublicationProps {
+  media: SmartMedia | null;
+  rootPostId: string;
+  pageName?: string;
+  image?: string | null;
+  content?: string;
+  handle?: string;
+  postId: string;
+}
+
+const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { postId, returnTo } = router.query;
@@ -126,7 +137,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
     }
   }, [authenticatedProfile]);
 
-  const sortedComments = useMemo(() => {
+  const sortedComments: Post[] = useMemo(() => {
     return (freshComments || comments || []).sort((a, b) => {
       // Sort by upvoteReactions descending
       if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
@@ -142,6 +153,15 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
 
     return publication?.by.id === authenticatedProfileId;
   }, [publication, authenticatedProfileId]);
+
+  const enoughActivity = useMemo(() => {
+    if (!sortedComments?.length || !media?.updatedAt) return false;
+
+    return sortedComments.some(comment => {
+      const commentTimestamp = Math.floor(new Date(comment.timestamp).getTime() / 1000);
+      return commentTimestamp > media.updatedAt;
+    });
+  }, [sortedComments, media]);
 
   useEffect(() => {
     setCanComment(
@@ -268,6 +288,10 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
     );
   }
 
+  const safeMedia = (media: SmartMedia | null | undefined): SmartMedia | undefined => {
+    return media || undefined;
+  };
+
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
       <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
@@ -289,7 +313,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
             <ArrowBack className="h-5 w-5" />
           </Link>
           <div className="flex flex-col gap-2 h-full">
-            {club?.tokenAddress && <TokenInfoComponent club={club} media={media} remixPostId={remixPostId} postId={publication?.id} />}
+            {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
                 <div className="flex justify-center pt-8 pb-8">
@@ -305,7 +329,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                           onCommentButtonClick={onCommentButtonClick}
                           shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
-                          media={media}
+                          media={safeMedia(media)}
                           onCollectCallback={() => {
                             setCanComment(true);
                             refetch();
@@ -316,6 +340,7 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                             address: club?.tokenAddress,
                             ticker: club?.symbol,
                           }}
+                          enoughActivity={enoughActivity}
                         />
                       </div>
                       <div className="sm:hidden">
@@ -324,12 +349,13 @@ const SinglePublicationPage: NextPage<{ media: SmartMedia, rootPostId: string }>
                           onCommentButtonClick={onCommentButtonClick}
                           shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
-                          media={media}
+                          media={safeMedia(media)}
                           onCollectCallback={() => {
                             setCanComment(true);
                             refetch();
                             scrollToReplyInput();
                           }}
+                          enoughActivity={enoughActivity}
                         />
                       </div>
                     </>
@@ -449,9 +475,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   if (!post) return { notFound: true };
 
-  const media = !post.root
-    ? await resolveSmartMedia(post.metadata.attributes, post.slug, true)
-    : await resolveSmartMedia(post.root.metadata.attributes, post.root.slug, true);
+  let media: SmartMedia | null = null;
+  try {
+    // Only attempt to resolve media if we have the necessary attributes
+    const attributes = !post.root ? post.metadata.attributes : post.root.metadata.attributes;
+    const slug = !post.root ? post.slug : post.root.slug;
+
+    if (attributes?.some(attr => attr.key === 'template')) {
+      media = await resolveSmartMedia(attributes, slug, true);
+    }
+  } catch {}
 
   const image =
     (post.metadata?.image?.item?.startsWith("lens://")

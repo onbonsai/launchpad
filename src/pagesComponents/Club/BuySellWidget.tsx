@@ -534,17 +534,18 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         Trade on Base <ExternalLinkIcon className="ml-1 mt-1 w-4 h-4" />
                       </a>
                     )}
-                    {/* TODO: need thirdweb working with gho */}
-                    {/* <Button
-                      variant={"primary"}
-                      size='md'
-                      className="w-full !border-none"
-                      onClick={() => {
-                        onBuyUSDC(buyPrice, "100");
-                      }}
-                    >
-                      Fund wallet
-                    </Button> */}
+                    {/* {club.tokenAddress !== PROTOCOL_DEPLOYMENT.lens.Bonsai && (
+                      <Button
+                        variant={"primary"}
+                        size='md'
+                        className="w-full !border-none"
+                        onClick={() => {
+                          onBuyUSDC(buyPrice);
+                        }}
+                      >
+                        Fund wallet
+                      </Button>
+                    )} */}
                   </>
                 )}
                 {/* if the post is a remix, the remixer gets the referral fee */}

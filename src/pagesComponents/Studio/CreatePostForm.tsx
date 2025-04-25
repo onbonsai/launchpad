@@ -8,7 +8,7 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, ImageRequirement, Preview, Template } from "@src/services/madfi/studio";
+import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -77,10 +77,16 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
-    let toastId = toast.loading("Generating preview...");
+    let toastId = toast.loading("Generating preview. This could take a minute...");
 
     try {
-      const res = await generatePreview(template.apiUrl, idToken, template, templateData);
+      const res = await generatePreview(
+        template.apiUrl,
+        idToken,
+        template,
+        templateData,
+        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined
+      );
       if (!res) throw new Error();
       const { agentId, preview } = res;
 
@@ -88,6 +94,7 @@ const CreatePostForm = ({
       console.log("setting preview", preview)
       setPreview({
         ...preview,
+        text: preview.text || postContent,
         agentId,
       } as Preview);
 
@@ -106,11 +113,13 @@ const CreatePostForm = ({
   }
 
   const handleNext = () => {
-    if ((postContent || postImage?.length)) {
+    if ((postContent || (postImage?.length && !preview?.image))) {
       setPreview({
         text: postContent || "",
         image: postImage?.length ? postImage[0] : undefined,
-        imagePreview: postImage?.length ? postImage[0].preview : undefined
+        imagePreview: postImage?.length ? postImage[0].preview : undefined,
+        video: preview?.video,
+        agentId: preview?.agentId
       });
     }
     next(templateData);
@@ -146,7 +155,8 @@ const CreatePostForm = ({
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
           {template.options.allowPreview && (
             <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-              Generate Preview
+              Generate
+              {template.estimatedCost && <span className="ml-1">{`(~${template.estimatedCost.toFixed(2)} credits)`}</span>}
             </Button>
           )}
           <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
@@ -193,6 +203,7 @@ const DynamicForm = ({
   setPostImage: (i: any) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
+  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
 
   // Format options for SelectDropdown
   const modelOptions = useMemo(() => {
@@ -203,7 +214,7 @@ const DynamicForm = ({
         { value: "", label: "Default" },
         ...models.map(model => ({
           value: model,
-          label: `${model}: ${imageModelDescriptions[model]}`,
+          label: `${model}: ${imageModelDescriptions[model] || ''}`,
         }))
       ]
     }];
@@ -284,14 +295,14 @@ const DynamicForm = ({
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
         const isRequired = !field.isOptional();
 
-        if (key === 'modelId' && !modelOptions?.length) return null;
-        if (key === 'stylePreset' && !modelOptions?.length) return null;
+        if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
+        if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
         return (
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={field.description} />
 
-            {/* Special handling for modelId and stylePreset using SelectDropdown */}
+            {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
               <SelectDropdown
                 options={modelOptions}
@@ -308,13 +319,21 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : field instanceof z.ZodString && (
-              field._def.maxLength ? (
+            ) : key === 'elevenLabsVoiceId' ? (
+              <SelectDropdown
+                options={[{ label: 'Voices', options: ELEVENLABS_VOICES }]}
+                onChange={(option) => updateField(key, option.value)}
+                value={ELEVENLABS_VOICES.find(opt => opt.value === templateData[key]) || ELEVENLABS_VOICES[0]}
+                isMulti={false}
+                zIndex={1001}
+              />
+            ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
+              (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
                 <textarea
                   value={templateData[key] || ''}
                   onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-                  maxLength={field._def.maxLength?.value}
+                  maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
                 />
               ) : (
                 <input
@@ -324,9 +343,7 @@ const DynamicForm = ({
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )
-            )}
-
-            {field instanceof z.ZodNumber && (
+            ) : field instanceof z.ZodNumber && (
               <input
                 type="number"
                 value={templateData[key] || ''}

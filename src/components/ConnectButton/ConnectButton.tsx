@@ -53,7 +53,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { disconnect } = useDisconnect();
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
-  const { isAuthenticated, signingIn, authenticatedProfileId } = useLensSignIn(walletClient);
+  const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {

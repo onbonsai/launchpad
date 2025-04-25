@@ -7,14 +7,13 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Modal } from "@src/components/Modal";
 import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
 import { useClubs } from "@src/context/ClubsContext";
-import { useGetExplorePosts } from "@src/services/lens/posts";
+import { useGetExplorePosts, useGetTimeline } from "@src/services/lens/posts";
 import { PostCollage } from "@pagesComponents/Dashboard/PostCollage";
 import { Post } from "@lens-protocol/client";
 import { useGetFeaturedPosts } from "@src/services/madfi/studio";
 import useScrollRestoration from "@src/hooks/useScrollRestoration";
 
-// Define the type for the page data returned by useGetExplorePosts
-interface ExplorePostPage {
+interface TimelinePosts {
   posts: Post[];
   postData: Record<string, any>;
   pageInfo: {
@@ -35,7 +34,7 @@ const IndexPage: NextPage = () => {
   const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts();
 
   // Type assertion for data.pages
-  const pages = data?.pages as ExplorePostPage[] || [];
+  const pages = data?.pages as TimelinePosts[] || [];
 
   // Update the dependency array to include data instead of pages, putting featured posts first
   const posts = useMemo(() => {

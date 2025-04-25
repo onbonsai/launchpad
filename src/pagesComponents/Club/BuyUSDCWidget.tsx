@@ -4,7 +4,7 @@ import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
 
 interface BuySellModalProps {
     open: boolean;
-    buyAmount: number;
+    buyAmount: string;
     onClose: () => void;
     chain: string;
 }

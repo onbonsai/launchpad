@@ -53,8 +53,6 @@ export const ACCEPTED_PAYMENT_SUPERTOKEN_BASE = IS_PRODUCTION
 
 export const BOOST_PROFILE_COST = "1"; // 10 USDC
 export const BOOST_PROFILE_MAX_PROFILES = 3;
-export const REDIS_PROMOTED_KEY = "promoted";
-export const REDIS_PROMOTED_EXP = 21_600; // 6hrs
 
 export const MADFI_COVER_IMG =
   "https://www.storj-ipfs.com/ipfs/bafkreigsz2o25wemigkibg2mckex5btkqqxh35lywa2ewp7o7icbhl3eha";
@@ -75,7 +73,6 @@ export const MONGO_DB_CREATORS = "creators";
 export const MONGO_COLLECTION_BOUNTIES = `bounties${IS_PRODUCTION ? "" : "-testnet"}`;
 export const MONGO_COLLECTION_BIDS = `bids${IS_PRODUCTION ? "" : "-testnet"}`;
 export const MONGO_COLLECTION_PROMOTED = `promoted${IS_PRODUCTION ? "" : "-testnet"}`;
-export const REDIS_EXP_IMPRESSION_MAP = 604_800; // 7 days
 
 export const ADMIN_ADDRESSES = [
   "0xDC4471ee9DFcA619Ac5465FdE7CF2634253a9dc6",
