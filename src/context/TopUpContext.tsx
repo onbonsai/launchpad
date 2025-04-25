@@ -3,7 +3,7 @@ import { Modal } from "@src/components/Modal";
 import { TopUpModal } from "@src/components/Publication/TopUpModal";
 
 interface TopUpModalContextType {
-  openTopUpModal: (requiredAmount?: number) => void;
+  openTopUpModal: (requiredAmount?: bigint) => void;
   closeTopUpModal: () => void;
 }
 
@@ -11,9 +11,9 @@ const TopUpModalContext = createContext<TopUpModalContextType | undefined>(undef
 
 export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [requiredAmount, setRequiredAmount] = useState<number | undefined>(undefined);
+  const [requiredAmount, setRequiredAmount] = useState<bigint | undefined>(undefined);
 
-  const openTopUpModal = (amount?: number) => {
+  const openTopUpModal = (amount?: bigint) => {
     setRequiredAmount(amount);
     setIsOpen(true);
   };
