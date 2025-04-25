@@ -5,26 +5,26 @@ import { sampleSize } from "lodash/collection";
 import { useGetClubBalance, useGetBuyPrice, useGetClubHoldings } from "@src/hooks/useMoneyClubs";
 import { USDC_CONTRACT_ADDRESS, CONTRACT_CHAIN_ID, WGHO_CONTRACT_ADDRESS } from "@src/services/madfi/moneyClubs";
 import { BuySellWidget } from "./BuySellWidget";
-import { lens, lensTestnet } from "@src/services/madfi/utils";
+import { lens, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
-export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal, postId = undefined }) => {
+interface TradeComponentProps {
+  club: any;
+  address: `0x${string}` | undefined;
+  onBuyUSDC?: () => void;
+  defaultBuyAmount?: string;
+  mediaProtocolFeeRecipient?: string;
+  useRemixReferral?: `0x${string}`;
+  closeModal?: () => void;
+  postId?: string;
+  inputToken?: string;
+}
+
+const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal, postId, inputToken }: TradeComponentProps) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain, club.complete, club.tokenAddress);
   const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
   const { refetch: refetchClubPrice } = useGetBuyPrice(address, club?.clubId, "1", club.chain);
-
-  // GHO/USDC Balance
-  const { data: tokenBalance } = useReadContract({
-    address: club.chain === "lens" ? WGHO_CONTRACT_ADDRESS : USDC_CONTRACT_ADDRESS,
-    abi: erc20Abi,
-    chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
-    functionName: "balanceOf",
-    args: [address!],
-    query: {
-      refetchInterval: 5000,
-    },
-  });
 
   if (!club?.createdAt) return null;
 
@@ -48,7 +48,6 @@ export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, med
           refetchClubPrice={refetchClubPrice}
           club={club}
           clubBalance={clubBalance}
-          tokenBalance={tokenBalance}
           openTab={1}
           onBuyUSDC={onBuyUSDC}
           defaultBuyAmount={defaultBuyAmount}
@@ -61,3 +60,5 @@ export const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, med
     </div>
   );
 };
+
+export default TradeComponent;

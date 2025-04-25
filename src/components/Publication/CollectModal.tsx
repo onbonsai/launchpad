@@ -106,7 +106,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           <Button
             variant="accent"
             className="w-full md:mb-0 text-base gap-x-1 p-0"
-            disabled={isCollecting || collectAmountBn > bonsaiBalance}
+            disabled={isCollecting}
             onClick={(e) => handleButtonClick(e, onCollect)}
           >
             {(LENS_CHAIN_ID !== chain?.id) ? 'Switch to Lens Chain' : <><BookmarkAddOutlined /> {bonsaiCostFormatted} $BONSAI</>}
@@ -118,9 +118,9 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
             </Subtitle>
           </div> */}
           {insufficientFunds && (
-            <div className="flex space-x-1">
-              <Subtitle className="text-md mt-2">Deposit Funds</Subtitle>
-              <WalletButton wallet={account} chain="lens" />
+            <div className="flex space-x-3 items-center justify-center text-center">
+              <Subtitle className="text-md mt-2">Deposit Funds:</Subtitle>
+              <span className="mt-2"><WalletButton wallet={account} chain="lens" /></span>
             </div>
           )}
         </div>

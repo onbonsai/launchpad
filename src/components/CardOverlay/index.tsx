@@ -9,12 +9,14 @@ import { Button } from "../Button";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { collectPost } from "@src/services/lens/collect";
+import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";
 import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
+import { useTopUpModal } from "@src/contexts/TopUpModalContext";
+import { formatEther } from "viem";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -53,6 +55,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
   const isCreator = post.author.address === authenticatedProfile?.address;
+  const { openTopUpModal } = useTopUpModal();
 
   const isCollect = useMemo(() => {
     const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
@@ -97,6 +100,20 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
+
+      const amountNeeded = await checkCollectAmount(
+        walletClient,
+        collectAmount || "0",
+        authenticatedProfile?.address as `0x${string}`,
+        bonsaiBalance || BigInt(0)
+      );
+
+      if (amountNeeded > 0n) {
+        openTopUpModal(Number(formatEther(amountNeeded)));
+        toast("Add BONSAI to your wallet to collect", { id: toastId });
+        setIsCollecting(false);
+        return;
+      }
 
       const collected = await collectPost(
         sessionClient,

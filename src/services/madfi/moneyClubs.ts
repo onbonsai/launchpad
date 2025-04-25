@@ -485,6 +485,8 @@ export const SUBGRAPH_CONFIG = {
   }
 };
 
+export const SWAP_TO_BONSAI_POST_ID = "84460185073799618504887246999943361907970590830957975660461666922692652187007";
+
 export const WHITELISTED_UNI_HOOKS = {
   "BONSAI_NFT_ZERO_FEES_HOOK": {
     label: "0% trading fees for Bonsai NFT holders",
@@ -541,6 +543,7 @@ export type Club = {
   handle: string;
   token: Token;
   postId: string;
+  postIdInt?: string;
   pubId?: string;
   featured: boolean;
   creatorFees: string;
@@ -1661,7 +1664,7 @@ export const WGHO_ABI = [
 ] as const;
 
 const REWARD_POOL_QUERY = gql`
-  query GetRewardPool($id: ID!) {
+  query GetRewardPool($id: Bytes!) {
     rewardPool(id: $id) {
       rewardsAmount
       totalRewardsPaid
@@ -1670,8 +1673,7 @@ const REWARD_POOL_QUERY = gql`
 `;
 
 export const getRewardPool = async (address: `0x${string}`) => {
-  const { data } = await subgraphClient("lens").query({ query: REWARD_POOL_QUERY, variables: { id: address } });
-
+  const { data } = await subgraphClient("lens").query({ query: REWARD_POOL_QUERY, variables: { id: address.toLowerCase() } });
   return data.rewardPool;
 }
 

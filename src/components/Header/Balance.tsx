@@ -17,11 +17,9 @@ import { brandFont } from "@src/fonts/fonts";
 import Popper from '@mui/material/Popper';
 import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { Tooltip } from "@src/components/Tooltip";
 import toast from "react-hot-toast";
-import { waitForTransactionReceipt } from "viem/actions";
-import { configureChainsConfig } from "@src/utils/wagmi";
+import { useTopUpModal } from '@src/contexts/TopUpModalContext';
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -31,6 +29,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [isUnwrapping, setIsUnwrapping] = useState(false);
   const { switchChain } = useSwitchChain();
+  const { openTopUpModal } = useTopUpModal();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
@@ -116,8 +115,8 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
       ghoFormatted: localizeNumber(ghoAmount, undefined, 2),
       wghoFormatted: localizeNumber(wghoAmount, undefined, 2),
       ghoLensFormatted: localizeNumber(ghoLensAmount, undefined, 2),
-      bonsaiFormatted: kFormatter(bonsaiAmount, true),
-      bonsaiLensFormatted: kFormatter(bonsaiLensAmount, true),
+      bonsaiFormatted: kFormatter(bonsaiAmount, undefined),
+      bonsaiLensFormatted: kFormatter(bonsaiLensAmount, undefined),
       totalFormatted: kFormatter(usdcAmount + wghoAmount + ghoAmount + ghoLensAmount), // TODO: need to get $ value for bonsai
     };
   }, [usdcBalance, wghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
@@ -387,25 +386,16 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               </div>
             </div>
-            {ghoBalance?.value && ghoBalance.value <= parseUnits("1", 18) && (
-              <div className="mt-4 pt-4 border-t border-zinc-800">
-                <a
-                  href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
-                  <Button
-                    variant="accent"
-                    size="md"
-                    className="w-full flex items-center justify-center gap-2"
-                  >
-                    <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
-                    Bridge GHO to Lens
-                  </Button>
-                </a>
-              </div>
-            )}
+            <div className="mt-2 pt-4 border-t border-zinc-800">
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={() => openTopUpModal()}
+              >
+                Top Up Wallet
+              </Button>
+            </div>
           </div>
         </Popper>
       </div>

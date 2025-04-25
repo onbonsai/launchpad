@@ -1,7 +1,5 @@
-import { Button } from "@src/components/Button";
 import { Modal } from "@src/components/Modal";
-import React, { useState } from 'react'
-import { TradeComponent } from "./TradeComponent";
+import React from 'react'
 import BuyUSDCModal from "@src/components/BuyUSDC/BuyUSDCModal";
 
 interface BuySellModalProps {

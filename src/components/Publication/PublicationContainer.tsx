@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import { Publication, HorizontalPublication, Theme } from "@madfi/widgets-react";
-import { erc20Abi } from "viem";
+import { erc20Abi, formatEther, parseEther } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, InfoOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -17,7 +17,7 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { collectPost } from "@src/services/lens/collect";
+import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
@@ -28,6 +28,7 @@ import { SparkIcon } from "../Icons/SparkIcon";
 import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
+import { useTopUpModal } from "@src/contexts/TopUpModalContext";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -109,6 +110,7 @@ const PublicationContainer = ({
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
+  const { openTopUpModal } = useTopUpModal();
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -289,6 +291,20 @@ const PublicationContainer = ({
 
       toastId = toast.loading("Collecting post...");
       setIsCollecting(true);
+
+      const amountNeeded = await checkCollectAmount(
+        walletClient,
+        collectAmount || "0",
+        authenticatedProfile?.address as `0x${string}`,
+        bonsaiBalance || BigInt(0)
+      );
+
+      if (amountNeeded > 0n) {
+        openTopUpModal(Number(formatEther(amountNeeded)));
+        toast("Add BONSAI to your wallet to collect", { id: toastId });
+        setIsCollecting(false);
+        return;
+      }
 
       const collected = await collectPost(
         sessionClient,
