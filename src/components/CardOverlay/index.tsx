@@ -15,8 +15,9 @@ import { Subtitle } from "@src/styles/text";
 import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
-import { useTopUpModal } from "@src/contexts/TopUpModalContext";
 import { formatEther } from "viem";
+import { TopUpModal } from "../Publication/TopUpModal";
+import { Modal } from "../Modal";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -55,7 +56,8 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
   const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
   const isCreator = post.author.address === authenticatedProfile?.address;
-  const { openTopUpModal } = useTopUpModal();
+  const [amountNeeded, setAmountNeeded] = useState<bigint>(0n);
+  const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
 
   const isCollect = useMemo(() => {
     const { payToCollect } = post?.actions?.find(action => action.__typename === "SimpleCollectAction") || {};
@@ -107,9 +109,10 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
         authenticatedProfile?.address as `0x${string}`,
         bonsaiBalance || BigInt(0)
       );
+      setAmountNeeded(amountNeeded);
 
       if (amountNeeded > 0n) {
-        openTopUpModal(Number(formatEther(amountNeeded)));
+        setIsOpenTopUpModal(true);
         toast("Add BONSAI to your wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
@@ -263,6 +266,17 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
           </div>
         )}
       </div>
+
+      {/* Top Up Modal */}
+      <Modal
+        onClose={() => setIsOpenTopUpModal(false)}
+        open={isOpenTopUpModal}
+        setOpen={setIsOpenTopUpModal}
+        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
+        static
+      >
+        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} requiredAmount={Number(formatEther(amountNeeded))} />
+      </Modal>
     </div>
   )
 }

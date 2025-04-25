@@ -10,17 +10,16 @@ import { Modal } from "@src/components/Modal";
 import LoginWithLensModal from "@src/components/Lens/LoginWithLensModal";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { CreateClub } from "@src/pagesComponents/Dashboard";
 import { SearchClubs } from "../SearchApp/SearchClubs";
 import { Button } from "../Button";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
-import { BodySemiBold, Header2, Header as HeaderText } from "@src/styles/text";
+import { Header2 } from "@src/styles/text";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
-import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
+import { TopUpModal } from "../Publication/TopUpModal";
 
 const headerLinks = [
   {
@@ -43,6 +42,7 @@ export const Header = () => {
   const { openSignInModal, setOpenSignInModal, isAuthenticated } = useLensSignIn(walletClient);
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
+  const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
 
@@ -103,7 +103,7 @@ export const Header = () => {
                   </Button>
                 </Link>
               )}
-              <Balance />
+              <Balance openTopUpModal={() => setIsOpenTopUpModal(true)} />
               <ClaimFeesEarned />
               <ClaimBonsai />
             </div>
@@ -149,7 +149,7 @@ export const Header = () => {
             <div className="pb-2 w-full">
               <SearchClubs />
             </div>
-            <Balance openMobileMenu />
+            <Balance openMobileMenu openTopUpModal={() => setIsOpenTopUpModal(true)} />
             <ClaimFeesEarned openMobileMenu />
             <ClaimBonsai openMobileMenu />
             <Notifications openMobileMenu />
@@ -186,6 +186,17 @@ export const Header = () => {
         panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
+      </Modal>
+
+      {/* Top Up Modal */}
+      <Modal
+        onClose={() => setIsOpenTopUpModal(false)}
+        open={isOpenTopUpModal}
+        setOpen={setIsOpenTopUpModal}
+        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
+        static
+      >
+        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} />
       </Modal>
 
       {/* Help Modal */}

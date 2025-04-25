@@ -5,8 +5,8 @@ import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "@wagmi/core";
 import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
-import { erc20Abi, formatEther, parseEther } from "viem";
-import { BookmarkAddOutlined, BookmarkOutlined, InfoOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { erc20Abi, formatEther } from "viem";
+import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -26,11 +26,11 @@ import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
-import { brandFont } from "@src/fonts/fonts";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
-import { useTopUpModal } from "@src/contexts/TopUpModalContext";
 import useIsMounted from "@src/hooks/useIsMounted";
+import { Modal } from "../Modal";
+import { TopUpModal } from "./TopUpModal";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -131,10 +131,11 @@ const PublicationContainer = ({
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [collectAnchorElement, setCollectAnchorElement] = useState<EventTarget>();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [amountNeeded, setAmountNeeded] = useState<bigint>(0n);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
-  const { openTopUpModal } = useTopUpModal();
+  const [isOpenTopUpModal, setIsOpenTopUpModal] = useState(false);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -354,9 +355,10 @@ const PublicationContainer = ({
         authenticatedProfile?.address as `0x${string}`,
         bonsaiBalance || BigInt(0)
       );
+      setAmountNeeded(amountNeeded);
 
       if (amountNeeded > 0n) {
-        openTopUpModal(Number(formatEther(amountNeeded)));
+        setIsOpenTopUpModal(true);
         toast("Add BONSAI to your wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
@@ -580,6 +582,17 @@ const PublicationContainer = ({
         creditBalance={creatorCreditBalance}
         insufficientCredits={creatorInsufficientCredits}
       />
+
+      {/* Top Up Modal */}
+      <Modal
+        onClose={() => setIsOpenTopUpModal(false)}
+        open={isOpenTopUpModal}
+        setOpen={setIsOpenTopUpModal}
+        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
+        static
+      >
+        <TopUpModal switchNetwork={() => {}} onClose={() => setIsOpenTopUpModal(false)} requiredAmount={Number(formatEther(amountNeeded))} />
+      </Modal>
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] md:w-[500px] w-250px rounded-lg">

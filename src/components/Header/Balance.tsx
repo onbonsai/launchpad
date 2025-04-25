@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAccount, useBalance, useReadContract, useSwitchChain, useWalletClient } from "wagmi";
-import { formatUnits, erc20Abi, parseUnits } from "viem";
+import { formatUnits, erc20Abi } from "viem";
 import clsx from "clsx";
 import {
   USDC_DECIMALS,
@@ -19,9 +19,8 @@ import { Button } from "@src/components/Button";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Tooltip } from "@src/components/Tooltip";
 import toast from "react-hot-toast";
-import { useTopUpModal } from '@src/contexts/TopUpModalContext';
 
-export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
+export const Balance = ({ openMobileMenu, openTopUpModal }: { openMobileMenu?: boolean, openTopUpModal: () => void }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const { address, isConnected, chainId } = useAccount();
@@ -29,7 +28,6 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [isUnwrapping, setIsUnwrapping] = useState(false);
   const { switchChain } = useSwitchChain();
-  const { openTopUpModal } = useTopUpModal();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
