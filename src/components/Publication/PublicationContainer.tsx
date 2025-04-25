@@ -29,8 +29,16 @@ import { SparkIcon } from "../Icons/SparkIcon";
 import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { Modal } from "../Modal";
-import { TopUpModal } from "./TopUpModal";
+
+const Modal = dynamic(() => import("../Modal").then(mod => mod.Modal), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+});
+
+const TopUpModal = dynamic(() => import("./TopUpModal").then(mod => mod.TopUpModal), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+});
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -359,7 +367,7 @@ const PublicationContainer = ({
 
       if (amountNeeded > 0n) {
         setIsOpenTopUpModal(true);
-        toast("Add BONSAI to your wallet to collect", { id: toastId });
+        toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
       }

@@ -16,8 +16,17 @@ import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
 import { formatEther } from "viem";
-import { TopUpModal } from "../Publication/TopUpModal";
-import { Modal } from "../Modal";
+import dynamic from 'next/dynamic';
+
+const Modal = dynamic(() => import("../Modal").then(mod => mod.Modal), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+});
+
+const TopUpModal = dynamic(() => import("../Publication/TopUpModal").then(mod => mod.TopUpModal), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+});
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -113,7 +122,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
 
       if (amountNeeded > 0n) {
         setIsOpenTopUpModal(true);
-        toast("Add BONSAI to your wallet to collect", { id: toastId });
+        toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
       }
