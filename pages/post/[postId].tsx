@@ -15,7 +15,6 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useGetComments } from "@src/hooks/useGetComments";
-import PublicationContainer from "@src/components/Publication/PublicationContainer";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 import { getPost } from "@src/services/lens/posts";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
@@ -47,6 +46,17 @@ interface PublicationProps {
 const Publications = dynamic(
   () => import("@madfi/widgets-react").then(mod => mod.Publications),
   { ssr: false }
+);
+
+// Add the dynamic import for PublicationContainer with loading state
+const PublicationContainer = dynamic(
+  () => import("@src/components/Publication/PublicationContainer"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+    )
+  }
 );
 
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
