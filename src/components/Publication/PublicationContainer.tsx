@@ -1,4 +1,4 @@
-import { useMemo, useState, ReactNode, useRef } from "react";
+import { useMemo, useState, ReactNode, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
@@ -61,15 +61,25 @@ export type PostFragmentPotentiallyDecrypted = any & {
   isDecrypted?: boolean;
 };
 
-// Lazy load the Publication components
+// Lazy load the Publication components with loading states
 const Publication = dynamic(
   () => import("@madfi/widgets-react").then(mod => mod.Publication),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+    )
+  }
 );
 
 const HorizontalPublication = dynamic(
   () => import("@madfi/widgets-react").then(mod => mod.HorizontalPublication),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
+    )
+  }
 );
 
 // handles all the mf buttons
@@ -139,6 +149,57 @@ const PublicationContainer = ({
     },
   });
 
+  // Move this function before the useMemo
+  const getPublicationDataPotentiallyEncrypted = (publication: PostFragmentPotentiallyDecrypted): any => {
+    if (!publication.metadata?.encryptedWith || publication.isDecrypted) {
+      return JSON.parse(JSON.stringify(publication));
+    }
+
+    return {
+      ...publication,
+      metadata: {
+        content: "This publication is gated",
+        asset: {
+          __typename: "PublicationMetadataMediaImage",
+          image: { raw: { uri: MADFI_BANNER_IMAGE_SMALL } }
+        },
+        encryptedWith: publication.metadata.encryptedWith
+      }
+    };
+  };
+
+  // Add video loading state
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+
+  // Optimize video data
+  const optimizedPublicationData = useMemo(() => {
+    if (!publication) return undefined;
+
+    const data = getPublicationDataPotentiallyEncrypted(publication);
+
+    // Only include video data if it's in view
+    if (data.metadata?.video && !isVideoLoading) {
+      data.metadata.video = {
+        ...data.metadata.video,
+        item: undefined // Don't load video data initially
+      };
+    }
+
+    return data;
+  }, [publication, isVideoLoading]);
+
+  // Handle video loading
+  useEffect(() => {
+    if (publication?.metadata?.video) {
+      setIsVideoLoading(true);
+      // Simulate video loading
+      const timer = setTimeout(() => {
+        setIsVideoLoading(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [publication?.metadata?.video]);
+
   if (!(publicationId || publication)) throw new Error('Need publicationId or publication');
   if (publication?.metadata?.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
 
@@ -164,25 +225,6 @@ const PublicationContainer = ({
     e.stopPropagation();
     router.replace(`/profile/${username}`, undefined, { shallow: false });
   };
-
-  // stub the encrypted pub metadata to render something nicer
-  const getPublicationDataPotentiallyEncrypted = (publication: PostFragmentPotentiallyDecrypted): any => {
-    if (!publication.metadata?.encryptedWith || publication.isDecrypted) {
-      return JSON.parse(JSON.stringify(publication));
-    }
-
-    return {
-      ...publication,
-      metadata: {
-        content: "This publication is gated",
-        asset: {
-          __typename: "PublicationMetadataMediaImage",
-          image: { raw: { uri: MADFI_BANNER_IMAGE_SMALL } }
-        },
-        encryptedWith: publication.metadata.encryptedWith
-      }
-    };
-  }
 
   const onLikeButtonClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -357,7 +399,7 @@ const PublicationContainer = ({
         <PublicationType
           key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
           publicationId={publication?.id ? publication!.id : publicationId}
-          publicationData={publication ? getPublicationDataPotentiallyEncrypted(publication) : undefined}
+          publicationData={optimizedPublicationData}
           theme={Theme.dark}
           environment={LENS_ENVIRONMENT}
           authenticatedProfile={authenticatedProfile || undefined}
