@@ -15,6 +15,7 @@ const buttonStyles = cva(
         info: "bg-white hover:bg-grey-300 text-black border border-solid border-grey-500 hover:border-grey-700 disabled:text-white disabled:hover:text-white",
         "dark-grey": "bg-dark-grey text-white hover:bg-dark-grey/90",
         "accent-disabled": "bg-brand-highlight text-white cursor-not-allowed hover:bg-brand-highlight",
+        blue: "transition-colors bg-[#0891B2] hover:bg-[#0891B2]/60",
       },
       disabled: {
         true: "disabled:opacity-75 disabled:pointer-events-auto disabled:cursor-not-allowed",

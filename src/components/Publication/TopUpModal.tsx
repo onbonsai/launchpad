@@ -298,7 +298,8 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
       </div>
 
       <Button
-        className={clsx("w-full py-3 text-base font-semibold transition-colors bg-[#0891B2] hover:bg-[#0891B2]/60")}
+        variant="blue"
+        className={clsx("w-full py-3 text-base font-semibold")}
         onClick={topUp}
         disabled={!selectedOption || !hasSufficientGho}
       >
