@@ -14,6 +14,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import toast from "react-hot-toast";
 import { useStakingData } from "@src/hooks/useStakingData";
+import { useTopUpModal } from "@src/context/TopUpContext";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -25,7 +26,8 @@ const StudioCreatePage: NextPage = () => {
   const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
   const { data: stakingData } = useStakingData(address as string);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
-
+  const { openTopUpModal } = useTopUpModal();
+  
   const estimatedGenerations = useMemo(() => {
     if (!isLoadingCredits && creditBalance?.creditsRemaining) {
       const res = Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
@@ -134,12 +136,18 @@ const StudioCreatePage: NextPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => {
-                    const disabled = estimatedGenerations === 0 || (PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n);
+                    const disabled = PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n;
                     return (
                       <div
                         key={`template-${idx}`}
-                        className={`bg-card-light rounded-lg ${!disabled ? "cursor-pointer" : ""} p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
-                        onClick={() => { if (!disabled) selectTemplate(template.name); }}
+                        className={`bg-card-light rounded-lg ${
+                          !disabled ? "cursor-pointer" : ""
+                        } p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
+                        onClick={() => {
+                          if (disabled) return;
+                          else if (estimatedGenerations === 0) openTopUpModal("api-credits");
+                          else selectTemplate(template.name);
+                        }}
                       >
                         <div className="rounded-lg overflow-hidden mb-4 border border-dark-grey">
                           <Image
@@ -152,30 +160,29 @@ const StudioCreatePage: NextPage = () => {
                         </div>
                         <div className="flex flex-col flex-1">
                           <h3 className="font-semibold text-lg text-brand-highlight">{template.displayName}</h3>
-                          <p className="text-sm text-secondary/60">
-                            {template.description}
-                          </p>
+                          <p className="text-sm text-secondary/60">{template.description}</p>
                           <div className="flex-1" />
                           <div className="flex justify-end mt-4">
                             {!isLoadingCredits && estimatedGenerations !== undefined && (
                               <button
                                 className={`text-base text-black px-4 py-1 rounded-full text-sm ${
                                   disabled
-                                    ? 'bg-brand-highlight/50 cursor-not-allowed'
-                                    : 'bg-brand-highlight hover:bg-brand-highlight/90 transition-colors'
+                                    ? "bg-brand-highlight/50 cursor-not-allowed"
+                                    : "bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
                                 }`}
                                 disabled={disabled}
                               >
-                                {(PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n)
+                                {PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n
                                   ? "Only stakers"
-                                  : (estimatedGenerations > 0 ? "Create" : "Insufficient credits")
-                                }
+                                  : estimatedGenerations > 0
+                                  ? "Create"
+                                  : "Add credits to use"}
                               </button>
                             )}
                           </div>
                         </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </div>

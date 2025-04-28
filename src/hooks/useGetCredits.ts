@@ -7,6 +7,7 @@ export type CreditBalance = {
   creditsUsed: number;
   creditsRemaining: number;
   lastResetTime: string;
+  creditsPurchased: number;
 }
 
 export const fetchCredits = async (address: string): Promise<CreditBalance> => {

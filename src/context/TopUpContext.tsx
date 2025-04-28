@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 import { Modal } from "@src/components/Modal";
 import dynamic from "next/dynamic";
 
-const TopUpModal = dynamic(() => import("@src/components/Publication/TopUpModal").then((mod) => mod.TopUpModal), {
+const TopUpModal = dynamic(() => import("@src/components/TopUp/TopUpModal").then((mod) => mod.TopUpModal), {
   loading: () => (
     <div className="flex items-center justify-center w-full h-full">
       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
@@ -11,8 +11,22 @@ const TopUpModal = dynamic(() => import("@src/components/Publication/TopUpModal"
   ssr: false,
 });
 
+const ApiCreditsModal = dynamic(
+  () => import("@src/components/TopUp/ApiCreditsModal").then((mod) => mod.ApiCreditsModal),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    ),
+    ssr: false,
+  },
+);
+
+type ModalType = "topup" | "api-credits";
+
 interface TopUpModalContextType {
-  openTopUpModal: (requiredAmount?: bigint) => void;
+  openTopUpModal: (type?: ModalType, requiredAmount?: bigint) => void;
   closeTopUpModal: () => void;
 }
 
@@ -21,8 +35,10 @@ const TopUpModalContext = createContext<TopUpModalContextType | undefined>(undef
 export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [requiredAmount, setRequiredAmount] = useState<bigint | undefined>(undefined);
+  const [modalType, setModalType] = useState<ModalType>("topup");
 
-  const openTopUpModal = (amount?: bigint) => {
+  const openTopUpModal = (type: ModalType = "topup", amount?: bigint) => {
+    setModalType(type);
     setRequiredAmount(amount);
     setIsOpen(true);
   };
@@ -42,7 +58,11 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
         panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
         static
       >
-        <TopUpModal requiredAmount={requiredAmount} />
+        {modalType === "topup" ? (
+          <TopUpModal requiredAmount={requiredAmount} />
+        ) : (
+          <ApiCreditsModal />
+        )}
       </Modal>
     </TopUpModalContext.Provider>
   );

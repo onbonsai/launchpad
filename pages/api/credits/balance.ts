@@ -34,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now,
+        creditsPurchased: 0,
       });
 
       return res.status(200).json({
@@ -43,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now.toISOString(),
+        creditsPurchased: 0,
       });
     }
 
@@ -56,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       creditsUsed: userCredits.creditsUsed || 0,
       creditsRemaining: creditsRemaining,
       lastResetTime: new Date(userCredits.lastResetTime).toISOString(),
+      creditsPurchased: userCredits.creditsPurchased || 0,
     });
   } catch (error) {
     console.error("Error fetching credits:", error);
