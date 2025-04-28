@@ -50,7 +50,9 @@ const nextConfig = {
       'react-window',
       'framer-motion',
       'tss-react',
-      'use-debounce'
+      'use-debounce',
+      'wagmi',
+      'viem'
     ]
   },
   i18n: {
