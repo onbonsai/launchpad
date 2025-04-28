@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Modal } from "@src/components/Modal";
-import { TopUpModal } from "@src/components/Publication/TopUpModal";
+import dynamic from "next/dynamic";
+
+const TopUpModal = dynamic(() => import("@src/components/Publication/TopUpModal").then((mod) => mod.TopUpModal), {
+  loading: () => (
+    <div className="flex items-center justify-center w-full h-full">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  ),
+  ssr: false,
+});
 
 interface TopUpModalContextType {
   openTopUpModal: (requiredAmount?: bigint) => void;

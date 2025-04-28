@@ -47,7 +47,6 @@ const nextConfig = {
       'framer-motion',
       'tss-react',
       'use-debounce',
-      'viem',
       'wagmi'
     ]
   },
