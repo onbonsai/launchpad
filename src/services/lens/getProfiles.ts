@@ -4,7 +4,7 @@ import { AnyClient, evmAddress } from "@lens-protocol/client";
 import { apolloClient } from "./apolloClient";
 import { lensClient } from "./client";
 import { fetchAvailableAccounts } from "@src/hooks/useLensLogin";
-import { fetchAccount } from "@lens-protocol/client/actions";
+import { fetchAccount, fetchAccountsBulk } from "@lens-protocol/client/actions";
 
 const GET_PROFILE_AND_FOLLOWERS = `
 query($request: ProfilesRequest!) {
@@ -173,37 +173,16 @@ export const getHandleAndFollowersByAddresses = async (ownedBy: string[], limit 
   }
 };
 
-// TODO: update for v3
-export const getHandlesByAddresses = async (ownedBy: string[], limit = 50) => {
+export const getProfilesByOwners = async (ownedBy: string[], limit = 50) => {
   try {
     const promises: any[] = [];
-    let accessToken;
-    // try {
-    //   accessToken = await getAccessToken();
-    // } catch {}
-
     for (let i = 0; i < ownedBy.length; i += limit) {
       const _ownedBy = ownedBy.slice(i, i + limit);
-      promises.push(
-        apolloClient.query({
-          query: gql(GET_PROFILE_HANDLES),
-          variables: { request: { where: { ownedBy: _ownedBy }, limit } },
-          context: {
-            headers: accessToken
-              ? {
-                  "x-access-token": accessToken,
-                  authorization: `Bearer: ${accessToken}`,
-                }
-              : undefined,
-          },
-        }),
-      );
+      promises.push(fetchAccountsBulk(lensClient, { ownedBy: _ownedBy.map((o) => evmAddress(o)) }));
     }
 
     const results = await Promise.all(promises);
-    const items = results.map((result) => result.data.profiles.items);
-
-    return items.flat();
+    return results.map((result) => result.value).flat();
   } catch (error) {
     console.log(error);
     return [];
