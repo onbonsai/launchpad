@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useGetWhitelistedNFTs } from '@src/hooks/useGetWhitelistedNFTs';
+import { AlchemyNFTMetadata, useGetWhitelistedNFTs } from '@src/hooks/useGetWhitelistedNFTs';
 import NFTCard from './NFTCard';
 import { useAccount } from 'wagmi';
 import ReactCrop, { Crop } from 'react-image-crop';
@@ -8,6 +8,7 @@ import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { Button } from '@src/components/Button';
 import type { AspectRatio } from '@src/components/ImageUploader/ImageUploader';
+import { ipfsOrNot } from '@src/utils/pinata';
 import { NFTMetadata } from '@src/services/madfi/studio';
 
 const ASPECT_RATIOS: { [key in AspectRatio]: { width: number; height: number; label: string } } = {
@@ -34,20 +35,22 @@ const AspectRatioIcon: React.FC<{ width: number; height: number }> = ({ width, h
 };
 
 interface WhitelistedNFTsSectionProps {
-  setSelectedNFT?: (nft: NFTMetadata) => void;
-  selectedNFT?: NFTMetadata;
+  setSelectedNFT?: (nft: AlchemyNFTMetadata) => void;
+  selectedNFT?: AlchemyNFTMetadata;
   selectedAspectRatio?: AspectRatio;
   onAspectRatioChange?: (ratio: AspectRatio) => void;
+  loadRemixNFT?: NFTMetadata;
 }
 
 const WhitelistedNFTsSection = ({
   setSelectedNFT,
   selectedNFT,
   selectedAspectRatio,
-  onAspectRatioChange
+  onAspectRatioChange,
+  loadRemixNFT,
 }: WhitelistedNFTsSectionProps) => {
   const { address } = useAccount();
-  const { data: nfts, isLoading } = useGetWhitelistedNFTs(address as `0x${string}`);
+  const { data: nfts, isLoading } = useGetWhitelistedNFTs(address as `0x${string}`, loadRemixNFT);
   const [crop, setCrop] = useState<Crop>();
   const [cropperAnchorEl, setCropperAnchorEl] = useState<HTMLElement | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -75,7 +78,7 @@ const WhitelistedNFTsSection = ({
     setCrop(crop);
   }, [currentRatio]);
 
-  const handleNFTSelect = (nft: NFTMetadata) => {
+  const handleNFTSelect = (nft: AlchemyNFTMetadata) => {
     setSelectedNFT?.(nft);
     // Set the anchor element to the NFT card element
     const nftCard = document.querySelector(`[data-nft-id="${nft.contract.address}-${nft.tokenId}"]`);
@@ -127,6 +130,61 @@ const WhitelistedNFTsSection = ({
   };
 
   const handleClose = () => {
+    if (!selectedNFT || !imgRef.current || !crop) return;
+
+    const canvas = document.createElement('canvas');
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+
+    // Use the original image dimensions for the canvas
+    const pixelCrop = {
+      x: (crop.x * imgRef.current.naturalWidth) / 100,
+      y: (crop.y * imgRef.current.naturalHeight) / 100,
+      width: (crop.width * imgRef.current.naturalWidth) / 100,
+      height: (crop.height * imgRef.current.naturalHeight) / 100
+    };
+
+    // Set canvas dimensions to match the crop size
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      console.error('Failed to get canvas context');
+      return;
+    }
+
+    // Set the rendering quality
+    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = true;
+
+    // Draw the cropped portion of the image
+    ctx.drawImage(
+      imgRef.current,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    // Convert the canvas to a base64 string
+    const base64String = canvas.toDataURL('image/png', 1.0);
+
+    // Update the selected NFT with the base64 string
+    const updatedNFT = {
+      ...selectedNFT,
+      image: {
+        ...selectedNFT.image,
+        croppedBase64: base64String
+      }
+    };
+
+    setSelectedNFT?.(updatedNFT);
     setCropperAnchorEl(null);
     setCrop(undefined);
   };
@@ -196,10 +254,11 @@ const WhitelistedNFTsSection = ({
                 <div className="relative w-fit flex items-center justify-center">
                   <img
                     ref={imgRef}
-                    src={selectedNFT?.image?.cachedUrl || selectedNFT?.metadata?.image}
+                    src={ipfsOrNot(selectedNFT?.image?.cachedUrl || selectedNFT?.image?.originalUrl || selectedNFT?.raw?.metadata?.image)}
                     alt="Aspect ratio preview"
                     className="max-h-[400px] w-auto object-contain"
                     onLoad={onImageLoad}
+                    crossOrigin="anonymous"
                   />
                 </div>
               </ReactCrop>

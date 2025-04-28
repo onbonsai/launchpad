@@ -606,6 +606,7 @@ const StudioCreatePage: NextPage = () => {
                         heartIconOverride={true}
                         messageIconOverride={true}
                         shareIconOverride={true}
+                        fullVideoHeight
                       />
                     )}
                   </div>

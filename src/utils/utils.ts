@@ -424,7 +424,6 @@ export const reconstructZodSchema = (shape: any) => {
             field.checks.forEach((check: any) => {
               switch (check.kind) {
                 case "max":
-                  console.log('Applying max:', check.value);
                   fieldSchema = fieldSchema.max(check.value);
                   break;
                 case "min":

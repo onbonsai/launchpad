@@ -1,8 +1,31 @@
 import { ChainRpcs } from "@src/constants/chains";
+import { NFTMetadata } from "@src/services/madfi/studio";
 import { useQuery } from "@tanstack/react-query";
 import { createPublicClient, http } from "viem";
 import { base, mainnet } from "viem/chains";
-import type { NFTMetadata } from "@src/services/madfi/studio";
+
+export type AlchemyNFTMetadata = {
+  tokenId: number;
+  network: string;
+  contract: {
+    address: string;
+  };
+  collection?: {
+    name?: string;
+  };
+  image?: {
+    cachedUrl?: string;
+    originalUrl?: string;
+    croppedBase64?: string;
+  };
+  raw?: {
+    metadata?: {
+      image: string;
+      attributes?: any[];
+    };
+  };
+  openseaUrl: string;
+}
 
 const CIGS = { chain: "eth", address: "0xeed41d06ae195ca8f5cacace4cd691ee75f0683f" };
 const PERSONA_MAINNET = { chain: "eth", address: "0xbabafdd8045740449a42b788a26e9b3a32f88ac1" };
@@ -92,12 +115,12 @@ const getStakedTokenIds = async (
   }
 }
 
-const getNFTMetadata = async (
+const getAlchemyNFTMetadata = async (
   alchemyApiKey: string,
   networkName: string,
   contractAddress: string,
   tokenId: string
-): Promise<NFTMetadata | null> => {
+): Promise<AlchemyNFTMetadata | null> => {
   try {
     const url = `https://${networkName}-mainnet.g.alchemy.com/nft/v3/${alchemyApiKey}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${tokenId}&refreshCache=false`;
     const response = await fetch(url, {
@@ -167,7 +190,7 @@ const fetchNFTsWithRetry = async (
   networkName: string,
   contractAddresses: string[],
   stakedConfig?: typeof PERSONA_BASE['staked']
-): Promise<NFTMetadata[]> => {
+): Promise<AlchemyNFTMetadata[]> => {
   try {
     // First get regular owned NFTs
     const options = {
@@ -199,7 +222,7 @@ const fetchNFTsWithRetry = async (
 
       // Fetch metadata for each staked token
       const stakedNFTsPromises = stakedTokenIds.map(tokenId =>
-        getNFTMetadata(
+        getAlchemyNFTMetadata(
           alchemyApiKey,
           networkName,
           stakedConfig.collection,
@@ -207,7 +230,7 @@ const fetchNFTsWithRetry = async (
         )
       );
 
-      const stakedNFTs = (await Promise.all(stakedNFTsPromises)).filter((nft): nft is NFTMetadata => nft !== null);
+      const stakedNFTs = (await Promise.all(stakedNFTsPromises)).filter((nft): nft is AlchemyNFTMetadata => nft !== null);
       return [...ownedNFTs, ...stakedNFTs];
     }
 
@@ -218,7 +241,7 @@ const fetchNFTsWithRetry = async (
   }
 };
 
-export const useGetWhitelistedNFTs = (address?: `0x${string}`) => {
+export const useGetWhitelistedNFTs = (address?: `0x${string}`, loadRemixNFT?: NFTMetadata) => {
   return useQuery({
     queryKey: ['whitelisted-nfts', address],
     queryFn: async () => {
@@ -226,6 +249,18 @@ export const useGetWhitelistedNFTs = (address?: `0x${string}`) => {
       if (!alchemyApiKey || !address) return [];
 
       try {
+        // if loading a remix, only fetch that one
+        if (loadRemixNFT?.contract?.address && loadRemixNFT?.contract?.network && loadRemixNFT?.tokenId) {
+          return [
+            await getAlchemyNFTMetadata(
+              alchemyApiKey,
+              loadRemixNFT.contract.network,
+              loadRemixNFT.contract.address,
+              loadRemixNFT.tokenId.toString()
+            )
+          ];
+        }
+
         // Group collections by chain
         const collectionsByChain = WHITELISTED_COLLECTIONS.reduce((acc, collection) => {
           if (!acc[collection.chain]) {

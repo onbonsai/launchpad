@@ -505,10 +505,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   } catch {}
 
-  const image =
-    (post.metadata?.image?.item?.startsWith("lens://")
-      ? await storageClient.resolve(post.metadata.image.item)
-      : post.metadata?.image?.item) ?? null;
+  const image = post.metadata?.__typename === "VideoMetadata"
+    ? (post.metadata?.video?.cover?.startsWith("lens://")
+        ? await storageClient.resolve(post.metadata.video.cover)
+        : post.metadata?.video?.cover) ?? null
+    : (post.metadata?.image?.item?.startsWith("lens://")
+        ? await storageClient.resolve(post.metadata.image.item)
+        : post.metadata?.image?.item) ?? null;
 
   return {
     props: {

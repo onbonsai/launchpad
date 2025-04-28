@@ -15,6 +15,9 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
 import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
 import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
+import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
+import { storjGatewayURL } from "@src/utils/storj";
+import { ipfsOrNot } from "@src/utils/pinata";
 
 type CreatePostProps = {
   template: Template;
@@ -46,7 +49,7 @@ const CreatePostForm = ({
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
-  const [selectedNFT, setSelectedNFT] = useState<NFTMetadata | undefined>();
+  const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -79,6 +82,12 @@ const CreatePostForm = ({
       idToken = creds.value?.idToken;
     } else {
       toast.error("Must be logged in");
+      return;
+    }
+
+    if (!selectedNFT?.image?.croppedBase64) {
+      toast.error("Failed to parse NFT image");
+      return;
     }
 
     setIsGeneratingPreview(true);
@@ -92,7 +101,17 @@ const CreatePostForm = ({
         templateData,
         template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
-        selectedNFT,
+        selectedNFT ? {
+          tokenId: selectedNFT.tokenId,
+          contract: {
+            address: selectedNFT.contract.address,
+            network: selectedNFT.network
+          },
+          collection: { name: selectedNFT.collection?.name },
+          // replace ipfs:// uri with default https gateway
+          image: selectedNFT.image?.croppedBase64,
+          attributes: selectedNFT.raw?.metadata?.attributes
+        } : undefined,
       );
       if (!res) throw new Error();
       const { agentId, preview } = res;
@@ -123,8 +142,8 @@ const CreatePostForm = ({
     if ((postContent || (postImage?.length && !preview?.image))) {
       setPreview({
         text: postContent || "",
-        image: postImage?.length ? postImage[0] : undefined,
-        imagePreview: postImage?.length ? postImage[0].preview : undefined,
+        image: postImage?.length ? postImage[0] : preview?.image,
+        imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
         video: preview?.video,
         agentId: preview?.agentId
       });
@@ -160,6 +179,7 @@ const CreatePostForm = ({
                 setSelectedAspectRatio={setSelectedAspectRatio}
                 selectedNFT={selectedNFT}
                 setSelectedNFT={setSelectedNFT}
+                loadRemixNFT={finalTemplateData?.nft}
               />
           }
         </div>
@@ -206,6 +226,7 @@ const DynamicForm = ({
   setSelectedAspectRatio,
   selectedNFT,
   setSelectedNFT,
+  loadRemixNFT,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -218,8 +239,9 @@ const DynamicForm = ({
   setPostImage: (i: any) => void;
   selectedAspectRatio: AspectRatio;
   setSelectedAspectRatio: (ratio: AspectRatio) => void;
-  selectedNFT?: NFTMetadata;
-  setSelectedNFT: (s: NFTMetadata) => void;
+  selectedNFT?: AlchemyNFTMetadata;
+  setSelectedNFT: (s: AlchemyNFTMetadata) => void;
+  loadRemixNFT?: NFTMetadata;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
@@ -332,16 +354,13 @@ const DynamicForm = ({
             selectedNFT={selectedNFT}
             selectedAspectRatio={selectedAspectRatio}
             onAspectRatioChange={setSelectedAspectRatio}
+            loadRemixNFT={loadRemixNFT}
           />
         </div>
       )}
 
       {Object.entries(shape).map(([key, field]) => {
-        // normalize snakecase and camelcase
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
-        const isRequired = !field.isOptional();
-
-        console.log(field)
 
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;

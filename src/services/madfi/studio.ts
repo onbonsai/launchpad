@@ -131,21 +131,15 @@ export type SmartMedia = {
 
 export type NFTMetadata = {
   tokenId: number;
-  network: string;
   contract: {
     address: string;
+    network: string;
   };
   collection?: {
     name?: string;
   };
-  image?: {
-    cachedUrl?: string;
-  };
-  metadata?: {
-    image?: string;
-  };
+  image: string; // base64 string cropped
   attributes?: any[];
-  openseaUrl: string;
 }
 
 interface GeneratePreviewResponse {
