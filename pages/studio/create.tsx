@@ -2,7 +2,7 @@ import { NextPage } from "next"
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
 import CashIcon from "@heroicons/react/solid/CashIcon"
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";

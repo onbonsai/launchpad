@@ -2,7 +2,7 @@ import { useMemo, useState, ReactNode, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";

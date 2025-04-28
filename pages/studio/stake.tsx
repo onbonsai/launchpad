@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { useState, useMemo, useEffect } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -389,7 +389,8 @@ const TokenPage: NextPage = () => {
                       size={"md"}
                       className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                     >
-                      <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" /> Referrals
+                      <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" />
+                      <span className="text-brand-secondary">Referrals</span>
                     </Button>}
                   </div>
                 </div>

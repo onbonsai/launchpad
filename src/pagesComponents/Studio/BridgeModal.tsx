@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { useAccount, useWalletClient, useReadContract, useBalance } from "wagmi";

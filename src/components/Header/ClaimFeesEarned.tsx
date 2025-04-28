@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { switchChain } from "@wagmi/core";
 import { formatUnits } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import toast from "react-hot-toast";
@@ -12,6 +11,7 @@ import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
+import { switchChain } from "viem/actions";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { address, chainId, isConnected } = useAccount();

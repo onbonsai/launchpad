@@ -96,7 +96,7 @@ export const Header = () => {
               <Notifications />
               {isAuthenticated && (
                 <Link href="/studio">
-                  <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 bg-white rounded-lg">
+                  <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 rounded-lg">
                     Create
                   </Button>
                 </Link>

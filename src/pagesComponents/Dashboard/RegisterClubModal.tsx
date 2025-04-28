@@ -2,7 +2,7 @@ import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useReadContract } from "wagmi";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";

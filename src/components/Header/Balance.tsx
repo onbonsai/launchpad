@@ -388,7 +388,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
             </div>
             <div className="mt-2 pt-4 border-t border-zinc-800">
               <Button
-                variant="primary"
+                variant="blue"
                 size="md"
                 className="w-full flex items-center justify-center gap-2"
                 onClick={() => openTopUpModal()}
