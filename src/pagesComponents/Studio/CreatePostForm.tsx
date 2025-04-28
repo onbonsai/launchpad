@@ -295,7 +295,7 @@ const DynamicForm = ({
       )}
 
       {/* Post image */}
-      {template.options?.imageRequirement !== ImageRequirement.NONE && (
+      {template.options?.imageRequirement && template.options?.imageRequirement !== ImageRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
             label={"Post image"}
@@ -317,7 +317,7 @@ const DynamicForm = ({
       )}
 
       {/* NFT */}
-      {template.options?.nftRequirement !== ImageRequirement.NONE && (
+      {template.options?.nftRequirement && template.options?.nftRequirement !== ImageRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
             label={"NFT"}
