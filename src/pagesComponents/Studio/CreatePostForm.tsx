@@ -91,7 +91,7 @@ const CreatePostForm = ({
         template,
         templateData,
         template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
-        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? selectedAspectRatio : undefined,
+        selectedAspectRatio,
         selectedNFT,
       );
       if (!res) throw new Error();
@@ -330,6 +330,8 @@ const DynamicForm = ({
           <WhitelistedNFTsSection
             setSelectedNFT={setSelectedNFT}
             selectedNFT={selectedNFT}
+            selectedAspectRatio={selectedAspectRatio}
+            onAspectRatioChange={setSelectedAspectRatio}
           />
         </div>
       )}
