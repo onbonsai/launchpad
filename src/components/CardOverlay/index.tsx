@@ -1,6 +1,6 @@
 import { BookmarkAddOutlined, BookmarkOutlined, BookmarkBorder, MoreHoriz } from "@mui/icons-material";
 import { useMemo, useState, useRef } from "react"
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { Account, Post } from "@lens-protocol/client";
 import toast from "react-hot-toast";
 import { useAccount, useWalletClient } from "wagmi";

@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { useState, useMemo, useEffect } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import ConfettiExplosion from 'react-confetti-explosion';

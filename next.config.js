@@ -11,6 +11,10 @@ const nextConfig = {
   transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk"],
   experimental: {
     esmExternals: true,
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
     optimizePackageImports: [
       '@emotion/css',
       '@emotion/styled',
@@ -46,8 +50,7 @@ const nextConfig = {
       'react-window',
       'framer-motion',
       'tss-react',
-      'use-debounce',
-      'wagmi'
+      'use-debounce'
     ]
   },
   i18n: {

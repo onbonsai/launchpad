@@ -544,7 +544,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
-  const postIdInt = await getPostId(dbRecord.postId);
+  const postIdInt = await getPostId(dbRecord?.postId);
 
   const club = JSON.parse(JSON.stringify({ ..._club, ...dbRecord, featured, postIdInt }));
 

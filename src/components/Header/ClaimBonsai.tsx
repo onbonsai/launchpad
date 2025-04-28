@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { formatEther } from "viem";
 import toast from "react-hot-toast";
 import { Button } from "@src/components/Button";

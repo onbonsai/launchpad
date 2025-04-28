@@ -32,7 +32,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
           <TokenCard
             clubId={row.club.clubId}
             v2={row.club.v2}
-            key={`row-${row.club.clubId}`}
+            key={`row-${row.club.tokenAddress || row.club.clubId}`}
             title={row.token.name}
             count={kFormatter(parseFloat(row.amount))}
             logo={<img src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' />}

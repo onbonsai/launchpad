@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
-import { switchChain } from "@wagmi/core";
+import { switchChain } from "viem/actions";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Button } from "@src/components/Button";
