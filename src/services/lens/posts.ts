@@ -162,12 +162,12 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
       const result = await fetchTimeline(sessionClient || lensClient, {
         account: evmAddress(accountAddress as string),
         filter: {
-          // apps: [evmAddress(LENS_BONSAI_APP)]
-          feeds: [
-            {
-              feed: evmAddress(LENS_BONSAI_DEFAULT_FEED)
-            }
-          ]
+          apps: [evmAddress(LENS_BONSAI_APP)]
+          // feeds: [
+          //   {
+          //     feed: evmAddress(LENS_BONSAI_DEFAULT_FEED)
+          //   }
+          // ]
         },
         cursor: pageParam as Cursor | null,
       });
