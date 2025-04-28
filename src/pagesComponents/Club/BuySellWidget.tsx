@@ -358,7 +358,7 @@ export const BuySellWidget = ({
 
       toast.success(`Bought ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
 
-      if (!!useRemixReferral) {
+      if (!!useRemixReferral || club.tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
         closeModal();
         return;
       }
@@ -430,16 +430,8 @@ export const BuySellWidget = ({
 
       toast.success(`Sold ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
 
-      if (!!useRemixReferral) {
-        closeModal();
-        return;
-      }
-
-      setJustBought(true);
-      setShowConfetti(true);
-      setJustBoughtAmount(formatUnits(_buyAmount, DECIMALS));
-      // Remove confetti after 5 seconds
-      setTimeout(() => setShowConfetti(false), 5000);
+      closeModal();
+      return;
     } catch (error) {
       console.log(error);
       toast.error("Failed to sell", { id: toastId });
