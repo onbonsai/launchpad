@@ -31,12 +31,11 @@ import { parseBase64Image } from "@src/utils/utils";
 import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
 import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
-import { ChevronLeftIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
-import { Tooltip } from "@mui/material";
+import { isEmpty } from "lodash/lang";
 
 type TokenData = {
   initialSupply: number;
@@ -567,7 +566,7 @@ const StudioCreatePage: NextPage = () => {
                         </div>
                       </div>
                     )}
-                    {!isGeneratingPreview && preview?.text && (
+                    {!isGeneratingPreview && !isEmpty(preview) && (
                       <Publication
                         key={`preview-${JSON.stringify(preview)}`}
                         publicationData={{

@@ -8,12 +8,13 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES } from "@src/services/madfi/studio";
+import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
 import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
+import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
 
 type CreatePostProps = {
   template: Template;
@@ -45,6 +46,7 @@ const CreatePostForm = ({
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
+  const [selectedNFT, setSelectedNFT] = useState<NFTMetadata | undefined>();
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -57,6 +59,7 @@ const CreatePostForm = ({
       template.templateData.form.parse(templateData);
       if (template.options?.requireContent && !postContent) return false;
       if (template.options?.imageRequirement === ImageRequirement.REQUIRED && !postImage?.length) return false;
+      if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT) return false;
       return true;
     } catch (error) {
       // console.log(error);
@@ -89,6 +92,7 @@ const CreatePostForm = ({
         templateData,
         template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? selectedAspectRatio : undefined,
+        selectedNFT,
       );
       if (!res) throw new Error();
       const { agentId, preview } = res;
@@ -154,6 +158,8 @@ const CreatePostForm = ({
                 setPostImage={setPostImage}
                 selectedAspectRatio={selectedAspectRatio}
                 setSelectedAspectRatio={setSelectedAspectRatio}
+                selectedNFT={selectedNFT}
+                setSelectedNFT={setSelectedNFT}
               />
           }
         </div>
@@ -198,6 +204,8 @@ const DynamicForm = ({
   setPostImage,
   selectedAspectRatio,
   setSelectedAspectRatio,
+  selectedNFT,
+  setSelectedNFT,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -210,6 +218,8 @@ const DynamicForm = ({
   setPostImage: (i: any) => void;
   selectedAspectRatio: AspectRatio;
   setSelectedAspectRatio: (ratio: AspectRatio) => void;
+  selectedNFT?: NFTMetadata;
+  setSelectedNFT: (s: NFTMetadata) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
@@ -306,10 +316,30 @@ const DynamicForm = ({
         </div>
       )}
 
+      {/* NFT */}
+      {template.options?.nftRequirement !== ImageRequirement.NONE && (
+        <div className="space-y-2">
+          <FieldLabel
+            label={"NFT"}
+            fieldDescription={
+              template.options.nftRequirement === ImageRequirement.REQUIRED
+                ? "Select one of your NFTs to use for this post"
+                : "Optionally include one of your NFTs in this post"
+            }
+          />
+          <WhitelistedNFTsSection
+            setSelectedNFT={setSelectedNFT}
+            selectedNFT={selectedNFT}
+          />
+        </div>
+      )}
+
       {Object.entries(shape).map(([key, field]) => {
         // normalize snakecase and camelcase
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
         const isRequired = !field.isOptional();
+
+        console.log(field)
 
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
@@ -345,12 +375,19 @@ const DynamicForm = ({
               />
             ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
               (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
-                <textarea
-                  value={templateData[key] || ''}
-                  onChange={(e) => updateField(key, e.target.value || undefined)}
-                  className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-                  maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={templateData[key] || ''}
+                    onChange={(e) => updateField(key, e.target.value || undefined)}
+                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-24`}
+                    maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                  />
+                  <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">
+                    {(templateData[key] || '').length} /{" "}
+                    {(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                  </div>
+                </div>
               ) : (
                 <input
                   type="text"
