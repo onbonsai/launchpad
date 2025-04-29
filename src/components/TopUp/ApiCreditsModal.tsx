@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { ADMIN_WALLET, publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI } from "@src/services/madfi/moneyClubs";
 import { CreditCardIcon } from "@heroicons/react/outline";
+import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 
 interface TopUpOption {
   credits: number;
@@ -22,6 +23,7 @@ export const ApiCreditsModal = () => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
+  const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
 
   // GHO Balance
@@ -236,17 +238,24 @@ export const ApiCreditsModal = () => {
           ? "Insufficient GHO"
           : `Pay ${selectedOption.price} GHO`}
       </Button>
-      <a
-        href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full"
+      <Button
+        variant={"primary"}
+        size='md'
+        className="w-full !border-none"
+        onClick={() => {
+          setBuyUSDCModalOpen(true);
+        }}
       >
-        <Button variant="primary" size="md" className="mt-4 w-full flex items-center justify-center gap-2">
-          <img src="/gho.webp" alt="gho" className="w-5 h-5" />
-          Bridge GHO to Lens
-        </Button>
-      </a>
+        Fund wallet
+      </Button>
+      <BuyUSDCWidget
+        open={buyUSDCModalOpen}
+        buyAmount={selectedOption?.price.toString() || "20"}
+        onClose={() => {
+          setBuyUSDCModalOpen(false);
+        }}
+        chain={"lens"}
+      />
     </div>
   );
 };

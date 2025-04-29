@@ -18,7 +18,7 @@ export const ELEVENLABS_VOICES = [
   { label: 'Social (Male)', value: 'CwhRBWXzGAHq8TQ4Fs17' },
 ];
 // only for stakers, no free generations (generally because they are expensive)
-export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video"];
+export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video", "nft_dot_fun"];
 // so we can quickly feature posts
 export const SET_FEATURED_ADMINS = [
   "0xdc4471ee9dfca619ac5465fde7cf2634253a9dc6",

@@ -571,13 +571,13 @@ const TokenPage: NextPage = () => {
                     )}
                   </div>
                   {isConnected && (
-                    <div className="mt-6">
+                    <div className="mt-4">
                       <Button
                         variant="accent"
+                        size="sm"
                         onClick={() => openTopUpModal("api-credits")}
-                        className="px-6 py-2 text-sm"
                       >
-                        Buy More Credits
+                        Purchase Credits
                       </Button>
                     </div>
                   )}
