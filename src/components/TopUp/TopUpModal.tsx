@@ -14,6 +14,7 @@ import useQuoter from "@src/services/uniswap/useQuote";
 import { readContract } from "viem/actions";
 import { toast } from "react-hot-toast";
 import useLensSignIn from "@src/hooks/useLensSignIn";
+import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 
 interface TopUpOption {
   bonsai: number;
@@ -30,6 +31,7 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
+  const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { authenticatedProfile } = useLensSignIn(walletClient);
 
   // GHO Balance
@@ -309,17 +311,24 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
           ? "Insufficient GHO"
           : `Pay ${selectedOption.price} GHO`}
       </Button>
-      <a
-        href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full"
+      <Button
+        variant={"primary"}
+        size='md'
+        className="w-full !border-none"
+        onClick={() => {
+          setBuyUSDCModalOpen(true);
+        }}
       >
-        <Button variant="primary" size="md" className="mt-4 w-full flex items-center justify-center gap-2">
-          <img src="/gho.webp" alt="gho" className="w-5 h-5" />
-          Bridge GHO to Lens
-        </Button>
-      </a>
+        Fund wallet
+      </Button>
+      <BuyUSDCWidget
+        open={buyUSDCModalOpen}
+        buyAmount={selectedOption?.price.toString() || "25"}
+        onClose={() => {
+          setBuyUSDCModalOpen(false);
+        }}
+        chain={"lens"}
+      />
     </div>
   );
 };
