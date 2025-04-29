@@ -145,7 +145,8 @@ const nextConfig = {
       "oaidalleapiprodscus.blob.core.windows.net",
       "statics-polygon-lens.s3.*.amazonaws.com",
       "gw.ipfs-lens.dev",
-      "nft-cdn.alchemy.com"
+      "nft-cdn.alchemy.com",
+      "ipfs.4everland.io"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,
