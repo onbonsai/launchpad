@@ -49,9 +49,9 @@ export const ApiCreditsModal = () => {
   });
 
   const topUpOptions: TopUpOption[] = useMemo(() => {
-    const credits = [100, 400, 1000, 2500];
+    const credits = [100, 350, 750, 2500];
     return credits.map((credit, index) => {
-      const price = credit / 80;
+      const price = (3 * credit) / 200;
       const ghoRequired = parseUnits(price.toString(), 18);
       return {
         credits: credit,
@@ -176,7 +176,7 @@ export const ApiCreditsModal = () => {
 
       <div className="text-gray-400">
         <p>AI credits are used to make requests to our generative AI services.</p>
-        <p>Purchased credits are one time use and will not refresh.</p>
+        <p>Purchased credits are one time use and will not refresh. 1.5 cents per credit.</p>
       </div>
 
       <div className="flex items-center justify-between p-3 rounded-xl bg-gray-800/50 border border-gray-700/50">

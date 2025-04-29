@@ -45,8 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!isAddress(from)) {
       return res.status(400).json({ error: "Invalid sender address" });
     }
-    // Calculate credits: 1.25 GHO = 100 credits, so 1 GHO = 80 credits
-    const credits = Math.floor(Number(formatUnits(value, 18)) * 80);
+    // Calculate credits: 1 GHO = 66.67 credits (1.5 cents per credit)
+    const credits = Math.floor((200 * Number(formatUnits(value, 18))) / 3);
     if (!credits || credits <= 0) {
       return res.status(400).json({ error: "Invalid transfer amount" });
     }
