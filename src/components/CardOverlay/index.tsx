@@ -108,7 +108,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       );
 
       if (amountNeeded > 0n) {
-        openTopUpModal(amountNeeded);
+        openTopUpModal("topup", amountNeeded);
         toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;

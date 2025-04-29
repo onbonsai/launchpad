@@ -413,14 +413,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             disabled={currentVersionIndex === 0 || isLoadingVersion}
                             className="transform -translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           >
-                            <ChevronLeftIcon className="h-8 w-8" />
+                            <ChevronLeftIcon className="h-12 w-8" />
                           </button>
                           <button
                             onClick={() => loadVersion((currentVersionIndex ?? -1) + 1)}
                             disabled={currentVersionIndex === null || isLoadingVersion}
                             className="transform translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           >
-                            <ChevronRightIcon className="h-8 w-8" />
+                            <ChevronRightIcon className="h-12 w-8" />
                           </button>
                         </div>
                       )}
