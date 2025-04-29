@@ -22,16 +22,16 @@ import { Notifications } from "./Notifications";
 
 const headerLinks = [
   {
-    label: "Home",
+    label: "Feed",
     href: "/",
+  },
+  {
+    label: "Studio",
+    href: "/studio",
   },
   {
     label: "Tokens",
     href: "/tokens",
-  },
-  {
-    label: "Stake",
-    href: "/studio/stake",
   },
 ];
 
@@ -51,7 +51,7 @@ export const Header = () => {
       <nav className="mx-auto max-w-[100rem]" aria-label="Top">
         {/* Top row */}
         <div className="flex w-full items-center py-3 lg:border-none px-4 md:px-6 justify-between">
-          <div className="flex items-center justify-start w-[33%]">
+          <div className="flex items-center justify-start w-[40%]">
             <div className="w-max text-black">
               <a className="bonsaiLogo" href={routesApp.home}></a>
             </div>
@@ -83,13 +83,13 @@ export const Header = () => {
 
           {/* On desktop: show search in the center. On mobile: hidden or below */}
           {!isMobile && (
-            <div className="flex justify-center items-center w-[15%]">
+            <div className="flex justify-center items-center w-[10%]">
               <SearchClubs />
             </div>
           )}
 
           {/* Right side of header */}
-          <div className="flex items-center justify-end md:w-[38%] w-full">
+          <div className="flex items-center justify-end md:w-[40%] w-full">
             {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
             {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
             <div className="hidden sm:flex items-center gap-2 mr-2">

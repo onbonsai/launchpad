@@ -153,10 +153,10 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       />
 
       {/* Top overlay */}
-      <div className="absolute top-4 left-4 right-4 flex justify-between z-30">
+      <div className="absolute top-2 left-2 right-2 flex justify-between z-30">
         <div className="space-y-2">
           {category && (
-            <div className="rounded-full bg-dark-grey text-white h-10 flex items-center px-3 w-fit pointer-events-none select-none">
+            <div className="rounded-2xl bg-dark-grey text-white h-10 flex items-center px-3 w-fit pointer-events-none select-none">
               <span className="-ml-2 pointer-events-none">
                 <SparkIcon color="#fff" height={14} />
               </span>
@@ -173,7 +173,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               variant={hasCollected ? "dark-grey" : "accentBrand"}
               ref={collectButtonRef}
               size="md"
-              className={`text-base font-bold rounded-lg gap-x-1 md:px-2 py-[5px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default': ''}`}
+              className={`text-base font-bold rounded-2xl gap-x-1 md:px-2 py-[5px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default': ''}`}
               onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true) })}
             >
               {!hasCollected ? (
@@ -214,14 +214,14 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       </div>
 
       {/* Bottom overlay LEFT */}
-      <div className="absolute bottom-4 left-4 flex space-x-2 z-30">
-        <div className={`rounded-full bg-dark-grey text-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
+      <div className="absolute bottom-2 left-2 flex space-x-2 z-50">
+        <div className={`rounded-2xl bg-dark-grey text-white h-10 flex items-center ${!!postData?.actors?.length ? "pr-1" : ""}`}>
           <div className="min-w-[2.5rem] px-3 flex items-center justify-center gap-1 pointer-events-none">
             {hasCollected ? <BookmarkOutlined sx={{ color: '#fff', fontSize: '1rem' }} /> : <BookmarkBorder sx={{ color: '#fff', fontSize: '1rem' }} />}
             {post.stats.collects > 0 ? <Subtitle className="text-base">{post.stats.collects || 0}</Subtitle> : null}
           </div>
           {!!postData?.actors?.length && (
-            <Tooltip message={collectorsText} direction="top" classNames="z-100">
+            <Tooltip message={collectorsText} direction="right">
               <div className="flex -space-x-2">
                 {postData?.actors?.map(({ account }, index: number) => (
                   <img
@@ -238,7 +238,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       </div>
 
       {/* Bottom overlay */}
-      <div className="absolute bottom-4 right-4 flex space-x-2 z-30">
+      <div className="absolute bottom-2 right-2 flex space-x-2 z-30">
         <button
           className="rounded-full bg-white hover:bg-gray-200 h-10 w-10 flex items-center justify-center"
           onClick={(e) => handleButtonClick(e, onShare)}

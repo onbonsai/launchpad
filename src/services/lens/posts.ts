@@ -79,7 +79,7 @@ export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | nu
   });
 }
 
-export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = false) => {
+export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getCollected: boolean = false) => {
   return useInfiniteQuery({
     queryKey: ["get-posts-by-author", authorId, getCollected],
     queryFn: async ({ pageParam = null }) => {
@@ -101,18 +101,19 @@ export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = f
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!authorId
+    enabled: enabled && !!authorId
   });
 };
 
 interface GetExplorePostsProps {
   isLoadingAuthenticatedProfile: boolean;
+  enabled: boolean;
   accountAddress?: `0x${string}`;
   cursor?: Cursor;
 };
 
 // TODO: need filter for feed for explore/foryou
-export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],
     queryFn: async ({ pageParam }) => {
@@ -146,11 +147,11 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: isLoadingAuthenticatedProfile === false,
+    enabled: isLoadingAuthenticatedProfile === false && enabled,
   });
 };
 
-export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["timeline", accountAddress],
     queryFn: async ({ pageParam }) => {
@@ -177,13 +178,11 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
         throw result.error;
       }
 
-      // NOTE: we only show root posts, in the future we might want to show comments / reposts
       const { items: timelineItems, pageInfo } = result.value;
-      console.log(timelineItems)
       const posts = uniqBy(timelineItems.map((t) => t.primary), 'slug');
 
       return {
-        posts,
+        posts: timelineItems, // we'll handle these differently in PostCollage
         postData: await getPostData(posts?.map(({ slug }) => slug) || []),
         pageInfo,
         nextCursor: pageInfo.next,
@@ -191,7 +190,7 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: isLoadingAuthenticatedProfile === false && !!accountAddress,
+    enabled: isLoadingAuthenticatedProfile === false && !!accountAddress && enabled,
   });
 };
 
