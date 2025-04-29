@@ -85,7 +85,7 @@ const CreatePostForm = ({
       return;
     }
 
-    if (!selectedNFT?.image?.croppedBase64) {
+    if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT?.image?.croppedBase64) {
       toast.error("Failed to parse NFT image");
       return;
     }
@@ -101,7 +101,7 @@ const CreatePostForm = ({
         templateData,
         template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
-        selectedNFT ? {
+        !!selectedNFT ? {
           tokenId: selectedNFT.tokenId,
           contract: {
             address: selectedNFT.contract.address,
@@ -109,7 +109,7 @@ const CreatePostForm = ({
           },
           collection: { name: selectedNFT.collection?.name },
           // replace ipfs:// uri with default https gateway
-          image: selectedNFT.image?.croppedBase64,
+          image: selectedNFT.image?.croppedBase64 as string,
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
       );
@@ -309,6 +309,7 @@ const DynamicForm = ({
         <div className="space-y-2">
           <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
           <textarea
+            placeholder="What is your post about?"
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
@@ -324,7 +325,7 @@ const DynamicForm = ({
             fieldDescription={
               template.options.imageRequirement === ImageRequirement.REQUIRED
                 ? "An image is required for this post."
-                : "Optionally add an image to your post."
+                : "Optionally add an image to your post. Otherwise, one will be generated."
             }
           />
           <ImageUploader
@@ -365,9 +366,14 @@ const DynamicForm = ({
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
+        const placeholderRegex = /\[placeholder: (.*?)\]/;
+        const placeholderMatch = field.description?.match(placeholderRegex);
+        const placeholder = placeholderMatch ? placeholderMatch[1] : '';
+        const description = field.description?.replace(placeholderRegex, '') || '';
+
         return (
           <div key={key} className="space-y-2">
-            <FieldLabel label={label} fieldDescription={field.description} />
+            <FieldLabel label={label} fieldDescription={description} />
 
             {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
@@ -399,6 +405,7 @@ const DynamicForm = ({
                 <div className="relative">
                   <input
                     type="text"
+                    placeholder={placeholder}
                     value={templateData[key] || ''}
                     onChange={(e) => updateField(key, e.target.value || undefined)}
                     className={`${sharedInputClasses} w-full p-3 !focus:none pr-24`}
@@ -412,6 +419,7 @@ const DynamicForm = ({
               ) : (
                 <input
                   type="text"
+                  placeholder={placeholder}
                   value={templateData[key] || ''}
                   onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full p-3`}
