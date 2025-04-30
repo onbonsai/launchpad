@@ -30,6 +30,7 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import { EyeIcon } from "@heroicons/react/outline";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -54,6 +55,8 @@ type PublicationContainerProps = {
     ticker: string;
   };
   enoughActivity?: boolean; // does the smart media have any new comments since the last time it was updated
+  isPresenceConnected?: boolean; // are we connected to the websocket
+  connectedAccounts?: any; // connected accounts on the websocket
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -106,6 +109,8 @@ const PublicationContainer = ({
   mdMinWidth = 'md:min-w-[700px]',
   token,
   enoughActivity,
+  isPresenceConnected,
+  connectedAccounts,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
@@ -381,6 +386,17 @@ const PublicationContainer = ({
     setIsCollecting(false);
   }
 
+  const renderPresenceIndicator = () => {
+    if (!isPresenceConnected || !connectedAccounts.length || connectedAccounts.length === 1) return null;
+
+    return (
+      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 flex items-center pointer-events-none select-none">
+        <EyeIcon className="h-4 w-4" />
+        <span className="ml-1">{connectedAccounts.length}</span>
+      </div>
+    );
+  };
+
   let PublicationType = HorizontalPublication;
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
@@ -537,6 +553,8 @@ const PublicationContainer = ({
           )}
         </div>
       )}
+
+      {renderPresenceIndicator()}
 
       {!!media?.agentId && isAuthenticated && (
         <div

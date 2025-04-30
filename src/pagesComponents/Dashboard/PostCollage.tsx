@@ -81,10 +81,11 @@ const PostItem = ({
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
     >
-      {timelineItem && (
+      {(timelineItem || postData[post.slug]?.presence) && (
         <TimelineItemInteractions
-          reposts={timelineItem.reposts}
+          reposts={timelineItem?.reposts}
           position="top"
+          postData={postData[post.slug]}
         />
       )}
       <div className="relative">
@@ -262,10 +263,8 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
   }, []);
 
   const sortedPosts = useMemo(() => {
+    if (activeTab === PostTabType.FOR_YOU) return processedPosts; // no sorting on for you
     const _posts = filterBy ? filteredPosts : processedPosts;
-
-    if (activeTab === PostTabType.FOR_YOU) return _posts; // no sorting on for you
-
     const filteredByCategory = !categoryFilter
       ? _posts
       : _posts.filter(post => {
