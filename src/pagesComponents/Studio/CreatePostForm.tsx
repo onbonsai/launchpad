@@ -19,6 +19,9 @@ import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
 import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
 import { storjGatewayURL } from "@src/utils/storj";
 import { ipfsOrNot } from "@src/utils/pinata";
+import { useGetCredits } from "@src/hooks/useGetCredits";
+import { useAccount } from "wagmi";
+import { useTopUpModal } from "@src/context/TopUpContext";
 
 type CreatePostProps = {
   template: Template;
@@ -47,7 +50,10 @@ const CreatePostForm = ({
   isGeneratingPreview,
   setIsGeneratingPreview,
 }: CreatePostProps) => {
+  const { address, isConnected } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+  const { openTopUpModal } = useTopUpModal();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
@@ -73,6 +79,12 @@ const CreatePostForm = ({
   }
 
   const _generatePreview = async () => {
+    if ((creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 0)) {
+      toast.error(`Insufficient AI credits. Missing ${(template.estimatedCost || 0) - (creditBalance?.creditsRemaining || 0)} credits`);
+      openTopUpModal("api-credits");
+      return;
+    }
+
     const sessionClient = await resumeSession(true);
     if (!sessionClient) return;
 
