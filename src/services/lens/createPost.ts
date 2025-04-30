@@ -270,9 +270,9 @@ export const createPost = async (
         post: postId(commentOn),
       }
       : undefined,
-    quoteOf: quoteOf
+    quoteOf: quoteOf || !!params.remix
       ? {
-        post: postId(quoteOf),
+        post: postId(quoteOf || params.remix as string),
       }
       : undefined,
     actions: params.actions,
