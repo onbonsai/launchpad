@@ -27,7 +27,7 @@ const StudioCreatePage: NextPage = () => {
   const { data: stakingData } = useStakingData(address as string);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
   const { openTopUpModal } = useTopUpModal();
-  
+
   const estimatedGenerations = useMemo(() => {
     if (!isLoadingCredits && creditBalance?.creditsRemaining) {
       const res = Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
@@ -174,7 +174,7 @@ const StudioCreatePage: NextPage = () => {
                               >
                                 {PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n
                                   ? "Only stakers"
-                                  : estimatedGenerations > 0
+                                  : (creditBalance!.creditsRemaining > (template.estimatedCost || 0))
                                   ? "Create"
                                   : "Add credits to use"}
                               </button>
