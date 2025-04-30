@@ -8,7 +8,6 @@ import { Subtitle, Header2 } from "@src/styles/text";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetBonsaiClaim, claimTokensWithProof } from "@src/services/madfi/claim";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { useModal } from "connectkit";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 

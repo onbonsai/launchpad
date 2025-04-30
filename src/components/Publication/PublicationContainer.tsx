@@ -19,7 +19,6 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";

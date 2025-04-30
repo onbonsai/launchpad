@@ -10,7 +10,6 @@ import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { switchChain } from "viem/actions";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {

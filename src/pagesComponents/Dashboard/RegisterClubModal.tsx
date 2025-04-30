@@ -36,7 +36,6 @@ import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { createPost } from "@src/services/lens/createPost";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { SessionClient } from "@lens-protocol/client";

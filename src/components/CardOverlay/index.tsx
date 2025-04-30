@@ -7,7 +7,6 @@ import { useAccount, useWalletClient } from "wagmi";
 import { NewShareIcon } from "../Share/NewShareIcon";
 import { Button } from "../Button";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import CollectModal from "@src/components/Publication/CollectModal";

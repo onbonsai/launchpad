@@ -199,9 +199,9 @@ const TokenPage: NextPage = () => {
 
   const handleStake = async (amount: string, lockupPeriod: number): Promise<boolean> => {
     try {
-      if (chain?.id !== LENS_CHAIN_ID) {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
           // toast("Please re-connect your wallet");
           // setOpen(true);
@@ -239,9 +239,9 @@ const TokenPage: NextPage = () => {
 
   const handleUnstake = async (stakeIndex: number) => {
     try {
-      if (chain?.id !== LENS_CHAIN_ID) {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // toast("Please re-connect your wallet");
           // setOpen(true);
           // return;

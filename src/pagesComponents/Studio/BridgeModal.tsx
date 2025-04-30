@@ -12,7 +12,6 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Button } from "@src/components/Button";
 import { BodySemiBold, Subtitle } from "@src/styles/text";
 import SelectDropdown from "@src/components/Select/SelectChain";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { useModal } from "connectkit";
 
 export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {

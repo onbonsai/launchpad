@@ -2,8 +2,10 @@ import { Account, SessionClient } from "@lens-protocol/client";
 import { getProfileByHandle } from "../lens/getProfiles";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { IS_PRODUCTION } from "./utils";
 
-export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL || "https://eliza-terminal.onbons.ai"; // client-bonsai-terminal
+export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL ||
+  (IS_PRODUCTION ? "https://eliza-terminal.onbons.ai" : "https://eliza-staging-terminal.onbons.ai");
 export const GLOBAL_AGENT_ID = "c3bd776c-4465-037f-9c7a-bf94dfba78d9"; // Sage
 
 export interface AgentInfo {

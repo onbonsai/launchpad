@@ -240,9 +240,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
       return;
     }
 
-    if (LENS_CHAIN_ID !== chain?.id) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
       } catch (error) {
         console.log(error);
         toast.error("Please switch networks to comment");

@@ -49,6 +49,7 @@ const nextConfig = {
       'react-use-cookie',
       'react-window',
       'framer-motion',
+      'thirdweb',
       'tss-react',
       'use-debounce',
       'wagmi',
