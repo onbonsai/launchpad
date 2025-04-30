@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const _publicClient = publicClient("lens");
 
     // Fetch transaction receipt
-    const txReceipt = await _publicClient.getTransactionReceipt({ hash: txHash });
+    const txReceipt = await _publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` });
     if (!txReceipt || txReceipt.status !== "success") {
       return res.status(400).json({ error: "Transaction not successful or not found" });
     }

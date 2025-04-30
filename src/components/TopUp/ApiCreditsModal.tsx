@@ -11,6 +11,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import { ADMIN_WALLET, publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI } from "@src/services/madfi/moneyClubs";
 import { CreditCardIcon } from "@heroicons/react/outline";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
+import { switchChain } from "viem/actions";
 
 interface TopUpOption {
   credits: number;
@@ -20,7 +21,7 @@ interface TopUpOption {
 }
 
 export const ApiCreditsModal = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -76,6 +77,17 @@ export const ApiCreditsModal = () => {
     if (!selectedOption) {
       toast.error("No selected option");
       return;
+    }
+    if (chain?.id !== LENS_CHAIN_ID && walletClient) {
+      try {
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
+        // toast("Please re-connect your wallet");
+        // setOpen(true);
+        return;
+      } catch {
+        toast.error("Please switch chains");
+        return;
+      }
     }
     let toastId = toast.loading("Purchasing credits...");
 
@@ -234,6 +246,8 @@ export const ApiCreditsModal = () => {
       >
         {!selectedOption
           ? "Select an amount"
+          : chain?.id !== LENS_CHAIN_ID
+          ? "Switch to Lens Chain"
           : !hasSufficientGho
           ? "Insufficient GHO"
           : `Pay ${selectedOption.price} GHO`}

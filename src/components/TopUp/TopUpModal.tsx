@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { switchChain } from "viem/actions";
 import { Button } from "@src/components/Button";
 import { Dialog } from "@headlessui/react";
 import { brandFont } from "@src/fonts/fonts";
@@ -28,7 +29,7 @@ interface TopUpModalProps {
 }
 
 export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -124,6 +125,18 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
     if (!selectedOption) {
       toast.error("No selected option");
       throw new Error("No selected option");
+    }
+
+    if (chain?.id !== LENS_CHAIN_ID && walletClient) {
+      try {
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
+        // toast("Please re-connect your wallet");
+        // setOpen(true);
+        return;
+      } catch {
+        toast.error("Please switch chains");
+        return;
+      }
     }
 
     const _publicClient = publicClient("lens");
@@ -307,6 +320,8 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
       >
         {!selectedOption
           ? "Select an amount"
+          : chain?.id !== LENS_CHAIN_ID
+          ? "Switch to Lens Chain"
           : !hasSufficientGho
           ? "Insufficient GHO"
           : `Pay ${selectedOption.price} GHO`}
