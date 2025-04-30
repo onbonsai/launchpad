@@ -372,7 +372,7 @@ export const requestPostDisable = async (url: string, postSlug: string, idToken:
   }
 }
 
-export const useGetFeaturedPosts = () => {
+export const useGetFeaturedPosts = (enabled = true) => {
   return useQuery({
     queryKey: ['featured-posts'],
     queryFn: async () => {
@@ -396,6 +396,7 @@ export const useGetFeaturedPosts = () => {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    enabled
   });
 };
 

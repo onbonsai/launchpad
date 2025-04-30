@@ -54,7 +54,7 @@ const IndexPage: NextPage = () => {
     hasNextPage,
   } = useGetPostsByAuthor(activeTab === PostTabType.COLLECTED, authenticatedProfile?.address, true, true);
 
-  const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts();
+  const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts(activeTab === PostTabType.EXPLORE);
 
   // Type assertion for data.pages
   const pages = activeTab === PostTabType.EXPLORE ? exploreData?.pages as TimelinePosts[] || [] : timelineData?.pages as TimelinePosts[] || [];

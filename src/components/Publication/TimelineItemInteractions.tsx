@@ -41,7 +41,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
         <div className="p-3 flex flex-col gap-2 relative">
           {/* Presence indicator */}
           {hasPresence && (
-            <div className="flex items-center gap-2 text-white/60">
+            <div className="flex items-center justify-end gap-2 text-white/60 mr-4">
               <div className="flex items-center gap-1">
                 {postData.presence?.topUsers.slice(0, 3).map((user, index) => (
                   <img
@@ -53,7 +53,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                 ))}
               </div>
               <span className="text-xs">
-                {postData.presence?.count} viewing
+                {postData.presence?.count} viewing now
               </span>
             </div>
           )}
