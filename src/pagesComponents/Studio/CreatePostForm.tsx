@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
+import imageCompression from "browser-image-compression";
 
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
@@ -92,8 +93,40 @@ const CreatePostForm = ({
 
     setIsGeneratingPreview(true);
     let toastId = toast.loading("Generating - this could take a minute...");
-
+    
     try {
+      // Compress the NFT image if it exists
+      let compressedNFTImage = selectedNFT?.image?.croppedBase64;
+      if (selectedNFT?.image?.croppedBase64) {
+        try {
+          // Convert base64 to blob
+          const base64Response = await fetch(selectedNFT.image.croppedBase64);
+          const blob = await base64Response.blob();
+          const file = new File([blob], 'nft.png', { type: 'image/png' });
+
+          // Compress the image
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            preserveExif: true,
+          };
+          const compressedBlob = await imageCompression(file, options);
+          
+          // Convert compressed blob back to base64
+          const reader = new FileReader();
+          compressedNFTImage = await new Promise<string>((resolve) => {
+            reader.onloadend = () => {
+              resolve(reader.result as string);
+            };
+            reader.readAsDataURL(compressedBlob);
+          });
+        } catch (error) {
+          console.error("Error compressing NFT image:", error);
+          // Continue with original image if compression fails
+        }
+      }
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
@@ -108,8 +141,7 @@ const CreatePostForm = ({
             network: selectedNFT.network
           },
           collection: { name: selectedNFT.collection?.name },
-          // replace ipfs:// uri with default https gateway
-          image: selectedNFT.image?.croppedBase64 as string,
+          image: compressedNFTImage as string,
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
       );
@@ -117,7 +149,6 @@ const CreatePostForm = ({
       const { agentId, preview } = res;
 
       if (!preview) throw new Error("No preview");
-      console.log("setting preview", preview)
       setPreview({
         ...preview,
         text: preview.text || postContent,
@@ -126,16 +157,11 @@ const CreatePostForm = ({
 
       toast.success("Done", { id: toastId });
     } catch (error) {
-      if (error instanceof Error && error.message === "not enough credits") {
-        toast.error("Not enough credits to generate preview", { id: toastId, duration: 5000 });
-      } else if (error instanceof Error && error.message === "max free previews") {
-        toast.error("Reached limit on free previews for the hour", { id: toastId, duration: 5000 });
-      } else {
-        toast.error("Failed to generate preview", { id: toastId });
-      }
+      console.error("Error generating preview:", error);
+      toast.error("Failed to generate preview", { id: toastId });
+    } finally {
+      setIsGeneratingPreview(false);
     }
-
-    setIsGeneratingPreview(false);
   }
 
   const handleNext = () => {
