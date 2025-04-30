@@ -52,7 +52,7 @@ const IndexPage: NextPage = () => {
     fetchNextPage,
     isFetchingNextPage,
     hasNextPage,
-  } = useGetPostsByAuthor(activeTab === PostTabType.COLLECTED, authenticatedProfile?.address, true);
+  } = useGetPostsByAuthor(activeTab === PostTabType.COLLECTED, authenticatedProfile?.address, true, true);
 
   const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts();
 
@@ -61,15 +61,20 @@ const IndexPage: NextPage = () => {
 
   // Update the dependency array to include data instead of pages, putting featured posts first
   const posts = useMemo(() => {
+    if (activeTab !== PostTabType.EXPLORE) return pages.flatMap(page => page.posts);
     const featuredPosts = featuredData?.posts || [];
     const featuredSlugs = new Set(featuredPosts.map(post => post.slug));
     const explorePosts = pages.flatMap(page =>
       page.posts.filter(post => !featuredSlugs.has(post.slug))
     ) || [];
     return [...featuredPosts, ...explorePosts];
-  }, [activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData]);
+  }, [activeTab, activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData]);
 
-  const postData = useMemo(() => ({ ...(featuredData?.postData || {}), ...pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) }), [activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData]);
+  const postData = useMemo(() => ({
+    ...(featuredData?.postData || {}),
+    ...pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}),
+    ...(activeTab === PostTabType.COLLECTED ? data?.pages?.reduce((acc, page) => ({ ...acc, ...page.postData }), {}) ?? {} : {})
+  }), [activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData, data]);
 
   useScrollRestoration('posts-page-scroll', isMounted && !isLoadingExplorePosts && !isLoadingTimelinePosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
 

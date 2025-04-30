@@ -32,6 +32,7 @@ import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -68,6 +69,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
+  const { connectedAccounts, isConnected: isPresenceConnected } = usePostPresence({
+    postId: rootPostId || postId as string,
+    account: authenticatedProfile
+  });
 
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
@@ -314,7 +319,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     }
 
     if (!media?.versions?.[index]) return;
-    
+
     setIsLoadingVersion(true);
     try {
       const response = await fetch(media.versions[index]);
@@ -341,7 +346,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     if (currentVersionIndex === null) {
       return showRootPublication ? publication.root : publication;
     }
-    
+
     // Merge the current publication with the version's metadata
     const basePublication = showRootPublication ? publication.root : publication;
     return {
@@ -449,6 +454,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             ticker: club?.symbol,
                           }}
                           enoughActivity={enoughActivity}
+                          isPresenceConnected={isPresenceConnected}
+                          connectedAccounts={connectedAccounts}
                         />
                       </div>
                       <div className="sm:hidden">
@@ -465,6 +472,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             scrollToReplyInput();
                           }}
                           enoughActivity={enoughActivity}
+                          isPresenceConnected={isPresenceConnected}
+                          connectedAccounts={connectedAccounts}
                         />
                       </div>
                     </>

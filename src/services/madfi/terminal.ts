@@ -105,6 +105,37 @@ export const sendMessage = async ({
   return await response.json();
 }
 
+export interface PostPresenceResponse {
+  [postId: string]: {
+    count: number;
+    topUsers: Array<{
+      handle: string;
+      image: string;
+      score: number;
+    }>;
+  };
+}
+export const getPostPresenceData = async (postIds: string[]): Promise<PostPresenceResponse> => {
+  try {
+    const response = await fetch(`${TERMINAL_API_URL}/presence/bulk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ postIds }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch presence data');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching presence data:', error);
+    return {};
+  }
+};
+
 const _getIdToken = async (): Promise<string | undefined> => {
   const sessionClient = await resumeSession(true);
 

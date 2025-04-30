@@ -7,6 +7,7 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { groupBy, sampleSize, uniqBy } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { LENS_BONSAI_APP, LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
+import { getPostPresenceData } from "../madfi/terminal";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -79,7 +80,7 @@ export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | nu
   });
 }
 
-export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getCollected: boolean = false) => {
+export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getCollected: boolean = false, _getPostData = false) => {
   return useInfiniteQuery({
     queryKey: ["get-posts-by-author", authorId, getCollected],
     queryFn: async ({ pageParam = null }) => {
@@ -95,6 +96,7 @@ export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getColl
       const { items: posts, pageInfo } = result.value;
       return {
         posts,
+        postData: _getPostData ? await getPostData(posts?.map(({ slug }) => slug) || []) : {},
         pageInfo,
         nextCursor: pageInfo.next,
       };
@@ -201,23 +203,34 @@ export const getPostData = async (postIds: string[]): Promise<Object> => {
     sessionClient = await resumeSession();
   } catch { }
 
-  // TODO: this is a temporary solution until we can batch query
-  const limit = promiseLimit(FETCH_ACTORS_BATCH_SIZE);
-  const results = await Promise.all(postIds.map((_postId) => limit(async () => {
-    const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
-    if (result.isErr()) return;
+  // Fetch both actors and presence data in parallel
+  const [actorsResults, presenceData] = await Promise.all([
+    Promise.all(postIds.map((_postId) =>
+      promiseLimit(FETCH_ACTORS_BATCH_SIZE)(async () => {
+        const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
+        if (result.isErr()) return;
 
-    // try to get the actors followed by me
-    let actors = result.value.items;
-    if (sessionClient) {
-      actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
-    }
-    return { postId: _postId, actors: sampleSize(actors, 3) };
-  })));
+        let actors = result.value.items;
+        if (sessionClient) {
+          actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
+        }
+        return { postId: _postId, actors: sampleSize(actors, 3) };
+      })
+    )),
+    getPostPresenceData(postIds)
+  ]);
 
-  const grouped = groupBy(results.filter((r) => r), 'postId');
+  const groupedActors = groupBy(actorsResults.filter((r) => r), 'postId');
+
   return Object.fromEntries(
-    Object.entries(grouped).map(([key, value]) => [key, value[0]])
+    Object.entries(groupedActors).map(([postId, value]) => [
+      postId,
+      {
+        // @ts-ignore
+        ...value[0],
+        presence: presenceData[postId] || { count: 0, topUsers: [] }
+      }
+    ])
   );
 };
 
