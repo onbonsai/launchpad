@@ -5,6 +5,8 @@ import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
 import { Publication, Theme } from "@madfi/widgets-react";
+import { Post, TimelineItem } from "@lens-protocol/client";
+import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
 import { useRouter } from "next/router";
 import { uniqBy } from "lodash/array";
@@ -22,9 +24,12 @@ import { getPostContentSubstring } from "@src/utils/utils";
 import { CategoryScroll } from "@pagesComponents/Dashboard/CategoryScroll";
 import { brandFont } from "@src/fonts/fonts";
 import useIsMobile from "@src/hooks/useIsMobile";
+import { PostTabType } from "@src/components/Publication/PostsTabs";
+import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 
 interface PostItemProps {
   post: any;
+  timelineItem?: TimelineItem; // but without the primary as its `post`
   isMobile: boolean;
   onVisibilityChange: (slug: string, inView: boolean) => void;
   hoveredPostSlug: string | null;
@@ -42,6 +47,7 @@ interface PostItemProps {
 
 const PostItem = ({
   post,
+  timelineItem,
   isMobile,
   onVisibilityChange,
   hoveredPostSlug,
@@ -75,84 +81,97 @@ const PostItem = ({
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
     >
-      <Publication
-        key={`preview-${post.slug}`}
-        publicationData={{
-          author: post.author,
-          timestamp: post.timestamp,
-          metadata: {
-            __typename: post.metadata?.image
-              ? "ImageMetadata"
-              : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
-            content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
-            image: post.metadata?.image
-              ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
-              : undefined,
-            video: post.metadata?.video
-              ? { item: post.metadata.video.item }
-              : undefined
-          }
-        }}
-        theme={Theme.dark}
-        followButtonDisabled={true}
-        environment={LENS_ENVIRONMENT}
-        profilePictureStyleOverride={publicationProfilePictureStyle}
-        containerBorderRadius={'24px'}
-        containerPadding={'12px'}
-        profilePadding={'0 0 0 0'}
-        textContainerStyleOverride={postCollageTextContainerStyleOverrides}
-        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-        mediaImageStyleOverride={mediaImageStyleOverride}
-        imageContainerStyleOverride={imageContainerStyleOverride}
-        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-        reactionContainerStyleOverride={reactionContainerStyleOverride}
-        shareContainerStyleOverride={shareContainerStyleOverride}
-        markdownStyleBottomMargin={'0'}
-        heartIconOverride={true}
-        messageIconOverride={true}
-        shareIconOverride={true}
-        profileMaxWidth={'120px'}
-        fullVideoHeight
-        playVideo={
-          (isMobile && postInView) ||
-          (!isMobile && hoveredPostSlug === post.slug) ||
-          activeDropdown === post.slug
-        }
-        hideVideoControls
-      />
-      <div className={clsx(
-        "opacity-0 transition-opacity duration-200 z-30",
-        !isMobile && "group-hover:opacity-100",
-        (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
-      )}>
-        <CardOverlay
-          authenticatedProfile={authenticatedProfile}
-          bonsaiBalance={bonsaiBalance}
-          post={post}
+      {(timelineItem || postData[post.slug]?.presence) && (
+        <TimelineItemInteractions
+          reposts={timelineItem?.reposts}
+          position="top"
           postData={postData[post.slug]}
-          onShare={() => onShareButtonClick(post.slug)}
-          onClick={() => {
-            localStorage.setItem('tempPostData', JSON.stringify(post));
-            router.push({ pathname: `/post/${post.slug}` });
-          }}
-          className={clsx(
-            "opacity-0 transition-all duration-300 ease-in-out z-30",
-            !isMobile && "group-hover:opacity-100",
-            (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
-          )}
-          showDropdown={activeDropdown === post.slug}
-          setShowDropdown={(show) => setActiveDropdown(show ? post.slug : null)}
-          showCollectModal={activeCollectModal === post.slug}
-          setShowCollectModal={(show) => setActiveCollectModal(show ? post.slug : null)}
         />
+      )}
+      <div className="relative">
+        <Publication
+          key={`preview-${post.slug}`}
+          publicationData={{
+            author: post.author,
+            timestamp: post.timestamp,
+            metadata: {
+              __typename: post.metadata?.image
+                ? "ImageMetadata"
+                : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+              content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
+              image: post.metadata?.image
+                ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+                : undefined,
+              video: post.metadata?.video
+                ? { item: post.metadata.video.item }
+                : undefined
+            }
+          }}
+          theme={Theme.dark}
+          followButtonDisabled={true}
+          environment={LENS_ENVIRONMENT}
+          profilePictureStyleOverride={publicationProfilePictureStyle}
+          containerBorderRadius={'24px'}
+          containerPadding={'12px'}
+          profilePadding={'0 0 0 0'}
+          textContainerStyleOverride={postCollageTextContainerStyleOverrides}
+          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+          mediaImageStyleOverride={mediaImageStyleOverride}
+          imageContainerStyleOverride={imageContainerStyleOverride}
+          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+          reactionContainerStyleOverride={reactionContainerStyleOverride}
+          shareContainerStyleOverride={shareContainerStyleOverride}
+          markdownStyleBottomMargin={'0'}
+          heartIconOverride={true}
+          messageIconOverride={true}
+          shareIconOverride={true}
+          profileMaxWidth={'120px'}
+          fullVideoHeight
+          playVideo={
+            (isMobile && postInView) ||
+            (!isMobile && hoveredPostSlug === post.slug) ||
+            activeDropdown === post.slug
+          }
+          hideVideoControls
+        />
+        <div className={clsx(
+          "opacity-0 transition-opacity duration-200 z-30",
+          !isMobile && "group-hover:opacity-100",
+          (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+        )}>
+          <CardOverlay
+            authenticatedProfile={authenticatedProfile}
+            bonsaiBalance={bonsaiBalance}
+            post={post}
+            postData={postData[post.slug]}
+            onShare={() => onShareButtonClick(post.slug)}
+            onClick={() => {
+              localStorage.setItem('tempPostData', JSON.stringify(post));
+              router.push({ pathname: `/post/${post.slug}` });
+            }}
+            className={clsx(
+              "opacity-0 transition-all duration-300 ease-in-out z-30",
+              !isMobile && "group-hover:opacity-100",
+              (activeDropdown === post.slug || activeCollectModal === post.slug) && "!opacity-100"
+            )}
+            showDropdown={activeDropdown === post.slug}
+            setShowDropdown={(show) => setActiveDropdown(show ? post.slug : null)}
+            showCollectModal={activeCollectModal === post.slug}
+            setShowCollectModal={(show) => setActiveCollectModal(show ? post.slug : null)}
+          />
+        </div>
       </div>
+      {timelineItem && (
+        <TimelineItemInteractions
+          comments={timelineItem.comments}
+          position="bottom"
+        />
+      )}
     </div>
   );
 };
 
-export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage,
-  // sortedBy, setSortedBy
-}) => {
+export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
   const { data: walletClient } = useWalletClient();
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -174,13 +193,40 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
     triggerOnce: false,
   });
 
+  // Process posts based on activeTab
+  const processedPosts = useMemo(() => {
+    if (activeTab === PostTabType.EXPLORE) {
+      return posts as Post[];
+    }
+
+    // For FOR_YOU tab, we need to handle both Post and TimelineItem types
+    return posts.map((item: Post | TimelineItem) => {
+      // Check if it's a TimelineItem by looking for the 'primary' property
+      if ('primary' in item) {
+        return {
+          ...item,
+          __typename: 'TimelineItem',
+          // We'll handle the special rendering later
+        };
+      }
+      return item as Post;
+    });
+  }, [posts, activeTab]);
+
   const categories = useMemo(() => {
-    const _categories = uniqBy(posts?.map((post) => post.metadata?.attributes?.find(({ key }) => key === "templateCategory")), 'value').filter(c => c);
+    const _categories = uniqBy(processedPosts?.map((post) => {
+      // Only process categories for Post type items
+      if ('__typename' in post && post.__typename === 'TimelineItem') {
+        return null;
+      }
+      return post.metadata?.attributes?.find(({ key }) => key === "templateCategory");
+    }), 'value').filter(c => c);
+
     return _categories.map((c) => ({
       key: c.value,
       label: c.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
     }));
-  }, [posts]);
+  }, [processedPosts]);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -217,30 +263,36 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
   }, []);
 
   const sortedPosts = useMemo(() => {
-    const _posts = filterBy ? filteredPosts : posts;
-    const direction = "desc";
-
+    if (activeTab === PostTabType.FOR_YOU) return processedPosts; // no sorting on for you
+    const _posts = filterBy ? filteredPosts : processedPosts;
     const filteredByCategory = !categoryFilter
       ? _posts
       : _posts.filter(post => {
+        // Only filter by category for Post type items
+        if ('__typename' in post && post.__typename === 'TimelineItem') {
+          return true;
+        }
         const templateCategory = post.metadata?.attributes?.find(attr => attr.key === "templateCategory")?.value;
         return templateCategory === categoryFilter;
       });
 
-    // const orderedPosts = orderBy(filteredByCategory, [post => {
-    //   const value = post;
-    //   if (sortedBy === 'timestamp') {
-    //     return value ? new Date(value).getTime() : 0;
-    //   }
-    //   return value ? BigInt(value) : 0;
-    // }], [direction]);
-    const featuredPosts = filteredByCategory.filter((post) => post.featured);
-    const nonFeaturedPosts = filteredByCategory.filter((post) => !post.featured);
+    const featuredPosts = filteredByCategory.filter((post) => {
+      // Only check featured for Post type items
+      if ('__typename' in post && post.__typename === 'TimelineItem') {
+        return false;
+      }
+      return post.featured;
+    });
+    const nonFeaturedPosts = filteredByCategory.filter((post) => {
+      // Only check featured for Post type items
+      if ('__typename' in post && post.__typename === 'TimelineItem') {
+        return true;
+      }
+      return !post.featured;
+    });
 
     return [...featuredPosts, ...nonFeaturedPosts];
-  }, [filterBy, filteredPosts, posts, showCompleted, categoryFilter,
-    // sortedBy,
-  ]);
+  }, [filterBy, filteredPosts, processedPosts, showCompleted, categoryFilter, activeTab]);
 
   const onShareButtonClick = (postSlug: string) => {
     navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
@@ -258,13 +310,15 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
       <main className="mx-auto max-w-full overflow-hidden">
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
-          <div className="flex-1">
-            <CategoryScroll
-              categories={categories}
-              categoryFilter={categoryFilter}
-              setCategoryFilter={setCategoryFilter}
-            />
-          </div>
+          {(activeTab === PostTabType.EXPLORE || activeTab === PostTabType.COLLECTED) && (
+            <div className="flex-1">
+              <CategoryScroll
+                categories={categories}
+                categoryFilter={categoryFilter}
+                setCategoryFilter={setCategoryFilter}
+              />
+            </div>
+          )}
           <div className="flex items-center">
             {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
@@ -332,8 +386,9 @@ export const PostCollage = ({ posts, postData, filterBy, filteredPosts, setFilte
             >
               {sortedPosts.map((post) => (
                 <PostItem
-                  key={post.slug}
-                  post={post}
+                  key={post.__typename === "TimelineItem" ? post.primary.slug : post.slug}
+                  post={post.__typename === "TimelineItem" ? post.primary : post}
+                  timelineItem={post.__typename === "TimelineItem" ? omit(post, 'primary') as TimelineItem : undefined}
                   isMobile={isMobile}
                   onVisibilityChange={handleVisibilityChange}
                   hoveredPostSlug={hoveredPostSlug}

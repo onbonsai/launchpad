@@ -28,13 +28,13 @@ const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProto
 
   if (!club?.createdAt) return null;
 
-  const clubHoldingsFriends = useMemo(() => {
-    if (!isLoadingClubHoldings && !club.complete) {
-      const res = clubHoldings?.holdings?.filter((data) => data.profile?.operations.isFollowedByMe.value) || [];
-      setFriendCount(res.length);
-      return sampleSize(res, 5).map(({ profile }) => profile);
-    }
-  }, [clubHoldings, isLoadingClubHoldings, club]);
+  // const clubHoldingsFriends = useMemo(() => {
+  //   if (!isLoadingClubHoldings && !club.complete) {
+  //     const res = clubHoldings?.holdings?.filter((data) => data.profile?.operations.isFollowedByMe.value) || [];
+  //     setFriendCount(res.length);
+  //     return sampleSize(res, 5).map(({ profile }) => profile);
+  //   }
+  // }, [clubHoldings, isLoadingClubHoldings, club]);
 
   return (
     <div className="flex flex-col sm:min-w-[350px] max-w-screen">

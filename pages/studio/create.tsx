@@ -31,12 +31,11 @@ import { parseBase64Image } from "@src/utils/utils";
 import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
 import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
-import { ChevronLeftIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
-import { Tooltip } from "@mui/material";
+import { isEmpty } from "lodash/lang";
 
 type TokenData = {
   initialSupply: number;
@@ -150,9 +149,9 @@ const StudioCreatePage: NextPage = () => {
     } else if (addToken && finalTokenData && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
-        if (chain?.id !== targetChainId) {
+        if (chain?.id !== targetChainId && walletClient) {
           try {
-            await switchChain(configureChainsConfig, { chainId: targetChainId });
+            await switchChain(walletClient, { id: targetChainId });
             // HACK: require lens chain for the whole thing
             setIsCreating(false);
             return;
@@ -258,9 +257,9 @@ const StudioCreatePage: NextPage = () => {
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
-    if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
         // HACK: require lens chain for the whole thing
           setIsCreating(false);
           return;
@@ -567,7 +566,7 @@ const StudioCreatePage: NextPage = () => {
                         </div>
                       </div>
                     )}
-                    {!isGeneratingPreview && preview?.text && (
+                    {!isGeneratingPreview && !isEmpty(preview) && (
                       <Publication
                         key={`preview-${JSON.stringify(preview)}`}
                         publicationData={{
@@ -607,6 +606,7 @@ const StudioCreatePage: NextPage = () => {
                         heartIconOverride={true}
                         messageIconOverride={true}
                         shareIconOverride={true}
+                        fullVideoHeight
                       />
                     )}
                   </div>

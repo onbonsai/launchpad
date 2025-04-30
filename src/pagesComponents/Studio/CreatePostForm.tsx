@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
+import imageCompression from "browser-image-compression";
 
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
@@ -8,11 +9,16 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES } from "@src/services/madfi/studio";
+import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
+import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
+import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
+import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
+import { storjGatewayURL } from "@src/utils/storj";
+import { ipfsOrNot } from "@src/utils/pinata";
 
 type CreatePostProps = {
   template: Template;
@@ -43,6 +49,8 @@ const CreatePostForm = ({
 }: CreatePostProps) => {
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
+  const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -55,6 +63,7 @@ const CreatePostForm = ({
       template.templateData.form.parse(templateData);
       if (template.options?.requireContent && !postContent) return false;
       if (template.options?.imageRequirement === ImageRequirement.REQUIRED && !postImage?.length) return false;
+      if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT) return false;
       return true;
     } catch (error) {
       // console.log(error);
@@ -74,24 +83,72 @@ const CreatePostForm = ({
       idToken = creds.value?.idToken;
     } else {
       toast.error("Must be logged in");
+      return;
+    }
+
+    if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT?.image?.croppedBase64) {
+      toast.error("Failed to parse NFT image");
+      return;
     }
 
     setIsGeneratingPreview(true);
-    let toastId = toast.loading("Generating preview. This could take a minute...");
-
+    let toastId = toast.loading("Generating - this could take a minute...");
+    
     try {
+      // Compress the NFT image if it exists
+      let compressedNFTImage = selectedNFT?.image?.croppedBase64;
+      if (selectedNFT?.image?.croppedBase64) {
+        try {
+          // Convert base64 to blob
+          const base64Response = await fetch(selectedNFT.image.croppedBase64);
+          const blob = await base64Response.blob();
+          const file = new File([blob], 'nft.png', { type: 'image/png' });
+
+          // Compress the image
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            preserveExif: true,
+          };
+          const compressedBlob = await imageCompression(file, options);
+          
+          // Convert compressed blob back to base64
+          const reader = new FileReader();
+          compressedNFTImage = await new Promise<string>((resolve) => {
+            reader.onloadend = () => {
+              resolve(reader.result as string);
+            };
+            reader.readAsDataURL(compressedBlob);
+          });
+        } catch (error) {
+          console.error("Error compressing NFT image:", error);
+          // Continue with original image if compression fails
+        }
+      }
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
         templateData,
-        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined
+        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
+        selectedAspectRatio,
+        !!selectedNFT ? {
+          tokenId: selectedNFT.tokenId,
+          contract: {
+            address: selectedNFT.contract.address,
+            network: selectedNFT.network
+          },
+          collection: { name: selectedNFT.collection?.name },
+          image: compressedNFTImage as string,
+          attributes: selectedNFT.raw?.metadata?.attributes
+        } : undefined,
       );
       if (!res) throw new Error();
       const { agentId, preview } = res;
 
       if (!preview) throw new Error("No preview");
-      console.log("setting preview", preview)
       setPreview({
         ...preview,
         text: preview.text || postContent,
@@ -100,24 +157,19 @@ const CreatePostForm = ({
 
       toast.success("Done", { id: toastId });
     } catch (error) {
-      if (error instanceof Error && error.message === "not enough credits") {
-        toast.error("Not enough credits to generate preview", { id: toastId, duration: 5000 });
-      } else if (error instanceof Error && error.message === "max free previews") {
-        toast.error("Reached limit on free previews for the hour", { id: toastId, duration: 5000 });
-      } else {
-        toast.error("Failed to generate preview", { id: toastId });
-      }
+      console.error("Error generating preview:", error);
+      toast.error("Failed to generate preview", { id: toastId });
+    } finally {
+      setIsGeneratingPreview(false);
     }
-
-    setIsGeneratingPreview(false);
   }
 
   const handleNext = () => {
     if ((postContent || (postImage?.length && !preview?.image))) {
       setPreview({
         text: postContent || "",
-        image: postImage?.length ? postImage[0] : undefined,
-        imagePreview: postImage?.length ? postImage[0].preview : undefined,
+        image: postImage?.length ? postImage[0] : preview?.image,
+        imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
         video: preview?.video,
         agentId: preview?.agentId
       });
@@ -149,6 +201,11 @@ const CreatePostForm = ({
                 setPostContent={setPostContent}
                 postImage={postImage}
                 setPostImage={setPostImage}
+                selectedAspectRatio={selectedAspectRatio}
+                setSelectedAspectRatio={setSelectedAspectRatio}
+                selectedNFT={selectedNFT}
+                setSelectedNFT={setSelectedNFT}
+                loadRemixNFT={finalTemplateData?.nft}
               />
           }
         </div>
@@ -191,6 +248,11 @@ const DynamicForm = ({
   setPostContent,
   postImage,
   setPostImage,
+  selectedAspectRatio,
+  setSelectedAspectRatio,
+  selectedNFT,
+  setSelectedNFT,
+  loadRemixNFT,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -201,6 +263,11 @@ const DynamicForm = ({
   setPostContent: (s: string) => void;
   postImage?: any;
   setPostImage: (i: any) => void;
+  selectedAspectRatio: AspectRatio;
+  setSelectedAspectRatio: (ratio: AspectRatio) => void;
+  selectedNFT?: AlchemyNFTMetadata;
+  setSelectedNFT: (s: AlchemyNFTMetadata) => void;
+  loadRemixNFT?: NFTMetadata;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
@@ -268,6 +335,7 @@ const DynamicForm = ({
         <div className="space-y-2">
           <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
           <textarea
+            placeholder="What is your post about?"
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
@@ -276,31 +344,62 @@ const DynamicForm = ({
       )}
 
       {/* Post image */}
-      {template.options?.imageRequirement !== ImageRequirement.NONE && (
+      {template.options?.imageRequirement && template.options?.imageRequirement !== ImageRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
             label={"Post image"}
             fieldDescription={
               template.options.imageRequirement === ImageRequirement.REQUIRED
                 ? "An image is required for this post."
-                : "Optionally add an image to your post."
+                : "Optionally add an image to your post. Otherwise, one will be generated."
             }
           />
-          <ImageUploader files={postImage} setFiles={setPostImage} maxFiles={1} />
+          <ImageUploader
+            files={postImage}
+            setFiles={setPostImage}
+            maxFiles={1}
+            enableCrop
+            selectedAspectRatio={selectedAspectRatio}
+            onAspectRatioChange={setSelectedAspectRatio}
+          />
+        </div>
+      )}
+
+      {/* NFT */}
+      {template.options?.nftRequirement && template.options?.nftRequirement !== ImageRequirement.NONE && (
+        <div className="space-y-2">
+          <FieldLabel
+            label={"NFT"}
+            fieldDescription={
+              template.options.nftRequirement === ImageRequirement.REQUIRED
+                ? "Select one of your NFTs to use for this post"
+                : "Optionally include one of your NFTs in this post"
+            }
+          />
+          <WhitelistedNFTsSection
+            setSelectedNFT={setSelectedNFT}
+            selectedNFT={selectedNFT}
+            selectedAspectRatio={selectedAspectRatio}
+            onAspectRatioChange={setSelectedAspectRatio}
+            loadRemixNFT={loadRemixNFT}
+          />
         </div>
       )}
 
       {Object.entries(shape).map(([key, field]) => {
-        // normalize snakecase and camelcase
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
-        const isRequired = !field.isOptional();
 
         if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
         if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
 
+        const placeholderRegex = /\[placeholder: (.*?)\]/;
+        const placeholderMatch = field.description?.match(placeholderRegex);
+        const placeholder = placeholderMatch ? placeholderMatch[1] : '';
+        const description = field.description?.replace(placeholderRegex, '') || '';
+
         return (
           <div key={key} className="space-y-2">
-            <FieldLabel label={label} fieldDescription={field.description} />
+            <FieldLabel label={label} fieldDescription={description} />
 
             {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
@@ -329,15 +428,24 @@ const DynamicForm = ({
               />
             ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
               (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
-                <textarea
-                  value={templateData[key] || ''}
-                  onChange={(e) => updateField(key, e.target.value || undefined)}
-                  className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-                  maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={templateData[key] || ''}
+                    onChange={(e) => updateField(key, e.target.value || undefined)}
+                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-24`}
+                    maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                  />
+                  <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">
+                    {(templateData[key] || '').length} /{" "}
+                    {(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                  </div>
+                </div>
               ) : (
                 <input
                   type="text"
+                  placeholder={placeholder}
                   value={templateData[key] || ''}
                   onChange={(e) => updateField(key, e.target.value || undefined)}
                   className={`${sharedInputClasses} w-full p-3`}

@@ -19,7 +19,7 @@ const StudioSidebar = () => {
   const { address, isConnected } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: stakingData } = useStakingData(address);
-  const { data: postsPaginated, isLoading: isLoadingPosts } = useGetPostsByAuthor(authenticatedProfile?.address);
+  const { data: postsPaginated, isLoading: isLoadingPosts } = useGetPostsByAuthor(true, authenticatedProfile?.address);
   const posts = useMemo(() => postsPaginated?.pages.flatMap(page => page.posts) || [], [isLoadingPosts]);
 
   const totalStaked = useMemo(() => {

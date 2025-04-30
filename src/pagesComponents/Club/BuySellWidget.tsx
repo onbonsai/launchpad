@@ -526,7 +526,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         Trade on Base <ExternalLinkIcon className="ml-1 mt-1 w-4 h-4" />
                       </a>
                     )}
-                    {/* {club.tokenAddress !== PROTOCOL_DEPLOYMENT.lens.Bonsai && (
+                    {club.tokenAddress !== PROTOCOL_DEPLOYMENT.lens.Bonsai && (
                       <Button
                         variant={"primary"}
                         size='md'
@@ -537,7 +537,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                       >
                         Fund wallet
                       </Button>
-                    )} */}
+                    )}
                   </>
                 )}
                 {/* if the post is a remix, the remixer gets the referral fee */}

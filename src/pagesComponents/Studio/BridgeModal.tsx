@@ -12,7 +12,6 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Button } from "@src/components/Button";
 import { BodySemiBold, Subtitle } from "@src/styles/text";
 import SelectDropdown from "@src/components/Select/SelectChain";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { useModal } from "connectkit";
 
 export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
@@ -123,9 +122,9 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   }, [fromChain, bonsaiBalanceBase, bonsaiBalancePolygon, bonsaiBalanceZkSync]);
 
   const handleBridge = async () => {
-    if (chain?.id !== fromChain?.id) {
+    if (chain?.id !== fromChain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: fromChain?.id });
+        await switchChain(walletClient, { id: fromChain?.id as number });
         // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
         // toast("Please re-connect your wallet");
         // setOpen(true);

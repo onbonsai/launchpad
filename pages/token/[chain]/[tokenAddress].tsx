@@ -73,7 +73,7 @@ const useVestingProgress = (
       // Calculate time elapsed from when the hook was initialized
       const timeElapsed = now - initialTimestamp;
       const totalDuration = Number(vestingDuration);
-      
+
       // Calculate remaining duration from when hook was initialized
       const remainingDuration = totalDuration - (initialTimestamp - liquidityReleasedAt);
 
@@ -349,13 +349,13 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       <Header2 className="text-white font-medium">
                         ${club.token.symbol}/BONSAI pool is live
                       </Header2>
-                      { 
-                        club.chain === "base"  ? 
+                      {
+                        club.chain === "base"  ?
                         <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
                           <Button variant="accentBrand" className="text-white mt-4">
                             Trade on Kyberswap
                           </Button>
-                        </a> : 
+                        </a> :
                         <div className='mt-4'>
                           <TradeComponent
                               defaultBuyAmount={''}

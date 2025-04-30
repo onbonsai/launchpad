@@ -10,7 +10,7 @@
     "lint:fix": "eslint --fix ."
   },
   "dependencies": {
-    "@apollo/client": "^3.6.5",
+    "@apollo/client": "^3.13.8",
     "@decent.xyz/box-common": "^4.0.8",
     "@decent.xyz/the-box": "^4.0.8",
     "@emotion/css": "^11.13.5",
@@ -25,7 +25,7 @@
     "@lens-protocol/gated-content": "^0.5.1",
     "@lens-protocol/metadata": "2.0.0-next.7",
     "@madfi/lens-oa-client": "^0.3.0",
-    "@madfi/widgets-react": "^3.1.15",
+    "@madfi/widgets-react": "^3.2.1",
     "@mui/icons-material": "^5.8.0",
     "@mui/material": "^5.13.5",
     "@mui/styles": "^5.14.0",
@@ -50,6 +50,7 @@
     "form-data": "^4.0.0",
     "formidable": "^2.1.1",
     "framer-motion": "^12.5.0",
+    "franc": "^6.2.0",
     "fs-extra": "^11.1.1",
     "git": "link:github.com:ensdomains/ensjs.git",
     "graphql": "^16.5.0",
@@ -71,6 +72,7 @@
     "react-fast-marquee": "^1.6.5",
     "react-hot-toast": "^2.3.0",
     "react-hotkeys-hook": "^4.3.2",
+    "react-image-crop": "^11.0.10",
     "react-intersection-observer": "^9.10.2",
     "react-masonry-css": "^1.0.16",
     "react-responsive": "^9.0.2",

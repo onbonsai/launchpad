@@ -67,7 +67,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("lg:min-w-[400px] w-full", brandFont.className)}>
+      <div className={clsx("lg:min-w-[300px] w-full", brandFont.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search anything
         </label>

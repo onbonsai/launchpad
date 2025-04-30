@@ -402,6 +402,7 @@ export const reconstructZodSchema = (shape: any) => {
   return z.object(
     Object.entries(shape).reduce((acc, [key, field]) => {
       let fieldSchema;
+      const originalField = field;
       field = field._def;
 
       const description = field.description;
@@ -418,6 +419,25 @@ export const reconstructZodSchema = (shape: any) => {
       switch (type) {
         case "ZodString":
           fieldSchema = z.string();
+          // Apply string validations if they exist
+          if (field.checks) {
+            field.checks.forEach((check: any) => {
+              switch (check.kind) {
+                case "max":
+                  fieldSchema = fieldSchema.max(check.value);
+                  break;
+                case "min":
+                  fieldSchema = fieldSchema.min(check.value);
+                  break;
+                case "email":
+                  fieldSchema = fieldSchema.email();
+                  break;
+                case "url":
+                  fieldSchema = fieldSchema.url();
+                  break;
+              }
+            });
+          }
           break;
         case "ZodNumber":
           fieldSchema = z.number();

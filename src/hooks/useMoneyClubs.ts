@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { omit } from "lodash/object";
+import { groupBy } from "lodash/collection";
 import { getAddress, createPublicClient, http, zeroAddress } from "viem";
 import { mainnet } from 'viem/chains'
 import {
@@ -23,6 +24,7 @@ import {
   getRewardPool,
 } from "@src/services/madfi/moneyClubs";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getProfilesByOwners } from "@src/services/lens/getProfiles";
 
 export const useRegisteredClubById = (clubId: string) => {
   return useQuery({
@@ -149,36 +151,8 @@ const useTraderProfiles = (traders?: string[]) => {
     queryKey: ["trader-profiles", traders],
     queryFn: async () => {
       if (!traders?.length) return {};
-      // TODO: need a new lens query
-      // const profiles = await getHandlesByAddresses(traders);
-      // const publicClient = createEnsPublicClient({
-      //   chain: mainnet,
-      //   transport: http(),
-      // })
-
-      // Group profiles by address
-      // const profilesGrouped = groupBy(profiles, 'ownedBy.address');
-
-      // TODO: no viem batch function for ens!
-
-      // // Fetch ENS names for addresses without profiles in parallel
-      // const addressesWithoutProfiles = traders.filter(addr => !profilesGrouped[getAddress(addr)]);
-
-      // const ensQueries = addressesWithoutProfiles.map((addr) => {
-      //   return getName.batch({ address: (addr as `0x${string}`) });
-      // });
-
-      // // Filter out addresses without an ENS name
-      // const ensNameResults = await publicClient.ensBatch(...ensQueries);
-      // const pairedResults = addressesWithoutProfiles.map((addr, index) => {
-      //   const result = ensNameResults[index];
-      //   // If there's no result or no name, return null so that we can filter it out
-      //   return result && result.name ? [addr, result.name] : null;
-      // }).filter((entry): entry is [string, string] => entry !== null);
-
-      // const ensNames = Object.fromEntries(pairedResults);
-
-      return { profiles: {} };
+      const profiles = await getProfilesByOwners(traders);
+      return { profilesGrouped: groupBy(profiles, 'owner') };
     },
     enabled: !!traders?.length,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -202,9 +176,8 @@ export const useGetClubTrades = (clubId: string, page: number, chain: string) =>
     queryFn: () => {
       const trades = tradesQuery.data?.trades?.map(trade => {
         const address = getAddress(trade.trader.id);
-        const profile = profilesQuery.data?.profiles[address]?.[0];
-        const ens = profilesQuery.data?.ensNames?.[trade.trader.id] ?? null;
-        return { ...trade, profile, ens };
+        const profile = profilesQuery.data?.profilesGrouped[address]?.[0];
+        return { ...trade, profile };
       });
 
       return {
@@ -222,17 +195,13 @@ export const useGetClubHoldings = (clubId: string, page: number, chain = "base")
     queryKey: ["club-holdings", clubId, page],
     queryFn: async () => {
       const res = await getClubHoldings(clubId!, page, chain);
-      const publicClient = createPublicClient({ chain: mainnet, transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC) });
-      // const profiles = await getHandlesByAddresses(res.holdings?.map(({ trader }) => trader.id));
-      // const profilesGrouped = groupBy(profiles, 'ownedBy.address');
+      const profiles = await getProfilesByOwners(res.holdings?.map(({ trader }) => trader.id));
+      const profilesGrouped = groupBy(profiles, 'owner');
 
       const holdings = await Promise.all(res.holdings?.map(async (trade) => {
         const address = getAddress(trade.trader.id);
-        // const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
-        // let ens;
-        // if (!profile) ens = await publicClient.getEnsName({ address });
-        // return { ...trade, profile, ens };
-        return trade;
+        const profile = profilesGrouped[address] ? profilesGrouped[address][0] : undefined;
+        return { ...trade, profile };
       }));
 
       return { holdings, hasMore: res.hasMore };

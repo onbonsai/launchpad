@@ -8,7 +8,6 @@ import { Subtitle, Header2 } from "@src/styles/text";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetBonsaiClaim, claimTokensWithProof } from "@src/services/madfi/claim";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { useModal } from "connectkit";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 
@@ -64,9 +63,9 @@ export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) =>
     let toastId;
 
     try {
-      if (chainId !== LENS_CHAIN_ID) {
+      if (chainId !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // toast("Please re-connect your wallet");
           // setOpen(true);
           return;

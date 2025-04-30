@@ -1,7 +1,8 @@
 import { createThirdwebClient, defineChain } from "thirdweb";
 import { viemAdapter } from "thirdweb/adapters/viem";
 
-export const lensChain = defineChain({ id: 232, rpc: process.env.NEXT_PUBLIC_LENS_RPC });
+export const thirdwebLens = defineChain({ id: 232, rpc: process.env.NEXT_PUBLIC_LENS_RPC });
+export const thirdwebBase = defineChain({ id: 8453, rpc: process.env.NEXT_PUBLIC_BASE_RPC });
 
 export const thirdwebWallet = async (walletClient) => {
   return await viemAdapter.wallet.fromViem({

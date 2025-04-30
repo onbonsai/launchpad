@@ -7,6 +7,7 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { groupBy, sampleSize, uniqBy } from "lodash";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { LENS_BONSAI_APP, LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
+import { getPostPresenceData } from "../madfi/terminal";
 
 export const getPost = async (_postId: string, sessionClient?: SessionClient) => {
   try {
@@ -79,7 +80,7 @@ export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | nu
   });
 }
 
-export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = false) => {
+export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getCollected: boolean = false, _getPostData = false) => {
   return useInfiniteQuery({
     queryKey: ["get-posts-by-author", authorId, getCollected],
     queryFn: async ({ pageParam = null }) => {
@@ -95,24 +96,26 @@ export const useGetPostsByAuthor = (authorId?: string, getCollected: boolean = f
       const { items: posts, pageInfo } = result.value;
       return {
         posts,
+        postData: _getPostData ? await getPostData(posts?.map(({ slug }) => slug) || []) : {},
         pageInfo,
         nextCursor: pageInfo.next,
       };
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!authorId
+    enabled: enabled && !!authorId
   });
 };
 
 interface GetExplorePostsProps {
   isLoadingAuthenticatedProfile: boolean;
+  enabled: boolean;
   accountAddress?: `0x${string}`;
   cursor?: Cursor;
 };
 
 // TODO: need filter for feed for explore/foryou
-export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],
     queryFn: async ({ pageParam }) => {
@@ -146,11 +149,11 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: isLoadingAuthenticatedProfile === false,
+    enabled: isLoadingAuthenticatedProfile === false && enabled,
   });
 };
 
-export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }: GetExplorePostsProps) => {
+export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["timeline", accountAddress],
     queryFn: async ({ pageParam }) => {
@@ -162,12 +165,12 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
       const result = await fetchTimeline(sessionClient || lensClient, {
         account: evmAddress(accountAddress as string),
         filter: {
-          // apps: [evmAddress(LENS_BONSAI_APP)]
-          feeds: [
-            {
-              feed: evmAddress(LENS_BONSAI_DEFAULT_FEED)
-            }
-          ]
+          apps: [evmAddress(LENS_BONSAI_APP)]
+          // feeds: [
+          //   {
+          //     feed: evmAddress(LENS_BONSAI_DEFAULT_FEED)
+          //   }
+          // ]
         },
         cursor: pageParam as Cursor | null,
       });
@@ -177,13 +180,11 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
         throw result.error;
       }
 
-      // NOTE: we only show root posts, in the future we might want to show comments / reposts
       const { items: timelineItems, pageInfo } = result.value;
-      console.log(timelineItems)
       const posts = uniqBy(timelineItems.map((t) => t.primary), 'slug');
 
       return {
-        posts,
+        posts: timelineItems, // we'll handle these differently in PostCollage
         postData: await getPostData(posts?.map(({ slug }) => slug) || []),
         pageInfo,
         nextCursor: pageInfo.next,
@@ -191,7 +192,7 @@ export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress }
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: isLoadingAuthenticatedProfile === false && !!accountAddress,
+    enabled: isLoadingAuthenticatedProfile === false && !!accountAddress && enabled,
   });
 };
 
@@ -202,23 +203,34 @@ export const getPostData = async (postIds: string[]): Promise<Object> => {
     sessionClient = await resumeSession();
   } catch { }
 
-  // TODO: this is a temporary solution until we can batch query
-  const limit = promiseLimit(FETCH_ACTORS_BATCH_SIZE);
-  const results = await Promise.all(postIds.map((_postId) => limit(async () => {
-    const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
-    if (result.isErr()) return;
+  // Fetch both actors and presence data in parallel
+  const [actorsResults, presenceData] = await Promise.all([
+    Promise.all(postIds.map((_postId) =>
+      promiseLimit(FETCH_ACTORS_BATCH_SIZE)(async () => {
+        const result = await fetchWhoExecutedActionOnPost(sessionClient || lensClient, { post: postId(_postId) });
+        if (result.isErr()) return;
 
-    // try to get the actors followed by me
-    let actors = result.value.items;
-    if (sessionClient) {
-      actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
-    }
-    return { postId: _postId, actors: sampleSize(actors, 3) };
-  })));
+        let actors = result.value.items;
+        if (sessionClient) {
+          actors = actors.filter((a) => a.account.operations?.isFollowedByMe);
+        }
+        return { postId: _postId, actors: sampleSize(actors, 3) };
+      })
+    )),
+    getPostPresenceData(postIds)
+  ]);
 
-  const grouped = groupBy(results.filter((r) => r), 'postId');
+  const groupedActors = groupBy(actorsResults.filter((r) => r), 'postId');
+
   return Object.fromEntries(
-    Object.entries(grouped).map(([key, value]) => [key, value[0]])
+    Object.entries(groupedActors).map(([postId, value]) => [
+      postId,
+      {
+        // @ts-ignore
+        ...value[0],
+        presence: presenceData[postId] || { count: 0, topUsers: [] }
+      }
+    ])
   );
 };
 

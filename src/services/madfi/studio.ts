@@ -13,12 +13,12 @@ export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
   (IS_PRODUCTION ? "https://eliza.onbons.ai" : "https://eliza-staging.onbons.ai");
 export const ELEVENLABS_VOICES = [
-  { label: 'Serious (Male)', value: 'U2VUL94XlY3UYSlQvsxF' },
+  { label: 'Italian Brainrot (Male)', value: 'pNInz6obpgDQGcFmaJgB' },
   { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
-  { label: 'Italian Brainrot', value: 'pNInz6obpgDQGcFmaJgB' },
+  { label: 'Social (Male)', value: 'CwhRBWXzGAHq8TQ4Fs17' },
 ];
 // only for stakers, no free generations (generally because they are expensive)
-export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video"];
+export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video", "nft_dot_fun"];
 // so we can quickly feature posts
 export const SET_FEATURED_ADMINS = [
   "0xdc4471ee9dfca619ac5465fde7cf2634253a9dc6",
@@ -85,6 +85,7 @@ export type Template = {
     imageRequirement?: ImageRequirement;
     requireContent?: boolean;
     isCanvas?: boolean;
+    nftRequirement?: ImageRequirement;
   };
   templateData: {
     form: z.ZodObject<any>;
@@ -128,6 +129,19 @@ export type SmartMedia = {
   featured?: boolean; // whether the post should be featured
 };
 
+export type NFTMetadata = {
+  tokenId: number;
+  contract: {
+    address: string;
+    network: string;
+  };
+  collection?: {
+    name?: string;
+  };
+  image: string; // base64 string cropped
+  attributes?: any[];
+}
+
 interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
@@ -139,13 +153,19 @@ export const generatePreview = async (
   template: Template,
   templateData: any,
   image?: File,
+  aspectRatio?: string,
+  nft?: NFTMetadata,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
     formData.append('data', JSON.stringify({
       category: template.category,
       templateName: template.name,
-      templateData
+      templateData: {
+        ...templateData,
+        aspectRatio,
+        nft
+      },
     }));
     if (image) formData.append('image', image);
     const response = await fetch(`${url}/post/create-preview`, {
@@ -352,7 +372,7 @@ export const requestPostDisable = async (url: string, postSlug: string, idToken:
   }
 }
 
-export const useGetFeaturedPosts = () => {
+export const useGetFeaturedPosts = (enabled = true) => {
   return useQuery({
     queryKey: ['featured-posts'],
     queryFn: async () => {
@@ -376,6 +396,7 @@ export const useGetFeaturedPosts = () => {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+    enabled
   });
 };
 

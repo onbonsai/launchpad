@@ -10,7 +10,6 @@ import { useGetFeesEarned } from "@src/hooks/useMoneyClubs";
 import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { switchChain } from "viem/actions";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
@@ -71,9 +70,9 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       // Claim Base fees
       if (creatorFeesEarned?.base.feesEarned > 0n || creatorFeesEarned?.base.clubFeesTotal > 0n) {
         const targetChainId = IS_PRODUCTION ? base.id : baseSepolia.id;
-        if (chainId !== targetChainId) {
+        if (chainId !== targetChainId && walletClient) {
           try {
-            await switchChain(configureChainsConfig, { chainId: targetChainId });
+            await switchChain(walletClient, { id: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);
@@ -91,9 +90,9 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       // Claim Lens fees
       if (creatorFeesEarned?.lens.feesEarned > 0n || creatorFeesEarned?.lens.clubFeesTotal > 0n) {
         const targetChainId = IS_PRODUCTION ? lens.id : lensTestnet.id;
-        if (chainId !== targetChainId) {
+        if (chainId !== targetChainId && walletClient) {
           try {
-            await switchChain(configureChainsConfig, { chainId: targetChainId });
+            await switchChain(walletClient, { id: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);

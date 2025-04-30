@@ -31,6 +31,8 @@ import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -67,6 +69,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
+  const { connectedAccounts, isConnected: isPresenceConnected } = usePostPresence({
+    postId: rootPostId || postId as string,
+    account: authenticatedProfile
+  });
 
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
@@ -126,6 +132,11 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
   const [canComment, setCanComment] = useState<boolean>();
   const commentInputRef = useRef<HTMLInputElement>(null);
   const [popperAnchor, setPopperAnchor] = useState<HTMLElement | null>(null);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState<number | null>(null);
+  const [isLoadingVersion, setIsLoadingVersion] = useState(false);
+  const [currentVersionMetadata, setCurrentVersionMetadata] = useState<any>(null);
+  const [showVersionIndicator, setShowVersionIndicator] = useState(false);
+  const [isVersionIndicatorVisible, setIsVersionIndicatorVisible] = useState(false);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -229,9 +240,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
       return;
     }
 
-    if (LENS_CHAIN_ID !== chain?.id) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
       } catch (error) {
         console.log(error);
         toast.error("Please switch networks to comment");
@@ -291,6 +302,65 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     router.push(`/profile/${username}`);
   };
 
+  // Function to load a specific version
+  const loadVersion = async (index: number) => {
+    // If index is equal to versions.length, we're going to the current version
+    if (index === media?.versions?.length) {
+      setCurrentVersionMetadata(null);
+      setCurrentVersionIndex(null);
+      setShowVersionIndicator(true);
+      setIsVersionIndicatorVisible(true);
+      setTimeout(() => {
+        setIsVersionIndicatorVisible(false);
+        // Remove element after fade out animation completes
+        setTimeout(() => setShowVersionIndicator(false), 300);
+      }, 2000);
+      return;
+    }
+
+    if (!media?.versions?.[index]) return;
+
+    setIsLoadingVersion(true);
+    try {
+      const response = await fetch(media.versions[index]);
+      const versionData = await response.json();
+      setCurrentVersionMetadata(versionData.lens);
+      setCurrentVersionIndex(index);
+      setShowVersionIndicator(true);
+      setIsVersionIndicatorVisible(true);
+      setTimeout(() => {
+        setIsVersionIndicatorVisible(false);
+        // Remove element after fade out animation completes
+        setTimeout(() => setShowVersionIndicator(false), 300);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to load version:', error);
+      toast.error('Failed to load version');
+    } finally {
+      setIsLoadingVersion(false);
+    }
+  };
+
+  // Create the publication data with merged metadata when viewing a version
+  const getPublicationData = useMemo(() => {
+    if (currentVersionIndex === null) {
+      return showRootPublication ? publication.root : publication;
+    }
+
+    // Merge the current publication with the version's metadata
+    const basePublication = showRootPublication ? publication.root : publication;
+    return {
+      ...basePublication,
+      metadata: {
+        ...currentVersionMetadata,
+        // Preserve the __typename from the original publication metadata
+        __typename: basePublication.metadata?.__typename
+      },
+      // Add a key to force re-render when version changes
+      key: `version-${currentVersionIndex}`
+    };
+  }, [currentVersionIndex, currentVersionMetadata, publication, showRootPublication]);
+
   if (!isMounted) return null;
 
   if (isLoadingPage) {
@@ -329,7 +399,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
           >
             <ArrowBack className="h-5 w-5" />
           </Link>
-          <div className="flex flex-col gap-2 h-full">
+          <div className="flex flex-col gap-2 h-full relative">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
             <div className="overflow-y-hidden h-full">
               {isConnected && isLoading ? (
@@ -340,9 +410,35 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                 <>
                   {publication ? (
                     <>
+                      {/* Version Navigation Arrows - Only show if we have versions */}
+                      {media?.versions && media.versions.length > 0 && (
+                        <div className="absolute top-[50%] -translate-y-1/2 w-full flex justify-between z-10" style={{ top: 'min(50%, 300px)' }}>
+                          <button
+                            onClick={() => loadVersion((currentVersionIndex ?? (media?.versions?.length ?? 0)) - 1)}
+                            disabled={currentVersionIndex === 0 || isLoadingVersion}
+                            className="transform -translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronLeftIcon className="h-12 w-8" />
+                          </button>
+                          <button
+                            onClick={() => loadVersion((currentVersionIndex ?? -1) + 1)}
+                            disabled={currentVersionIndex === null || isLoadingVersion}
+                            className="transform translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronRightIcon className="h-12 w-8" />
+                          </button>
+                        </div>
+                      )}
+                      {/* Version Indicator - Only show if we're viewing a version */}
+                      {media?.versions && showVersionIndicator && (
+                        <div className={`absolute top-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
+                          {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1}`}
+                        </div>
+                      )}
                       <div className="hidden sm:block">
                         <PublicationContainer
-                          publication={showRootPublication ? publication.root : publication}
+                          key={`pub-${currentVersionIndex ?? 'current'}`}
+                          publication={getPublicationData}
                           onCommentButtonClick={onCommentButtonClick}
                           shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
@@ -358,11 +454,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             ticker: club?.symbol,
                           }}
                           enoughActivity={enoughActivity}
+                          isPresenceConnected={isPresenceConnected}
+                          connectedAccounts={connectedAccounts}
                         />
                       </div>
                       <div className="sm:hidden">
                         <PublicationContainer
-                          publication={showRootPublication ? publication.root : publication}
+                          key={`pub-mobile-${currentVersionIndex ?? 'current'}`}
+                          publication={getPublicationData}
                           onCommentButtonClick={onCommentButtonClick}
                           shouldGoToPublicationPage={showRootPublication}
                           isProfileAdmin={isProfileAdmin}
@@ -373,6 +472,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                             scrollToReplyInput();
                           }}
                           enoughActivity={enoughActivity}
+                          isPresenceConnected={isPresenceConnected}
+                          connectedAccounts={connectedAccounts}
                         />
                       </div>
                     </>
@@ -505,10 +606,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
   } catch {}
 
-  const image =
-    (post.metadata?.image?.item?.startsWith("lens://")
-      ? await storageClient.resolve(post.metadata.image.item)
-      : post.metadata?.image?.item) ?? null;
+  const image = post.metadata?.__typename === "VideoMetadata"
+    ? (post.metadata?.video?.cover?.startsWith("lens://")
+        ? await storageClient.resolve(post.metadata.video.cover)
+        : post.metadata?.video?.cover) ?? null
+    : (post.metadata?.image?.item?.startsWith("lens://")
+        ? await storageClient.resolve(post.metadata.image.item)
+        : post.metadata?.image?.item) ?? null;
 
   return {
     props: {

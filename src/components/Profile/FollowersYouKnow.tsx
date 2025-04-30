@@ -38,7 +38,7 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
             {displayedFollowers
               .filter(f => f.follower.username?.localName)
               .map((f, index, arr) => (
-                <>
+                <span key={index}>
                   <a 
                     href={`/profile/${f.follower.username?.localName}`}
                     className="hover:underline"
@@ -46,7 +46,7 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
                     {f.follower.username?.localName}
                   </a>
                   {index < arr.length - 1 && ', '}
-                </>
+                </span>
               ))}
             {remainingCount > 0 && ` and ${remainingCount} others`}
           </span>

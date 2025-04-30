@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { switchChain } from "viem/actions";
 import { Button } from "@src/components/Button";
 import { Dialog } from "@headlessui/react";
 import { brandFont } from "@src/fonts/fonts";
@@ -14,6 +15,7 @@ import useQuoter from "@src/services/uniswap/useQuote";
 import { readContract } from "viem/actions";
 import { toast } from "react-hot-toast";
 import useLensSignIn from "@src/hooks/useLensSignIn";
+import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 
 interface TopUpOption {
   bonsai: number;
@@ -27,9 +29,10 @@ interface TopUpModalProps {
 }
 
 export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
+  const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { authenticatedProfile } = useLensSignIn(walletClient);
 
   // GHO Balance
@@ -122,6 +125,18 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
     if (!selectedOption) {
       toast.error("No selected option");
       throw new Error("No selected option");
+    }
+
+    if (chain?.id !== LENS_CHAIN_ID && walletClient) {
+      try {
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
+        // toast("Please re-connect your wallet");
+        // setOpen(true);
+        return;
+      } catch {
+        toast.error("Please switch chains");
+        return;
+      }
     }
 
     const _publicClient = publicClient("lens");
@@ -305,21 +320,30 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
       >
         {!selectedOption
           ? "Select an amount"
+          : chain?.id !== LENS_CHAIN_ID
+          ? "Switch to Lens Chain"
           : !hasSufficientGho
           ? "Insufficient GHO"
           : `Pay ${selectedOption.price} GHO`}
       </Button>
-      <a
-        href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full"
+      <Button
+        variant={"primary"}
+        size='md'
+        className="w-full !border-none"
+        onClick={() => {
+          setBuyUSDCModalOpen(true);
+        }}
       >
-        <Button variant="primary" size="md" className="mt-4 w-full flex items-center justify-center gap-2">
-          <img src="/gho.webp" alt="gho" className="w-5 h-5" />
-          Bridge GHO to Lens
-        </Button>
-      </a>
+        Fund wallet
+      </Button>
+      <BuyUSDCWidget
+        open={buyUSDCModalOpen}
+        buyAmount={selectedOption?.price.toString() || "25"}
+        onClose={() => {
+          setBuyUSDCModalOpen(false);
+        }}
+        chain={"lens"}
+      />
     </div>
   );
 };

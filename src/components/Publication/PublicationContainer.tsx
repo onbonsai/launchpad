@@ -19,7 +19,6 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
@@ -30,6 +29,7 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import { EyeIcon } from "@heroicons/react/outline";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -54,6 +54,8 @@ type PublicationContainerProps = {
     ticker: string;
   };
   enoughActivity?: boolean; // does the smart media have any new comments since the last time it was updated
+  isPresenceConnected?: boolean; // are we connected to the websocket
+  connectedAccounts?: any; // connected accounts on the websocket
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -106,6 +108,8 @@ const PublicationContainer = ({
   mdMinWidth = 'md:min-w-[700px]',
   token,
   enoughActivity,
+  isPresenceConnected,
+  connectedAccounts,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
@@ -278,9 +282,9 @@ const PublicationContainer = ({
 
     if (!isAuthenticated) return;
 
-    if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
       } catch {
         toast.error("Please switch networks");
       }
@@ -332,9 +336,9 @@ const PublicationContainer = ({
   const onCollect = async () => {
     let toastId;
     try {
-      if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+      if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
         } catch (error) {
           console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
@@ -355,7 +359,7 @@ const PublicationContainer = ({
       );
 
       if (amountNeeded > 0n) {
-        openTopUpModal(amountNeeded);
+        openTopUpModal("topup", amountNeeded);
         toast("Add BONSAI to your Lens account wallet to collect", { id: toastId });
         setIsCollecting(false);
         return;
@@ -448,6 +452,7 @@ const PublicationContainer = ({
           nestedWidget={nestedWidget}
           updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
           hideCollectButton={!!publication.root}
+          presenceCount={connectedAccounts?.length}
         />
       )}
       {isCollect && isAuthenticated && (

@@ -87,8 +87,8 @@ export const defaultGatewayURL = (uriOrHash: string) => `${apiUrls.ipfsDefaultHo
 
 export const lensGatewayURL = (uriOrHash: string) => `${apiUrls.lensGateway}/${_hash(uriOrHash)}`;
 
-export const ipfsOrNot = (uriOrHash: string) =>
-  uriOrHash.startsWith("ipfs://") ? defaultGatewayURL(uriOrHash) : uriOrHash;
+export const ipfsOrNot = (urlOrUri?: string) =>
+  urlOrUri?.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${_hash(urlOrUri)}` : (urlOrUri || "");
 
 export const ipfsOrNotWithDefaultGateway = (uriOrHash?: string) =>
   uriOrHash?.startsWith("ipfs://") ? defaultGatewayURL(uriOrHash) : uriOrHash;

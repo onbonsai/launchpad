@@ -5,7 +5,7 @@ import { groupBy } from "lodash/collection";
 import { publicClient, getRegisteredClubInfo, toHexString } from "@src/services/madfi/moneyClubs";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-// import { getHandlesByAddresses } from "@src/services/lens/getProfiles";
+// import { getProfilesByOwners } from "@src/services/lens/getProfiles";
 import { shortAddress } from "@src/utils/utils";
 import { bToHexString } from "@src/services/lens/utils";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -111,7 +111,7 @@ export const ActivityBanner = () => {
   // const prepLastTrade = async (client: PublicClient, events: TradeEvent[]) => {
   //   const [tokens, profiles] = await Promise.all([
   //     getClubInfo(events.map(({ event: { clubId } }) => toHexString(clubId.toString(16)))),
-  //     getHandlesByAddresses(events.map(({ event: { actor } }) => actor)),
+  //     getProfilesByOwners(events.map(({ event: { actor } }) => actor)),
   //   ]);
   //   const profilesGrouped = groupBy(profiles, "ownedBy.address");
   //   const tokensGrouped = groupBy(tokens, "clubId");

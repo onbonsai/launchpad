@@ -95,7 +95,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
             />
             <BuyUSDCWidget
               open={BuyUSDCModalOpen}
-              buyAmount={usdcAmountNeeded}
+              buyAmount={usdcAmountNeeded.toString()}
               onClose={() => {
                 setBuyUSDCModalOpen(false);
                 setBuyClubModalOpen(true);

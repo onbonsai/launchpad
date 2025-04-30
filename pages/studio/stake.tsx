@@ -29,6 +29,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useModal } from "connectkit";
 import BuySellModal from '@pagesComponents/Club/BuySellModal';
 import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
+import { useTopUpModal } from "@src/context/TopUpContext";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -120,6 +121,8 @@ const TokenPage: NextPage = () => {
     return `${window.location.origin}/studio/stake?ref=${address}`;
   }, [address]);
 
+  const { openTopUpModal } = useTopUpModal();
+
   useMemo(() => {
     if (!bonsaiBalance || bonsaiBalance === BigInt(0)) {
       setBonsaiPrice(0);
@@ -189,15 +192,16 @@ const TokenPage: NextPage = () => {
         priceToUse,
         stakingData.summary,
       );
+      result.withFreeTier += creditBalance?.creditsPurchased || 0;
       setEstimatedFutureCredits(result.withFreeTier);
     }
-  }, [stakingData?.summary, twapPrice, bonsaiPrice]);
+  }, [stakingData?.summary, twapPrice, bonsaiPrice, creditBalance?.creditsPurchased]);
 
   const handleStake = async (amount: string, lockupPeriod: number): Promise<boolean> => {
     try {
-      if (chain?.id !== LENS_CHAIN_ID) {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
           // toast("Please re-connect your wallet");
           // setOpen(true);
@@ -235,9 +239,9 @@ const TokenPage: NextPage = () => {
 
   const handleUnstake = async (stakeIndex: number) => {
     try {
-      if (chain?.id !== LENS_CHAIN_ID) {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // toast("Please re-connect your wallet");
           // setOpen(true);
           // return;
@@ -566,6 +570,17 @@ const TokenPage: NextPage = () => {
                       </div>
                     )}
                   </div>
+                  {isConnected && (
+                    <div className="mt-4">
+                      <Button
+                        variant="accent"
+                        size="sm"
+                        onClick={() => openTopUpModal("api-credits")}
+                      >
+                        Purchase Credits
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Active Stakes List */}
