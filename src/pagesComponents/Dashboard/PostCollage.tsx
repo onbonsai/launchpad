@@ -193,14 +193,15 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
     triggerOnce: false,
   });
 
-  // Process posts based on activeTab
+  // Process posts based on activeTab, filter out deleted posts
   const processedPosts = useMemo(() => {
+    const _posts = posts.filter((p: Post) => !p.isDeleted);
     if (activeTab === PostTabType.EXPLORE) {
-      return posts as Post[];
+      return _posts as Post[];
     }
 
     // For FOR_YOU tab, we need to handle both Post and TimelineItem types
-    return posts.map((item: Post | TimelineItem) => {
+    return _posts.map((item: Post | TimelineItem) => {
       // Check if it's a TimelineItem by looking for the 'primary' property
       if ('primary' in item) {
         return {
