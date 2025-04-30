@@ -53,7 +53,6 @@ const nextConfig = {
       'tss-react',
       'use-debounce',
       'wagmi',
-      'viem'
     ]
   },
   i18n: {
