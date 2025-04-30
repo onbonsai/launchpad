@@ -164,9 +164,9 @@ export const RegisterClubModal = ({
 
     const targetChainId = NETWORK_CHAIN_IDS[selectedNetwork];
 
-    if (chainId !== targetChainId) {
+    if (chainId !== targetChainId && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: targetChainId });
+        await switchChain(walletClient, { id: targetChainId });
       } catch {
         toast.error(`Please switch to ${selectedNetwork}`);
         setIsBuying(false);

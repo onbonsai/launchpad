@@ -89,9 +89,9 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
     try {
       toastId = toast.loading("Collecting post...");
 
-      if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+      if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
         } catch {
           toast.error("Please switch networks to collect", { id: toastId });
           return;

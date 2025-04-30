@@ -71,9 +71,9 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       // Claim Base fees
       if (creatorFeesEarned?.base.feesEarned > 0n || creatorFeesEarned?.base.clubFeesTotal > 0n) {
         const targetChainId = IS_PRODUCTION ? base.id : baseSepolia.id;
-        if (chainId !== targetChainId) {
+        if (chainId !== targetChainId && walletClient) {
           try {
-            await switchChain(configureChainsConfig, { chainId: targetChainId });
+            await switchChain(walletClient, { id: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);
@@ -91,9 +91,9 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       // Claim Lens fees
       if (creatorFeesEarned?.lens.feesEarned > 0n || creatorFeesEarned?.lens.clubFeesTotal > 0n) {
         const targetChainId = IS_PRODUCTION ? lens.id : lensTestnet.id;
-        if (chainId !== targetChainId) {
+        if (chainId !== targetChainId && walletClient) {
           try {
-            await switchChain(configureChainsConfig, { chainId: targetChainId });
+            await switchChain(walletClient, { id: targetChainId });
           } catch {
             toast.error("Please switch networks");
             setIsClaiming(false);

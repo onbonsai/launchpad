@@ -64,9 +64,9 @@ export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) =>
     let toastId;
 
     try {
-      if (chainId !== LENS_CHAIN_ID) {
+      if (chainId !== LENS_CHAIN_ID && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
           // toast("Please re-connect your wallet");
           // setOpen(true);
           return;

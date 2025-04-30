@@ -207,7 +207,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
 
     if (!isAuthenticated) return;
 
-    if (chainId !== polygon.id && switchChain) {
+    if (chainId !== polygon.id && walletClient) {
       try {
         await switchChain({ chainId: polygon.id });
       } catch {

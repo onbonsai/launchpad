@@ -278,9 +278,9 @@ const PublicationContainer = ({
 
     if (!isAuthenticated) return;
 
-    if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
       try {
-        await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+        await switchChain(walletClient, { id: LENS_CHAIN_ID });
       } catch {
         toast.error("Please switch networks");
       }
@@ -332,9 +332,9 @@ const PublicationContainer = ({
   const onCollect = async () => {
     let toastId;
     try {
-      if (LENS_CHAIN_ID !== chain?.id && switchChain) {
+      if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
-          await switchChain(configureChainsConfig, { chainId: LENS_CHAIN_ID });
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
         } catch (error) {
           console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
