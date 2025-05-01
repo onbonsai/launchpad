@@ -212,7 +212,7 @@ const PublicationContainer = ({
     e.preventDefault();
     e.stopPropagation();
 
-    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${_publicationId}`);
+    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${_publicationId}?ref=${address || referralAddress || ''}`);
 
     toast("Link copied", { position: "bottom-center", icon: "🔗", duration: 2000 });
   };
