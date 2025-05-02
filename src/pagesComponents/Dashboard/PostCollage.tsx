@@ -374,38 +374,47 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
 
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full">
-            <Masonry
-              breakpointCols={{
-                default: 4,
-                1280: 4,
-                1024: 3,
-                768: 2,
-                640: 1,
-              }}
-              className="flex w-auto -ml-4"
-              columnClassName="pl-4 bg-clip-padding"
-            >
-              {sortedPosts.map((post) => (
-                <PostItem
-                  key={post.__typename === "TimelineItem" ? post.primary.slug : post.slug}
-                  post={post.__typename === "TimelineItem" ? post.primary : post}
-                  timelineItem={post.__typename === "TimelineItem" ? omit(post, 'primary') as TimelineItem : undefined}
-                  isMobile={isMobile}
-                  onVisibilityChange={handleVisibilityChange}
-                  hoveredPostSlug={hoveredPostSlug}
-                  setHoveredPostSlug={setHoveredPostSlug}
-                  activeDropdown={activeDropdown}
-                  setActiveDropdown={setActiveDropdown}
-                  activeCollectModal={activeCollectModal}
-                  setActiveCollectModal={setActiveCollectModal}
-                  authenticatedProfile={authenticatedProfile}
-                  bonsaiBalance={bonsaiBalance}
-                  postData={postData}
-                  onShareButtonClick={onShareButtonClick}
-                  router={router}
-                />
-              ))}
-            </Masonry>
+            {sortedPosts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <p className="text-secondary text-lg mb-4">Nothing to see here... yet!</p>
+                <p className="text-secondary/60 text-sm">
+                  Head over to the Explore tab to discover new content and connect with creators
+                </p>
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={{
+                  default: 4,
+                  1280: 4,
+                  1024: 3,
+                  768: 2,
+                  640: 1,
+                }}
+                className="flex w-auto -ml-4"
+                columnClassName="pl-4 bg-clip-padding"
+              >
+                {sortedPosts.map((post) => (
+                  <PostItem
+                    key={post.__typename === "TimelineItem" ? post.primary.slug : post.slug}
+                    post={post.__typename === "TimelineItem" ? post.primary : post}
+                    timelineItem={post.__typename === "TimelineItem" ? omit(post, 'primary') as TimelineItem : undefined}
+                    isMobile={isMobile}
+                    onVisibilityChange={handleVisibilityChange}
+                    hoveredPostSlug={hoveredPostSlug}
+                    setHoveredPostSlug={setHoveredPostSlug}
+                    activeDropdown={activeDropdown}
+                    setActiveDropdown={setActiveDropdown}
+                    activeCollectModal={activeCollectModal}
+                    setActiveCollectModal={setActiveCollectModal}
+                    authenticatedProfile={authenticatedProfile}
+                    bonsaiBalance={bonsaiBalance}
+                    postData={postData}
+                    onShareButtonClick={onShareButtonClick}
+                    router={router}
+                  />
+                ))}
+              </Masonry>
+            )}
             {hasMore && (
               <div ref={ref} className="flex justify-center pt-8 pb-4">
                 <Spinner customClasses="h-8 w-8" color="#5be39d" />
