@@ -121,6 +121,13 @@ const TokenPage: NextPage = () => {
     return `${window.location.origin}/studio/stake?ref=${address}`;
   }, [address]);
 
+  useEffect(() => {
+    const { bridge } = router.query;
+    if (!!bridge) {
+      setIsBridgeModalOpen(true);
+    }
+  }, [router.query]);
+
   const { openTopUpModal } = useTopUpModal();
 
   useMemo(() => {

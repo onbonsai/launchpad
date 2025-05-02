@@ -64,7 +64,7 @@ const PublicationContainer = dynamic(
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { postId, returnTo } = router.query;
+  const { postId } = router.query;
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
@@ -74,25 +74,73 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     account: authenticatedProfile
   });
 
+  // Get the return post ID from localStorage
+  const returnPostId = useMemo(() => {
+    if (!isMounted) return null;
+    if (typeof window !== 'undefined') {
+      const storedId = localStorage.getItem('returnPostId');
+      console.log('[returnPostId useMemo] Retrieved from localStorage:', storedId);
+      return storedId;
+    }
+    return null;
+  }, [isMounted]);
+
+  // Handle back navigation
+  const handleBackNavigation = () => {
+    if (returnPostId && returnPostId !== currentPostId) {
+      localStorage.removeItem('returnPostId');
+      router.push(`/post/${returnPostId}`);
+    } else {
+      router.push('/');
+    }
+  };
+
+  // Use router.query.postId instead of postId from destructuring
+  const currentPostId = router.query.postId as string;
+
+  // Store the current post ID as return ID when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (currentPostId && typeof window !== 'undefined') {
+        localStorage.setItem('returnPostId', currentPostId);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also store when component unmounts (for client-side navigation)
+      if (currentPostId && typeof window !== 'undefined') {
+        localStorage.setItem('returnPostId', currentPostId);
+      }
+    };
+  }, [currentPostId]);
+
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
+    if (!isMounted) return null;
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem('tempPostData');
       if (storedData) {
         try {
-          localStorage.removeItem('tempPostData');
-          return JSON.parse(storedData);
+          const parsedData = JSON.parse(storedData);
+          // Only use the stored data if it matches the current post ID
+          if (parsedData?.id === currentPostId) {
+            localStorage.removeItem('tempPostData');
+            return parsedData;
+          } else {
+            // Clear the stored data if it doesn't match
+            localStorage.removeItem('tempPostData');
+          }
         } catch (e) {
           console.error("Failed to parse stored post data:", e);
+          localStorage.removeItem('tempPostData');
           return null;
         }
       }
     }
     return null;
-  }, []);
-
-  // Use router.query.postId instead of postId from destructuring
-  const currentPostId = router.query.postId as string;
+  }, [isMounted, currentPostId]);
 
   useEffect(() => {
     if (rootPostId) {
@@ -385,7 +433,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
-              // treating the postId as the agentId in the eliza backend
               agentId={currentPostId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
@@ -393,12 +440,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
           </ChatWindowButton>
         )}
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex items-start justify-center h-full gap-4">
-          <Link
-            href={returnTo ? returnTo as string : "/"}
+          <button
+            onClick={handleBackNavigation}
             className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
           >
             <ArrowBack className="h-5 w-5" />
-          </Link>
+          </button>
           <div className="flex flex-col gap-2 h-full relative">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
             <div className="overflow-y-hidden h-full">

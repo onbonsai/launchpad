@@ -20,6 +20,7 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import { Tooltip } from "@src/components/Tooltip";
 import toast from "react-hot-toast";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import Link from "next/link";
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -386,7 +387,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               </div>
             </div>
-            <div className="mt-2 pt-4 border-t border-zinc-800">
+            <div className="mt-2 border-t border-zinc-800">
               <Button
                 variant="blue"
                 size="md"
@@ -395,6 +396,15 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
               >
                 Top Up Wallet
               </Button>
+              <Link href="/studio/stake?bridge=1">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full flex items-center justify-center gap-2 mt-2"
+                >
+                  Bridge
+                </Button>
+              </Link>
             </div>
           </div>
         </Popper>
