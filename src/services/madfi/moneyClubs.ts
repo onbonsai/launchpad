@@ -462,6 +462,23 @@ const GET_TRADER = gql`
   }
 `;
 
+const GET_CREATOR_TOKENS = gql`
+  query GetCreatorTokens($creator: Bytes!) {
+    clubs(where: { creator: $creator }, orderBy: createdAt orderDirection: desc) {
+      id
+      clubId
+      creator
+      name
+      symbol
+      uri
+      tokenAddress
+      supply
+      holders
+      complete
+    }
+  }
+`;
+
 export const INITIAL_CHIP_SUPPLY_CAP = 10; // with 6 decimals in the contract
 export const DECIMALS = 18;
 export const USDC_DECIMALS = 6;
@@ -1733,3 +1750,11 @@ export const topUpRewards = async (walletClient: any, tokenAddress: `0x${string}
 
   await publicClient("lens").waitForTransactionReceipt({ hash });
 }
+
+export const getCreatorTokens = async (creator: `0x${string}`) => {
+  const { data } = await subgraphClient("lens").query({ 
+    query: GET_CREATOR_TOKENS, 
+    variables: { creator: creator.toLowerCase() } 
+  });
+  return data.clubs;
+};

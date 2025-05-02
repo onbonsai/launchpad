@@ -513,6 +513,8 @@ const StudioCreatePage: NextPage = () => {
                     {openTab === 2 && (
                       <CreateTokenForm
                         finalTokenData={finalTokenData}
+                        setSavedTokenAddress={setSavedTokenAddress}
+                        savedTokenAddress={savedTokenAddress}
                         postImage={typeof preview?.image === 'string' ? [parseBase64Image(preview.image)] : preview?.image ? [preview.image] : postImage}
                         setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
