@@ -63,7 +63,7 @@ export interface BonsaiClientMetadata {
   acl: WalletAddressAcl;
 }
 
-export enum ImageRequirement {
+export enum MediaRequirement {
   NONE = "none",
   OPTIONAL = "optional",
   REQUIRED = "required",
@@ -82,10 +82,11 @@ export type Template = {
   options: {
     allowPreview?: boolean;
     allowPreviousToken?: boolean;
-    imageRequirement?: ImageRequirement;
+    imageRequirement?: MediaRequirement;
     requireContent?: boolean;
     isCanvas?: boolean;
-    nftRequirement?: ImageRequirement;
+    nftRequirement?: MediaRequirement;
+    audioRequirement?: MediaRequirement;
   };
   templateData: {
     form: z.ZodObject<any>;

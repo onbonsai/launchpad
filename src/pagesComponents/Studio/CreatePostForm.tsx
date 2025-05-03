@@ -9,7 +9,7 @@ import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined } from "@mui/icons-material";
-import { generatePreview, ImageRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
+import { generatePreview, MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -22,6 +22,7 @@ import { ipfsOrNot } from "@src/utils/pinata";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 
 type CreatePostProps = {
   template: Template;
@@ -35,6 +36,12 @@ type CreatePostProps = {
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
   setIsGeneratingPreview: (b: boolean) => void;
+  postAudio?: any;
+  setPostAudio: (i: any) => void;
+  audioStartTime?: number;
+  setAudioStartTime: (t: number) => void;
+  audioEndTime?: number;
+  setAudioEndTime: (t: number) => void;
 };
 
 const CreatePostForm = ({
@@ -57,6 +64,8 @@ const CreatePostForm = ({
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
+  const [postAudio, setPostAudio] = useState<File | null>(null);
+  const [audioStartTime, setAudioStartTime] = useState<number>(0);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -68,8 +77,9 @@ const CreatePostForm = ({
     try {
       template.templateData.form.parse(templateData);
       if (template.options?.requireContent && !postContent) return false;
-      if (template.options?.imageRequirement === ImageRequirement.REQUIRED && !postImage?.length) return false;
-      if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT) return false;
+      if (template.options?.imageRequirement === MediaRequirement.REQUIRED && !postImage?.length) return false;
+      if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT) return false;
+      if (template.options?.audioRequirement === MediaRequirement.REQUIRED && !postAudio) return false;
       return true;
     } catch (error) {
       // console.log(error);
@@ -98,7 +108,7 @@ const CreatePostForm = ({
       return;
     }
 
-    if (template.options?.nftRequirement === ImageRequirement.REQUIRED && !selectedNFT?.image?.croppedBase64) {
+    if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT?.image?.croppedBase64) {
       toast.error("Failed to parse NFT image");
       return;
     }
@@ -144,7 +154,7 @@ const CreatePostForm = ({
         idToken,
         template,
         templateData,
-        template.options?.imageRequirement !== ImageRequirement.NONE && postImage?.length ? postImage[0] : undefined,
+        template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
         !!selectedNFT ? {
           tokenId: selectedNFT.tokenId,
@@ -218,6 +228,10 @@ const CreatePostForm = ({
                 selectedNFT={selectedNFT}
                 setSelectedNFT={setSelectedNFT}
                 loadRemixNFT={finalTemplateData?.nft}
+                postAudio={postAudio}
+                setPostAudio={setPostAudio}
+                audioStartTime={audioStartTime}
+                setAudioStartTime={setAudioStartTime}
               />
           }
         </div>
@@ -265,6 +279,10 @@ const DynamicForm = ({
   selectedNFT,
   setSelectedNFT,
   loadRemixNFT,
+  postAudio,
+  setPostAudio,
+  audioStartTime,
+  setAudioStartTime,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -280,9 +298,13 @@ const DynamicForm = ({
   selectedNFT?: AlchemyNFTMetadata;
   setSelectedNFT: (s: AlchemyNFTMetadata) => void;
   loadRemixNFT?: NFTMetadata;
+  postAudio?: File | null;
+  setPostAudio: (i: File | null) => void;
+  audioStartTime: number;
+  setAudioStartTime: (t: number) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
-  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== ImageRequirement.REQUIRED;
+  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
 
   // Format options for SelectDropdown
   const modelOptions = useMemo(() => {
@@ -340,6 +362,8 @@ const DynamicForm = ({
     </div>
   );
 
+  console.log(template);
+
   return (
     <div className="space-y-4">
       {/* Post content */}
@@ -356,12 +380,12 @@ const DynamicForm = ({
       )}
 
       {/* Post image */}
-      {template.options?.imageRequirement && template.options?.imageRequirement !== ImageRequirement.NONE && (
+      {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
             label={"Post image"}
             fieldDescription={
-              template.options.imageRequirement === ImageRequirement.REQUIRED
+              template.options.imageRequirement === MediaRequirement.REQUIRED
                 ? "An image is required for this post."
                 : "Optionally add an image to your post. Otherwise, one will be generated."
             }
@@ -378,12 +402,12 @@ const DynamicForm = ({
       )}
 
       {/* NFT */}
-      {template.options?.nftRequirement && template.options?.nftRequirement !== ImageRequirement.NONE && (
+      {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
             label={"NFT"}
             fieldDescription={
-              template.options.nftRequirement === ImageRequirement.REQUIRED
+              template.options.nftRequirement === MediaRequirement.REQUIRED
                 ? "Select one of your NFTs to use for this post"
                 : "Optionally include one of your NFTs in this post"
             }
@@ -394,6 +418,26 @@ const DynamicForm = ({
             selectedAspectRatio={selectedAspectRatio}
             onAspectRatioChange={setSelectedAspectRatio}
             loadRemixNFT={loadRemixNFT}
+          />
+        </div>
+      )}
+
+      {/* Audio */}
+      {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
+        <div className="space-y-2">
+          <FieldLabel
+            label={"Audio"}
+            fieldDescription={
+              template.options.audioRequirement === MediaRequirement.REQUIRED
+                ? "Upload an MP3 file to use in your post"
+                : "Optionally add audio to your post"
+            }
+          />
+          <AudioUploader
+            file={postAudio}
+            setFile={setPostAudio}
+            startTime={audioStartTime}
+            setStartTime={setAudioStartTime}
           />
         </div>
       )}
