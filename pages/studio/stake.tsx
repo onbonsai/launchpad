@@ -605,7 +605,7 @@ const TokenPage: NextPage = () => {
                           <div className="relative z-10">
                             <div className="flex items-center space-x-2">
                               <div className="text-lg font-semibold">
-                                {activeStakes[0] ? formatStakingAmount(getMinBigInt(BigInt(activeStakes[0].amount), parseUnits('10000', 18)).toString()) : '0'} $BONSAI
+                                {activeStakes[0] ? formatStakingAmount(getMinBigInt(BigInt(stakingData?.summary?.totalStaked || 0), parseUnits('10000', 18)).toString()) : '0'} $BONSAI
                               </div>
                               <span className="text-xs font-medium bg-[#B6D5C2]/20 text-[#B6D5C2] px-2 py-0.5 rounded">
                                 Referral Reward
