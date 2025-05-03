@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Cursor, evmAddress, PageSize, postId, PostType, SessionClient } from "@lens-protocol/client";
-import { fetchPost, fetchPosts, fetchTimeline, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
+import { Cursor, evmAddress, PageSize, postId, PostReferenceType, PostType, SessionClient } from "@lens-protocol/client";
+import { fetchPost, fetchPostReferences, fetchPosts, fetchTimeline, fetchWhoExecutedActionOnPost, repost } from "@lens-protocol/client/actions";
 import promiseLimit from "promise-limit";
 import { lensClient } from "./client";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -31,6 +31,20 @@ export const getPosts = async (publicationIds: string[], sessionClient?: Session
   try {
     const result = await fetchPosts(sessionClient || lensClient, {
       filter: { posts: publicationIds }
+    });
+
+    return result.isOk() ? result.value.items : [];
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getQuotes = async (_postId: string, sessionClient?: SessionClient) => {
+  try {
+    const result = await fetchPostReferences(sessionClient || lensClient, {
+      referencedPost: postId(_postId),
+      referenceTypes: [PostReferenceType.QuoteOf],
     });
 
     return result.isOk() ? result.value.items : [];

@@ -16,7 +16,7 @@ import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useGetComments } from "@src/hooks/useGetComments";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
-import { getPost } from "@src/services/lens/posts";
+import { getPost, getQuotes } from "@src/services/lens/posts";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -33,6 +33,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
+import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -42,6 +43,7 @@ interface PublicationProps {
   content?: string;
   handle?: string;
   postId: string;
+  quotes: any[];
 }
 
 // Lazy load the Publications component
@@ -61,7 +63,7 @@ const PublicationContainer = dynamic(
   }
 );
 
-const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
+const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
   const { postId } = router.query;
@@ -523,6 +525,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                           connectedAccounts={connectedAccounts}
                         />
                       </div>
+                      <QuotePreviews quotes={quotes} />
                     </>
                   ) : (
                     <div className="flex justify-center pt-8 pb-8">
@@ -636,8 +639,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const postId = context.query.postId!.toString();
   let post;
+  let quotes;
   try {
-    post = await getPost(postId);
+    [post, quotes] = await Promise.all([
+      getPost(postId),
+      getQuotes(postId)
+    ]);
   } catch { }
 
   if (!post) return { notFound: true };
@@ -670,6 +677,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       postId,
+      quotes: quotes || [],
     },
   };
 };
