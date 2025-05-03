@@ -2,11 +2,11 @@ import { FC, SetStateAction, useRef, useState, useEffect } from "react";
 import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
 import { MusicNoteIcon, PlayIcon, PauseIcon } from "@heroicons/react/solid";
-import { XIcon } from "@heroicons/react/outline";
 import { cx } from "@src/utils/classnames";
 import { BodySemiBold, Subtitle } from "@src/styles/text";
 import { Button } from "../Button";
 import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 
 interface AudioUploaderProps {
   file: any;
@@ -18,14 +18,10 @@ interface AudioUploaderProps {
 const MAX_SIZE = 10_000_000; // 10MB
 const CLIP_LENGTH = 10; // 10 seconds
 
-export const AudioUploader: FC<AudioUploaderProps> = ({
-  file,
-  setFile,
-  startTime,
-  setStartTime,
-}) => {
+export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime }) => {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurfer = useRef<WaveSurfer | null>(null);
+  const regionsPlugin = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
   const [duration, setDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -35,24 +31,39 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
       if (wavesurfer.current) {
         wavesurfer.current.destroy();
       }
+
       wavesurfer.current = WaveSurfer.create({
-        container: waveformRef.current,
+        container: waveformRef.current!,
         waveColor: "#888",
         progressColor: "#5be39d",
         height: 64,
         barWidth: 2,
-        cursorColor: "#5be39d",
-        interact: true,
+        cursorColor: "transparent",
+        interact: false,
+        plugins: [RegionsPlugin.create()],
       });
+
+      regionsPlugin.current = wavesurfer.current.getActivePlugins()[0] as ReturnType<typeof RegionsPlugin.create>;
+
       wavesurfer.current.load(file.preview);
       wavesurfer.current.on("ready", () => {
         setDuration(wavesurfer.current!.getDuration());
         setStartTime(0);
+
+        regionsPlugin.current!.addRegion({
+          id: "clip-region",
+          start: 0,
+          end: CLIP_LENGTH,
+          color: "rgba(255,255,255,0.3)",
+          drag: true,
+          resize: false,
+        });
       });
-      wavesurfer.current.on("seek", (progress: number) => {
-        const newStart = Math.min(progress * wavesurfer.current!.getDuration(), wavesurfer.current!.getDuration() - CLIP_LENGTH);
-        setStartTime(Math.max(0, newStart));
+
+      regionsPlugin.current.on("region-updated", (region) => {
+        setStartTime(region.start);
       });
+
       return () => {
         wavesurfer.current?.destroy();
       };
@@ -85,7 +96,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
       return;
     }
     const fileWithPreview = Object.assign(file, {
-      preview: URL.createObjectURL(file)
+      preview: URL.createObjectURL(file),
     });
     setFile(fileWithPreview);
   };
@@ -104,7 +115,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const endTime = Math.min(startTime + CLIP_LENGTH, duration);
@@ -122,15 +133,6 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
     }
   };
 
-  // Drag handle for startTime
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStart = parseFloat(e.target.value);
-    setStartTime(newStart);
-    if (wavesurfer.current) {
-      wavesurfer.current.seekTo(newStart / duration);
-    }
-  };
-
   return (
     <div className="space-y-4">
       {file ? (
@@ -140,11 +142,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
               <MusicNoteIcon className="h-6 w-6 text-white" />
               <Subtitle className="text-white">{file.name}</Subtitle>
             </div>
-            <Button
-              className="w-fit max-h-6"
-              size="xs"
-              onClick={removeFile}
-            >
+            <Button className="w-fit max-h-6" size="xs" onClick={removeFile}>
               Remove
             </Button>
           </div>
@@ -152,43 +150,13 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
           <div className="w-full mt-4">
             <div ref={waveformRef} className="w-full h-16 bg-black/30 rounded" />
             <div className="flex items-center gap-2 mt-2">
-              <Button
-                type="button"
-                size="sm"
-                className="px-2 py-1"
-                onClick={togglePlayPause}
-                disabled={duration === 0}
-              >
-                {isPlaying ? (
-                  <PauseIcon className="h-5 w-5" />
-                ) : (
-                  <PlayIcon className="h-5 w-5" />
-                )}
-                <span className="ml-1">{isPlaying ? "Pause" : "Play Selection"}</span>
+              <Button type="button" size="sm" className="px-2 py-1" onClick={togglePlayPause} disabled={duration === 0}>
+                {isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
+                <span className="ml-1">{isPlaying ? "Pause" : "Preview Selection"}</span>
               </Button>
               <span className="text-xs text-white/60">
                 {formatTime(startTime)} - {formatTime(endTime)}
               </span>
-            </div>
-            {/* Slider for startTime selection */}
-            <div className="relative w-full h-2 bg-dark-grey rounded-full mt-4">
-              <div
-                className="absolute h-full bg-brand-highlight rounded-full"
-                style={{
-                  left: `${(startTime / duration) * 100}%`,
-                  width: `${(CLIP_LENGTH / duration) * 100}%`,
-                }}
-              />
-              <input
-                type="range"
-                min={0}
-                max={duration - CLIP_LENGTH}
-                step={0.01}
-                value={startTime}
-                onChange={handleSliderChange}
-                className="absolute w-full h-full opacity-0 cursor-pointer"
-                disabled={duration === 0}
-              />
             </div>
           </div>
         </div>
@@ -211,7 +179,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
               {...getRootProps()}
               className={cx(
                 "flex flex-col items-center rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
-                file ? "shadow-xl" : ""
+                file ? "shadow-xl" : "",
               )}
             >
               <input {...getInputProps()} />
@@ -225,4 +193,4 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
       )}
     </div>
   );
-}; 
+};

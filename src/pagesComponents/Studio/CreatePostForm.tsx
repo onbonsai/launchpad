@@ -362,8 +362,6 @@ const DynamicForm = ({
     </div>
   );
 
-  console.log(template);
-
   return (
     <div className="space-y-4">
       {/* Post content */}
@@ -429,8 +427,8 @@ const DynamicForm = ({
             label={"Audio"}
             fieldDescription={
               template.options.audioRequirement === MediaRequirement.REQUIRED
-                ? "Upload an MP3 file to use in your post"
-                : "Optionally add audio to your post"
+                ? "Upload an MP3 file to use in your post and select a clip to use"
+                : "Optionally add audio to your post and select a clip to use"
             }
           />
           <AudioUploader
