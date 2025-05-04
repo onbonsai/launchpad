@@ -156,6 +156,10 @@ export const generatePreview = async (
   image?: File,
   aspectRatio?: string,
   nft?: NFTMetadata,
+  audio?: {
+    file: File;
+    startTime: number;
+  },
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
@@ -165,10 +169,12 @@ export const generatePreview = async (
       templateData: {
         ...templateData,
         aspectRatio,
-        nft
+        nft,
+        audioStartTime: audio?.startTime
       },
     }));
     if (image) formData.append('image', image);
+    if (audio) formData.append('audio', audio.file);
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },

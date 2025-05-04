@@ -63,6 +63,8 @@ const StudioCreatePage: NextPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
+  const [postAudio, setPostAudio] = useState<File | null>(null);
+  const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(false);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -508,6 +510,10 @@ const StudioCreatePage: NextPage = () => {
                         }}
                         isGeneratingPreview={isGeneratingPreview}
                         setIsGeneratingPreview={setIsGeneratingPreview}
+                        postAudio={postAudio}
+                        setPostAudio={setPostAudio}
+                        audioStartTime={audioStartTime}
+                        setAudioStartTime={setAudioStartTime}
                       />
                     )}
                     {openTab === 2 && (

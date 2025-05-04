@@ -40,8 +40,6 @@ type CreatePostProps = {
   setPostAudio: (i: any) => void;
   audioStartTime?: number;
   setAudioStartTime: (t: number) => void;
-  audioEndTime?: number;
-  setAudioEndTime: (t: number) => void;
 };
 
 const CreatePostForm = ({
@@ -56,6 +54,10 @@ const CreatePostForm = ({
   setPostImage,
   isGeneratingPreview,
   setIsGeneratingPreview,
+  postAudio,
+  setPostAudio,
+  audioStartTime,
+  setAudioStartTime,
 }: CreatePostProps) => {
   const { address, isConnected } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -64,8 +66,6 @@ const CreatePostForm = ({
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
-  const [postAudio, setPostAudio] = useState<File | null>(null);
-  const [audioStartTime, setAudioStartTime] = useState<number>(0);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -166,6 +166,10 @@ const CreatePostForm = ({
           image: compressedNFTImage as string,
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
+        template.options?.audioRequirement !== MediaRequirement.NONE && postAudio ? {
+          file: postAudio,
+          startTime: audioStartTime || 0
+        } : undefined
       );
       if (!res) throw new Error();
       const { agentId, preview } = res;
@@ -424,7 +428,7 @@ const DynamicForm = ({
       {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
         <div className="space-y-2">
           <FieldLabel
-            label={"Audio"}
+            label={"Audio Clip"}
             fieldDescription={
               template.options.audioRequirement === MediaRequirement.REQUIRED
                 ? "Upload an MP3 file to use in your post and select a clip to use"
