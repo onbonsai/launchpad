@@ -24,26 +24,26 @@ export default function AnimatedBonsai({
   const [key, setKey] = useState(0)
 
   useEffect(() => {
-    // Start the animation after component mounts
-    setPathLength(1)
+    setPathLength(0)
+    const timer = setTimeout(() => {
+      setPathLength(1)
+    }, 50)
 
-    // If loop is enabled, restart animation when it completes
     if (loop) {
-      const timer = setTimeout(() => {
+      const loopTimer = setTimeout(() => {
         setPathLength(0)
-        setTimeout(() => setPathLength(1), 10)
+        setKey(prev => prev + 1)
+        setTimeout(() => setPathLength(1), 50)
       }, duration * 1000)
 
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(loopTimer)
+      }
     }
-  }, [duration, loop, key])
 
-  // Function to manually restart the animation
-  const restartAnimation = () => {
-    setPathLength(0)
-    setKey((prev) => prev + 1)
-    setTimeout(() => setPathLength(1), 10)
-  }
+    return () => clearTimeout(timer)
+  }, [duration, loop, key])
 
   return (
     <div className="flex items-center justify-center" style={{ width, height }}>
@@ -108,16 +108,13 @@ export default function AnimatedBonsai({
 
         {/* Animated dot that traces the outline */}
         {loop && (
-          <motion.circle
+          <circle
             cx="0"
             cy="0"
             r={strokeWidth * 1.5}
             fill={color}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
           >
-            <motion.animateMotion
+            <animateMotion
               path="M100 20
               L100 50
               C100 50, 70 20, 60 25
@@ -146,9 +143,10 @@ export default function AnimatedBonsai({
               C120 195, 125 190, 120 185
               C115 180, 100 180, 100 180"
               dur={`${duration * 1.2}s`}
-              repeatCount={loop ? "indefinite" : "1"}
+              repeatCount="indefinite"
+              rotate="auto"
             />
-          </motion.circle>
+          </circle>
         )}
       </motion.svg>
     </div>

@@ -32,6 +32,8 @@ type CreatePostProps = {
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
   setIsGeneratingPreview: (b: boolean) => void;
+  setCurrentAction: (action: string | undefined) => void;
+  roomId?: string;
 };
 
 const CreatePostForm = ({
@@ -46,6 +48,8 @@ const CreatePostForm = ({
   setPostImage,
   isGeneratingPreview,
   setIsGeneratingPreview,
+  setCurrentAction,
+  roomId,
 }: CreatePostProps) => {
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
@@ -92,8 +96,9 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
+    setCurrentAction("Generating preview");
     let toastId = toast.loading("Generating - this could take a minute...");
-    
+
     try {
       // Compress the NFT image if it exists
       let compressedNFTImage = selectedNFT?.image?.croppedBase64;
@@ -112,7 +117,7 @@ const CreatePostForm = ({
             preserveExif: true,
           };
           const compressedBlob = await imageCompression(file, options);
-          
+
           // Convert compressed blob back to base64
           const reader = new FileReader();
           compressedNFTImage = await new Promise<string>((resolve) => {
@@ -144,15 +149,21 @@ const CreatePostForm = ({
           image: compressedNFTImage as string,
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
+        roomId,
       );
-      if (!res) throw new Error();
-      const { agentId, preview } = res;
+
+      if (!res) throw new Error("No result from generatePreview");
+      const { agentId, preview, roomId: newRoomId } = res;
 
       if (!preview) throw new Error("No preview");
+
+      // Set both the template data and preview
       setPreview({
         ...preview,
         text: preview.text || postContent,
         agentId,
+        roomId: newRoomId,
+        templateData,
       } as Preview);
 
       toast.success("Done", { id: toastId });
@@ -161,6 +172,7 @@ const CreatePostForm = ({
       toast.error("Failed to generate preview", { id: toastId });
     } finally {
       setIsGeneratingPreview(false);
+      setCurrentAction(undefined);
     }
   }
 

@@ -185,3 +185,7 @@ export const actButtonContainerStyleOverride = (color, backgroundColor, disabled
   }
   cursor: ${!disabled ? 'pointer' : 'default'};
 `
+
+export const previewProfileContainerStyleOverride = (isMirror, padding) => css`
+  display: none !important;
+`
