@@ -468,14 +468,6 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
-      let params;
-      if (!currentPreview?.agentId) {
-        params = {
-          templateName: template.name,
-          category: template.category,
-          templateData: finalTemplateData,
-        };
-      }
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
@@ -485,7 +477,11 @@ const StudioCreatePage: NextPage = () => {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress
         } : undefined,
-        params
+        params: {
+          templateName: template.name,
+          category: template.category,
+          templateData: finalTemplateData,
+        },
       }));
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
