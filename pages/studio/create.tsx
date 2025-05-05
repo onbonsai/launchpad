@@ -607,7 +607,7 @@ const StudioCreatePage: NextPage = () => {
                       templateUrl={template?.apiUrl}
                       setFinalTemplateData={setFinalTemplateData}
                       localPreviews={localPreviews}
-                      isFinalize={openTab === 3}
+                      isFinalize={openTab > 1}
                     />
                   </div>
                 </div>
