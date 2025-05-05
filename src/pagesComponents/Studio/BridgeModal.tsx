@@ -268,7 +268,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
                   <Spinner customClasses="h-4 w-4" color="#5be39d" />
                   <span>Bridging</span>
                 </div>
-              ) : (chain?.id !== fromChain?.id) ? `Switch to ${fromChain?.name}` : (
+              ) : (chain?.id !== fromChain?.id && fromChain?.name) ? `Switch to ${fromChain?.name}` : (
                 (nativeBalance && estimatedFee && !sufficientNativeFunds) ? "Insufficient funds" : "Bridge"
               )}
             </Button>

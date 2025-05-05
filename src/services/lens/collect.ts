@@ -69,15 +69,15 @@ export const checkCollectAmount = async (
     return 0n;
   }
 
+  const _publicClient = publicClient("lens");
+
   // Check EOA BONSAI balance
-  const eoaBonsaiBalance = await readContract(walletClient, {
+  const eoaBonsaiBalance = await _publicClient.readContract({
     address: PROTOCOL_DEPLOYMENT.lens.Bonsai,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [userAddress],
   });
-
-  const _publicClient = publicClient("lens");
 
   // If EOA has enough BONSAI, transfer it to lens account
   if (eoaBonsaiBalance + bonsaiBalance >= collectAmountBn) {

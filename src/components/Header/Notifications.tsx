@@ -12,19 +12,56 @@ import { Button } from "../Button";
 import { getPostContentSubstring } from "@src/utils/utils";
 import { ProfilePopper } from "../Profile/ProfilePopper";
 
+const LAST_SEEN_NOTIFICATION_KEY = 'last_seen_notification_id';
+
+// Add custom styles for the pulse animation
+const pulseStyles = `
+  @keyframes pulse-green {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(0.8);
+    }
+  }
+`;
+
 export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { ref, inView } = useInView();
   const { data: walletClient } = useWalletClient();
   const { authenticatedProfileId } = useLensSignIn(walletClient);
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } = useGetNotifications(authenticatedProfileId);
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const notifs = useMemo(() => data?.pages.flatMap(page => page.notifications) || [], [isLoading]);
   const [showTooltip, setShowTooltip] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Group notifications, combining reactions for the same post
   const groupedNotifications = useMemo(() => {
+    const lastSeenId = localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY);
+
+    // If the latest notification is different from last seen, find the range
+    let foundLastSeen = !lastSeenId; // If no last seen ID, consider all as new
+    const isNewMap = new Map<string, boolean>();
+
+    // First pass: mark notifications as new until we find the last seen one
+    notifs.forEach(notification => {
+      if (notification.id === lastSeenId) {
+        foundLastSeen = true;
+        isNewMap.set(notification.id, false);
+      } else if (!foundLastSeen) {
+        isNewMap.set(notification.id, true);
+      } else {
+        isNewMap.set(notification.id, false);
+      }
+    });
+
     const grouped = notifs.reduce((acc, notification) => {
+      const isNew = isNewMap.get(notification.id) || false;
+
       if (notification.__typename === "ReactionNotification") {
         const postId = notification.post.slug;
         if (!acc[postId]) {
@@ -34,14 +71,22 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
             __typename: "ReactionNotification",
             post: notification.post,
             reactions: [notification.reactions[0]],
+            isNew,
           };
         } else {
           // Add to existing group
           acc[postId].reactions.push(notification.reactions[0]);
+          // If any reaction is new, mark the group as new
+          if (isNew) {
+            acc[postId].isNew = true;
+          }
         }
       } else {
         // Non-reaction notifications are kept as is
-        acc[notification.id] = notification;
+        acc[notification.id] = {
+          ...notification,
+          isNew,
+        };
       }
       return acc;
     }, {});
@@ -57,6 +102,41 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
   }, [notifs]);
+
+  // Effect to check for new notifications and mark them
+  useEffect(() => {
+    if (!notifs.length) return;
+
+    const lastSeenId = localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY);
+    const latestNotificationId = notifs[0]?.id;
+
+    // If the latest notification is different from last seen, we have new notifications
+    if (latestNotificationId && latestNotificationId !== lastSeenId) {
+      console.log(`new latestNotificationId: ${latestNotificationId}`);
+      setHasNewNotifications(true);
+      // Immediately update the last seen ID
+      localStorage.setItem(LAST_SEEN_NOTIFICATION_KEY, latestNotificationId);
+    } else {
+      setHasNewNotifications(false);
+    }
+  }, [notifs]);
+
+  // Effect to clear new notifications indicator after 3 seconds when tooltip is shown
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (showTooltip && hasNewNotifications) {
+      timeoutId = setTimeout(() => {
+        setHasNewNotifications(false);
+      }, 2000);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [showTooltip, hasNewNotifications]);
 
   // Effect to add and remove the event listener
   useEffect(() => {
@@ -95,13 +175,19 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
 
   return (
     <div ref={containerRef} className="relative">
+      <style>{pulseStyles}</style>
       <Button
         size="md"
         className={`text-base font-medium md:px-2 rounded-lg !bg-none !border-none ${!!openMobileMenu ? 'w-full' : ''} hover:!outline-none`}
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center space-x-4">
-          <NotificationsOutlined className="h-5 w-5 text-white" />
+          <div className="relative">
+            <NotificationsOutlined className="h-5 w-5 text-white" />
+            {hasNewNotifications && (
+              <div className="absolute -top-3 -right-3 h-4 w-4 bg-bearish rounded-full" />
+            )}
+          </div>
           {openMobileMenu ? "Notifications" : ""}
         </div>
       </Button>
@@ -157,6 +243,7 @@ interface GroupedReactionNotificationProps {
   followed: Record<string, boolean>;
   setFollowed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   closeTooltip: () => void;
+  isNew?: boolean;
 }
 
 const GroupedReactionNotification = ({
@@ -168,6 +255,7 @@ const GroupedReactionNotification = ({
   followed,
   setFollowed,
   closeTooltip,
+  isNew,
 }: GroupedReactionNotificationProps) => {
   const displayedReactions = reactions.slice(0, maxDisplayedAvatars);
   const firstUser = reactions[0].account;
@@ -176,7 +264,7 @@ const GroupedReactionNotification = ({
 
   return (
     <Link href={`/post/${postId}`} onClick={closeTooltip}>
-      <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
+      <div className={`py-3 px-4 flex gap-3 cursor-pointer transition-colors ${isNew ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'}`}>
         {/* First Column - Icon */}
         <div className="flex-shrink-0 pt-1">
           <HeartIcon className="w-5 h-5 text-white" />
@@ -251,7 +339,6 @@ const NotificationItem = ({
   closeTooltip,
 }: NotificationItemProps) => {
   if (type === "ReactionNotification") {
-
     return (
       <GroupedReactionNotification
         reactions={notification.reactions}
@@ -261,6 +348,7 @@ const NotificationItem = ({
         followed={followed}
         setFollowed={setFollowed}
         closeTooltip={closeTooltip}
+        isNew={notification.isNew}
       />
     );
   }
@@ -311,7 +399,7 @@ const NotificationItem = ({
 
   return (
     <Link href={postId ? `/post/${postId}` : '#'} className={!postId ? 'pointer-events-none' : ''} onClick={closeTooltip}>
-      <div className="py-3 px-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/[0.02]">
+      <div className={`py-3 px-4 flex gap-3 cursor-pointer transition-colors ${notification.isNew ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'}`}>
         {/* First Column - Icon */}
         <div className="flex-shrink-0 pt-1">{getIcon()}</div>
 

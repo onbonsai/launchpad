@@ -16,7 +16,7 @@ import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useGetComments } from "@src/hooks/useGetComments";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
-import { getPost } from "@src/services/lens/posts";
+import { getPost, getQuotes } from "@src/services/lens/posts";
 import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -33,6 +33,7 @@ import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
+import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -42,6 +43,7 @@ interface PublicationProps {
   content?: string;
   handle?: string;
   postId: string;
+  quotes: any[];
 }
 
 // Lazy load the Publications component
@@ -61,10 +63,10 @@ const PublicationContainer = dynamic(
   }
 );
 
-const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }) => {
+const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { postId, returnTo } = router.query;
+  const { postId } = router.query;
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
@@ -74,25 +76,73 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
     account: authenticatedProfile
   });
 
+  // Get the return post ID from localStorage
+  const returnPostId = useMemo(() => {
+    if (!isMounted) return null;
+    if (typeof window !== 'undefined') {
+      const storedId = localStorage.getItem('returnPostId');
+      console.log('[returnPostId useMemo] Retrieved from localStorage:', storedId);
+      return storedId;
+    }
+    return null;
+  }, [isMounted]);
+
+  // Handle back navigation
+  const handleBackNavigation = () => {
+    if (returnPostId && returnPostId !== currentPostId) {
+      localStorage.removeItem('returnPostId');
+      router.push(`/post/${returnPostId}`);
+    } else {
+      router.push('/');
+    }
+  };
+
+  // Use router.query.postId instead of postId from destructuring
+  const currentPostId = router.query.postId as string;
+
+  // Store the current post ID as return ID when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (currentPostId && typeof window !== 'undefined') {
+        localStorage.setItem('returnPostId', currentPostId);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also store when component unmounts (for client-side navigation)
+      if (currentPostId && typeof window !== 'undefined') {
+        localStorage.setItem('returnPostId', currentPostId);
+      }
+    };
+  }, [currentPostId]);
+
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
+    if (!isMounted) return null;
     if (typeof window !== 'undefined') {
       const storedData = localStorage.getItem('tempPostData');
       if (storedData) {
         try {
-          localStorage.removeItem('tempPostData');
-          return JSON.parse(storedData);
+          const parsedData = JSON.parse(storedData);
+          // Only use the stored data if it matches the current post ID
+          if (parsedData?.id === currentPostId) {
+            localStorage.removeItem('tempPostData');
+            return parsedData;
+          } else {
+            // Clear the stored data if it doesn't match
+            localStorage.removeItem('tempPostData');
+          }
         } catch (e) {
           console.error("Failed to parse stored post data:", e);
+          localStorage.removeItem('tempPostData');
           return null;
         }
       }
     }
     return null;
-  }, []);
-
-  // Use router.query.postId instead of postId from destructuring
-  const currentPostId = router.query.postId as string;
+  }, [isMounted, currentPostId]);
 
   useEffect(() => {
     if (rootPostId) {
@@ -385,7 +435,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
           <ChatWindowButton agentInfo={agentInfoSage}>
             <Chat
-              // treating the postId as the agentId in the eliza backend
               agentId={currentPostId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
               agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
@@ -393,12 +442,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
           </ChatWindowButton>
         )}
         <section aria-labelledby="dashboard-heading" className="max-w-full md:flex items-start justify-center h-full gap-4">
-          <Link
-            href={returnTo ? returnTo as string : "/"}
+          <button
+            onClick={handleBackNavigation}
             className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
           >
             <ArrowBack className="h-5 w-5" />
-          </Link>
+          </button>
           <div className="flex flex-col gap-2 h-full relative">
             {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
             <div className="overflow-y-hidden h-full">
@@ -412,20 +461,20 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                     <>
                       {/* Version Navigation Arrows - Only show if we have versions */}
                       {media?.versions && media.versions.length > 0 && (
-                        <div className="absolute top-[50%] -translate-y-1/2 w-full flex justify-between z-10" style={{ top: 'min(50%, 300px)' }}>
+                        <div className="absolute top-[50%] -translate-y-1/2 w-full flex justify-between z-10 px-2 sm:px-0" style={{ top: 'min(50%, 300px)' }}>
                           <button
                             onClick={() => loadVersion((currentVersionIndex ?? (media?.versions?.length ?? 0)) - 1)}
                             disabled={currentVersionIndex === 0 || isLoadingVersion}
-                            className="transform -translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="transform sm:-translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           >
-                            <ChevronLeftIcon className="h-12 w-8" />
+                            <ChevronLeftIcon className="h-8 w-6 sm:h-12 sm:w-8" />
                           </button>
                           <button
                             onClick={() => loadVersion((currentVersionIndex ?? -1) + 1)}
                             disabled={currentVersionIndex === null || isLoadingVersion}
-                            className="transform translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="transform sm:translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           >
-                            <ChevronRightIcon className="h-12 w-8" />
+                            <ChevronRightIcon className="h-8 w-6 sm:h-12 sm:w-8" />
                           </button>
                         </div>
                       )}
@@ -476,6 +525,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
                           connectedAccounts={connectedAccounts}
                         />
                       </div>
+                      <QuotePreviews quotes={quotes} />
                     </>
                   ) : (
                     <div className="flex justify-center pt-8 pb-8">
@@ -589,8 +639,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId }
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const postId = context.query.postId!.toString();
   let post;
+  let quotes;
   try {
-    post = await getPost(postId);
+    [post, quotes] = await Promise.all([
+      getPost(postId),
+      getQuotes(postId)
+    ]);
   } catch { }
 
   if (!post) return { notFound: true };
@@ -623,6 +677,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       content: post?.metadata?.content,
       handle: post?.author.username.localName,
       postId,
+      quotes: quotes || [],
     },
   };
 };

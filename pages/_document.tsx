@@ -27,7 +27,6 @@ class MyDocument extends Document {
           <meta property="og:site_name" content="Bonsai Smart Media" />
           <meta property="og:locale" content="en_US" />
           <meta property="og:url" content={SITE_URL} />
-          <meta property="og:image" content={`${SITE_URL}/opengraph-image.jpg`} />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
           <meta property="og:logo" content={`${SITE_URL}/logo.png`} />

@@ -64,7 +64,7 @@ export interface BonsaiClientMetadata {
   acl: WalletAddressAcl;
 }
 
-export enum ImageRequirement {
+export enum MediaRequirement {
   NONE = "none",
   OPTIONAL = "optional",
   REQUIRED = "required",
@@ -83,10 +83,11 @@ export type Template = {
   options: {
     allowPreview?: boolean;
     allowPreviousToken?: boolean;
-    imageRequirement?: ImageRequirement;
+    imageRequirement?: MediaRequirement;
     requireContent?: boolean;
     isCanvas?: boolean;
-    nftRequirement?: ImageRequirement;
+    nftRequirement?: MediaRequirement;
+    audioRequirement?: MediaRequirement;
   };
   templateData: {
     form: z.ZodObject<any>;
@@ -160,6 +161,10 @@ export const generatePreview = async (
   aspectRatio?: string,
   nft?: NFTMetadata,
   roomId?: string,
+  audio?: {
+    file: File;
+    startTime: number;
+  },
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
@@ -170,10 +175,12 @@ export const generatePreview = async (
       templateData: {
         ...templateData,
         aspectRatio,
-        nft
+        nft,
+        audioStartTime: audio?.startTime
       },
     }));
     if (image) formData.append('image', image);
+    if (audio) formData.append('audio', audio.file);
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },

@@ -57,6 +57,8 @@ const StudioCreatePage: NextPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
+  const [postAudio, setPostAudio] = useState<File | null>(null);
+  const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(false);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const [loadingDots, setLoadingDots] = useState('');
@@ -564,12 +566,18 @@ const StudioCreatePage: NextPage = () => {
                         setIsGeneratingPreview={setIsGeneratingPreview}
                         setCurrentAction={setCurrentAction}
                         roomId={roomId as string}
+                        postAudio={postAudio}
+                        setPostAudio={setPostAudio}
+                        audioStartTime={audioStartTime}
+                        setAudioStartTime={setAudioStartTime}
                       />
                     )}
                     {openTab === 2 && (
                       <CreateTokenForm
                         finalTokenData={finalTokenData}
                         postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
+                        setSavedTokenAddress={setSavedTokenAddress}
+                        savedTokenAddress={savedTokenAddress}
                         setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
                         next={() => setOpenTab(3)}

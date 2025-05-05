@@ -15,6 +15,12 @@ import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 
 const COLLECT_PRICE_TIERS = [
   {
+    label: '$0.25',
+    amountStable: 0.25,
+    icon: 'local-atm',
+    amountBonsai: undefined,
+  },
+  {
     label: '$1',
     amountStable: 1,
     icon: 'local-atm',
@@ -23,12 +29,6 @@ const COLLECT_PRICE_TIERS = [
   {
     label: '$5',
     amountStable: 5,
-    icon: 'local-atm',
-    amountBonsai: undefined,
-  },
-  {
-    label: '$10',
-    amountStable: 10,
     icon: 'local-atm',
     amountBonsai: undefined,
   }

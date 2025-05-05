@@ -185,6 +185,29 @@ const REGISTERED_CLUB_INFO_BY_ADDRESS = gql`
   }
 `;
 
+const REGISTERED_CLUBS_BY_CREATOR = gql`
+  query ClubInfo($creator: Bytes!) {
+    clubs(where: {creator: $creator}) {
+      id
+      tokenInfo
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      clubId
+      v2
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+      tokenAddress
+    }
+  }
+`;
+
 const SEARCH_CLUBS = gql`
   query SearchClubs($query: String!) {
     clubs(where:{or:[{symbol_contains_nocase:$query}, {name_contains_nocase:$query}]}){
@@ -435,6 +458,23 @@ const GET_TRADER = gql`
         txHash
         createdAt
       }
+    }
+  }
+`;
+
+const GET_CREATOR_TOKENS = gql`
+  query GetCreatorTokens($creator: Bytes!) {
+    clubs(where: { creator: $creator }, orderBy: createdAt orderDirection: desc) {
+      id
+      clubId
+      creator
+      name
+      symbol
+      uri
+      tokenAddress
+      supply
+      holders
+      complete
     }
   }
 `;
@@ -972,6 +1012,14 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
 
   return { clubs: [], hasMore: false };
 };
+
+export const getRegisteredClubsByCreator = async (creator: string, chain = "base"): Promise<any[]> => {
+  const { data } = await subgraphClient(chain).query({
+    query: REGISTERED_CLUBS_BY_CREATOR, variables: { creator: creator.toLowerCase() }
+  });
+
+  return data?.clubs;
+}
 
 export const publicClient = (chain = "base") => {
   const _chain = getChain(chain);
@@ -1702,3 +1750,11 @@ export const topUpRewards = async (walletClient: any, tokenAddress: `0x${string}
 
   await publicClient("lens").waitForTransactionReceipt({ hash });
 }
+
+export const getCreatorTokens = async (creator: `0x${string}`) => {
+  const { data } = await subgraphClient("lens").query({ 
+    query: GET_CREATOR_TOKENS, 
+    variables: { creator: creator.toLowerCase() } 
+  });
+  return data.clubs;
+};

@@ -1,13 +1,19 @@
-import { evmAddress, NotificationType } from "@lens-protocol/client";
+import { evmAddress, NotificationType, PaginatedResultInfo, Notification } from "@lens-protocol/client";
 import { fetchNotifications } from "@lens-protocol/client/actions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { LENS_BONSAI_DEFAULT_FEED } from "../madfi/utils";
 
+type NotificationsResponse = {
+  notifications: readonly Notification[];
+  pageInfo: PaginatedResultInfo;
+  nextCursor: string | null;
+};
+
 export const useGetNotifications = (authenticatedProfileId?: string | null) => {
-  return useInfiniteQuery({
+  return useInfiniteQuery<NotificationsResponse, Error, NotificationsResponse, (string | null | undefined)[], string | null>({
     queryKey: ["notifications", authenticatedProfileId],
-    queryFn: async ({ pageParam = null }) => {
+    queryFn: async ({ pageParam }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();
@@ -38,6 +44,14 @@ export const useGetNotifications = (authenticatedProfileId?: string | null) => {
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !!authenticatedProfileId,
-    refetchInterval: 60000, // Fetch every minute
+    refetchInterval: 5000, // Fetch every 5s instead of 15s
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    gcTime: 0,
+    retry: true,
+    retryDelay: 1000,
   });
 };
