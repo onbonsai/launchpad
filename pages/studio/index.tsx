@@ -145,7 +145,7 @@ const StudioCreatePage: NextPage = () => {
                         } p-4 flex flex-col border border-dark-grey hover:border-brand-highlight transition-colors h-full`}
                         onClick={() => {
                           if (disabled) return;
-                          else if (estimatedGenerations === 0) openTopUpModal("api-credits");
+                          else if (estimatedGenerations === 0 || (creditBalance!.creditsRemaining < (template.estimatedCost || 0))) openTopUpModal("api-credits");
                           else selectTemplate(template.name);
                         }}
                       >
