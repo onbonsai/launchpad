@@ -70,7 +70,7 @@ export const getPostsByAuthor = async (authorId: string, cursor?: Cursor | null)
   return await fetchPosts(sessionClient || lensClient, {
     filter: {
       authors: [evmAddress(authorId)],
-      postTypes: [PostType.Root],
+      postTypes: [PostType.Root, PostType.Quote],
       feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }]
     },
     pageSize: PageSize.Ten,
