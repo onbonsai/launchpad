@@ -53,6 +53,8 @@ const nextConfig = {
       'tss-react',
       'use-debounce',
       'wagmi',
+      '@wavesurfer/react',
+      'wavesurfer.js',
     ]
   },
   i18n: {

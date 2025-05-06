@@ -1,13 +1,14 @@
 import { WalletAddressAcl } from "@lens-chain/storage-client";
-import { MetadataAttribute } from "@lens-protocol/client";
+import { MetadataAttribute, SessionClient } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult, useInfiniteQuery, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
 import { getClientWithMedia } from "../mongo/client";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
+import { Memory } from "./terminal";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
@@ -63,7 +64,7 @@ export interface BonsaiClientMetadata {
   acl: WalletAddressAcl;
 }
 
-export enum ImageRequirement {
+export enum MediaRequirement {
   NONE = "none",
   OPTIONAL = "optional",
   REQUIRED = "required",
@@ -82,10 +83,11 @@ export type Template = {
   options: {
     allowPreview?: boolean;
     allowPreviousToken?: boolean;
-    imageRequirement?: ImageRequirement;
+    imageRequirement?: MediaRequirement;
     requireContent?: boolean;
     isCanvas?: boolean;
-    nftRequirement?: ImageRequirement;
+    nftRequirement?: MediaRequirement;
+    audioRequirement?: MediaRequirement;
   };
   templateData: {
     form: z.ZodObject<any>;
@@ -93,10 +95,12 @@ export type Template = {
 };
 
 export type Preview = {
+  roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
   text?: string;
   image?: any;
   imagePreview?: string;
+  templateData?: any;
   video?: {
     mimeType: string;
     size: number;
@@ -145,6 +149,7 @@ export type NFTMetadata = {
 interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
+  roomId: string;
 }
 
 export const generatePreview = async (
@@ -155,19 +160,27 @@ export const generatePreview = async (
   image?: File,
   aspectRatio?: string,
   nft?: NFTMetadata,
+  roomId?: string,
+  audio?: {
+    file: File;
+    startTime: number;
+  },
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
     formData.append('data', JSON.stringify({
+      roomId,
       category: template.category,
       templateName: template.name,
       templateData: {
         ...templateData,
         aspectRatio,
-        nft
+        nft,
+        audioStartTime: audio?.startTime
       },
     }));
     if (image) formData.append('image', image);
+    if (audio) formData.append('audio', audio.file);
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
@@ -202,7 +215,8 @@ export const generatePreview = async (
           ...(data.preview.image && { image: data.preview.image }),
           text: data.preview.text,
         },
-        agentId: data.agentId
+        agentId: data.agentId,
+        roomId: data.roomId
       };
     }
 
@@ -419,3 +433,50 @@ export const setFeatured = async (idToken: string, postId: string, featured?: bo
     return false;
   }
 };
+
+export const useGetPreviews = (url?: string, roomId?: string) => {
+  return useInfiniteQuery({
+    queryKey: ["previews", roomId],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!roomId) return { messages: [] };
+
+      const idToken = await _getIdToken();
+      if (!idToken) return { messages: [] };
+
+      const response = await fetch(`${url}/previews/${roomId}/messages?start=${pageParam}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer: ${idToken}`
+        },
+      });
+      if (!response.ok) {
+        console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
+        return { messages: [] };
+      }
+      const data = await response.json();
+      return {
+        messages: data.messages as Memory[],
+        nextCursor: data.messages.length > 0 ? pageParam + data.messages.length : undefined
+      };
+    },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: !!url,
+    initialPageParam: 0
+  });
+};
+
+const _getIdToken = async (): Promise<string | undefined> => {
+  const sessionClient = await resumeSession(true);
+
+  if (!sessionClient) {
+    return;
+  } else {
+    const creds = await (sessionClient as SessionClient).getCredentials();
+
+    if (creds.isOk()) {
+      return creds.value?.idToken;
+    }
+  }
+}

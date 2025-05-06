@@ -38,10 +38,11 @@ module.exports = {
             opacity: '1',
             transform: 'translateY(0)'
           },
-        }
+        },
       },
       animation: {
-        'fade-in-down': 'fade-in-down 0.5s ease-out forwards'
+        'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
+        'pulse-green': 'pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
       },
       screens: {
         "xs": "510px",

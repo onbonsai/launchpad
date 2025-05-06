@@ -12,9 +12,6 @@ import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
-import { Publication, Theme } from "@madfi/widgets-react";
-import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
@@ -26,16 +23,13 @@ import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { parseBase64Image } from "@src/utils/utils";
-import AnimatedBonsai from "@src/components/LoadingSpinner/AnimatedBonsai";
-import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 import axios from "axios";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
-import { isEmpty } from "lodash/lang";
+import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
 
 type TokenData = {
   initialSupply: number;
@@ -51,18 +45,20 @@ type TokenData = {
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource } = router.query;
+  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
   const [openTab, setOpenTab] = useState<number>(1);
-  const [preview, setPreview] = useState<Preview | undefined>();
+  const [currentPreview, setCurrentPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
+  const [postAudio, setPostAudio] = useState<File | string | null>(null);
+  const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(false);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -70,6 +66,18 @@ const StudioCreatePage: NextPage = () => {
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
+  const [localPreviews, setLocalPreviews] = useState<Array<{
+    isAgent: boolean;
+    createdAt: string;
+    content: {
+      text?: string;
+      preview?: Preview;
+      templateData?: string;
+    };
+  }>>([]);
+  const [roomId, setRoomId] = useState<string | undefined>(
+    typeof router.query.roomId === 'string' ? router.query.roomId : undefined
+  );
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -117,7 +125,10 @@ const StudioCreatePage: NextPage = () => {
     if (!isLoading && !!remixMedia) {
       // @ts-expect-error templateData is unknown
       setFinalTemplateData(remixMedia.templateData);
-
+      if (remixMedia.templateData?.audioData) {
+        setPostAudio(remixMedia.templateData.audioData);
+        setAudioStartTime(remixMedia.templateData.audioStartTime);
+      }
       if (remixMedia.token?.address) {
         getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
           setFinalTokenData({
@@ -131,6 +142,38 @@ const StudioCreatePage: NextPage = () => {
       }
     }
   }, [isLoading, remixMedia]);
+
+  const handleSetPreview = (preview: Preview) => {
+    setCurrentPreview(preview);
+    if (preview.roomId && preview.roomId !== roomId) {
+      setRoomId(preview.roomId);
+    }
+
+    // Add both template data and preview messages
+    const now = new Date().toISOString();
+
+    // First add the template data message
+    setLocalPreviews(prev => [...prev, {
+      agentId: `templateData-${preview.agentId}`,
+      isAgent: false,
+      createdAt: now,
+      content: {
+        templateData: JSON.stringify(preview.templateData || {}),
+        text: Object.entries(preview.templateData || {}).map(([key, value]) => `${key}: ${value}`).join('\n')
+      }
+    }]);
+
+    // Then add the preview message
+    setLocalPreviews(prev => [...prev, {
+      agentId: preview.agentId,
+      isAgent: true,
+      createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
+      content: {
+        preview: preview,
+        text: preview.text
+      }
+    }]);
+  };
 
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
@@ -291,15 +334,21 @@ const StudioCreatePage: NextPage = () => {
     try {
       let image;
       let video;
-      if (preview?.video) {
-        const { uri: videoUri, type } = await uploadVideo(preview.video.blob, preview.video.mimeType, template?.acl);
+
+      if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
+        const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
         video = { url: videoUri, type };
+      } else if (currentPreview?.video) {
+        const url = typeof currentPreview?.video === "string" ? currentPreview?.video : currentPreview?.video?.url;
+        video = { url, type: "video/mp4" };
       }
 
       if (postImage && postImage.length > 0) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
-      } else if (preview?.image) {
-        const { uri: imageUri, type } = await uploadImageBase64(preview.image, template?.acl);
+      } else if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
+        image = { url: currentPreview?.image, type: "image/png" };
+      } else if (currentPreview?.image) {
+        const { uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl);
         image = { url: imageUri, type };
       }
 
@@ -369,7 +418,7 @@ const StudioCreatePage: NextPage = () => {
         sessionClient as SessionClient,
         walletClient,
         {
-          text: postContent || preview?.text || template.displayName,
+          text: postContent || currentPreview?.text || template.displayName,
           image,
           video,
           template,
@@ -411,23 +460,20 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
-      let params;
-      if (!preview?.agentId) {
-        params = {
-          templateName: template.name,
-          category: template.category,
-          templateData: finalTemplateData,
-        };
-      }
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
-        agentId: preview?.agentId,
+        roomId,
+        agentId: currentPreview?.agentId,
         postId,
         uri,
         token: (addToken || remixMedia?.agentId) && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress
         } : undefined,
-        params
+        params: {
+          templateName: template.name,
+          category: template.category,
+          templateData: finalTemplateData,
+        },
       }));
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
@@ -482,8 +528,8 @@ const StudioCreatePage: NextPage = () => {
               </div>
 
               {/* Form Card */}
-              <div className="bg-card rounded-lg p-6 mt-6">
-                <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3>
+              <div className="bg-card rounded-lg px-6 py-10 mt-6">
+                {/* <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3> */}
 
                 <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
                   <div className="lg:col-span-1">
@@ -495,9 +541,9 @@ const StudioCreatePage: NextPage = () => {
                     {openTab === 1 && template && (
                       <CreatePostForm
                         template={template as Template}
-                        preview={preview}
+                        preview={currentPreview}
                         finalTemplateData={finalTemplateData}
-                        setPreview={setPreview}
+                        setPreview={handleSetPreview}
                         postContent={postContent}
                         setPostContent={setPostContent}
                         postImage={postImage}
@@ -508,14 +554,19 @@ const StudioCreatePage: NextPage = () => {
                         }}
                         isGeneratingPreview={isGeneratingPreview}
                         setIsGeneratingPreview={setIsGeneratingPreview}
+                        roomId={roomId as string}
+                        postAudio={postAudio}
+                        setPostAudio={setPostAudio}
+                        audioStartTime={audioStartTime}
+                        setAudioStartTime={setAudioStartTime}
                       />
                     )}
                     {openTab === 2 && (
                       <CreateTokenForm
                         finalTokenData={finalTokenData}
+                        postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
                         setSavedTokenAddress={setSavedTokenAddress}
                         savedTokenAddress={savedTokenAddress}
-                        postImage={typeof preview?.image === 'string' ? [parseBase64Image(preview.image)] : preview?.image ? [preview.image] : postImage}
                         setFinalTokenData={setFinalTokenData}
                         back={() => setOpenTab(1)}
                         next={() => setOpenTab(3)}
@@ -538,79 +589,18 @@ const StudioCreatePage: NextPage = () => {
                     )}
                   </div>
                   <div className="lg:col-span-1">
-                    <div className="flex items-center gap-1 mb-4">
-                      <Subtitle className="text-white/70">
-                        Post preview
-                      </Subtitle>
-                    </div>
-                    {isGeneratingPreview && (
-                      <div className="flex flex-col items-center gap-4 pt-12">
-                        <div>
-                          <AnimatedBonsai duration={10} />
-                        </div>
-                        <div className="w-full">
-                          <AnimatedText
-                            lines={[
-                              "Generating preview...",
-                              "Sending content prompt to LLM...",
-                              "Analyzing context and tone...",
-                              "Processing language model response...",
-                              "Enhancing semantic structure...",
-                              "Refining writing style...",
-                              "Optimizing content flow...",
-                              "Applying creative improvements...",
-                              "Running final quality checks...",
-                              "Finalizing your masterpiece..."
-                            ]}
-                            duration={60}
-                            className="text-lg text-white/70"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {!isGeneratingPreview && !isEmpty(preview) && (
-                      <Publication
-                        key={`preview-${JSON.stringify(preview)}`}
-                        publicationData={{
-                          author: authenticatedProfile,
-                          timestamp: new Date(),
-                          metadata: {
-                            __typename: preview?.video
-                              ? "VideoMetadata"
-                              : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
-                            content: preview.text || postContent,
-                            video: preview.video
-                              ? {
-                                  item: preview.video.url,
-                                  cover: (typeof preview.image === 'string' ? preview.image : preview.imagePreview)
-                                }
-                              : undefined,
-                            image: preview.image
-                              ? { item: typeof preview.image === 'string' ? preview.image : preview.imagePreview }
-                              : undefined
-                          }
-                        }}
-                        theme={Theme.dark}
-                        followButtonDisabled={true}
-                        environment={LENS_ENVIRONMENT}
-                        profilePictureStyleOverride={publicationProfilePictureStyle}
-                        containerBorderRadius={'24px'}
-                        containerPadding={'10px'}
-                        profilePadding={'0 0 0 0'}
-                        textContainerStyleOverride={textContainerStyleOverrides}
-                        backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                        mediaImageStyleOverride={mediaImageStyleOverride}
-                        imageContainerStyleOverride={imageContainerStyleOverride}
-                        reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                        reactionContainerStyleOverride={reactionContainerStyleOverride}
-                        shareContainerStyleOverride={shareContainerStyleOverride}
-                        markdownStyleBottomMargin={'0'}
-                        heartIconOverride={true}
-                        messageIconOverride={true}
-                        shareIconOverride={true}
-                        fullVideoHeight
-                      />
-                    )}
+                    <PreviewHistory
+                      currentPreview={currentPreview}
+                      setCurrentPreview={setCurrentPreview}
+                      isGeneratingPreview={isGeneratingPreview}
+                      className="h-[calc(100vh-300px)]"
+                      roomId={queryRoomId as string}
+                      templateUrl={template?.apiUrl}
+                      setFinalTemplateData={setFinalTemplateData}
+                      localPreviews={localPreviews}
+                      isFinalize={openTab > 1}
+                      postImage={postImage}
+                    />
                   </div>
                 </div>
               </div>
