@@ -14,20 +14,6 @@ import { ProfilePopper } from "../Profile/ProfilePopper";
 
 const LAST_SEEN_NOTIFICATION_KEY = 'last_seen_notification_id';
 
-// Add custom styles for the pulse animation
-const pulseStyles = `
-  @keyframes pulse-green {
-    0%, 100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.5;
-      transform: scale(0.8);
-    }
-  }
-`;
-
 export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { ref, inView } = useInView();
   const { data: walletClient } = useWalletClient();
@@ -175,7 +161,6 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
 
   return (
     <div ref={containerRef} className="relative">
-      <style>{pulseStyles}</style>
       <Button
         size="md"
         className={`text-base font-medium md:px-2 rounded-lg !bg-none !border-none ${!!openMobileMenu ? 'w-full' : ''} hover:!outline-none`}

@@ -97,7 +97,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
-  const [useExistingToken, setUseExistingToken] = useState<boolean>(false);
+  const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress);
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
 
   const { data: existingTokens } = useCreatorTokens(address as `0x${string}`);
@@ -212,7 +212,30 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => setUseExistingToken(false)}
+                onClick={() => {
+                  setUseExistingToken(false);
+                  setSavedTokenAddress(undefined);
+                  // Reset all token-related state
+                  setTokenName("");
+                  setTokenSymbol("");
+                  setInitialSupply(0);
+                  setRewardPoolPercentage(0);
+                  setUniHook("BONSAI_NFT_ZERO_FEES_HOOK");
+                  setTokenImage([]);
+                  setSelectedNetwork("lens");
+                  setPricingTier("SMALL");
+                  // Reset the final token data
+                  setFinalTokenData({
+                    initialSupply: 0,
+                    rewardPoolPercentage: 0,
+                    uniHook: "BONSAI_NFT_ZERO_FEES_HOOK",
+                    tokenName: "",
+                    tokenSymbol: "",
+                    tokenImage: [],
+                    selectedNetwork: "lens",
+                    pricingTier: "SMALL"
+                  });
+                }}
                 className={clsx(
                   "flex-1 py-2 px-4 rounded-lg border-2 transition-all",
                   !useExistingToken
@@ -510,7 +533,11 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     <CurrencyInput
                       trailingAmount={`${buyPriceFormatted}`}
                       trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "GHO"}
-                      tokenBalance={tokenBalance || 0n}
+                      tokenBalance={
+                        selectedNetwork === "lens"
+                              ? (ghoBalance?.value || 0n) + (tokenBalance || 0n)
+                              : tokenBalance || 0n
+                      }
                       price={initialSupply?.toString() || "0"}
                       isError={tokenBalance ? tokenBalance < (totalRegistrationFee || 0n) : false}
                       onPriceSet={(e) => setInitialSupply(parseFloat(e))}

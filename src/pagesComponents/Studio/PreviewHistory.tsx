@@ -15,8 +15,6 @@ type PreviewHistoryProps = {
   setCurrentPreview: (c: Preview) => void;
   isGeneratingPreview: boolean;
   templateUrl?: string;
-  currentAction?: string;
-  loadingDots: string;
   className?: string;
   roomId?: string;
   setFinalTemplateData: (t: any) => void;
@@ -49,8 +47,6 @@ export default function PreviewHistory({
   currentPreview,
   setCurrentPreview,
   isGeneratingPreview,
-  currentAction,
-  loadingDots,
   className,
   roomId,
   templateUrl,
@@ -305,11 +301,6 @@ export default function PreviewHistory({
         </div>
 
         <div className="mt-4 flex items-center text-[#ffffff] opacity-70 h-2">
-          {/* {isGeneratingPreview && (
-            <span className="max-w-full font-mono">
-              {currentAction ? `${currentAction} ${loadingDots}` : loadingDots}
-            </span>
-          )} */}
           {isFetchingNextPage && (
             <span className="max-w-full font-mono ml-2">
               Loading more...

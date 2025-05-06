@@ -401,6 +401,8 @@ header .bonsaiLogo {
 .animate-pulse-green {
   animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   border-radius: 24px;
+  transform: none !important;
+  scale: none !important;
 }
 
 /* TradeBanner */
