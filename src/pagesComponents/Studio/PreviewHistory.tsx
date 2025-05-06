@@ -31,6 +31,7 @@ type PreviewHistoryProps = {
     };
   }>;
   isFinalize: boolean;
+  postImage?: any[];
 };
 
 type MemoryPreview = Memory & {
@@ -56,6 +57,7 @@ export default function PreviewHistory({
   setFinalTemplateData,
   localPreviews,
   isFinalize,
+  postImage,
 }: PreviewHistoryProps) {
   const isMounted = useIsMounted();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -143,10 +145,11 @@ export default function PreviewHistory({
           key={`preview`}
           publicationData={{
             author: authenticatedProfile,
+            timestamp: Date.now(),
             metadata: {
               __typename: currentPreview?.video
                 ? "VideoMetadata"
-                : (currentPreview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
+                : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
               content: currentPreview?.text,
               video: currentPreview?.video
                 ? {
@@ -154,8 +157,10 @@ export default function PreviewHistory({
                     cover: currentPreview.image
                   }
                 : undefined,
-              image: currentPreview?.image
-                ? { item: currentPreview.image }
+              image: currentPreview?.imagePreview || currentPreview?.image
+                ? { item: currentPreview?.imagePreview || currentPreview.image }
+                : postImage?.length
+                ? postImage[0].preview
                 : undefined
             }
           }}
@@ -163,7 +168,6 @@ export default function PreviewHistory({
           followButtonDisabled={true}
           environment={LENS_ENVIRONMENT}
           profilePictureStyleOverride={publicationProfilePictureStyle}
-          profileContainerStyleOverride={previewProfileContainerStyleOverride}
           containerBorderRadius={'24px'}
           containerPadding={'10px'}
           profilePadding={'0 0 0 0'}
@@ -245,7 +249,6 @@ export default function PreviewHistory({
                   theme={Theme.dark}
                   followButtonDisabled={true}
                   environment={LENS_ENVIRONMENT}
-                  profilePictureStyleOverride={publicationProfilePictureStyle}
                   profileContainerStyleOverride={previewProfileContainerStyleOverride}
                   containerBorderRadius={'24px'}
                   containerPadding={'10px'}

@@ -36,7 +36,6 @@ type CreatePostProps = {
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
   setIsGeneratingPreview: (b: boolean) => void;
-  setCurrentAction: (action: string | undefined) => void;
   roomId?: string;
   postAudio?: any;
   setPostAudio: (i: any) => void;
@@ -56,7 +55,6 @@ const CreatePostForm = ({
   setPostImage,
   isGeneratingPreview,
   setIsGeneratingPreview,
-  setCurrentAction,
   roomId,
   postAudio,
   setPostAudio,
@@ -118,7 +116,6 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
-    setCurrentAction("Generating preview");
     let toastId = toast.loading("Generating - this could take a minute...");
 
     try {
@@ -198,7 +195,6 @@ const CreatePostForm = ({
       toast.error("Failed to generate preview", { id: toastId });
     } finally {
       setIsGeneratingPreview(false);
-      setCurrentAction(undefined);
     }
   }
 

@@ -61,8 +61,6 @@ const StudioCreatePage: NextPage = () => {
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(false);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
-  const [loadingDots, setLoadingDots] = useState('');
-  const [currentAction, setCurrentAction] = useState<string|undefined>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
@@ -80,17 +78,6 @@ const StudioCreatePage: NextPage = () => {
   const [roomId, setRoomId] = useState<string | undefined>(
     typeof router.query.roomId === 'string' ? router.query.roomId : undefined
   );
-
-  // Update loading dots animation
-  useEffect(() => {
-    if (!isGeneratingPreview) return;
-
-    const dotsInterval = setInterval(() => {
-      setLoadingDots((prev) => (prev.length >= 3 ? '' : `${prev}.`));
-    }, 500);
-
-    return () => clearInterval(dotsInterval);
-  }, [isGeneratingPreview]);
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -567,7 +554,6 @@ const StudioCreatePage: NextPage = () => {
                         }}
                         isGeneratingPreview={isGeneratingPreview}
                         setIsGeneratingPreview={setIsGeneratingPreview}
-                        setCurrentAction={setCurrentAction}
                         roomId={roomId as string}
                         postAudio={postAudio}
                         setPostAudio={setPostAudio}
@@ -607,14 +593,13 @@ const StudioCreatePage: NextPage = () => {
                       currentPreview={currentPreview}
                       setCurrentPreview={setCurrentPreview}
                       isGeneratingPreview={isGeneratingPreview}
-                      currentAction={currentAction}
-                      loadingDots={loadingDots}
                       className="h-[calc(100vh-300px)]"
                       roomId={queryRoomId as string}
                       templateUrl={template?.apiUrl}
                       setFinalTemplateData={setFinalTemplateData}
                       localPreviews={localPreviews}
                       isFinalize={openTab > 1}
+                      postImage={postImage}
                     />
                   </div>
                 </div>
