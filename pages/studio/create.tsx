@@ -57,7 +57,7 @@ const StudioCreatePage: NextPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
-  const [postAudio, setPostAudio] = useState<File | null>(null);
+  const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(false);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
@@ -138,7 +138,10 @@ const StudioCreatePage: NextPage = () => {
     if (!isLoading && !!remixMedia) {
       // @ts-expect-error templateData is unknown
       setFinalTemplateData(remixMedia.templateData);
-
+      if (remixMedia.templateData?.audioData) {
+        setPostAudio(remixMedia.templateData.audioData);
+        setAudioStartTime(remixMedia.templateData.audioStartTime);
+      }
       if (remixMedia.token?.address) {
         getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
           setFinalTokenData({

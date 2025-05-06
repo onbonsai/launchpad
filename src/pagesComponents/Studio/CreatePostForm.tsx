@@ -246,7 +246,7 @@ const CreatePostForm = ({
                 loadRemixNFT={finalTemplateData?.nft}
                 postAudio={postAudio}
                 setPostAudio={setPostAudio}
-                audioStartTime={audioStartTime}
+                audioStartTime={audioStartTime || 0}
                 setAudioStartTime={setAudioStartTime}
               />
           }
@@ -447,12 +447,16 @@ const DynamicForm = ({
                 : "Optionally add audio to your post and select a clip to use"
             }
           />
-          <AudioUploader
-            file={postAudio}
-            setFile={setPostAudio}
-            startTime={audioStartTime}
-            setStartTime={setAudioStartTime}
-          />
+          {
+            typeof postAudio === 'string' && postAudio.startsWith('http') ?
+              <div className="text-secondary/70 bg-card-light rounded-lg p-3">The original audio clip will be used.</div> :
+              <AudioUploader
+                file={postAudio}
+                setFile={setPostAudio}
+                startTime={audioStartTime}
+                setStartTime={setAudioStartTime}
+              />
+          }
         </div>
       )}
 
