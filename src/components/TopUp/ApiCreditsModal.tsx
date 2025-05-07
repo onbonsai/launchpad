@@ -190,7 +190,7 @@ export const ApiCreditsModal = () => {
 
       <div className="text-gray-400">
         <p>AI credits are used to make requests to our generative AI services.</p>
-        <p>Purchased credits are one time use and will not refresh. 1.5 cents per credit.</p>
+        <p>Purchased credits are one time use and do not refresh or expire.</p>
       </div>
 
       <div className="flex items-center justify-between p-3 rounded-xl bg-gray-800/50 border border-gray-700/50">
