@@ -29,6 +29,7 @@ import { useModal } from "connectkit";
 import BuySellModal from "@pagesComponents/Club/BuySellModal";
 import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import { useGetPosts } from "@src/services/lens/posts";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -372,6 +373,11 @@ const TokenPage: NextPage = () => {
     return a < b ? a : b;
   };
 
+  // Collect all post IDs from postUpdates
+  const postUpdateIds = useMemo(() => creditBalance?.postUpdates?.map((u) => u.postId) || [], [creditBalance?.postUpdates]);
+  // Fetch post details
+  const { data: postDetails } = useGetPosts(postUpdateIds);
+
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-4 sm:px-6 pt-6">
@@ -597,47 +603,55 @@ const TokenPage: NextPage = () => {
                 {isConnected && creditBalance?.postUpdates && creditBalance.postUpdates.length > 0 && (
                   <div className="bg-card rounded-lg p-6">
                     <h3 className="text-sm font-medium text-brand-highlight mb-4">Recent Post Updates</h3>
-                    <Subtitle className="mt-2 md-plus:mt-4">
-                      The following table shows the number of credits used for each post update since credits were last
-                      refreshed. Click any row to view the post and disable further updates.
+                    <Subtitle className="mt-2 mb-4 md-plus:mt-4">
+                      Credits used per post update since last refresh. Click a row to view post and manage updates.
                     </Subtitle>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-card-light">
-                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Post ID</th>
+                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Post</th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Time</th>
                             <th className="text-right py-3 px-4 text-xs font-medium text-secondary/60">Credits Used</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {creditBalance.postUpdates.map((update) => (
-                            <tr
-                              key={update.postId}
-                              className="border-b border-card-light last:border-0 hover:bg-card-light/10 cursor-pointer transition-colors"
-                              role="link"
-                              tabIndex={0}
-                              onClick={() => router.push(`/post/${update.postId}`)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  router.push(`/post/${update.postId}`);
-                                }
-                              }}
-                            >
-                              <td className="py-3 px-4">
-                                <span className="text-secondary">{update.postId}</span>
-                              </td>
-                              <td className="py-3 px-4 text-secondary">
-                                {new Date(update.timestamp * 1000).toLocaleString(undefined, {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </td>
-                              <td className="py-3 px-4 text-right text-secondary">{update.creditsUsed.toFixed(2)}</td>
-                            </tr>
-                          ))}
+                          {creditBalance.postUpdates.map((update) => {
+                            // Try to find the post content from postDetails
+                            const post = postDetails?.find((p: any) => p?.id === update.postId || p?.slug === update.postId);
+                            const content = post?.metadata?.content ?? update.postId;
+                            return (
+                              <tr
+                                key={update.postId}
+                                className="border-b border-card-light last:border-0 hover:bg-card-light/10 cursor-pointer transition-colors"
+                                role="link"
+                                tabIndex={0}
+                                onClick={() => router.push(`/post/${update.postId}`)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    router.push(`/post/${update.postId}`);
+                                  }
+                                }}
+                              >
+                                <td className="py-3 px-4">
+                                  <span className="text-secondary">
+                                    {content
+                                      ? content.slice(0, 36) + (content.length > 36 ? "..." : "")
+                                      : update.postId}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-secondary">
+                                  {new Date(update.timestamp * 1000).toLocaleString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </td>
+                                <td className="py-3 px-4 text-right text-secondary">{update.creditsUsed.toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
