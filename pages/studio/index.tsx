@@ -165,7 +165,7 @@ const StudioCreatePage: NextPage = () => {
                           <div className="flex justify-end mt-4">
                             {!isLoadingCredits && estimatedGenerations !== undefined && (
                               <button
-                                className={`text-base text-black px-4 py-1 rounded-full text-sm ${
+                                className={`text-base text-black px-4 py-1 rounded-full ${
                                   disabled
                                     ? "bg-brand-highlight/50 cursor-not-allowed"
                                     : "bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"

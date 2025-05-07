@@ -374,7 +374,10 @@ const TokenPage: NextPage = () => {
   };
 
   // Collect all post IDs from postUpdates
-  const postUpdateIds = useMemo(() => creditBalance?.postUpdates?.map((u) => u.postId) || [], [creditBalance?.postUpdates]);
+  const postUpdateIds = useMemo(() => 
+    Array.from(new Set(creditBalance?.postUpdates?.map((u) => u.postId) || [])), 
+    [creditBalance?.postUpdates]
+  );
   // Fetch post details
   const { data: postDetails } = useGetPosts(postUpdateIds);
 
@@ -619,6 +622,7 @@ const TokenPage: NextPage = () => {
                           {creditBalance.postUpdates.map((update) => {
                             // Try to find the post content from postDetails
                             const post = postDetails?.find((p: any) => p?.id === update.postId || p?.slug === update.postId);
+                            // @ts-ignore
                             const content = post?.metadata?.content ?? update.postId;
                             return (
                               <tr

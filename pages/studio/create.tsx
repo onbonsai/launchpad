@@ -125,8 +125,11 @@ const StudioCreatePage: NextPage = () => {
     if (!isLoading && !!remixMedia) {
       // @ts-expect-error templateData is unknown
       setFinalTemplateData(remixMedia.templateData);
+      // @ts-expect-error templateData is unknown
       if (remixMedia.templateData?.audioData) {
+        // @ts-expect-error templateData is unknown
         setPostAudio(remixMedia.templateData.audioData);
+        // @ts-expect-error templateData is unknown
         setAudioStartTime(remixMedia.templateData.audioStartTime);
       }
       if (remixMedia.token?.address) {

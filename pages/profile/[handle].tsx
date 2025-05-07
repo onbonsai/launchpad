@@ -1,7 +1,6 @@
 import { MobileViewSelector } from './MobileViewSelector';
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { GetServerSideProps, NextPage } from "next";
-import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
@@ -63,14 +62,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   accountStats,
 }: CreatorPageProps) => {
   const isMounted = useIsMounted();
-  const {
-    query: {
-      openModal: openSubModalOnPageLoad,
-      source: referralSource,
-      invite: openInviteModal,
-    },
-  } = useRouter();
-  const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isReady: ready } = useSIWE();
