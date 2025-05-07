@@ -5,7 +5,7 @@ import { Button } from "@src/components/Button";
 import { switchChain } from "viem/actions";
 import { useState, useMemo, useEffect } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
-import ConfettiExplosion from 'react-confetti-explosion';
+import ConfettiExplosion from "react-confetti-explosion";
 import { lens, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { erc20Abi, formatEther, parseUnits } from "viem";
@@ -18,16 +18,15 @@ import WalletButton from "@src/components/Creators/WalletButton";
 import { kFormatter } from "@src/utils/utils";
 import BridgeModal from "@pagesComponents/Studio/BridgeModal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import toast from "react-hot-toast";
 import { calculateStakingCredits, LockupPeriod } from "@src/services/madfi/stakingCalculator";
-import { ReferralModal } from '@src/components/ReferralModal/ReferralModal';
+import { ReferralModal } from "@src/components/ReferralModal/ReferralModal";
 import { GiftIcon } from "@heroicons/react/outline";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import axios from "axios";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useModal } from "connectkit";
-import BuySellModal from '@pagesComponents/Club/BuySellModal';
+import BuySellModal from "@pagesComponents/Club/BuySellModal";
 import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
 import { useTopUpModal } from "@src/context/TopUpContext";
 
@@ -90,7 +89,7 @@ const TokenPage: NextPage = () => {
         const response = await axios.get(`/api/referrals/status?address=${address}`);
         return { wasReferred: response.data.hasReferrer, hasReferred: response.data.hasReferred };
       } catch (error) {
-        console.error('Error checking referral status:', error);
+        console.error("Error checking referral status:", error);
         return false;
       }
     },
@@ -113,11 +112,11 @@ const TokenPage: NextPage = () => {
 
   const referrer = useMemo(() => {
     const { ref } = router.query;
-    return typeof ref === 'string' ? ref : null;
+    return typeof ref === "string" ? ref : null;
   }, [router.query]);
 
   const referralLink = useMemo(() => {
-    if (!address) return '';
+    if (!address) return "";
     return `${window.location.origin}/studio/stake?ref=${address}`;
   }, [address]);
 
@@ -140,7 +139,7 @@ const TokenPage: NextPage = () => {
       setBonsaiPrice(tokenPrice);
       const bonsaiHoldings = Number.parseFloat(formatEther(bonsaiBalance));
       setTokenHoldings(tokenPrice * bonsaiHoldings);
-    }
+    };
     fetchPrice();
   }, [bonsaiBalance]);
 
@@ -177,14 +176,14 @@ const TokenPage: NextPage = () => {
 
   const recordReferral = async (userAddress: string, referrerAddress: string) => {
     try {
-      const response = await axios.post('/api/referrals/record', {
+      const response = await axios.post("/api/referrals/record", {
         user: userAddress,
         referrer: referrerAddress,
       });
 
       return response.data;
     } catch (error) {
-      console.error('Error recording referral:', error);
+      console.error("Error recording referral:", error);
       throw error;
     }
   };
@@ -232,7 +231,7 @@ const TokenPage: NextPage = () => {
         try {
           await recordReferral(address, referrer);
         } catch (error) {
-          console.error('Failed to record referral:', error);
+          console.error("Failed to record referral:", error);
           // Don't throw here - we don't want to revert the stake if referral recording fails
         }
       }
@@ -392,17 +391,19 @@ const TokenPage: NextPage = () => {
                       <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
-                      Stake $BONSAI on Lens Chain to earn AI generation credits for creating smart media and sending messages. The longer the lockup, the more credits you earn.
-                      Credits reset daily.
+                      Stake $BONSAI on Lens Chain to earn AI generation credits for creating smart media and sending
+                      messages. The longer the lockup, the more credits you earn. Credits reset daily.
                     </Subtitle>
-                    {isConnected && <Button
-                      onClick={() => setIsReferralModalOpen(true)}
-                      size={"md"}
-                      className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                    >
-                      <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" />
-                      <span className="text-brand-secondary">Referrals</span>
-                    </Button>}
+                    {isConnected && (
+                      <Button
+                        onClick={() => setIsReferralModalOpen(true)}
+                        size={"md"}
+                        className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                      >
+                        <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" />
+                        <span className="text-brand-secondary">Referrals</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -422,7 +423,12 @@ const TokenPage: NextPage = () => {
                           <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
                           <div className="mt-4 flex justify-end space-x-2">
-                            <Button variant="dark-grey" size="sm" onClick={() => setIsBridgeModalOpen(true)} disabled={!!bridgeInfo?.txHash}>
+                            <Button
+                              variant="dark-grey"
+                              size="sm"
+                              onClick={() => setIsBridgeModalOpen(true)}
+                              disabled={!!bridgeInfo?.txHash}
+                            >
                               {!bridgeInfo?.txHash && "Bridge"}
                               {bridgeInfo?.txHash && (
                                 <div className="flex items-center gap-2 flex-row">
@@ -431,11 +437,7 @@ const TokenPage: NextPage = () => {
                                 </div>
                               )}
                             </Button>
-                            <Button
-                              variant="accent"
-                              size="sm"
-                              onClick={() => setShowBuyModal(true)}
-                            >
+                            <Button variant="accent" size="sm" onClick={() => setShowBuyModal(true)}>
                               Buy $BONSAI
                             </Button>
                           </div>
@@ -517,7 +519,8 @@ const TokenPage: NextPage = () => {
                             <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0} total</span>
                           </div>
                           <p className="text-xs text-secondary/60">
-                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} generations (non-premium templates)
+                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} generations (non-premium
+                            templates)
                           </p>
                         </div>
 
@@ -527,7 +530,10 @@ const TokenPage: NextPage = () => {
                             {creditBalance ? formatNextReset() : "--:--"}
                           </div>
                           <p className="text-xs text-secondary/60">
-                            Credits will reset to {estimatedFutureCredits !== null ? estimatedFutureCredits.toFixed(2) : creditBalance?.totalCredits?.toFixed(1) || 0}
+                            Credits will reset to{" "}
+                            {estimatedFutureCredits !== null
+                              ? estimatedFutureCredits.toFixed(2)
+                              : creditBalance?.totalCredits?.toFixed(1) || 0}
                           </p>
                         </div>
 
@@ -543,18 +549,19 @@ const TokenPage: NextPage = () => {
                                 strokeWidth="4"
                                 strokeLinecap="round"
                                 strokeDasharray={`${2 * Math.PI * 44}`}
-                                strokeDashoffset={`${2 *
+                                strokeDashoffset={`${
+                                  2 *
                                   Math.PI *
                                   44 *
                                   (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))
-                                  }`}
+                                }`}
                                 stroke={
                                   creditBalance?.creditsRemaining && creditBalance?.totalCredits
                                     ? creditBalance.creditsRemaining / creditBalance.totalCredits > 0.66
                                       ? "#22c55e" // Green for > 66% remaining
                                       : creditBalance.creditsRemaining / creditBalance.totalCredits > 0.33
-                                        ? "#eab308" // Yellow for 33-66% remaining
-                                        : "#ef4444" // Red for < 33% remaining
+                                      ? "#eab308" // Yellow for 33-66% remaining
+                                      : "#ef4444" // Red for < 33% remaining
                                     : "#22c55e"
                                 }
                               />
@@ -579,16 +586,63 @@ const TokenPage: NextPage = () => {
                   </div>
                   {isConnected && (
                     <div className="mt-4">
-                      <Button
-                        variant="accent"
-                        size="sm"
-                        onClick={() => openTopUpModal("api-credits")}
-                      >
+                      <Button variant="accent" size="sm" onClick={() => openTopUpModal("api-credits")}>
                         Purchase Credits
                       </Button>
                     </div>
                   )}
                 </div>
+
+                {/* Recent Post Updates Table */}
+                {isConnected && creditBalance?.postUpdates && creditBalance.postUpdates.length > 0 && (
+                  <div className="bg-card rounded-lg p-6">
+                    <h3 className="text-sm font-medium text-brand-highlight mb-4">Recent Post Updates</h3>
+                    <Subtitle className="mt-2 md-plus:mt-4">
+                      The following table shows the number of credits used for each post update since credits were last
+                      refreshed. Click any row to view the post and disable further updates.
+                    </Subtitle>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-card-light">
+                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Post ID</th>
+                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Time</th>
+                            <th className="text-right py-3 px-4 text-xs font-medium text-secondary/60">Credits Used</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {creditBalance.postUpdates.map((update) => (
+                            <tr
+                              key={update.postId}
+                              className="border-b border-card-light last:border-0 hover:bg-card-light/10 cursor-pointer transition-colors"
+                              role="link"
+                              tabIndex={0}
+                              onClick={() => router.push(`/post/${update.postId}`)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  router.push(`/post/${update.postId}`);
+                                }
+                              }}
+                            >
+                              <td className="py-3 px-4">
+                                <span className="text-secondary">{update.postId}</span>
+                              </td>
+                              <td className="py-3 px-4 text-secondary">
+                                {new Date(update.timestamp * 1000).toLocaleString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </td>
+                              <td className="py-3 px-4 text-right text-secondary">{update.creditsUsed.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes || (referralStatus && referralStatus.wasReferred)) && (
@@ -605,15 +659,21 @@ const TokenPage: NextPage = () => {
                           <div className="relative z-10">
                             <div className="flex items-center space-x-2">
                               <div className="text-lg font-semibold">
-                                {activeStakes[0] ? formatStakingAmount(getMinBigInt(BigInt(stakingData?.summary?.totalStaked || 0), parseUnits('10000', 18)).toString()) : '0'} $BONSAI
+                                {activeStakes[0]
+                                  ? formatStakingAmount(
+                                      getMinBigInt(
+                                        BigInt(stakingData?.summary?.totalStaked || 0),
+                                        parseUnits("10000", 18),
+                                      ).toString(),
+                                    )
+                                  : "0"}{" "}
+                                $BONSAI
                               </div>
                               <span className="text-xs font-medium bg-[#B6D5C2]/20 text-[#B6D5C2] px-2 py-0.5 rounded">
                                 Referral Reward
                               </span>
                             </div>
-                            <div className="text-xs text-secondary/60">
-                              Coming Soon
-                            </div>
+                            <div className="text-xs text-secondary/60">Coming Soon</div>
                           </div>
 
                           {/* Disabled buttons */}
@@ -622,12 +682,7 @@ const TokenPage: NextPage = () => {
                               <div className="text-sm">Coming Soon</div>
                               <div className="text-xs text-secondary/60">Coming Soon</div>
                             </div>
-                            <Button
-                              variant="dark-grey"
-                              size="sm"
-                              disabled
-                              className="opacity-50"
-                            >
+                            <Button variant="dark-grey" size="sm" disabled className="opacity-50">
                               Locked
                             </Button>
                           </div>
@@ -706,10 +761,7 @@ const TokenPage: NextPage = () => {
                   setOpen={setIsReferralModalOpen}
                   panelClassnames="w-screen h-screen md-plus:h-fit md-plus:w-[500px] text-secondary"
                 >
-                  <ReferralModal
-                    onClose={() => setIsReferralModalOpen(false)}
-                    referralLink={referralLink}
-                  />
+                  <ReferralModal onClose={() => setIsReferralModalOpen(false)} referralLink={referralLink} />
                 </Modal>
 
                 {/* Buy Modal for BONSAI */}
@@ -726,7 +778,7 @@ const TokenPage: NextPage = () => {
                     token: {
                       symbol: "BONSAI",
                       image: "/bonsai.png",
-                    }
+                    },
                   }}
                   address={address as string}
                   open={showBuyModal}

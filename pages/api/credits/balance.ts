@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now,
         creditsPurchased: 0,
+        postUpdates: [],
       });
 
       return res.status(200).json({
@@ -45,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now.toISOString(),
         creditsPurchased: 0,
+        postUpdates: [],
       });
     }
 
@@ -59,17 +61,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       creditsRemaining: creditsRemaining,
       lastResetTime: new Date(userCredits.lastResetTime).toISOString(),
       creditsPurchased: userCredits.creditsPurchased || 0,
+      postUpdates: userCredits.postUpdates || [],
     });
   } catch (error) {
     console.error("Error fetching credits:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
-}
-
-// Helper function to calculate the next midnight UTC
-function getNextMidnightUTC() {
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setUTCHours(24, 0, 0, 0);
-  return tomorrow;
 }

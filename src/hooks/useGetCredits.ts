@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
+type PostUpdate = {
+  postId: string;
+  creditsUsed: number;
+  timestamp: number;
+};
+
 export type CreditBalance = {
   totalCredits: number;
   freeCredits: number;
@@ -8,7 +14,8 @@ export type CreditBalance = {
   creditsRemaining: number;
   lastResetTime: string;
   creditsPurchased: number;
-}
+  postUpdates: PostUpdate[];
+};
 
 export const fetchCredits = async (address: string): Promise<CreditBalance> => {
   const response = await fetch(`/api/credits/balance?address=${address}`);
