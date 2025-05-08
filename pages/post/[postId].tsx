@@ -179,7 +179,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [localHasUpvoted, setLocalHasUpvoted] = useState<Set<string>>(new Set());
-  const [canComment, setCanComment] = useState<boolean>();
   const commentInputRef = useRef<HTMLInputElement>(null);
   const [popperAnchor, setPopperAnchor] = useState<HTMLElement | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState<number | null>(null);
@@ -240,14 +239,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       return commentTimestamp > media.updatedAt;
     });
   }, [sortedComments, media]);
-
-  useEffect(() => {
-    setCanComment(
-      showRootPublication
-        ? publication?.root.operations?.hasSimpleCollected
-        : publication?.operations?.hasSimpleCollected
-    );
-  }, [publication]);
 
   const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string, isThread?: boolean) => {
     e.preventDefault();
@@ -322,7 +313,11 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       );
       if (!res?.postId) throw new Error("no resulting post id");
 
-      toast.success("Sent", { id: toastId, duration: 3000 });
+      const isCollected = showRootPublication
+      ? publication?.root.operations?.hasSimpleCollected
+      : publication?.operations?.hasSimpleCollected
+
+      toast.success(isCollected ? "Sent" : "Sent. Collect the post for your reply to affect the next update.", { id: toastId, duration: 10000 });
       setComment("");
       setFiles([]);
       setTimeout(fetchComments, 3000);
@@ -493,7 +488,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           isProfileAdmin={isProfileAdmin}
                           media={safeMedia(media)}
                           onCollectCallback={() => {
-                            setCanComment(true);
                             refetch();
                             scrollToReplyInput();
                           }}
@@ -516,7 +510,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           isProfileAdmin={isProfileAdmin}
                           media={safeMedia(media)}
                           onCollectCallback={() => {
-                            setCanComment(true);
                             refetch();
                             scrollToReplyInput();
                           }}
@@ -563,28 +556,23 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                     submitComment();
                                   }
                                 }}
-                                placeholder={canComment ? "Send a reply" : "Collect the post to participate"}
-                                disabled={!canComment}
+                                placeholder="Send a reply"
                                 autoComplete="off"
                                 className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
                               />
-                              {canComment && (
-                                <div className="absolute right-2 -top-2">
-                                  <GenericUploader files={files} setFiles={setFiles} contained />
-                                </div>
-                              )}
+                              <div className="absolute right-2 -top-2">
+                                <GenericUploader files={files} setFiles={setFiles} contained />
+                              </div>
                             </div>
-                            {canComment && (
-                              <Button
-                                disabled={isCommenting || !comment || !canComment}
-                                onClick={submitComment}
-                                variant="accentBrand"
-                                size="sm"
-                                className="!py-[12px]"
-                              >
-                                Reply
-                              </Button>
-                            )}
+                            <Button
+                              disabled={isCommenting || !comment}
+                              onClick={submitComment}
+                              variant="accentBrand"
+                              size="sm"
+                              className="!py-[12px]"
+                            >
+                              Reply
+                            </Button>
                           </div>
                         </div>
                       </>
