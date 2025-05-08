@@ -22,7 +22,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let { txHash, postId, chain } = req.body;
     if (!txHash || !postId) return res.status(400).json({ error: "Missing txHash or postId" });
-    chain = chain || "base";
+    chain = chain || "lens";
 
     const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
