@@ -12,6 +12,7 @@ import CreatorButton from "@src/components/Creators/CreatorButton";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { useAccount } from "wagmi";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
+import { InformationCircleIcon } from "@heroicons/react/outline";
 
 const COLLECT_PRICE_TIERS = [
   {
@@ -132,6 +133,24 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+          {/* AI Update Settings */}
+          <div className="sm:col-span-6 flex flex-col mt-4">
+            <div className="flex flex-col justify-between gap-2">
+              <div className="flex items-center gap-1">
+                <Subtitle className="text-white/70">Post Updates</Subtitle>
+              </div>
+              <div className="bg-card-light rounded-lg p-4 border border-card-lightest">
+                <div className="flex items-center gap-2 mb-2">
+                  <InformationCircleIcon className="h-5 w-5 text-white/70" />
+                  <p className="text-sm text-white/90 font-medium">Automatic Content Updates</p>
+                </div>
+                <p className="text-sm text-white/70 mb-3">
+                  Content updates trigger hourly based on activity. You can also manually update 
+                  via the "..." button on your post after publishing.
+                </p>
               </div>
             </div>
           </div>
