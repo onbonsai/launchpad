@@ -138,6 +138,7 @@ const PublicationContainer = ({
   const isCreator = publication?.author.address === authenticatedProfile?.address;
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
   const { openTopUpModal } = useTopUpModal();
+  const [showPulse, setShowPulse] = useState(false);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -202,6 +203,15 @@ const PublicationContainer = ({
       return () => clearTimeout(timer);
     }
   }, [publication?.metadata?.video]);
+
+  // Add effect to handle pulse animation when comment is submitted
+  useEffect(() => {
+    if (onCollectCallback && !hasCollected) {
+      setShowPulse(true);
+      const timer = setTimeout(() => setShowPulse(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [onCollectCallback, hasCollected]);
 
   if (!(publicationId || publication)) throw new Error('Need publicationId or publication');
   if (publication?.metadata?.encryptedWith && !decryptGatedPosts) throw new Error('Encrypted publication needs fn decryptGatedPosts');
@@ -398,6 +408,18 @@ const PublicationContainer = ({
 
   return (
     <div className="relative">
+      <style jsx global>{`
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          25% { transform: scale(1.2); }
+          50% { transform: scale(1); }
+          75% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+        .pulse-animation {
+          animation: pulse 1s ease-in-out;
+        }
+      `}</style>
       {isMounted && (
         <PublicationType
           key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
@@ -460,7 +482,7 @@ const PublicationContainer = ({
           <Button
             variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
-            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
+            className={`text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
             onClick={(e) => {
               if (!hasCollected) {
                 onCollectButtonClick(e);
