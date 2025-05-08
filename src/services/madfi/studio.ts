@@ -1,5 +1,5 @@
 import { WalletAddressAcl } from "@lens-chain/storage-client";
-import { MetadataAttribute, SessionClient } from "@lens-protocol/client";
+import { MetadataAttribute, Post, SessionClient } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
 import { useQuery, UseQueryResult, useInfiniteQuery, UseInfiniteQueryResult } from "@tanstack/react-query";
@@ -255,9 +255,27 @@ export const createSmartMedia = async (url: string, idToken: string, body: strin
   }
 };
 
+/**
+ * Resolves complete smart media data from a post's metadata attributes
+ *
+ * This function attempts to fetch the full smart media data from the API using the post's attributes.
+ * It includes timeout handling and graceful error handling for various network conditions.
+ *
+ * @param attributes - Lens post.metadata.attributes
+ * @param postSlug - Lens post.slug
+ * @param withVersions - If true, includes version history in the response
+ * @param _url - Optional override URL for the API endpoint. If not provided, extracts from attributes.
+ * @returns A Promise that resolves to:
+ *   - SmartMedia object if successfully resolved
+ *   - null if:
+ *     - No valid URL found in attributes
+ *     - Post not found (404)
+ *     - Network timeout/error
+ *     - Invalid response format
+ */
 export const resolveSmartMedia = async (
   attributes: MetadataAttribute[],
-  postId: string,
+  postSlug: string,
   withVersions?: boolean,
   _url?: string,
 ): Promise<SmartMedia | null> => {
@@ -281,7 +299,7 @@ export const resolveSmartMedia = async (
       }, 5000);
     });
 
-    const fetchPromise = fetch(`${url}/post/${postId}?withVersions=${withVersions}`, {
+    const fetchPromise = fetch(`${url}/post/${postSlug}?withVersions=${withVersions}`, {
       signal: controller.signal,
       headers: {
         'Accept': 'application/json',
@@ -315,7 +333,7 @@ export const resolveSmartMedia = async (
       if (!error.message.includes('abort') &&
           !error.message.includes('timeout') &&
           !(error instanceof TypeError && error.message.includes('fetch failed'))) {
-        console.error(`Failed to resolve smart media for post ${postId}:`, error.message);
+        console.error(`Failed to resolve smart media for post ${postSlug}:`, error.message);
       }
     }
     return null;
@@ -391,7 +409,7 @@ export const useGetFeaturedPosts = (enabled = true) => {
     queryKey: ['featured-posts'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/bonsai/get-featured-media');
+        const response = await fetch('/api/media/get-featured-media');
         if (!response.ok) throw new Error('Failed to fetch featured media');
         const { postIds } = await response.json();
         let sessionClient;
@@ -416,7 +434,7 @@ export const useGetFeaturedPosts = (enabled = true) => {
 
 export const setFeatured = async (idToken: string, postId: string, featured?: boolean): Promise<boolean> => {
   try {
-    const response = await fetch("/api/bonsai/set-featured", {
+    const response = await fetch("/api/media/set-featured", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -466,6 +484,62 @@ export const useGetPreviews = (url?: string, roomId?: string) => {
     initialPageParam: 0
   });
 };
+
+type SmartMediaLight = {
+  template?: { id: string, formatted: string },
+  category?: { id: string, formatted: string },
+  mediaUrl?: string,
+  isCanvas?: boolean;
+}
+
+/**
+ * Retrieves smart media information from a Lens Protocol post (if any)
+ *
+ * This function checks if a post is a smart media post created through the Bonsai app
+ * and extracts relevant metadata. It can either return basic metadata (template, category, mediaUrl)
+ * or resolve the full smart media data from the API.
+ *
+ * @param post - The Lens Protocol post to process
+ * @param resolve - If true, fetches complete smart media data from the API. If false, returns basic metadata only.
+ * @returns A Promise that resolves to:
+ *   - SmartMediaLight: Basic metadata if resolve is false
+ *   - SmartMedia: Complete smart media data if resolve is true
+ *   - null: If the post is not a smart media post
+ */
+export const fetchSmartMedia = async (post: Post, resolve?: boolean): Promise<SmartMediaLight | SmartMedia | null> => {
+  const LENS_BONSAI_APP = "0x640c9184b31467C84096EB2829309756DDbB3f44";
+  // handle root post
+  const attributes = !post.root ? post.metadata.attributes : post.root.metadata.attributes;
+  const slug = !post.root ? post.slug : post.root.slug;
+
+  const isSmartMedia = post.app?.address === LENS_BONSAI_APP && attributes?.some(attr => attr.key === 'template');
+  if (!isSmartMedia) return null;
+  if (resolve) {
+    return await resolveSmartMedia(attributes, slug, true);
+  } else {
+    const template = post.metadata.attributes?.find(({ key }) => key === "template");
+    const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
+    const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
+    const isCanvas = post.metadata.attributes?.find(({ key }) => key === "isCanvas");
+
+    return {
+      ...(template && {
+        template: {
+          id: template.value,
+          formatted: template.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+        }
+      }),
+      ...(category && {
+        category: {
+          id: category.value,
+          formatted: category.value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+        }
+      }),
+      mediaUrl: mediaUrl?.value,
+      isCanvas: !!isCanvas?.value
+    }
+  }
+}
 
 const _getIdToken = async (): Promise<string | undefined> => {
   const sessionClient = await resumeSession(true);

@@ -21,7 +21,7 @@ import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfil
 import { sendLike } from "@src/services/lens/getReactions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
-import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
+import { fetchSmartMedia, resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";

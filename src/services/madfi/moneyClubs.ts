@@ -21,7 +21,8 @@ import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { getPosts } from "../lens/posts";
-import { Post } from "@lens-protocol/client";
+import { Post, SessionClient } from "@lens-protocol/client";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 export const V1_LAUNCHPAD_URL = "https://launch-v1.onbons.ai";
 
@@ -1495,9 +1496,13 @@ export const setLensData = async ({
   postId,
   chain,
 }: { hash: string; handle: string; postId: string; chain: string }) => {
+  const idToken = await _getIdToken();
   await fetch('/api/clubs/set-lens-data', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer: ${idToken}`
+    },
     body: JSON.stringify({ txHash: hash, handle, postId, chain })
   });
 }
@@ -1752,9 +1757,23 @@ export const topUpRewards = async (walletClient: any, tokenAddress: `0x${string}
 }
 
 export const getCreatorTokens = async (creator: `0x${string}`) => {
-  const { data } = await subgraphClient("lens").query({ 
-    query: GET_CREATOR_TOKENS, 
-    variables: { creator: creator.toLowerCase() } 
+  const { data } = await subgraphClient("lens").query({
+    query: GET_CREATOR_TOKENS,
+    variables: { creator: creator.toLowerCase() }
   });
   return data.clubs;
 };
+
+const _getIdToken = async (): Promise<string | undefined> => {
+  const sessionClient = await resumeSession(true);
+
+  if (!sessionClient) {
+    return;
+  } else {
+    const creds = await (sessionClient as SessionClient).getCredentials();
+
+    if (creds.isOk()) {
+      return creds.value?.idToken;
+    }
+  }
+}

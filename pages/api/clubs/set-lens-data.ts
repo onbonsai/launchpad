@@ -5,10 +5,23 @@ import { getEventFromReceipt } from "@src/utils/viem";
 import { getLaunchpadAddress } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
+import verifyIdToken from "@src/services/lens/verifyIdToken";
+import { getProfileByAddress } from "@src/services/lens/getProfiles";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) return res.status(401).json({ error: "Missing authorization header" });
+  const token = authorization.split(" ")[1];
+
   try {
-    let { txHash, postId, profileId, handle, chain } = req.body;
+    const user = await verifyIdToken(token);
+    if (!user) return res.status(403).json({ error: "Invalid lens id token" });
+
+    const account = await getProfileByAddress(user.act.sub as `0x${string}`);
+    if (!account) return res.status(400).json({ error: "Account not found "});
+
+    let { txHash, postId, chain } = req.body;
+    if (!txHash || !postId) return res.status(400).json({ error: "Missing txHash or postId" });
     chain = chain || "base";
 
     const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
@@ -26,11 +39,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // link the token to a post and creator, for display purposes on the bonsai app
     await collection.updateOne(
       { clubId: parseInt(clubId.toString()) },
-      { $setOnInsert: { postId, profileId, handle, tokenAddress } },
+      { $setOnInsert: { postId, handle: account?.username?.localName, tokenAddress } },
       { upsert: true }
     );
 
-    res.status(200).end();
+    res.status(200).json({ success: true });
   } catch (e) {
     console.log(e);
     res.status(500).json({ success: false });
