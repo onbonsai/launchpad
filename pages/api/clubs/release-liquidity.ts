@@ -102,7 +102,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const minAmountOut = IS_PRODUCTION
       ? parseEther(
           (
-            0.82 *
+            // 0.82 *
+            0.25 * // liquidity is shit rn
             (chain === "base" ? Number(MIN_LIQUIDITY_THRESHOLD) : minLiquidityThreshold[club.initialPrice]) *
             tokenPrice
           ).toString(),
