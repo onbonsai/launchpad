@@ -60,11 +60,15 @@ const PERSONA_BASE = {
     ]
   }
 }
+const AZUKI = { chain: "eth", address: "0xed5af388653567af2f388e6224dc7c4b3241c544" };
+const GVC = { chain: "eth", address: "0xb8ea78fcacef50d41375e44e6814ebba36bb33c4" };
 const WHITELISTED_COLLECTIONS = [
   CIGS,
   PERSONA_BASE,
   PERSONA_MAINNET,
-  GALVERSE
+  GALVERSE,
+  AZUKI,
+  GVC,
 ] as const;
 
 const CHAINS = {
