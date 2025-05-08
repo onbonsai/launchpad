@@ -60,9 +60,9 @@ export default function ChatWindowButton({ children, agentInfo }: { children: Re
         {/* Chat Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <div className="flex items-center space-x-4">
-            <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
               <img
-                src={agentInfo.account?.metadata?.picture?.uri || "/default.png"}
+                src={agentInfo.account?.metadata?.picture || "/default.png"}
                 alt="Agent avatar"
                 className="h-full w-full rounded-full object-cover"
               />
