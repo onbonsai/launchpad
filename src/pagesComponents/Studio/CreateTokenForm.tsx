@@ -25,7 +25,7 @@ import { Subtitle } from "@src/styles/text";
 import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { IS_PRODUCTION, LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import Image from "next/image";
 
 type NetworkOption = {
@@ -149,18 +149,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     // For other chains, just check USDC balance as before
     return requiredAmount > currentWGHOBalance;
   }, [totalRegistrationFee, tokenBalance, ghoBalance?.value, selectedNetwork]);
-
-  const isValid = (() => {
-    if (useExistingToken) {
-      return !!savedTokenAddress;
-    }
-    return tokenName &&
-      tokenSymbol &&
-      (tokenBalance !== undefined) &&
-      !notEnoughFunds &&
-      !!tokenImage &&
-      ((initialSupply || 0) <= MAX_INITIAL_SUPPLY);
-  })();
 
   const setTokenDataBefore = (fn) => {
     setFinalTokenData({
@@ -610,12 +598,11 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
           <Button
             size="md"
-            disabled={!isValid}
             onClick={() => setTokenDataBefore(next)}
-            variant="accentBrand"
+            variant={tokenName ? "accentBrand" : "secondary"}
             className="w-full hover:bg-bullish"
           >
-            Next
+            {!tokenName ? "Skip" : "Next"}
           </Button>
           {initialSupply && initialSupply > MAX_INITIAL_SUPPLY ? (
             <Subtitle className="text-brand-highlight/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>

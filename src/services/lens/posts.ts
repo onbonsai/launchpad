@@ -40,6 +40,14 @@ export const getPosts = async (publicationIds: string[], sessionClient?: Session
   }
 };
 
+export const useGetPosts = (publicationIds: string[]) => {
+  return useQuery({
+    queryKey: ["get-posts", publicationIds],
+    queryFn: () => getPosts(publicationIds),
+    enabled: !!publicationIds,
+  });
+};
+
 export const getQuotes = async (_postId: string, sessionClient?: SessionClient) => {
   try {
     const result = await fetchPostReferences(sessionClient || lensClient, {
