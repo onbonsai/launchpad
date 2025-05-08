@@ -7,6 +7,7 @@ import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { getClientWithClubs } from "@src/services/mongo/client";
 import verifyIdToken from "@src/services/lens/verifyIdToken";
 import { getProfileByAddress } from "@src/services/lens/getProfiles";
+import { SITE_URL } from "@src/constants/constants";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const authorization = req.headers.authorization;
@@ -23,6 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let { txHash, postId, chain } = req.body;
     if (!txHash || !postId) return res.status(400).json({ error: "Missing txHash or postId" });
     chain = chain || "lens";
+    if (!["base", "lens"].includes(chain)) return res.status(400).json({ error: "Invalid chain" });
 
     const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
     const registeredClubEvent = getEventFromReceipt({
@@ -43,7 +45,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       { upsert: true }
     );
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, url: `${SITE_URL}/token/${chain}/${tokenAddress}` });
   } catch (e) {
     console.log(e);
     res.status(500).json({ success: false });
