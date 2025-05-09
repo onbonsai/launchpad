@@ -35,7 +35,31 @@ const COLLECT_PRICE_TIERS = [
   }
 ];
 
-export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, back, isCreating, addToken, onAddToken, isRemix }) => {
+type FinalizePostProps = {
+  authenticatedProfile: any;
+  finalTokenData: any;
+  onCreate: (collectAmount: number) => void;
+  back: () => void;
+  isCreating: boolean;
+  addToken: boolean;
+  onAddToken: () => void;
+  isRemix: boolean;
+  setFinalTokenData: (data: any) => void;
+  setAddToken: (value: boolean) => void;
+};
+
+export const FinalizePost = ({
+  authenticatedProfile,
+  finalTokenData,
+  onCreate,
+  back,
+  isCreating,
+  addToken,
+  onAddToken,
+  isRemix,
+  setFinalTokenData,
+  setAddToken
+}: FinalizePostProps) => {
   const { chain } = useAccount();
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
@@ -82,7 +106,24 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
                       </> : 'Token preview'}
                     </Subtitle>
                   </div>
-                  <TokenPreviewCard authenticatedProfile={isRemix ? undefined : authenticatedProfile} token={finalTokenData} />
+                  <div className="relative">
+                    {!isRemix && (
+                      <div className="absolute top-2 right-2 z-50">
+                        <button
+                          onClick={() => {
+                            setFinalTokenData(undefined);
+                            setAddToken(false);
+                          }}
+                          className="p-2 hover:bg-white/10 rounded-full transition-colors bg-card"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/70 hover:text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                    <TokenPreviewCard authenticatedProfile={isRemix ? undefined : authenticatedProfile} token={finalTokenData} />
+                  </div>
                 </>
               ) : (
                 <div className="flex flex-col justify-center space-y-4">
@@ -137,19 +178,15 @@ export const FinalizePost = ({ authenticatedProfile, finalTokenData, onCreate, b
             </div>
           </div>
           {/* AI Update Settings */}
-          <div className="sm:col-span-6 flex flex-col mt-4">
+          <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
-              <div className="flex items-center gap-1">
-                <Subtitle className="text-white/70">Post Updates</Subtitle>
+              <div className="flex items-center gap-2 mb-2">
+                <InformationCircleIcon className="h-4 w-4 text-white/70" />
+                <Subtitle className="text-white/70">Automatic content updates</Subtitle>
               </div>
-              <div className="bg-card-light rounded-lg p-4 border border-card-lightest">
-                <div className="flex items-center gap-2 mb-2">
-                  <InformationCircleIcon className="h-5 w-5 text-white/70" />
-                  <p className="text-sm text-white/90 font-medium">Automatic Content Updates</p>
-                </div>
-                <p className="text-sm text-white/70 mb-3">
-                  Content updates trigger hourly based on activity. You can also manually update 
-                  via the "..." button on your post after publishing.
+              <div className="bg-card-light rounded-lg py-2 px-4 border border-card-lightest">
+                <p className="text-sm text-white/70">
+                  Content updates trigger hourly based on activity, or manually via the "..." button on the bottom right of your post page.
                 </p>
               </div>
             </div>

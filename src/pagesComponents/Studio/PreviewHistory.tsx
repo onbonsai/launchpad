@@ -60,6 +60,7 @@ export default function PreviewHistory({
   const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPreviews(templateUrl, roomId);
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedPublicationRef = useRef<HTMLDivElement>(null);
 
   // Combine and sort all previews
   const sortedMessages: MemoryPreview[] = useMemo(() => {
@@ -134,6 +135,29 @@ export default function PreviewHistory({
     return () => container.removeEventListener('wheel', handleWheel);
   }, []);
 
+  // Center the selected publication when it changes
+  useEffect(() => {
+    if (selectedPublicationRef.current && containerRef.current && currentPreview) {
+      const container = containerRef.current;
+      const element = selectedPublicationRef.current;
+
+      // Add a small delay to ensure the element has been fully rendered
+      setTimeout(() => {
+        // Calculate the center position
+        const containerHeight = container.clientHeight;
+        const elementHeight = element.clientHeight;
+        const elementTop = element.offsetTop;
+        const scrollTo = elementTop - (containerHeight / 2) + (elementHeight / 2);
+
+        // Smooth scroll to center
+        container.scrollTo({
+          top: scrollTo,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [currentPreview?.agentId, sortedMessages.length]); // Also trigger when messages change
+
   if (isFinalize) {
     return (
       <div className="space-y-8" role="log" aria-live="polite">
@@ -188,7 +212,7 @@ export default function PreviewHistory({
     <div className={`relative flex h-full w-full flex-col ${className}`}>
       <div
         ref={containerRef}
-        className="relative flex grow flex-col overflow-y-auto pt-4 pr-4 pl-4 focus:outline-none isolate"
+        className="relative flex grow flex-col overflow-y-auto py-[1vh] px-4 focus:outline-none isolate"
         tabIndex={0}
         onScroll={(e) => {
           e.stopPropagation();
@@ -216,10 +240,12 @@ export default function PreviewHistory({
               ...message.content.preview as unknown as MessageContentPreview,
               text: content,
             } : undefined;
+            const selected = preview?.agentId === currentPreview?.agentId;
             return (
               <div
                 key={`message-${index}`}
-                className={`space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${preview?.agentId === currentPreview?.agentId ? "animate-pulse-green" : ""}`}
+                ref={selected ? selectedPublicationRef : null}
+                className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""}`}
               >
                 <Publication
                   key={`preview-${message.id}`}

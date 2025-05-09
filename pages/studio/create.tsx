@@ -588,6 +588,8 @@ const StudioCreatePage: NextPage = () => {
                           setOpenTab(2);
                         }}
                         isRemix={!!remixMedia?.agentId}
+                        setFinalTokenData={setFinalTokenData}
+                        setAddToken={setAddToken}
                       />
                     )}
                   </div>
