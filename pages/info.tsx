@@ -9,7 +9,6 @@ import { routesApp } from "@src/constants/routesApp";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import clsx from "clsx";
 
 const DisclosurePanelWithTransition = ({ children }) => {
   return (

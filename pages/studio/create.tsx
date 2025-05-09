@@ -598,7 +598,7 @@ const StudioCreatePage: NextPage = () => {
                       currentPreview={currentPreview}
                       setCurrentPreview={setCurrentPreview}
                       isGeneratingPreview={isGeneratingPreview}
-                      className="h-[calc(100vh-300px)]"
+                      className="h-[calc(100vh)]"
                       roomId={queryRoomId as string}
                       templateUrl={template?.apiUrl}
                       setFinalTemplateData={setFinalTemplateData}

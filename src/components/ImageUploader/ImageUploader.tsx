@@ -3,14 +3,13 @@ import { FC, ReactNode, SetStateAction, useState, useRef, useEffect } from "reac
 import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
 import imageCompression from "browser-image-compression";
-import ReactCrop, { Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { MinusIcon, PlusIcon } from "@heroicons/react/solid";
-
-import { cx } from "@src/utils/classnames";
-import { BodySemiBold, Header2, Subtitle } from "@src/styles/text";
+import clsx from "clsx";
+import { BodySemiBold, Subtitle } from "@src/styles/text";
 import { Button } from "../Button";
 
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
@@ -96,6 +95,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   const [cropFile, setCropFile] = useState<FileWithPreview | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [zoom, setZoom] = useState(1);
+  const [isCropping, setIsCropping] = useState(false);
   const [internalSelectedRatio, setInternalSelectedRatio] = useState<AspectRatio>(selectedAspectRatio as AspectRatio || "1:1");
   const [cropperAnchorEl, setCropperAnchorEl] = useState<HTMLElement | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -207,9 +207,9 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   const onCropComplete = async () => {
     if (!cropFile || !imgRef.current || !crop) return;
 
+    setIsCropping(true);
+
     const canvas = document.createElement('canvas');
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
 
     // Use the original image dimensions for the canvas
     const pixelCrop = {
@@ -282,6 +282,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         setCropperAnchorEl(null);
         setCrop(undefined);
         setZoom(1);
+        setIsCropping(false);
       } catch (error) {
         console.error("Compression error:", error);
         toast.error(`Error compressing ${croppedFile.name}`);
@@ -360,7 +361,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             {({ getRootProps, getInputProps }) => (
               <div
                 {...getRootProps()}
-                className={cx(
+                className={clsx(
                   "flex flex-col items-center rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
                   files.length ? "shadow-xl" : ""
                 )}
@@ -416,7 +417,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
                   <button
                     key={ratio}
                     onClick={() => setSelectedRatio(ratio as AspectRatio)}
-                    className={cx(
+                    className={clsx(
                       "flex items-center justify-center px-2 py-1 rounded border text-sm transition-colors",
                       selectedRatio === ratio
                         ? "bg-white text-black border-white"
@@ -460,8 +461,14 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
 
               {/* Action Buttons */}
               <div className="flex gap-2 justify-end pt-2 border-t border-card-lightest">
-                <Button onClick={handleClose} variant="primary" size="xs">Cancel</Button>
-                <Button onClick={onCropComplete} variant="secondary" disabled={!crop} size="xs">
+                <Button onClick={handleClose} variant="primary" disabled={isCropping} size="xs">Cancel</Button>
+                <Button
+                  onClick={onCropComplete}
+                  variant="secondary"
+                  disabled={!crop || isCropping}
+                  size="xs"
+                  className="transition-all duration-200"
+                >
                   Crop
                 </Button>
               </div>
