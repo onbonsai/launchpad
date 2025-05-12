@@ -317,7 +317,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       ? publication?.root.operations?.hasSimpleCollected
       : publication?.operations?.hasSimpleCollected
 
-      toast.success(isCollected ? "Sent" : "Sent. Collect the post for your reply to affect the next update.", { id: toastId, duration: 10000 });
+      toast.success(
+        isCollected
+          ? "Sent! Your reply will be added to the next update."
+          : "Sent. Collect the post for your reply to affect the next update.",
+        { id: toastId, duration: 10000 },
+      );
       setComment("");
       setFiles([]);
       setTimeout(fetchComments, 3000);
