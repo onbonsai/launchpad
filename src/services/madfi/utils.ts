@@ -100,7 +100,7 @@ interface ContractThresholds {
   };
 }
 
-const CONTRACT_THRESHOLDS: ContractThresholds = {
+const MAINNET_THRESHOLDS: ContractThresholds = {
   base: {
     BonsaiLaunchpad: 306,
     CreatorNFT: 306,
@@ -126,8 +126,9 @@ const TESTNET_THRESHOLDS: ContractThresholds = {
   },
 };
 
+export const CONTRACT_THRESHOLDS = IS_PRODUCTION ? MAINNET_THRESHOLDS : TESTNET_THRESHOLDS;
+
 export const getLaunchpadAddress = (contractType: ContractType, clubId: number | string, chain: string): string => {
-  const thresholds = IS_PRODUCTION ? CONTRACT_THRESHOLDS : TESTNET_THRESHOLDS;
   const deployment = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET : PROTOCOL_DEPLOYMENT_TESTNET;
 
   const chainKey = chain === "base" ? "base" : "lens";
@@ -137,7 +138,7 @@ export const getLaunchpadAddress = (contractType: ContractType, clubId: number |
     return deployment[chainKey][`${contractType}Fix`];
   }
 
-  const threshold = thresholds[chainKey][contractType];
+  const threshold = CONTRACT_THRESHOLDS[chainKey][contractType];
   const contractKey = Number(clubId) <= threshold ? contractType : `${contractType}Fix`;
 
   return deployment[chainKey][contractKey];

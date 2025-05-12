@@ -4,7 +4,7 @@ import { base, baseSepolia } from "viem/chains";
 import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
-import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress, } from "@src/services/madfi/utils";
+import { CONTRACT_THRESHOLDS, IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress, } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
@@ -1319,7 +1319,11 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
       query: GET_CREATOR_NFTS,
       variables: { trader: account }
     });
-    const creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
+    const _creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
+
+    // Filter clubs based on CONTRACT_THRESHOLDS
+    const threshold = CONTRACT_THRESHOLDS[chainName]["BonsaiLaunchpad"];
+    const creatorNFTList = _creatorNFTList.filter(id => Number(id) >= threshold);
 
     // Prepare multicall contracts array
     let feesEarnedArgs = [account]
@@ -1353,18 +1357,13 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
       // Map club fees results to original format
       const clubFees = clubFeesResults.map((fees, index) => ({
         id: parseInt(creatorNFTList[index]),
-        amount: chainName === "lens"
-          ? (fees as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
-          : fees as bigint
+        amount: fees as bigint
       }));
 
       const clubFeesTotal = clubFees.reduce((sum, fee) => sum + fee.amount, 0n);
-      const normalizedFeesEarned = chainName === "lens"
-        ? (feesEarned as bigint) / BigInt(10 ** 12) // Convert from 18 to 6 decimals
-        : feesEarned as bigint;
 
       return {
-        feesEarned: normalizedFeesEarned,
+        feesEarned: feesEarned as bigint,
         clubFeesTotal,
         clubFees,
       };
