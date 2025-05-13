@@ -9,7 +9,7 @@
     "name": "Bonsai",
     "iconUrl": "https://app.onbons.ai/logo-spaced.png",
     "homeUrl": "https://app.onbons.ai",
-    "buttonTitle": "💰 Start Trading 💰",
+    "buttonTitle": "Create on Bonsai",
     "splashImageUrl": "https://app.onbons.ai/splash.jpg",
     "splashBackgroundColor": "#000000",
     "webhookUrl": "https://app.onbons.ai/api/webhook"

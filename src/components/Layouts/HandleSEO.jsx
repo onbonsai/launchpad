@@ -8,7 +8,7 @@ const frameDataTemplate = {
   version: "next",
   imageUrl: `${SITE_URL}/splash.jpg`,
   button: {
-    title: "💰 Start Trading 💰",
+    title: "Create on Bonsai",
     action: {
       type: "launch_frame",
       name: "Bonsai",
