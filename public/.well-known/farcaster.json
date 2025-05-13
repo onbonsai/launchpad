@@ -7,11 +7,10 @@
   "frame": {
     "version": "1",
     "name": "Bonsai Smart Media",
-    "iconUrl": "https://app.onbons.ai/icon.png",
+    "iconUrl": "https://app.onbons.ai/logo-spaced.png",
     "homeUrl": "https://app.onbons.ai",
-    "imageUrl": "https://app.onbons.ai/image.png",
     "buttonTitle": "💰 Start Trading 💰",
-    "splashImageUrl": "https://app.onbons.ai/splash.png",
+    "splashImageUrl": "https://app.onbons.ai/splash.jpg",
     "splashBackgroundColor": "#000000",
     "webhookUrl": "https://app.onbons.ai/api/webhook"
   }
