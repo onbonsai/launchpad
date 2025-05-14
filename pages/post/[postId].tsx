@@ -441,7 +441,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             />
           </ChatWindowButton>
         )}
-        <section aria-labelledby="dashboard-heading" className="max-w-full md:flex items-start justify-center h-full gap-4">
+        <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
           <button
             onClick={handleBackNavigation}
             className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
@@ -523,7 +523,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           connectedAccounts={connectedAccounts}
                         />
                       </div>
-                      <QuotePreviews quotes={quotes} />
+                      <div className="min-w-0">
+                        <QuotePreviews quotes={quotes} />
+                      </div>
                     </>
                   ) : (
                     <div className="flex justify-center pt-8 pb-8">
