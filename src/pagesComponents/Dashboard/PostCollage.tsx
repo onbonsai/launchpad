@@ -312,7 +312,7 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
           {(activeTab === PostTabType.EXPLORE || activeTab === PostTabType.COLLECTED) && (
-            <div className="flex-1">
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
               <CategoryScroll
                 categories={categories}
                 categoryFilter={categoryFilter}

@@ -36,10 +36,10 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
   if (!categories?.length) return null;
 
   return (
-    <div className="relative p-2">
+    <>
       <div
         ref={scrollContainerRef}
-        className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-24"
+        className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-12"
         onScroll={checkScroll}
       >
         {categories.map((c) => (
@@ -67,6 +67,6 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
       {showGradient && (
         <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full" />
       )}
-    </div>
+    </>
   )
 }

@@ -105,28 +105,27 @@ const StudioCreatePage: NextPage = () => {
               {/* Categories Card */}
               <div className="bg-card rounded-lg p-6 mt-6">
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Categories</h3>
-                <div className="relative">
-                  <div className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-24">
-                    {categories.map((c) => (
-                      <button
-                        key={c.label}
-                        className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
-                        onClick={() => setCategoryFilter(c.key)}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
+                <div className="flex items-center">
+                  <div className="flex-1 overflow-x-auto">
+                    <div className="bg-card-light rounded-full p-1 flex flex-nowrap scrollbar-hide">
+                      {categories.map((c) => (
+                        <button
+                          key={c.label}
+                          className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
+                          onClick={() => setCategoryFilter(c.key)}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-
-                  <div className={clsx("absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full", `${brandFont.className}`)}>
-                    <button
-                      ref={importButtonRef}
-                      className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full flex-shrink-0"
-                      onClick={() => setShowImportTemplateModal(true)}
-                    >
-                      + Import
-                    </button>
-                  </div>
+                  <button
+                    ref={importButtonRef}
+                    className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full shrink-0 ml-4"
+                    onClick={() => setShowImportTemplateModal(true)}
+                  >
+                    + Import
+                  </button>
                 </div>
               </div>
 
