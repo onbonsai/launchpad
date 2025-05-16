@@ -29,7 +29,6 @@ import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowB
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
