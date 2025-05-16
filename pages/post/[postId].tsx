@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useContext } from "react";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { switchChain } from "viem/actions";
@@ -29,11 +29,11 @@ import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowB
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import { configureChainsConfig } from "@src/utils/wagmi";
 import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -75,6 +75,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     postId: rootPostId || postId as string,
     account: authenticatedProfile
   });
+  const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 
   // Get the return post ID from localStorage
   const returnPostId = useMemo(() => {
@@ -430,10 +431,11 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   };
 
   return (
-    <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full">
-      <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
+    <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
+      {/* Chat Sidebar, fixed and underneath main content */}
+      <div className="fixed top-0 right-0 h-full w-80 sm:w-96 z-30 pointer-events-auto">
         {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-          <ChatWindowButton agentInfo={agentInfoSage}>
+          <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
             <Chat
               agentId={currentPostId as string}
               agentWallet={agentInfoSage.info.wallets[0]}
@@ -441,192 +443,196 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             />
           </ChatWindowButton>
         )}
-        <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
-          <button
-            onClick={handleBackNavigation}
-            className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
-          >
-            <ArrowBack className="h-5 w-5" />
-          </button>
-          <div className="flex flex-col gap-2 h-full relative">
-            {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
-            <div className="overflow-y-hidden h-full">
-              {isConnected && isLoading ? (
-                <div className="flex justify-center pt-8 pb-8">
-                  <Spinner customClasses="h-6 w-6" color="#5be39d" />
-                </div>
-              ) : (
-                <>
-                  {publication ? (
-                    <>
-                      {/* Version Navigation Arrows - Only show if we have versions */}
-                      {media?.versions && media.versions.length > 0 && (
-                        <div className="absolute top-[50%] -translate-y-1/2 w-full flex justify-between z-10 px-2 sm:px-0" style={{ top: 'min(50%, 300px)' }}>
-                          <button
-                            onClick={() => loadVersion((currentVersionIndex ?? (media?.versions?.length ?? 0)) - 1)}
-                            disabled={currentVersionIndex === 0 || isLoadingVersion}
-                            className="transform sm:-translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                          >
-                            <ChevronLeftIcon className="h-8 w-6 sm:h-12 sm:w-8" />
-                          </button>
-                          <button
-                            onClick={() => loadVersion((currentVersionIndex ?? -1) + 1)}
-                            disabled={currentVersionIndex === null || isLoadingVersion}
-                            className="transform sm:translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                          >
-                            <ChevronRightIcon className="h-8 w-6 sm:h-12 sm:w-8" />
-                          </button>
-                        </div>
-                      )}
-                      {/* Version Indicator - Only show if we're viewing a version */}
-                      {media?.versions && showVersionIndicator && (
-                        <div className={`absolute top-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
-                          {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1}`}
-                        </div>
-                      )}
-                      <div className="hidden sm:block">
-                        <PublicationContainer
-                          key={`pub-${currentVersionIndex ?? 'current'}`}
-                          publication={getPublicationData}
-                          onCommentButtonClick={onCommentButtonClick}
-                          shouldGoToPublicationPage={showRootPublication}
-                          isProfileAdmin={isProfileAdmin}
-                          media={safeMedia(media)}
-                          onCollectCallback={() => {
-                            refetch();
-                            scrollToReplyInput();
-                          }}
-                          sideBySideMode={true}
-                          token={{
-                            address: club?.tokenAddress,
-                            ticker: club?.symbol,
-                          }}
-                          enoughActivity={enoughActivity}
-                          isPresenceConnected={isPresenceConnected}
-                          connectedAccounts={connectedAccounts}
-                        />
-                      </div>
-                      <div className="sm:hidden">
-                        <PublicationContainer
-                          key={`pub-mobile-${currentVersionIndex ?? 'current'}`}
-                          publication={getPublicationData}
-                          onCommentButtonClick={onCommentButtonClick}
-                          shouldGoToPublicationPage={showRootPublication}
-                          isProfileAdmin={isProfileAdmin}
-                          media={safeMedia(media)}
-                          onCollectCallback={() => {
-                            refetch();
-                            scrollToReplyInput();
-                          }}
-                          enoughActivity={enoughActivity}
-                          isPresenceConnected={isPresenceConnected}
-                          connectedAccounts={connectedAccounts}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <QuotePreviews quotes={quotes} />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex justify-center pt-8 pb-8">
-                      <Spinner customClasses="h-6 w-6" color="#5be39d" />
-                    </div>
-                  )}
-                  {/* Comment */}
-                  <div className="space-y-6">
-                    {isConnected && isAuthenticated && (
+      </div>
+      <div className="h-full">
+        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
+          <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
+            <button
+              onClick={handleBackNavigation}
+              className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
+            >
+              <ArrowBack className="h-5 w-5" />
+            </button>
+            <div className="flex flex-col gap-2 h-full relative">
+              {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
+              <div className="overflow-y-hidden h-full">
+                {isConnected && isLoading ? (
+                  <div className="flex justify-center pt-8 pb-8">
+                    <Spinner customClasses="h-6 w-6" color="#5be39d" />
+                  </div>
+                ) : (
+                  <>
+                    {publication ? (
                       <>
-                        {replyingToComment && (
-                          <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
-                            <span>Replying to {replyingToUsername}</span>
+                        {/* Version Navigation Arrows - Only show if we have versions */}
+                        {media?.versions && media.versions.length > 0 && (
+                          <div className="absolute top-[50%] -translate-y-1/2 w-full flex justify-between z-10 px-2 sm:px-0" style={{ top: 'min(50%, 300px)' }}>
                             <button
-                              onClick={() => setReplyingToComment(null)}
-                              className="text-secondary hover:text-secondary/80"
+                              onClick={() => loadVersion((currentVersionIndex ?? (media?.versions?.length ?? 0)) - 1)}
+                              disabled={currentVersionIndex === 0 || isLoadingVersion}
+                              className="transform sm:-translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
-                              × Cancel
+                              <ChevronLeftIcon className="h-8 w-6 sm:h-12 sm:w-8" />
+                            </button>
+                            <button
+                              onClick={() => loadVersion((currentVersionIndex ?? -1) + 1)}
+                              disabled={currentVersionIndex === null || isLoadingVersion}
+                              className="transform sm:translate-x-16 bg-dark-grey/80 hover:bg-dark-grey text-white rounded-full p-1 sm:p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                              <ChevronRightIcon className="h-8 w-6 sm:h-12 sm:w-8" />
                             </button>
                           </div>
                         )}
-                        <div className="flex items-center gap-x-6 mt-4">
-                          <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
-                          <div className="flex items-center space-x-4 flex-1">
-                            <div className="relative flex-1">
-                              <input
-                                ref={commentInputRef}
-                                type="text"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                onKeyDown={(e) => {
-                                  e.stopPropagation();
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    submitComment();
-                                  }
-                                }}
-                                placeholder="Send a reply"
-                                autoComplete="off"
-                                className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                              />
-                              <div className="absolute right-2 -top-2">
-                                <GenericUploader files={files} setFiles={setFiles} contained />
-                              </div>
-                            </div>
-                            <Button
-                              disabled={isCommenting || !comment}
-                              onClick={submitComment}
-                              variant="accentBrand"
-                              size="sm"
-                              className="!py-[12px]"
-                            >
-                              Reply
-                            </Button>
+                        {/* Version Indicator - Only show if we're viewing a version */}
+                        {media?.versions && showVersionIndicator && (
+                          <div className={`absolute top-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
+                            {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1}`}
                           </div>
+                        )}
+                        <div className="hidden sm:block">
+                          <PublicationContainer
+                            key={`pub-${currentVersionIndex ?? 'current'}`}
+                            publication={getPublicationData}
+                            onCommentButtonClick={onCommentButtonClick}
+                            shouldGoToPublicationPage={showRootPublication}
+                            isProfileAdmin={isProfileAdmin}
+                            media={safeMedia(media)}
+                            onCollectCallback={() => {
+                              refetch();
+                              scrollToReplyInput();
+                            }}
+                            sideBySideMode={true}
+                            token={{
+                              address: club?.tokenAddress,
+                              ticker: club?.symbol,
+                            }}
+                            enoughActivity={enoughActivity}
+                            isPresenceConnected={isPresenceConnected}
+                            connectedAccounts={connectedAccounts}
+                          />
+                        </div>
+                        <div className="sm:hidden">
+                          <PublicationContainer
+                            key={`pub-mobile-${currentVersionIndex ?? 'current'}`}
+                            publication={getPublicationData}
+                            onCommentButtonClick={onCommentButtonClick}
+                            shouldGoToPublicationPage={showRootPublication}
+                            isProfileAdmin={isProfileAdmin}
+                            media={safeMedia(media)}
+                            onCollectCallback={() => {
+                              refetch();
+                              scrollToReplyInput();
+                            }}
+                            enoughActivity={enoughActivity}
+                            isPresenceConnected={isPresenceConnected}
+                            connectedAccounts={connectedAccounts}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <QuotePreviews quotes={quotes} />
                         </div>
                       </>
+                    ) : (
+                      <div className="flex justify-center pt-8 pb-8">
+                        <Spinner customClasses="h-6 w-6" color="#5be39d" />
+                      </div>
                     )}
-                    <div className="animate-fade-in-down">
-                      {isMounted && (
-                        <Publications
-                          publications={showRootPublication ? [publication] : sortedComments}
-                          theme={Theme.dark}
-                          environment={LENS_ENVIRONMENT}
-                          authenticatedProfile={authenticatedProfile}
-                          hideCommentButton={false}
-                          hideQuoteButton={true}
-                          hideShareButton={true}
-                          hasUpvotedComment={hasUpvotedComment}
-                          onLikeButtonClick={onLikeButtonClick}
-                          getOperationsFor={getOperationsFor}
-                          profilePictureStyleOverride={publicationProfilePictureStyle}
-                          containerBorderRadius={'24px'}
-                          containerPadding={'12px'}
-                          profilePadding={'0 0 0 0'}
-                          textContainerStyleOverride={textContainerStyleOverrides}
-                          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                          mediaImageStyleOverride={mediaImageStyleOverride}
-                          imageContainerStyleOverride={imageContainerStyleOverride}
-                          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                          reactionContainerStyleOverride={reactionContainerStyleOverride}
-                          publicationContainerStyleOverride={publicationContainerStyleOverride}
-                          shareContainerStyleOverride={shareContainerStyleOverride}
-                          markdownStyleBottomMargin={'0px'}
-                          heartIconOverride={true}
-                          messageIconOverride={true}
-                          shareIconOverride={true}
-                          followButtonDisabled={true}
-                          onProfileClick={goToCreatorPage}
-                          hideCollectButton={true}
-                          onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
-                        />
+                    {/* Comment */}
+                    <div className="space-y-6">
+                      {isConnected && isAuthenticated && (
+                        <>
+                          {replyingToComment && (
+                            <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+                              <span>Replying to {replyingToUsername}</span>
+                              <button
+                                onClick={() => setReplyingToComment(null)}
+                                className="text-secondary hover:text-secondary/80"
+                              >
+                                × Cancel
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-x-6 mt-4">
+                            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+                            <div className="flex items-center space-x-4 flex-1">
+                              <div className="relative flex-1">
+                                <input
+                                  ref={commentInputRef}
+                                  type="text"
+                                  value={comment}
+                                  onChange={(e) => setComment(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    e.stopPropagation();
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      submitComment();
+                                    }
+                                  }}
+                                  placeholder="Send a reply"
+                                  autoComplete="off"
+                                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                                />
+                                <div className="absolute right-2 -top-2">
+                                  <GenericUploader files={files} setFiles={setFiles} contained />
+                                </div>
+                              </div>
+                              <Button
+                                disabled={isCommenting || !comment}
+                                onClick={submitComment}
+                                variant="accentBrand"
+                                size="sm"
+                                className="!py-[12px]"
+                              >
+                                Reply
+                              </Button>
+                            </div>
+                          </div>
+                        </>
                       )}
+                      <div className="animate-fade-in-down">
+                        {isMounted && (
+                          <Publications
+                            publications={showRootPublication ? [publication] : sortedComments}
+                            theme={Theme.dark}
+                            environment={LENS_ENVIRONMENT}
+                            authenticatedProfile={authenticatedProfile}
+                            hideCommentButton={false}
+                            hideQuoteButton={true}
+                            hideShareButton={true}
+                            hasUpvotedComment={hasUpvotedComment}
+                            onLikeButtonClick={onLikeButtonClick}
+                            getOperationsFor={getOperationsFor}
+                            profilePictureStyleOverride={publicationProfilePictureStyle}
+                            containerBorderRadius={'24px'}
+                            containerPadding={'12px'}
+                            profilePadding={'0 0 0 0'}
+                            textContainerStyleOverride={textContainerStyleOverrides}
+                            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                            mediaImageStyleOverride={mediaImageStyleOverride}
+                            imageContainerStyleOverride={imageContainerStyleOverride}
+                            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                            reactionContainerStyleOverride={reactionContainerStyleOverride}
+                            publicationContainerStyleOverride={publicationContainerStyleOverride}
+                            shareContainerStyleOverride={shareContainerStyleOverride}
+                            markdownStyleBottomMargin={'0px'}
+                            heartIconOverride={true}
+                            messageIconOverride={true}
+                            shareIconOverride={true}
+                            followButtonDisabled={true}
+                            onProfileClick={goToCreatorPage}
+                            hideCollectButton={true}
+                            onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      </div>
     </div>
   );
 };
