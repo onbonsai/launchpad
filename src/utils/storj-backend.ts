@@ -1,14 +1,23 @@
 import axios from "axios";
 import FormData from "form-data";
-// import { S3 } from "aws-sdk";
+import { S3 } from "aws-sdk";
 
 import { _hash } from "./pinata";
+
+interface StorjUploadResult {
+  success: boolean;
+  url?: string;
+  error?: string;
+}
 
 const SLS_STAGE = "production";
 const STORJ_API_URL = "https://www.storj-ipfs.com";
 const STORJ_API_PORT = process.env.STORJ_API_PORT!;
 const STORJ_API_USERNAME = process.env.STORJ_API_USERNAME!;
 const STORJ_API_PASSWORD = process.env.STORJ_API_PASSWORD!;
+const STORJ_ACCESS_KEY = process.env.STORJ_ACCESS_KEY!;
+const STORJ_SECRET_KEY = process.env.STORJ_SECRET_KEY!;
+const STORJ_ENDPOINT = process.env.STORJ_ENDPOINT || "https://gateway.storjshare.io";
 
 // prod service uses default port (443)
 const _baseURL = `${STORJ_API_URL}${SLS_STAGE === "production" ? "" : `:${STORJ_API_PORT}`}/api/v0`;
@@ -17,6 +26,18 @@ const _client = () =>
     baseURL: _baseURL,
     auth: { username: STORJ_API_USERNAME, password: STORJ_API_PASSWORD },
   });
+
+const getStorjPublicUrl = (bucket: string, key: string): string => {
+  const keys = {
+    "publication-history-media": "jw5fzwqqirjuu6i2aambbebh4uza",
+    "publication-history-metadata": "jw3iog3dy7frukpkum5xo6tklyxq",
+    previews: "jwrsmshtwuktk3mv4r242qejirrq",
+    audio: "jxs2vvpwyboomtmpa6vpa2bvxmma",
+    "token-images": "jwqnkhask2gfydqrp2zkawmbo6hq",
+  };
+  const endpoint = `https://link.storjshare.io/raw/${keys[bucket]}/${bucket}`;
+  return `${endpoint}/${key}`;
+};
 
 export const addJson = async (json: any) => {
   if (typeof json !== "string") {
@@ -49,36 +70,43 @@ export const getViaStorjGateway = async (uriOrHash: string) => {
 
 const storjGatewayURL = (uriOrHash: string) => `${STORJ_API_URL}/ipfs/${_hash(uriOrHash)}`;
 
-export const cacheImageStorj = async (id, imageBuffer, bucket = "temp", lifecycle = "+1d") => {
-  // TODO: move to server
-  // const s3 = new S3({
-  //   accessKeyId: process.env.STORJ_ACCESS_KEY,
-  //   secretAccessKey: process.env.STORJ_SECRET_KEY,
-  //   endpoint: process.env.STORJ_ENDPOINT,
-  //   s3ForcePathStyle: true,
-  //   signatureVersion: "v4",
-  // });
+// save to bucket
+export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image/png' }): Promise<StorjUploadResult> => {
+  if (!STORJ_ACCESS_KEY || !STORJ_SECRET_KEY || !STORJ_ENDPOINT) {
+    return {
+      success: false,
+      error: "Storj credentials are not properly configured",
+    };
+  }
 
-  // const params = {
-  //   Bucket: bucket,
-  //   Key: id,
-  //   Body: imageBuffer,
-  //   ContentType: "image/png",
-  // };
+  const s3 = new S3({
+    accessKeyId: STORJ_ACCESS_KEY,
+    secretAccessKey: STORJ_SECRET_KEY,
+    endpoint: STORJ_ENDPOINT,
+    s3ForcePathStyle: true,
+    signatureVersion: "v4",
+  });
 
-  // if (lifecycle) {
-  //   params["Metadata"] = {
-  //     "x-amz-meta-object-expires": lifecycle,
-  //   };
-  // }
+  const params = {
+    Bucket: bucket,
+    Key: id,
+    Body: buffer,
+    ContentType: contentType,
+  };
 
-  // try {
-  //   await s3.upload(params).promise();
-  //   return true;
-  // } catch (error) {
-  //   console.log(error);
-  //   return false;
-  // }
+  try {
+    await s3.upload(params).promise();
+    return {
+      success: true,
+      url: getStorjPublicUrl(bucket, id),
+    };
+  } catch (error) {
+    console.error("Failed to upload image to Storj:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
 };
 
 export const fetchImagesStorj = async (ids: string[]) => {

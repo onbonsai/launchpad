@@ -527,3 +527,35 @@ export const formatNextUpdate = (timestamp: number): string => {
 
   return `${minutesLeft}m`;
 }
+
+export const cacheImageToStorj = async (imageData: string | Blob, id: string, bucket: string) => {
+  let base64Data: string;
+  
+  if (imageData instanceof Blob) {
+    // Convert Blob to base64
+    const arrayBuffer = await imageData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const mimeType = imageData.type;
+    base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } else {
+    // If it's already a base64 string, use it as is
+    base64Data = imageData;
+  }
+
+  const response = await fetch('/api/storj/cache-image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      imageData: base64Data,
+      id,
+      bucket
+    })
+  });
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to cache image');
+  }
+  return result.url;
+};

@@ -23,7 +23,7 @@ import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
-import { parseBase64Image } from "@src/utils/utils";
+import { cacheImageToStorj, parseBase64Image } from "@src/utils/utils";
 import axios from "axios";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
@@ -246,11 +246,16 @@ const StudioCreatePage: NextPage = () => {
         }
 
         toastId = toast.loading("Registering your token...", { id: toastId });
+        const tokenImageUrl = await cacheImageToStorj(
+          finalTokenData.tokenImage[0],
+          `${finalTokenData.tokenSymbol}-${Date.now()}`,
+          'token-images'
+        );
         const result = await registerClubTransaction(walletClient, {
           initialSupply: parseUnits((finalTokenData.initialSupply || 0).toString(), DECIMALS).toString(),
           tokenName: finalTokenData.tokenName,
           tokenSymbol: finalTokenData.tokenSymbol,
-          tokenImage: storjGatewayURL(await pinFile(finalTokenData.tokenImage[0])),
+          tokenImage: tokenImageUrl,
           hook: finalTokenData.selectedNetwork === 'base' && finalTokenData.uniHook
             ? WHITELISTED_UNI_HOOKS[finalTokenData.uniHook].contractAddress as `0x${string}`
             : zeroAddress,
