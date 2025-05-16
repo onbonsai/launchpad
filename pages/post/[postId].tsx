@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useContext } from "react";
 import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { switchChain } from "viem/actions";
@@ -33,7 +33,7 @@ import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
-import { Header } from "@components/Header";
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -75,6 +75,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     postId: rootPostId || postId as string,
     account: authenticatedProfile
   });
+  const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 
   // Get the return post ID from localStorage
   const returnPostId = useMemo(() => {
@@ -186,7 +187,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const [currentVersionMetadata, setCurrentVersionMetadata] = useState<any>(null);
   const [showVersionIndicator, setShowVersionIndicator] = useState(false);
   const [isVersionIndicatorVisible, setIsVersionIndicatorVisible] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -444,9 +444,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
           </ChatWindowButton>
         )}
       </div>
-      {/* Entire page (header + main) shrinks when chat is open */}
-      <div className={`transition-all duration-300 h-full ${isChatOpen ? 'mr-80 sm:mr-96 drop-shadow-lg' : ''}`}>
-        <Header />
+      <div className="h-full">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
             <button

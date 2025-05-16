@@ -1,8 +1,7 @@
 import { FC, ReactNode, useState, createContext } from "react";
 import { Header } from "@components/Header";
 import { Footer } from "../../Footer/Footer";
-import { brandFont } from '../../../fonts/fonts';
-import { useRouter } from "next/router";
+import { brandFont } from "../../../fonts/fonts";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
@@ -15,17 +14,18 @@ interface LayoutProps {
 }
 
 export const Layout: FC<LayoutProps> = ({ children }) => {
-  const router = useRouter();
-  const isPostPage = router.pathname.startsWith("/post");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const sidebarWidth = 320; // px, matches w-80
 
   return (
     <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen }}>
-      <div className={`${brandFont.className} min-h-screen flex flex-col relative`}>
-        {/* Only render Header if not on post page */}
-        {!isPostPage && <Header />}
-        <div className="relative flex-1 flex flex-col w-full max-w-full flex-grow min-h-full transition-transform duration-300" style={{ transform: isChatOpen ? `translateX(-${sidebarWidth}px)` : undefined }}>
+      <div
+        className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300 ${
+          isChatOpen ? "mr-80 sm:mr-96" : ""
+        }`}
+      >
+        <Header />
+        <div className="relative flex-1 flex flex-col w-full max-w-full flex-grow min-h-full transition-transform duration-300">
           <main className="flex-1 flex flex-col bg-background text-secondary w-full max-w-full flex-grow min-h-full">
             {children}
           </main>
