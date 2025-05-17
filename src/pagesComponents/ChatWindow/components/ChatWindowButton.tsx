@@ -58,42 +58,36 @@ export default function ChatWindowButton({
       {/* Chat Window */}
       <div
         className={clsx(
-          "fixed top-0 right-0 h-full w-80 sm:w-96 z-30 pointer-events-auto transition-all duration-300 ease-in-out",
-          !isOpen && "hidden",
+          "fixed top-0 right-0 h-full w-80 sm:w-96 bg-black overflow-hidden flex flex-col z-40",
+          "pointer-events-auto transition-all duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "translate-x-full",
         )}
+        style={{
+          transformOrigin: "right",
+          boxShadow: "inset 16px 0 32px -8px rgba(0,0,0,0.45)",
+        }}
       >
-        <div
-          className={clsx(
-            "h-full w-full bg-black overflow-hidden transition-all duration-300 ease-in-out flex flex-col z-40 pointer-events-auto",
-            isOpen ? "translate-x-0" : "translate-x-full",
-          )}
-          style={{
-            transformOrigin: "right",
-            boxShadow: "inset 16px 0 32px -8px rgba(0,0,0,0.45)",
-          }}
-        >
-          {/* Chat Header */}
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-4">
-              <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
-                <img
-                  src={agentInfo.account?.metadata?.picture || "/default.png"}
-                  alt="Agent avatar"
-                  className="h-full w-full rounded-full object-cover"
-                />
-              </div>
-              <h3 className="font-medium text-white">
-                Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
-              </h3>
+        {/* Chat Header */}
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-4">
+            <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
+              <img
+                src={agentInfo.account?.metadata?.picture || "/default.png"}
+                alt="Agent avatar"
+                className="h-full w-full rounded-full object-cover"
+              />
             </div>
-            {/* Close Button in Header */}
-            <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">
-              <XIcon size={24} className="text-white" />
-            </button>
+            <h3 className="font-medium text-white">
+              Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+            </h3>
           </div>
-          {/* Chat Content Area - Render children (Chat component) here */}
-          <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && children}</div>
+          {/* Close Button in Header */}
+          <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">
+            <XIcon size={24} className="text-white" />
+          </button>
         </div>
+        {/* Chat Content Area - Render children (Chat component) here */}
+        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && children}</div>
       </div>
 
       {/* Floating Open Button (bottom right) */}

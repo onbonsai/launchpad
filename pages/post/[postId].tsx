@@ -29,7 +29,6 @@ import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowB
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
@@ -63,7 +62,7 @@ const PublicationContainer = dynamic(
   }
 );
 
-const COMMENT_SCORE_THRESHOLD = 350;
+const COMMENT_SCORE_THRESHOLD = 500;
 
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
@@ -451,7 +450,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return media || undefined;
   };
 
-  console.log('publication', publication, sortedHighScoreComments);
+  console.log('publication', sortedHighScoreComments);
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
@@ -550,7 +549,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           />
                         </div>
                         <div className="min-w-0">
-                          <QuotePreviews quotes={quotes} />
+                          <QuotePreviews 
+                            quotes={quotes} 
+                            originalPost={publication?.quoteOf}
+                          />
                         </div>
                       </>
                     ) : (
