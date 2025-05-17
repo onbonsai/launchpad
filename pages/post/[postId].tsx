@@ -433,17 +433,15 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
-      <div className="fixed top-0 right-0 h-full w-80 sm:w-96 z-30 pointer-events-auto">
-        {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-          <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
-            <Chat
-              agentId={currentPostId as string}
-              agentWallet={agentInfoSage.info.wallets[0]}
-              agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
-            />
-          </ChatWindowButton>
-        )}
-      </div>
+      {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
+        <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
+          <Chat
+            agentId={currentPostId as string}
+            agentWallet={agentInfoSage.info.wallets[0]}
+            agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+          />
+        </ChatWindowButton>
+      )}
       <div className="h-full">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
