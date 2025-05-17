@@ -67,7 +67,7 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("lg:min-w-[200px] w-full", brandFont.className)}>
+      <div className={clsx("lg:min-w-[220px] w-full", brandFont.className)}>
         <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
           Search anything
         </label>
@@ -141,7 +141,7 @@ export const SearchClubs = () => {
                         leaveTo="opacity-0"
                         afterLeave={() => setQuery("")}
                       >
-                        <Combobox.Options className="mt-1 max-h-[500px] w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Combobox.Options className="mt-1 max-h-[650px] w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
                               <Spinner customClasses="h-6 w-6" color="#5be39d" />
@@ -164,7 +164,7 @@ export const SearchClubs = () => {
                           {profileSearchResults?.items?.length > 0 && (
                             <>
                               <div className="px-4 py-2 text-xs text-secondary/50">Profiles</div>
-                              {profileSearchResults.items.map((profile) => (
+                              {profileSearchResults.items.slice(0, 12).map((profile) => (
                                 <Combobox.Option
                                   key={profile.address}
                                   className={({ active }) =>
@@ -205,7 +205,7 @@ export const SearchClubs = () => {
                           {postSearchResults?.items?.length > 0 && (
                             <>
                               <div className="px-4 py-2 text-xs text-secondary/50">Posts</div>
-                              {postSearchResults.items.map((post) => (
+                              {postSearchResults.items.slice(0, 12).map((post) => (
                                 <Combobox.Option
                                   key={post.id}
                                   className={({ active }) =>
@@ -264,7 +264,7 @@ export const SearchClubs = () => {
                           {clubSearchResults?.length > 0 && (
                             <>
                               <div className="px-4 py-2 text-xs text-secondary/50">Tokens</div>
-                              {clubSearchResults?.map((data) => (
+                              {clubSearchResults?.slice(0, 20).map((data) => (
                                 <Combobox.Option
                                   key={data.id}
                                   className={({ active }) =>
