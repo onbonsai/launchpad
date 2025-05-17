@@ -63,6 +63,8 @@ const PublicationContainer = dynamic(
   }
 );
 
+const COMMENT_SCORE_THRESHOLD = 350;
+
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
@@ -187,6 +189,42 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const [currentVersionMetadata, setCurrentVersionMetadata] = useState<any>(null);
   const [showVersionIndicator, setShowVersionIndicator] = useState(false);
   const [isVersionIndicatorVisible, setIsVersionIndicatorVisible] = useState(false);
+  const [showLowScoreComments, setShowLowScoreComments] = useState(false);
+
+  const { highScoreComments, lowScoreComments } = useMemo(() => {
+    const allComments = (freshComments || comments || []);
+    return {
+      highScoreComments: allComments.filter(comment => (comment.author.score || 0) >= COMMENT_SCORE_THRESHOLD),
+      lowScoreComments: allComments.filter(comment => (comment.author.score || 0) < COMMENT_SCORE_THRESHOLD)
+    };
+  }, [freshComments, comments]);
+
+  const sortedHighScoreComments = useMemo(() => {
+    return highScoreComments.sort((a, b) => {
+      // Sort by upvoteReactions descending
+      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
+        return b.stats.upvoteReactions - a.stats.upvoteReactions;
+      }
+      // If upvoteReactions are equal, sort by createdAt ascending
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [highScoreComments]);
+
+  const sortedLowScoreComments = useMemo(() => {
+    return lowScoreComments.sort((a, b) => {
+      // Sort by upvoteReactions descending
+      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
+        return b.stats.upvoteReactions - a.stats.upvoteReactions;
+      }
+      // If upvoteReactions are equal, sort by createdAt ascending
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [lowScoreComments]);
+
+  const isProfileAdmin = useMemo(() => {
+    if (!(publication?.by && authenticatedProfileId)) return false;
+    return publication?.by.id === authenticatedProfileId;
+  }, [publication, authenticatedProfileId]);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -215,31 +253,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     }
   }, [authenticatedProfile]);
 
-  const sortedComments: Post[] = useMemo(() => {
-    return (freshComments || comments || []).sort((a, b) => {
-      // Sort by upvoteReactions descending
-      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
-        return b.stats.upvoteReactions - a.stats.upvoteReactions;
-      }
-      // If upvoteReactions are equal, sort by createdAt ascending
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
-  }, [freshComments, comments]);
-
-  const isProfileAdmin = useMemo(() => {
-    if (!(publication?.by && authenticatedProfileId)) return false;
-
-    return publication?.by.id === authenticatedProfileId;
-  }, [publication, authenticatedProfileId]);
-
   const enoughActivity = useMemo(() => {
-    if (!sortedComments?.length || !media?.updatedAt) return false;
+    if (!sortedHighScoreComments?.length || !media?.updatedAt) return false;
 
-    return sortedComments.some(comment => {
+    return sortedHighScoreComments.some(comment => {
       const commentTimestamp = Math.floor(new Date(comment.timestamp).getTime() / 1000);
       return commentTimestamp > media.updatedAt;
     });
-  }, [sortedComments, media]);
+  }, [sortedHighScoreComments, media]);
 
   const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string, isThread?: boolean) => {
     e.preventDefault();
@@ -430,6 +451,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return media || undefined;
   };
 
+  console.log('publication', publication, sortedHighScoreComments);
+
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
@@ -589,38 +612,89 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                       )}
                       <div className="animate-fade-in-down">
                         {isMounted && (
-                          <Publications
-                            publications={showRootPublication ? [publication] : sortedComments}
-                            theme={Theme.dark}
-                            environment={LENS_ENVIRONMENT}
-                            authenticatedProfile={authenticatedProfile}
-                            hideCommentButton={false}
-                            hideQuoteButton={true}
-                            hideShareButton={true}
-                            hasUpvotedComment={hasUpvotedComment}
-                            onLikeButtonClick={onLikeButtonClick}
-                            getOperationsFor={getOperationsFor}
-                            profilePictureStyleOverride={publicationProfilePictureStyle}
-                            containerBorderRadius={'24px'}
-                            containerPadding={'12px'}
-                            profilePadding={'0 0 0 0'}
-                            textContainerStyleOverride={textContainerStyleOverrides}
-                            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                            mediaImageStyleOverride={mediaImageStyleOverride}
-                            imageContainerStyleOverride={imageContainerStyleOverride}
-                            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                            reactionContainerStyleOverride={reactionContainerStyleOverride}
-                            publicationContainerStyleOverride={publicationContainerStyleOverride}
-                            shareContainerStyleOverride={shareContainerStyleOverride}
-                            markdownStyleBottomMargin={'0px'}
-                            heartIconOverride={true}
-                            messageIconOverride={true}
-                            shareIconOverride={true}
-                            followButtonDisabled={true}
-                            onProfileClick={goToCreatorPage}
-                            hideCollectButton={true}
-                            onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
-                          />
+                          <>
+                            <Publications
+                              publications={showRootPublication ? [publication] : sortedHighScoreComments}
+                              theme={Theme.dark}
+                              environment={LENS_ENVIRONMENT}
+                              authenticatedProfile={authenticatedProfile}
+                              hideCommentButton={false}
+                              hideQuoteButton={true}
+                              hideShareButton={true}
+                              hasUpvotedComment={hasUpvotedComment}
+                              onLikeButtonClick={onLikeButtonClick}
+                              getOperationsFor={getOperationsFor}
+                              profilePictureStyleOverride={publicationProfilePictureStyle}
+                              containerBorderRadius={'24px'}
+                              containerPadding={'12px'}
+                              profilePadding={'0 0 0 0'}
+                              textContainerStyleOverride={textContainerStyleOverrides}
+                              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                              mediaImageStyleOverride={mediaImageStyleOverride}
+                              imageContainerStyleOverride={imageContainerStyleOverride}
+                              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                              reactionContainerStyleOverride={reactionContainerStyleOverride}
+                              publicationContainerStyleOverride={publicationContainerStyleOverride}
+                              shareContainerStyleOverride={shareContainerStyleOverride}
+                              markdownStyleBottomMargin={'0px'}
+                              heartIconOverride={true}
+                              messageIconOverride={true}
+                              shareIconOverride={true}
+                              followButtonDisabled={true}
+                              onProfileClick={goToCreatorPage}
+                              hideCollectButton={true}
+                              onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                            />
+                            {lowScoreComments.length > 0 && (
+                              <>
+                                <div className="flex justify-center mt-4 mb-4">
+                                  <button
+                                    onClick={() => setShowLowScoreComments(!showLowScoreComments)}
+                                    className="px-4 py-2 text-sm text-secondary/70 hover:text-secondary bg-dark-grey/20 hover:bg-dark-grey/30 rounded-full transition-colors"
+                                  >
+                                    {showLowScoreComments ? 'Hide' : 'Show'} additional comments ({lowScoreComments.length})
+                                  </button>
+                                </div>
+                                {showLowScoreComments && (
+                                  <div className="mt-4 pt-4 border-t border-white/[0.03]">
+                                    {/* <div className="text-sm text-secondary/50 mb-4 px-4">Low-score comments</div> */}
+                                    <Publications
+                                      publications={sortedLowScoreComments}
+                                      theme={Theme.dark}
+                                      environment={LENS_ENVIRONMENT}
+                                      authenticatedProfile={authenticatedProfile}
+                                      hideCommentButton={false}
+                                      hideQuoteButton={true}
+                                      hideShareButton={true}
+                                      hasUpvotedComment={hasUpvotedComment}
+                                      onLikeButtonClick={onLikeButtonClick}
+                                      getOperationsFor={getOperationsFor}
+                                      profilePictureStyleOverride={publicationProfilePictureStyle}
+                                      containerBorderRadius={'24px'}
+                                      containerPadding={'12px'}
+                                      profilePadding={'0 0 0 0'}
+                                      textContainerStyleOverride={textContainerStyleOverrides}
+                                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                                      mediaImageStyleOverride={mediaImageStyleOverride}
+                                      imageContainerStyleOverride={imageContainerStyleOverride}
+                                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                                      reactionContainerStyleOverride={reactionContainerStyleOverride}
+                                      publicationContainerStyleOverride={publicationContainerStyleOverride}
+                                      shareContainerStyleOverride={shareContainerStyleOverride}
+                                      markdownStyleBottomMargin={'0px'}
+                                      heartIconOverride={true}
+                                      messageIconOverride={true}
+                                      shareIconOverride={true}
+                                      followButtonDisabled={true}
+                                      onProfileClick={goToCreatorPage}
+                                      hideCollectButton={true}
+                                      onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                                    />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
