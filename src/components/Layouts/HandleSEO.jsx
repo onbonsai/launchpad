@@ -66,6 +66,9 @@ const generateMetaTags = (title, description, url, imageUrl, type = "website", i
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
       <meta name="twitter:image:alt" content={imageAlt} />
+      <meta name="twitter:player" content={url} />
+      <meta name="twitter:player:width" content="360" />
+      <meta name="twitter:player:height" content="560" />
       <meta name="theme-color" content="#141414" />
       <link rel="canonical" href={url} />
       <link rel="llms" href={`${SITE_URL}/llms.txt`} />
