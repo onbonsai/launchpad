@@ -5,6 +5,7 @@ import { getPostContentSubstring } from '@src/utils/utils';
 import { ProfilePopper } from '@src/components/Profile/ProfilePopper';
 import { ChatIcon, SwitchHorizontalIcon } from '@heroicons/react/outline';
 import clsx from 'clsx';
+import Image from 'next/image';
 
 interface TimelineItemInteractionsProps {
   reposts?: Repost[];
@@ -44,11 +45,13 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
             <div className="flex items-center justify-end gap-2 text-white/60 mr-4">
               <div className="flex items-center gap-1">
                 {postData.presence?.topUsers.slice(0, 3).map((user, index) => (
-                  <img
+                  <Image
                     key={user.handle}
                     src={user.image || "/default.png"}
                     alt={user.handle}
                     className="w-5 h-5 rounded-full border border-dark-grey"
+                    width={20}
+                    height={20}
                   />
                 ))}
               </div>
@@ -80,10 +83,12 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                             href={username ? `/profile/${username}` : '#'}
                             className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
                           >
-                            <img
+                            <Image
                               src={profile.metadata?.picture || "/default.png"}
                               alt={username || "profile"}
                               className="w-full h-full object-cover"
+                              width={32}
+                              height={32}
                             />
                           </Link>
                         </ProfilePopper>
@@ -121,10 +126,12 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                 <div className="flex-shrink-0">
                   <div className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative">
                     <ProfilePopper profile={comment.author} followed={{}} setFollowed={() => {}}>
-                      <img
+                      <Image
                         src={comment.author.metadata?.picture || "/default.png"}
                         alt={comment.author.username?.localName || "profile"}
                         className="w-full h-full object-cover"
+                        width={32}
+                        height={32}
                       />
                     </ProfilePopper>
                   </div>

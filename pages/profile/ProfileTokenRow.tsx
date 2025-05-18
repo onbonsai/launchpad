@@ -9,6 +9,7 @@ import { formatEther, formatUnits } from 'viem';
 import PositiveIcon from './PositiveIcon';
 import NegativeIcon from './NegativeIcon';
 import BuySellModal from "@pagesComponents/Club/BuySellModal";
+import Image from "next/image";
 
 export enum TokenAction {
     buy,
@@ -68,7 +69,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
         <Link href={link} legacyBehavior target="_blank">
             <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
                 <div className="flex flex-row items-center">
-                    <img src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-lg' />
+                    <Image src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-lg' height={32} width={32}/>
                     <div className="flex flex-col justify-center ml-2 gap-[2px]">
                         <BodySemiBold>
                             {holding?.token.name}
@@ -100,14 +101,6 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
                             <Subtitle className='!text-bullish'>graduated!</Subtitle>
                         )}
                     </div>
-                    {/* TODO: not working */}
-                    {/* <Button
-                        className={clsx(canSell ? priceColor() : 'bg-bullish')}
-                        size="sm"
-                        onClick={handleButtonClick}
-                    >
-                        {canSell ? 'Sell' : 'Buy'}
-                    </Button> */}
                 </div>
             </div>
         </Link>

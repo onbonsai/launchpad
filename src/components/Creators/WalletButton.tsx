@@ -2,6 +2,7 @@ import { Subtitle } from '@src/styles/text';
 import { shortAddress } from '@src/utils/utils';
 import React, { useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 interface WalletButtonProps {
   wallet: string;
@@ -32,7 +33,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain }) => {
       className="flex items-center pr-[10px] rounded-[10px] bg-backgroundAccent text-[#ffffff] text-sm transition-colors hover:text-[#e5e7eb]"
     >
       {chain && (
-        <img src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" />
+        <Image src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" fill />
       )}
       <Subtitle className='text-white'>{formattedAddress}</Subtitle>
     </button>

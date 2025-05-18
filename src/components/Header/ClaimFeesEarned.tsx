@@ -11,6 +11,7 @@ import { Subtitle, Header2 } from "@src/styles/text";
 import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { switchChain } from "viem/actions";
+import Image from "next/image";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { address, chainId, isConnected } = useAccount();
@@ -170,7 +171,7 @@ const EarningsTooltip = ({
         <div className="flex items-center justify-between py-1">
           <div className="flex items-center gap-x-2">
             <div className="relative">
-              <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover rounded-lg" />
+              <Image src="/gho.webp" alt="gho" className="object-cover rounded-lg" width={24} height={24}/>
             </div>
             <span className="text-sm text-white">WGHO on Lens Chain</span>
           </div>
@@ -184,7 +185,7 @@ const EarningsTooltip = ({
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-x-2">
               <div className="relative">
-                <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover rounded-lg" />
+                <Image src="/usdc.png" alt="usdc" className="object-cover rounded-lg" width={24} height={24}/>
               </div>
               <span className="text-sm text-white">USDC on Base</span>
             </div>

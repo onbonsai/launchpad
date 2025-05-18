@@ -33,6 +33,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
+import Image from "next/image";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -593,7 +594,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             </div>
                           )}
                           <div className="flex items-center gap-x-6 mt-4">
-                            <img src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" />
+                            <Image src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" width={48} height={48} />
                             <div className="flex items-center space-x-4 flex-1">
                               <div className="relative flex-1">
                                 <input

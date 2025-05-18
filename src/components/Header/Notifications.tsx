@@ -11,6 +11,7 @@ import Spinner from "../LoadingSpinner/LoadingSpinner";
 import { Button } from "../Button";
 import { getPostContentSubstring } from "@src/utils/utils";
 import { ProfilePopper } from "../Profile/ProfilePopper";
+import Image from "next/image";
 
 const LAST_SEEN_NOTIFICATION_KEY = 'last_seen_notification_id';
 
@@ -283,10 +284,12 @@ const GroupedReactionNotification = ({
                       aria-label={username ? `View profile ${username}` : "Profile image"}
                     >
                       {/* Image component */}
-                      <img
+                      <Image
                         src={profile.metadata?.picture || "/default.png"}
                         alt={username || "profile"}
                         className="w-full h-full object-cover"
+                        width={32}
+                        height={32}
                       />
                     </Link>
                   </ProfilePopper>
@@ -408,10 +411,12 @@ const NotificationItem = ({
                   aria-label={username ? `View profile ${username}` : "Profile image"}
                 >
                   {/* Image component */}
-                  <img
+                  <Image
                     src={profile.metadata?.picture || "/default.png"}
                     alt={"pfp"}
                     className="w-full h-full object-cover"
+                    width={32}
+                    height={32}
                   />
                 </Link>
               </ProfilePopper>

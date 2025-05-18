@@ -4,7 +4,6 @@ import { URI } from "@lens-protocol/metadata";
 import z from "zod";
 import { useQuery, UseQueryResult, useInfiniteQuery, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
-import { getClientWithMedia } from "../mongo/client";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";

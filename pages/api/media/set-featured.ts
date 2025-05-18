@@ -40,12 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (featured === undefined) {
       const record = await collection.findOne({ postId });
       featured = record.featured === undefined ? true : !record.featured;
-      await collection.updateOne(
+      collection.updateOne(
         { postId },
         { $set: { featured } }
       );
     } else {
-      await collection.updateOne(
+      collection.updateOne(
         { postId },
         { $set: { featured } }
       );

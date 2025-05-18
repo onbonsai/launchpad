@@ -10,6 +10,7 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetBonsaiClaim, claimTokensWithProof } from "@src/services/madfi/claim";
 import { useModal } from "connectkit";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
+import Image from "next/image";
 
 export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { chainId, isConnected } = useAccount();
@@ -113,7 +114,7 @@ export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) =>
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center">
-            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg" />
+            <Image src="/bonsai.png" alt="bonsai" className="object-cover rounded-lg" width={24} height={24}/>
           </div>
           <span>Airdrop</span>
         </div>
@@ -150,7 +151,7 @@ const EarningsTooltip = ({
         <div className="flex items-center justify-between py-1">
           <div className="flex items-center gap-x-2">
             <div className="relative">
-              <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg" />
+              <Image src="/bonsai.png" alt="bonsai" className="object-cover rounded-lg" width={24} height={24}/>
             </div>
             <span className="text-sm text-white">BONSAI on Lens Chain</span>
           </div>

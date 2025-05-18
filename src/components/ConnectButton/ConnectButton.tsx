@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
+import Image from "next/image";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -173,7 +174,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         style={{ maxWidth: 'calc(100vw - 20px)' }} // Ensure the container does not exceed the viewport width
       >
         <span className="flex items-center shrink min-w-0">
-          {profilePicture && <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" />}
+          {profilePicture && <Image src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
           <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
             {identity}
           </span>

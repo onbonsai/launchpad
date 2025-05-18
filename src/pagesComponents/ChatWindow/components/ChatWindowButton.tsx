@@ -6,6 +6,7 @@ import { Button } from "@src/components/Button";
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
 import { useAccount } from "wagmi";
+import Image from "next/image";
 
 const XIcon = ({ size = 24, className = "" }) => (
   <svg
@@ -71,10 +72,12 @@ export default function ChatWindowButton({
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
             <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
-              <img
+              <Image
                 src={agentInfo.account?.metadata?.picture || "/default.png"}
                 alt="Agent avatar"
                 className="h-full w-full rounded-full object-cover"
+                width={40}
+                height={40}
               />
             </div>
             <h3 className="font-medium text-white">

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { formatEther, formatUnits } from "viem";
+import Image from "next/image";
 
 import { DECIMALS, MAX_MINTABLE_SUPPLY, USDC_DECIMALS, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
@@ -70,11 +71,12 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
           className="overflow-hidden h-[37%] absolute w-full top-0 left-0 -z-10"
           style={{ filter: 'blur(40px)' }}
         >
-          <img
+          <Image
             src={club.token.image}
             alt={club.token.name}
             sizes="10vw"
             className="w-full h-full object-cover"
+            fill
           />
           <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
         </div>
@@ -86,11 +88,13 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
     return (
       <div className="mb-3">
         <div className="flex flex-row">
-          <img
+          <Image
             src={club.token.image}
             alt={club.token.name}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
+            width={48}
+            height={48}
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">

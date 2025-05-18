@@ -1,10 +1,9 @@
 import React from 'react'
 import HoldingsHeader from './HoldingsHeader'
 import { kFormatter, roundedToFixed } from '@src/utils/utils';
-import { formatUnits, formatEther } from 'viem';
-import { DECIMALS, USDC_DECIMALS } from '@src/services/madfi/moneyClubs';
 import TokenCard from './TokenCard';
-import { SmallSubtitle, Subtitle } from '@src/styles/text';
+import { SmallSubtitle } from '@src/styles/text';
+import Image from 'next/image';
 
 interface HoldingSectionProps {
   holdings: any[];
@@ -19,15 +18,6 @@ const HoldingSection = (props: HoldingSectionProps) => {
       {/* <HoldingsHeader title="Tokens" count={holdings.length + (bonsaiAmount > 0 ? 1 : 0)} /> */}
       <HoldingsHeader title="Tokens" count={holdings.length} />
       <div className='flex space-x-1 w-full overflow-x-auto mt-2 scrollbar-hide'>
-        {/* {bonsaiAmount > 0 && <TokenCard
-          key={`bonsai-row}`}
-          title={'Bonsai'}
-          count={roundedToFixed(parseFloat(formatEther(bonsaiAmount)), 2)}
-          logo={<img src='/static/images/logo.svg' alt='token-image' className='h-4' />}
-          symbol={'BONSAI'}
-          logoBg={false}
-          price={bonsaiPriceString}
-        />} */}
         {holdings.map((row) => (
           <TokenCard
             clubId={row.club.clubId}
@@ -35,7 +25,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
             key={`row-${row.club.tokenAddress || row.club.clubId}`}
             title={row.token.name}
             count={kFormatter(parseFloat(row.amount))}
-            logo={<img src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' />}
+            logo={<Image src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' width={32} height={32} />}
             symbol={row.token.symbol}
             logoBg={true}
             price={roundedToFixed(row.balance, 2)}

@@ -30,6 +30,7 @@ import { useResolveSmartMedia } from '@src/services/madfi/studio';
 import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComments';
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
 import { getPostId } from '@src/services/lens/getStats';
+import Image from 'next/image';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 const TradeComponent = dynamic(() => import("@src/pagesComponents/Club/TradeComponent"), { ssr: false });
@@ -259,10 +260,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
               <div className={clsx("lg:col-span-8 rounded-3xl", club.featured && "animate-pulse")}>
                 <div className={"relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
-                    <img
+                    <Image
                       src={club.token.image}
                       alt={club.token.name}
                       className="w-full h-full object-cover"
+                      fill
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
@@ -270,10 +272,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   <div className="relative z-10 p-3 pb-6 flex flex-col justify-between items-center">
                     <div className="flex flex-row justify-between items-center w-full">
                       <div className='flex flex-row items-center'>
-                        <img
+                        <Image
                           src={club.token.image}
                           alt={club.token.name}
-                          className="w-[64px] h-[64px] object-cover rounded-lg"
+                          className="object-cover rounded-lg"
+                          width={64}
+                          height={64}
                         />
                         <div className="flex flex-col ml-2">
                           <div className="flex flex-row justify-between gap-x-8 w-full">
@@ -306,10 +310,12 @@ const TokenPage: NextPage<TokenPageProps> = ({
                         />
                         <InfoCard title='Chain' subtitle={
                           <div className='flex gap-1 items-center'>
-                            <img
+                            <Image
                               src={`/${club.chain}.png`}
                               alt={club.chain}
-                              className="h-[12px] opacity-75"
+                              className="opacity-7 w-auto"
+                              height={12}
+                              width={12}
                             />
                             <Subtitle className='text-white'>
                               {capitalizeFirstLetter(club.chain)}
@@ -506,21 +512,45 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   const [_club, dbRecord] = await Promise.all([
-    getRegisteredClubById("", chain as string, tokenAddress as `0x${string}`),
     (async () => {
+      const result = await getRegisteredClubById("", chain as string, tokenAddress as `0x${string}`);
+      return result;
+    })(),
+    (async () => {
+      let result;
       if (chain === "base") {
         const { collection } = await getClientWithClubs();
-        return await collection.findOne(
+        result = await collection.findOne(
           { tokenAddress: getAddress(tokenAddress as string) },
-          { projection: { _id: 0 } }
+          { 
+            projection: { 
+              _id: 0,
+              featureEndAt: 1,
+              postId: 1,
+              pubId: 1,
+              profileId: 1,
+              handle: 1,
+              strategy: 1
+            } 
+          }
         );
       } else {
         const { collection } = await getClientWithMedia();
-        return await collection.findOne(
+        result = await collection.findOne(
           { "token.address": getAddress(tokenAddress as string) },
-          { projection: { _id: 0, postId: 1 } }
+          { 
+            projection: { 
+              _id: 0,
+              postId: 1,
+              pubId: 1,
+              profileId: 1,
+              handle: 1,
+              strategy: 1
+            } 
+          }
         );
       }
+      return result;
     })()
   ]);
 

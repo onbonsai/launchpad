@@ -21,6 +21,7 @@ import { Tooltip } from "@src/components/Tooltip";
 import toast from "react-hot-toast";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import Link from "next/link";
+import Image from "next/image";
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -199,9 +200,9 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-6">
-            <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover absolute right-8 z-20" />
-            <img src="/gho.webp" alt="gho" className="w-[24px] h-[24px] object-cover absolute right-4 z-10" />
-            <img src="/usdc.png" alt="usdc" className="w-[24px] h-[24px] object-cover relative" />
+            <Image src="/bonsai.png" alt="bonsai" className="object-cover absolute right-8 z-20" width={24} height={24}/>
+            <Image src="/gho.webp" alt="gho" className="object-cover absolute right-4 z-10" width={24} height={24}/>
+            <Image src="/usdc.png" alt="usdc" className="object-cover relative" width={24} height={24}/>
           </div>
           <span className="ml-2">${totalFormatted}</span>
         </div>
@@ -261,14 +262,14 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                   <div className="space-y-2">
                     <div className="p-3 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img src="/bonsai.png" alt="bonsai" className="w-5 h-5 rounded-full" />
+                        <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
                         <span className="text-sm text-zinc-400">BONSAI</span>
                       </div>
                       <p className="text-lg font-bold">{bonsaiLensFormatted}</p>
                     </div>
                     {/* <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
+                        <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
                       <p className="text-lg font-bold">{ghoLensFormatted}</p>
@@ -322,7 +323,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 <div className="space-y-2">
                   <div className="p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img src="/bonsai.png" alt="bonsai" className="w-5 h-5 rounded-full" />
+                      <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
                       <span className="text-sm text-zinc-400">BONSAI</span>
                     </div>
                     <p className="text-lg font-bold">{bonsaiFormatted}</p>
@@ -330,7 +331,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                   <div className="p-3 rounded-md relative">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img src="/gho.webp" alt="gho" className="w-5 h-5 rounded-full" />
+                        <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
                       <div className="relative group">
@@ -354,7 +355,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                     <div className="mt-2 pl-7 flex flex-col relative">
                       <div className={`flex items-center justify-between ${wghoBalance && wghoBalance > 0n ? 'group' : ''}`}>
                         <div className="flex items-center gap-2">
-                          <img src="/gho.webp" alt="gho" className="w-4 h-4 rounded-full opacity-70" />
+                          <Image src="/gho.webp" alt="gho" className="rounded-full opacity-70" width={16} height={16}/>
                           <span className="text-zinc-500">Wrapped GHO</span>
                         </div>
                         <div className="relative">
@@ -379,7 +380,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                   </div>
                   <div className="p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img src="/usdc.png" alt="usdc" className="w-5 h-5 rounded-full" />
+                      <Image src="/usdc.png" alt="usdc" className="rounded-full" width={20} height={20}/>
                       <span className="text-sm text-zinc-400">USDC (Base)</span>
                     </div>
                     <p className="text-lg font-bold">{usdcFormatted}</p>
