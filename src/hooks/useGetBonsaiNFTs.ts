@@ -108,7 +108,8 @@ const fetchNFTsWithRetry = async (
     const response = await fetch(api_url, options);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error(`HTTP error! status: ${response.status} for ${api_url}`);
+      return [];
     }
 
     const data = (await response.json()) as AlchemyNFTResponse;

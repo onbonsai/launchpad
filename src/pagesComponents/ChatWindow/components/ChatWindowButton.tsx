@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useEffect } from "react"
-import { Button } from "@src/components/Button"
+import type React from "react";
+import { useEffect } from "react";
+import { Button } from "@src/components/Button";
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
 import { useAccount } from "wagmi";
@@ -23,37 +23,48 @@ const XIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-export default function ChatWindowButton({ children, agentInfo, isOpen, setIsOpen }: { children: React.ReactNode, agentInfo: AgentInfo, isOpen: boolean, setIsOpen: (open: boolean) => void }) {
+export default function ChatWindowButton({
+  children,
+  agentInfo,
+  isOpen,
+  setIsOpen,
+}: {
+  children: React.ReactNode;
+  agentInfo: AgentInfo;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}) {
   const { isConnected } = useAccount();
 
   useEffect(() => {
     if (!isOpen) return;
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setIsOpen(false);
       }
     };
-    window.addEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, setIsOpen]);
 
   const toggleChat = () => {
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
 
   return (
     <>
-      {/* Sidebar Chat Window (fills parent) */}
+      {/* Chat Window */}
       <div
         className={clsx(
-          "h-full w-full bg-black overflow-hidden transition-all duration-300 ease-in-out flex flex-col z-40 pointer-events-auto",
-          isOpen ? "translate-x-0" : "translate-x-full"
+          "fixed top-0 right-0 h-full w-80 sm:w-96 bg-black overflow-hidden flex flex-col z-40",
+          "pointer-events-auto transition-all duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "translate-x-full",
         )}
         style={{
           transformOrigin: "right",
-          boxShadow: "inset 16px 0 32px -8px rgba(0,0,0,0.45)"
+          boxShadow: "inset 16px 0 32px -8px rgba(0,0,0,0.45)",
         }}
       >
         {/* Chat Header */}
@@ -66,7 +77,9 @@ export default function ChatWindowButton({ children, agentInfo, isOpen, setIsOpe
                 className="h-full w-full rounded-full object-cover"
               />
             </div>
-            <h3 className="font-medium text-white">Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}</h3>
+            <h3 className="font-medium text-white">
+              Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+            </h3>
           </div>
           {/* Close Button in Header */}
           <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">
@@ -74,9 +87,7 @@ export default function ChatWindowButton({ children, agentInfo, isOpen, setIsOpe
           </button>
         </div>
         {/* Chat Content Area - Render children (Chat component) here */}
-        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">
-          {isOpen && children}
-        </div>
+        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && children}</div>
       </div>
 
       {/* Floating Open Button (bottom right) */}
@@ -87,7 +98,7 @@ export default function ChatWindowButton({ children, agentInfo, isOpen, setIsOpe
             variant="primary"
             className={clsx(
               "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-              "bg-background border border-dark-grey hover:bg-background shining-border"
+              "bg-background border border-dark-grey hover:bg-background shining-border",
             )}
           >
             <div className="flex items-center justify-center">
@@ -97,5 +108,5 @@ export default function ChatWindowButton({ children, agentInfo, isOpen, setIsOpe
         </div>
       )}
     </>
-  )
+  );
 }

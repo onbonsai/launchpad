@@ -29,7 +29,6 @@ import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowB
 import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import { Post } from "@lens-protocol/client";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
@@ -63,10 +62,12 @@ const PublicationContainer = dynamic(
   }
 );
 
+const COMMENT_SCORE_THRESHOLD = 500;
+
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { postId } = router.query;
+  const { postId, v } = router.query;
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
@@ -76,6 +77,17 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     account: authenticatedProfile
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
+
+  // Load version from URL query parameter when page loads
+  useEffect(() => {
+    if (!isMounted || !media?.versions || !v) return;
+
+    const versionIndex = parseInt(v as string);
+    // Check if version is within bounds (0 to versions.length)
+    if (versionIndex >= 0 && versionIndex < media.versions.length) {
+      loadVersion(versionIndex);
+    }
+  }, [isMounted, media?.versions, v]);
 
   // Get the return post ID from localStorage
   const returnPostId = useMemo(() => {
@@ -103,6 +115,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   // Store the current post ID as return ID when navigating away
   useEffect(() => {
+    // Reset the current version metadata and index when the post ID changes
+    setCurrentVersionMetadata(null);
+    setCurrentVersionIndex(null);
+
     const handleBeforeUnload = () => {
       if (currentPostId && typeof window !== 'undefined') {
         localStorage.setItem('returnPostId', currentPostId);
@@ -187,6 +203,42 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const [currentVersionMetadata, setCurrentVersionMetadata] = useState<any>(null);
   const [showVersionIndicator, setShowVersionIndicator] = useState(false);
   const [isVersionIndicatorVisible, setIsVersionIndicatorVisible] = useState(false);
+  const [showLowScoreComments, setShowLowScoreComments] = useState(false);
+
+  const { highScoreComments, lowScoreComments } = useMemo(() => {
+    const allComments = (freshComments || comments || []);
+    return {
+      highScoreComments: allComments.filter(comment => (comment.author.score || 0) >= COMMENT_SCORE_THRESHOLD),
+      lowScoreComments: allComments.filter(comment => (comment.author.score || 0) < COMMENT_SCORE_THRESHOLD)
+    };
+  }, [freshComments, comments]);
+
+  const sortedHighScoreComments = useMemo(() => {
+    return highScoreComments.sort((a, b) => {
+      // Sort by upvoteReactions descending
+      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
+        return b.stats.upvoteReactions - a.stats.upvoteReactions;
+      }
+      // If upvoteReactions are equal, sort by createdAt ascending
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [highScoreComments]);
+
+  const sortedLowScoreComments = useMemo(() => {
+    return lowScoreComments.sort((a, b) => {
+      // Sort by upvoteReactions descending
+      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
+        return b.stats.upvoteReactions - a.stats.upvoteReactions;
+      }
+      // If upvoteReactions are equal, sort by createdAt ascending
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [lowScoreComments]);
+
+  const isProfileAdmin = useMemo(() => {
+    if (!(publication?.by && authenticatedProfileId)) return false;
+    return publication?.by.id === authenticatedProfileId;
+  }, [publication, authenticatedProfileId]);
 
   const hasUpvotedComment = (publicationId: string): boolean => {
     const comment = (freshComments || comments).find(({ id }) => id === publicationId);
@@ -215,31 +267,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     }
   }, [authenticatedProfile]);
 
-  const sortedComments: Post[] = useMemo(() => {
-    return (freshComments || comments || []).sort((a, b) => {
-      // Sort by upvoteReactions descending
-      if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
-        return b.stats.upvoteReactions - a.stats.upvoteReactions;
-      }
-      // If upvoteReactions are equal, sort by createdAt ascending
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
-  }, [freshComments, comments]);
-
-  const isProfileAdmin = useMemo(() => {
-    if (!(publication?.by && authenticatedProfileId)) return false;
-
-    return publication?.by.id === authenticatedProfileId;
-  }, [publication, authenticatedProfileId]);
-
   const enoughActivity = useMemo(() => {
-    if (!sortedComments?.length || !media?.updatedAt) return false;
+    if (!sortedHighScoreComments?.length || !media?.updatedAt) return false;
 
-    return sortedComments.some(comment => {
+    return sortedHighScoreComments.some(comment => {
       const commentTimestamp = Math.floor(new Date(comment.timestamp).getTime() / 1000);
       return commentTimestamp > media.updatedAt;
     });
-  }, [sortedComments, media]);
+  }, [sortedHighScoreComments, media]);
 
   const onCommentButtonClick = (e: React.MouseEvent, commentId?: string, username?: string, isThread?: boolean) => {
     e.preventDefault();
@@ -433,17 +468,15 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
-      <div className="fixed top-0 right-0 h-full w-80 sm:w-96 z-30 pointer-events-auto">
-        {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-          <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
-            <Chat
-              agentId={currentPostId as string}
-              agentWallet={agentInfoSage.info.wallets[0]}
-              agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
-            />
-          </ChatWindowButton>
-        )}
-      </div>
+      {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
+        <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
+          <Chat
+            agentId={currentPostId as string}
+            agentWallet={agentInfoSage.info.wallets[0]}
+            agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+          />
+        </ChatWindowButton>
+      )}
       <div className="h-full">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
@@ -491,7 +524,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                         )}
                         <div className="hidden sm:block">
                           <PublicationContainer
-                            key={`pub-${currentVersionIndex ?? 'current'}`}
+                            key={`pub-${getPublicationData.id}-v-${currentVersionIndex ?? 'current'}`}
                             publication={getPublicationData}
                             onCommentButtonClick={onCommentButtonClick}
                             shouldGoToPublicationPage={showRootPublication}
@@ -509,6 +542,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             enoughActivity={enoughActivity}
                             isPresenceConnected={isPresenceConnected}
                             connectedAccounts={connectedAccounts}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
                           />
                         </div>
                         <div className="sm:hidden">
@@ -526,10 +560,16 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             enoughActivity={enoughActivity}
                             isPresenceConnected={isPresenceConnected}
                             connectedAccounts={connectedAccounts}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
                           />
                         </div>
                         <div className="min-w-0">
-                          <QuotePreviews quotes={quotes} />
+                          <QuotePreviews 
+                            quotes={quotes} 
+                            originalPost={publication?.quoteOf}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
+                            parentVersion={publication?.metadata.attributes?.find((attr: any) => attr.key === "remixVersion")?.value}
+                          />
                         </div>
                       </>
                     ) : (
@@ -591,38 +631,89 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                       )}
                       <div className="animate-fade-in-down">
                         {isMounted && (
-                          <Publications
-                            publications={showRootPublication ? [publication] : sortedComments}
-                            theme={Theme.dark}
-                            environment={LENS_ENVIRONMENT}
-                            authenticatedProfile={authenticatedProfile}
-                            hideCommentButton={false}
-                            hideQuoteButton={true}
-                            hideShareButton={true}
-                            hasUpvotedComment={hasUpvotedComment}
-                            onLikeButtonClick={onLikeButtonClick}
-                            getOperationsFor={getOperationsFor}
-                            profilePictureStyleOverride={publicationProfilePictureStyle}
-                            containerBorderRadius={'24px'}
-                            containerPadding={'12px'}
-                            profilePadding={'0 0 0 0'}
-                            textContainerStyleOverride={textContainerStyleOverrides}
-                            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-                            mediaImageStyleOverride={mediaImageStyleOverride}
-                            imageContainerStyleOverride={imageContainerStyleOverride}
-                            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                            reactionContainerStyleOverride={reactionContainerStyleOverride}
-                            publicationContainerStyleOverride={publicationContainerStyleOverride}
-                            shareContainerStyleOverride={shareContainerStyleOverride}
-                            markdownStyleBottomMargin={'0px'}
-                            heartIconOverride={true}
-                            messageIconOverride={true}
-                            shareIconOverride={true}
-                            followButtonDisabled={true}
-                            onProfileClick={goToCreatorPage}
-                            hideCollectButton={true}
-                            onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
-                          />
+                          <>
+                            <Publications
+                              publications={showRootPublication ? [publication] : sortedHighScoreComments}
+                              theme={Theme.dark}
+                              environment={LENS_ENVIRONMENT}
+                              authenticatedProfile={authenticatedProfile}
+                              hideCommentButton={false}
+                              hideQuoteButton={true}
+                              hideShareButton={true}
+                              hasUpvotedComment={hasUpvotedComment}
+                              onLikeButtonClick={onLikeButtonClick}
+                              getOperationsFor={getOperationsFor}
+                              profilePictureStyleOverride={publicationProfilePictureStyle}
+                              containerBorderRadius={'24px'}
+                              containerPadding={'12px'}
+                              profilePadding={'0 0 0 0'}
+                              textContainerStyleOverride={textContainerStyleOverrides}
+                              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                              mediaImageStyleOverride={mediaImageStyleOverride}
+                              imageContainerStyleOverride={imageContainerStyleOverride}
+                              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                              reactionContainerStyleOverride={reactionContainerStyleOverride}
+                              publicationContainerStyleOverride={publicationContainerStyleOverride}
+                              shareContainerStyleOverride={shareContainerStyleOverride}
+                              markdownStyleBottomMargin={'0px'}
+                              heartIconOverride={true}
+                              messageIconOverride={true}
+                              shareIconOverride={true}
+                              followButtonDisabled={true}
+                              onProfileClick={goToCreatorPage}
+                              hideCollectButton={true}
+                              onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                            />
+                            {lowScoreComments.length > 0 && (
+                              <>
+                                <div className="flex justify-center mt-4 mb-4">
+                                  <button
+                                    onClick={() => setShowLowScoreComments(!showLowScoreComments)}
+                                    className="px-4 py-2 text-sm text-secondary/70 hover:text-secondary bg-dark-grey/20 hover:bg-dark-grey/30 rounded-full transition-colors"
+                                  >
+                                    {showLowScoreComments ? 'Hide' : 'Show'} additional comments ({lowScoreComments.length})
+                                  </button>
+                                </div>
+                                {showLowScoreComments && (
+                                  <div className="mt-4 pt-4 border-t border-white/[0.03]">
+                                    {/* <div className="text-sm text-secondary/50 mb-4 px-4">Low-score comments</div> */}
+                                    <Publications
+                                      publications={sortedLowScoreComments}
+                                      theme={Theme.dark}
+                                      environment={LENS_ENVIRONMENT}
+                                      authenticatedProfile={authenticatedProfile}
+                                      hideCommentButton={false}
+                                      hideQuoteButton={true}
+                                      hideShareButton={true}
+                                      hasUpvotedComment={hasUpvotedComment}
+                                      onLikeButtonClick={onLikeButtonClick}
+                                      getOperationsFor={getOperationsFor}
+                                      profilePictureStyleOverride={publicationProfilePictureStyle}
+                                      containerBorderRadius={'24px'}
+                                      containerPadding={'12px'}
+                                      profilePadding={'0 0 0 0'}
+                                      textContainerStyleOverride={textContainerStyleOverrides}
+                                      backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+                                      mediaImageStyleOverride={mediaImageStyleOverride}
+                                      imageContainerStyleOverride={imageContainerStyleOverride}
+                                      reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                                      reactionContainerStyleOverride={reactionContainerStyleOverride}
+                                      publicationContainerStyleOverride={publicationContainerStyleOverride}
+                                      shareContainerStyleOverride={shareContainerStyleOverride}
+                                      markdownStyleBottomMargin={'0px'}
+                                      heartIconOverride={true}
+                                      messageIconOverride={true}
+                                      shareIconOverride={true}
+                                      followButtonDisabled={true}
+                                      onProfileClick={goToCreatorPage}
+                                      hideCollectButton={true}
+                                      onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
+                                    />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
