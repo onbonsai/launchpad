@@ -15,7 +15,7 @@ import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { brandFont } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
-import sdk from "@src/utils/farcaster.mjs";
+import { sdk } from '@farcaster/frame-sdk'
 import { useRouter } from "next/router.js";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
@@ -58,7 +58,7 @@ export default function MyApp(props: AppProps) {
 
   useEffect(() => {
     const load = async () => {
-      sdk.actions.ready();
+      await sdk.actions.ready();
     };
     if (sdk && !isSDKLoaded) {
       setIsSDKLoaded(true);

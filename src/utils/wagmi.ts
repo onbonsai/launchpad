@@ -1,9 +1,9 @@
 import { http, createConfig } from "wagmi";
 import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
 import { getDefaultConfig } from "connectkit";
+import { farcasterFrame as miniAppConnector } from '@farcaster/frame-wagmi-connector'
 
 import { ChainRpcs } from "@src/constants/chains";
-import { frameConnector } from "./connector";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
 import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
@@ -22,6 +22,9 @@ export const config = () => {
         [mainnet.id]: http(),
         [zkSync.id]: http(ChainRpcs[zkSync.id]),
       },
+      connectors: [
+        miniAppConnector()
+      ],
       walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
       appName: "Bonsai",
       appDescription: "Create autonomous, agentic content on Lens",

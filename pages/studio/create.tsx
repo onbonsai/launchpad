@@ -30,6 +30,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
+import { sdk } from '@farcaster/frame-sdk';
 
 type TokenData = {
   initialSupply: number;
@@ -179,6 +180,43 @@ const StudioCreatePage: NextPage = () => {
   };
 
   const onCreate = async (collectAmount: number) => {
+    // Mini app: open cast composer first
+    const isMiniApp = await sdk.isInMiniApp();
+    if (isMiniApp) {
+      try {
+        // TODO: embeds broken?
+        // TODO: mini app link to post in the post
+        // Prepare embeds array
+        let embeds: string[] = [];
+        // Upload video if present
+        if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
+          const { uri: videoUri } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
+          embeds.push(videoUri);
+        } else if (currentPreview?.video) {
+          const url = typeof currentPreview?.video === "string" ? currentPreview?.video : currentPreview?.video?.url;
+          if (url) embeds.push(url);
+        }
+        // Upload image if present
+        if (postImage && postImage.length > 0) {
+          const { image: img } = await uploadFile(postImage[0], template?.acl);
+          if (img?.url) embeds.push(img.url);
+        } else if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
+          embeds.push(currentPreview?.image);
+        } else if (currentPreview?.image) {
+          const { uri: imageUri } = await uploadImageBase64(currentPreview.image, template?.acl);
+          embeds.push(imageUri);
+        }
+        const result = await sdk.actions.composeCast({ text: postContent || currentPreview?.text || template?.displayName, embeds: embeds as [string] });
+        if (!result || !result.cast) {
+          // User cancelled or did not post
+          return;
+        }
+      } catch (e) {
+        // User may have cancelled, ignore
+        return;
+      }
+    }
+
     let toastId: string | undefined;
     if (!template) {
       toast.error("No template data found");

@@ -4,6 +4,7 @@ import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
 import { useSIWE, useModal, SIWESession } from "connectkit";
 import { Tooltip } from "@components/Tooltip";
+import { sdk } from '@farcaster/frame-sdk'
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";
@@ -85,6 +86,23 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     fullRefetch,
   } = useLensSignIn(walletClient);
 
+  const [isMiniApp, setIsMiniApp] = useState(false);
+  useEffect(() => {
+    const checkMiniApp = async () => {
+      const isMiniApp = await sdk.isInMiniApp();
+      
+      if (isMiniApp) {
+        // Handle mini app specific logic
+        setIsMiniApp(true);
+      } else {
+        // Handle regular web app logic
+        setIsMiniApp(false);
+      }
+    };
+
+    checkMiniApp();
+  }, []);
+
   // useEffect(() => {
   //   // pop open the lens login modal once connected and signed in with ethereum
   //   if (connected && autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -152,7 +170,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   //   );
   // }
 
-  if (!isAuthenticated && setOpenSignInModal && (profiles?.length && profiles?.length > 0)) {
+  if (!isAuthenticated && setOpenSignInModal) {
     return (
       <Button
         variant="accent"
@@ -161,7 +179,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         disabled={signingIn}
         size="md"
       >
-        Login with Lens
+        Login {isMiniApp ? '' : 'with Lens'}
       </Button>
     )
   }
