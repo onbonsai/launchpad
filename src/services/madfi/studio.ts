@@ -88,6 +88,7 @@ export type Template = {
     isCanvas?: boolean;
     nftRequirement?: MediaRequirement;
     audioRequirement?: MediaRequirement;
+    audioDuration?: number;
   };
   templateData: {
     form: z.ZodObject<any>;

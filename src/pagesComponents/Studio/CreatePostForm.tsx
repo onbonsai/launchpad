@@ -451,6 +451,7 @@ const DynamicForm = ({
                 setFile={setPostAudio}
                 startTime={audioStartTime}
                 setStartTime={setAudioStartTime}
+                audioDuration={template.options?.audioDuration}
               />
           }
         </div>

@@ -13,17 +13,19 @@ interface AudioUploaderProps {
   setFile: (value: SetStateAction<any>) => void;
   startTime: number;
   setStartTime: (t: number) => void;
+  audioDuration?: number;
 }
 
 const MAX_SIZE = 10_000_000; // 10MB
-const CLIP_LENGTH = 10; // 10 seconds
+const DEFAULT_CLIP_LENGTH = 10; // 10 seconds
 
-export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime }) => {
+export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime, audioDuration }) => {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurfer = useRef<WaveSurfer | null>(null);
   const regionsPlugin = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
   const [duration, setDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const CLIP_LENGTH = audioDuration || DEFAULT_CLIP_LENGTH;
 
   // Load audio into WaveSurfer
   useEffect(() => {
@@ -65,7 +67,9 @@ export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime
       });
 
       return () => {
-        wavesurfer.current?.destroy();
+        try {
+          wavesurfer.current?.destroy();
+        } catch {}
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
