@@ -87,7 +87,7 @@ export const FinalizePost = ({
 
   return (
     <form
-      className="mt-5 mx-auto w-full space-y-4 divide-y divide-dark-grey"
+      className="mt-5 mb-4 mx-auto w-full space-y-4 divide-y divide-dark-grey"
       style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-4">

@@ -70,7 +70,18 @@ export const getViaStorjGateway = async (uriOrHash: string) => {
 
 const storjGatewayURL = (uriOrHash: string) => `${STORJ_API_URL}/ipfs/${_hash(uriOrHash)}`;
 
-// save to bucket
+const getExtensionFromContentType = (contentType: string): string => {
+  const contentTypeMap: { [key: string]: string } = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/svg+xml': '.svg'
+  };
+  return contentTypeMap[contentType] || '';
+};
+
 export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image/png' }): Promise<StorjUploadResult> => {
   if (!STORJ_ACCESS_KEY || !STORJ_SECRET_KEY || !STORJ_ENDPOINT) {
     return {
@@ -78,6 +89,10 @@ export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image
       error: "Storj credentials are not properly configured",
     };
   }
+
+  // Add file extension if not present
+  const extension = getExtensionFromContentType(contentType);
+  const finalId = extension && !id.toLowerCase().endsWith(extension) ? `${id}${extension}` : id;
 
   const s3 = new S3({
     accessKeyId: STORJ_ACCESS_KEY,
@@ -89,7 +104,7 @@ export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image
 
   const params = {
     Bucket: bucket,
-    Key: id,
+    Key: finalId,
     Body: buffer,
     ContentType: contentType,
   };
@@ -98,7 +113,7 @@ export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image
     await s3.upload(params).promise();
     return {
       success: true,
-      url: getStorjPublicUrl(bucket, id),
+      url: getStorjPublicUrl(bucket, finalId),
     };
   } catch (error) {
     console.error("Failed to upload image to Storj:", error);
