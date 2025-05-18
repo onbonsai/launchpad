@@ -100,7 +100,17 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
         }));
 
         // Combine and sort the clubs according to sortedBy parameter
-        const combinedClubs = [...baseClubs, ...lensClubs];
+        const combinedClubs = sortedBy === "club.marketCap" 
+          ? [...baseClubs, ...lensClubs].sort((a, b) => {
+              const marketCapA = BigInt(a.club.marketCap || "0");
+              const marketCapB = BigInt(b.club.marketCap || "0");
+              return marketCapB > marketCapA ? 1 : -1;
+            })
+          : [...baseClubs, ...lensClubs].sort((a, b) => {
+              const timeA = new Date(a.club.createdAt).getTime();
+              const timeB = new Date(b.club.createdAt).getTime();
+              return timeB - timeA;
+            });
 
         return {
           clubs: combinedClubs,

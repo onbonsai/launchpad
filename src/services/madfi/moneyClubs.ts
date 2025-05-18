@@ -676,7 +676,7 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   return clubs?.map((club) => {
     let { name, symbol, uri: image } = club
 
-    if (!club.name || !club.symbol || !club.uri) {
+    if (club.tokenInfo && (!club.name || !club.symbol || !club.uri)) {
       // backup for v1 clubs
       ;[name, symbol, image] = decodeAbiParameters([
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -692,7 +692,7 @@ export const getRegisteredClubInfoByAddress = async (tokenAddress, chain = "base
   const res = clubs?.map((club) => {
     let { name, symbol, uri: image } = club
 
-    if (!club.name || !club.symbol || !club.uri) {
+    if (club.tokenInfo && (!club.name || !club.symbol || !club.uri)) {
       // backup for v1 clubs
       ;[name, symbol, image] = decodeAbiParameters([
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -928,7 +928,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
         } else { // not created on our app
           let { name, symbol, uri: image } = _club;
 
-          if (!name || !symbol || !image) {
+          if (_club.tokenInfo && (!name || !symbol || !image)) {
             // backup for v1 clubs
             [name, symbol, image] = decodeAbiParameters([
               { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -988,7 +988,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
           : (groupedClubs[_club.tokenAddress] ? groupedClubs[_club.tokenAddress][0] : undefined);
         if (club?.hidden) return; // db forced hide
         let { name, symbol, uri: image } = _club;
-        if (!name || !symbol || !image) {
+        if (_club.tokenInfo && (!name || !symbol || !image)) {
           // backup for v1 clubs
           [name, symbol, image] = decodeAbiParameters([
             { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
@@ -1605,7 +1605,7 @@ export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[]
     const clubs = data?.clubs.map((_club) => {
       let { name, symbol, image } = _club
 
-      if (!_club.name || !_club.symbol || !_club.uri) {
+      if (_club.tokenInfo && (!_club.name || !_club.symbol || !_club.uri)) {
         // backup for v1 clubs
         ;[name, symbol, image] = decodeAbiParameters([
           { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
