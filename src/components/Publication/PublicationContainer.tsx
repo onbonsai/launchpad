@@ -56,6 +56,7 @@ type PublicationContainerProps = {
   enoughActivity?: boolean; // does the smart media have any new comments since the last time it was updated
   isPresenceConnected?: boolean; // are we connected to the websocket
   connectedAccounts?: any; // connected accounts on the websocket
+  version?: number;
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -110,6 +111,7 @@ const PublicationContainer = ({
   enoughActivity,
   isPresenceConnected,
   connectedAccounts,
+  version,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
@@ -489,7 +491,7 @@ const PublicationContainer = ({
                 return;
               }
 
-              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}`);
+              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
             }}
           >
             {!hasCollected ? (

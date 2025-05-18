@@ -45,7 +45,7 @@ type TokenData = {
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId } = router.query;
+  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -431,7 +431,10 @@ const StudioCreatePage: NextPage = () => {
           video,
           template,
           tokenAddress,
-          remix: remixMedia?.postId,
+          remix: remixMedia?.postId ? {
+            postId: remixMedia.postId,
+            version: remixVersionQuery ? parseInt(remixVersionQuery as string) : remixMedia.versions?.length ?? 0
+          } : undefined,
           actions
         }
       );

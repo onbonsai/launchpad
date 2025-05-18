@@ -450,8 +450,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return media || undefined;
   };
 
-  console.log('publication', sortedHighScoreComments);
-
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
@@ -529,6 +527,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             enoughActivity={enoughActivity}
                             isPresenceConnected={isPresenceConnected}
                             connectedAccounts={connectedAccounts}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
                           />
                         </div>
                         <div className="sm:hidden">
@@ -546,12 +545,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             enoughActivity={enoughActivity}
                             isPresenceConnected={isPresenceConnected}
                             connectedAccounts={connectedAccounts}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
                           />
                         </div>
                         <div className="min-w-0">
                           <QuotePreviews 
                             quotes={quotes} 
                             originalPost={publication?.quoteOf}
+                            version={currentVersionIndex ?? media?.versions?.length ?? 0}
                           />
                         </div>
                       </>

@@ -72,7 +72,10 @@ interface PostParams {
     options: { isCanvas?: boolean };
   };
   tokenAddress?: `0x${string}`;
-  remix?: string;
+  remix?: {
+    postId: string;
+    version: number;
+  }
   actions?: Action[];
 }
 
@@ -160,7 +163,12 @@ export const formatMetadata = (params: PostParams): TextOnlyMetadata | ImageMeta
     attributes!.push({
       type: MetadataAttributeType.STRING as const,
       key: "remix",
-      value: params.remix as string,
+      value: params.remix.postId,
+    });
+    attributes!.push({
+      type: MetadataAttributeType.STRING as const,
+      key: "remixVersion",
+      value: params.remix.version.toString(),
     });
   }
 
@@ -270,9 +278,9 @@ export const createPost = async (
         post: postId(commentOn),
       }
       : undefined,
-    quoteOf: quoteOf || !!params.remix
+    quoteOf: quoteOf || !!params.remix?.postId
       ? {
-        post: postId(quoteOf || params.remix as string),
+        post: postId(quoteOf || params.remix?.postId as string),
       }
       : undefined,
     actions: params.actions,
