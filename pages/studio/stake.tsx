@@ -30,6 +30,7 @@ import BuySellModal from "@pagesComponents/Club/BuySellModal";
 import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { useGetPosts } from "@src/services/lens/posts";
+import Image from "next/image"
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -395,7 +396,7 @@ const TokenPage: NextPage = () => {
                 <div className="flex flex-col ">
                   <div className="flex flex-col">
                     <div className="flex space-x-2">
-                      <img src="/bonsai.png" alt="bonsai" className="w-[24px] h-[24px] object-cover rounded-lg" />
+                      <Image src="/bonsai.png" alt="bonsai" className="object-cover rounded-lg" height={24} width={24}/>
                       <Header2>Bonsai Token</Header2>
                       <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>

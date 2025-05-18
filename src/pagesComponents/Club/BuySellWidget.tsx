@@ -5,6 +5,7 @@ import { encodeAbiParameters, erc20Abi, formatUnits, parseEther, parseUnits, zer
 import toast from "react-hot-toast";
 import ConfettiExplosion from 'react-confetti-explosion';
 import clsx from "clsx";
+import Image from "next/image";
 
 import { Button } from "@src/components/Button"
 import { castIntentTokenReferral, kFormatter, roundedToFixed, tweetIntentTokenReferral } from "@src/utils/utils";
@@ -548,7 +549,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                     <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams}`} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button className="w-[150px] bg-black hover:bg-black">
-                          <img src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" />
+                          <Image src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" width={16} height={16} />
                           Orb
                         </Button>
                       </a>
@@ -559,7 +560,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button variant="accent" className="w-[150px] flex items-center justify-center">
-                          <img src="/svg/X_logo_2023.svg" alt="X Logo" className="w-4 h-4" />
+                          <Image src="/svg/X_logo_2023.svg" alt="X Logo" className="w-4 h-4" width={16} height={16} />
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({

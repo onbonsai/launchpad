@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDown, Copy, Gift } from "lucide-react"
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
@@ -42,12 +43,14 @@ export default function WalletBalanceModal({
       <div className="flex items-center justify-between p-4 bg-black text-white">
         <div className="flex items-center gap-2 bg-zinc-900 p-3 rounded-md">
           <div className="flex">
-            <img src={mainWallet.icon || "/placeholder.svg"} alt="Main wallet" className="w-6 h-6 rounded-full" />
+            <Image src={mainWallet.icon || "/placeholder.svg"} alt="Main wallet" className="w-6 h-6 rounded-full" width={24} height={24} />
             {connectedWallet && (
-              <img
+              <Image
                 src={connectedWallet.icon || "/placeholder.svg"}
                 alt="Connected wallet"
                 className="w-6 h-6 rounded-full -ml-2"
+                width={24}
+                height={24}
               />
             )}
           </div>
@@ -60,7 +63,7 @@ export default function WalletBalanceModal({
               variant="ghost"
               className="bg-zinc-900 hover:bg-zinc-800 text-white flex items-center gap-2 p-3 rounded-md"
             >
-              <img src={userIcon || "/placeholder.svg"} alt={username} className="w-6 h-6 rounded-full" />
+              <Image src={userIcon || "/placeholder.svg"} alt={username} className="w-6 h-6 rounded-full" width={24} height={24} />
               <span>{username}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -71,10 +74,12 @@ export default function WalletBalanceModal({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img
+                    <Image
                       src={mainWallet.icon || "/placeholder.svg"}
                       alt="Main wallet"
                       className="w-8 h-8 rounded-full"
+                      width={32}
+                      height={32}
                     />
                     <div>
                       <div className="flex items-center gap-2">
@@ -99,14 +104,14 @@ export default function WalletBalanceModal({
                 <div className="space-y-2">
                   <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img src="/placeholder.svg?height=16&width=16" alt="Token 1" className="w-4 h-4 rounded-full" />
+                      <Image src="/placeholder.svg?height=16&width=16" alt="Token 1" className="w-4 h-4 rounded-full" width={16} height={16} />
                       <span className="text-sm text-zinc-400">ETH</span>
                     </div>
                     <p className="text-lg font-bold">{mainWallet.balance}</p>
                   </div>
                   <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img src="/placeholder.svg?height=16&width=16" alt="Token 2" className="w-4 h-4 rounded-full" />
+                      <Image src="/placeholder.svg?height=16&width=16" alt="Token 2" className="w-4 h-4 rounded-full" width={16} height={16} />
                       <span className="text-sm text-zinc-400">USDC</span>
                     </div>
                     <p className="text-lg font-bold">$12.5k</p>
@@ -119,10 +124,12 @@ export default function WalletBalanceModal({
                 <div className="space-y-4 pt-4 border-t border-zinc-800 mt-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <img
+                      <Image
                         src={connectedWallet.icon || "/placeholder.svg"}
                         alt="Connected wallet"
                         className="w-6 h-6 rounded-full"
+                        width={24}
+                        height={24}
                       />
                       <div>
                         <div className="flex items-center gap-2">
@@ -149,14 +156,14 @@ export default function WalletBalanceModal({
                   <div className="space-y-2">
                     <div className="bg-zinc-800 p-2 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img src="/placeholder.svg?height=16&width=16" alt="Token 1" className="w-3 h-3 rounded-full" />
+                        <Image src="/placeholder.svg?height=16&width=16" alt="Token 1" className="w-3 h-3 rounded-full" width={12} height={12} />
                         <span className="text-xs text-zinc-400">ETH</span>
                       </div>
                       <p className="text-base font-bold">{connectedWallet.balance}</p>
                     </div>
                     <div className="bg-zinc-800 p-2 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img src="/placeholder.svg?height=16&width=16" alt="Token 2" className="w-3 h-3 rounded-full" />
+                        <Image src="/placeholder.svg?height=16&width=16" alt="Token 2" className="w-3 h-3 rounded-full" width={12} height={12} />
                         <span className="text-xs text-zinc-400">USDC</span>
                       </div>
                       <p className="text-base font-bold">$0.8k</p>

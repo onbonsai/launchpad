@@ -71,7 +71,7 @@ const getAllSymbols = async (chain: string) => {
   return symbols.map((club) => {
     let _symbol = club.symbol;
 
-    if (!_symbol) { // v1 tokens
+    if (club.tokenInfo && !_symbol) { // v1 tokens
       [, _symbol] = decodeAbiParameters([
         { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }
       ], club.tokenInfo);

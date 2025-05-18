@@ -55,6 +55,17 @@ const nextConfig = {
       'wagmi',
       '@wavesurfer/react',
       'wavesurfer.js',
+      "daisyui",
+      "date-fns",
+      "aws-sdk",
+      "mongodb",
+      "graphql-request",
+      "graphql",
+      "formidable",
+      "jsonwebtoken",
+      "jsonschema",
+      "oauth-1.0a",
+      "promise-limit",
     ]
   },
   i18n: {

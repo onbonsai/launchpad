@@ -13,6 +13,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
+import Image from "next/image";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -97,10 +98,12 @@ const LoginWithLensModal = ({ closeModal }) => {
                 <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
                   <div className="grid grid-cols-5 items-center gap-x-4">
                     <div className="col-span-1">
-                      <img
+                      <Image
                         src={getProfileImage(account)}
                         alt={account.address}
                         className="rounded-full w-14 h-14"
+                        width={56}
+                        height={56}
                       />
                     </div>
 

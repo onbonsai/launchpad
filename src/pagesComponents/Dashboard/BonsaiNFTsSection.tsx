@@ -31,7 +31,7 @@ const BonsaiNFTsSection = React.memo((props: BonsaiNFTsSectionProps) => {
       {(!!nfts && nfts.length > 0)
         ? <div className='flex space-x-2 w-full overflow-x-auto mt-2'>
           {nfts.map((tree, index) => (
-            <BonsaiNFT tree={tree} index={index} key={`bonsai-nft-${index}`} />
+            <BonsaiNFT tree={tree} index={index} key={`bonsai-nft-${index}`} tokenId={tree.tokenId} />
           ))}
         </div>
         : <div className='flex flex-col  border-spacing-3 border mt-3 border-dashed border-card-lightest justify-center items-start px-3 w-full h-[82px] bg-white/5 rounded-2xl'>
