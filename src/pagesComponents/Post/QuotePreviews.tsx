@@ -6,9 +6,10 @@ interface QuotePreviewsProps {
   version: number;
   quotes: any[];
   originalPost?: any;
+  parentVersion?: number;
 }
 
-export const QuotePreviews = ({ quotes, originalPost, version }: QuotePreviewsProps) => {
+export const QuotePreviews = ({ quotes, originalPost, version, parentVersion }: QuotePreviewsProps) => {
   if (!originalPost && quotes.length === 0) {
     return null;
   }
@@ -38,7 +39,7 @@ export const QuotePreviews = ({ quotes, originalPost, version }: QuotePreviewsPr
         key={post.id}
         className="w-[300px] flex-shrink-0 bg-card rounded-2xl p-4 cursor-pointer hover:bg-card/10 transition-colors backdrop-blur-sm"
       >
-        <Link href={`/post/${post.slug}`}>
+        <Link href={`/post/${post.slug}${parentVersion ? `?v=${parentVersion}` : ''}`}>
           <div className="flex items-center gap-2 mb-2">
             <img
               src={getProfileImage(post.author)}

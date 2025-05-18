@@ -67,7 +67,7 @@ const COMMENT_SCORE_THRESHOLD = 500;
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const { postId } = router.query;
+  const { postId, v } = router.query;
   const { isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
@@ -77,6 +77,17 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     account: authenticatedProfile
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
+
+  // Load version from URL query parameter when page loads
+  useEffect(() => {
+    if (!isMounted || !media?.versions || !v) return;
+
+    const versionIndex = parseInt(v as string);
+    // Check if version is within bounds (0 to versions.length)
+    if (versionIndex >= 0 && versionIndex < media.versions.length) {
+      loadVersion(versionIndex);
+    }
+  }, [isMounted, media?.versions, v]);
 
   // Get the return post ID from localStorage
   const returnPostId = useMemo(() => {
@@ -104,6 +115,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   // Store the current post ID as return ID when navigating away
   useEffect(() => {
+    // Reset the current version metadata and index when the post ID changes
+    setCurrentVersionMetadata(null);
+    setCurrentVersionIndex(null);
+
     const handleBeforeUnload = () => {
       if (currentPostId && typeof window !== 'undefined') {
         localStorage.setItem('returnPostId', currentPostId);
@@ -509,7 +524,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                         )}
                         <div className="hidden sm:block">
                           <PublicationContainer
-                            key={`pub-${currentVersionIndex ?? 'current'}`}
+                            key={`pub-${getPublicationData.id}-v-${currentVersionIndex ?? 'current'}`}
                             publication={getPublicationData}
                             onCommentButtonClick={onCommentButtonClick}
                             shouldGoToPublicationPage={showRootPublication}
@@ -553,6 +568,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             quotes={quotes} 
                             originalPost={publication?.quoteOf}
                             version={currentVersionIndex ?? media?.versions?.length ?? 0}
+                            parentVersion={publication?.metadata.attributes?.find((attr: any) => attr.key === "remixVersion")?.value}
                           />
                         </div>
                       </>
