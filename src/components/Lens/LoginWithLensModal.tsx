@@ -1,18 +1,15 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState } from "react";
-import { Dialog } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import { useModal, useSIWE } from "connectkit";
 import { useDisconnect } from 'wagmi'
-import { sdk } from '@farcaster/frame-sdk'
 import { account } from "@lens-protocol/metadata";
-import { createAccountWithUsername } from "@lens-protocol/client/actions";
-import { evmAddress, uri } from "@lens-protocol/client";
-import { SessionClient } from "@lens-protocol/client";
+import { createAccountWithUsername, fetchAccount } from "@lens-protocol/client/actions";
+import { evmAddress, never } from "@lens-protocol/client";
 import { lensClient, storageClient } from "@src/services/lens/client";
-import { BONSAI_NAMESPACE, LENS_BONSAI_APP } from "@src/services/madfi/utils";
+import { BONSAI_NAMESPACE, getChain, LENS_BONSAI_APP } from "@src/services/madfi/utils";
 
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { Button } from "@src/components/Button";
@@ -22,6 +19,8 @@ import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
 import Image from "next/image";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { immutable } from "@lens-chain/storage-client";
+import { handleOperationWith } from "@lens-protocol/client/viem";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -39,28 +38,6 @@ const LoginWithLensModal = ({ closeModal }) => {
 
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
-  const [sessionClient, setSessionClient] = useState<SessionClient | null>(null);
-
-  // useEffect(() => {
-  //   const setupSession = async () => {
-  //     if (walletClient && address) {
-  //       const authenticated = await lensClient.login({
-  //         accountOwner: {
-  //           app: LENS_BONSAI_APP,
-  //           owner: address,
-  //           account: address,
-  //         },
-  //         signMessage: (message) => walletClient.signMessage({ account: address, message }),
-  //       });
-        
-  //       if (authenticated.isOk()) {
-  //         setSessionClient(authenticated.value);
-  //       }
-  //     }
-  //   };
-
-  //   setupSession();
-  // }, [walletClient, address]);
 
   useModal({
     onDisconnect: () => {
@@ -84,22 +61,50 @@ const LoginWithLensModal = ({ closeModal }) => {
   }, [signingIn, authenticatedProfileId, selectedProfile?.address]);
 
   const handleCreateProfile = async () => {
-    if (!context || !walletClient || !sessionClient) return;
-    
+    if (!context || !walletClient) return;
+
     setIsCreatingProfile(true);
     try {
+      // authenticate as onboarding user
+      const authenticated = await lensClient.login({
+        onboardingUser: {
+          app: LENS_BONSAI_APP,
+          wallet: address,
+        },
+        signMessage: (message) => walletClient.signMessage({ account: address, message }),
+      });
+
+      if (authenticated.isErr()) {
+        return console.error(authenticated.error);
+      }
+
+      const sessionClient = authenticated.value;
+
+      // create metadata
       const metadata = account({
-        name: `${context.user.displayName} Replika`,
+        name: `${context.user.displayName}`,
         bio: `Created from Farcaster profile @${context.user.username}`,
         picture: context.user.pfpUrl,
       });
 
-      const { uri: metadataUri } = await storageClient.uploadAsJson(metadata);
-
-      const result = await createAccountWithUsername(sessionClient, {
-        username: { localName: `${context.user.username}_replika`, namespace: evmAddress(BONSAI_NAMESPACE) },
-        metadataUri,
+      // upload metadata to lens chain storage
+      const { uri: metadataUri } = await storageClient.uploadAsJson(metadata, {
+        acl: immutable(getChain("lens").id),
       });
+
+      // deploy account contract
+      const result = await createAccountWithUsername(sessionClient, {
+        username: { localName: `${context.user.username}`, namespace: evmAddress(BONSAI_NAMESPACE) },
+        metadataUri,
+      })
+        .andThen(handleOperationWith(walletClient))
+        .andThen(sessionClient.waitForTransaction)
+        .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
+        .andThen((account) =>
+          sessionClient.switchAccount({
+            account: account?.address ?? never("Account not found"),
+          })
+        );
 
       if (result.isErr()) {
         console.error(result.error);
@@ -109,9 +114,10 @@ const LoginWithLensModal = ({ closeModal }) => {
       // Handle successful profile creation
       await fullRefetch();
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error("Error creating profile:", error);
     } finally {
       setIsCreatingProfile(false);
+      closeModal();
     }
   };
 
@@ -124,10 +130,13 @@ const LoginWithLensModal = ({ closeModal }) => {
   }
 
   return (
-    <div className={clsx("flex flex-col w-full mt-8", brandFont.className)}>
+    <div className={clsx("flex flex-col w-full mt-10 px-4", brandFont.className)}>
       <h2 className="text-3xl text-center font-bold">
         {`${!profiles || !profiles.length ? 'Create your Bonsai Replika' : 'Your profiles'}`}
       </h2>
+      {(!profiles || !profiles.length) && (
+        <p className="text-center text-gray-400 mt-2">It's free and only takes a second</p>
+      )}
       <div className="max-w-full flex flex-col gap-4 pt-4">
         {!profiles || !profiles.length ? (
           isMiniApp && context ? (
@@ -147,9 +156,9 @@ const LoginWithLensModal = ({ closeModal }) => {
 
                 <div className="flex flex-col text-left col-span-2">
                   <h3 className="font-bold">
-                    {`${context.user.displayName} Replika`}
+                    {`${context.user.displayName}`}
                   </h3>
-                  <span className="text-sm opacity-80">@{`${context.user.username}_replika`}</span>
+                  <span className="text-sm opacity-80">@{`${context.user.username}`}</span>
                 </div>
 
                 <div className="flex justify-end col-span-2">
@@ -158,7 +167,11 @@ const LoginWithLensModal = ({ closeModal }) => {
                     onClick={handleCreateProfile}
                     disabled={isCreatingProfile}
                   >
-                    {isCreatingProfile ? 'Creating...' : 'Create'}
+                    {isCreatingProfile ? (
+                      <div className="flex items-center gap-2">
+                        <Spinner customClasses="h-4 w-4" color="#5be39d" />
+                      </div>
+                    ) : 'Create'}
                   </Button>
                 </div>
               </div>
