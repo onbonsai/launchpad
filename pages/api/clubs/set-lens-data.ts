@@ -52,9 +52,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // For non-launchpad tokens, we need tokenAddress in the request
       if (!tokenAddress) return res.status(400).json({ error: "Missing tokenAddress for non-launchpad token" });
 
-      // Create a document without clubId for non-launchpad tokens
+      // Create a document without clubId for non-launchpad tokens and define the chain
       await collection.updateOne(
-        { tokenAddress, externalToken: true },
+        { tokenAddress, externalTokenChain: chain },
         { $setOnInsert: { postId, handle: account?.username?.localName } },
         { upsert: true }
       );

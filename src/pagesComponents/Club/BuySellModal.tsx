@@ -27,7 +27,7 @@ const BuySellModal = (props: BuySellModalProps) => {
             <TradeComponent
                 defaultBuyAmount={buyAmount ?? ''}
                 club={club}
-                address={address}
+                address={address as `0x${string}`}
                 onBuyUSDC={onBuyUSDC}
                 mediaProtocolFeeRecipient={mediaProtocolFeeRecipient}
                 useRemixReferral={useRemixReferral}

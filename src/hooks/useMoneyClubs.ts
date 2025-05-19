@@ -36,11 +36,11 @@ export const useRegisteredClubById = (clubId: string) => {
   });
 };
 
-export const useRegisteredClubByToken = (tokenAddress?: `0x${string}`, chain?: string) => {
+export const useRegisteredClubByToken = ({ tokenAddress, chain, external }: { tokenAddress?: `0x${string}`, chain?: string, external?: boolean }) => {
   return useQuery({
     queryKey: ["registered-club-token", tokenAddress, chain],
     queryFn: () => getRegisteredClubById("", chain, tokenAddress),
-    enabled: !!tokenAddress && !!chain,
+    enabled: !!tokenAddress && !!chain && !external,
     staleTime: 10000,
     gcTime: 60000,
   });

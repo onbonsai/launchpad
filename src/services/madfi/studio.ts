@@ -123,6 +123,7 @@ export type SmartMedia = {
   token: {
     chain: "base" | "lens";
     address: `0x${string}`;
+    external?: boolean;
   };
   protocolFeeRecipient: `0x${string}`; // media template
   description?: string;
