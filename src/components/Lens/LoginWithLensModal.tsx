@@ -21,23 +21,7 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
 import Image from "next/image";
-
-interface FarcasterContext {
-  user: {
-    fid: number;
-    username: string;
-    displayName: string;
-    pfpUrl: string;
-    location: {
-      placeId: string;
-      description: string;
-    };
-  };
-  client: {
-    clientFid: number;
-    added: boolean;
-  };
-}
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -53,8 +37,7 @@ const LoginWithLensModal = ({ closeModal }) => {
     fullRefetch,
   } = useLensSignIn(walletClient);
 
-  const [isMiniApp, setIsMiniApp] = useState(false);
-  const [context, setContext] = useState<FarcasterContext | null>(null);
+  const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [sessionClient, setSessionClient] = useState<SessionClient | null>(null);
 
@@ -99,22 +82,6 @@ const LoginWithLensModal = ({ closeModal }) => {
       closeModal();
     }
   }, [signingIn, authenticatedProfileId, selectedProfile?.address]);
-
-  useEffect(() => {
-    const checkMiniApp = async () => {
-      const isMiniApp = await sdk.isInMiniApp();
-      
-      if (isMiniApp) {
-        setIsMiniApp(true);
-        const context = await sdk.context;
-        setContext(context as FarcasterContext);
-      } else {
-        setIsMiniApp(false);
-      }
-    };
-
-    checkMiniApp();
-  }, []);
 
   const handleCreateProfile = async () => {
     if (!context || !walletClient || !sessionClient) return;

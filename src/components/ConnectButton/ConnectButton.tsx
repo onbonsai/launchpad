@@ -17,6 +17,7 @@ import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
 import Image from "next/image";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -56,6 +57,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
+  const { isMiniApp } = useIsMiniApp();
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -85,32 +87,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
-
-  const [isMiniApp, setIsMiniApp] = useState(false);
-  useEffect(() => {
-    const checkMiniApp = async () => {
-      const isMiniApp = await sdk.isInMiniApp();
-      
-      if (isMiniApp) {
-        // Handle mini app specific logic
-        setIsMiniApp(true);
-      } else {
-        // Handle regular web app logic
-        setIsMiniApp(false);
-      }
-    };
-
-    checkMiniApp();
-  }, []);
-
-  // useEffect(() => {
-  //   // pop open the lens login modal once connected and signed in with ethereum
-  //   if (connected && autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
-  //     setTimeout(() => {
-  //       setOpenSignInModal(true);
-  //     }, 1000);
-  //   }
-  // }, [connected]);
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
