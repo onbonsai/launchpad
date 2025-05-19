@@ -34,6 +34,7 @@ import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import Image from "next/image";
+import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -69,7 +70,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const isMounted = useIsMounted();
   const router = useRouter();
   const { postId, v } = router.query;
-  const { isConnected, chain } = useAccount();
+  const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
@@ -259,6 +260,13 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const isLoadingPage = useMemo(() => {
     return isLoading;
   }, [isLoading, isConnected]);
+
+  const conversationId = useMemo(() => {
+    if (isMounted && !isLoadingPage)
+      return media?.postId
+        ? generateSeededUUID(`${media.postId}-${authenticatedProfile?.address || address}`)
+        : generateUUID();
+  }, [isMounted, isLoadingPage, authenticatedProfile, address, media]);
 
   const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
@@ -476,6 +484,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             agentWallet={agentInfoSage.info.wallets[0]}
             agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
             media={safeMedia(media)}
+            conversationId={conversationId}
+            post={publication}
+            remixVersionQuery={v}
           />
         </ChatWindowButton>
       )}

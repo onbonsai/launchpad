@@ -40,14 +40,14 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   });
 };
 
-export const useGetMessages = (postId?: string): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
+export const useGetMessages = (postId?: string, roomId?: string): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
   return useQuery({
-    queryKey: ["agent-messages", postId],
+    queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
       const idToken = await _getIdToken();
       if (!idToken) return [];
 
-      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages`, {
+      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ''}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer: ${idToken}`

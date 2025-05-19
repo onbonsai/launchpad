@@ -1,24 +1,94 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@src/components/Button';
 import CreatePostForm from '@src/pagesComponents/Studio/CreatePostForm';
-import type { SmartMedia, Template, TokenData } from '@src/services/madfi/studio';
+import type { SmartMedia, Template, TokenData, Preview } from '@src/services/madfi/studio';
 import { getRegisteredClubInfoByAddress } from '@src/services/madfi/moneyClubs';
 
 type RemixFormProps = {
   template: Template;
   remixMedia: SmartMedia;
   onClose: () => void;
+  currentPreview?: Preview;
+  setCurrentPreview?: (preview: Preview) => void;
+  roomId?: string;
+  setRoomId?: (roomId: string) => void;
+  localPreviews?: Array<{
+    isAgent: boolean;
+    createdAt: string;
+    content: {
+      text?: string;
+      preview?: Preview;
+      templateData?: string;
+    };
+  }>;
+  setLocalPreviews?: (previews: Array<{
+    isAgent: boolean;
+    createdAt: string;
+    content: {
+      text?: string;
+      preview?: Preview;
+      templateData?: string;
+    };
+  }>) => void;
+  isGeneratingPreview: boolean;
+  setIsGeneratingPreview: (b: boolean) => void;
 };
 
-export default function RemixForm({ remixMedia, onClose, template }: RemixFormProps) {
+export default function RemixForm({
+  remixMedia,
+  onClose,
+  template,
+  currentPreview,
+  setCurrentPreview,
+  roomId,
+  setRoomId,
+  localPreviews = [],
+  setLocalPreviews,
+  isGeneratingPreview,
+  setIsGeneratingPreview,
+}: RemixFormProps) {
   const [preview, setPreview] = useState<any>();
   const [postContent, setPostContent] = useState<string>('');
   const [postImage, setPostImage] = useState<any>();
   const [postAudio, setPostAudio] = useState<File | null>(remixMedia.templateData?.audioData);
   const [audioStartTime, setAudioStartTime] = useState<number>(remixMedia.templateData?.audioStartTime);
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [finalTemplateData, setFinalTemplateData] = useState(remixMedia.templateData);
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
+
+  const handleSetPreview = (preview: Preview) => {
+    if (setCurrentPreview) {
+      setCurrentPreview(preview);
+    }
+    console.log(`preview.roomId: ${preview.roomId}`);
+    if (preview.roomId && preview.roomId !== roomId && setRoomId) {
+      setRoomId(preview.roomId);
+    }
+
+    // Add both template data and preview messages
+    const now = new Date().toISOString();
+
+    if (setLocalPreviews) {
+      // First add the template data message
+      setLocalPreviews([...localPreviews, {
+        isAgent: false,
+        createdAt: now,
+        content: {
+          templateData: JSON.stringify(preview.templateData || {}),
+          text: Object.entries(preview.templateData || {}).map(([key, value]) => `${key}: ${value}`).join('\n')
+        }
+      }]);
+
+      // Then add the preview message
+      setLocalPreviews(prev => [...prev, {
+        isAgent: true,
+        createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
+        content: {
+          preview: preview,
+          text: preview.text
+        }
+      }]);
+    }
+  };
 
   // set the default form data to use the remixed version
   useEffect(() => {
@@ -37,16 +107,17 @@ export default function RemixForm({ remixMedia, onClose, template }: RemixFormPr
     }
   }, [remixMedia]);
 
-  // TODO:
   const handleNext = (templateData: any) => {
     setFinalTemplateData(templateData);
   };
 
+  console.log(`roomId: ${roomId}`);
+
   return (
-    <div className="w-full px-[10px] mb-2">
+    <div className="w-full">
       <div className="border border-dark-grey/50 rounded-lg bg-black/50 p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white font-medium">Remix this post</h3>
+          <h3 className="text-brand-highlight font-medium">Remix this post</h3>
           <Button
             variant="dark-grey"
             size="xs"
@@ -60,7 +131,7 @@ export default function RemixForm({ remixMedia, onClose, template }: RemixFormPr
           template={template}
           finalTemplateData={finalTemplateData}
           preview={preview}
-          setPreview={setPreview}
+          setPreview={handleSetPreview}
           next={handleNext}
           postContent={postContent}
           setPostContent={setPostContent}
@@ -72,6 +143,8 @@ export default function RemixForm({ remixMedia, onClose, template }: RemixFormPr
           setPostAudio={setPostAudio}
           audioStartTime={audioStartTime}
           setAudioStartTime={setAudioStartTime}
+          roomId={roomId}
+          tooltipDirection="top"
         />
       </div>
     </div>

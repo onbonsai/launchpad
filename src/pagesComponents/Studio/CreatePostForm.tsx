@@ -17,8 +17,6 @@ import { brandFont } from "@src/fonts/fonts";
 import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
 import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
 import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
-import { storjGatewayURL } from "@src/utils/storj";
-import { ipfsOrNot } from "@src/utils/pinata";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
@@ -41,6 +39,7 @@ type CreatePostProps = {
   setPostAudio: (i: any) => void;
   audioStartTime?: number;
   setAudioStartTime: (t: number) => void;
+  tooltipDirection?: "right" | "top" | "left" | "bottom";
 };
 
 const CreatePostForm = ({
@@ -60,6 +59,7 @@ const CreatePostForm = ({
   setPostAudio,
   audioStartTime,
   setAudioStartTime,
+  tooltipDirection,
 }: CreatePostProps) => {
   const { address, isConnected } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -244,6 +244,7 @@ const CreatePostForm = ({
                 setPostAudio={setPostAudio}
                 audioStartTime={audioStartTime || 0}
                 setAudioStartTime={setAudioStartTime}
+                tooltipDirection={tooltipDirection}
               />
           }
         </div>
@@ -295,6 +296,7 @@ const DynamicForm = ({
   setPostAudio,
   audioStartTime,
   setAudioStartTime,
+  tooltipDirection,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -314,6 +316,7 @@ const DynamicForm = ({
   setPostAudio: (i: File | null) => void;
   audioStartTime: number;
   setAudioStartTime: (t: number) => void;
+  tooltipDirection?: "right" | "top" | "left" | "bottom";
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
@@ -364,7 +367,7 @@ const DynamicForm = ({
       </Subtitle>
       {fieldDescription && (
         <div className="text-sm inline-block mt-1">
-          <Tooltip message={fieldDescription} direction="right">
+          <Tooltip message={fieldDescription} direction={tooltipDirection}>
             <InfoOutlined
               className="max-w-4 max-h-4 inline-block text-white/40"
             />
@@ -505,7 +508,7 @@ const DynamicForm = ({
                     placeholder={placeholder}
                     value={templateData[key] || ''}
                     onChange={(e) => updateField(key, e.target.value || undefined)}
-                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-24`}
+                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-20`}
                     maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">

@@ -81,7 +81,7 @@ export default function useChat({
       setIsThinking(true);
 
       try {
-        const { messages, canMessageAgain: _canMessageAgain } = await sendMessage({ agentId, input, payload, imageURL }) || {};
+        const { messages, canMessageAgain: _canMessageAgain } = await sendMessage({ agentId, input, payload, imageURL, conversationId }) || {};
         if (!messages?.length) throw new Error("no response");
         const { action, text, attachments } = messages[0];
         setCanMessageAgain(!!_canMessageAgain);
