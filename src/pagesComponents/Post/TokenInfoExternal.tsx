@@ -73,9 +73,10 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   const buyOnClick = async () => {
     if (isMiniApp) {
+      const chainId = token.chain === "lens" ? "232" : "8453";
       await sdk.actions.swapToken({
-        sellToken: `eip155:8453/native`,
-        buyToken: `eip155:8453/erc20:${token.address}`,
+        sellToken: `eip155:${chainId}/native`,
+        buyToken: `eip155:${chainId}/erc20:${token.address}`,
         sellAmount: "10000000000000000",
       })
     } else if (token.chain === "base") {
