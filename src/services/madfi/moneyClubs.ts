@@ -1494,7 +1494,8 @@ export const setLensData = async ({
   handle,
   postId,
   chain,
-}: { hash: string; handle: string; postId: string; chain: string }) => {
+  tokenAddress
+}: { hash: string; handle: string; postId: string; chain: string; tokenAddress: string }) => {
   const idToken = await _getIdToken();
   await fetch('/api/clubs/set-lens-data', {
     method: 'POST',
@@ -1502,7 +1503,7 @@ export const setLensData = async ({
       'Content-Type': 'application/json',
       'Authorization': `Bearer: ${idToken}`
     },
-    body: JSON.stringify({ txHash: hash, handle, postId, chain })
+    body: JSON.stringify({ txHash: hash, handle, postId, chain, tokenAddress })
   });
 }
 

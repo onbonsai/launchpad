@@ -35,6 +35,7 @@ import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import Image from "next/image";
 import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
+import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -177,7 +178,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   );
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
-  const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
+  const { data: club } = useRegisteredClubByToken({ ...media?.token });
   const { data: freshComments, refetch: fetchComments } = useGetComments(rootPostId as string, false);
 
   // Consider data as loaded if we have passed data, even if the hook is still loading
@@ -501,6 +502,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             </button>
             <div className="flex flex-col gap-2 h-full relative">
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
+              {media?.token?.external && <TokenInfoExternal token={{ ...media.token, external: true }} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">

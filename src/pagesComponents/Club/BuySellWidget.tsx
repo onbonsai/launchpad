@@ -44,7 +44,7 @@ import useQuoter from "@src/services/uniswap/useQuote";
 
 export const BuySellWidget = ({
   refetchClubBalance,
-  refetchClubPrice,
+  // refetchClubPrice,
   club,
   clubBalance,
   openTab: _openTab,
@@ -80,17 +80,17 @@ export const BuySellWidget = ({
     }
   })
 
-    // GHO/USDC Balance
-    const { data: tokenBalance } = useReadContract({
-      address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
-      abi: erc20Abi,
-      chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
-      functionName: "balanceOf",
-      args: [address!],
-      query: {
-        refetchInterval: 5000,
-      },
-    });
+  // GHO/USDC Balance
+  const { data: tokenBalance } = useReadContract({
+    address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      refetchInterval: 5000,
+    },
+  });
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {

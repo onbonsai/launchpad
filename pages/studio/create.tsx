@@ -31,6 +31,8 @@ import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
 import type { TokenData } from "@src/services/madfi/studio";
+import { sdk } from '@farcaster/frame-sdk';
+import { SITE_URL } from "@src/constants/constants";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -456,7 +458,8 @@ const StudioCreatePage: NextPage = () => {
           hash: txHash,
           postId,
           handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-          chain: finalTokenData?.selectedNetwork || "lens"
+          chain: finalTokenData?.selectedNetwork || "lens",
+          tokenAddress
         });
       }
 
@@ -467,7 +470,8 @@ const StudioCreatePage: NextPage = () => {
         uri,
         token: (addToken || remixMedia?.agentId) && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
-          address: tokenAddress
+          address: tokenAddress,
+          external: !txHash
         } : undefined,
         params: {
           templateName: template.name,
@@ -477,6 +481,14 @@ const StudioCreatePage: NextPage = () => {
       }));
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      if (await sdk.isInMiniApp()) {
+        const text = `${postContent || currentPreview?.text || template?.displayName}\n\nvia @onbonsai.eth`
+        await sdk.actions.composeCast({
+          text,
+          embeds: [`${SITE_URL}/post/${postId}`],
+        });
+      }
 
       toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${postId}`), 2000);

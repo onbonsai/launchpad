@@ -12,6 +12,13 @@
     "buttonTitle": "Create on Bonsai",
     "splashImageUrl": "https://app.onbons.ai/splash.jpg",
     "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://app.onbons.ai/api/webhook"
+    "webhookUrl": "https://app.onbons.ai/api/webhook",
+    "primaryCategory": "social",
+    "tags": [
+      "smart-media",
+      "ai",
+      "generative-ai",
+      "generative"
+    ]
   }
 }

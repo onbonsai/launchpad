@@ -23,6 +23,7 @@ const nextConfig = {
       '@decent.xyz/the-box',
       '@ensdomains/ensjs',
       '@farcaster/frame-sdk',
+      '@farcaster/frame-wagmi-connector',
       '@lens-chain/sdk',
       '@lens-chain/storage-client',
       '@lens-protocol/client',
@@ -61,7 +62,6 @@ const nextConfig = {
       "mongodb",
       "graphql-request",
       "graphql",
-      "formidable",
       "jsonwebtoken",
       "jsonschema",
       "oauth-1.0a",
@@ -159,7 +159,8 @@ const nextConfig = {
       "statics-polygon-lens.s3.*.amazonaws.com",
       "gw.ipfs-lens.dev",
       "nft-cdn.alchemy.com",
-      "ipfs.4everland.io"
+      "ipfs.4everland.io",
+      "imagedelivery.net"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,

@@ -23,8 +23,8 @@ interface TradeComponentProps {
 const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProtocolFeeRecipient, useRemixReferral, closeModal, postId, inputToken }: TradeComponentProps) => {
   const [friendCount, setFriendCount] = useState(0);
   const { data: clubBalance, refetch: refetchClubBalance } = useGetClubBalance(club?.clubId, address, club.chain, club.complete, club.tokenAddress);
-  const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
-  const { refetch: refetchClubPrice } = useGetBuyPrice(address, club?.clubId, "1", club.chain);
+  // const { data: clubHoldings, isLoading: isLoadingClubHoldings } = useGetClubHoldings(club?.clubId, 0, club.chain); // get only the first page, to see which friends holding
+  // const { refetch: refetchClubPrice } = useGetBuyPrice(address, club?.clubId, "1", club.chain);
 
   if (!club?.createdAt) return null;
 
@@ -45,7 +45,7 @@ const TradeComponent = ({ club, address, onBuyUSDC, defaultBuyAmount, mediaProto
         {/* This div will grow to take available space, pushing the friends component to the bottom */}
         <BuySellWidget
           refetchClubBalance={refetchClubBalance}
-          refetchClubPrice={refetchClubPrice}
+          // refetchClubPrice={refetchClubPrice}
           club={club}
           clubBalance={clubBalance}
           openTab={1}
