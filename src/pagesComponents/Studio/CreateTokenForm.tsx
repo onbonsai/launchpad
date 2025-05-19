@@ -27,6 +27,7 @@ import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import Image from "next/image";
+import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -98,7 +99,10 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress);
+  const [manualTokenAddress, setManualTokenAddress] = useState<string>("");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
+  const [isLoadingToken, setIsLoadingToken] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   const { data: existingTokens } = useCreatorTokens(address as `0x${string}`);
 
@@ -182,7 +186,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
 
   return (
     <form
-      className="mt-5 mx-auto w-full space-y-4 divide-y divide-dark-grey"
+      className="mt-5 mb-4 mx-auto w-full space-y-4 divide-y divide-dark-grey"
       style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-2">
@@ -252,11 +256,79 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
           {useExistingToken ? (
             <div className="sm:col-span-2 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
+
+                {/* Manual Token Address Input */}
+                <div className="my-4">
+                  <div className="flex items-center gap-1 mb-2">
+                    <Subtitle className="text-white/70">Token Address</Subtitle>
+                    <div className="text-sm inline-block">
+                      <Tooltip message="Enter a token address from Base or Lens chain" direction="right">
+                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
+                      </Tooltip>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualTokenAddress}
+                      placeholder="0x..."
+                      className={clsx("flex-1", sharedInputClasses)}
+                      onChange={(e) => setManualTokenAddress(e.target.value)}
+                    />
+                    <Button
+                      size="md"
+                      onClick={() => {
+                        if (manualTokenAddress && manualTokenAddress.startsWith("0x") && manualTokenAddress.length === 42) {
+                          setIsLoadingToken(true);
+                          setTokenError(null);
+                          
+                          // Try both networks
+                          Promise.all([
+                            fetchTokenMetadata(manualTokenAddress, 'lens'),
+                            fetchTokenMetadata(manualTokenAddress, 'base')
+                          ]).then(([lensResult, baseResult]) => {
+                            const result = lensResult || baseResult;
+                            
+                            if (result) {
+                              setSavedTokenAddress(manualTokenAddress);
+                              setFinalTokenData({
+                                tokenName: result.name || "",
+                                tokenSymbol: result.symbol || "",
+                                tokenImage: [{ preview: result.logo }],
+                                selectedNetwork: result.network,
+                              });
+                              next();
+                            } else {
+                              setTokenError("Token not found on either Lens or Base network");
+                            }
+                          }).catch((error) => {
+                            console.error("Error fetching token metadata:", error);
+                            setTokenError("Error fetching token metadata. Please try again.");
+                          }).finally(() => {
+                            setIsLoadingToken(false);
+                          });
+                        }
+                      }}
+                      variant="accentBrand"
+                      className="whitespace-nowrap"
+                      disabled={!manualTokenAddress || !manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42 || isLoadingToken}
+                    >
+                      {isLoadingToken ? "Loading..." : "Use Address"}
+                    </Button>
+                  </div>
+                  {manualTokenAddress && (!manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42) && (
+                    <Subtitle className="text-bearish text-sm mt-1">Please enter a valid Ethereum address (0x followed by 40 characters)</Subtitle>
+                  )}
+                  {tokenError && (
+                    <Subtitle className="text-bearish text-sm mt-1">{tokenError}</Subtitle>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">Select Token</Subtitle>
+                  <Subtitle className="text-white/70">Your Bonsai Launchpad Tokens</Subtitle>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
-                  {existingTokens?.map((token) => (
+                  {existingTokens.length ? existingTokens?.map((token) => (
                     <div
                       key={token.id}
                       onClick={() => setExistingToken(token, next)}
@@ -296,8 +368,14 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Subtitle className="text-white/70">No tokens found</Subtitle>
+                    </div>
+                  )}
                 </div>
+
+                
               </div>
             </div>
           ) : (

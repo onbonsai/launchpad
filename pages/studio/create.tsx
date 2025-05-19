@@ -469,7 +469,8 @@ const StudioCreatePage: NextPage = () => {
           hash: txHash,
           postId,
           handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-          chain: finalTokenData?.selectedNetwork || "lens"
+          chain: finalTokenData?.selectedNetwork || "lens",
+          tokenAddress
         });
       }
 

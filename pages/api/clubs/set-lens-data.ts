@@ -21,29 +21,44 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const account = await getProfileByAddress(user.act.sub as `0x${string}`);
     if (!account) return res.status(400).json({ error: "Account not found "});
 
-    let { txHash, postId, chain } = req.body;
-    if (!txHash || !postId) return res.status(400).json({ error: "Missing txHash or postId" });
+    let { txHash, postId, chain, tokenAddress } = req.body;
+    if (!postId) return res.status(400).json({ error: "Missing postId" });
     chain = chain || "lens";
     if (!["base", "lens"].includes(chain)) return res.status(400).json({ error: "Invalid chain" });
 
-    const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
-    const registeredClubEvent = getEventFromReceipt({
-      contractAddress: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
-      transactionReceipt,
-      abi: BonsaiLaunchpadAbi,
-      eventName: "RegisteredClub",
-    });
-    const { clubId , tokenAddress}: { clubId: bigint, tokenAddress } = registeredClubEvent?.args || {};
-    if (!clubId) throw new Error("No registered club");
-
     const { collection } = await getClientWithClubs();
 
-    // link the token to a post and creator, for display purposes on the bonsai app
-    await collection.updateOne(
-      { clubId: parseInt(clubId.toString()) },
-      { $setOnInsert: { postId, handle: account?.username?.localName, tokenAddress } },
-      { upsert: true }
-    );
+    // If we have a txHash, verify it's from the launchpad and get the clubId
+    if (txHash) {
+      const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
+      const registeredClubEvent = getEventFromReceipt({
+        contractAddress: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
+        transactionReceipt,
+        abi: BonsaiLaunchpadAbi,
+        eventName: "RegisteredClub",
+      });
+      const { clubId, tokenAddress: launchpadTokenAddress }: { clubId: bigint, tokenAddress: string } = registeredClubEvent?.args || {};
+      if (!clubId) throw new Error("No registered club");
+      
+      tokenAddress = launchpadTokenAddress;
+
+      // Update with clubId for launchpad tokens
+      await collection.updateOne(
+        { clubId: parseInt(clubId.toString()) },
+        { $setOnInsert: { postId, handle: account?.username?.localName, tokenAddress } },
+        { upsert: true }
+      );
+    } else {
+      // For non-launchpad tokens, we need tokenAddress in the request
+      if (!tokenAddress) return res.status(400).json({ error: "Missing tokenAddress for non-launchpad token" });
+
+      // Create a document without clubId for non-launchpad tokens
+      await collection.updateOne(
+        { tokenAddress, externalToken: true },
+        { $setOnInsert: { postId, handle: account?.username?.localName } },
+        { upsert: true }
+      );
+    }
 
     res.status(200).json({ success: true, url: `${SITE_URL}/token/${chain}/${tokenAddress}` });
   } catch (e) {
