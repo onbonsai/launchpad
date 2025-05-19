@@ -477,37 +477,41 @@ const PublicationContainer = ({
           updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
+          hideCommentButton
         />
       )}
-      {isCollect && isAuthenticated && (
-        <div className="absolute top-2 right-2 z-20">
+      <div className="absolute top-2 right-2 z-20 flex gap-1">
+        <Button
+          variant={hasCollected ? "dark-grey" : "accentBrand"}
+          size="md"
+          className={`text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
+          onClick={(e) => {
+            if (!hasCollected) {
+              onCollectButtonClick(e);
+            }
+          }}
+        >
+          {!hasCollected ? (
+            <>
+              <BookmarkAddOutlined />
+              <span className="hidden sm:block">Collect</span>
+            </>
+          ) : <BookmarkOutlined />}
+        </Button>
+        {media?.agentId && (
           <Button
-            variant={hasCollected ? "dark-grey" : "accentBrand"}
+            variant="secondary"
             size="md"
-            className={`text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
-            onClick={(e) => {
-              if (!hasCollected) {
-                onCollectButtonClick(e);
-                return;
-              }
-
-              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
+            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
+            onClick={() => {
+              router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
             }}
           >
-            {!hasCollected ? (
-              <>
-                <BookmarkAddOutlined />
-                <span className="hidden sm:block">Collect</span>
-              </>
-            ) : media?.agentId ? (
-              <>
-                <SwapCalls />
-                <span className="hidden sm:block">Remix</span>
-              </>
-            ) : <BookmarkOutlined />}
+            <SwapCalls />
+            <span className="hidden sm:block">Remix</span>
           </Button>
-        </div>
-      )}
+        )}
+      </div>
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (

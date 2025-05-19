@@ -16,19 +16,23 @@ import { BONSAI_TOKEN_BASE } from '../constants';
 import { useGetMessages } from '@src/services/madfi/terminal';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { format } from 'date-fns';
+import useRegisteredTemplates from '@src/hooks/useRegisteredTemplates';
+import { SmartMedia } from '@src/services/madfi/studio';
 
 type ChatProps = {
   agentId: string;
   className?: string;
   agentName: string;
   agentWallet: `0x${string}`;
+  media?: SmartMedia;
 };
 
-export default function Chat({ className, agentId, agentWallet }: ChatProps) {
+export default function Chat({ className, agentId, agentWallet, media }: ChatProps) {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(agentId);
+  const { data: registeredTemplates } = useRegisteredTemplates();
   const { messages: messageHistory, canMessage } = messageData || {};
   const [userInput, setUserInput] = useState('');
   const [attachment, setAttachment] = useState<File | undefined>();
@@ -244,6 +248,8 @@ export default function Chat({ className, agentId, agentWallet }: ChatProps) {
         setRequireBonsaiPayment={setRequireBonsaiPayment}
         showSuggestions={!streamEntries?.length && canMessage && canMessageAgain}
         placeholder={!(canMessageAgain && canMessage) ? "Insufficient credits" : undefined}
+        templates={registeredTemplates}
+        remixMedia={media}
       />
     </div>
   );

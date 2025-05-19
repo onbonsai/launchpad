@@ -475,6 +475,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             agentId={currentPostId as string}
             agentWallet={agentInfoSage.info.wallets[0]}
             agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+            media={safeMedia(media)}
           />
         </ChatWindowButton>
       )}
@@ -565,8 +566,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           />
                         </div>
                         <div className="min-w-0">
-                          <QuotePreviews 
-                            quotes={quotes} 
+                          <QuotePreviews
+                            quotes={quotes}
                             originalPost={publication?.quoteOf}
                             version={currentVersionIndex ?? media?.versions?.length ?? 0}
                             parentVersion={publication?.metadata.attributes?.find((attr: any) => attr.key === "remixVersion")?.value}

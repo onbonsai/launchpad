@@ -1,7 +1,8 @@
-import { FC, ReactNode, useState, createContext } from "react";
+import { FC, ReactNode, useState, createContext, useEffect } from "react";
 import { Header } from "@components/Header";
 import { Footer } from "../../Footer/Footer";
 import { brandFont } from "../../../fonts/fonts";
+import { useRouter } from "next/router";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
@@ -16,6 +17,12 @@ interface LayoutProps {
 export const Layout: FC<LayoutProps> = ({ children }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const sidebarWidth = 320; // px, matches w-80
+  const router = useRouter();
+
+  // Reset chat window state when route changes
+  useEffect(() => {
+    setIsChatOpen(false);
+  }, [router.asPath]);
 
   return (
     <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen }}>

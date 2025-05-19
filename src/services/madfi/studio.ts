@@ -8,6 +8,7 @@ import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
+import type { PricingTier } from "@src/services/madfi/moneyClubs";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
@@ -145,6 +146,18 @@ export type NFTMetadata = {
   image: string; // base64 string cropped
   attributes?: any[];
 }
+
+export type TokenData = {
+  initialSupply: number;
+  rewardPoolPercentage?: number;
+  uniHook?: `0x${string}`;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenImage: any[];
+  selectedNetwork: "lens" | "base";
+  totalRegistrationFee?: bigint;
+  pricingTier?: PricingTier;
+};
 
 interface GeneratePreviewResponse {
   preview: Preview | undefined;

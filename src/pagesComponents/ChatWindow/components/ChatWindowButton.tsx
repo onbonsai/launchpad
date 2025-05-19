@@ -80,9 +80,12 @@ export default function ChatWindowButton({
                 height={40}
               />
             </div>
-            <h3 className="font-medium text-white">
-              Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
-            </h3>
+            <div className="flex flex-col">
+              <h3 className="font-medium text-white">
+                Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+              </h3>
+              <span className="text-xs text-white/60">Explore the reality of the post or make a remix.</span>
+            </div>
           </div>
           {/* Close Button in Header */}
           <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">

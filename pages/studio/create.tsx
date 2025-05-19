@@ -30,18 +30,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
-
-type TokenData = {
-  initialSupply: number;
-  rewardPoolPercentage?: number;
-  uniHook?: `0x${string}`;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenImage: any[];
-  selectedNetwork: "lens" | "base";
-  totalRegistrationFee?: bigint;
-  pricingTier?: PricingTier;
-};
+import type { TokenData } from "@src/services/madfi/studio";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
