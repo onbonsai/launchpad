@@ -122,6 +122,7 @@ export type ChatInputProps = {
   }>) => void;
   isPosting?: boolean;
   onPost?: (text: string) => Promise<void>;
+  isRemixing?: boolean;
 };
 
 const DEFAULT_PLACEHOLDER = "Ask anything";
@@ -147,14 +148,21 @@ export default function ChatInput({
   setLocalPreviews,
   isPosting = false,
   onPost,
+  isRemixing = false,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
-  const [showRemixForm, setShowRemixForm] = useState(false);
+  const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const remixTemplate = remixMedia ? templates?.find((t) => t.name === remixMedia?.template) : undefined;
+
+  useEffect(() => {
+    if (isRemixing) {
+      setShowRemixForm(true);
+    }
+  }, [isRemixing]);
 
   const handleTemplateSelect = useCallback((selection: { name: string; inputText: string; description?: string }) => {
     setUserInput(selection.inputText);
@@ -212,7 +220,9 @@ export default function ChatInput({
         <RemixForm
           template={remixTemplate}
           remixMedia={remixMedia}
-          onClose={() => setShowRemixForm(false)}
+          onClose={() => {
+            setShowRemixForm(false);
+          }}
           currentPreview={currentPreview}
           setCurrentPreview={setCurrentPreview}
           roomId={roomId}

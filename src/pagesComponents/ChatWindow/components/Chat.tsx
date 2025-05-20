@@ -38,9 +38,10 @@ type ChatProps = {
   conversationId?: string;
   post: Post;
   remixVersionQuery?: string;
+  isRemixing?: boolean;
 };
 
-export default function Chat({ className, agentId, agentWallet, media, conversationId, post, remixVersionQuery }: ChatProps) {
+export default function Chat({ className, agentId, agentWallet, media, conversationId, post, remixVersionQuery, isRemixing }: ChatProps) {
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -544,6 +545,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         setLocalPreviews={setLocalPreviews}
         isPosting={isPosting}
         onPost={handlePost}
+        isRemixing={isRemixing}
       />
     </div>
   );

@@ -30,6 +30,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { EyeIcon } from "@heroicons/react/outline";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -115,6 +116,7 @@ const PublicationContainer = ({
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
   const referralAddress = router.query.ref as `0x${string}`;
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -480,38 +482,40 @@ const PublicationContainer = ({
           hideCommentButton
         />
       )}
-      <div className="absolute top-2 right-2 z-20 flex gap-1">
-        <Button
-          variant={hasCollected ? "dark-grey" : "accentBrand"}
-          size="md"
-          className={`text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
-          onClick={(e) => {
-            if (!hasCollected) {
-              onCollectButtonClick(e);
-            }
-          }}
-        >
-          {!hasCollected ? (
-            <>
-              <BookmarkAddOutlined />
-              <span className="hidden sm:block">Collect</span>
-            </>
-          ) : <BookmarkOutlined />}
-        </Button>
-        {media?.agentId && (
+      {!isMobile && (
+        <div className="absolute top-2 right-2 z-20 flex gap-1">
           <Button
-            variant="secondary"
+            variant={hasCollected ? "dark-grey" : "accentBrand"}
             size="md"
-            className="text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
-            onClick={() => {
-              router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
+            className={`text-base font-bold md:rounded-[12px] rounded-[16px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
+            onClick={(e) => {
+              if (!hasCollected) {
+                onCollectButtonClick(e);
+              }
             }}
           >
-            <SwapCalls />
-            <span className="hidden sm:block">Remix</span>
+            {!hasCollected ? (
+              <>
+                <BookmarkAddOutlined />
+                <span className="hidden sm:block">Collect</span>
+              </>
+            ) : <BookmarkOutlined />}
           </Button>
-        )}
-      </div>
+          {media?.agentId && (
+            <Button
+              variant="secondary"
+              size="md"
+              className="text-base font-bold md:rounded-[12px] rounded-[16px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
+              onClick={() => {
+                router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
+              }}
+            >
+              <SwapCalls />
+              <span className="hidden sm:block">Remix</span>
+            </Button>
+          )}
+        </div>
+      )}
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (

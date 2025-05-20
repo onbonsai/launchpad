@@ -36,6 +36,8 @@ import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import Image from "next/image";
 import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
 import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
+import useIsMobile from "@src/hooks/useIsMobile";
+import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -69,6 +71,7 @@ const COMMENT_SCORE_THRESHOLD = 500;
 
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
   const router = useRouter();
   const { postId, v } = router.query;
   const { isConnected, chain, address } = useAccount();
@@ -92,51 +95,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     }
   }, [isMounted, media?.versions, v]);
 
-  // Get the return post ID from localStorage
-  const returnPostId = useMemo(() => {
-    if (!isMounted) return null;
-    if (typeof window !== 'undefined') {
-      const storedId = localStorage.getItem('returnPostId');
-      console.log('[returnPostId useMemo] Retrieved from localStorage:', storedId);
-      return storedId;
-    }
-    return null;
-  }, [isMounted]);
-
-  // Handle back navigation
-  const handleBackNavigation = () => {
-    if (returnPostId && returnPostId !== currentPostId) {
-      localStorage.removeItem('returnPostId');
-      router.push(`/post/${returnPostId}`);
-    } else {
-      router.push('/');
-    }
-  };
-
   // Use router.query.postId instead of postId from destructuring
   const currentPostId = router.query.postId as string;
-
-  // Store the current post ID as return ID when navigating away
-  useEffect(() => {
-    // Reset the current version metadata and index when the post ID changes
-    setCurrentVersionMetadata(null);
-    setCurrentVersionIndex(null);
-
-    const handleBeforeUnload = () => {
-      if (currentPostId && typeof window !== 'undefined') {
-        localStorage.setItem('returnPostId', currentPostId);
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Also store when component unmounts (for client-side navigation)
-      if (currentPostId && typeof window !== 'undefined') {
-        localStorage.setItem('returnPostId', currentPostId);
-      }
-    };
-  }, [currentPostId]);
 
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
@@ -492,15 +452,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         </ChatWindowButton>
       )}
       <div className="h-full">
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
+        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 md:pt-8 md:pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
-            <button
-              onClick={handleBackNavigation}
-              className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
-            >
-              <ArrowBack className="h-5 w-5" />
-            </button>
-            <div className="flex flex-col gap-2 h-full relative">
+            <div className="flex flex-col gap-2 h-full relative pt-4">
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
               {media?.token?.external && <TokenInfoExternal token={{ ...media.token, external: true }} />}
               <div className="overflow-y-hidden h-full">
@@ -597,7 +551,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                       {isConnected && isAuthenticated && (
                         <>
                           {replyingToComment && (
-                            <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+                            <div className="flex items-center gap-x-2 mb-2 mt-4 text-sm text-secondary/70">
                               <span>Replying to {replyingToUsername}</span>
                               <button
                                 onClick={() => setReplyingToComment(null)}
@@ -607,9 +561,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                               </button>
                             </div>
                           )}
-                          <div className="flex items-center gap-x-6 mt-4">
-                            <Image src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" width={48} height={48} />
-                            <div className="flex items-center space-x-4 flex-1">
+                          <div className={`flex items-center gap-x-3 md:gap-x-6 md:mt-4 ${!replyingToComment ? 'mt-6' : ''}`}>
+                            <Image src={profilePictureUrl} alt="profile" className="w-8 h-8 md:w-12 md:h-12 rounded-full" width={48} height={48} />
+                            <div className="flex items-center space-x-2 md:space-x-4 flex-1">
                               <div className="relative flex-1">
                                 <input
                                   ref={commentInputRef}
@@ -625,9 +579,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                   }}
                                   placeholder="Send a reply"
                                   autoComplete="off"
-                                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-2 pb-2 md:pt-4 md:pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
                                 />
-                                <div className="absolute right-2 -top-2">
+                                <div className="absolute md:right-2 right-[0.5px] md:-top-2 -top-4">
                                   <GenericUploader files={files} setFiles={setFiles} contained />
                                 </div>
                               </div>
@@ -635,10 +589,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                 disabled={isCommenting || !comment}
                                 onClick={submitComment}
                                 variant="accentBrand"
-                                size="sm"
-                                className="!py-[12px]"
+                                size={isMobile ? "xs" : "sm"}
+                                className="!py-[8px] md:!py-[12px]"
                               >
-                                Reply
+                                <SendSvg />
                               </Button>
                             </div>
                           </div>

@@ -30,7 +30,6 @@ const nextConfig = {
       '@lens-protocol/gated-content',
       '@lens-protocol/metadata',
       '@madfi/lens-oa-client',
-      '@madfi/widgets-react',
       '@sentry/nextjs',
       '@tailwindcss/forms',
       '@tanstack/react-query',

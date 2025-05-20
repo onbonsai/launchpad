@@ -59,7 +59,6 @@ export default function RemixForm({
     if (setCurrentPreview) {
       setCurrentPreview(preview);
     }
-    console.log(`preview.roomId: ${preview.roomId}`);
     if (preview.roomId && preview.roomId !== roomId && setRoomId) {
       setRoomId(preview.roomId);
     }
@@ -110,8 +109,6 @@ export default function RemixForm({
   const handleNext = (templateData: any) => {
     setFinalTemplateData(templateData);
   };
-
-  console.log(`roomId: ${roomId}`);
 
   return (
     <div className="w-full">

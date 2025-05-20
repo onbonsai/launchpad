@@ -1,12 +1,19 @@
 "use client";
 
-import type React from "react";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@src/components/Button";
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
 import { useAccount } from "wagmi";
 import Image from "next/image";
+import useIsMobile from "@src/hooks/useIsMobile";
+
+interface ChatWindowButtonProps {
+  children: React.ReactElement<{ isRemixing?: boolean }>;
+  agentInfo: AgentInfo;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
 
 const XIcon = ({ size = 24, className = "" }) => (
   <svg
@@ -29,13 +36,16 @@ export default function ChatWindowButton({
   agentInfo,
   isOpen,
   setIsOpen,
-}: {
-  children: React.ReactNode;
-  agentInfo: AgentInfo;
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-}) {
+}: ChatWindowButtonProps) {
   const { isConnected } = useAccount();
+  const isMobile = useIsMobile();
+  const [isRemixing, setIsRemixing] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsRemixing(false);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -53,6 +63,19 @@ export default function ChatWindowButton({
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleRemix = () => {
+    setIsRemixing(true);
+    setIsOpen(true);
+  };
+
+  // Clone children and pass isRemixing prop
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { isRemixing });
+    }
+    return child;
+  });
 
   return (
     <>
@@ -93,11 +116,11 @@ export default function ChatWindowButton({
           </button>
         </div>
         {/* Chat Content Area - Render children (Chat component) here */}
-        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && children}</div>
+        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && childrenWithProps}</div>
       </div>
 
-      {/* Floating Open Button (bottom right) */}
-      {isConnected && !isOpen && (
+      {/* Floating Open Button - Desktop */}
+      {isConnected && !isOpen && !isMobile && (
         <div className="fixed bottom-6 right-6 z-50 pointer-events-auto">
           <Button
             onClick={toggleChat}
@@ -111,6 +134,30 @@ export default function ChatWindowButton({
               <span className="bonsaiLogoPattern -mt-2" />
             </div>
           </Button>
+        </div>
+      )}
+
+      {/* Mobile Bottom Bar */}
+      {isConnected && !isOpen && isMobile && (
+        <div className="fixed bottom-16 left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto">
+          <div className="flex justify-between items-center px-4 py-3">
+            <Button
+              onClick={toggleChat}
+              variant="primary"
+              size="sm"
+              className="flex-1 mr-2 bg-background border border-dark-grey hover:bg-background"
+            >
+              Collect
+            </Button>
+            <Button
+              onClick={handleRemix}
+              variant="accentBrand"
+              size="sm"
+              className="flex-1 ml-2 bg-background border border-dark-grey hover:bg-background"
+            >
+              Remix
+            </Button>
+          </div>
         </div>
       )}
     </>

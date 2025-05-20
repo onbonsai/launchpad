@@ -19,6 +19,7 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
+import { authenticatedUser } from "@lens-protocol/client";
 
 const headerLinks = [
   {
@@ -35,146 +36,165 @@ const headerLinks = [
   },
 ];
 
+const MobileBottomNav = () => {
+  const { route, query } = useRouter();
+  const { data: walletClient } = useWalletClient();
+  const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
+  const isHomeActive = route === '/';
+  const isTokensActive = route === '/tokens';
+  const isCreateActive = route === '/studio' || route === '/studio/create';
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey sm:hidden z-[1000]">
+      <div className="flex justify-between items-center h-16 px-6">
+        <Link href="/" className="flex flex-col items-center">
+          <svg className={`w-6 h-6 ${isHomeActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </Link>
+        <Link href="/tokens" className="flex flex-col items-center">
+          <svg className={`w-6 h-6 ${isTokensActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </Link>
+        {isAuthenticated && (
+          <Link href="/studio" className="flex flex-col items-center">
+            <div className="bg-[#111] rounded-lg p-1.5">
+              <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+          </Link>
+        )}
+        <div className="flex flex-col items-center">
+          <Notifications isMobile onShowChange={setShowNotifications} />
+        </div>
+        <Link href={`/profile/${authenticatedProfile?.username?.localName}`} className="flex flex-col items-center">
+          <svg className={`w-6 h-6 ${isProfileActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
 export const Header = () => {
   const { route } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
 
   if (!isMounted) return null;
 
   return (
-    <header className="sticky top-0 z-[100] bg-black border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
-      <nav className="mx-auto max-w-[100rem]" aria-label="Top">
-        {/* Top row */}
-        <div className="flex w-full items-center py-3 lg:border-none px-4 md:px-6 justify-between">
-          <div className="flex items-center justify-start w-[40%]">
-            <div className="w-max text-black">
-              <a className="bonsaiLogo" href={routesApp.home}></a>
-            </div>
-            <div className="ml-10 hidden lg:flex items-center space-x-4">
-              {headerLinks.map((link) => (
-                <div key={link.href} className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg">
-                  <Link
-                    href={link.href}
-                    passHref
-                    className={cx(
-                      "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
-                      route === link.href ? "text-white" : "text-white/50 hover:text-white/80",
-                    )}
-                  >
-                    {link.label}
-                  </Link>
+    <>
+      <header className="sticky top-0 z-[100] bg-black/90 backdrop-blur-sm border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
+        <nav className="mx-auto max-w-[100rem]" aria-label="Top">
+          <div className="flex w-full items-center py-3 lg:border-none px-4 md:px-6 justify-between">
+            <div className="flex items-center justify-start w-[40%]">
+              <div className="w-max">
+                <a className="bonsaiLogo" href={routesApp.home}></a>
+              </div>
+              <div className="ml-10 hidden lg:flex items-center space-x-4">
+                {headerLinks.map((link) => (
+                  <div key={link.href} className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg">
+                    <Link
+                      href={link.href}
+                      passHref
+                      className={cx(
+                        "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
+                        route === link.href ? "text-white" : "text-white/50 hover:text-white/80",
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </div>
+                ))}
+                <div
+                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
+                  onClick={() => setOpenHelpModal(true)}
+                >
+                  <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
+                    Info
+                  </span>
                 </div>
-              ))}
-              <div
-                className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
-                onClick={() => setOpenHelpModal(true)}
+              </div>
+            </div>
+
+            {/* On desktop: show search in the center. On mobile: hidden or below */}
+            {!isMobile && (
+              <div className="flex justify-center items-center w-[10%]">
+                <SearchClubs />
+              </div>
+            )}
+
+            {/* Right side of header */}
+            <div className="flex items-center justify-end md:w-[40%] w-full">
+              {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
+              <div className="hidden sm:flex items-center gap-2 mr-2">
+                <Balance />
+                <ClaimFeesEarned />
+                <ClaimBonsai />
+              </div>
+
+              {/* Keep ConnectButton always visible */}
+              <ConnectButton
+                setOpenSignInModal={setOpenSignInModal}
+                autoLensLogin={!isAuthenticated}
+                className="sm:hidden"
+              />
+
+              {/* Hamburger (visible on small screens only) */}
+              <button
+                className="sm:hidden ml-2 text-white focus:outline-none"
+                onClick={() => setOpenMobileMenu(!openMobileMenu)}
               >
-                <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
-                  Info
-                </span>
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Mobile Menu Dropdown */}
+        {openMobileMenu && (
+          <div className="sm:hidden bg-black border-t border-dark-grey px-4 py-3">
+            <div className="flex flex-col space-y-2 w-full">
+              <div className="pb-2 w-full">
+                <SearchClubs />
+              </div>
+              <Balance openMobileMenu />
+              <ClaimFeesEarned openMobileMenu />
+              <ClaimBonsai openMobileMenu />
+              <div
+                className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
+                onClick={() => {
+                  setOpenHelpModal(true);
+                  setOpenMobileMenu(false);
+                }}
+              >
+                <span className="leading-4 font-medium text-white text-[16px] hover:opacity-100">Info</span>
               </div>
             </div>
           </div>
-
-          {/* On desktop: show search in the center. On mobile: hidden or below */}
-          {!isMobile && (
-            <div className="flex justify-center items-center w-[10%]">
-              <SearchClubs />
-            </div>
-          )}
-
-          {/* Right side of header */}
-          <div className="flex items-center justify-end md:w-[40%] w-full">
-            {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
-            {/* Reordered for desktop: Create, Claim Fees, then ConnectButton */}
-            <div className="hidden sm:flex items-center gap-2 mr-2">
-              <Notifications />
-              {isAuthenticated && (
-                <Link href="/studio">
-                  <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 rounded-lg">
-                    Create
-                  </Button>
-                </Link>
-              )}
-              <Balance />
-              <ClaimFeesEarned />
-              <ClaimBonsai />
-            </div>
-
-            {/* Keep ConnectButton always visible, now outside the desktop-specific div */}
-            <ConnectButton
-              setOpenSignInModal={setOpenSignInModal}
-              autoLensLogin={!isAuthenticated}
-              className="sm:hidden" // Hide on desktop since it's included in the line above for desktop view
-            />
-
-            {/* Hamburger (visible on small screens only) */}
-            <button
-              className="sm:hidden ml-2 text-white focus:outline-none"
-              onClick={() => setOpenMobileMenu(!openMobileMenu)}
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile-only: Search bar on second line */}
-        {/* {isMobile && (
-          <div className="block lg:hidden px-4 md:px-6 pb-4 w-full">
-            <SearchClubs />
-          </div>
-        )} */}
-      </nav>
-
-      {/* Mobile Menu Dropdown */}
-      {openMobileMenu && (
-        <div className="sm:hidden bg-black border-t border-dark-grey px-4 py-3">
-          <div className="flex flex-col space-y-2 w-full">
-            <div className="pb-2 w-full">
-              <SearchClubs />
-            </div>
-            <Balance openMobileMenu />
-            <ClaimFeesEarned openMobileMenu />
-            <ClaimBonsai openMobileMenu />
-            <Notifications openMobileMenu />
-            {/* TODO: move info to a button next to hamburger */}
-            <div
-              className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
-              onClick={() => {
-                setOpenHelpModal(true);
-                setOpenMobileMenu(false);
-              }}
-            >
-              <span className="leading-4 font-medium text-white text-[16px] hover:opacity-100">Info</span>
-            </div>
-            {isAuthenticated && (
-              <Link href="/studio" className="w-full">
-                <Button
-                  variant="accentBrand"
-                  size="md"
-                  className="text-base font-bold md:px-6 bg-white rounded-lg w-full"
-                >
-                  Create
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* Login Modal */}
       <Modal
@@ -192,7 +212,7 @@ export const Header = () => {
         open={openHelpModal}
         setOpen={setOpenHelpModal}
         panelClassnames={clsx(
-          "text-md bg-card w-screen h-screen p-4 md:h-full md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8",
+          "text-md bg-card w-full p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8",
           brandFont.className,
         )}
       >
@@ -226,6 +246,9 @@ export const Header = () => {
           </Link>
         </div>
       </Modal>
-    </header>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
+    </>
   );
 };
