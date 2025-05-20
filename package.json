@@ -26,7 +26,7 @@
     "@lens-protocol/gated-content": "^0.5.1",
     "@lens-protocol/metadata": "2.0.0-next.7",
     "@madfi/lens-oa-client": "^0.3.0",
-    "@madfi/widgets-react": "file:../lens-widgets/lens-widgets-react",
+    "@madfi/widgets-react": "^3.2.10",
     "@mui/icons-material": "^5.8.0",
     "@mui/material": "^5.13.5",
     "@mui/styles": "^5.14.0",

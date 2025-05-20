@@ -147,7 +147,7 @@ export default function ChatWindowButton({
               size="sm"
               className="flex-1 mr-2 bg-background border border-dark-grey hover:bg-background"
             >
-              Collect
+              Chat
             </Button>
             <Button
               onClick={handleRemix}
