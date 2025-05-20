@@ -7,6 +7,7 @@ import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import toast from 'react-hot-toast';
 import { useSIWE } from 'connectkit';
+import { sdk } from '@farcaster/frame-sdk';
 
 import { Modal } from "@src/components/Modal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -31,6 +32,7 @@ import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComme
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
 import { getPostId } from '@src/services/lens/getStats';
 import Image from 'next/image';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 const TradeComponent = dynamic(() => import("@src/pagesComponents/Club/TradeComponent"), { ssr: false });
@@ -118,6 +120,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
   const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
+  const { isMiniApp } = useIsMiniApp();
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -357,11 +360,22 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       </Header2>
                       {
                         club.chain === "base"  ?
-                        <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
-                          <Button variant="accentBrand" className="text-white mt-4">
-                            Trade on Kyberswap
+                          <Button variant="accentBrand" className="text-white my-4" onClick={async (e) => {
+                            if (isMiniApp) {
+                              e.preventDefault();
+                              const chainId = club.chain === "lens" ? "232" : "8453";
+                              await sdk.actions.swapToken({
+                                sellToken: `eip155:${chainId}/native`,
+                                buyToken: `eip155:${chainId}/erc20:${club.tokenAddress}`,
+                                sellAmount: club.chain === "lens" ? "10000000000000000000" : "10000000",
+                              });
+                            } else {
+                              window.open(`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`, "_blank");
+                            }
+                          }}>
+                            {isMiniApp ? "Swap" : "Trade on Kyberswap"}
                           </Button>
-                        </a> :
+                         :
                         <div className='mt-4'>
                           <TradeComponent
                               defaultBuyAmount={''}

@@ -14,6 +14,7 @@ import { brandFont } from '@src/fonts/fonts';
 import BuyUSDCWidget from '@pagesComponents/Club/BuyUSDCWidget';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { sdk } from '@farcaster/frame-sdk';
 
 const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
@@ -46,23 +47,42 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
     </div>
   );
 
-  const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
-    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
-      <div className="h-8 flex items-center pt-1">
-        <Button
-          variant="dark-grey"
-          size="md"
-          onClick={onClick}
-          disabled={!isConnected}
-          className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 ${brandFont.className}`}
-        >
-          Buy
-        </Button>
+  const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => {
+    const handleClick = async (e: any) => {
+      if (club.chain === "base" && club.complete) {
+        if (await sdk.isInMiniApp()) {
+          e.preventDefault();
+          await sdk.actions.swapToken({
+            sellToken: `eip155:8453/native`,
+            buyToken: `eip155:8453/erc20:${club.tokenAddress}`,
+            sellAmount: "10000000",
+          });
+        } else {
+          window.location.href = `/token/${club.chain}/${club.tokenAddress}`;
+        }
+      } else {
+        onClick(e);
+      }
+    };
+
+    return (
+      <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
+        <div className="h-8 flex items-center pt-1">
+          <Button
+            variant="dark-grey"
+            size="md"
+            onClick={handleClick}
+            disabled={!isConnected}
+            className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 ${brandFont.className}`}
+          >
+            Buy
+          </Button>
+        </div>
+        {/* filler to match height of infocard */}
+        <div></div>
       </div>
-      {/* filler to match height of infocard */}
-      <div></div>
-    </div>
-  );
+    );
+  };
 
   const PriceChangeString: React.FC<{ period: PriceChangePeriod }> = ({ period }) => {
     const priceDelta = tradingInfo && tradingInfo.priceDeltas?.[period] ? tradingInfo.priceDeltas[period] : "0";

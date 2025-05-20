@@ -152,7 +152,8 @@ const nextConfig = {
       "gw.ipfs-lens.dev",
       "nft-cdn.alchemy.com",
       "ipfs.4everland.io",
-      "imagedelivery.net"
+      "imagedelivery.net",
+      "wrpcd.net"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,
