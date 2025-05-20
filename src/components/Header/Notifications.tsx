@@ -221,7 +221,7 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
           transform: isMobile ? 'translateY(-100%)' : 'none',
           width: isMobile ? 'calc(100% - 32px)' : 'auto'
         }}>
-          <div className={`bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px] max-h-[45vh] overflow-y-auto ${isMobile ? 'animate-ease-in' : ''}`}>
+          <div className={`bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px] max-h-[45vh] overflow-y-auto ${isMobile ? 'animate-slide-fade-in-mobile' : ''}`}>
             <div className="sticky top-0 right-0 z-10 flex justify-end pt-2 pr-2 bg-dark-grey/80 backdrop-blur-sm">
               <button
                 type="button"

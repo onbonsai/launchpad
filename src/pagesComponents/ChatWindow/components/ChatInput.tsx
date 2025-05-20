@@ -158,6 +158,13 @@ export default function ChatInput({
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const remixTemplate = remixMedia ? templates?.find((t) => t.name === remixMedia?.template) : undefined;
 
+  // Focus input on mount
+  useEffect(() => {
+    if (textareaRef.current && !showRemixForm && !isGeneratingPreview) {
+      textareaRef.current.focus();
+    }
+  }, [showRemixForm, isGeneratingPreview]);
+
   useEffect(() => {
     if (isRemixing) {
       setShowRemixForm(true);

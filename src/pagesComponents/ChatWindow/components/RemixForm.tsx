@@ -3,6 +3,7 @@ import { Button } from '@src/components/Button';
 import CreatePostForm from '@src/pagesComponents/Studio/CreatePostForm';
 import type { SmartMedia, Template, TokenData, Preview } from '@src/services/madfi/studio';
 import { getRegisteredClubInfoByAddress } from '@src/services/madfi/moneyClubs';
+import { getPost } from '@src/services/lens/posts';
 
 type RemixFormProps = {
   template: Template;
@@ -103,8 +104,28 @@ export default function RemixForm({
           });
         });
       }
+
+      // Fetch the Lens post and set its image
+      if (remixMedia.postId) {
+        getPost(remixMedia.postId).then((post) => {
+          if (post?.metadata?.image?.item) {
+            // Convert the image URL to a File object
+            fetch(post?.metadata?.image?.item)
+              .then(res => res.blob())
+              .then(blob => {
+                const file = Object.assign(new File([blob], 'remix-image.jpg', { type: blob.type }), {
+                  preview: URL.createObjectURL(blob)
+                });
+                setPostImage([file]); // Wrap in array since ImageUploader expects an array
+              })
+              .catch(console.error);
+          }
+        }).catch(console.error);
+      }
     }
   }, [remixMedia]);
+
+  console.log(postImage)
 
   const handleNext = (templateData: any) => {
     setFinalTemplateData(templateData);

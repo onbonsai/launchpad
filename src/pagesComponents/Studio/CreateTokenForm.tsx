@@ -1,5 +1,5 @@
 import { brandFont } from "@src/fonts/fonts";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
@@ -28,6 +28,7 @@ import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import Image from "next/image";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -98,13 +99,17 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
-  const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress);
   const [manualTokenAddress, setManualTokenAddress] = useState<string>("");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
   const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
-  const { data: existingTokens } = useCreatorTokens(address as `0x${string}`);
+  const { data: existingTokens, isLoading: isLoadingExistingTokens } = useCreatorTokens(address as `0x${string}`);
+  const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress || !!existingTokens?.length);
+
+  useEffect(() => {
+    setUseExistingToken(!!savedTokenAddress || !!existingTokens?.length);
+  }, [savedTokenAddress, existingTokens]);
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -183,6 +188,12 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   };
 
   const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
+
+  if (isLoadingExistingTokens) {
+    return (
+      <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+    )
+  }
 
   return (
     <form
@@ -281,14 +292,14 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                         if (manualTokenAddress && manualTokenAddress.startsWith("0x") && manualTokenAddress.length === 42) {
                           setIsLoadingToken(true);
                           setTokenError(null);
-                          
+
                           // Try both networks
                           Promise.all([
                             fetchTokenMetadata(manualTokenAddress, 'lens'),
                             fetchTokenMetadata(manualTokenAddress, 'base')
                           ]).then(([lensResult, baseResult]) => {
                             const result = lensResult || baseResult;
-                            
+
                             if (result) {
                               setSavedTokenAddress(manualTokenAddress);
                               setFinalTokenData({
@@ -375,7 +386,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   )}
                 </div>
 
-                
+
               </div>
             </div>
           ) : (

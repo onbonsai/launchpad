@@ -254,7 +254,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh]">
+    <div className="bg-background text-secondary min-h-[90vh] pt-4  ">
       <div>
         <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
@@ -536,8 +536,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const { collection } = await getClientWithClubs();
         result = await collection.findOne(
           { tokenAddress: getAddress(tokenAddress as string) },
-          { 
-            projection: { 
+          {
+            projection: {
               _id: 0,
               featureEndAt: 1,
               postId: 1,
@@ -545,22 +545,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
               profileId: 1,
               handle: 1,
               strategy: 1
-            } 
+            }
           }
         );
       } else {
         const { collection } = await getClientWithMedia();
         result = await collection.findOne(
           { "token.address": getAddress(tokenAddress as string) },
-          { 
-            projection: { 
+          {
+            projection: {
               _id: 0,
               postId: 1,
               pubId: 1,
               profileId: 1,
               handle: 1,
               strategy: 1
-            } 
+            }
           }
         );
       }

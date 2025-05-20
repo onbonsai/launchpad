@@ -471,7 +471,7 @@ const StudioCreatePage: NextPage = () => {
         token: (addToken || remixMedia?.agentId) && finalTokenData ? {
           chain: finalTokenData.selectedNetwork,
           address: tokenAddress,
-          external: !txHash
+          external: !txHash && !savedTokenAddress,
         } : undefined,
         params: {
           templateName: template.name,

@@ -1,4 +1,4 @@
-import { useMemo, useState, ReactNode, useRef, useEffect } from "react";
+import { useMemo, useState, ReactNode, useRef, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -29,8 +30,9 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
-import { EyeIcon } from "@heroicons/react/outline";
+import { ChatIcon } from "@heroicons/react/outline";
 import useIsMobile from "@src/hooks/useIsMobile";
+import clsx from "clsx";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -143,6 +145,7 @@ const PublicationContainer = ({
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
   const { openTopUpModal } = useTopUpModal();
   const [showPulse, setShowPulse] = useState(false);
+  const { setIsChatOpen, setIsRemixing } = useContext(ChatSidebarContext);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -483,37 +486,51 @@ const PublicationContainer = ({
         />
       )}
       {!isMobile && (
-        <div className="absolute top-2 right-2 z-20 flex gap-1">
-          <Button
-            variant={hasCollected ? "dark-grey" : "accentBrand"}
-            size="md"
-            className={`text-base font-bold md:rounded-[12px] rounded-[16px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
-            onClick={(e) => {
-              if (!hasCollected) {
-                onCollectButtonClick(e);
-              }
-            }}
-          >
-            {!hasCollected ? (
-              <>
-                <BookmarkAddOutlined />
-                <span className="hidden sm:block">Collect</span>
-              </>
-            ) : <BookmarkOutlined />}
-          </Button>
-          {media?.agentId && (
-            <Button
-              variant="secondary"
-              size="md"
-              className="text-base font-bold md:rounded-[12px] rounded-[16px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none"
-              onClick={() => {
-                router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
+        <div className="absolute top-4 right-4 z-20 flex">
+          <div className="flex">
+            <div
+              className={clsx(
+                "min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                "rounded-l-xl",
+                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
+              )}
+              onClick={(e) => {
+                if (!hasCollected) {
+                  onCollectButtonClick(e);
+                }
               }}
             >
-              <SwapCalls />
-              <span className="hidden sm:block">Remix</span>
-            </Button>
-          )}
+              {!hasCollected ? (
+                <>
+                  <BookmarkAddOutlined className="text-base" />
+                  <span className="hidden sm:block text-base font-bold">Collect</span>
+                </>
+              ) : <BookmarkOutlined className="text-base" />}
+            </div>
+            {media?.agentId && (
+              <>
+                <div
+                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
+                  onClick={() => {
+                    setIsChatOpen(true);
+                    setIsRemixing(true);
+                  }}
+                >
+                  <SwapCalls className="text-base" />
+                  <span className="hidden sm:block text-base font-bold">Remix</span>
+                </div>
+                <div
+                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
+                  onClick={() => {
+                    setIsChatOpen(true);
+                  }}
+                >
+                  <ChatIcon className="w-5 h-5" />
+                  <span className="hidden sm:block text-base font-bold">Chat</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
       {sideBySideMode && (
@@ -582,7 +599,7 @@ const PublicationContainer = ({
         >
           <div
             ref={dropdownButtonRef}
-            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[12px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : 'p-[2px] scale-75'}`}
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[2px] scale-77'}`}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
           </div>

@@ -45,7 +45,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
       <div className="col-span-3 flex justify-center w-full md:w-auto">
         <div className="flex gap-1 mt-5 w-full md:w-auto">
           {/* Bonding Curve Box */}
-          <div className="bg-white w-full md:min-w-[240px] h-[56px] rounded-[20px] p-[2px] relative">
+          <div className="bg-black/80 w-full md:min-w-[240px] h-[56px] rounded-[20px] p-[2px] relative">
             <div
               className="rounded-[20px] absolute top-[2px] bottom-[2px] left-[2px]"
               style={{
@@ -55,18 +55,18 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
               }}
             />
             <div className="flex flex-col px-3 py-2 relative z-10">
-              <Subtitle className="text-black/60">Bonding curve</Subtitle>
-              <BodySemiBold className="text-black">
+              <Subtitle className="text-white/60">Bonding curve</Subtitle>
+              <BodySemiBold className="text-white">
                 {localizeNumber(bondingCurveProgress / 100, "percent")}
               </BodySemiBold>
             </div>
           </div>
 
           {/* Holding Box */}
-          <div className="bg-white w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
+          <div className="bg-black/80 w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
             <div className="flex flex-col">
-              <Subtitle className="text-black/60">Holding</Subtitle>
-              <BodySemiBold className="text-black">{balance ? balance : "-"}</BodySemiBold>
+              <Subtitle className="text-white/60">Holding</Subtitle>
+              <BodySemiBold className="text-white">{balance ? balance : "-"}</BodySemiBold>
             </div>
             <Button
               className="bg-bullish border-transparent max-w-[60px]"

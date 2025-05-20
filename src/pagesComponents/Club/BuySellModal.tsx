@@ -22,7 +22,7 @@ const BuySellModal = (props: BuySellModalProps) => {
             onClose={onClose}
             open={open}
             setOpen={() => { }}
-            panelClassnames="w-screen h-screen md:h-full md:w-fit p-4 text-secondary"
+            panelClassnames="text-md bg-card w-full p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8"
         >
             <TradeComponent
                 defaultBuyAmount={buyAmount ?? ''}

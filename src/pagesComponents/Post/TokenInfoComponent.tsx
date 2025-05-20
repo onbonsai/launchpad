@@ -15,6 +15,7 @@ import BuyUSDCWidget from '@pagesComponents/Club/BuyUSDCWidget';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { sdk } from '@farcaster/frame-sdk';
+import useIsMobile from '@src/hooks/useIsMobile';
 
 const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
@@ -23,6 +24,7 @@ enum PriceChangePeriod {
 }
 
 export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club: Club, media?: SmartMedia, remixPostId?: string, postId?: string }) => {
+  const isMobile = useIsMobile();
   const { address, isConnected } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -66,14 +68,16 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
     };
 
     return (
-      <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
-        <div className="h-8 flex items-center pt-1">
+      <div
+        className="md:min-w-[88px] flex flex-col items-center justify-center border border-card-light py-1 sm:py-2 space-y-1 px-2 sm:px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out"
+        onClick={(e) => isConnected ? handleClick(e) : null}
+      >
+        <div className="h-6 sm:h-8 flex items-center pt-0 sm:pt-1">
           <Button
             variant="dark-grey"
-            size="md"
-            onClick={handleClick}
+            size={isMobile ? "sm" : "md"}
             disabled={!isConnected}
-            className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 ${brandFont.className}`}
+            className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 !text-sm sm:!text-base ${brandFont.className}`}
           >
             Buy
           </Button>
@@ -101,7 +105,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
-      <div className="relative w-full h-[126px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+      <div className="relative w-full h-[180px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
           <Image
             src={club.token.image}
@@ -115,7 +119,6 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
         <div className="relative z-10 p-2 pb-4 flex flex-col">
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full flex justify-between">
-              {/* <Tooltip message="View Token" direction="right"> */}
               <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
                 <div className='flex items-center gap-x-4 w-full'>
                   <Image
@@ -131,30 +134,29 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                   </div>
                 </div>
               </Link>
-              {/* </Tooltip> */}
-              <div className='sm:hidden'>
-                <ActionCard onClick={(e) => setShowBuyModal(true)} />
-              </div>
-
             </div>
 
-
-            <div className="flex flex-row items-center mr-2">
-              <InfoCard
-                title='Market Cap'
-                subtitle={<Subtitle>{!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)).toString(), 'currency', 2)}</Subtitle>}
-                roundedLeft
-              />
-              <InfoCard
-                title='24h'
-                subtitle={<PriceChangeString period={PriceChangePeriod.twentyFourHours} />}
-              />
-              <InfoCard
-                title='Balance'
-                subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, _DECIMALS)))}</Subtitle>}
-                roundedRight
-              />
-              <div className='hidden sm:block'>
+            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2">
+              <div className="flex flex-row items-center w-full">
+                <InfoCard
+                  title='Market Cap'
+                  subtitle={<Subtitle>{!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)).toString(), 'currency', 2)}</Subtitle>}
+                  roundedLeft
+                  className="flex-1"
+                />
+                <InfoCard
+                  title='24h'
+                  subtitle={<PriceChangeString period={PriceChangePeriod.twentyFourHours} />}
+                  className="flex-1"
+                />
+                <InfoCard
+                  title='Balance'
+                  subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, _DECIMALS)))}</Subtitle>}
+                  roundedRight
+                  className="flex-1"
+                />
+              </div>
+              <div className={isMobile ? 'w-full mt-2' : 'hidden sm:block'}>
                 <ActionCard onClick={(e) => setShowBuyModal(true)} />
               </div>
             </div>

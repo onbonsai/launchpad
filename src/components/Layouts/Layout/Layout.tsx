@@ -9,7 +9,14 @@ import useIsMobile from "@src/hooks/useIsMobile";
 export const ChatSidebarContext = createContext<{
   isChatOpen: boolean;
   setIsChatOpen: (open: boolean) => void;
-}>({ isChatOpen: false, setIsChatOpen: () => {} });
+  isRemixing: boolean;
+  setIsRemixing: (isRemixing: boolean) => void;
+}>({
+  isChatOpen: false,
+  setIsChatOpen: () => {},
+  isRemixing: false,
+  setIsRemixing: () => {}
+});
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +24,7 @@ interface LayoutProps {
 
 export const Layout: FC<LayoutProps> = ({ children }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isRemixing, setIsRemixing] = useState(false);
   const sidebarWidth = 320; // px, matches w-80
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -24,6 +32,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
   // Reset chat window state when route changes
   useEffect(() => {
     setIsChatOpen(false);
+    setIsRemixing(false);
   }, [router.asPath]);
 
   // Prevent body scroll when sidebar is open on mobile
@@ -39,7 +48,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
   }, [isMobile, isChatOpen]);
 
   return (
-    <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen }}>
+    <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen, isRemixing, setIsRemixing }}>
       <div
         className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300 ${
           isChatOpen ? (isMobile ? "mr-0" : "mr-80 sm:mr-96") : ""

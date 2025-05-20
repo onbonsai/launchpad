@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Button } from "@src/components/Button";
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
 import { useAccount } from "wagmi";
 import Image from "next/image";
 import useIsMobile from "@src/hooks/useIsMobile";
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 
 interface ChatWindowButtonProps {
   children: React.ReactElement<{ isRemixing?: boolean }>;
   agentInfo: AgentInfo;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  isRemixing?: boolean;
 }
 
 const XIcon = ({ size = 24, className = "" }) => (
@@ -36,16 +38,25 @@ export default function ChatWindowButton({
   agentInfo,
   isOpen,
   setIsOpen,
+  isRemixing = false,
 }: ChatWindowButtonProps) {
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
-  const [isRemixing, setIsRemixing] = useState(false);
+  const { isRemixing: contextIsRemixing, setIsRemixing } = useContext(ChatSidebarContext);
+  const [isRemixingState, setIsRemixingState] = useState(isRemixing || contextIsRemixing);
 
   useEffect(() => {
     if (!isOpen) {
+      setIsRemixingState(false);
       setIsRemixing(false);
     }
-  }, [isOpen]);
+  }, [isOpen, setIsRemixing]);
+
+  useEffect(() => {
+    if (contextIsRemixing) {
+      setIsRemixingState(true);
+    }
+  }, [contextIsRemixing]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -65,6 +76,7 @@ export default function ChatWindowButton({
   };
 
   const handleRemix = () => {
+    setIsRemixingState(true);
     setIsRemixing(true);
     setIsOpen(true);
   };
@@ -72,7 +84,7 @@ export default function ChatWindowButton({
   // Clone children and pass isRemixing prop
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child)) {
-      return React.cloneElement(child, { isRemixing });
+      return React.cloneElement(child, { isRemixing: isRemixingState });
     }
     return child;
   });
@@ -120,7 +132,7 @@ export default function ChatWindowButton({
       </div>
 
       {/* Floating Open Button - Desktop */}
-      {isConnected && !isOpen && !isMobile && (
+      {/* {isConnected && !isOpen && !isMobile && (
         <div className="fixed bottom-6 right-6 z-50 pointer-events-auto">
           <Button
             onClick={toggleChat}
@@ -135,7 +147,7 @@ export default function ChatWindowButton({
             </div>
           </Button>
         </div>
-      )}
+      )} */}
 
       {/* Mobile Bottom Bar */}
       {isConnected && !isOpen && isMobile && (
