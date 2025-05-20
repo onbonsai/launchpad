@@ -132,10 +132,13 @@ const LoginWithLensModal = ({ closeModal }) => {
   return (
     <div className={clsx("flex flex-col w-full mt-10 px-4", brandFont.className)}>
       <h2 className="text-3xl text-center font-bold">
-        {`${!profiles || !profiles.length ? 'Create your Bonsai Replika' : 'Your profiles'}`}
+        {`${isMiniApp && (!profiles || !profiles.length) ? 'Create your Bonsai Replika' : 'Your profiles'}`}
       </h2>
-      {(!profiles || !profiles.length) && (
-        <p className="text-center text-gray-400 mt-2">It's free and only takes a second</p>
+      {isMiniApp && (!profiles || !profiles.length) && (
+        <>
+          <p className="text-center text-gray-400 mt-2">Replikas keep track of your content and will soon have full autonomy</p>
+          <p className="text-center text-gray-400 mt-2">It's free and only takes a second</p>
+        </>
       )}
       <div className="max-w-full flex flex-col gap-4 pt-4">
         {!profiles || !profiles.length ? (
@@ -180,12 +183,12 @@ const LoginWithLensModal = ({ closeModal }) => {
             <div className="w-full items-center text-center">
               <p className="mb-2">To create a token or use social features you'll need to get one.</p>
               <p className="mb-8">You can still trade without a profile.</p>
-              <div>
+              <Button variant="accent">
                 <a href="https://onboarding.lens.xyz/" target="_blank">
-                  <span className="text-grey link-hover cursor-pointer">Mint a profile on Lens {"->"}</span>
+                  <span className="text-grey">Mint a profile on Lens {"->"}</span>
                 </a>
-              </div>
-              <div className="mb-4">
+              </Button>
+              <div className="my-4">
                 <a href="https://orb.club/" target="_blank">
                   <span className="text-grey link-hover cursor-pointer">Download Orb for mobile {"->"}</span>
                 </a>

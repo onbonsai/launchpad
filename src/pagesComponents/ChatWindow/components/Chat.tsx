@@ -28,6 +28,8 @@ import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 import axios from 'axios';
 import { encodeAbi } from '@src/utils/viem';
+import { Button } from '@src/components/Button';
+import { useTopUpModal } from '@src/context/TopUpContext';
 
 type ChatProps = {
   agentId: string;
@@ -68,6 +70,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const [isPosting, setIsPosting] = useState(false);
   const [postingPreview, setPostingPreview] = useState<Preview | undefined>();
   const router = useRouter();
+  const { openTopUpModal } = useTopUpModal();
 
   const handlePostButtonClick = useCallback((preview: Preview) => {
     console.log('handlePostButtonClick called with preview:', preview);
@@ -407,12 +410,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   }, [postingPreview, authenticatedProfile, walletClient, conversationId]);
 
   return (
-    <div
-      className={clsx(
-        'relative flex h-full w-full flex-col',
-        className,
-      )}
-    >
+    <div className={clsx("relative flex h-full w-full flex-col", className)}>
       <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2">
         {isLoadingMessageHistory ? (
           <div className="flex justify-center my-6">
@@ -433,14 +431,14 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                             <StreamItem
                               entry={{
                                 timestamp: new Date(message.createdAt as number),
-                                type: message.content.source === 'bonsai-terminal' ? 'user' : 'agent',
-                                content: '',
+                                type: message.content.source === "bonsai-terminal" ? "user" : "agent",
+                                content: "",
                               }}
                               setUserInput={setUserInput}
                               setRequestPayload={setRequestPayload}
                               preview={{
-                                ...message.content.preview as Preview,
-                                text: message.content.text
+                                ...(message.content.preview as Preview),
+                                text: message.content.text,
                               }}
                               onPostButtonClick={(preview) => handlePostButtonClick(preview)}
                             />
@@ -448,7 +446,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                             <StreamItem
                               entry={{
                                 timestamp: new Date(message.createdAt as number),
-                                type: message.content.source === 'bonsai-terminal' ? 'user' : 'agent',
+                                type: message.content.source === "bonsai-terminal" ? "user" : "agent",
                                 content: markdownToPlainText(message.content.text),
                               }}
                               setUserInput={setUserInput}
@@ -457,7 +455,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                           )}
                           {index === messageHistory.length - 1 && (
                             <div className="text-xs text-zinc-500 text-center">
-                              {format(new Date(message.createdAt as number), 'EEEE, MMMM do h:mmaaa')}
+                              {format(new Date(message.createdAt as number), "EEEE, MMMM do h:mmaaa")}
                             </div>
                           )}
                         </div>
@@ -467,17 +465,20 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                 )}
 
                 <div className="space-y-8 flex-grow" role="log" aria-live="polite">
-                  {[...streamEntries, ...localPreviews.map(preview => ({
-                    timestamp: new Date(preview.createdAt),
-                    type: preview.isAgent ? 'agent' : 'user',
-                    content: '',
-                    preview: preview.content.preview
-                  }))]
+                  {[
+                    ...streamEntries,
+                    ...localPreviews.map((preview) => ({
+                      timestamp: new Date(preview.createdAt),
+                      type: preview.isAgent ? "agent" : "user",
+                      content: "",
+                      preview: preview.content.preview,
+                    })),
+                  ]
                     .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
                     .map((entry, index, array) => {
                       // Skip if this is an agent message that's immediately followed by a preview
                       const nextEntry = array[index + 1];
-                      if (entry.type === 'agent' && nextEntry?.preview) {
+                      if (entry.type === "agent" && nextEntry?.preview) {
                         return null;
                       }
 
@@ -492,7 +493,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                         />
                       );
                     })}
-                  <div className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${!isPosting ? 'flex-grow min-h-6' : 'h-6'}`}>
+                  <div
+                    className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${
+                      !isPosting ? "flex-grow min-h-6" : "h-6"
+                    }`}
+                  >
                     {isThinking && (
                       <span className="max-w-full font-mono">
                         {currentAction ? `${currentAction} ${loadingDots}` : loadingDots}
@@ -513,14 +518,20 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           <StreamItem
             entry={{
               timestamp: new Date(),
-              type: 'agent',
-              content: '',
+              type: "agent",
+              content: "",
             }}
             preview={postingPreview}
             isSelected={true}
             onCancel={handleCancelPost}
           />
         </div>
+      )}
+
+      {!(canMessageAgain && canMessage) && (
+        <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openTopUpModal("api-credits")}>
+          Topup credits to continue
+        </Button>
       )}
 
       <ChatInput
@@ -534,7 +545,13 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         requireBonsaiPayment={requireBonsaiPayment}
         setRequireBonsaiPayment={setRequireBonsaiPayment}
         showSuggestions={canMessage && canMessageAgain}
-        placeholder={isPosting ? "Write your post content here" : !(canMessageAgain && canMessage) ? "Insufficient credits" : undefined}
+        placeholder={
+          isPosting
+            ? "Write your post content here"
+            : !(canMessageAgain && canMessage)
+            ? "Insufficient credits"
+            : undefined
+        }
         templates={registeredTemplates}
         remixMedia={media}
         roomId={conversationId}
