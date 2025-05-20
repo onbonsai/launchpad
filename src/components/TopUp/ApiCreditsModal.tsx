@@ -5,18 +5,21 @@ import { brandFont } from "@src/fonts/fonts";
 import clsx from "clsx";
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
+import { base } from "viem/chains";
 import { erc20Abi, formatUnits, parseUnits } from "viem";
 import { toast } from "react-hot-toast";
 import { useGetCredits } from "@src/hooks/useGetCredits";
-import { ADMIN_WALLET, publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI } from "@src/services/madfi/moneyClubs";
+import { ADMIN_WALLET, publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { CreditCardIcon } from "@heroicons/react/outline";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { switchChain } from "viem/actions";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 interface TopUpOption {
   credits: number;
   price: number;
   ghoRequired: bigint;
+  usdcRequired: bigint;
   highlight?: boolean;
 }
 
@@ -26,11 +29,15 @@ export const ApiCreditsModal = () => {
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
+  const { isMiniApp } = useIsMiniApp();
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
     address,
     chainId: LENS_CHAIN_ID,
+    query: {
+      enabled: isConnected && !isMiniApp,
+    },
   });
 
   // WGHO Balance
@@ -41,8 +48,19 @@ export const ApiCreditsModal = () => {
     functionName: "balanceOf",
     args: [address!],
     query: {
-      refetchInterval: 10000,
-      enabled: isConnected,
+      enabled: isConnected && !isMiniApp,
+    },
+  });
+
+  // USDC Balance
+  const { data: usdcBalance } = useReadContract({
+    address: USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: base.id,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      enabled: isConnected && isMiniApp,
     },
   });
 
@@ -51,23 +69,32 @@ export const ApiCreditsModal = () => {
     maximumFractionDigits: 2,
   });
 
+  const formattedUsdcBalance = Number(formatUnits(usdcBalance || 0n, USDC_DECIMALS)).toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+  });
+
   const topUpOptions: TopUpOption[] = useMemo(() => {
     const credits = [100, 350, 750, 2500];
     return credits.map((credit, index) => {
       const price = (3 * credit) / 200;
       const ghoRequired = parseUnits(price.toString(), 18);
+      const usdcRequired = parseUnits(price.toString(), USDC_DECIMALS);
       return {
         credits: credit,
         price,
         ghoRequired,
+        usdcRequired,
       };
     });
   }, []);
 
-  const hasSufficientGho = useMemo(() => {
-    if (!selectedOption || !totalGhoBalance) return false;
+  const hasSufficientFunds = useMemo(() => {
+    if (!selectedOption) return false;
+    if (isMiniApp) {
+      return (usdcBalance || 0n) >= selectedOption.usdcRequired;
+    }
     return totalGhoBalance >= selectedOption.ghoRequired;
-  }, [selectedOption, totalGhoBalance]);
+  }, [selectedOption, totalGhoBalance, usdcBalance, isMiniApp]);
 
   const topUp = async () => {
     if (!walletClient || !address) {
@@ -78,73 +105,103 @@ export const ApiCreditsModal = () => {
       toast.error("No selected option");
       return;
     }
-    if (chain?.id !== LENS_CHAIN_ID && walletClient) {
-      try {
-        await switchChain(walletClient, { id: LENS_CHAIN_ID });
-        // toast("Please re-connect your wallet");
-        // setOpen(true);
-        return;
-      } catch {
-        toast.error("Please switch chains");
-        return;
+
+    if (isMiniApp) {
+      if (chain?.id !== base.id && walletClient) {
+        try {
+          await switchChain(walletClient, { id: base.id });
+          return;
+        } catch {
+          toast.error("Please switch to Base chain");
+          return;
+        }
+      }
+    } else {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
+        try {
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
+          return;
+        } catch {
+          toast.error("Please switch to Lens chain");
+          return;
+        }
       }
     }
+
     let toastId = toast.loading("Purchasing credits...");
 
     try {
-      const _publicClient = publicClient("lens");
-      const requiredWgho = selectedOption.ghoRequired;
-
-      // If we have enough WGHO, just transfer it
-      if (wghoBalance && wghoBalance >= requiredWgho) {
-        try {
-          const tx = await walletClient.writeContract({
-            address: WGHO_CONTRACT_ADDRESS,
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [ADMIN_WALLET, requiredWgho],
-          });
-
-          await updateCredits(tx);
-          toast.success("Successfully purchased API credits!", { id: toastId });
-        } catch {
-          toast.error("Failed to purchase credits", { id: toastId });
-        }
-      } else {
-        // We need to wrap some GHO first
-        const additionalWghoNeeded = requiredWgho - (wghoBalance || 0n);
-
-        if (ghoBalance && ghoBalance.value >= additionalWghoNeeded) {
+      if (isMiniApp) {
+        // Handle USDC payment on Base
+        if (usdcBalance && usdcBalance >= selectedOption.usdcRequired) {
           try {
-            // Wrap the required amount of GHO
-            const wrapTx = await walletClient.writeContract({
-              address: WGHO_CONTRACT_ADDRESS,
-              abi: WGHO_ABI,
-              functionName: "deposit",
-              args: [],
-              value: additionalWghoNeeded,
+            const tx = await walletClient.writeContract({
+              address: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "transfer",
+              args: [ADMIN_WALLET, selectedOption.usdcRequired],
             });
 
-            const wrapReceipt = await _publicClient.waitForTransactionReceipt({ hash: wrapTx });
-            if (wrapReceipt.status !== "success") {
-              throw new Error("Failed to wrap GHO");
-            }
+            await updateCredits(tx);
+            toast.success("Successfully purchased API credits!", { id: toastId });
+          } catch {
+            toast.error("Failed to purchase credits", { id: toastId });
+          }
+        } else {
+          toast.error("Insufficient USDC balance", { id: toastId });
+        }
+      } else {
+        // Handle GHO payment on Lens
+        const _publicClient = publicClient("lens");
+        const requiredWgho = selectedOption.ghoRequired;
 
-            // Now transfer the total amount
-            const transferTx = await walletClient.writeContract({
+        if (wghoBalance && wghoBalance >= requiredWgho) {
+          try {
+            const tx = await walletClient.writeContract({
               address: WGHO_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
               args: [ADMIN_WALLET, requiredWgho],
             });
 
-            await updateCredits(transferTx);
+            await updateCredits(tx);
             toast.success("Successfully purchased API credits!", { id: toastId });
           } catch {
             toast.error("Failed to purchase credits", { id: toastId });
           }
         } else {
-          toast.error("Insufficient GHO balance", { id: toastId });
+          const additionalWghoNeeded = requiredWgho - (wghoBalance || 0n);
+
+          if (ghoBalance && ghoBalance.value >= additionalWghoNeeded) {
+            try {
+              const wrapTx = await walletClient.writeContract({
+                address: WGHO_CONTRACT_ADDRESS,
+                abi: WGHO_ABI,
+                functionName: "deposit",
+                args: [],
+                value: additionalWghoNeeded,
+              });
+
+              const wrapReceipt = await _publicClient.waitForTransactionReceipt({ hash: wrapTx });
+              if (wrapReceipt.status !== "success") {
+                throw new Error("Failed to wrap GHO");
+              }
+
+              const transferTx = await walletClient.writeContract({
+                address: WGHO_CONTRACT_ADDRESS,
+                abi: erc20Abi,
+                functionName: "transfer",
+                args: [ADMIN_WALLET, requiredWgho],
+              });
+
+              await updateCredits(transferTx);
+              toast.success("Successfully purchased API credits!", { id: toastId });
+            } catch {
+              toast.error("Failed to purchase credits", { id: toastId });
+            }
+          } else {
+            toast.error("Insufficient GHO balance", { id: toastId });
+          }
         }
       }
     } catch (error) {
@@ -162,6 +219,7 @@ export const ApiCreditsModal = () => {
         },
         body: JSON.stringify({
           txHash,
+          chain: isMiniApp ? "base" : "lens",
         }),
       });
 
@@ -199,8 +257,8 @@ export const ApiCreditsModal = () => {
           <div className="text-xl font-bold">{creditBalance?.creditsRemaining || 0} credits</div>
         </div>
         <div className="space-y-1 text-right">
-          <div className="text-sm text-gray-400">Available GHO</div>
-          <div className="font-semibold">{formattedGhoBalance} GHO</div>
+          <div className="text-sm text-gray-400">Available {isMiniApp ? "USDC" : "GHO"}</div>
+          <div className="font-semibold">{isMiniApp ? formattedUsdcBalance : formattedGhoBalance} {isMiniApp ? "USDC" : "GHO"}</div>
         </div>
       </div>
 
@@ -242,15 +300,15 @@ export const ApiCreditsModal = () => {
         variant="blue"
         className={clsx("w-full py-3 text-base font-semibold")}
         onClick={topUp}
-        disabled={!selectedOption || !hasSufficientGho}
+        disabled={!selectedOption || !hasSufficientFunds}
       >
         {!selectedOption
           ? "Select an amount"
-          : chain?.id !== LENS_CHAIN_ID
-          ? "Switch to Lens Chain"
-          : !hasSufficientGho
-          ? "Insufficient GHO"
-          : `Pay ${selectedOption.price} GHO`}
+          : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
+          ? `Switch to ${isMiniApp ? "Base" : "Lens"} Chain`
+          : !hasSufficientFunds
+          ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
+          : `Pay ${selectedOption.price} ${isMiniApp ? "USDC" : "GHO"}`}
       </Button>
       <Button
         variant={"primary"}
@@ -268,7 +326,7 @@ export const ApiCreditsModal = () => {
         onClose={() => {
           setBuyUSDCModalOpen(false);
         }}
-        chain={"lens"}
+        chain={isMiniApp ? "base" : "lens"}
       />
     </div>
   );

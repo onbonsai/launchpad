@@ -326,7 +326,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             </div>
           ))}
         </div>
-      ) : files.length > 0 && (
+      ) : files && files.length > 0 && (
         <div className="flex flex-col items-start rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest">
           {files.map((file: FileWithPreview, i: number) => (
             <div className="flex flex-row" key={`file-${i}`}>
@@ -350,7 +350,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         </div>
       )}
 
-      {files.length !== maxFiles && (
+      {files && files.length !== maxFiles && (
         <div data-testid="dropzone">
           <Dropzone
             accept={{ "image/": ["*"] }}

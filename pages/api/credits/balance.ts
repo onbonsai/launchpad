@@ -10,6 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const address = req.query.address as string;
+    const isMiniApp = req.query.isMiniApp === "true";
     if (!address) {
       return res.status(400).json({ error: "Wallet address is required" });
     }
@@ -34,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now,
-        creditsPurchased: 0,
+        creditsPurchased: isMiniApp ? 100 : 0,
         postUpdates: [],
       });
 
@@ -45,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
         lastResetTime: now.toISOString(),
-        creditsPurchased: 0,
+        creditsPurchased: isMiniApp ? 100 : 0,
         postUpdates: [],
       });
     }
