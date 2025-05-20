@@ -153,7 +153,9 @@ const nextConfig = {
       "nft-cdn.alchemy.com",
       "ipfs.4everland.io",
       "imagedelivery.net",
-      "wrpcd.net"
+      "wrpcd.net",
+      "raw.seadn.io",
+      "pink-splendid-urial-219.mypinata.cloud"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,
