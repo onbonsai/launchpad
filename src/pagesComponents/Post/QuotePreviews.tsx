@@ -1,7 +1,7 @@
 import { getProfileImage } from "@src/services/lens/utils";
 import Link from "next/link";
 import { SwitchHorizontalIcon } from "@heroicons/react/solid";
-import Image from "next/image";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 interface QuotePreviewsProps {
   version: number;
@@ -42,7 +42,7 @@ export const QuotePreviews = ({ quotes, originalPost, version, parentVersion }: 
       >
         <Link href={`/post/${post.slug}${parentVersion ? `?v=${parentVersion}` : ''}`}>
           <div className="flex items-center gap-2 mb-2">
-            <Image
+            <SafeImage
               src={getProfileImage(post.author)}
               alt={post.author.metadata.name || ""}
               className="w-8 h-8 rounded-full"

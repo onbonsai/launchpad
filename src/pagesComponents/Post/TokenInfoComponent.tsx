@@ -13,9 +13,9 @@ import { kFormatter } from '@src/utils/utils';
 import { brandFont } from '@src/fonts/fonts';
 import BuyUSDCWidget from '@pagesComponents/Club/BuyUSDCWidget';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { sdk } from '@farcaster/frame-sdk';
 import useIsMobile from '@src/hooks/useIsMobile';
+import { SafeImage } from '@src/components/SafeImage/SafeImage';
 
 const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
@@ -107,7 +107,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full h-[180px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
-          <Image
+          <SafeImage
             src={club.token.image}
             alt={club.token.name}
             className="w-full h-full object-cover"
@@ -121,7 +121,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
             <div className="w-full flex justify-between">
               <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
                 <div className='flex items-center gap-x-4 w-full'>
-                  <Image
+                  <SafeImage
                     src={club.token.image}
                     alt={club.token.name}
                     className="object-cover rounded-lg"

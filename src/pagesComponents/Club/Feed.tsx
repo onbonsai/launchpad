@@ -6,7 +6,6 @@ import {
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
-import Image from "next/image";
 
 import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -29,6 +28,7 @@ import { sendLike } from "@src/services/lens/getReactions";
 import { getProfileImage } from "@src/services/lens/utils";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { Button } from "@src/components/Button";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const isMounted = useIsMounted();
@@ -319,7 +319,7 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
             </div>
           )} */}
           <div className="flex items-center gap-x-6">
-            <Image src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" width={36} height={36} />
+            <SafeImage src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" width={36} height={36} />
             <div className="flex items-center space-x-4 flex-1">
               <div className="relative flex-1">
                 <input

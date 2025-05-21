@@ -1,6 +1,6 @@
 import { FC } from 'react';
-import Image from 'next/image';
 import { getProfileImage } from '@src/services/lens/utils';
+import { SafeImage } from '../SafeImage/SafeImage';
 
 interface FollowersYouKnowProps {
   followers: any[];
@@ -23,7 +23,7 @@ export const FollowersYouKnow: FC<FollowersYouKnowProps> = ({ followers, classNa
               key={index}
               className="relative rounded-full border-2 border-black overflow-hidden w-8 h-8"
             >
-              <Image
+              <SafeImage
                 src={getProfileImage(follower.follower) || '/default-avatar.png'}
                 alt={follower.follower.username?.localName || 'follower'}
                 width={32}

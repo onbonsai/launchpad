@@ -10,12 +10,12 @@ import { capitalizeFirstLetter, kFormatter } from "@src/utils/utils";
 import { brandFont } from "@src/fonts/fonts";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { erc20Abi } from "viem";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import WalletButton from "@src/components/Creators/WalletButton";
 import { sdk } from '@farcaster/frame-sdk'
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -136,7 +136,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full h-[126px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
-          <Image
+          <SafeImage
             src={tokenMetadata?.logo || "/unknown-logo.jpg"}
             alt={tokenMetadata?.name || "Token"}
             className="w-full h-full object-cover"
@@ -149,7 +149,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full flex justify-between">
               <div className="flex items-center gap-x-4 w-full">
-                <Image
+                <SafeImage
                   src={tokenMetadata?.logo || "/unknown-logo.jpg"}
                   alt={tokenMetadata?.name || "Token"}
                   className="object-cover rounded-lg"
@@ -172,7 +172,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
                   title="Chain"
                   subtitle={
                     <div className="flex gap-1 items-center">
-                      <Image
+                      <SafeImage
                         src={`/${token.chain}.png`}
                         alt={token.chain}
                         className="opacity-7 w-auto"

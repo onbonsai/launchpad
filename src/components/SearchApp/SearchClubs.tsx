@@ -7,6 +7,7 @@ import { ChangeEvent, Fragment, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
 import { brandFont } from "@src/fonts/fonts";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 import { useSearchClubs } from "@src/hooks/useMoneyClubs";
 import clsx from "clsx";
@@ -176,9 +177,9 @@ export const SearchClubs = () => {
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
                                       <div className="relative items-center pl-4">
-                                        <Image
+                                        <SafeImage
                                           src={getProfileImage(profile)}
-                                          alt={profile.metadata?.name}
+                                          alt={profile.metadata?.name || "profile image"}
                                           width={24}
                                           height={24}
                                           className="rounded-full"
@@ -217,9 +218,9 @@ export const SearchClubs = () => {
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
                                       <div className="relative items-center pl-4">
-                                        <Image
+                                        <SafeImage
                                           src={getProfileImage(post.author)}
-                                          alt={post.author?.metadata?.name}
+                                          alt={post.author?.metadata?.name || "author profile image"}
                                           width={24}
                                           height={24}
                                           className="rounded-full"
@@ -275,16 +276,16 @@ export const SearchClubs = () => {
                                   {({ selected }) => (
                                     <div className="flex flex-row w-full h-full items-center">
                                       <span className={`flex truncate ${selected ? "font-medium" : "font-normal"}`}>
-                                        <Image
+                                        <SafeImage
                                           src={`/${data.chain}.png`}
                                           alt={data.chain}
                                           width={24}
                                           height={24}
                                           className="mr-2"
                                         />
-                                        <Image
+                                        <SafeImage
                                           src={data.uri}
-                                          alt={data.token.name}
+                                          alt={data.token.name || "token image"}
                                           width={24}
                                           height={24}
                                           className="rounded-full mx-2 object-cover"

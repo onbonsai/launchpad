@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { FollowButton } from '@src/components/Profile/FollowButton';
 import { FollowersYouKnow } from "./FollowersYouKnow";
 import { Account } from "@lens-protocol/client";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 interface ProfileContainerProps {
   profile: Account;
@@ -50,7 +50,7 @@ export const ProfileContainer = ({
         <div className='px-4 flex flex-col justify-between items-start h-full'>
           <div className='w-full'>
             <div className="flex flex-col">
-              <Image
+              <SafeImage
                 src={profile.metadata?.picture || "/default.png"}
                 alt="pfp"
                 width={80}

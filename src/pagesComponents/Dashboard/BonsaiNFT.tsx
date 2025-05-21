@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { storjGatewayURL } from "@src/utils/storj";
-import Image from "next/image";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 interface BonsaiNFTProps {
   tree: any;
@@ -67,7 +67,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         {svgContent ? (
           <div dangerouslySetInnerHTML={{ __html: svgContent }} style={{ width: "100%", height: "100%" }} />
         ) : (
-          <Image src={rawUrl || ""} loading="lazy" className="object-cover" alt="bonsai" width={size} height={91} />
+          <SafeImage src={rawUrl || ""} loading="lazy" className="object-cover" alt="bonsai" width={size} height={91} />
         )}
       </a>
     </div>

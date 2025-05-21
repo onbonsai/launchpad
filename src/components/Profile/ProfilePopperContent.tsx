@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Subtitle, BodySemiBold } from "@src/styles/text";
 import { Account } from "@lens-protocol/client";
 import { FollowButton } from '@src/components/Profile/FollowButton';
@@ -7,6 +6,7 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { followProfile, unfollowProfile } from "@src/services/lens/follow";
 import toast from "react-hot-toast";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 interface ProfilePopperContentProps {
   profile: Account;
@@ -49,7 +49,7 @@ export const ProfilePopperContent = ({ profile, isProfileAdmin, followed, setFol
           <div className='w-full space-y-4'>
             <div className="flex justify-between items-center w-full">
               <div className="flex flex-col">
-                <Image
+                <SafeImage
                   src={profile.metadata?.picture || "/default.png"}
                   alt="pfp"
                   width={60}

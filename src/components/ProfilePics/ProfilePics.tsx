@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import Image from "next/image";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
   if (!profiles?.length) return null;
@@ -7,7 +7,7 @@ const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
   return (
     <div className="flex -space-x-2">
       {profiles.map((p: any, index: number) => (
-        <Image
+        <SafeImage
           key={index}
           className="inline-block h-10 w-10 rounded-full ring-2 ring-dark-grey"
           src={p.metadata?.picture}
