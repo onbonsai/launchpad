@@ -134,7 +134,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
-      <div className="relative w-full h-[126px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+      <div className="relative w-full h-[190px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
           <SafeImage
             src={tokenMetadata?.logo || "/unknown-logo.jpg"}
@@ -146,9 +146,10 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 
         <div className="relative z-10 p-2 pb-4 flex flex-col">
-          <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
-            <div className="w-full flex justify-between">
-              <div className="flex items-center gap-x-4 w-full">
+          <div className="flex flex-col gap-2 justify-between items-center w-full">
+            {/* Token Info Row */}
+            <div className="w-full">
+              <div className='flex items-center gap-x-4 w-full'>
                 <SafeImage
                   src={tokenMetadata?.logo || "/unknown-logo.jpg"}
                   alt={tokenMetadata?.name || "Token"}
@@ -161,40 +162,36 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
                   <BodySemiBold className="text-white/60 text-sm">{tokenMetadata?.name}</BodySemiBold>
                 </div>
               </div>
-              <div className="sm:hidden">
-                <ActionCard onClick={buyOnClick} />
-              </div>
             </div>
 
-            <div className="flex flex-row items-center mr-2">
-              <div className="flex flex-row items-center">
-                <InfoCard
-                  title="Chain"
-                  subtitle={
-                    <div className="flex gap-1 items-center">
-                      <SafeImage
-                        src={`/${token.chain}.png`}
-                        alt={token.chain}
-                        className="opacity-7 w-auto"
-                        height={12}
-                        width={12}
-                      />
-                      <Subtitle className="text-white">{capitalizeFirstLetter(token.chain)}</Subtitle>
-                    </div>
-                  }
-                  roundedLeft
-                  className="w-28"
-                />
-                <InfoCard
-                  title="CA"
-                  subtitle={
-                    <div className="flex gap-1 items-center">
-                      <WalletButton wallet={token.address!} />
-                    </div>
-                  }
-                  className="w-36"
-                />
-              </div>
+            {/* Info Cards Row */}
+            <div className="flex flex-row items-center w-full">
+              <InfoCard
+                title="Chain"
+                subtitle={
+                  <div className="flex gap-1 items-center">
+                    <SafeImage
+                      src={`/${token.chain}.png`}
+                      alt={token.chain}
+                      className="opacity-7 w-auto"
+                      height={12}
+                      width={12}
+                    />
+                    <Subtitle className="text-white">{capitalizeFirstLetter(token.chain)}</Subtitle>
+                  </div>
+                }
+                roundedLeft
+                className="flex-1"
+              />
+              <InfoCard
+                title="CA"
+                subtitle={
+                  <div className="flex gap-1 items-center">
+                    <WalletButton wallet={token.address!} onlyFirst length={6} />
+                  </div>
+                }
+                className="flex-1"
+              />
               <InfoCard
                 title="Balance"
                 subtitle={
@@ -205,10 +202,13 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
                   </Subtitle>
                 }
                 roundedRight
+                className="flex-1"
               />
-              <div className="hidden sm:block">
-                <ActionCard onClick={buyOnClick} />
-              </div>
+            </div>
+
+            {/* Action Card Row */}
+            <div className="w-full mt-1">
+              <ActionCard onClick={buyOnClick} />
             </div>
           </div>
         </div>

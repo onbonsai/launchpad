@@ -7,9 +7,11 @@ import Image from 'next/image';
 interface WalletButtonProps {
   wallet: string;
   chain?: string;
+  length?: number;
+  onlyFirst?: boolean;
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain }) => {
+const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain, length, onlyFirst }) => {
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard
@@ -23,7 +25,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain }) => {
   }, [wallet]);
 
   const formattedAddress = useMemo(() => {
-    return shortAddress(wallet);
+    return shortAddress(wallet, length, onlyFirst);
   }, [wallet]);
 
   return (

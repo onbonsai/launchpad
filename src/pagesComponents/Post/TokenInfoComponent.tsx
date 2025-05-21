@@ -136,7 +136,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
               </Link>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2">
+            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 md:gap-0">
               <div className="flex flex-row items-center w-full">
                 <InfoCard
                   title='Market Cap'
@@ -156,7 +156,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                   className="flex-1"
                 />
               </div>
-              <div className={isMobile ? 'w-full mt-2' : 'hidden sm:block'}>
+              <div className={isMobile ? 'w-full mt-1' : 'hidden sm:block'}>
                 <ActionCard onClick={(e) => setShowBuyModal(true)} />
               </div>
             </div>

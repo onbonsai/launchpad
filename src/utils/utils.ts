@@ -31,7 +31,8 @@ export const roundedToFixed = (input: number, digits = 4): string => {
   });
 };
 
-export function shortAddress(address: string, num = 5) {
+export function shortAddress(address: string, num = 5, onlyFirst = false) {
+  if (onlyFirst) return address.slice(0, num);
   return address.slice(0, num) + " ... " + address.slice(address.length - (num - 1));
 }
 
@@ -530,7 +531,7 @@ export const formatNextUpdate = (timestamp: number): string => {
 
 export const cacheImageToStorj = async (imageData: string | Blob, id: string, bucket: string) => {
   let base64Data: string;
-  
+
   if (imageData instanceof Blob) {
     // Convert Blob to base64
     const arrayBuffer = await imageData.arrayBuffer();

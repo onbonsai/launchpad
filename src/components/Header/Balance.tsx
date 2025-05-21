@@ -396,7 +396,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               </div>
             </div>
-            <div className="mt-2 border-t border-zinc-800">
+            <div className="mt-2 border-t border-zinc-800 flex flex-col w-full">
               <Tooltip message="Add funds to your wallet" direction="bottom" classNames="z-100">
                 <Button
                   variant="blue"
@@ -408,7 +408,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </Button>
               </Tooltip>
               <Tooltip message="Bridge assets between networks" direction="bottom" classNames="z-100">
-                <Link href="/studio/stake?bridge=1">
+                <Link href="/studio/stake?bridge=1" className="w-full">
                   <Button
                     variant="primary"
                     size="md"
