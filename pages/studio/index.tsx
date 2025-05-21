@@ -82,7 +82,7 @@ const StudioCreatePage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
+      <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
           <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
             <div className="md:w-64 flex-shrink-0">

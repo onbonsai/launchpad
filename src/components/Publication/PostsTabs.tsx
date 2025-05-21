@@ -15,7 +15,7 @@ interface PostsTabsProps {
 
 export const PostsTabs: FC<PostsTabsProps> = ({ activeTab, onTabChange, isAuthenticated }) => {
   return (
-    <div className="flex space-x-8 md:mb-2">
+    <div className="flex space-x-8 px-4 md:mb-2">
       <button
         disabled={!isAuthenticated}
         onClick={() => onTabChange(PostTabType.FOR_YOU)}

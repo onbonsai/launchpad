@@ -486,58 +486,59 @@ const PublicationContainer = ({
           hideCommentButton
         />
       )}
-      {!isMobile && (
-        <div className="absolute top-4 right-4 z-20 flex">
-          <div className="flex">
-            <Tooltip message={hasCollected ? "Already collected this post" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
-              <div
-                className={clsx(
-                  "min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
-                  "rounded-l-xl",
-                  !media?.agentId ? "rounded-r-xl" : "",
-                  hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
-                )}
-                onClick={(e) => {
-                  if (!hasCollected) {
-                    onCollectButtonClick(e);
-                  }
-                }}
-              >
-                {!hasCollected ? (
-                  <>
-                    <BookmarkAddOutlined className="text-base" />
-                  </>
-                ) : <BookmarkOutlined className="text-base" />}
-              </div>
-            </Tooltip>
-            {media?.agentId && (
-              <>
-                <Tooltip message="Remix to create your own version" direction="bottom">
-                  <div
-                    className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
-                    onClick={() => {
-                      setIsChatOpen(true);
-                      setIsRemixing(true);
-                    }}
-                  >
-                    <SwapCalls className="text-base" />
-                  </div>
-                </Tooltip>
-                <Tooltip message="Chat" direction="bottom">
-                  <div
-                    className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
-                    onClick={() => {
-                      setIsChatOpen(true);
-                    }}
-                  >
-                    <ChatIcon className="w-5 h-5" />
-                  </div>
-                </Tooltip>
-              </>
-            )}
-          </div>
+      <div className={clsx(
+        "absolute z-20 flex",
+        isMobile ? "top-4 right-4" : "top-4 right-4"
+      )}>
+        <div className="flex">
+          <Tooltip disabled={isMobile} message={hasCollected ? "Already collected this post" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
+            <div
+              className={clsx(
+                "md:min-w-[88px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                isMobile ? "rounded-xl" : "rounded-l-xl",
+                !media?.agentId && !isMobile ? "rounded-r-xl" : "",
+                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
+              )}
+              onClick={(e) => {
+                if (!hasCollected) {
+                  onCollectButtonClick(e);
+                }
+              }}
+            >
+              {!hasCollected ? (
+                <>
+                  <BookmarkAddOutlined className="h-4 w-4 md:h-5 md:w-5" />
+                </>
+              ) : <BookmarkOutlined className="h-4 w-4 md:h-5 md:w-5" />}
+            </div>
+          </Tooltip>
+          {!isMobile && media?.agentId && (
+            <>
+              <Tooltip disabled={isMobile} message="Remix to create your own version" direction="bottom">
+                <div
+                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
+                  onClick={() => {
+                    setIsChatOpen(true);
+                    setIsRemixing(true);
+                  }}
+                >
+                  <SwapCalls className="text-base" />
+                </div>
+              </Tooltip>
+              <Tooltip disabled={isMobile} message="Chat" direction="bottom">
+                <div
+                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
+                  onClick={() => {
+                    setIsChatOpen(true);
+                  }}
+                >
+                  <ChatIcon className="w-5 h-5" />
+                </div>
+              </Tooltip>
+            </>
+          )}
         </div>
-      )}
+      </div>
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (

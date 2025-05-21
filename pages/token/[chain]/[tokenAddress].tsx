@@ -256,7 +256,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   return (
     <div className="bg-background text-secondary min-h-[90vh] pt-4  ">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] px-2 md:px-4 sm:px-6 lg:px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-12 max-w-full">
               {/* Chart */}
