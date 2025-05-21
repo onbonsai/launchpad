@@ -16,7 +16,7 @@ export const FairLaunchModeComponent = ({ club, totalSupply }) => {
       <div className="col-span-3 flex justify-center w-full md:w-auto">
         <div className="flex gap-1 mt-5 w-full md:w-auto">
           {/* Bonding Curve Box */}
-          <div className="bg-transparent w-full md:min-w-[360px] h-[84px] rounded-[30px] p-[3px] relative animate-pulse">
+          <div className="bg-transparent w-full md:min-w-[360px] h-[84px] rounded-[30px] p-[3px] relative animate-pulse-green">
             <div
               className="rounded-[30px] absolute top-[3px] bottom-[3px] left-[3px]"
               style={{

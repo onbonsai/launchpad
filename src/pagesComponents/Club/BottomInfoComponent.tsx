@@ -41,11 +41,11 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   }, [club, totalSupply]);
 
   return (
-    <div className="fixed bottom-8 md:bottom-0 py-4 left-4 right-4 md:right-auto md:left-1/4 z-50">
+    <div className="fixed bottom-14 md:bottom-0 py-4 left-4 right-4 md:right-auto md:left-1/4 z-50">
       <div className="col-span-3 flex justify-center w-full md:w-auto">
         <div className="flex gap-1 mt-5 w-full md:w-auto">
           {/* Bonding Curve Box */}
-          <div className="bg-black/80 w-full md:min-w-[240px] h-[56px] rounded-[20px] p-[2px] relative">
+          <div className="bg-black w-full md:min-w-[240px] h-[56px] rounded-[20px] p-[2px] relative">
             <div
               className="rounded-[20px] absolute top-[2px] bottom-[2px] left-[2px]"
               style={{
@@ -63,7 +63,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
           </div>
 
           {/* Holding Box */}
-          <div className="bg-black/80 w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
+          <div className="bg-black w-full md:min-w-[240px] h-[56px] rounded-[20px] py-2 px-3 flex flex-row justify-between items-center">
             <div className="flex flex-col">
               <Subtitle className="text-white/60">Holding</Subtitle>
               <BodySemiBold className="text-white">{balance ? balance : "-"}</BodySemiBold>
