@@ -95,7 +95,7 @@ const IndexPage: NextPage = () => {
               <div className="lg:col-span-10 max-w-full">
                 <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading)
-                  ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+                  ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
                     activeTab={activeTab}
                     posts={activeTab === PostTabType.COLLECTED

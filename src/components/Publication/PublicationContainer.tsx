@@ -489,11 +489,12 @@ const PublicationContainer = ({
       {!isMobile && (
         <div className="absolute top-4 right-4 z-20 flex">
           <div className="flex">
-            <Tooltip message={hasCollected ? "Already collected this post" : "Collect the post"} direction="bottom">
+            <Tooltip message={hasCollected ? "Already collected this post" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
               <div
                 className={clsx(
                   "min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
                   "rounded-l-xl",
+                  !media?.agentId ? "rounded-r-xl" : "",
                   hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
                 )}
                 onClick={(e) => {

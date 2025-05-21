@@ -148,13 +148,12 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   };
 
   return (
-    <div className="bg-background text-secondary min-h-full flex flex-col flex-grow min-w-screen">
+    <div className="bg-background text-secondary min-h-full flex flex-col flex-grow">
       <main className="lg:mx-auto max-w-full md:max-w-[2160px] px-4 sm:px-6 lg:px-8 min-h-full flex flex-col flex-grow">
         <MobileViewSelector activeView={mobileView} setActiveView={setMobileView} />
-        <section aria-labelledby="dashboard-heading" className="py-6 max-w-full h-full flex flex-col flex-grow">
-          <div className="grid grid-cols-1 gap-x-2 gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
-            <div className={`col-span-full lg:col-span-3 h-full ${mobileView === 'profile' ? 'block' : 'hidden lg:block'
-              }`}>
+        <section aria-labelledby="dashboard-heading" className="py-2 lg:py-6 max-w-full h-full flex flex-col flex-grow">
+          <div className="grid grid-cols-1 gap-x-2 gap-y-4 lg:gap-y-10 lg:grid-cols-12 max-w-full h-full flex-grow">
+            <div className={`col-span-full lg:col-span-3 h-full ${mobileView === 'profile' ? 'block' : 'hidden lg:block'}`}>
               <div className={`z-20 flex bottom-0 top-0 h-full md:top-0 w-full flex-col transition-transform bg-black md:bg-cardBackground rounded-3xl relative min-h-full flex-grow`}>
                 <ProfileContainer
                   profile={isAuthenticated ? profileData as Account : profile}
@@ -171,35 +170,23 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
               </div>
             </div>
 
-            <div className="lg:col-span-6">
-              {/* <CreatorsTabs
-                  type={type}
-                  setOpenTab={setOpenTab}
-                  openTab={openTab}
-                  rewardsEnabled={rewardsEnabled}
-                  hasTrades={!!moneyClub?.trades?.length}
-                /> */}
-
-              <div className="flex flex-col flex-grow min-h-0 w-full">
-                <div className={`lg:col-span-3 w-full min-w-[800px] ${mobileView === 'feed' ? 'block' : 'hidden lg:block'}`}>
-                  <div className="mb-4">
-                    <Tabs openTab={openTab} setOpenTab={setOpenTab} />
-                  </div>
+            <div className="lg:col-span-6 h-full">
+              <div className="flex flex-col flex-grow min-h-0 w-full h-full">
+                <div className={`w-full h-full ${mobileView === 'feed' ? 'block' : 'hidden lg:block'}`}>
                   <PublicationFeed
                     openTab={openTab}
                     creatorProfile={profile}
                     isProfileAdmin={isProfileAdmin}
                     returnToPage={`u/${profile.handle?.localName || profile.profileHandle}`}
+                    setOpenTab={setOpenTab}
                   />
                 </div>
               </div>
             </div>
 
-            <div className={`lg:col-span-3 h-full ${mobileView === 'holdings' ? 'block' : 'hidden lg:block'
-              }`}>
+            <div className={`lg:col-span-3 h-full ${mobileView === 'holdings' ? 'block' : 'hidden lg:block'}`}>
               <ProfileHoldings isProfileAdmin={isProfileAdmin} address={profileAddress(profile, creatorInfo?.address)} bonsaiAmount={bonsaiBalance ?? BigInt(0)} nfts={bonsaiNFTs ?? []} />
             </div>
-
           </div>
         </section>
       </main>

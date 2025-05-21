@@ -7,7 +7,7 @@ interface ViewSelectorProps {
 
 export const MobileViewSelector = ({ activeView, setActiveView }: ViewSelectorProps) => {
   return (
-    <div className="flex w-full mt-4 gap-2 mb-4 lg:hidden bg-card rounded-lg">
+    <div className="flex w-full mt-4 gap-2 mb-2 lg:hidden bg-card rounded-lg">
       <button
         onClick={() => setActiveView('profile')}
         className={`flex-1 py-2 px-4 rounded-lg ${activeView === 'profile' ? 'bg-white text-true-black' : 'bg-transparent'
