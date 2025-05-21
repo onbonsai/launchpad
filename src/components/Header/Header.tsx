@@ -21,6 +21,7 @@ import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
 import { useModal } from "connectkit";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
+import CoinPile from "../Icons/CoinPile";
 
 const headerLinks = [
   {
@@ -84,9 +85,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
           </svg>
         </Link>
         <Link href="/tokens" className="flex flex-col items-center">
-          <svg className={`w-6 h-6 ${isTokensActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <CoinPile isTokensActive={isTokensActive} />
         </Link>
         <Link href="/studio" className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
           <div className="bg-[#111] rounded-lg p-1.5">
