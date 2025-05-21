@@ -957,7 +957,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
 export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 30;
   const skip = page * limit;
-  const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
+  const query = sortedBy.endsWith("Cap") ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
   const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {

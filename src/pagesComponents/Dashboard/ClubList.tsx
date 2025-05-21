@@ -34,10 +34,8 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       ? _clubs
       : _clubs.filter(({ club }) => !club.liquidityReleasedAt);
 
-    const _sortedBy = sortedBy === "club.marketCap" ? "sortingMarketCap" : sortedBy;
-
     const orderedClubs = orderBy(filteredByCompletion, [club => {
-      const value = get(club, _sortedBy);
+      const value = get(club, sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
 
@@ -108,8 +106,8 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
                 onChange={(e) => setSortedBy(e.target.value)}
                 style={{ background: "none" }}
               >
-                <option value="club.marketCap">Market Cap</option>
                 <option value="club.createdAt">Age</option>
+                <option value="sortingMarketCap">Market Cap</option>
                 {/* <option value="publication.stats.comments">Replies</option> */}
               </select>
               <DropDown />

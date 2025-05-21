@@ -101,16 +101,16 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
           sortingMarketCap: BigInt(BigInt(club.marketCap) / BigInt(10 ** 12) || "0")
         }));
 
-        const _combinedClubs = [...baseClubs, ...lensClubs];
+        const _combinedClubs = [...lensClubs, ...baseClubs];
 
         // Combine and sort the clubs according to sortedBy parameter
-        const combinedClubs = sortedBy === "club.marketCap" 
+        const combinedClubs = sortedBy === "sortingMarketCap" 
           ? _combinedClubs.sort((a, b) => {
               const marketCapA = a.sortingMarketCap;
               const marketCapB = b.sortingMarketCap;
               return marketCapB > marketCapA ? 1 : -1;
             })
-          : sortedBy === "stats.collects"
+          : sortedBy === "publication.stats.collects"
           ? _combinedClubs.sort((a, b) => {
               const collectsA = a.publication?.stats?.collects || 0;
               const collectsB = b.publication?.stats?.collects || 0;

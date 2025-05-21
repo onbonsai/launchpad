@@ -14,7 +14,7 @@ const ClubsContext = createContext<ClubsContextProps | undefined>(undefined);
 export const ClubsProvider = ({ children }: { children: ReactNode }) => {
     const [filteredClubs, setFilteredClubs] = useState<any[]>([]);
     const [filterBy, setFilterBy] = useState<string>("");
-    const [sortedBy, setSortedBy] = useState<string>("stats.collects");
+    const [sortedBy, setSortedBy] = useState<string>("publication.stats.collects");
 
     return (
         <ClubsContext.Provider value={{ filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy }}>
