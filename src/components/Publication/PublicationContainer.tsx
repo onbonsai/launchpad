@@ -33,6 +33,7 @@ import { useTopUpModal } from "@src/context/TopUpContext";
 import { ChatIcon } from "@heroicons/react/outline";
 import useIsMobile from "@src/hooks/useIsMobile";
 import clsx from "clsx";
+import { Tooltip } from "@src/components/Tooltip";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -488,46 +489,49 @@ const PublicationContainer = ({
       {!isMobile && (
         <div className="absolute top-4 right-4 z-20 flex">
           <div className="flex">
-            <div
-              className={clsx(
-                "min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
-                "rounded-l-xl",
-                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
-              )}
-              onClick={(e) => {
-                if (!hasCollected) {
-                  onCollectButtonClick(e);
-                }
-              }}
-            >
-              {!hasCollected ? (
-                <>
-                  <BookmarkAddOutlined className="text-base" />
-                  <span className="hidden sm:block text-base font-bold">Collect</span>
-                </>
-              ) : <BookmarkOutlined className="text-base" />}
-            </div>
+            <Tooltip message={hasCollected ? "Already collected this post" : "Collect the post"} direction="bottom">
+              <div
+                className={clsx(
+                  "min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                  "rounded-l-xl",
+                  hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
+                )}
+                onClick={(e) => {
+                  if (!hasCollected) {
+                    onCollectButtonClick(e);
+                  }
+                }}
+              >
+                {!hasCollected ? (
+                  <>
+                    <BookmarkAddOutlined className="text-base" />
+                  </>
+                ) : <BookmarkOutlined className="text-base" />}
+              </div>
+            </Tooltip>
             {media?.agentId && (
               <>
-                <div
-                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
-                  onClick={() => {
-                    setIsChatOpen(true);
-                    setIsRemixing(true);
-                  }}
-                >
-                  <SwapCalls className="text-base" />
-                  <span className="hidden sm:block text-base font-bold">Remix</span>
-                </div>
-                <div
-                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
-                  onClick={() => {
-                    setIsChatOpen(true);
-                  }}
-                >
-                  <ChatIcon className="w-5 h-5" />
-                  <span className="hidden sm:block text-base font-bold">Chat</span>
-                </div>
+                <Tooltip message="Remix to create your own version" direction="bottom">
+                  <div
+                    className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
+                    onClick={() => {
+                      setIsChatOpen(true);
+                      setIsRemixing(true);
+                    }}
+                  >
+                    <SwapCalls className="text-base" />
+                  </div>
+                </Tooltip>
+                <Tooltip message="Chat" direction="bottom">
+                  <div
+                    className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
+                    onClick={() => {
+                      setIsChatOpen(true);
+                    }}
+                  >
+                    <ChatIcon className="w-5 h-5" />
+                  </div>
+                </Tooltip>
               </>
             )}
           </div>

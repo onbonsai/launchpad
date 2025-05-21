@@ -159,11 +159,10 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
   }, [inView, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   const handleTooltipToggle = (show: boolean) => {
+    if (!authenticatedProfileId) return;
     setShowTooltip(show);
     onShowChange?.(show);
   };
-
-  if (!authenticatedProfileId || (!isLoading && notifs.length === 0)) return null;
 
   const isMobileBottomNav = isMobile && !openMobileMenu;
 
@@ -235,6 +234,11 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
             </div>
             {isLoading && (
               <div className="flex justify-center p-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+            )}
+            {!isLoading && groupedNotifications.length === 0 && (
+              <div className="flex justify-center p-4 text-white/50 text-sm">
+                Nothing here.
+              </div>
             )}
             {groupedNotifications.map((notification, index) => (
               <NotificationItem

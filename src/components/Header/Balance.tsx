@@ -22,10 +22,12 @@ import toast from "react-hot-toast";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import Link from "next/link";
 import Image from "next/image";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
   const { address, isConnected, chainId } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
@@ -123,14 +125,21 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
     };
   }, [usdcBalance, wghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
 
-  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
-    setAnchorEl(event.currentTarget);
-    setShowDropdown(true);
+  const handleInteraction = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile) {
+      setAnchorEl(event.currentTarget);
+      setShowDropdown(!showDropdown);
+    } else {
+      setAnchorEl(event.currentTarget);
+      setShowDropdown(true);
+    }
   };
 
-  const handleMouseLeave = () => {
-    setShowDropdown(false);
-    setAnchorEl(null);
+  const handleLeave = () => {
+    if (!isMobile) {
+      setShowDropdown(false);
+      setAnchorEl(null);
+    }
   };
 
   const truncateAddress = (address: string) => {
@@ -195,8 +204,9 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
     <div className={clsx("relative inline-block", brandFont.className)}>
       <div
         className={`bg-dark-grey text-white text-base font-medium rounded-lg md:px-2 py-2 min-h-fit h-10 text-[16px] leading-5 ${!!openMobileMenu ? 'w-full' : 'w-40'} cursor-pointer relative`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onClick={handleInteraction}
+        onMouseEnter={!isMobile ? handleInteraction : undefined}
+        onMouseLeave={!isMobile ? handleLeave : undefined}
       >
         <div className="flex flex-row justify-center items-center gap-x-2">
           <div className="relative items-center ml-6">
@@ -214,19 +224,21 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
           style={{ zIndex: 1400 }}
         >
           <div
-            className={`mt-2 bg-dark-grey text-white p-4 rounded-lg shadow-lg ${!!openMobileMenu ? 'min-w-[420px]' : 'min-w-[320px]'} font-sf-pro-text`}
-            onMouseEnter={() => setShowDropdown(true)}
-            onMouseLeave={handleMouseLeave}
+            className={`mt-2 bg-dark-grey text-white p-3 md:p-4 rounded-lg shadow-lg ${
+              isMobile ? 'w-[calc(100vw-32px)]' : openMobileMenu ? 'min-w-[420px]' : 'min-w-[320px]'
+            } font-sf-pro-text`}
+            onMouseEnter={!isMobile ? () => setShowDropdown(true) : undefined}
+            onMouseLeave={!isMobile ? handleLeave : undefined}
           >
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Lens Account */}
               {isAuthenticated && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 md:gap-4">
                         <Tooltip message="Lens Account address - used for collecting posts" direction="top" classNames="z-100">
-                          <h3 className="font-medium text-white/80">Lens Account</h3>
+                          <h3 className="font-medium text-white/80 text-sm md:text-base">Lens Account</h3>
                         </Tooltip>
                         <span className="text-xs font-mono text-zinc-500">{truncateAddress(authenticatedProfile?.address || '')}</span>
                         <div className="relative">
@@ -260,34 +272,26 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="p-3 rounded-md flex items-center justify-between">
+                    <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
                         <span className="text-sm text-zinc-400">BONSAI</span>
                       </div>
-                      <p className="text-lg font-bold">{bonsaiLensFormatted}</p>
+                      <p className="text-base md:text-lg font-bold">{bonsaiLensFormatted}</p>
                     </div>
-                    {/* <div className="bg-zinc-800 p-3 rounded-md flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
-                        <span className="text-sm text-zinc-400">GHO</span>
-                      </div>
-                      <p className="text-lg font-bold">{ghoLensFormatted}</p>
-                    </div> */}
                   </div>
                 </div>
               )}
 
-              <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+              <div className="my-3 md:my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
 
               {/* Connected Wallet */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-4">
-
+                    <div className="flex items-center gap-2 md:gap-4">
                       <Tooltip message="Connected wallet address - used for trading tokens" direction="top" classNames="z-100">
-                        <h3 className="font-medium text-white/80">Connected Wallet</h3>
+                        <h3 className="font-medium text-white/80 text-sm md:text-base">Connected Wallet</h3>
                       </Tooltip>
                       <span className="text-xs font-mono text-zinc-500">{truncateAddress(address || '')}</span>
                       <div className="relative">
@@ -321,30 +325,32 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="p-3 rounded-md flex items-center justify-between">
+                  <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
                       <span className="text-sm text-zinc-400">BONSAI</span>
                     </div>
-                    <p className="text-lg font-bold">{bonsaiFormatted}</p>
+                    <p className="text-base md:text-lg font-bold">{bonsaiFormatted}</p>
                   </div>
-                  <div className="p-3 rounded-md relative">
+                  <div className="p-2 md:p-3 rounded-md relative">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
                         <span className="text-sm text-zinc-400">GHO</span>
                       </div>
                       <div className="relative group">
-                        <p className={`text-lg font-bold opacity-100 group-hover:opacity-0 transition-opacity`}>{ghoFormatted}</p>
+                        <p className={`text-base md:text-lg font-bold opacity-100 group-hover:opacity-0 transition-opacity`}>{ghoFormatted}</p>
                         <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <a
-                            target="_blank"
+                          <Tooltip message="Bridge GHO to Lens Protocol" direction="bottom" classNames="z-100">
+                            <a
+                              target="_blank"
                               href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-                              className="text-md font-medium text-brand-highlight hover:opacity-80"
+                              className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80"
                             >
                               Bridge
                             </a>
-                          </div>
+                          </Tooltip>
+                        </div>
                       </div>
                     </div>
                     {/* Thread line container */}
@@ -356,56 +362,62 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                       <div className={`flex items-center justify-between ${wghoBalance && wghoBalance > 0n ? 'group' : ''}`}>
                         <div className="flex items-center gap-2">
                           <Image src="/gho.webp" alt="gho" className="rounded-full opacity-70" width={16} height={16}/>
-                          <span className="text-zinc-500">Wrapped GHO</span>
+                          <span className="text-zinc-500 text-sm">Wrapped GHO</span>
                         </div>
                         <div className="relative">
                           {wghoBalance && wghoBalance > 0n ? (
                             <>
-                              <p className="font-medium text-zinc-400 group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
+                              <p className="font-medium text-zinc-400 text-sm md:text-base group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
                               <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <p
-                                  onClick={handleUnwrapGHO}
-                                  className="text-md font-medium text-brand-highlight hover:opacity-80 cursor-pointer"
-                                >
-                                  {isUnwrapping ? "Unwrapping..." : "Unwrap"}
-                                </p>
+                                <Tooltip message="Convert WGHO back to GHO" direction="bottom" classNames="z-100">
+                                  <p
+                                    onClick={handleUnwrapGHO}
+                                    className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80 cursor-pointer"
+                                  >
+                                    {isUnwrapping ? "Unwrapping..." : "Unwrap"}
+                                  </p>
+                                </Tooltip>
                               </div>
                             </>
                           ) : (
-                            <p className="font-medium text-zinc-400">{wghoFormatted}</p>
+                            <p className="font-medium text-zinc-400 text-sm md:text-base">{wghoFormatted}</p>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="p-3 rounded-md flex items-center justify-between">
+                  <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Image src="/usdc.png" alt="usdc" className="rounded-full" width={20} height={20}/>
                       <span className="text-sm text-zinc-400">USDC (Base)</span>
                     </div>
-                    <p className="text-lg font-bold">{usdcFormatted}</p>
+                    <p className="text-base md:text-lg font-bold">{usdcFormatted}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="mt-2 border-t border-zinc-800">
-              <Button
-                variant="blue"
-                size="md"
-                className="w-full flex items-center justify-center gap-2"
-                onClick={() => openTopUpModal()}
-              >
-                Top Up Wallet
-              </Button>
-              <Link href="/studio/stake?bridge=1">
+              <Tooltip message="Add funds to your wallet" direction="bottom" classNames="z-100">
                 <Button
-                  variant="primary"
+                  variant="blue"
                   size="md"
-                  className="w-full flex items-center justify-center gap-2 mt-2"
+                  className="w-full flex items-center justify-center gap-2 text-sm md:text-base"
+                  onClick={() => openTopUpModal()}
                 >
-                  Bridge
+                  Top Up Wallet
                 </Button>
-              </Link>
+              </Tooltip>
+              <Tooltip message="Bridge assets between networks" direction="bottom" classNames="z-100">
+                <Link href="/studio/stake?bridge=1">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="w-full flex items-center justify-center gap-2 mt-2 text-sm md:text-base"
+                  >
+                    Bridge
+                  </Button>
+                </Link>
+              </Tooltip>
             </div>
           </div>
         </Popper>

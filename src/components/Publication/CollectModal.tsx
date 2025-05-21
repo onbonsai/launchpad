@@ -99,7 +99,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-md">
-                Collect the post to participate & remix
+                Collect the post to participate
               </Subtitle>
             </div>
           )}

@@ -132,7 +132,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   return (
     <div className={clsx("flex flex-col w-full mt-10 px-4", brandFont.className)}>
       <h2 className="text-3xl text-center font-bold">
-        {`${isMiniApp && (!profiles || !profiles.length) ? 'Create your Bonsai Replika' : 'Your profiles'}`}
+        {`${isMiniApp && (!profiles || !profiles.length) ? 'Create your Replika' : 'Your profiles'}`}
       </h2>
       {isMiniApp && (!profiles || !profiles.length) && (
         <>
@@ -144,9 +144,9 @@ const LoginWithLensModal = ({ closeModal }) => {
         {!profiles || !profiles.length ? (
           isMiniApp && context ? (
             <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg">
-              <div className="grid grid-cols-5 items-center gap-x-4">
+              <div className="grid grid-cols-5 items-center gap-x-2 md:gap-x-4">
                 <div className="col-span-1">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-neutral-800">
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden bg-neutral-800">
                     <Image
                       src={context.user.pfpUrl}
                       alt={context.user.username}
@@ -158,7 +158,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                 </div>
 
                 <div className="flex flex-col text-left col-span-2">
-                  <h3 className="font-bold">
+                  <h3 className="font-bold text-sm md:text-base">
                     {`${context.user.displayName}`}
                   </h3>
                   <span className="text-sm opacity-80">@{`${context.user.username}`}</span>
@@ -166,13 +166,13 @@ const LoginWithLensModal = ({ closeModal }) => {
 
                 <div className="flex justify-end col-span-2">
                   <Button
-                    className="md:px-8 hover:bg-bullish"
+                    className="px-3 md:px-8 text-sm md:text-base hover:bg-bullish"
                     onClick={handleCreateProfile}
                     disabled={isCreatingProfile}
                   >
                     {isCreatingProfile ? (
                       <div className="flex items-center gap-2">
-                        <Spinner customClasses="h-4 w-4" color="#5be39d" />
+                        <Spinner customClasses="h-3 w-3 md:h-4 md:w-4" color="#5be39d" />
                       </div>
                     ) : 'Create'}
                   </Button>
@@ -201,21 +201,21 @@ const LoginWithLensModal = ({ closeModal }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 pb-4 md:max-w-[800px]">
           {profiles && profiles.length
             ? profiles.map(({ account }) => (
-              <div className="" key={account.address}>
-                <div className="card bg-black/70 p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
-                  <div className="grid grid-cols-5 items-center gap-x-4">
+              <div className="mb-4" key={account.address}>
+                <div className="card bg-black/70 p-4 md:p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
+                  <div className="grid grid-cols-5 items-center gap-x-2 md:gap-x-4">
                     <div className="col-span-1">
                       <Image
                         src={getProfileImage(account)}
                         alt={account.address}
-                        className="rounded-full w-14 h-14"
+                        className="rounded-full w-12 h-12 md:w-14 md:h-14"
                         width={56}
                         height={56}
                       />
                     </div>
 
                     <div className="flex flex-col text-left col-span-2">
-                      <h3 className="font-bold">
+                      <h3 className="font-bold text-sm md:text-base">
                         {account?.metadata?.name || account?.username?.localName || "username"}
                       </h3>
                       <span className="text-sm">{account.username?.localName || `${account.metadata?.name}`}</span>
@@ -224,13 +224,13 @@ const LoginWithLensModal = ({ closeModal }) => {
                     <div className="flex justify-end col-span-2">
                       {authenticatedProfileId === account.address && (
                         <div className="flex flex-col justify-center items-center">
-                          <CheckCircleIcon className="h-8 w-8 text-white" />
-                          <span>Logged in</span>
+                          <CheckCircleIcon className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                          <span className="text-xs md:text-sm">Logged in</span>
                         </div>
                       )}
                       {authenticatedProfileId !== account.address && (
                         <Button
-                          className="md:px-8 hover:bg-bullish"
+                          className="md:px-8 px-3 text-sm md:text-base hover:bg-bullish"
                           onClick={() => setSelectedProfile(account)}
                           disabled={signingIn}
                         >

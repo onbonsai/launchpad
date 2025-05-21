@@ -1,10 +1,8 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
 import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
-import { useSIWE, useModal, SIWESession } from "connectkit";
-import { Tooltip } from "@components/Tooltip";
-import { sdk } from '@farcaster/frame-sdk'
+import { useModal } from "connectkit";
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";

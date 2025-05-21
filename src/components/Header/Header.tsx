@@ -19,33 +19,61 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
-import { authenticatedUser } from "@lens-protocol/client";
+import { useModal } from "connectkit";
+import { logout as lensLogout } from "@src/hooks/useLensLogin";
 
 const headerLinks = [
   {
     label: "Feed",
     href: "/",
+    requiresAuth: false,
   },
   {
     label: "Studio",
     href: "/studio",
+    requiresAuth: true,
   },
   {
     label: "Tokens",
     href: "/tokens",
+    requiresAuth: false,
   },
 ];
 
-const MobileBottomNav = () => {
+const MobileBottomNav = ({ setOpenSignInModal }) => {
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { setOpen } = useModal({
+    onConnect: () => {
+      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false) {
+        setTimeout(() => {
+          setOpenSignInModal(true);
+        }, 500);
+      }
+    },
+    onDisconnect: () => {
+      console.log("onDisconnect");
+      lensLogout().then(fullRefetch)
+    }
+  });
+
+  const {
+    fullRefetch,
+  } = useLensSignIn(walletClient);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
   const isTokensActive = route === '/tokens';
   const isCreateActive = route === '/studio' || route === '/studio/create';
+
+  const handleAuthRequiredClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setOpen(true);
+    }
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey sm:hidden z-[1000]">
@@ -60,19 +88,17 @@ const MobileBottomNav = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </Link>
-        {isAuthenticated && (
-          <Link href="/studio" className="flex flex-col items-center">
-            <div className="bg-[#111] rounded-lg p-1.5">
-              <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-          </Link>
-        )}
-        <div className="flex flex-col items-center">
+        <Link href="/studio" className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
+          <div className="bg-[#111] rounded-lg p-1.5">
+            <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+        </Link>
+        <div className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
           <Notifications isMobile onShowChange={setShowNotifications} />
         </div>
-        <Link href={`/profile/${authenticatedProfile?.username?.localName}`} className="flex flex-col items-center">
+        <Link href={`/profile/${authenticatedProfile?.username?.localName}`} className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
           <svg className={`w-6 h-6 ${isProfileActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -91,8 +117,16 @@ export const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
+  const { setOpen } = useModal();
 
   if (!isMounted) return null;
+
+  const handleAuthRequiredClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setOpen(true);
+    }
+  };
 
   return (
     <>
@@ -109,6 +143,7 @@ export const Header = () => {
                     <Link
                       href={link.href}
                       passHref
+                      onClick={link.requiresAuth ? handleAuthRequiredClick : undefined}
                       className={cx(
                         "h-full leading-4 font-medium text-[16px] transition-opacity duration-200",
                         route === link.href ? "text-white" : "text-white/50 hover:text-white/80",
@@ -140,13 +175,11 @@ export const Header = () => {
             <div className="flex items-center justify-end md:w-[40%] w-full">
               {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
               <div className="hidden sm:flex items-center gap-2 mr-2">
-                {isAuthenticated && (
-                  <Link href="/studio">
-                    <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 rounded-lg">
-                      Create
-                    </Button>
-                  </Link>
-                )}
+                <Link href="/studio" onClick={handleAuthRequiredClick}>
+                  <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 rounded-lg">
+                    Create
+                  </Button>
+                </Link>
                 <Balance />
                 <ClaimFeesEarned />
                 <ClaimBonsai />
@@ -208,7 +241,7 @@ export const Header = () => {
         onClose={() => setOpenSignInModal(false)}
         open={openSignInModal}
         setOpen={setOpenSignInModal}
-        panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="text-md bg-card w-full md:p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8"
       >
         <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
       </Modal>
@@ -255,7 +288,7 @@ export const Header = () => {
       </Modal>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      <MobileBottomNav setOpenSignInModal={setOpenSignInModal} />
     </>
   );
 };
