@@ -23,7 +23,7 @@ export default function CreatorCopy(props: CreatorCopyProps) {
         ((!isConnected || !connected) ? (
           <Subtitle className="">Log in to trade or create your own token</Subtitle>
         ) : (
-          <Subtitle className="">Log in with Lens to access social features</Subtitle>
+          <Subtitle className="">Log in to access social features</Subtitle>
         ))}
       <div className="pt-[30px]">
         <ConnectButton setOpenSignInModal={setOpenSignInModal} />

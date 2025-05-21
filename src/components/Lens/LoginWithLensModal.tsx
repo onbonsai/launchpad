@@ -198,7 +198,7 @@ const LoginWithLensModal = ({ closeModal }) => {
         ) : null}
 
         {/* PROFILE SELECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-2 pb-4 md:max-w-[800px]">
+        <div className="grid grid-cols-1 pt-4 md:max-w-[800px]">
           {profiles && profiles.length
             ? profiles.map(({ account }) => (
               <div className="mb-4" key={account.address}>

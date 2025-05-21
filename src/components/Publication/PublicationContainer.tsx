@@ -495,6 +495,7 @@ const PublicationContainer = ({
             <div
               className={clsx(
                 "md:min-w-[88px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                "md:py-2.5 md:px-5",
                 isMobile ? "rounded-xl" : "rounded-l-xl",
                 !media?.agentId && !isMobile ? "rounded-r-xl" : "",
                 hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
@@ -516,13 +517,13 @@ const PublicationContainer = ({
             <>
               <Tooltip disabled={isMobile} message="Remix to create your own version" direction="bottom">
                 <div
-                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
+                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
                   onClick={() => {
                     setIsChatOpen(true);
                     setIsRemixing(true);
                   }}
                 >
-                  <SwapCalls className="text-base" />
+                  <SwapCalls className="h-5 w-5" />
                 </div>
               </Tooltip>
               <Tooltip disabled={isMobile} message="Chat" direction="bottom">
