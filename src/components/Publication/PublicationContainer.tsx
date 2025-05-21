@@ -494,7 +494,7 @@ const PublicationContainer = ({
           <Tooltip disabled={isMobile} message={hasCollected ? "Already collected this post" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
             <div
               className={clsx(
-                "md:min-w-[88px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                "md:min-w-[60px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
                 "md:py-2.5 md:px-5",
                 isMobile ? "rounded-xl" : "rounded-l-xl",
                 !media?.agentId && !isMobile ? "rounded-r-xl" : "",

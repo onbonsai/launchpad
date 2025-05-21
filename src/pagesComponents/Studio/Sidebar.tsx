@@ -14,13 +14,53 @@ import CurrencyDollarIcon from "@heroicons/react/outline/CurrencyDollarIcon"
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useGetPostsByAuthor } from "@src/services/lens/posts"
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner"
+import { useRouter } from "next/router"
+
+interface MenuItem {
+  icon?: any;
+  label: string;
+  href: string;
+  href2?: string;
+  disabled: boolean;
+}
+
+const mobileMenuItems: MenuItem[] = [
+  { label: "Studio", href: "/studio/create", href2: "/studio", disabled: false },
+  { label: "Stake", href: "/studio/stake", disabled: false },
+];
+
+const MobileNavigation = () => {
+  const router = useRouter();
+  const currentPath = router.pathname;
+
+  return (
+    <div className="flex w-full gap-2 lg:hidden bg-card rounded-lg">
+      {mobileMenuItems.map((item) => (
+        <Link
+          key={item.label}
+          href={item.disabled ? "#" : item.href}
+          className={`flex-1 py-2 px-4 rounded-lg text-center ${
+            currentPath === item.href || (!!item.href2 && currentPath === item.href2) ? 'bg-white text-true-black' : 'bg-transparent'
+          }`}
+          onClick={e => {
+            if (item.disabled) {
+              e.preventDefault();
+            }
+          }}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </div>
+  );
+};
 
 const StudioSidebar = () => {
   const { address, isConnected } = useAccount();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: stakingData } = useStakingData(address);
   const { data: postsPaginated, isLoading: isLoadingPosts } = useGetPostsByAuthor(true, authenticatedProfile?.address);
-  const posts = useMemo(() => postsPaginated?.pages.flatMap(page => page.posts) || [], [isLoadingPosts]);
+  const posts = useMemo(() => postsPaginated?.pages.flatMap((page: any) => page.posts) || [], [isLoadingPosts]);
 
   const totalStaked = useMemo(() => {
     if (!stakingData?.summary?.totalStaked) return "0";
@@ -31,80 +71,82 @@ const StudioSidebar = () => {
 
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Studio", href: "/studio/create", disabled: false },
     { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
     { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Stake Bonsai", href: "/studio/stake", disabled: false },
   ]
 
   return (
-    <div className="flex flex-col w-full lg:w-64 bg-card rounded-lg p-4 sticky top-24 overflow-hidden" >
-      {/* Main Navigation */}
-      <nav className="space-y-2">
-        {menuItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.disabled ? "#" : item.href}
-            className={clsx(
-              "flex items-center px-3 py-2 rounded-lg transition-colors",
-              item.disabled
-                ? "text-secondary/40 cursor-not-allowed"
-                : "text-secondary/90 hover:text-brand-highlight hover:bg-card-light"
-            )}
-            onClick={e => {
-              if (item.disabled) {
-                e.preventDefault();
-              }
-            }}
-          >
-            <div className="p-1 rounded-lg bg-card-light border border-gray-700 shadow-sm">
-              {item.icon}
-            </div>
-            <span className="text-sm flex items-center ml-4">{item.label}</span>
-          </Link>
-        ))}
-      </nav>
-
-      <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
-
-      {/* Bonsai Token Info */}
-      <div className="">
-        <div className="space-y-6 px-2">
-          <div>
-            <Header2 className="text-lg font-medium opacity-80">Staked</Header2>
-            <p className="text-sm text-secondary/90 mt-2">{kFormatter(totalStaked)} $BONSAI</p>
-          </div>
-          <div>
-            <Header2 className="text-lg font-medium opacity-80">Capacity Today</Header2>
-            <p className="text-sm text-secondary/90 mt-2">
-              {(creditBalance?.creditsRemaining || 0).toFixed(2)} /
-              <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0}</span> credits
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
-
-      {/* Recent Posts */}
-      <div className="">
-        <Header2 className="text-lg font-medium opacity-80 px-2">Recent Posts</Header2>
-        {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
-        <nav className="mt-2 space-y-2">
-          {posts?.map((post) => (
+    <>
+      <MobileNavigation />
+      <div className="hidden lg:flex flex-col w-full lg:w-64 bg-card rounded-lg p-4 sticky top-24 overflow-hidden">
+        {/* Main Navigation */}
+        <nav className="space-y-2">
+          {menuItems.map((item) => (
             <Link
-              key={post.slug}
-              href={`/post/${post.slug}?returnTo=/studio`}
-              className="flex items-center px-2 py-2 text-sm text-secondary/90 hover:text-brand-highlight hover:bg-card-light rounded-lg transition-colors"
+              key={item.label}
+              href={item.disabled ? "#" : item.href}
+              className={clsx(
+                "flex items-center px-3 py-2 rounded-lg transition-colors",
+                item.disabled
+                  ? "text-secondary/40 cursor-not-allowed"
+                  : "text-secondary/90 hover:text-brand-highlight hover:bg-card-light"
+              )}
+              onClick={e => {
+                if (item.disabled) {
+                  e.preventDefault();
+                }
+              }}
             >
-              {post.metadata.content.substring(0, 25)}
-              {post.metadata.content.length > 25 && '...'}
+              <div className="p-1 rounded-lg bg-card-light border border-gray-700 shadow-sm">
+                {item.icon}
+              </div>
+              <span className="text-sm flex items-center ml-4">{item.label}</span>
             </Link>
           ))}
         </nav>
-      </div>
 
-    </div>
+        <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+
+        {/* Bonsai Token Info */}
+        <div className="">
+          <div className="space-y-6 px-2">
+            <div>
+              <Header2 className="text-lg font-medium opacity-80">Staked</Header2>
+              <p className="text-sm text-secondary/90 mt-2">{kFormatter(totalStaked)} $BONSAI</p>
+            </div>
+            <div>
+              <Header2 className="text-lg font-medium opacity-80">Capacity Today</Header2>
+              <p className="text-sm text-secondary/90 mt-2">
+                {(creditBalance?.creditsRemaining || 0).toFixed(2)} /
+                <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0}</span> credits
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+
+        {/* Recent Posts */}
+        <div className="">
+          <Header2 className="text-lg font-medium opacity-80 px-2">Recent Posts</Header2>
+          {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
+          <nav className="mt-2 space-y-2">
+            {posts?.map((post) => (
+              <Link
+                key={post.slug}
+                href={`/post/${post.slug}?returnTo=/studio`}
+                className="flex items-center px-2 py-2 text-sm text-secondary/90 hover:text-brand-highlight hover:bg-card-light rounded-lg transition-colors"
+              >
+                {post.metadata.content.substring(0, 25)}
+                {post.metadata.content.length > 25 && '...'}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </>
   )
 }
 

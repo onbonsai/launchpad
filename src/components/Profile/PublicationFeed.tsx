@@ -24,7 +24,7 @@ const PublicationFeed = ({
     isFetchingNextPage,
     hasNextPage,
   } = useGetPostsByAuthor(true, creatorProfile.address, getPostsCollected);
-  const posts = useMemo(() => data?.pages.flatMap(page => page.posts) || [], [isLoading, getPostsCollected]);
+  const posts = useMemo(() => data?.pages.flatMap(page => page.posts) || [], [isLoading, getPostsCollected, data]);
   const { ref, inView } = useInView()
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import { CATEGORIES, PREMIUM_TEMPLATES, TemplateCategory } from "@src/services/m
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { Header2, Subtitle } from "@src/styles/text";
+import { BodySemiBold, Header2, Subtitle } from "@src/styles/text";
 import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
 import { brandFont } from "@src/fonts/fonts";
 import clsx from "clsx";
@@ -15,9 +15,11 @@ import { useAccount } from "wagmi";
 import toast from "react-hot-toast";
 import { useStakingData } from "@src/hooks/useStakingData";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { address, isConnected } = useAccount();
   const importButtonRef = useRef<HTMLButtonElement>(null);
   const [showImportTemplateModal, setShowImportTemplateModal] = useState(false);
@@ -84,8 +86,8 @@ const StudioCreatePage: NextPage = () => {
     <div className="bg-background text-secondary min-h-[90vh]">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
-            <div className="md:w-64 flex-shrink-0">
+          <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-6 max-w-full">
+            <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
               <Sidebar />
             </div>
             {/* Main Content */}
@@ -98,7 +100,7 @@ const StudioCreatePage: NextPage = () => {
                   </div>
                 </div>
                 <Subtitle className="mt-2">
-                  Choose from our curated selection of templates organized by category, or import a third-party template directly from your ElizaOS server.
+                  Create social content using one of our curated templates{!isMobile ? ", or import a third-party template directly from your ElizaOS server." : "."}
                 </Subtitle>
               </div>
 
@@ -107,7 +109,7 @@ const StudioCreatePage: NextPage = () => {
                 <h3 className="text-sm font-medium text-brand-highlight mb-4">Categories</h3>
                 <div className="flex items-center">
                   <div className="flex-1 overflow-x-auto">
-                    <div className="bg-card-light rounded-full p-1 flex flex-nowrap scrollbar-hide">
+                    <div className="bg-card-light rounded-full p-1 inline-flex">
                       {categories.map((c) => (
                         <button
                           key={c.label}
@@ -119,13 +121,15 @@ const StudioCreatePage: NextPage = () => {
                       ))}
                     </div>
                   </div>
-                  <button
-                    ref={importButtonRef}
-                    className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full shrink-0 ml-4"
-                    onClick={() => setShowImportTemplateModal(true)}
-                  >
-                    + Import
-                  </button>
+                  {!isMobile && (
+                    <button
+                      ref={importButtonRef}
+                      className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full shrink-0 ml-4"
+                      onClick={() => setShowImportTemplateModal(true)}
+                    >
+                      + Import
+                    </button>
+                  )}
                 </div>
               </div>
 

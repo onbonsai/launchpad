@@ -212,7 +212,7 @@ export default function PreviewHistory({
     <div className={`relative flex h-full w-full flex-col ${className}`}>
       <div
         ref={containerRef}
-        className="relative flex grow flex-col overflow-y-auto py-[1vh] px-4 focus:outline-none isolate"
+        className="relative flex grow flex-col overflow-y-auto py-[1vh] px-2 sm:px-4 focus:outline-none isolate"
         tabIndex={0}
         onScroll={(e) => {
           e.stopPropagation();
@@ -297,7 +297,7 @@ export default function PreviewHistory({
           })}
           {isGeneratingPreview && (
             <div className="mt-4">
-              <div className="w-full min-w-[350px] bg-[rgba(255,255,255,0.08)] rounded-[24px] p-4">
+              <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-[24px] p-4">
                 <div className="flex flex-col items-center gap-4">
                   <div>
                     <AnimatedBonsai duration={10} />

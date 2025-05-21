@@ -11,6 +11,7 @@ import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
 import useIsMounted from "@src/hooks/useIsMounted";
+import useIsMobile from "@src/hooks/useIsMobile";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
@@ -69,6 +70,7 @@ const StudioCreatePage: NextPage = () => {
   const [roomId, setRoomId] = useState<string | undefined>(
     typeof router.query.roomId === 'string' ? router.query.roomId : undefined
   );
+  const isMobile = useIsMobile();
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -505,121 +507,230 @@ const StudioCreatePage: NextPage = () => {
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh]">
+    <div className="bg-background text-secondary min-h-[90vh] w-full overflow-x-hidden">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
-            <div className="md:w-64 flex-shrink-0">
-              <Sidebar />
-            </div>
+          {isMobile ? (
+            // Mobile Layout
+            <div className="flex flex-col gap-y-10 w-full">
+              <div className="w-full">
+                <Sidebar />
+              </div>
+              <div className="flex-grow w-full">
+                {/* Header Card */}
+                <div className="bg-card rounded-lg p-4 sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <Link
+                      href="/studio"
+                      className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
+                    >
+                      <ArrowBack className="h-5 w-5" />
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <h2 className="text-xl sm:text-2xl font-semibold text-secondary truncate">{template?.displayName}</h2>
+                        {template?.estimatedCost && (
+                          <span className="flex items-center text-sm sm:text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1 w-fit">
+                            <CashIcon className="h-4 w-4 mr-2" />
+                            ~{template.estimatedCost.toFixed(2)} credits
+                          </span>
+                        )}
+                      </div>
+                      <Subtitle className="items-start text-base sm:text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Main Content */}
-            <div className="flex-grow">
-              {/* Header Card */}
-              <div className="bg-card rounded-lg p-6">
-                <div className="flex items-start gap-4">
-                  <Link
-                    href="/studio"
-                    className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
-                  >
-                    <ArrowBack className="h-5 w-5" />
-                  </Link>
-                  <div className="flex-1">
-                    <div className="flex flex-row space-x-4">
-                      <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
-                      {template?.estimatedCost && (
-                        <span className="flex items-center text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1">
-                          <CashIcon className="h-4 w-4 mr-2" />
-                          ~{template.estimatedCost.toFixed(2)} credits
-                        </span>
+                {/* Form Card */}
+                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10 mt-6">
+                  <div className="grid grid-cols-1 gap-y-6 w-full">
+                    <div>
+                      <div className="mb-6">
+                        <div className="mb-4">
+                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
+                        </div>
+                      </div>
+                      {openTab === 1 && template && (
+                        <CreatePostForm
+                          template={template as Template}
+                          preview={currentPreview}
+                          finalTemplateData={finalTemplateData}
+                          setPreview={handleSetPreview}
+                          postContent={postContent}
+                          setPostContent={setPostContent}
+                          postImage={postImage}
+                          setPostImage={setPostImage}
+                          next={(templateData) => {
+                            setFinalTemplateData(templateData);
+                            setOpenTab(addToken ? 2 : 3);
+                          }}
+                          isGeneratingPreview={isGeneratingPreview}
+                          setIsGeneratingPreview={setIsGeneratingPreview}
+                          roomId={roomId as string}
+                          postAudio={postAudio}
+                          setPostAudio={setPostAudio}
+                          audioStartTime={audioStartTime}
+                          setAudioStartTime={setAudioStartTime}
+                        />
+                      )}
+                      {openTab === 2 && (
+                        <CreateTokenForm
+                          finalTokenData={finalTokenData}
+                          postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
+                          setSavedTokenAddress={setSavedTokenAddress}
+                          savedTokenAddress={savedTokenAddress}
+                          setFinalTokenData={setFinalTokenData}
+                          back={() => setOpenTab(1)}
+                          next={() => setOpenTab(3)}
+                        />
+                      )}
+                      {openTab === 3 && (
+                        <FinalizePost
+                          authenticatedProfile={authenticatedProfile}
+                          finalTokenData={finalTokenData}
+                          onCreate={onCreate}
+                          back={() => setOpenTab(addToken ? 2 : 1)}
+                          isCreating={isCreating}
+                          addToken={addToken}
+                          onAddToken={() => {
+                            setAddToken(true);
+                            setOpenTab(2);
+                          }}
+                          isRemix={!!remixMedia?.agentId}
+                          setFinalTokenData={setFinalTokenData}
+                          setAddToken={setAddToken}
+                        />
                       )}
                     </div>
-                    <Subtitle className="items-start text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Card */}
-              <div className="bg-card rounded-lg px-6 py-10 mt-6">
-                {/* <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3> */}
-
-                <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
-                  <div className="lg:col-span-1">
-                    <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
-                      <div className="mb-4">
-                        <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
-                      </div>
-                    </div>
-                    {openTab === 1 && template && (
-                      <CreatePostForm
-                        template={template as Template}
-                        preview={currentPreview}
-                        finalTemplateData={finalTemplateData}
-                        setPreview={handleSetPreview}
-                        postContent={postContent}
-                        setPostContent={setPostContent}
-                        postImage={postImage}
-                        setPostImage={setPostImage}
-                        next={(templateData) => {
-                          setFinalTemplateData(templateData);
-                          setOpenTab(addToken ? 2 : 3);
-                        }}
+                    <div>
+                      <PreviewHistory
+                        currentPreview={currentPreview}
+                        setCurrentPreview={setCurrentPreview}
                         isGeneratingPreview={isGeneratingPreview}
-                        setIsGeneratingPreview={setIsGeneratingPreview}
-                        roomId={roomId as string}
-                        postAudio={postAudio}
-                        setPostAudio={setPostAudio}
-                        audioStartTime={audioStartTime}
-                        setAudioStartTime={setAudioStartTime}
+                        className="h-[calc(100vh-32rem)]"
+                        roomId={queryRoomId as string}
+                        templateUrl={template?.apiUrl}
+                        setFinalTemplateData={setFinalTemplateData}
+                        localPreviews={localPreviews}
+                        isFinalize={openTab > 1}
+                        postImage={postImage}
                       />
-                    )}
-                    {openTab === 2 && (
-                      <CreateTokenForm
-                        finalTokenData={finalTokenData}
-                        postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
-                        setSavedTokenAddress={setSavedTokenAddress}
-                        savedTokenAddress={savedTokenAddress}
-                        setFinalTokenData={setFinalTokenData}
-                        back={() => setOpenTab(1)}
-                        next={() => setOpenTab(3)}
-                      />
-                    )}
-                    {openTab === 3 && (
-                      <FinalizePost
-                        authenticatedProfile={authenticatedProfile}
-                        finalTokenData={finalTokenData}
-                        onCreate={onCreate}
-                        back={() => setOpenTab(addToken ? 2 : 1)}
-                        isCreating={isCreating}
-                        addToken={addToken}
-                        onAddToken={() => {
-                          setAddToken(true);
-                          setOpenTab(2);
-                        }}
-                        isRemix={!!remixMedia?.agentId}
-                        setFinalTokenData={setFinalTokenData}
-                        setAddToken={setAddToken}
-                      />
-                    )}
-                  </div>
-                  <div className="lg:col-span-1">
-                    <PreviewHistory
-                      currentPreview={currentPreview}
-                      setCurrentPreview={setCurrentPreview}
-                      isGeneratingPreview={isGeneratingPreview}
-                      className="h-[calc(100vh)]"
-                      roomId={queryRoomId as string}
-                      templateUrl={template?.apiUrl}
-                      setFinalTemplateData={setFinalTemplateData}
-                      localPreviews={localPreviews}
-                      isFinalize={openTab > 1}
-                      postImage={postImage}
-                    />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            // Desktop Layout
+            <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-6 max-w-full">
+              <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+                <Sidebar />
+              </div>
+              <div className="flex-grow">
+                {/* Header Card */}
+                <div className="bg-card rounded-lg p-4 sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <Link
+                      href="/studio"
+                      className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
+                    >
+                      <ArrowBack className="h-5 w-5" />
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <h2 className="text-xl sm:text-2xl font-semibold text-secondary truncate">{template?.displayName}</h2>
+                        {template?.estimatedCost && (
+                          <span className="flex items-center text-sm sm:text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1 w-fit">
+                            <CashIcon className="h-4 w-4 mr-2" />
+                            ~{template.estimatedCost.toFixed(2)} credits
+                          </span>
+                        )}
+                      </div>
+                      <Subtitle className="items-start text-base sm:text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Card */}
+                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10 mt-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-6 lg:gap-x-8 w-full">
+                    <div className="lg:col-span-1">
+                      <div className="mb-6 lg:mb-0">
+                        <div className="mb-4">
+                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
+                        </div>
+                      </div>
+                      {openTab === 1 && template && (
+                        <CreatePostForm
+                          template={template as Template}
+                          preview={currentPreview}
+                          finalTemplateData={finalTemplateData}
+                          setPreview={handleSetPreview}
+                          postContent={postContent}
+                          setPostContent={setPostContent}
+                          postImage={postImage}
+                          setPostImage={setPostImage}
+                          next={(templateData) => {
+                            setFinalTemplateData(templateData);
+                            setOpenTab(addToken ? 2 : 3);
+                          }}
+                          isGeneratingPreview={isGeneratingPreview}
+                          setIsGeneratingPreview={setIsGeneratingPreview}
+                          roomId={roomId as string}
+                          postAudio={postAudio}
+                          setPostAudio={setPostAudio}
+                          audioStartTime={audioStartTime}
+                          setAudioStartTime={setAudioStartTime}
+                        />
+                      )}
+                      {openTab === 2 && (
+                        <CreateTokenForm
+                          finalTokenData={finalTokenData}
+                          postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
+                          setSavedTokenAddress={setSavedTokenAddress}
+                          savedTokenAddress={savedTokenAddress}
+                          setFinalTokenData={setFinalTokenData}
+                          back={() => setOpenTab(1)}
+                          next={() => setOpenTab(3)}
+                        />
+                      )}
+                      {openTab === 3 && (
+                        <FinalizePost
+                          authenticatedProfile={authenticatedProfile}
+                          finalTokenData={finalTokenData}
+                          onCreate={onCreate}
+                          back={() => setOpenTab(addToken ? 2 : 1)}
+                          isCreating={isCreating}
+                          addToken={addToken}
+                          onAddToken={() => {
+                            setAddToken(true);
+                            setOpenTab(2);
+                          }}
+                          isRemix={!!remixMedia?.agentId}
+                          setFinalTokenData={setFinalTokenData}
+                          setAddToken={setAddToken}
+                        />
+                      )}
+                    </div>
+                    <div className="lg:col-span-1">
+                      <PreviewHistory
+                        currentPreview={currentPreview}
+                        setCurrentPreview={setCurrentPreview}
+                        isGeneratingPreview={isGeneratingPreview}
+                        className="h-[calc(100vh-8rem)]"
+                        roomId={queryRoomId as string}
+                        templateUrl={template?.apiUrl}
+                        setFinalTemplateData={setFinalTemplateData}
+                        localPreviews={localPreviews}
+                        isFinalize={openTab > 1}
+                        postImage={postImage}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>

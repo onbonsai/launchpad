@@ -55,13 +55,15 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
         onClose={closeTopUpModal}
         open={isOpen}
         setOpen={setIsOpen}
-        panelClassnames="w-screen h-screen md-plus:h-full p-4 text-secondary"
+        panelClassnames="w-full max-w-full md:max-w-[40vw] max-h-[100dvh] overflow-y-auto p-0 text-secondary bg-background flex flex-col"
         static
       >
         {modalType === "topup" ? (
           <TopUpModal requiredAmount={requiredAmount} />
         ) : (
-          <ApiCreditsModal />
+          <div className="flex-1 overflow-y-auto">
+            <ApiCreditsModal />
+          </div>
         )}
       </Modal>
     </TopUpModalContext.Provider>

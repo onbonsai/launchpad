@@ -59,13 +59,13 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
 
   return (
     <div
-      className="p-6 space-y-6 min-w-[450px] text-secondary"
+      className="p-4 md:p-6 space-y-4 md:space-y-6 w-full md:min-w-[450px] text-secondary"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="flex items-center justify-between">
-        <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
+        <Dialog.Title as="h2" className="text-xl md:text-2xl leading-7 font-bold">
           Stake $BONSAI
         </Dialog.Title>
       </div>
@@ -74,7 +74,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
         {/* Amount Input */}
         <div className="flex flex-col justify-between gap-2">
           <div className="flex items-center justify-between gap-1">
-            <Subtitle className="text-white/70">Amount</Subtitle>
+            <Subtitle className="text-white/70 text-sm md:text-base">Amount</Subtitle>
             <span className="text-xs text-white/50">Minimum: {MIN_STAKE}</span>
           </div>
           <div className="relative">
@@ -102,17 +102,18 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
         {/* Lockup Period Selection */}
         <div className="flex flex-col justify-between gap-2">
           <div className="flex items-center gap-1">
-            <Subtitle className="text-white/70">Lockup Period</Subtitle>
+            <Subtitle className="text-white/70 text-sm md:text-base">Lockup Period</Subtitle>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {LOCKUP_PERIODS.map((period) => (
               <button
                 key={period.value}
                 onClick={() => setSelectedPeriod(period)}
-                className={`p-3 rounded-lg text-left transition-colors ${selectedPeriod.value === period.value
-                  ? "bg-bullish/20 !text-bullish"
-                  : "bg-card-light text-secondary hover:bg-bullish/10"
-                  }`}
+                className={`p-2 md:p-3 rounded-lg text-left transition-colors ${
+                  selectedPeriod.value === period.value
+                    ? "bg-bullish/20 !text-bullish"
+                    : "bg-card-light text-secondary hover:bg-bullish/10"
+                }`}
               >
                 <div className="text-sm font-medium">{period.label}</div>
                 <div className="text-xs opacity-60">{period.multiplier}× Credits</div>
@@ -123,10 +124,10 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
 
         {/* Credits Estimate */}
         {twapPrice && amount && Number(amount) > 0 && (
-          <div className="mt-4 p-4 bg-card-light rounded-lg">
-            <div className="flex justify-between items-center">
+          <div className="mt-4 p-3 md:p-4 bg-card-light rounded-lg">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-1">
               <span className="text-sm font-medium">Estimated Additional Daily AI Credits:</span>
-              <span className="text-lg font-bold text-brand-highlight">{formattedCredits}</span>
+              <span className="text-base md:text-lg font-bold text-brand-highlight">{formattedCredits}</span>
             </div>
             <div className="text-xs text-secondary/60 mt-1">
               Based on current $BONSAI price (${twapPrice?.toFixed(2)}) and {selectedPeriod.multiplier}× multiplier
@@ -147,7 +148,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
                     <p>Credit calculation tiers:</p>
                   </div>
                   <div className="text-xs mt-1 text-secondary/80">
-                    <div className="grid grid-cols-3 gap-x-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-y-1 md:gap-x-2">
                       <div>First $20 = 0.5× credits</div>
                       <div>$21-$100 = 0.25× credits</div>
                       <div>$101+ = 0.1× credits</div>
@@ -160,7 +161,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
           </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-4 md:mt-6">
           <Button
             size="md"
             variant="accentBrand"

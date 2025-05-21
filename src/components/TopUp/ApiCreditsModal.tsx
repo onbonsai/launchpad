@@ -235,91 +235,97 @@ export const ApiCreditsModal = () => {
 
   return (
     <div
-      className="p-4 space-y-4 min-w-[600px] text-white"
+      className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 w-full text-white"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="flex items-center justify-between">
-        <Dialog.Title as="h2" className="text-2xl font-bold">
+        <Dialog.Title as="h2" className="text-lg sm:text-xl md:text-2xl font-bold">
           Buy AI Credits
         </Dialog.Title>
       </div>
 
-      <div className="text-gray-400">
+      <div className="text-gray-400 text-xs sm:text-sm md:text-base space-y-1">
         <p>AI credits are used to make requests to our generative AI services.</p>
         <p>Purchased credits are one time use and do not refresh or expire.</p>
       </div>
 
-      <div className="flex items-center justify-between p-3 rounded-xl bg-gray-800/50 border border-gray-700/50">
+      <div className="flex flex-col md:flex-row md:items-center justify-between p-2 sm:p-3 rounded-xl bg-gray-800/50 border border-gray-700/50 gap-2 sm:gap-3 md:gap-0">
         <div className="space-y-1">
-          <div className="text-sm text-gray-400">Current Balance</div>
-          <div className="text-xl font-bold">{creditBalance?.creditsRemaining || 0} credits</div>
+          <div className="text-xs sm:text-sm text-gray-400">Current Balance</div>
+          <div className="text-base sm:text-lg md:text-xl font-bold">{creditBalance?.creditsRemaining || 0} credits</div>
         </div>
-        <div className="space-y-1 text-right">
-          <div className="text-sm text-gray-400">Available {isMiniApp ? "USDC" : "GHO"}</div>
-          <div className="font-semibold">{isMiniApp ? formattedUsdcBalance : formattedGhoBalance} {isMiniApp ? "USDC" : "GHO"}</div>
+        <div className="space-y-1 md:text-right">
+          <div className="text-xs sm:text-sm text-gray-400">Available {isMiniApp ? "USDC" : "GHO"}</div>
+          <div className="text-sm sm:text-base font-semibold">{isMiniApp ? formattedUsdcBalance : formattedGhoBalance} {isMiniApp ? "USDC" : "GHO"}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-col gap-2 md:grid md:grid-cols-2">
         {topUpOptions.map((option, index) => (
           <button
             key={index}
             onClick={() => setSelectedOption(option)}
             className={clsx(
-              "relative p-3 rounded-xl border transition-colors",
-              "flex flex-col items-center justify-center text-center group",
+              "relative p-2 sm:p-3 rounded-xl border transition-colors",
+              "flex flex-row md:flex-col items-center justify-between md:justify-center text-center group",
               "focus:outline-none focus:ring-1 focus:ring-[#0891B2] focus:border-[#0891B2]",
               "text-white border-white/80 hover:border-white",
               selectedOption === option ? "border-[#0891B2] bg-[#0891B2]/10" : "bg-gray-800/50",
             )}
           >
-            <div className="w-12 h-12 mb-2 relative">
-              <CreditCardIcon
-                className={clsx(
-                  "w-12 h-12 transition-all duration-200",
-                  selectedOption === option
-                    ? "brightness-125 scale-110"
-                    : option.highlight
-                    ? "brightness-110 scale-105"
-                    : "brightness-75 group-hover:brightness-100",
+            <div className="flex items-center gap-2 md:flex-col">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 relative">
+                <CreditCardIcon
+                  className={clsx(
+                    "w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-200",
+                    selectedOption === option
+                      ? "brightness-125 scale-110"
+                      : option.highlight
+                      ? "brightness-110 scale-105"
+                      : "brightness-75 group-hover:brightness-100",
+                  )}
+                />
+                {option.highlight && (
+                  <div className="absolute inset-0 rounded-full animate-pulse bg-gradient-to-br from-[#0891B2]/20 to-transparent -z-10" />
                 )}
-              />
-              {option.highlight && (
-                <div className="absolute inset-0 rounded-full animate-pulse bg-gradient-to-br from-[#0891B2]/20 to-transparent -z-10" />
-              )}
+              </div>
+              <div className="text-left md:text-center">
+                <div className="text-base sm:text-lg md:text-xl font-bold">{option.credits.toLocaleString()}</div>
+                <div className="text-xs sm:text-sm text-gray-400">${option.price.toFixed(2)}</div>
+              </div>
             </div>
-            <div className="text-xl font-bold">{option.credits.toLocaleString()}</div>
-            <div className="text-gray-400 text-sm">${option.price.toFixed(2)}</div>
           </button>
         ))}
       </div>
 
-      <Button
-        variant="blue"
-        className={clsx("w-full py-3 text-base font-semibold")}
-        onClick={topUp}
-        disabled={!selectedOption || !hasSufficientFunds}
-      >
-        {!selectedOption
-          ? "Select an amount"
-          : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
-          ? `Switch to ${isMiniApp ? "Base" : "Lens"} Chain`
-          : !hasSufficientFunds
-          ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
-          : `Pay ${selectedOption.price} ${isMiniApp ? "USDC" : "GHO"}`}
-      </Button>
-      <Button
-        variant={"primary"}
-        size='md'
-        className="w-full !border-none"
-        onClick={() => {
-          setBuyUSDCModalOpen(true);
-        }}
-      >
-        Fund wallet
-      </Button>
+      <div className="space-y-2">
+        <Button
+          variant="blue"
+          className={clsx("w-full py-2 text-xs sm:text-sm md:text-base font-semibold")}
+          onClick={topUp}
+          disabled={!selectedOption || !hasSufficientFunds}
+        >
+          {!selectedOption
+            ? "Select an amount"
+            : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
+            ? `Switch to ${isMiniApp ? "Base" : "Lens"} Chain`
+            : !hasSufficientFunds
+            ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
+            : `Pay ${selectedOption.price} ${isMiniApp ? "USDC" : "GHO"}`}
+        </Button>
+        <Button
+          variant={"primary"}
+          size='md'
+          className="w-full !border-none text-xs sm:text-sm md:text-base"
+          onClick={() => {
+            setBuyUSDCModalOpen(true);
+          }}
+        >
+          Fund wallet
+        </Button>
+      </div>
       <BuyUSDCWidget
         open={buyUSDCModalOpen}
         buyAmount={selectedOption?.price.toString() || "20"}
