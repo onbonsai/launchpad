@@ -282,10 +282,10 @@ export const useGetSellPrice = (account?: `0x${string}`, clubId?: string, amount
   });
 };
 
-export const useGetFeesEarned = (account?: `0x${string}`) => {
+export const useGetFeesEarned = (account?: string) => {
   return useQuery({
     queryKey: ["fees-earned", account],
-    queryFn: () => getFeesEarned(account!),
+    queryFn: () => getFeesEarned(account! as `0x${string}`),
     enabled: !!account,
     refetchInterval: 15000, // fetch every 15seconds
     staleTime: 15000,

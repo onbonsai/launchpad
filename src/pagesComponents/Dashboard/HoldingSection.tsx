@@ -3,7 +3,7 @@ import HoldingsHeader from './HoldingsHeader'
 import { kFormatter, roundedToFixed } from '@src/utils/utils';
 import TokenCard from './TokenCard';
 import { SmallSubtitle } from '@src/styles/text';
-import Image from 'next/image';
+import { SafeImage } from '@src/components/SafeImage/SafeImage';
 
 interface HoldingSectionProps {
   holdings: any[];
@@ -25,7 +25,7 @@ const HoldingSection = (props: HoldingSectionProps) => {
             key={`row-${row.club.tokenAddress || row.club.clubId}`}
             title={row.token.name}
             count={kFormatter(parseFloat(row.amount))}
-            logo={<Image src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' width={32} height={32} />}
+            logo={<SafeImage src={row.token.image || row.token.uri} alt='token-image' className='h-8 rounded-lg' width={32} height={32} />}
             symbol={row.token.symbol}
             logoBg={true}
             price={roundedToFixed(row.balance, 2)}

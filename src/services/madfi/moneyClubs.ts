@@ -988,7 +988,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
           : (groupedClubs[_club.tokenAddress] ? groupedClubs[_club.tokenAddress][0] : undefined);
         if (club?.hidden) return; // db forced hide
         let { name, symbol, uri: image } = _club;
-        if (!name || !symbol || !image) {
+        if (_club.tokenInfo && (!name || !symbol || !image)) {
           // backup for v1 clubs
           [name, symbol, image] = decodeAbiParameters([
             { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }

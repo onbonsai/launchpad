@@ -26,9 +26,9 @@ import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import Image from "next/image";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -352,7 +352,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     >
                       <div className="flex items-center gap-4">
                         {token.uri && (
-                          <Image src={token.uri} alt={token.name} className="rounded-full object-cover" width={48} height={48} />
+                          <SafeImage src={token.uri} alt={token.name} className="rounded-full object-cover" width={48} height={48} />
                         )}
                         <div className="flex-1">
                           <div className="flex items-center justify-between">

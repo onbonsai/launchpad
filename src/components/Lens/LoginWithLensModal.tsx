@@ -3,7 +3,7 @@ import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState } from "react";
 import { CheckCircleIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
-import { useModal, useSIWE } from "connectkit";
+import { useModal } from "connectkit";
 import { useDisconnect } from 'wagmi'
 import { account } from "@lens-protocol/metadata";
 import { createAccountWithUsername, fetchAccount } from "@lens-protocol/client/actions";
@@ -17,10 +17,10 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
-import Image from "next/image";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { immutable } from "@lens-chain/storage-client";
 import { handleOperationWith } from "@lens-protocol/client/viem";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 const LoginWithLensModal = ({ closeModal }) => {
   const { address } = useAccount();
@@ -147,7 +147,7 @@ const LoginWithLensModal = ({ closeModal }) => {
               <div className="grid grid-cols-5 items-center gap-x-2 md:gap-x-4">
                 <div className="col-span-1">
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden bg-neutral-800">
-                    <Image
+                    <SafeImage
                       src={context.user.pfpUrl}
                       alt={context.user.username}
                       className="object-cover aspect-square w-full h-full"
@@ -205,7 +205,7 @@ const LoginWithLensModal = ({ closeModal }) => {
                 <div className="card bg-black/70 p-4 md:p-4 rounded-2xl max-h-fit border-dark-grey border-2 shadow-lg" key={account.address}>
                   <div className="grid grid-cols-5 items-center gap-x-2 md:gap-x-4">
                     <div className="col-span-1">
-                      <Image
+                      <SafeImage
                         src={getProfileImage(account)}
                         alt={account.address}
                         className="rounded-full w-12 h-12 md:w-14 md:h-14"

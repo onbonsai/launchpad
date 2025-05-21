@@ -33,11 +33,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
-import Image from "next/image";
 import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
 import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
 import useIsMobile from "@src/hooks/useIsMobile";
 import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -562,7 +562,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             </div>
                           )}
                           <div className={`flex items-center gap-x-3 md:gap-x-6 md:mt-4 ${!replyingToComment ? 'mt-6' : ''}`}>
-                            <Image src={profilePictureUrl} alt="profile" className="w-8 h-8 md:w-12 md:h-12 rounded-full" width={48} height={48} />
+                            <SafeImage src={profilePictureUrl} alt="profile" className="w-8 h-8 md:w-12 md:h-12 rounded-full" width={48} height={48} />
                             <div className="flex items-center space-x-2 md:space-x-4 flex-1">
                               <div className="relative flex-1">
                                 <input

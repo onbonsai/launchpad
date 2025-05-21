@@ -15,7 +15,7 @@ import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
 import { useTopUpModal } from "@src/context/TopUpContext";
-import Image from "next/image";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -224,7 +224,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             <Tooltip message={collectorsText} direction="right">
               <div className="flex -space-x-2">
                 {postData?.actors?.map(({ account }, index: number) => (
-                  <Image
+                  <SafeImage
                     key={index}
                     className="inline-block h-8 w-8 rounded-full ring-2 ring-dark-grey"
                     src={account.metadata?.picture || "/default.png"}

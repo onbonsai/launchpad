@@ -5,7 +5,7 @@ import { BodySemiBold, Subtitle } from '@src/styles/text';
 import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { formatUnits } from 'viem';
-import Image from 'next/image';
+import { SafeImage } from '@src/components/SafeImage/SafeImage';
 
 interface CurrencyInputProps {
   price: string;
@@ -50,7 +50,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
       <div className="flex flex-row w-full h-full items-center justify-between">
         <div className='flex flex-row w-full h-full items-center'>
           {tokenImage && <div className="relative items-center pl-4">
-            <Image
+            <SafeImage
               src={tokenImage}
               alt={'token image'}
               className="object-cover rounded-lg"
@@ -65,7 +65,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
                 }}
                 className="absolute -right-2 -bottom-2 w-[20px] h-[20px] rounded-full bg-[#333] border border-card cursor-pointer hover:bg-[#444] transition-colors"
               >
-                <Image
+                <SafeImage
                   src={secondaryToken.image}
                   alt={secondaryToken.symbol}
                   className="object-cover rounded-full"
