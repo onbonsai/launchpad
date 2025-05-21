@@ -34,8 +34,10 @@ export const ClubList = ({ clubs, filterBy, filteredClubs, setFilteredClubs, set
       ? _clubs
       : _clubs.filter(({ club }) => !club.liquidityReleasedAt);
 
+    const _sortedBy = sortedBy === "club.marketCap" ? "sortingMarketCap" : sortedBy;
+
     const orderedClubs = orderBy(filteredByCompletion, [club => {
-      const value = get(club, sortedBy);
+      const value = get(club, _sortedBy);
       return value ? BigInt(value) : 0;
     }], [direction]);
 

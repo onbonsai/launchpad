@@ -89,18 +89,38 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
           ...club,
           publication: club.publication,
           club: omit(club, 'publication'),
-          chain: 'base'
+          chain: 'base',
+          sortingMarketCap: BigInt(club.marketCap || "0")
         }));
 
         const lensClubs = (lensRes.clubs || []).map(club => ({
           ...club,
           publication: club.publication,
           club: omit(club, 'publication'),
-          chain: 'lens'
+          chain: 'lens',
+          sortingMarketCap: BigInt(BigInt(club.marketCap) / BigInt(10 ** 12) || "0")
         }));
 
+        const _combinedClubs = [...baseClubs, ...lensClubs];
+
         // Combine and sort the clubs according to sortedBy parameter
-        const combinedClubs = [...baseClubs, ...lensClubs];
+        const combinedClubs = sortedBy === "club.marketCap" 
+          ? _combinedClubs.sort((a, b) => {
+              const marketCapA = a.sortingMarketCap;
+              const marketCapB = b.sortingMarketCap;
+              return marketCapB > marketCapA ? 1 : -1;
+            })
+          : sortedBy === "stats.collects"
+          ? _combinedClubs.sort((a, b) => {
+              const collectsA = a.publication?.stats?.collects || 0;
+              const collectsB = b.publication?.stats?.collects || 0;
+              return collectsB - collectsA;
+            })
+          : _combinedClubs.sort((a, b) => {
+              const timeA = new Date(a.club.createdAt).getTime();
+              const timeB = new Date(b.club.createdAt).getTime();
+              return timeB - timeA;
+            });
 
         return {
           clubs: combinedClubs,
@@ -122,7 +142,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     staleTime: 60000,
     gcTime: 60000,
   });
-};
+};  
 
 export const useGetClubVolume = (clubId?: string) => {
   return useQuery({
