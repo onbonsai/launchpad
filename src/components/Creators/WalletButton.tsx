@@ -9,9 +9,10 @@ interface WalletButtonProps {
   chain?: string;
   length?: number;
   onlyFirst?: boolean;
+  ellipsis?: boolean;
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain, length, onlyFirst }) => {
+const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain, length, onlyFirst, ellipsis }) => {
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard
@@ -37,7 +38,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({ wallet, chain, length, only
       {chain && (
         <Image src={`/${chain}.png`} alt={chain} className="flex mr-2 h-4" fill />
       )}
-      <Subtitle className='text-white'>{formattedAddress}</Subtitle>
+      <Subtitle className='text-white'>{formattedAddress}{ellipsis && "..."}</Subtitle>
     </button>
   );
 };

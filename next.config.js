@@ -156,7 +156,8 @@ const nextConfig = {
       "wrpcd.net",
       "raw.seadn.io",
       "pink-splendid-urial-219.mypinata.cloud",
-      "storage.googleapis.com"
+      "storage.googleapis.com",
+      "app.onbons.ai"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,

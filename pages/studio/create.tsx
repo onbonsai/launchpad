@@ -20,10 +20,9 @@ import { Action, createPost, uploadFile, uploadImageBase64, uploadVideo } from "
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client";
-import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
-import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { cacheImageToStorj, parseBase64Image } from "@src/utils/utils";
 import axios from "axios";
 import Link from "next/link";
@@ -34,6 +33,7 @@ import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
 import type { TokenData } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
+import { storageClient } from "@src/services/lens/client";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -183,6 +183,7 @@ const StudioCreatePage: NextPage = () => {
     // 1. create token (if not remixing)
     let tokenAddress;
     let txHash;
+    let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
     } else if (addToken && finalTokenData && !remixMedia?.agentId) {
@@ -298,6 +299,28 @@ const StudioCreatePage: NextPage = () => {
     } else if (remixMedia?.token?.address) {
       tokenAddress = remixMedia.token.address;
       setSavedTokenAddress(tokenAddress); // save our progress
+    }  else {
+      // default to bonsai on the correct chain
+      let _chain = chain?.name.toLowerCase() as string;
+      if (!IS_PRODUCTION) {
+        if (_chain === "base sepolia") {
+          _chain = "base";
+        } else {
+          _chain = "lens";
+        }
+      } else {
+        if (_chain !== "base" && _chain !== "lens") {
+          _chain = "lens";
+        }
+      }
+      tokenAddress = PROTOCOL_DEPLOYMENT[_chain].Bonsai;
+      _finalTokenData = {
+        initialSupply: 0,
+        tokenName: "Bonsai",
+        tokenSymbol: "BONSAI",
+        tokenImage: [{ preview: "https://app.onbons.ai/logo-spaced.png" }],
+        selectedNetwork: _chain as "base" | "lens",
+      }
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
@@ -332,9 +355,9 @@ const StudioCreatePage: NextPage = () => {
 
     toastId = toast.loading("Creating your post...", { id: toastId });
     let postId, uri;
+    let video;
     try {
       let image;
-      let video;
 
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
@@ -400,7 +423,7 @@ const StudioCreatePage: NextPage = () => {
           }
         }
       }]
-      if (tokenAddress && finalTokenData?.selectedNetwork === "lens") {
+      if (tokenAddress && _finalTokenData?.selectedNetwork === "lens") {
         actions.push({
           unknown: {
             address: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.RewardSwap),
@@ -460,7 +483,7 @@ const StudioCreatePage: NextPage = () => {
           hash: txHash,
           postId,
           handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-          chain: finalTokenData?.selectedNetwork || "lens",
+          chain: _finalTokenData?.selectedNetwork || "lens",
           tokenAddress
         });
       }
@@ -470,8 +493,8 @@ const StudioCreatePage: NextPage = () => {
         agentId: currentPreview?.agentId,
         postId,
         uri,
-        token: (addToken || remixMedia?.agentId) && finalTokenData ? {
-          chain: finalTokenData.selectedNetwork,
+        token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
+          chain: _finalTokenData.selectedNetwork,
           address: tokenAddress,
           external: !txHash && !savedTokenAddress,
         } : undefined,
@@ -485,10 +508,16 @@ const StudioCreatePage: NextPage = () => {
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
       if (await sdk.isInMiniApp()) {
+        let embeds: string[] = []
+        if (video) {
+          let resolvedVideoUrl = await storageClient.resolve(video?.url)
+          embeds.push(resolvedVideoUrl)
+        }
+        embeds.push(`${SITE_URL}/post/${postId}`)
         const text = `${postContent || currentPreview?.text || template?.displayName}\n\nvia @onbonsai.eth`
         await sdk.actions.composeCast({
           text,
-          embeds: [`${SITE_URL}/post/${postId}`],
+          embeds: embeds as [string] | [string, string],
         });
       }
 
