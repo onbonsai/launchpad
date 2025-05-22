@@ -6,9 +6,9 @@ import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageSty
 import { Preview, useGetPreviews } from "@src/services/madfi/studio";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { GLOBAL_AGENT_ID, Memory } from '@src/services/madfi/terminal';
-import AnimatedBonsai from '@src/components/LoadingSpinner/AnimatedBonsai';
 import { AnimatedText } from '@src/components/LoadingSpinner/AnimatedText';
 import useIsMounted from "@src/hooks/useIsMounted";
+import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 
 type PreviewHistoryProps = {
   currentPreview?: Preview;
@@ -300,7 +300,7 @@ export default function PreviewHistory({
               <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-[24px] p-4">
                 <div className="flex flex-col items-center gap-4">
                   <div>
-                    <AnimatedBonsai duration={10} />
+                    <AnimatedBonsaiGrid />
                   </div>
                   <div className="w-full">
                     <AnimatedText
