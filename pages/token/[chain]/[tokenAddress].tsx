@@ -33,6 +33,7 @@ import { IS_PRODUCTION } from '@src/services/madfi/utils';
 import { getPostId } from '@src/services/lens/getStats';
 import Image from 'next/image';
 import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
+import { SafeImage } from '@src/components/SafeImage/SafeImage';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 const TradeComponent = dynamic(() => import("@src/pagesComponents/Club/TradeComponent"), { ssr: false });
@@ -278,7 +279,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
               <div className={clsx("lg:col-span-8 rounded-3xl", club.featured && "animate-pulse")}>
                 <div className={"relative w-full h-auto md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
-                    <Image
+                    <SafeImage
                       src={club.token.image}
                       alt={club.token.name}
                       className="w-full h-full object-cover"
@@ -289,7 +290,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
 
                   <div className="relative z-10 p-3 pb-6 flex flex-col md:flex-row justify-between items-center">
                     <div className="flex flex-row items-center w-full md:w-auto">
-                      <Image
+                      <SafeImage
                         src={club.token.image}
                         alt={club.token.name}
                         className="object-cover rounded-lg"
