@@ -125,8 +125,6 @@ export default function RemixForm({
     }
   }, [remixMedia]);
 
-  console.log(postImage)
-
   const handleNext = (templateData: any) => {
     setFinalTemplateData(templateData);
   };
@@ -163,6 +161,12 @@ export default function RemixForm({
           setAudioStartTime={setAudioStartTime}
           roomId={roomId}
           tooltipDirection="top"
+          remixToken={finalTokenData ? {
+            address: remixMedia.token.address,
+            symbol: finalTokenData.tokenSymbol,
+            chain: remixMedia.token.chain
+          } : undefined}
+          remixPostId={remixMedia.postId}
         />
       </div>
     </div>

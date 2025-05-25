@@ -1,7 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getClientWithApiCredits } from "@src/services/mongo/client";
 import { isAddress, parseAbi, formatUnits } from "viem";
-import { publicClient, WGHO_CONTRACT_ADDRESS, ADMIN_WALLET, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import {
+  publicClient,
+  WGHO_CONTRACT_ADDRESS,
+  ADMIN_WALLET,
+  USDC_CONTRACT_ADDRESS,
+  USDC_DECIMALS,
+} from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { txHash, chain } = req.body;
+    const { txHash, chain, price } = req.body;
 
     if (chain !== "lens" && chain !== "base") {
       return res.status(400).json({ error: "Invalid chain" });
@@ -52,7 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calculate credits based on the chain
     const decimals = chain === "base" ? USDC_DECIMALS : 18;
-    const credits = Math.floor((200 * Number(formatUnits(value, decimals))) / 3);
+    const _price = price || 200 / 3;
+    const credits = Math.floor(Number(formatUnits(value, decimals)) * _price);
 
     if (!credits || credits <= 0) {
       return res.status(400).json({ error: "Invalid transfer amount" });

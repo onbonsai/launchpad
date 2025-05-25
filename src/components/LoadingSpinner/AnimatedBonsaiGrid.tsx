@@ -134,7 +134,7 @@ export default function AnimatedBonsaiGrid({
     })
 
     setDots(newDots)
-  }, [colors])
+  }, [colors.bonsai])
 
   // Calculate the scale factor based on the width and gridSize
   const scaleFactor = typeof width === "number" ? width / gridSize : 8

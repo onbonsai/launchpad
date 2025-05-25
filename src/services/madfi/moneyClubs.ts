@@ -142,6 +142,43 @@ const REGISTERED_CLUB_BY_TOKEN = gql`
   }
 `;
 
+const REGISTERED_CLUB_BY_TOKEN_ADDRESS_MINI = gql`
+  query Club($tokenAddress: Bytes!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      clubId
+      creator
+      createdAt
+      initialSupply
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      liquidity
+      complete
+      completedAt
+      liquidityReleasedAt
+      tokenInfo
+      tokenAddress
+      creatorFees
+      holders
+      v2
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+    }
+  }
+`;
+
 const REGISTERED_CLUB_INFO = gql`
   query ClubInfo($ids: [Bytes!]!) {
     clubs(where: { id_in: $ids }) {
@@ -665,6 +702,22 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
       "1h": prevTrade1h,
       "5m": prevTrade5m,
     };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getRegisteredClubByTokenAddress = async (tokenAddress: `0x${string}`, chain = "base") => {
+  try {
+    const client = subgraphClient(chain);
+    const { data } = await client.query({
+      query: REGISTERED_CLUB_BY_TOKEN_ADDRESS_MINI,
+      variables: {
+        tokenAddress: tokenAddress?.toLowerCase(),
+      }
+    });
+
+    return data.clubs ? data.clubs[0] : null;
   } catch (error) {
     console.log(error);
   }
