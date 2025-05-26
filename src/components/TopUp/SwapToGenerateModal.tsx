@@ -233,7 +233,7 @@ export const SwapToGenerateModal = ({
         } else {
           if (isMiniApp) {
             await sdk.actions.swapToken({
-              sellToken: `eip155:8453/native`,
+              sellToken: `eip155:8453/erc20:${USDC_CONTRACT_ADDRESS}`,
               buyToken: `eip155:8453/erc20:${token.address}`,
               sellAmount: parseUnits(selectedAmount.toString(), USDC_DECIMALS).toString(),
             });

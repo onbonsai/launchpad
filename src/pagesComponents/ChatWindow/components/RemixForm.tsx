@@ -4,6 +4,7 @@ import CreatePostForm from '@src/pagesComponents/Studio/CreatePostForm';
 import type { SmartMedia, Template, TokenData, Preview } from '@src/services/madfi/studio';
 import { getRegisteredClubInfoByAddress } from '@src/services/madfi/moneyClubs';
 import { getPost } from '@src/services/lens/posts';
+import { fetchTokenMetadata } from '@src/utils/tokenMetadata';
 
 type RemixFormProps = {
   template: Template;
@@ -90,18 +91,32 @@ export default function RemixForm({
     }
   };
 
+  console.log("remixMedia", remixMedia);
+
   // set the default form data to use the remixed version
   useEffect(() => {
     if (!!remixMedia) {
       if (remixMedia.token?.address) {
         getRegisteredClubInfoByAddress(remixMedia.token.address, remixMedia.token.chain).then((token) => {
-          setFinalTokenData({
-            tokenName: token.name,
-            tokenSymbol: token.symbol,
-            tokenImage: [{ preview: token.image }],
-            selectedNetwork: remixMedia.token.chain,
-            initialSupply: 0,
-          });
+          if (!token || !token.name || !token.symbol) {
+            fetchTokenMetadata(remixMedia.token.address, remixMedia.token.chain).then((_token) => {
+              setFinalTokenData({
+                tokenName: _token?.name,
+                tokenSymbol: _token?.symbol,
+                tokenImage: [{ preview: _token?.logo }],
+                selectedNetwork: remixMedia.token.chain,
+                initialSupply: 0,
+              });
+            })
+          } else {
+            setFinalTokenData({
+              tokenName: token.name,
+              tokenSymbol: token.symbol,
+              tokenImage: [{ preview: token.image }],
+              selectedNetwork: remixMedia.token.chain,
+              initialSupply: 0,
+            });
+          }
         });
       }
 

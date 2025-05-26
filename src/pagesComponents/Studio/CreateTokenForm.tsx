@@ -236,7 +236,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     tokenSymbol: "",
                     tokenImage: [],
                     selectedNetwork: "lens",
-                    pricingTier: "SMALL"
+                    pricingTier: "SMALL",
                   });
                 }}
                 className={clsx(
