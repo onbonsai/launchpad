@@ -59,8 +59,6 @@ const nextConfig = {
       "date-fns",
       "aws-sdk",
       "mongodb",
-      "graphql-request",
-      "graphql",
       "jsonwebtoken",
       "jsonschema",
       "oauth-1.0a",
