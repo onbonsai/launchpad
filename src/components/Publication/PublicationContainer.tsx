@@ -480,7 +480,7 @@ const PublicationContainer = ({
           messageIconOverride={true}
           shareIconOverride={true}
           nestedWidget={nestedWidget}
-          updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
+          // updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
           hideCommentButton
@@ -515,27 +515,16 @@ const PublicationContainer = ({
           </Tooltip>
           {!isMobile && media?.agentId && (
             <>
-              <Tooltip disabled={isMobile} message="Remix to create your own version" direction="bottom">
-                <div
-                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0"
-                  onClick={() => {
-                    setIsChatOpen(true);
-                    setIsRemixing(true);
-                  }}
-                >
-                  <SwapCalls className="h-5 w-5" />
-                </div>
-              </Tooltip>
-              <Tooltip disabled={isMobile} message="Chat" direction="bottom">
-                <div
-                  className="min-w-[88px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer hover:bg-brand-highlight/70 rounded-r-xl border-l-0"
-                  onClick={() => {
-                    setIsChatOpen(true);
-                  }}
-                >
-                  <ChatIcon className="w-5 h-5" />
-                </div>
-              </Tooltip>
+              <div
+                className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0 rounded-r-xl"
+                onClick={() => {
+                  setIsChatOpen(true);
+                  setIsRemixing(true);
+                }}
+              >
+                <SwapCalls className="h-5 w-5 mr-2" />
+                Remix
+              </div>
             </>
           )}
         </div>

@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import Image from "next/image";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
+import { SwapCalls } from "@mui/icons-material";
 
 interface ChatWindowButtonProps {
   children: React.ReactElement<{ isRemixing?: boolean }>;
@@ -153,20 +154,21 @@ export default function ChatWindowButton({
       {isConnected && !isOpen && isMobile && (
         <div className="fixed bottom-16 left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto">
           <div className="flex justify-between items-center px-4 py-3">
-            <Button
+            {/* <Button
               onClick={toggleChat}
               variant="primary"
               size="sm"
               className="flex-1 mr-2 bg-background border border-dark-grey hover:bg-background"
             >
               Chat
-            </Button>
+            </Button> */}
             <Button
               onClick={handleRemix}
               variant="accentBrand"
               size="sm"
               className="flex-1 ml-2 bg-background border border-dark-grey hover:bg-background"
             >
+              <SwapCalls className="h-5 w-5 mr-2" />
               Remix
             </Button>
           </div>
