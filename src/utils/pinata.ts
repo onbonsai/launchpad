@@ -92,3 +92,20 @@ export const ipfsOrNot = (urlOrUri?: string) =>
 
 export const ipfsOrNotWithDefaultGateway = (uriOrHash?: string) =>
   uriOrHash?.startsWith("ipfs://") ? defaultGatewayURL(uriOrHash) : uriOrHash;
+
+export const remapStorjToPinata = (storjUrl?: string) => {
+  if (!storjUrl) return "";
+  
+  // Check if it's a storj URL
+  if (storjUrl.includes("storj-ipfs")) {
+    // Extract the IPFS hash from the storj URL
+    const hash = storjUrl.split("/").pop();
+    if (hash) {
+      // Return the pinata gateway URL with the hash
+      return `${apiUrls.pinataGateway}/${hash}`;
+    }
+  }
+  
+  // If not a storj URL or hash extraction failed, return original URL
+  return storjUrl;
+};

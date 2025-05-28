@@ -28,8 +28,6 @@ import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 import axios from 'axios';
 import { encodeAbi } from '@src/utils/viem';
-import { Button } from '@src/components/Button';
-import { useTopUpModal } from '@src/context/TopUpContext';
 
 type ChatProps = {
   agentId: string;
@@ -71,7 +69,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const [isPosting, setIsPosting] = useState(false);
   const [postingPreview, setPostingPreview] = useState<Preview | undefined>();
   const router = useRouter();
-  const { openTopUpModal } = useTopUpModal();
 
   const handlePostButtonClick = useCallback((preview: Preview) => {
     console.log('handlePostButtonClick called with preview:', preview);
@@ -470,10 +467,10 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                     ...streamEntries,
                     ...localPreviews.map((preview) => ({
                       timestamp: new Date(preview.createdAt),
-                      type: preview.isAgent ? "agent" : "user",
+                      type: (preview.isAgent ? "agent" : "user") as StreamEntry["type"],
                       content: "",
                       preview: preview.content.preview,
-                    })),
+                    } as StreamEntry)),
                   ]
                     .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
                     .map((entry, index, array) => {
@@ -527,12 +524,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
             onCancel={handleCancelPost}
           />
         </div>
-      )}
-
-      {!(canMessageAgain && canMessage) && (
-        <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openTopUpModal("api-credits")}>
-          Topup credits to continue
-        </Button>
       )}
 
       <ChatInput

@@ -5,7 +5,6 @@ import { Subtitle, BodySemiBold, Header2 } from "@src/styles/text";
 import { DECIMALS, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { Button } from "@src/components/Button";
 import { useAccount, useReadContract } from "wagmi";
-import { SmartMedia } from "@src/services/madfi/studio";
 import { capitalizeFirstLetter, kFormatter } from "@src/utils/utils";
 import { brandFont } from "@src/fonts/fonts";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
@@ -22,7 +21,6 @@ const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"),
 interface Token {
   address: `0x${string}`;
   chain: string;
-  external: boolean;
 }
 
 interface TokenMetadata {

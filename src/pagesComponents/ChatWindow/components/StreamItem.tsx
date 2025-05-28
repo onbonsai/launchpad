@@ -101,7 +101,7 @@ export default function StreamItem({
           {preview.image && !preview.video && (
             <div className="w-full">
               <Image
-                src={preview.image}
+                src={preview.imagePreview || preview.image}
                 alt="Preview"
                 width={400}
                 height={400}

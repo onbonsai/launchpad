@@ -456,7 +456,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
             <div className="flex flex-col gap-2 h-full relative pt-4">
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
-              {media?.token?.external && <TokenInfoExternal token={{ ...media.token, external: true }} />}
+              {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">

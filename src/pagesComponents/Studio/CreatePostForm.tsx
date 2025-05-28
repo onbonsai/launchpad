@@ -21,6 +21,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 type CreatePostProps = {
   template: Template;
@@ -35,11 +36,17 @@ type CreatePostProps = {
   isGeneratingPreview: boolean;
   setIsGeneratingPreview: (b: boolean) => void;
   roomId?: string;
-  postAudio?: any;
-  setPostAudio: (i: any) => void;
+  postAudio?: File | null | string;
+  setPostAudio: (i: File | null) => void;
   audioStartTime?: number;
   setAudioStartTime: (t: number) => void;
   tooltipDirection?: "right" | "top" | "left" | "bottom";
+  remixToken?: {
+    address: string;
+    symbol: string;
+    chain: string;
+  };
+  remixPostId?: string;
 };
 
 const CreatePostForm = ({
@@ -60,11 +67,13 @@ const CreatePostForm = ({
   audioStartTime,
   setAudioStartTime,
   tooltipDirection,
+  remixToken,
+  remixPostId,
 }: CreatePostProps) => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
-  const { openTopUpModal } = useTopUpModal();
+  const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
+  const { openTopUpModal, openSwapToGenerateModal } = useTopUpModal();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
@@ -91,9 +100,25 @@ const CreatePostForm = ({
   }
 
   const _generatePreview = async () => {
-    if ((creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 0)) {
-      toast.error(`Insufficient AI credits. Missing ${(template.estimatedCost || 0) - (creditBalance?.creditsRemaining || 0)} credits`);
-      openTopUpModal("api-credits");
+    const { data: _creditBalance } = await refetchCredits();
+    const creditsNeeded = template.estimatedCost || 0;
+    const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
+
+    if (!hasEnoughCredits) {
+      // For remix, show the swap modal instead
+      const _token = remixToken || {
+        symbol: "BONSAI",
+        address: PROTOCOL_DEPLOYMENT[chain?.network.startsWith("lens") ? "lens" : "base"].Bonsai,
+        chain: chain?.network.startsWith("lens") ? "lens" : "base",
+      }
+      openSwapToGenerateModal({
+        token: _token,
+        postId: remixPostId,
+        creditsNeeded: creditsNeeded,
+        onSuccess: () => {
+          _generatePreview();
+        }
+      });
       return;
     }
 
@@ -251,8 +276,9 @@ const CreatePostForm = ({
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
           {template.options.allowPreview && (
             <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-              Generate
-              {template.estimatedCost && <span className="ml-1">{`(~${template.estimatedCost.toFixed(2)} credits)`}</span>}
+              {
+                (creditBalance?.creditsRemaining || 0) >= (template.estimatedCost || 0) ? `Generate (~${(template.estimatedCost || 0).toFixed(2)} credits)` : `Swap to Generate`
+              }
             </Button>
           )}
           <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
@@ -312,7 +338,7 @@ const DynamicForm = ({
   selectedNFT?: AlchemyNFTMetadata;
   setSelectedNFT: (s: AlchemyNFTMetadata) => void;
   loadRemixNFT?: NFTMetadata;
-  postAudio?: File | null;
+  postAudio?: string | File | null;
   setPostAudio: (i: File | null) => void;
   audioStartTime: number;
   setAudioStartTime: (t: number) => void;

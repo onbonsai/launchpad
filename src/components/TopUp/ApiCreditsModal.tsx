@@ -14,6 +14,7 @@ import { CreditCardIcon } from "@heroicons/react/outline";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { switchChain } from "viem/actions";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import axios from "axios";
 
 interface TopUpOption {
   credits: number;
@@ -212,18 +213,12 @@ export const ApiCreditsModal = () => {
 
   const updateCredits = async (txHash: `0x${string}`) => {
     try {
-      const response = await fetch("/api/credits/purchase", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          txHash,
-          chain: isMiniApp ? "base" : "lens",
-        }),
+      const response = await axios.post("/api/credits/purchase", {
+        txHash,
+        chain: isMiniApp ? "base" : "lens",
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error("Failed to update credits");
       }
 

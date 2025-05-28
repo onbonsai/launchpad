@@ -9,6 +9,7 @@ import { TemplateSuggestions } from './TemplateSuggestions';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import RemixForm from './RemixForm';
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
+import { useTopUpModal } from '@src/context/TopUpContext';
 
 type PremadeChatInputProps = {
   label: string;
@@ -91,7 +92,7 @@ export type ChatInputProps = {
   handleSubmit: (e: React.FormEvent) => void;
   userInput: string;
   setUserInput: (input: string) => void;
-  handleKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleKeyPress: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   disabled?: boolean;
   attachment?: File;
   setAttachment: (file?: File) => void;
@@ -157,6 +158,7 @@ export default function ChatInput({
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const remixTemplate = remixMedia ? templates?.find((t) => t.name === remixMedia?.template) : undefined;
+  const { openSwapToGenerateModal } = useTopUpModal();
 
   // Focus input on mount
   useEffect(() => {
@@ -256,16 +258,24 @@ export default function ChatInput({
             )}
             {!showRemixForm && !isGeneratingPreview && (
               <div className="relative">
-                <input
-                  ref={textareaRef}
-                  type="text"
-                  value={userInput}
-                  onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
-                  className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
-                  placeholder={dynamicPlaceholder}
-                  disabled={disabled || isGeneratingPreview}
-                />
+                {disabled && placeholder === "Insufficient credits" ? 
+                  <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
+                    creditsNeeded: 10,
+                    onSuccess: () => null,
+                  })}>
+                    Swap to continue
+                  </Button> :
+                  <input
+                    ref={textareaRef}
+                    type="text"
+                    value={userInput}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
+                    placeholder={dynamicPlaceholder}
+                    disabled={disabled || isGeneratingPreview}
+                  />
+                }
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
                   {requireAttachment && (
                     <AttachmentButton attachment={attachment} setAttachment={setAttachment} />

@@ -30,22 +30,14 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       }
     };
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowTooltip(false);
-      }
-    };
-
     // If the tooltip is visible, add the event listener
     if (showTooltip) {
       document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("mousedown", handleClickOutside);
     }
 
     // Cleanup function to remove the event listener
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showTooltip]);
 
