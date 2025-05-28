@@ -199,6 +199,7 @@ export const generatePreview = async (
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
       body: formData,
+      signal: AbortSignal.timeout(120000) // 2 minutes instead of default ~15s
     });
 
     if (!response.ok) {

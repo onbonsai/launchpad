@@ -39,7 +39,7 @@ type MemoryPreview = Memory & {
 
 type MessageContentPreview = {
   image?: string;
-  video?: string;
+  video?: string | { url?: string; blob?: Blob; mimeType?: string };
   agentId?: string;
 }
 
@@ -120,21 +120,6 @@ export default function PreviewHistory({
     return () => clearTimeout(timeoutId);
   }, [sortedMessages.length]); // Only depend on length changes
 
-  // Handle scroll containment
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      container.scrollTop += e.deltaY;
-    };
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
-  }, []);
-
   // Center the selected publication when it changes
   useEffect(() => {
     if (selectedPublicationRef.current && containerRef.current && currentPreview) {
@@ -160,77 +145,70 @@ export default function PreviewHistory({
 
   if (isFinalize) {
     return (
-      <div className="space-y-8" role="log" aria-live="polite">
-        <Publication
-          key={`preview`}
-          publicationData={{
-            author: authenticatedProfile,
-            timestamp: Date.now(),
-            metadata: {
-              __typename: currentPreview?.video
-                ? "VideoMetadata"
-                : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
-              content: currentPreview?.text,
-              video: currentPreview?.video
-                ? {
-                    item: typeof currentPreview.video === "string" ? currentPreview.video : currentPreview.video?.url,
-                    cover: currentPreview.image
-                  }
-                : undefined,
-              image: currentPreview?.imagePreview || currentPreview?.image
-                ? { item: currentPreview?.imagePreview || currentPreview.image }
-                : postImage?.length
-                ? postImage[0].preview
-                : undefined
-            }
-          }}
-          theme={Theme.dark}
-          followButtonDisabled={true}
-          environment={LENS_ENVIRONMENT}
-          profilePictureStyleOverride={publicationProfilePictureStyle}
-          containerBorderRadius={'24px'}
-          containerPadding={'10px'}
-          profilePadding={'0 0 0 0'}
-          textContainerStyleOverride={textContainerStyleOverrides}
-          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-          mediaImageStyleOverride={mediaImageStyleOverride}
-          imageContainerStyleOverride={imageContainerStyleOverride}
-          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-          reactionContainerStyleOverride={reactionContainerStyleOverride}
-          shareContainerStyleOverride={shareContainerStyleOverride}
-          markdownStyleBottomMargin={'0'}
-          heartIconOverride={true}
-          messageIconOverride={true}
-          shareIconOverride={true}
-          fullVideoHeight
-        />
+      <div className={`w-full ${className || 'h-96'}`}>
+        <div className="h-full w-full overflow-y-auto overflow-x-hidden">
+          <div className="space-y-8 p-4" role="log" aria-live="polite">
+            <Publication
+              key={`preview`}
+              publicationData={{
+                author: authenticatedProfile,
+                timestamp: Date.now(),
+                metadata: {
+                  __typename: currentPreview?.video
+                    ? "VideoMetadata"
+                    : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
+                  content: currentPreview?.text,
+                  video: currentPreview?.video
+                    ? {
+                        item: typeof currentPreview.video === "string" ? currentPreview.video : (currentPreview.video as any)?.url,
+                        cover: currentPreview.image
+                      }
+                    : undefined,
+                  image: currentPreview?.imagePreview || currentPreview?.image
+                    ? { item: currentPreview?.imagePreview || currentPreview.image }
+                    : postImage?.length
+                    ? postImage[0].preview
+                    : undefined
+                }
+              }}
+              theme={Theme.dark}
+              followButtonDisabled={true}
+              environment={LENS_ENVIRONMENT}
+              profilePictureStyleOverride={publicationProfilePictureStyle}
+              containerBorderRadius={'24px'}
+              containerPadding={'10px'}
+              profilePadding={'0 0 0 0'}
+              textContainerStyleOverride={textContainerStyleOverrides}
+              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+              mediaImageStyleOverride={mediaImageStyleOverride}
+              imageContainerStyleOverride={imageContainerStyleOverride}
+              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+              reactionContainerStyleOverride={reactionContainerStyleOverride}
+              shareContainerStyleOverride={shareContainerStyleOverride}
+              markdownStyleBottomMargin={'0'}
+              heartIconOverride={true}
+              messageIconOverride={true}
+              shareIconOverride={true}
+              fullVideoHeight
+            />
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className={`relative flex h-full w-full flex-col ${className}`}>
+    <div className={`w-full ${className || 'h-96'}`}>
       <div
         ref={containerRef}
-        className="relative flex grow flex-col overflow-y-auto py-[1vh] px-2 sm:px-4 focus:outline-none isolate"
-        tabIndex={0}
-        onScroll={(e) => {
-          e.stopPropagation();
-        }}
-        onMouseEnter={() => {
-          document.body.style.overflow = 'hidden';
-        }}
-        onMouseLeave={() => {
-          document.body.style.overflow = 'auto';
-        }}
-        onTouchStart={() => {
-          document.body.style.overflow = 'hidden';
-        }}
-        onTouchEnd={() => {
-          document.body.style.overflow = 'auto';
+        className="h-full w-full overflow-y-auto overflow-x-hidden"
+        style={{
+          scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain',
+          maxHeight: '100%'
         }}
       >
-        <div className="space-y-8" role="log" aria-live="polite">
+        <div className="space-y-8 p-2 sm:p-4" role="log" aria-live="polite">
           {sortedMessages.map((message: MemoryPreview, index) => {
             if (!message.isAgent) return null; // not showing the user inputs, only previews
             if (index > 1 && message.agentId === sortedMessages[index - 2].agentId) return null; // HACK: when messages are fetched on the first try
@@ -259,7 +237,7 @@ export default function PreviewHistory({
                       content,
                       video: preview?.video
                         ? {
-                            item: typeof preview.video === "string" ? preview.video : preview.video?.url,
+                            item: typeof preview.video === "string" ? preview.video : (preview.video as any)?.url,
                             cover: preview.image
                           }
                         : undefined,
@@ -296,45 +274,21 @@ export default function PreviewHistory({
             )
           })}
           {isGeneratingPreview && (
-            <div className="mt-4">
-              <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-[24px] p-4">
-                <div className="flex flex-col items-center gap-4">
-                  <div>
-                    <AnimatedBonsaiGrid />
-                  </div>
-                  <div className="w-full">
-                    <AnimatedText
-                      lines={[
-                        "Generating preview...",
-                        "Sending content prompt to LLM...",
-                        "Analyzing context and tone...",
-                        "Processing language model response...",
-                        "Enhancing semantic structure...",
-                        "Refining writing style...",
-                        "Optimizing content flow...",
-                        "Applying creative improvements...",
-                        "Running final quality checks...",
-                        "Finalizing your masterpiece..."
-                      ]}
-                      duration={60}
-                      className="text-lg text-white/70"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div className="flex flex-col items-center mt-4">
+              <AnimatedBonsaiGrid />
             </div>
           )}
         </div>
 
-        <div className="mt-4 flex items-center text-[#ffffff] opacity-70 h-2">
-          {isFetchingNextPage && (
-            <span className="max-w-full font-mono ml-2">
+        {isFetchingNextPage && (
+          <div className="flex items-center justify-center text-[#ffffff] opacity-70 p-4">
+            <span className="max-w-full font-mono">
               Loading more...
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="" ref={bottomRef} />
+        <div ref={bottomRef} />
       </div>
     </div>
   );

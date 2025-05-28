@@ -90,15 +90,15 @@ const getBonsaiShape = (): Point[] => {
 }
 
 export default function AnimatedBonsaiGrid({
-  width = 320,
-  height = 320,
+  width = 480,
+  height = 480,
   gridSize = 40,
-  dotSizes = { bonsai: 6, background: 4 },
+  dotSizes = { bonsai: 8, background: 3 },
   colors = {
     bonsai: "#C6FFD9",
     background: ["#B8D9C5", "#4D7F79", "#9DC4D5"],
   },
-  backgroundDensity = 0.1,
+  backgroundDensity = 0.15,
   className = "",
 }: AnimatedBonsaiGridProps) {
   const [dots, setDots] = useState<
@@ -108,6 +108,8 @@ export default function AnimatedBonsaiGrid({
       baseOpacity: number
       color: string
       isBonsai: boolean
+      animationDelay: number
+      size: number
     }[]
   >([])
 
@@ -119,25 +121,29 @@ export default function AnimatedBonsaiGrid({
       baseOpacity: number
       color: string
       isBonsai: boolean
+      animationDelay: number
+      size: number
     }[] = []
     const bonsaiShape = getBonsaiShape()
 
-    // Only create dots for the bonsai shape
-    bonsaiShape.forEach(({ x, y }) => {
+    // Add bonsai shape dots
+    bonsaiShape.forEach(({ x, y }, index) => {
       newDots.push({
         x,
         y,
-        baseOpacity: 0.6,
+        baseOpacity: 0.8,
         color: colors.bonsai,
         isBonsai: true,
+        animationDelay: (index * 0.1) % 4,
+        size: dotSizes.bonsai,
       })
     })
 
     setDots(newDots)
-  }, [colors.bonsai])
+  }, [colors.bonsai, dotSizes.bonsai])
 
   // Calculate the scale factor based on the width and gridSize
-  const scaleFactor = typeof width === "number" ? width / gridSize : 8
+  const scaleFactor = typeof width === "number" ? width / gridSize : 12
 
   return (
     <div
@@ -148,25 +154,30 @@ export default function AnimatedBonsaiGrid({
       }}
     >
       <style jsx>{`
-        @keyframes pulse {
+        @keyframes bonsaiPulse {
           0% {
-            opacity: 0.7;
+            opacity: 0.8;
+            transform: scale(1);
             background-color: #C6FFD9;
           }
           25% {
-            opacity: 0.9;
+            opacity: 1;
+            transform: scale(1.1);
             background-color: #5BE39D;
           }
           50% {
-            opacity: 0.7;
+            opacity: 0.8;
+            transform: scale(1);
             background-color: #B8D9C5;
           }
           75% {
-            opacity: 0.9;
+            opacity: 1;
+            transform: scale(1.05);
             background-color: #9DC4D5;
           }
           100% {
-            opacity: 0.7;
+            opacity: 0.8;
+            transform: scale(1);
             background-color: #C6FFD9;
           }
         }
@@ -175,15 +186,16 @@ export default function AnimatedBonsaiGrid({
       {dots.map((dot, index) => (
         <div
           key={index}
-          className="absolute rounded-full z-10"
+          className="absolute rounded-full"
           style={{
             left: `${dot.x * scaleFactor}px`,
             top: `${dot.y * scaleFactor}px`,
-            width: `${dotSizes.bonsai}px`,
-            height: `${dotSizes.bonsai}px`,
-            opacity: 0.7,
-            animation: 'pulse 4s infinite',
-            animationTimingFunction: 'ease-in-out',
+            width: `${dot.size}px`,
+            height: `${dot.size}px`,
+            backgroundColor: dot.color,
+            opacity: dot.baseOpacity,
+            animation: `bonsaiPulse 4s infinite ease-in-out ${dot.animationDelay}s`,
+            zIndex: 10,
           }}
         />
       ))}
