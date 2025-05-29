@@ -15,17 +15,17 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useGetPostsByAuthor } from "@src/services/lens/posts"
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner"
 import { useRouter } from "next/router"
+import { CashIcon } from "@heroicons/react/solid"
 
 interface MenuItem {
   icon?: any;
   label: string;
   href: string;
-  href2?: string;
   disabled: boolean;
 }
 
 const mobileMenuItems: MenuItem[] = [
-  { label: "Studio", href: "/studio/create", href2: "/studio", disabled: false },
+  { label: "Create", href: "/studio/create", disabled: false },
   { label: "Stake", href: "/studio/stake", disabled: false },
 ];
 
@@ -40,7 +40,7 @@ const MobileNavigation = () => {
           key={item.label}
           href={item.disabled ? "#" : item.href}
           className={`flex-1 py-2 px-4 rounded-lg text-center ${
-            currentPath === item.href || (!!item.href2 && currentPath === item.href2) ? 'bg-white text-true-black' : 'bg-transparent'
+            currentPath === item.href ? 'bg-white text-true-black' : 'bg-transparent'
           }`}
           onClick={e => {
             if (item.disabled) {
@@ -72,9 +72,9 @@ const StudioSidebar = () => {
   const profileDisabled = !authenticatedProfile?.username?.localName;
 
   const menuItems: MenuItem[] = [
-    { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Studio", href: "/studio/create", disabled: false },
+    { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Create", href: "/studio/create", disabled: false },
     { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
-    { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Stake Bonsai", href: "/studio/stake", disabled: false },
+    { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Stake", href: "/studio/stake", disabled: false },
   ]
 
   return (
@@ -113,11 +113,14 @@ const StudioSidebar = () => {
         <div className="">
           <div className="space-y-6 px-2">
             <div>
-              <Header2 className="text-lg font-medium opacity-80">Staked</Header2>
+              <Header2 className="text-lg font-medium opacity-80 !text-brand-highlight">Staked</Header2>
               <p className="text-sm text-secondary/90 mt-2">{kFormatter(totalStaked)} $BONSAI</p>
             </div>
             <div>
-              <Header2 className="text-lg font-medium opacity-80">Capacity Today</Header2>
+              <Header2 className="flex flex-row text-lg font-medium opacity-80 !text-brand-highlight">
+                <CashIcon className="h-5 w-5 mt-1 mr-1" />
+                Capacity Today
+              </Header2>
               <p className="text-sm text-secondary/90 mt-2">
                 {(creditBalance?.creditsRemaining || 0).toFixed(2)} /
                 <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0}</span> credits
@@ -130,7 +133,7 @@ const StudioSidebar = () => {
 
         {/* Recent Posts */}
         <div className="">
-          <Header2 className="text-lg font-medium opacity-80 px-2">Recent Posts</Header2>
+          <Header2 className="text-lg font-medium opacity-80 px-2 !text-brand-highlight">Recent Posts</Header2>
           {isLoadingPosts && <div className="flex justify-center mt-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
           <nav className="mt-2 space-y-2">
             {posts?.map((post) => (

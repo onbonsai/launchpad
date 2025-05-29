@@ -17,7 +17,9 @@ type PreviewHistoryProps = {
   templateUrl?: string;
   className?: string;
   roomId?: string;
+  postContent?: string;
   setFinalTemplateData: (t: any) => void;
+  setPrompt: (s: string) => void;
   localPreviews: Array<{
     agentId?: string;
     isAgent: boolean;
@@ -51,6 +53,8 @@ export default function PreviewHistory({
   roomId,
   templateUrl,
   setFinalTemplateData,
+  setPrompt,
+  postContent,
   localPreviews,
   isFinalize,
   postImage,
@@ -157,7 +161,7 @@ export default function PreviewHistory({
                   __typename: currentPreview?.video
                     ? "VideoMetadata"
                     : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
-                  content: currentPreview?.text,
+                  content: postContent || currentPreview?.text,
                   video: currentPreview?.video
                     ? {
                         item: typeof currentPreview.video === "string" ? currentPreview.video : (currentPreview.video as any)?.url,
@@ -268,6 +272,7 @@ export default function PreviewHistory({
                   onClick={message.isAgent ? () => {
                     setFinalTemplateData(templateData);
                     setCurrentPreview(preview as Preview);
+                    setPrompt(content || '');
                   } : undefined}
                 />
               </div>

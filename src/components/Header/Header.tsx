@@ -174,7 +174,7 @@ export const Header = () => {
             <div className="flex items-center justify-end md:w-[40%] w-full">
               {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
               <div className="hidden sm:flex items-center gap-2 mr-2">
-                <Link href="/studio" onClick={handleAuthRequiredClick}>
+                <Link href="/studio/create" onClick={handleAuthRequiredClick}>
                   <Button variant="accentBrand" size="md" className="text-base font-bold md:px-6 rounded-lg">
                     Create
                   </Button>

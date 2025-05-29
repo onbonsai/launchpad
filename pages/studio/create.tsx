@@ -34,10 +34,11 @@ import type { TokenData } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
 import { storageClient } from "@src/services/lens/client";
+import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId, remixVersion: remixVersionQuery } = router.query;
+  const { remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -48,6 +49,7 @@ const StudioCreatePage: NextPage = () => {
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
   const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
@@ -55,6 +57,7 @@ const StudioCreatePage: NextPage = () => {
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
+  const [template, setTemplate] = useState<Template>();
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
@@ -91,18 +94,6 @@ const StudioCreatePage: NextPage = () => {
     args: [address as `0x${string}`],
   });
 
-  const template = useMemo(() => {
-    if (!isMounted || isLoading) return;
-
-    if (!templateName) router.push('/studio');
-
-    const res = registeredTemplates?.find(({ name }) => name === templateName);
-
-    if (!res) router.push('/studio');
-
-    return res;
-  }, [templateName, isMounted, isLoading]);
-
   const checkReferralStatus = async (address: string) => {
     try {
       const response = await axios.get(`/api/referrals/status?address=${address}`);
@@ -138,6 +129,12 @@ const StudioCreatePage: NextPage = () => {
       }
     }
   }, [isLoading, remixMedia]);
+
+  useEffect(() => {
+    if (!isLoadingRegisteredTemplates && registeredTemplates) {
+      setTemplate(registeredTemplates[0]);
+    }
+  }, [isLoadingRegisteredTemplates]);
 
   const handleSetPreview = (preview: Preview) => {
     setCurrentPreview(preview);
@@ -543,7 +540,7 @@ const StudioCreatePage: NextPage = () => {
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh] w-full overflow-x-hidden">
+    <div className="bg-background text-secondary min-h-[90vh] w-full">
       <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
           {isMobile ? (
@@ -594,6 +591,8 @@ const StudioCreatePage: NextPage = () => {
                           setPreview={handleSetPreview}
                           postContent={postContent}
                           setPostContent={setPostContent}
+                          prompt={prompt}
+                          setPrompt={setPrompt}
                           postImage={postImage}
                           setPostImage={setPostImage}
                           next={(templateData) => {
@@ -647,6 +646,7 @@ const StudioCreatePage: NextPage = () => {
                         roomId={queryRoomId as string}
                         templateUrl={template?.apiUrl}
                         setFinalTemplateData={setFinalTemplateData}
+                        setPrompt={setPrompt}
                         localPreviews={localPreviews}
                         isFinalize={openTab > 1}
                         postImage={postImage}
@@ -663,32 +663,8 @@ const StudioCreatePage: NextPage = () => {
                 <Sidebar />
               </div>
               <div className="flex-grow">
-                {/* Header Card */}
-                <div className="bg-card rounded-lg p-4 sm:p-6">
-                  <div className="flex items-start gap-4">
-                    <Link
-                      href="/studio"
-                      className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
-                    >
-                      <ArrowBack className="h-5 w-5" />
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                        <h2 className="text-xl sm:text-2xl font-semibold text-secondary truncate">{template?.displayName}</h2>
-                        {template?.estimatedCost && (
-                          <span className="flex items-center text-sm sm:text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1 w-fit">
-                            <CashIcon className="h-4 w-4 mr-2" />
-                            ~{template.estimatedCost.toFixed(2)} credits
-                          </span>
-                        )}
-                      </div>
-                      <Subtitle className="items-start text-base sm:text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Form Card */}
-                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10 mt-6">
+                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-6 lg:gap-x-8 w-full">
                     <div className="lg:col-span-1">
                       <div className="mb-6 lg:mb-0">
@@ -697,27 +673,35 @@ const StudioCreatePage: NextPage = () => {
                         </div>
                       </div>
                       {openTab === 1 && template && (
-                        <CreatePostForm
-                          template={template as Template}
-                          preview={currentPreview}
-                          finalTemplateData={finalTemplateData}
-                          setPreview={handleSetPreview}
-                          postContent={postContent}
-                          setPostContent={setPostContent}
-                          postImage={postImage}
-                          setPostImage={setPostImage}
-                          next={(templateData) => {
-                            setFinalTemplateData(templateData);
-                            setOpenTab(addToken ? 2 : 3);
-                          }}
-                          isGeneratingPreview={isGeneratingPreview}
-                          setIsGeneratingPreview={setIsGeneratingPreview}
-                          roomId={roomId as string}
-                          postAudio={postAudio}
-                          setPostAudio={setPostAudio}
-                          audioStartTime={audioStartTime}
-                          setAudioStartTime={setAudioStartTime}
-                        />
+                        <>
+                          <TemplateSelector
+                            selectedTemplate={template}
+                            onTemplateSelect={setTemplate}
+                          />
+                          <CreatePostForm
+                            template={template as Template}
+                            preview={currentPreview}
+                            finalTemplateData={finalTemplateData}
+                            setPreview={handleSetPreview}
+                            postContent={postContent}
+                            setPostContent={setPostContent}
+                            prompt={prompt}
+                            setPrompt={setPrompt}
+                            postImage={postImage}
+                            setPostImage={setPostImage}
+                            next={(templateData) => {
+                              setFinalTemplateData(templateData);
+                              setOpenTab(addToken ? 2 : 3);
+                            }}
+                            isGeneratingPreview={isGeneratingPreview}
+                            setIsGeneratingPreview={setIsGeneratingPreview}
+                            roomId={roomId as string}
+                            postAudio={postAudio}
+                            setPostAudio={setPostAudio}
+                            audioStartTime={audioStartTime}
+                            setAudioStartTime={setAudioStartTime}
+                          />
+                        </>
                       )}
                       {openTab === 2 && (
                         <CreateTokenForm
@@ -757,6 +741,8 @@ const StudioCreatePage: NextPage = () => {
                         roomId={queryRoomId as string}
                         templateUrl={template?.apiUrl}
                         setFinalTemplateData={setFinalTemplateData}
+                        setPrompt={setPrompt}
+                        postContent={postContent}
                         localPreviews={localPreviews}
                         isFinalize={openTab > 1}
                         postImage={postImage}

@@ -1,18 +1,21 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 import imageCompression from "browser-image-compression";
+import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
+import { enhancePrompt } from "@src/services/madfi/studio";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
-import { InfoOutlined } from "@mui/icons-material";
+import { InfoOutlined, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { generatePreview, MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
 import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
 import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
@@ -31,6 +34,8 @@ type CreatePostProps = {
   finalTemplateData?: any;
   postContent?: string;
   setPostContent: (s: string) => void;
+  prompt?: string;
+  setPrompt: (s: string) => void;
   postImage?: any;
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
@@ -49,6 +54,30 @@ type CreatePostProps = {
   remixPostId?: string;
 };
 
+function getBaseZodType(field: any) {
+  let current = field;
+  while (
+    current instanceof z.ZodOptional ||
+    current instanceof z.ZodNullable
+  ) {
+    current = current._def.innerType;
+  }
+  return current;
+}
+
+const useAutoGrow = (value: string) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return textareaRef;
+};
+
 const CreatePostForm = ({
   template,
   preview,
@@ -57,6 +86,8 @@ const CreatePostForm = ({
   finalTemplateData,
   postContent,
   setPostContent,
+  prompt,
+  setPrompt,
   postImage,
   setPostImage,
   isGeneratingPreview,
@@ -77,6 +108,11 @@ const CreatePostForm = ({
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhancedText, setEnhancedText] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
+  const textareaRef = useAutoGrow(prompt || '');
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -86,8 +122,8 @@ const CreatePostForm = ({
 
   const isValid = () => {
     try {
-      template.templateData.form.parse(templateData);
-      if (template.options?.requireContent && !postContent) return false;
+      if (!prompt) template.templateData.form.parse(templateData);
+      // if (template.options?.requireContent && !postContent) return false;
       if (template.options?.imageRequirement === MediaRequirement.REQUIRED && !postImage?.length) return false;
       if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT) return false;
       if (template.options?.audioRequirement === MediaRequirement.REQUIRED && !postAudio) return false;
@@ -99,17 +135,27 @@ const CreatePostForm = ({
     return false;
   }
 
+  const estimatedCost = useMemo(() => {
+    let credits = template.estimatedCost || 0;
+    if (!!templateData.enableVideo) {
+      credits += 50; // HACK: this depends on the default model we use in the backend
+    }
+
+    return credits;
+  }, [template.estimatedCost, templateData.enableVideo]);
+
   const _generatePreview = async () => {
     const { data: _creditBalance } = await refetchCredits();
-    const creditsNeeded = template.estimatedCost || 0;
+    const creditsNeeded = estimatedCost || 0;
     const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
 
     if (!hasEnoughCredits) {
-      // For remix, show the swap modal instead
+      // For remix, show the swap modal instead - fix chain.network to chain.name
+      const chainIdentifier = chain?.name?.toLowerCase().includes("lens") ? "lens" : "base";
       const _token = remixToken || {
         symbol: "BONSAI",
-        address: PROTOCOL_DEPLOYMENT[chain?.network.startsWith("lens") ? "lens" : "base"].Bonsai,
-        chain: chain?.network.startsWith("lens") ? "lens" : "base",
+        address: PROTOCOL_DEPLOYMENT[chainIdentifier].Bonsai,
+        chain: chainIdentifier,
       }
       openSwapToGenerateModal({
         token: _token,
@@ -176,11 +222,18 @@ const CreatePostForm = ({
         }
       }
 
+      // Fix audio type issue - only pass if it's a File
+      const audioParam = template.options?.audioRequirement !== MediaRequirement.NONE && postAudio && postAudio instanceof File ? {
+        file: postAudio,
+        startTime: audioStartTime || 0
+      } : undefined;
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
         templateData,
+        prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
         !!selectedNFT ? {
@@ -194,10 +247,7 @@ const CreatePostForm = ({
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
         roomId,
-        template.options?.audioRequirement !== MediaRequirement.NONE && postAudio ? {
-          file: postAudio,
-          startTime: audioStartTime || 0
-        } : undefined
+        audioParam
       );
 
       if (!res) throw new Error("No result from generatePreview");
@@ -208,7 +258,7 @@ const CreatePostForm = ({
       // Set both the template data and preview
       setPreview({
         ...preview,
-        text: preview.text || postContent,
+        text: preview.text || prompt || postContent,
         agentId,
         roomId: newRoomId,
         templateData,
@@ -223,10 +273,63 @@ const CreatePostForm = ({
     }
   }
 
+  const _enhancePrompt = async () => {
+    if (!prompt) {
+      toast.error("Please enter a prompt first");
+      return;
+    }
+
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) return;
+
+    const creds = await sessionClient.getCredentials();
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+      return;
+    }
+
+    setIsEnhancing(true);
+    let toastId = toast.loading("Enhancing your prompt...");
+
+    try {
+      const enhanced = await enhancePrompt(template.apiUrl, idToken, template, prompt);
+      if (!enhanced) throw new Error("No enhanced prompt returned");
+
+      // Start animation
+      setIsAnimating(true);
+      setEnhancedText(enhanced);
+
+      // Animate the text word by word
+      const words = enhanced.split(' ');
+      let currentText = '';
+
+      for (let i = 0; i < words.length; i++) {
+        currentText += (i === 0 ? '' : ' ') + words[i];
+        setPrompt(currentText);
+        await new Promise(resolve => setTimeout(resolve, 50)); // Adjust speed as needed
+      }
+
+      toast.success("Prompt enhanced!", { id: toastId });
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to enhance prompt", { id: toastId });
+      } else {
+        toast.error("Failed to enhance prompt", { id: toastId });
+      }
+    } finally {
+      setIsEnhancing(false);
+      setIsAnimating(false);
+    }
+  };
+
   const handleNext = () => {
-    if ((postContent || (postImage?.length && !preview?.image))) {
+    if ((prompt || postContent || (postImage?.length && !preview?.image))) {
       setPreview({
-        text: postContent || "",
+        text: prompt || postContent || "",
         image: postImage?.length ? postImage[0] : preview?.image,
         imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
         video: preview?.video,
@@ -238,46 +341,117 @@ const CreatePostForm = ({
 
   const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
+  // Count how many form fields there are to show in the drawer header
+  const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
+  const availableFields = Object.keys(shape).filter(key => {
+    if (key === 'modelId' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) return false;
+    if (key === 'stylePreset' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) return false;
+    return true;
+  });
+
+  const totalOptions = [
+    template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE,
+    template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
+    template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
+    ...availableFields
+  ].filter(Boolean).length;
+
   return (
     <form
-      className="mt-5 mx-auto md:w-[2/3] w-full space-y-4 divide-y divide-dark-grey"
+      className="mx-auto md:w-[2/3] w-full space-y-4"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="space-y-2">
-        <div className="grid grid-cols-1 gap-y-5 gap-x-8">
-          {
-            isLoadingVeniceImageOptions
-              ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
-              : <DynamicForm
-                template={template}
-                templateData={templateData}
-                setTemplateData={setTemplateData}
-                sharedInputClasses={sharedInputClasses}
-                veniceImageOptions={veniceImageOptions}
-                postContent={postContent}
-                setPostContent={setPostContent}
-                postImage={postImage}
-                setPostImage={setPostImage}
-                selectedAspectRatio={selectedAspectRatio}
-                setSelectedAspectRatio={setSelectedAspectRatio}
-                selectedNFT={selectedNFT}
-                setSelectedNFT={setSelectedNFT}
-                loadRemixNFT={finalTemplateData?.nft}
-                postAudio={postAudio}
-                setPostAudio={setPostAudio}
-                audioStartTime={audioStartTime || 0}
-                setAudioStartTime={setAudioStartTime}
-                tooltipDirection={tooltipDirection}
-              />
-          }
+        {/* Main Prompt Input */}
+        <div className="relative">
+          <div className="flex flex-col">
+            <textarea
+              ref={textareaRef}
+              placeholder="What do you want to create?"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className={`${sharedInputClasses} w-full min-h-[50px] p-4 resize-none`}
+            />
+            <div className="flex self-end -mt-8 mr-2 w-[32px]">
+              <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
+                <button
+                  type="button"
+                  onClick={_enhancePrompt}
+                  disabled={isEnhancing || isAnimating || !prompt}
+                  className="p-1 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
+                >
+                  <MagicWandIcon sx={{ fontSize: 16 }} />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
+
+        {/* Collapsible Options Drawer */}
+        {totalOptions > 0 && (
+          <div className="bg-card-light rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-grey/20 transition-colors duration-200 text-left"
+            >
+              <div className="flex items-center gap-4">
+                <Subtitle className="text-white/80">
+                  <TuneIcon className="h-4 w-4 mr-4" />
+                  Advanced
+                </Subtitle>
+              </div>
+              {isDrawerExpanded ? (
+                <ExpandLess className="h-5 w-5 text-white/60" />
+              ) : (
+                <ExpandMore className="h-5 w-5 text-white/60" />
+              )}
+            </button>
+
+            <div
+              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                isDrawerExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30">
+                {
+                  isLoadingVeniceImageOptions
+                    ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+                    : <DynamicForm
+                      template={template}
+                      templateData={templateData}
+                      setTemplateData={setTemplateData}
+                      sharedInputClasses={sharedInputClasses}
+                      veniceImageOptions={veniceImageOptions}
+                      postContent={postContent}
+                      setPostContent={setPostContent}
+                      postImage={postImage}
+                      setPostImage={setPostImage}
+                      selectedAspectRatio={selectedAspectRatio}
+                      setSelectedAspectRatio={setSelectedAspectRatio}
+                      selectedNFT={selectedNFT}
+                      setSelectedNFT={setSelectedNFT}
+                      loadRemixNFT={finalTemplateData?.nft}
+                      postAudio={postAudio}
+                      setPostAudio={setPostAudio}
+                      audioStartTime={audioStartTime || 0}
+                      setAudioStartTime={setAudioStartTime}
+                      tooltipDirection={tooltipDirection}
+                    />
+                }
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="pt-4 flex flex-col gap-2 justify-center items-center">
           {template.options.allowPreview && (
             <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
               {
-                (creditBalance?.creditsRemaining || 0) >= (template.estimatedCost || 0) ? `Generate (~${(template.estimatedCost || 0).toFixed(2)} credits)` : `Swap to Generate`
+                (creditBalance?.creditsRemaining || 0) >= (estimatedCost) ? `Generate (~${estimatedCost.toFixed(2)} credits)` : `Swap to Generate`
               }
             </Button>
           )}
@@ -406,7 +580,7 @@ const DynamicForm = ({
   return (
     <div className="space-y-4">
       {/* Post content */}
-      {template.options?.requireContent && (
+      {template.options?.requireContent && postContent !== undefined && (
         <div className="space-y-2">
           <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
           <textarea
@@ -526,8 +700,8 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
-              (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
+            ) : getBaseZodType(field) instanceof z.ZodString ? (
+              (getBaseZodType(field)._def.checks?.some(check => check.kind === 'max')) ? (
                 <div className="relative">
                   <input
                     type="text"
@@ -535,11 +709,11 @@ const DynamicForm = ({
                     value={templateData[key] || ''}
                     onChange={(e) => updateField(key, e.target.value || undefined)}
                     className={`${sharedInputClasses} w-full p-3 !focus:none pr-20`}
-                    maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                    maxLength={getBaseZodType(field)._def.checks.find(check => check.kind === 'max')?.value}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">
                     {(templateData[key] || '').length} /{" "}
-                    {(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                    {getBaseZodType(field)._def.checks.find(check => check.kind === 'max')?.value}
                   </div>
                 </div>
               ) : (
@@ -551,28 +725,26 @@ const DynamicForm = ({
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )
-            ) : field instanceof z.ZodNumber && (
+            ) : getBaseZodType(field) instanceof z.ZodNumber ? (
               <input
                 type="number"
                 value={templateData[key] || ''}
                 onChange={(e) => updateField(key, parseFloat(e.target.value))}
                 className={`${sharedInputClasses} w-full p-3`}
               />
-            )}
-
-            {field instanceof z.ZodBoolean && (
+            ) : getBaseZodType(field) instanceof z.ZodBoolean ? (
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={templateData[key] || false}
                   onChange={(e) => updateField(key, e.target.checked)}
-                  className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-brand-highlight"
+                  className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-0 focus:outline-none"
                 />
                 <label className="ml-2 text-sm text-secondary">
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                  Enable
                 </label>
               </div>
-            )}
+            ) : null}
           </div>
         );
       })}

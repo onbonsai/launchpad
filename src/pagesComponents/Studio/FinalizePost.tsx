@@ -13,6 +13,9 @@ import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { useAccount } from "wagmi";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { InformationCircleIcon } from "@heroicons/react/outline";
+import { FieldLabel } from "@src/components/FieldLabel";
+
+const sharedInputClasses = "bg-card-light border border-card-lightest rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-highlight";
 
 const COLLECT_PRICE_TIERS = [
   {
@@ -46,6 +49,13 @@ type FinalizePostProps = {
   isRemix: boolean;
   setFinalTokenData: (data: any) => void;
   setAddToken: (value: boolean) => void;
+  template?: {
+    options?: {
+      requireContent?: boolean;
+    };
+  };
+  postContent?: string;
+  setPostContent?: (content: string) => void;
 };
 
 export const FinalizePost = ({
@@ -58,12 +68,15 @@ export const FinalizePost = ({
   onAddToken,
   isRemix,
   setFinalTokenData,
-  setAddToken
+  setAddToken,
+  template,
+  postContent = "",
+  setPostContent = () => {}
 }: FinalizePostProps) => {
   const { chain } = useAccount();
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState();
-  const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[0].amountStable);
+  const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[1].amountStable);
   const [estimated, setEstimated] = useState(false);
 
   useEffect(() => {
@@ -141,7 +154,7 @@ export const FinalizePost = ({
           </div>
 
           {/* Collect settings */}
-          <div className="sm:col-span-6 flex flex-col">
+          {/* <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
               <div className="flex items-center gap-1">
                 <Subtitle className="text-white/70">Set the Collect Fee users must pay to join your post</Subtitle>
@@ -176,7 +189,8 @@ export const FinalizePost = ({
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
+
           {/* AI Update Settings */}
           <div className="sm:col-span-6 flex flex-col">
             <div className="flex flex-col justify-between gap-2">
@@ -186,7 +200,7 @@ export const FinalizePost = ({
               </div>
               <div className="bg-card-light rounded-lg py-2 px-4 border border-card-lightest">
                 <p className="text-sm text-white/70">
-                  Content updates trigger hourly based on activity, or manually via the "..." button on the bottom right of your post page.
+                  Content updates hourly or manually via the "..." button on the post page.
                 </p>
               </div>
             </div>

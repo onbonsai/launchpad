@@ -38,6 +38,7 @@ import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
 import useIsMobile from "@src/hooks/useIsMobile";
 import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import formatRelativeDate from "@src/utils/formatRelativeDate";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -370,7 +371,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         setIsVersionIndicatorVisible(false);
         // Remove element after fade out animation completes
         setTimeout(() => setShowVersionIndicator(false), 300);
-      }, 2000);
+      }, 3000);
       return;
     }
 
@@ -487,8 +488,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                         )}
                         {/* Version Indicator - Only show if we're viewing a version */}
                         {media?.versions && showVersionIndicator && (
-                          <div className={`absolute top-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
-                            {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1}`}
+                          <div className={`absolute top-2 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-4 py-2 rounded-full text-md z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
+                            {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1} (${formatRelativeDate(new Date(getPublicationData.timestamp))})`}
                           </div>
                         )}
                         <div className="hidden sm:block">

@@ -1,0 +1,245 @@
+import { useMemo, useRef, useState } from "react"
+import Image from "next/image"
+import { CATEGORIES, TemplateCategory, Template } from "@src/services/madfi/studio";
+import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { Header2, Subtitle } from "@src/styles/text";
+import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
+import { brandFont } from "@src/fonts/fonts";
+import { useGetCredits } from "@src/hooks/useGetCredits";
+import { useAccount } from "wagmi";
+import toast from "react-hot-toast";
+import { useStakingData } from "@src/hooks/useStakingData";
+import { useTopUpModal } from "@src/context/TopUpContext";
+import useIsMobile from "@src/hooks/useIsMobile";
+import { CashIcon } from "@heroicons/react/solid";
+
+// Placeholder icons for templates
+const TemplateIcon = ({ type }: { type?: string }) => {
+  const iconMap = {
+    "evolving_post": "❇️",
+    "evolving_art": "🖼️",
+    "insights": "🤖",
+    "campfire": "💬",
+    "default": "🤖"
+  };
+
+  return iconMap[type as keyof typeof iconMap] || iconMap.default;
+};
+
+interface TemplateSelectorProps {
+  selectedTemplate?: Template;
+  onTemplateSelect: (template: Template) => void;
+  showImportButton?: boolean;
+  showCategories?: boolean;
+}
+
+const TemplateSelector: React.FC<TemplateSelectorProps> = ({
+  selectedTemplate,
+  onTemplateSelect,
+  showImportButton = true,
+  showCategories = false
+}) => {
+  const isMobile = useIsMobile();
+  const { address, isConnected } = useAccount();
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  const [showImportTemplateModal, setShowImportTemplateModal] = useState(false);
+  const [importedTemplateURL, setImportedTemplateURL] = useState<string | undefined>();
+  const { data: registeredTemplates, isLoading } = useRegisteredTemplates(importedTemplateURL);
+  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+  const { data: stakingData } = useStakingData(address as string);
+  const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
+  const { openTopUpModal } = useTopUpModal();
+
+  const estimatedGenerations = useMemo(() => {
+    if (!isLoadingCredits && creditBalance?.creditsRemaining) {
+      const res = Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3);
+      if (res === 0) {
+        toast("Stake Bonsai for more credits", { duration: 10000, id: 'insufficient-credits' });
+      }
+      return res;
+    }
+  }, [isLoadingCredits, creditBalance?.creditsRemaining]);
+
+  const templatesFiltered = useMemo(() => {
+    if (!categoryFilter) {
+      return registeredTemplates;
+    }
+
+    return registeredTemplates?.filter(({ category }) => category === categoryFilter);
+  }, [categoryFilter, isLoading, registeredTemplates]);
+
+  const categories = useMemo(() => {
+    const formatCategoryLabel = (category: string) => {
+      return category
+        // Split by underscores and camelCase
+        .split(/[\s_]|(?=[A-Z])/)
+        // Capitalize first letter of each word
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        // Join with spaces
+        .join(' ');
+    };
+
+    const importedCategories = registeredTemplates
+      ?.map(template => ({
+        key: template.category,
+        label: formatCategoryLabel(template.category)
+      }))
+      .filter(category => !CATEGORIES.some(c => c.key === category.key)) || [];
+
+    return [
+      { key: undefined, label: "All" },
+      ...CATEGORIES,
+      ...importedCategories
+    ];
+  }, [CATEGORIES, registeredTemplates]);
+
+  const totalStaked = useMemo(() => {
+    if (!stakingData?.summary?.totalStaked) return 0n;
+    return BigInt(stakingData?.summary?.totalStaked || "0")
+  }, [stakingData?.summary]);
+
+  const handleTemplateSelect = (template: Template) => {
+    const disabled = (creditBalance!.creditsRemaining || 0) < (template.estimatedCost || 1);
+
+    if (disabled) return;
+
+    if (estimatedGenerations === 0 || (creditBalance!.creditsRemaining < (template.estimatedCost || 0))) {
+      openTopUpModal("api-credits");
+    } else {
+      onTemplateSelect(template);
+    }
+  };
+
+  const formatCategoryLabel = (category: string) => {
+    return category
+      // Split by underscores and camelCase
+      .split(/[\s_]|(?=[A-Z])/)
+      // Capitalize first letter of each word
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      // Join with spaces
+      .join(' ');
+  };
+
+  const renderTemplateCard = (template: Template, idx: number) => {
+    const disabled = (creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 1);
+
+    return (
+      <div
+        key={`template-${idx}`}
+        className={`bg-card-light rounded-lg ${
+          !disabled ? "cursor-pointer" : ""
+        } p-3 flex flex-col border ${
+          selectedTemplate?.name === template.name
+            ? "border-brand-highlight"
+            : "border-dark-grey hover:border-brand-highlight"
+        } transition-colors w-64 flex-shrink-0 group relative`}
+        onClick={() => handleTemplateSelect(template)}
+      >
+        <div className="flex items-start mb-2">
+          <div className="w-10 h-10 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xl">
+            <TemplateIcon type={template.category} />
+          </div>
+          <div className="ml-3 flex-1">
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-base text-brand-highlight">{template.displayName}</h3>
+                {template?.estimatedCost && (
+                  <span className="flex items-center text-xs text-brand-highlight border border-dark-grey rounded-lg px-1.5 py-0.5 w-fit">
+                    <CashIcon className="h-3 w-3 mr-1" />
+                    {template.estimatedCost.toFixed(1)}
+                    {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 50).toFixed(1)}` : ''}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-secondary/60">{formatCategoryLabel(template.category)}</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-secondary/60">{template.description}</p>
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {!isLoadingCredits && estimatedGenerations !== undefined && (
+            <button
+              className={`text-sm text-black px-2 py-0.5 rounded-full ${
+                disabled
+                  ? "bg-brand-highlight/50 cursor-not-allowed"
+                  : "bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
+              }`}
+              disabled={disabled}
+            >
+              {((creditBalance!.creditsRemaining || 0) > (template.estimatedCost || 0))
+                ? "Create"
+                : "Add credits to use"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex-grow">
+      {/* Categories Card */}
+      {showCategories && (
+        <div className={`bg-card rounded-lg p-6`}>
+          <h3 className="text-sm font-medium text-brand-highlight mb-4">Categories</h3>
+          <div className="flex items-center">
+            <div className="flex-1 overflow-x-auto">
+              <div className="bg-card-light rounded-full p-1 inline-flex">
+                {categories.map((c) => (
+                  <button
+                    key={c.label}
+                    className={`${c.key === categoryFilter ? `bg-brand-highlight text-white` : 'text-secondary/60 hover:bg-card transition-colors'} px-6 py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`}
+                    onClick={() => setCategoryFilter(c.key)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {!isMobile && showImportButton && (
+              <button
+                ref={importButtonRef}
+                className="text-secondary/60 hover:bg-card-light transition-colors px-6 py-2 rounded-full shrink-0 ml-4"
+                onClick={() => setShowImportTemplateModal(true)}
+              >
+                + Import
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Templates */}
+      <div className="mt-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-48">
+            <Spinner />
+          </div>
+        ) : (
+          <div className="w-full">
+            <div className="overflow-x-auto">
+              <div className="flex gap-x-4 pb-4 min-w-max">
+                {templatesFiltered?.map((template, idx) => renderTemplateCard(template, idx))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Import template modal */}
+      {showImportTemplateModal && showImportButton && (
+        <ImportTemplatesModal
+          onSubmit={(url: string) => {
+            setImportedTemplateURL(url);
+            localStorage.setItem('importedTemplateURL', url);
+          }}
+          anchorEl={importButtonRef.current}
+          onClose={() => setShowImportTemplateModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default TemplateSelector;

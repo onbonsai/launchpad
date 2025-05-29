@@ -2,14 +2,13 @@ import { NextPage } from "next"
 import Image from "next/image"
 import { useRouter } from "next/router";
 import { useMemo, useRef, useState } from "react"
-import { CATEGORIES, PREMIUM_TEMPLATES, TemplateCategory } from "@src/services/madfi/studio";
+import { CATEGORIES, TemplateCategory } from "@src/services/madfi/studio";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { BodySemiBold, Header2, Subtitle } from "@src/styles/text";
+import { Header2, Subtitle } from "@src/styles/text";
 import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
 import { brandFont } from "@src/fonts/fonts";
-import clsx from "clsx";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import toast from "react-hot-toast";
@@ -139,7 +138,7 @@ const StudioCreatePage: NextPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => {
-                    const disabled = PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n;
+                    const disabled = creditBalance!.creditsRemaining < (template.estimatedCost || 1);
                     return (
                       <div
                         key={`template-${idx}`}
@@ -175,9 +174,7 @@ const StudioCreatePage: NextPage = () => {
                                 }`}
                                 disabled={disabled}
                               >
-                                {PREMIUM_TEMPLATES.includes(template.name) && totalStaked === 0n
-                                  ? "Only stakers"
-                                  : (creditBalance!.creditsRemaining > (template.estimatedCost || 0))
+                                {(creditBalance!.creditsRemaining > (template.estimatedCost || 0))
                                   ? "Create"
                                   : "Add credits to use"}
                               </button>

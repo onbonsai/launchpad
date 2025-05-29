@@ -2,7 +2,7 @@ import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { MetadataAttribute, Post, SessionClient } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
-import { useQuery, UseQueryResult, useInfiniteQuery, UseInfiniteQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult, useInfiniteQuery } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
@@ -18,8 +18,6 @@ export const ELEVENLABS_VOICES = [
   { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
   { label: 'Social (Male)', value: 'CwhRBWXzGAHq8TQ4Fs17' },
 ];
-// only for stakers, no free generations (generally because they are expensive)
-export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video", "nft_dot_fun"];
 // so we can quickly feature posts
 export const SET_FEATURED_ADMINS = [
   "0xdc4471ee9dfca619ac5465fde7cf2634253a9dc6",
@@ -171,6 +169,7 @@ export const generatePreview = async (
   idToken: string,
   template: Template,
   templateData: any,
+  prompt?: string,
   image?: File,
   aspectRatio?: string,
   nft?: NFTMetadata,
@@ -192,6 +191,7 @@ export const generatePreview = async (
         nft,
         audioStartTime: audio?.startTime
       },
+      prompt,
     }));
     if (image) formData.append('image', image);
     if (audio) formData.append('audio', audio.file);
@@ -207,8 +207,6 @@ export const generatePreview = async (
         const errorText = await response.text();
         if (errorText.includes("not enough credits")) {
           throw new Error("not enough credits");
-        } else if (errorText.includes("three previews")) {
-          throw new Error("max free previews");
         }
       }
       throw new Error(`Preview generation failed: ${response.statusText}`);
@@ -237,7 +235,40 @@ export const generatePreview = async (
 
     return data;
   } catch (error) {
-    console.error("Error generating preview:", error);
+    console.error(error);
+    throw error;
+  }
+};
+
+export const enhancePrompt = async (
+  url: string,
+  idToken: string,
+  template: Template,
+  prompt: string,
+): Promise<string | undefined> => {
+  try {
+    console.log({ prompt, template: template.name })
+    const response = await fetch(`${url}/post/enhance-prompt`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, template: template.name }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Enhance prompt failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return data.enhanced as string;
+  } catch (error) {
+    console.error(error);
     throw error;
   }
 };

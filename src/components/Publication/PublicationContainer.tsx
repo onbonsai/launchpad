@@ -484,6 +484,7 @@ const PublicationContainer = ({
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
           hideCommentButton
+          hideShareButton
         />
       )}
       <div className={clsx(
@@ -491,14 +492,14 @@ const PublicationContainer = ({
         isMobile ? "top-4 right-4" : "top-4 right-4"
       )}>
         <div className="flex">
-          <Tooltip disabled={isMobile} message={hasCollected ? "Already collected this post" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
+          <Tooltip disabled={isMobile} message={hasCollected ? "Already collected" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
             <div
               className={clsx(
-                "md:min-w-[60px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light cursor-pointer",
+                "md:min-w-[60px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light",
                 "md:py-2.5 md:px-5",
                 isMobile ? "rounded-xl" : "rounded-l-xl",
                 !media?.agentId && !isMobile ? "rounded-r-xl" : "",
-                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70"
+                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70 cursor-pointer"
               )}
               onClick={(e) => {
                 if (!hasCollected) {

@@ -51,9 +51,10 @@ export default function RemixForm({
 }: RemixFormProps) {
   const [preview, setPreview] = useState<any>();
   const [postContent, setPostContent] = useState<string>('');
+  const [prompt, setPrompt] = useState<string>('');
   const [postImage, setPostImage] = useState<any>();
-  const [postAudio, setPostAudio] = useState<File | null>(remixMedia.templateData?.audioData);
-  const [audioStartTime, setAudioStartTime] = useState<number>(remixMedia.templateData?.audioStartTime);
+  const [postAudio, setPostAudio] = useState<File | null>((remixMedia.templateData as any)?.audioData);
+  const [audioStartTime, setAudioStartTime] = useState<number>((remixMedia.templateData as any)?.audioStartTime);
   const [finalTemplateData, setFinalTemplateData] = useState(remixMedia.templateData);
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
 
@@ -80,14 +81,22 @@ export default function RemixForm({
       }]);
 
       // Then add the preview message
-      setLocalPreviews(prev => [...prev, {
+      const newPreviews = [...localPreviews, {
+        isAgent: false,
+        createdAt: now,
+        content: {
+          templateData: JSON.stringify(preview.templateData || {}),
+          text: Object.entries(preview.templateData || {}).map(([key, value]) => `${key}: ${value}`).join('\n')
+        }
+      }, {
         isAgent: true,
         createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
         content: {
           preview: preview,
           text: preview.text
         }
-      }]);
+      }];
+      setLocalPreviews(newPreviews);
     }
   };
 
@@ -123,9 +132,9 @@ export default function RemixForm({
       // Fetch the Lens post and set its image
       if (remixMedia.postId) {
         getPost(remixMedia.postId).then((post) => {
-          if (post?.metadata?.image?.item) {
+          if ((post as any)?.metadata?.image?.item) {
             // Convert the image URL to a File object
-            fetch(post?.metadata?.image?.item)
+            fetch((post as any)?.metadata?.image?.item)
               .then(res => res.blob())
               .then(blob => {
                 const file = Object.assign(new File([blob], 'remix-image.jpg', { type: blob.type }), {
@@ -166,6 +175,8 @@ export default function RemixForm({
           next={handleNext}
           postContent={postContent}
           setPostContent={setPostContent}
+          prompt={prompt}
+          setPrompt={setPrompt}
           postImage={postImage}
           setPostImage={setPostImage}
           isGeneratingPreview={isGeneratingPreview}
