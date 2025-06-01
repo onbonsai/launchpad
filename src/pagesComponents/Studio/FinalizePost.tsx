@@ -12,10 +12,10 @@ import CreatorButton from "@src/components/Creators/CreatorButton";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { useAccount } from "wagmi";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
-import { InformationCircleIcon } from "@heroicons/react/outline";
-import { FieldLabel } from "@src/components/FieldLabel";
+import { InformationCircleIcon, PaperAirplaneIcon } from "@heroicons/react/outline";
+import { Preview } from "@src/services/madfi/studio";
 
-const sharedInputClasses = "bg-card-light border border-card-lightest rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-highlight";
+const sharedInputClasses = "bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm";
 
 const COLLECT_PRICE_TIERS = [
   {
@@ -56,6 +56,8 @@ type FinalizePostProps = {
   };
   postContent?: string;
   setPostContent?: (content: string) => void;
+  currentPreview?: Preview;
+  setCurrentPreview?: (preview: Preview) => void;
 };
 
 export const FinalizePost = ({
@@ -71,13 +73,36 @@ export const FinalizePost = ({
   setAddToken,
   template,
   postContent = "",
-  setPostContent = () => {}
+  setPostContent = () => {},
+  currentPreview,
+  setCurrentPreview,
 }: FinalizePostProps) => {
   const { chain } = useAccount();
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
-  const [collectAmount, setCollectAmount] = useState();
+  const [collectAmount, setCollectAmount] = useState<number>(0);
   const [collectAmountStable, setCollectAmountStable] = useState(COLLECT_PRICE_TIERS[1].amountStable);
   const [estimated, setEstimated] = useState(false);
+
+  // Local state for the textarea content before sending
+  const [localPostContent, setLocalPostContent] = useState(postContent);
+
+  // Update local content when postContent prop changes
+  useEffect(() => {
+    setLocalPostContent(postContent);
+  }, [postContent]);
+
+  // Function to handle sending the content update
+  const handleSendContent = () => {
+    setPostContent(localPostContent);
+
+    // Update preview text immediately
+    if (currentPreview && setCurrentPreview) {
+      setCurrentPreview({
+        ...currentPreview,
+        text: localPostContent,
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchBonsaiPrice = async () => {
@@ -104,6 +129,34 @@ export const FinalizePost = ({
       style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-4">
+        {/* Post Content Input (if required or optional) */}
+        {template?.options?.requireContent && (
+          <div className="flex flex-col justify-center space-y-4">
+            <div className="flex items-center gap-1">
+              <Subtitle className="text-white/70">
+                Set the content for your post
+              </Subtitle>
+            </div>
+            <div className="relative">
+              <textarea
+                placeholder="Write the content and hit send to preview"
+                value={localPostContent}
+                onChange={(e) => setLocalPostContent(e.target.value)}
+                className={`${sharedInputClasses} w-full min-h-[40px] p-4 pr-12 resize-none`}
+              />
+              <button
+                type="button"
+                onClick={handleSendContent}
+                disabled={localPostContent === postContent}
+                className="absolute bottom-4 right-2 p-2 rounded-lg bg-brand-highlight/10 hover:bg-brand-highlight/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                title="Update preview"
+              >
+                <PaperAirplaneIcon className="w-4 h-4 text-brand-highlight transform rotate-45" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-y-5 gap-x-8">
           {/* Token preview */}
           <div className="sm:col-span-6 flex flex-col">
@@ -207,8 +260,8 @@ export const FinalizePost = ({
           </div>
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
-          <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount)} variant="accentBrand" className="w-full hover:bg-bullish">
-            {`${LENS_CHAIN_ID !== chain?.id ? 'Switch to Lens Chain' : 'Create'}`}
+          <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount || 0)} variant="accentBrand" className="w-full hover:bg-bullish">
+            {`${LENS_CHAIN_ID !== chain?.id ? 'Switch to Lens Chain' : 'Post'}`}
           </Button>
           <Button size='md' disabled={isCreating} onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
             Back

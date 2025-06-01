@@ -1,5 +1,29 @@
 import { ReactNode } from "react";
-import { cx } from "@src/utils/classnames";
+import { Tooltip as MuiTooltip, TooltipProps } from "@mui/material";
+import { styled } from "@mui/material/styles";
+
+// Custom styled tooltip to match the existing design
+const StyledTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <MuiTooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .MuiTooltip-tooltip`]: {
+    backgroundColor: '#1D212A',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontFamily: '"Favorit", sans-serif',
+    fontWeight: 'normal',
+    padding: '6px 12px', // reduced padding
+    borderRadius: '6px', // rounded-sm equivalent
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-md equivalent
+    maxWidth: '300px',
+    lineHeight: '1.4',
+    textAlign: 'center',
+  },
+  [`& .MuiTooltip-arrow`]: {
+    color: '#1D212A',
+    fontSize: '8px',
+  },
+}));
 
 export const Tooltip = ({
   message,
@@ -14,24 +38,33 @@ export const Tooltip = ({
   classNames?: string;
   disabled?: boolean;
 }) => {
-  if (disabled) return children;
+  if (disabled) return <>{children}</>;
+
+  // Map direction props to MUI placement
+  const getPlacement = (direction: string): TooltipProps['placement'] => {
+    switch (direction) {
+      case "top":
+        return "top";
+      case "left":
+        return "left";
+      case "bottom":
+        return "bottom";
+      case "right":
+      default:
+        return "right";
+    }
+  };
 
   return (
-    <span
-      className={cx(
-        "tooltip inline-flex",
-        direction === "top"
-          ? ""
-          : direction === "left"
-          ? "tooltip-left"
-          : direction === "right"
-          ? "tooltip-right"
-          : "tooltip-bottom",
-        classNames || ""
-      )}
-      data-tip={message}
+    <StyledTooltip
+      title={message}
+      placement={getPlacement(direction)}
+      arrow
+      className={classNames}
     >
-      {children}
-    </span>
+      <span className="inline-flex">
+        {children}
+      </span>
+    </StyledTooltip>
   );
 };

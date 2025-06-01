@@ -7,6 +7,7 @@ import { BodySemiBold, Subtitle } from "@src/styles/text";
 import { Button } from "../Button";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
+import clsx from "clsx";
 
 interface AudioUploaderProps {
   file: any;
@@ -14,12 +15,13 @@ interface AudioUploaderProps {
   startTime: number;
   setStartTime: (t: number) => void;
   audioDuration?: number;
+  compact?: boolean;
 }
 
 const MAX_SIZE = 10_000_000; // 10MB
 const DEFAULT_CLIP_LENGTH = 10; // 10 seconds
 
-export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime, audioDuration }) => {
+export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime, audioDuration, compact = false }) => {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurfer = useRef<WaveSurfer | null>(null);
   const regionsPlugin = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
@@ -138,27 +140,35 @@ export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime
   };
 
   return (
-    <div className="space-y-4">
+    <div className={clsx("space-y-4", compact ? "space-y-2" : "")}>
       {file ? (
-        <div className="flex flex-col items-start rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest">
-          <div className="flex flex-row w-full items-center justify-between">
+        <div className={clsx(
+          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
+          "bg-card-light"
+        )}>
+          <div className="flex flex-row w-full items-center justify-between relative">
             <div className="flex items-center gap-3">
-              <MusicNoteIcon className="h-6 w-6 text-white" />
-              <Subtitle className="text-white">{file.name}</Subtitle>
+              <MusicNoteIcon className={clsx("text-white", compact ? "h-4 w-4" : "h-6 w-6")} />
+              <Subtitle className={clsx("text-white", compact ? "text-sm" : "")}>{file.name}</Subtitle>
             </div>
-            <Button className="w-fit max-h-6" size="xs" onClick={removeFile}>
-              Remove
-            </Button>
+            <button
+              onClick={removeFile}
+              className="absolute right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <div className="w-full mt-4">
-            <div ref={waveformRef} className="w-full h-16 bg-black/30 rounded" />
-            <div className="flex items-center gap-2 mt-2">
-              <Button type="button" size="sm" className="px-2 py-1" onClick={togglePlayPause} disabled={duration === 0}>
-                {isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
-                <span className="ml-1">{isPlaying ? "Pause" : "Preview Selection"}</span>
+            <div ref={waveformRef} className={clsx("w-full bg-black/30 rounded relative", compact ? "h-8" : "h-16")} />
+            <div className="flex items-center gap-2 mt-2 relative z-10">
+              <Button type="button" size="xs" variant="dark-grey" className={clsx("w-fit", compact ? "max-h-5" : "max-h-6")} onClick={togglePlayPause} disabled={duration === 0}>
+                {isPlaying ? <PauseIcon className={clsx(compact ? "h-4 w-4" : "h-5 w-5")} /> : <PlayIcon className={clsx(compact ? "h-4 w-4" : "h-5 w-5")} />}
+                <span className={clsx("ml-1", compact ? "text-xs" : "")}>{isPlaying ? "Pause" : "Preview Selection"}</span>
               </Button>
-              <span className="text-xs text-white/60">
+              <span className={clsx("text-white/60", compact ? "text-xs" : "text-sm")}>
                 {formatTime(startTime)} - {formatTime(endTime)}
               </span>
             </div>
@@ -181,15 +191,16 @@ export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime
           {({ getRootProps, getInputProps }) => (
             <div
               {...getRootProps()}
-              className={cx(
-                "flex flex-col items-center rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
+              className={clsx(
+                "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
                 file ? "shadow-xl" : "",
+                compact ? "p-2 bg-transparent" : "bg-card-light"
               )}
             >
               <input {...getInputProps()} />
               <div className="text-secondary flex items-center flex-col">
-                <MusicNoteIcon width={50} height={50} />
-                <BodySemiBold>Upload audio (max: 10MB)</BodySemiBold>
+                <MusicNoteIcon width={compact ? 25 : 50} height={compact ? 25 : 50} />
+                {!compact && <BodySemiBold>Upload audio (max: 10MB)</BodySemiBold>}
               </div>
             </div>
           )}

@@ -77,10 +77,12 @@ body {
 
 .tooltip {
   --tooltip-tail: 8px;
+  z-index: 9999 !important;
 }
 
 .tooltip::before {
   @apply rounded-sm shadow-md font-normal px-8 py-2;
+  z-index: 9999 !important;
 }
 
 .tooltip-right::before {

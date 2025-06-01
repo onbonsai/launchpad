@@ -28,6 +28,7 @@ interface ImageUploaderProps {
   enableCrop?: boolean;
   selectedAspectRatio?: AspectRatio;
   onAspectRatioChange?: (ratio: AspectRatio) => void;
+  compact?: boolean;
 }
 
 const MAX_SIZE = 8000000; // 8mb
@@ -90,6 +91,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   enableCrop = false,
   selectedAspectRatio,
   onAspectRatioChange,
+  compact = false,
   ...rest
 }) => {
   const [cropFile, setCropFile] = useState<FileWithPreview | null>(null);
@@ -327,24 +329,28 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
           ))}
         </div>
       ) : files && files.length > 0 && (
-        <div className="flex flex-col items-start rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest">
+        <div className={clsx(
+          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest relative",
+          compact ? "p-2 bg-transparent" : "bg-card-light"
+        )}>
           {files.map((file: FileWithPreview, i: number) => (
-            <div className="flex flex-row" key={`file-${i}`}>
+            <div className="relative w-full" key={`file-${i}`}>
               <img
-                className="rounded-lg h-12 w-12 object-cover"
+                className={clsx(
+                  "rounded-lg object-cover w-full",
+                  compact ? "h-16" : "h-48"
+                )}
                 src={file.preview}
                 alt={file.name}
               />
-              <div className="flex flex-col ml-3 justify-between">
-                <Subtitle className="text-white">{file.name}</Subtitle>
-                <Button
-                  className="w-fit max-h-6"
-                  size="xs"
-                  onClick={(e) => removeFile(e, file)}
-                >
-                  Remove
-                </Button>
-              </div>
+              <button
+                onClick={(e) => removeFile(e, file)}
+                className="absolute top-2 right-2 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
@@ -362,14 +368,15 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
               <div
                 {...getRootProps()}
                 className={clsx(
-                  "flex flex-col items-center rounded-2xl bg-card-light justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
-                  files.length ? "shadow-xl" : ""
+                  "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
+                  files.length ? "shadow-xl" : "",
+                  compact ? "p-2 bg-transparent" : "bg-card-light"
                 )}
               >
                 <input {...getInputProps()} />
                 <div className="text-secondary flex items-center flex-col">
-                  <PhotographIcon width={50} height={50} />
-                  <BodySemiBold>Upload an image (max: 8mb)</BodySemiBold>
+                  <PhotographIcon width={compact ? 25 : 50} height={compact ? 25 : 50} />
+                  {!compact && <BodySemiBold>Upload an image (max: 8mb)</BodySemiBold>}
                 </div>
               </div>
             )}

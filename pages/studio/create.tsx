@@ -142,6 +142,16 @@ const StudioCreatePage: NextPage = () => {
       setRoomId(preview.roomId);
     }
 
+    // Check if this preview already exists in localPreviews
+    const existingPreview = localPreviews.find(lp =>
+      lp.agentId === preview.agentId ||
+      (lp.content.preview && lp.content.preview.agentId === preview.agentId)
+    );
+
+    if (existingPreview) {
+      return;
+    }
+
     // Add both template data and preview messages
     const now = new Date().toISOString();
 
@@ -540,144 +550,33 @@ const StudioCreatePage: NextPage = () => {
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh] w-full">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 pt-6">
-        <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          {isMobile ? (
-            // Mobile Layout
-            <div className="flex flex-col gap-y-10 w-full">
-              <div className="w-full">
-                <Sidebar />
-              </div>
-              <div className="flex-grow w-full">
-                {/* Header Card */}
-                <div className="bg-card rounded-lg p-4 sm:p-6">
-                  <div className="flex items-start gap-4">
-                    <Link
-                      href="/studio"
-                      className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
-                    >
-                      <ArrowBack className="h-5 w-5" />
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                        <h2 className="text-xl sm:text-2xl font-semibold text-secondary truncate">{template?.displayName}</h2>
-                        {template?.estimatedCost && (
-                          <span className="flex items-center text-sm sm:text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1 w-fit">
-                            <CashIcon className="h-4 w-4 mr-2" />
-                            ~{template.estimatedCost.toFixed(2)} credits
-                          </span>
-                        )}
-                      </div>
-                      <Subtitle className="items-start text-base sm:text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form Card */}
-                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10 mt-6">
-                  <div className="grid grid-cols-1 gap-y-6 w-full">
-                    <div>
-                      <div className="mb-6">
-                        <div className="mb-4">
-                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
-                        </div>
-                      </div>
-                      {openTab === 1 && template && (
-                        <CreatePostForm
-                          template={template as Template}
-                          preview={currentPreview}
-                          finalTemplateData={finalTemplateData}
-                          setPreview={handleSetPreview}
-                          postContent={postContent}
-                          setPostContent={setPostContent}
-                          prompt={prompt}
-                          setPrompt={setPrompt}
-                          postImage={postImage}
-                          setPostImage={setPostImage}
-                          next={(templateData) => {
-                            setFinalTemplateData(templateData);
-                            setOpenTab(addToken ? 2 : 3);
-                          }}
-                          isGeneratingPreview={isGeneratingPreview}
-                          setIsGeneratingPreview={setIsGeneratingPreview}
-                          roomId={roomId as string}
-                          postAudio={postAudio}
-                          setPostAudio={setPostAudio}
-                          audioStartTime={audioStartTime}
-                          setAudioStartTime={setAudioStartTime}
-                        />
-                      )}
-                      {openTab === 2 && (
-                        <CreateTokenForm
-                          finalTokenData={finalTokenData}
-                          postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
-                          setSavedTokenAddress={setSavedTokenAddress}
-                          savedTokenAddress={savedTokenAddress}
-                          setFinalTokenData={setFinalTokenData}
-                          back={() => setOpenTab(1)}
-                          next={() => setOpenTab(3)}
-                        />
-                      )}
-                      {openTab === 3 && (
-                        <FinalizePost
-                          authenticatedProfile={authenticatedProfile}
-                          finalTokenData={finalTokenData}
-                          onCreate={onCreate}
-                          back={() => setOpenTab(addToken ? 2 : 1)}
-                          isCreating={isCreating}
-                          addToken={addToken}
-                          onAddToken={() => {
-                            setAddToken(true);
-                            setOpenTab(2);
-                          }}
-                          isRemix={!!remixMedia?.agentId}
-                          setFinalTokenData={setFinalTokenData}
-                          setAddToken={setAddToken}
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <PreviewHistory
-                        currentPreview={currentPreview}
-                        setCurrentPreview={setCurrentPreview}
-                        isGeneratingPreview={isGeneratingPreview}
-                        className="h-[calc(100vh-32rem)]"
-                        roomId={queryRoomId as string}
-                        templateUrl={template?.apiUrl}
-                        setFinalTemplateData={setFinalTemplateData}
-                        setPrompt={setPrompt}
-                        localPreviews={localPreviews}
-                        isFinalize={openTab > 1}
-                        postImage={postImage}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            // Desktop Layout
-            <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-6 max-w-full">
+    <div className="bg-background text-secondary min-h-[90vh] w-full overflow-visible">
+      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6 overflow-visible">
+        <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full overflow-visible">
+          <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-8 max-w-full overflow-visible">
               <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
                 <Sidebar />
               </div>
-              <div className="flex-grow">
+              <div className="flex-grow overflow-visible">
                 {/* Form Card */}
-                <div className="bg-card rounded-lg px-2 sm:px-6 py-6 sm:py-10">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-6 lg:gap-x-8 w-full">
-                    <div className="lg:col-span-1">
-                      <div className="mb-6 lg:mb-0">
-                        <div className="mb-4">
-                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
-                        </div>
+                <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10 overflow-visible">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-8 lg:gap-x-8 w-full overflow-visible">
+                    <div className="lg:col-span-1 overflow-visible">
+                      <div className="mb-6">
+                        <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                       </div>
                       {openTab === 1 && template && (
                         <>
-                          <TemplateSelector
-                            selectedTemplate={template}
-                            onTemplateSelect={setTemplate}
-                          />
+                          <div className="mb-2"><Subtitle className="!text-brand-highlight">Choose a template</Subtitle></div>
+                          <div className="mb-8">
+                            <TemplateSelector
+                              selectedTemplate={template}
+                              onTemplateSelect={(newTemplate) => {
+                                setTemplate(newTemplate);
+                                setFinalTemplateData({});
+                              }}
+                            />
+                          </div>
                           <CreatePostForm
                             template={template as Template}
                             preview={currentPreview}
@@ -719,7 +618,9 @@ const StudioCreatePage: NextPage = () => {
                           authenticatedProfile={authenticatedProfile}
                           finalTokenData={finalTokenData}
                           onCreate={onCreate}
-                          back={() => setOpenTab(addToken ? 2 : 1)}
+                          back={() => {
+                            setOpenTab(addToken ? 2 : 1);
+                          }}
                           isCreating={isCreating}
                           addToken={addToken}
                           onAddToken={() => {
@@ -729,6 +630,11 @@ const StudioCreatePage: NextPage = () => {
                           isRemix={!!remixMedia?.agentId}
                           setFinalTokenData={setFinalTokenData}
                           setAddToken={setAddToken}
+                          template={template}
+                          postContent={postContent}
+                          setPostContent={setPostContent}
+                          currentPreview={currentPreview}
+                          setCurrentPreview={setCurrentPreview}
                         />
                       )}
                     </div>
@@ -736,6 +642,7 @@ const StudioCreatePage: NextPage = () => {
                       <PreviewHistory
                         currentPreview={currentPreview}
                         setCurrentPreview={setCurrentPreview}
+                        setSelectedTemplate={setTemplate}
                         isGeneratingPreview={isGeneratingPreview}
                         className="h-[calc(100vh-8rem)]"
                         roomId={queryRoomId as string}
@@ -746,13 +653,13 @@ const StudioCreatePage: NextPage = () => {
                         localPreviews={localPreviews}
                         isFinalize={openTab > 1}
                         postImage={postImage}
+                        setPostContent={setPostContent}
                       />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
         </section>
       </main>
     </div>

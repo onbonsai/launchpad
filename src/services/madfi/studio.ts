@@ -97,6 +97,7 @@ export type Preview = {
   roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
   text?: string;
+  templateName?: string
   image?: any;
   imagePreview?: string;
   templateData?: any;

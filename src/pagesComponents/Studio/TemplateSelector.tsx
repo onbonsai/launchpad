@@ -13,6 +13,8 @@ import { useStakingData } from "@src/hooks/useStakingData";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { CashIcon } from "@heroicons/react/solid";
+import { InfoOutlined } from "@mui/icons-material";
+import { Tooltip } from "@src/components/Tooltip";
 
 // Placeholder icons for templates
 const TemplateIcon = ({ type }: { type?: string }) => {
@@ -129,14 +131,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         key={`template-${idx}`}
         className={`bg-card-light rounded-lg ${
           !disabled ? "cursor-pointer" : ""
-        } p-3 flex flex-col border ${
+        } px-3 py-4 flex flex-col border ${
           selectedTemplate?.name === template.name
             ? "border-brand-highlight"
             : "border-dark-grey hover:border-brand-highlight"
         } transition-colors w-64 flex-shrink-0 group relative`}
         onClick={() => handleTemplateSelect(template)}
       >
-        <div className="flex items-start mb-2">
+        <div className="flex items-start pb-2">
           <div className="w-10 h-10 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xl">
             <TemplateIcon type={template.category} />
           </div>
@@ -144,23 +146,25 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             <div className="flex flex-col">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base text-brand-highlight">{template.displayName}</h3>
-                {template?.estimatedCost && (
-                  <span className="flex items-center text-xs text-brand-highlight border border-dark-grey rounded-lg px-1.5 py-0.5 w-fit">
-                    <CashIcon className="h-3 w-3 mr-1" />
-                    {template.estimatedCost.toFixed(1)}
-                    {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 50).toFixed(1)}` : ''}
-                  </span>
-                )}
+                <Tooltip message={template.description} direction="right">
+                  <InfoOutlined fontSize="small" className="text-secondary/60 hover:text-brand-highlight transition-colors" />
+                </Tooltip>
               </div>
-              <span className="text-xs text-secondary/60">{formatCategoryLabel(template.category)}</span>
+              <span className="text-sm text-secondary/60">{formatCategoryLabel(template.category)}</span>
             </div>
           </div>
         </div>
-        <p className="text-xs text-secondary/60">{template.description}</p>
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+          {template?.estimatedCost && (
+            <div className="flex items-center text-sm text-brand-highlight border border-dark-grey rounded-lg px-1.5 py-0.5 w-fit bg-background">
+              <CashIcon className="h-3 w-3 mr-1" />
+              {template.estimatedCost.toFixed(1)}
+              {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 50).toFixed(1)}` : ''}
+            </div>
+          )}
           {!isLoadingCredits && estimatedGenerations !== undefined && (
             <button
-              className={`text-sm text-black px-2 py-0.5 rounded-full ${
+              className={`text-sm text-black px-2 py-0.5 rounded-lg ${
                 disabled
                   ? "bg-brand-highlight/50 cursor-not-allowed"
                   : "bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
@@ -168,7 +172,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               disabled={disabled}
             >
               {((creditBalance!.creditsRemaining || 0) > (template.estimatedCost || 0))
-                ? "Create"
+                ? "Select"
                 : "Add credits to use"}
             </button>
           )}
@@ -211,7 +215,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       )}
 
       {/* Templates */}
-      <div className="mt-6">
+      <div className="mt-2">
         {isLoading ? (
           <div className="flex justify-center items-center h-48">
             <Spinner />

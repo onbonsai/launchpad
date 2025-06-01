@@ -60,7 +60,7 @@ const StudioSidebar = () => {
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: stakingData } = useStakingData(address);
   const { data: postsPaginated, isLoading: isLoadingPosts } = useGetPostsByAuthor(true, authenticatedProfile?.address);
-  const posts = useMemo(() => postsPaginated?.pages.flatMap((page: any) => page.posts) || [], [isLoadingPosts]);
+  const posts = useMemo(() => postsPaginated?.pages.flatMap((page: any) => page.posts).slice(0, 5) || [], [isLoadingPosts]);
 
   const totalStaked = useMemo(() => {
     if (!stakingData?.summary?.totalStaked) return "0";
@@ -118,12 +118,11 @@ const StudioSidebar = () => {
             </div>
             <div>
               <Header2 className="flex flex-row text-lg font-medium opacity-80 !text-brand-highlight">
-                <CashIcon className="h-5 w-5 mt-1 mr-1" />
-                Capacity Today
+                Credits Today
               </Header2>
               <p className="text-sm text-secondary/90 mt-2">
                 {(creditBalance?.creditsRemaining || 0).toFixed(2)} /
-                <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0}</span> credits
+                <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0}</span>
               </p>
             </div>
           </div>

@@ -25,6 +25,7 @@ import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { SparklesIcon } from "@heroicons/react/outline";
 
 type CreatePostProps = {
   template: Template;
@@ -122,11 +123,20 @@ const CreatePostForm = ({
 
   const isValid = () => {
     try {
-      if (!prompt) template.templateData.form.parse(templateData);
-      // if (template.options?.requireContent && !postContent) return false;
+      // Check specific media requirements first
       if (template.options?.imageRequirement === MediaRequirement.REQUIRED && !postImage?.length) return false;
       if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT) return false;
       if (template.options?.audioRequirement === MediaRequirement.REQUIRED && !postAudio) return false;
+      // if (template.options?.requireContent && !postContent) return false;
+
+      // If we have a prompt, it takes priority over template string field requirements
+      if (prompt?.trim()) {
+        return true;
+      }
+
+      // If no prompt, then validate template data form (for string inputs)
+      template.templateData.form.parse(templateData);
+
       return true;
     } catch (error) {
       // console.log(error);
@@ -145,6 +155,9 @@ const CreatePostForm = ({
   }, [template.estimatedCost, templateData.enableVideo]);
 
   const _generatePreview = async () => {
+    // Collapse advanced options when generating
+    setIsDrawerExpanded(false);
+
     const { data: _creditBalance } = await refetchCredits();
     const creditsNeeded = estimatedCost || 0;
     const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
@@ -262,6 +275,7 @@ const CreatePostForm = ({
         agentId,
         roomId: newRoomId,
         templateData,
+        templateName: template.name,
       } as Preview);
 
       toast.success("Done", { id: toastId });
@@ -333,7 +347,8 @@ const CreatePostForm = ({
         image: postImage?.length ? postImage[0] : preview?.image,
         imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
         video: preview?.video,
-        agentId: preview?.agentId
+        agentId: preview?.agentId,
+        templateName: template.name,
       });
     }
     next(templateData);
@@ -359,38 +374,117 @@ const CreatePostForm = ({
 
   return (
     <form
-      className="mx-auto md:w-[2/3] w-full space-y-4"
+      className="mx-auto w-full space-y-4"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
-      <div className="space-y-2">
-        {/* Main Prompt Input */}
-        <div className="relative">
-          <div className="flex flex-col">
-            <textarea
-              ref={textareaRef}
-              placeholder="What do you want to create?"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className={`${sharedInputClasses} w-full min-h-[50px] p-4 resize-none`}
-            />
-            <div className="flex self-end -mt-8 mr-2 w-[32px]">
-              <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
-                <button
-                  type="button"
-                  onClick={_enhancePrompt}
-                  disabled={isEnhancing || isAnimating || !prompt}
-                  className="p-1 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
-                >
-                  <MagicWandIcon sx={{ fontSize: 16 }} />
-                </button>
-              </Tooltip>
+      <div className="space-y-4">
+        {/* Main Row: Prompt and Image */}
+        <div className="flex gap-6">
+          {/* Main Prompt Input */}
+          <div className="flex-1">
+            <div className="relative">
+              <div className="flex flex-col gap-y-2">
+                <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
+                <textarea
+                  ref={textareaRef}
+                  placeholder="What do you want to create?"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className={`${sharedInputClasses} w-full min-h-[120px] p-4 resize-none`}
+                />
+                <div className="w-fit self-end -mt-10 ml-auto">
+                  <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
+                    <button
+                      type="button"
+                      onClick={_enhancePrompt}
+                      disabled={isEnhancing || isAnimating || !prompt}
+                      className="p-2 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
+                    >
+                      <SparklesIcon className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Image Uploader */}
+          {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
+            <div className="w-56 space-y-1">
+              <FieldLabel
+                label={"Image"}
+                fieldDescription={
+                  template.options.imageRequirement === MediaRequirement.REQUIRED
+                    ? "An image is required for this post."
+                    : "Optionally add an image to your post. Otherwise, one will be generated."
+                }
+                tooltipDirection={tooltipDirection}
+              />
+              <ImageUploader
+                files={postImage}
+                setFiles={setPostImage}
+                maxFiles={1}
+                enableCrop
+                selectedAspectRatio={selectedAspectRatio}
+                onAspectRatioChange={setSelectedAspectRatio}
+                compact
+              />
+            </div>
+          )}
         </div>
 
-        {/* Collapsible Options Drawer */}
+        {/* Audio Section */}
+        {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
+          <div className="space-y-1">
+            <FieldLabel
+              label={"Audio"}
+              fieldDescription={
+                template.options.audioRequirement === MediaRequirement.REQUIRED
+                  ? "Upload an MP3 file to use in your post and select a clip to use"
+                  : "Optionally add audio to your post and select a clip to use"
+              }
+              tooltipDirection={tooltipDirection}
+            />
+            {typeof postAudio === 'string' && postAudio.startsWith('http') ? (
+              <div className="text-secondary/70 bg-card-light rounded-lg p-2 text-sm">The original audio clip will be used.</div>
+            ) : (
+              <AudioUploader
+                file={postAudio}
+                setFile={setPostAudio}
+                startTime={audioStartTime || 0}
+                setStartTime={setAudioStartTime}
+                audioDuration={template.options?.audioDuration}
+                compact
+              />
+            )}
+          </div>
+        )}
+
+        {/* NFT Section */}
+        {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
+          <div className="space-y-1">
+            <FieldLabel
+              label={"NFT"}
+              fieldDescription={
+                template.options.nftRequirement === MediaRequirement.REQUIRED
+                  ? "Select one of your NFTs to use for this post"
+                  : "Optionally include one of your NFTs in this post"
+              }
+              tooltipDirection={tooltipDirection}
+            />
+            <WhitelistedNFTsSection
+              setSelectedNFT={setSelectedNFT}
+              selectedNFT={selectedNFT}
+              selectedAspectRatio={selectedAspectRatio}
+              onAspectRatioChange={setSelectedAspectRatio}
+              loadRemixNFT={finalTemplateData?.nft}
+            />
+          </div>
+        )}
+
+        {/* Advanced Options Drawer */}
         {totalOptions > 0 && (
           <div className="bg-card-light rounded-lg overflow-hidden">
             <button
@@ -412,11 +506,11 @@ const CreatePostForm = ({
             </button>
 
             <div
-              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              className={`transition-all duration-300 ease-in-out ${
                 isDrawerExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30">
+              <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30 overflow-visible">
                 {
                   isLoadingVeniceImageOptions
                     ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
@@ -446,19 +540,19 @@ const CreatePostForm = ({
             </div>
           </div>
         )}
+      </div>
 
-        <div className="pt-4 flex flex-col gap-2 justify-center items-center">
-          {template.options.allowPreview && (
-            <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-              {
-                (creditBalance?.creditsRemaining || 0) >= (estimatedCost) ? `Generate (~${estimatedCost.toFixed(2)} credits)` : `Swap to Generate`
-              }
-            </Button>
-          )}
-          <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-            Next
+      <div className="pt-4 flex flex-col gap-2 justify-center items-center">
+        {template.options.allowPreview && (
+          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+            {
+              (creditBalance?.creditsRemaining || 0) >= (estimatedCost) ? `Generate (~${estimatedCost.toFixed(2)} credits)` : `Swap to Generate`
+            }
           </Button>
-        </div>
+        )}
+        <Button size='md' disabled={isGeneratingPreview || (!preview && (!isValid() || template.options.allowPreview))} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          Next
+        </Button>
       </div>
     </form>
   );
@@ -525,7 +619,6 @@ const DynamicForm = ({
   const modelOptions = useMemo(() => {
     if (!models) return [];
     return [{
-      // label: "Image Models",
       options: [
         { value: "", label: "Default" },
         ...models.map(model => ({
@@ -539,7 +632,6 @@ const DynamicForm = ({
   const styleOptions = useMemo(() => {
     if (!stylePresets) return [];
     return [{
-      // label: "Style Presets",
       options: [
         { value: "", label: "Default" },
         ...stylePresets.map(style => ({
@@ -560,120 +652,35 @@ const DynamicForm = ({
   // Get the shape of the zod object
   const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
 
-  const FieldLabel = ({ label, fieldDescription }) => (
-    <div className="flex items-center gap-1">
-      <Subtitle className="text-white/70">
-        {label}
-      </Subtitle>
-      {fieldDescription && (
-        <div className="text-sm inline-block mt-1">
-          <Tooltip message={fieldDescription} direction={tooltipDirection}>
-            <InfoOutlined
-              className="max-w-4 max-h-4 inline-block text-white/40"
-            />
-          </Tooltip>
-        </div>
-      )}
-    </div>
-  );
+  // Skip fields that are already shown in the main form
+  const shouldSkipField = (key: string) => {
+    if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return true;
+    if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return true;
+    if (template.options?.imageRequirement !== MediaRequirement.NONE && key === 'image') return true;
+    if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
+    if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
+    return false;
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Post content */}
-      {template.options?.requireContent && postContent !== undefined && (
-        <div className="space-y-2">
-          <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
-          <textarea
-            placeholder="What is your post about?"
-            value={postContent}
-            onChange={(e) => setPostContent(e.target.value)}
-            className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-          />
-        </div>
-      )}
-
-      {/* Post image */}
-      {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"Post image"}
-            fieldDescription={
-              template.options.imageRequirement === MediaRequirement.REQUIRED
-                ? "An image is required for this post."
-                : "Optionally add an image to your post. Otherwise, one will be generated."
-            }
-          />
-          <ImageUploader
-            files={postImage}
-            setFiles={setPostImage}
-            maxFiles={1}
-            enableCrop
-            selectedAspectRatio={selectedAspectRatio}
-            onAspectRatioChange={setSelectedAspectRatio}
-          />
-        </div>
-      )}
-
-      {/* NFT */}
-      {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"NFT"}
-            fieldDescription={
-              template.options.nftRequirement === MediaRequirement.REQUIRED
-                ? "Select one of your NFTs to use for this post"
-                : "Optionally include one of your NFTs in this post"
-            }
-          />
-          <WhitelistedNFTsSection
-            setSelectedNFT={setSelectedNFT}
-            selectedNFT={selectedNFT}
-            selectedAspectRatio={selectedAspectRatio}
-            onAspectRatioChange={setSelectedAspectRatio}
-            loadRemixNFT={loadRemixNFT}
-          />
-        </div>
-      )}
-
-      {/* Audio */}
-      {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"Audio Clip"}
-            fieldDescription={
-              template.options.audioRequirement === MediaRequirement.REQUIRED
-                ? "Upload an MP3 file to use in your post and select a clip to use"
-                : "Optionally add audio to your post and select a clip to use"
-            }
-          />
-          {
-            typeof postAudio === 'string' && postAudio.startsWith('http') ?
-              <div className="text-secondary/70 bg-card-light rounded-lg p-3">The original audio clip will be used.</div> :
-              <AudioUploader
-                file={postAudio}
-                setFile={setPostAudio}
-                startTime={audioStartTime}
-                setStartTime={setAudioStartTime}
-                audioDuration={template.options?.audioDuration}
-              />
-          }
-        </div>
-      )}
-
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {Object.entries(shape).map(([key, field]) => {
+        if (shouldSkipField(key)) return null;
+
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
-
-        if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
-        if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
-
         const placeholderRegex = /\[placeholder: (.*?)\]/;
         const placeholderMatch = field.description?.match(placeholderRegex);
         const placeholder = placeholderMatch ? placeholderMatch[1] : '';
         const description = field.description?.replace(placeholderRegex, '') || '';
 
+        const zodType = getBaseZodType(field);
+        const isSmallerInput = ["modelId", "stylePreset", "elevenLabsVoiceId"].includes(key) ||
+          zodType instanceof z.ZodBoolean ||
+          zodType instanceof z.ZodNumber;
+
         return (
-          <div key={key} className="space-y-2">
-            <FieldLabel label={label} fieldDescription={description} />
+          <div key={key} className={`space-y-2 ${!isSmallerInput ? 'md:col-span-3' : ''}`}>
+            <FieldLabel label={label} fieldDescription={description} tooltipDirection={tooltipDirection} />
 
             {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
@@ -700,8 +707,8 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : getBaseZodType(field) instanceof z.ZodString ? (
-              (getBaseZodType(field)._def.checks?.some(check => check.kind === 'max')) ? (
+            ) : zodType instanceof z.ZodString ? (
+              (zodType._def.checks?.some(check => check.kind === 'max')) ? (
                 <div className="relative">
                   <input
                     type="text"
@@ -709,11 +716,11 @@ const DynamicForm = ({
                     value={templateData[key] || ''}
                     onChange={(e) => updateField(key, e.target.value || undefined)}
                     className={`${sharedInputClasses} w-full p-3 !focus:none pr-20`}
-                    maxLength={getBaseZodType(field)._def.checks.find(check => check.kind === 'max')?.value}
+                    maxLength={zodType._def.checks.find(check => check.kind === 'max')?.value}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">
                     {(templateData[key] || '').length} /{" "}
-                    {getBaseZodType(field)._def.checks.find(check => check.kind === 'max')?.value}
+                    {zodType._def.checks.find(check => check.kind === 'max')?.value}
                   </div>
                 </div>
               ) : (
@@ -725,24 +732,29 @@ const DynamicForm = ({
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )
-            ) : getBaseZodType(field) instanceof z.ZodNumber ? (
-              <input
-                type="number"
-                value={templateData[key] || ''}
-                onChange={(e) => updateField(key, parseFloat(e.target.value))}
-                className={`${sharedInputClasses} w-full p-3`}
-              />
-            ) : getBaseZodType(field) instanceof z.ZodBoolean ? (
-              <div className="flex items-center">
+            ) : zodType instanceof z.ZodNumber ? (
+              <div className="relative">
                 <input
-                  type="checkbox"
-                  checked={templateData[key] || false}
-                  onChange={(e) => updateField(key, e.target.checked)}
-                  className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-0 focus:outline-none"
+                  type="number"
+                  value={templateData[key] || ''}
+                  onChange={(e) => updateField(key, parseFloat(e.target.value))}
+                  className={`${sharedInputClasses} w-full p-3`}
+                  placeholder={placeholder}
                 />
-                <label className="ml-2 text-sm text-secondary">
-                  Enable
-                </label>
+              </div>
+            ) : zodType instanceof z.ZodBoolean ? (
+              <div className="relative">
+                <div className="flex items-center bg-card-light rounded-lg p-3">
+                  <input
+                    type="checkbox"
+                    checked={templateData[key] || false}
+                    onChange={(e) => updateField(key, e.target.checked)}
+                    className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-0 focus:outline-none cursor-pointer"
+                  />
+                  <label className="ml-2 text-sm text-white/70 cursor-pointer">
+                    Enable
+                  </label>
+                </div>
               </div>
             ) : null}
           </div>
@@ -751,5 +763,28 @@ const DynamicForm = ({
     </div>
   );
 };
+
+interface FieldLabelProps {
+  label: string;
+  fieldDescription?: string;
+  tooltipDirection?: "top" | "bottom" | "right" | "left";
+  classNames?: string;
+}
+const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames }: FieldLabelProps) => (
+  <div className="flex items-center gap-1">
+    <Subtitle className={`text-white/70 ${classNames || ""}`}>
+      {label}
+    </Subtitle>
+    {fieldDescription && (
+      <div className="text-sm inline-block mt-1">
+        <Tooltip message={fieldDescription} direction={tooltipDirection}>
+          <InfoOutlined
+            className="max-w-4 max-h-4 inline-block text-white/40"
+          />
+        </Tooltip>
+      </div>
+    )}
+  </div>
+);
 
 export default CreatePostForm;
