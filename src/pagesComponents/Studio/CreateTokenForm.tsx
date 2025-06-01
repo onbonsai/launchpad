@@ -104,6 +104,18 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
+  // Add state to preserve create token data when switching modes
+  const [previousCreateTokenData, setPreviousCreateTokenData] = useState<any>({
+      initialSupply,
+      rewardPoolPercentage,
+      uniHook,
+      tokenName,
+      tokenSymbol,
+      tokenImage,
+      selectedNetwork,
+      pricingTier,
+  });
+
   const { data: existingTokens, isLoading: isLoadingExistingTokens } = useCreatorTokens(address as `0x${string}`);
   const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress || !!existingTokens?.length);
 
@@ -130,7 +142,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     args: [address as `0x${string}`]
   });
 
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address as `0x${string}`, selectedNetwork, pricingTier);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
@@ -216,28 +228,41 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               <button
                 type="button"
                 onClick={() => {
+                  // If we have previous create token data, restore it
+                  if (previousCreateTokenData) {
+                    setInitialSupply(previousCreateTokenData.initialSupply);
+                    setRewardPoolPercentage(previousCreateTokenData.rewardPoolPercentage);
+                    setUniHook(previousCreateTokenData.uniHook);
+                    setTokenName(previousCreateTokenData.tokenName);
+                    setTokenSymbol(previousCreateTokenData.tokenSymbol);
+                    setTokenImage(previousCreateTokenData.tokenImage);
+                    setSelectedNetwork(previousCreateTokenData.selectedNetwork);
+                    setPricingTier(previousCreateTokenData.pricingTier);
+                    setFinalTokenData(previousCreateTokenData);
+                  } else {
+                    // Only reset if no previous data (fresh start)
+                    setInitialSupply(0);
+                    setRewardPoolPercentage(0);
+                    setUniHook("BONSAI_NFT_ZERO_FEES_HOOK");
+                    setTokenName("");
+                    setTokenSymbol("");
+                    setTokenImage([]);
+                    setSelectedNetwork("lens");
+                    setPricingTier("SMALL");
+                    setFinalTokenData({
+                      initialSupply: 0,
+                      rewardPoolPercentage: 0,
+                      uniHook: "BONSAI_NFT_ZERO_FEES_HOOK",
+                      tokenName: "",
+                      tokenSymbol: "",
+                      tokenImage: [],
+                      selectedNetwork: "lens",
+                      pricingTier: "SMALL",
+                    });
+                  }
+                  
                   setUseExistingToken(false);
                   setSavedTokenAddress(undefined);
-                  // Reset all token-related state
-                  setTokenName("");
-                  setTokenSymbol("");
-                  setInitialSupply(0);
-                  setRewardPoolPercentage(0);
-                  setUniHook("BONSAI_NFT_ZERO_FEES_HOOK");
-                  setTokenImage([]);
-                  setSelectedNetwork("lens");
-                  setPricingTier("SMALL");
-                  // Reset the final token data
-                  setFinalTokenData({
-                    initialSupply: 0,
-                    rewardPoolPercentage: 0,
-                    uniHook: "BONSAI_NFT_ZERO_FEES_HOOK",
-                    tokenName: "",
-                    tokenSymbol: "",
-                    tokenImage: [],
-                    selectedNetwork: "lens",
-                    pricingTier: "SMALL",
-                  });
                 }}
                 className={clsx(
                   "flex-1 py-2 px-4 rounded-lg border-2 transition-all",
@@ -250,7 +275,21 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               </button>
               <button
                 type="button"
-                onClick={() => setUseExistingToken(true)}
+                onClick={() => {
+                  // Save current create token data before switching
+                  setPreviousCreateTokenData({
+                    initialSupply,
+                    rewardPoolPercentage,
+                    uniHook,
+                    tokenName,
+                    tokenSymbol,
+                    tokenImage,
+                    selectedNetwork,
+                    pricingTier,
+                  });
+                  
+                  setUseExistingToken(true);
+                }}
                 className={clsx(
                   "flex-1 py-2 px-4 rounded-lg border-2 transition-all",
                   useExistingToken
@@ -352,7 +391,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     >
                       <div className="flex items-center gap-4">
                         {token.uri && (
-                          <SafeImage src={token.uri} alt={token.name} className="rounded-full object-cover" width={48} height={48} />
+                          <SafeImage src={token.uri} alt={token.name} className="rounded-xl object-cover w-16 h-16" width={48} height={48} />
                         )}
                         <div className="flex-1">
                           <div className="flex items-center justify-between">

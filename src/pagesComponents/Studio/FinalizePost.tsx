@@ -223,7 +223,7 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
   const BgImage = () => {
     return (
       <>
-        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5" />
+        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5 rounded-xl" />
         <div
           className="overflow-hidden h-[37%] absolute w-full top-0 left-0 -z-10"
           style={{ filter: 'blur(40px)' }}
