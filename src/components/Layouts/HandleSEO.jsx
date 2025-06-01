@@ -8,7 +8,7 @@ const frameDataTemplate = {
   version: "next",
   imageUrl: `${SITE_URL}/splash.jpg`,
   button: {
-    title: "Create on Bonsai",
+    title: "Remix AI media",
     action: {
       type: "launch_frame",
       name: "Bonsai",

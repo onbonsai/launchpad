@@ -53,7 +53,7 @@ const StudioCreatePage: NextPage = () => {
   const [postImage, setPostImage] = useState<any[]>([]);
   const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
-  const [addToken, setAddToken] = useState(false);
+  const [addToken, setAddToken] = useState(true);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();

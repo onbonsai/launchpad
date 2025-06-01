@@ -3,9 +3,8 @@ import { Button } from "@src/components/Button";
 import { brandFont } from "@src/fonts/fonts";
 import clsx from "clsx";
 import { useAccount, useBalance, useWalletClient } from "wagmi";
-import { erc20Abi, formatUnits, parseUnits, encodeFunctionData, encodeAbiParameters, zeroAddress } from "viem";
+import { erc20Abi, formatUnits, parseUnits, encodeAbiParameters, zeroAddress } from "viem";
 import { toast } from "react-hot-toast";
-import { useGetCredits } from "@src/hooks/useGetCredits";
 import { ADMIN_WALLET, USDC_CONTRACT_ADDRESS, USDC_DECIMALS, WGHO_CONTRACT_ADDRESS, WGHO_ABI, publicClient, approveToken, SWAP_TO_BONSAI_POST_ID, DECIMALS, getRegisteredClubByTokenAddress, buyChips, getBuyAmount } from "@src/services/madfi/moneyClubs";
 import { base } from "viem/chains";
 import { switchChain } from "viem/actions";
@@ -31,7 +30,7 @@ interface SwapToGenerateModalProps {
 }
 
 const CREDIT_PRICE = 0.01; // $0.01 per credit since we're swapping
-const SWAP_AMOUNTS = [1, 5, 10, 25];
+const SWAP_AMOUNTS = [2, 5, 15, 50];
 
 export const SwapToGenerateModal = ({
   open,
@@ -45,7 +44,6 @@ export const SwapToGenerateModal = ({
   const { data: walletClient } = useWalletClient();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(1);
   const [rememberSelection, setRememberSelection] = useState(false);
-  const { refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const { isMiniApp } = useIsMiniApp();
 
   // Load remembered selection
