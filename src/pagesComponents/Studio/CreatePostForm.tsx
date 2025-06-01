@@ -381,9 +381,9 @@ const CreatePostForm = ({
     >
       <div className="space-y-4">
         {/* Main Row: Prompt and Image */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Prompt Input */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <div className="relative">
               <div className="flex flex-col gap-y-2">
                 <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
@@ -412,7 +412,7 @@ const CreatePostForm = ({
 
           {/* Image Uploader */}
           {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-            <div className="w-56 space-y-1">
+            <div className="w-full lg:w-56 space-y-1">
               <FieldLabel
                 label={"Image"}
                 fieldDescription={

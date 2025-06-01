@@ -100,8 +100,6 @@ export default function RemixForm({
     }
   };
 
-  console.log("remixMedia", remixMedia);
-
   // set the default form data to use the remixed version
   useEffect(() => {
     if (!!remixMedia) {

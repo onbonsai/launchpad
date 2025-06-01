@@ -249,7 +249,7 @@ export default function ChatInput({
           <div className="relative flex flex-col w-full px-[10px]">
             {isGeneratingPreview && (
               <div className="mt-4 mb-4 flex justify-center">
-                <div className="w-full w-[250px] bg-[rgba(255,255,255,0.08)] rounded-[24px] p-4">
+                <div className="w-full w-[250px] p-4">
                   <div className="flex flex-col items-center gap-4">
                     <AnimatedBonsaiGrid />
                   </div>
@@ -258,7 +258,7 @@ export default function ChatInput({
             )}
             {!showRemixForm && !isGeneratingPreview && (
               <div className="relative">
-                {disabled && placeholder === "Insufficient credits" ? 
+                {disabled && placeholder === "Insufficient credits" ?
                   <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
                     creditsNeeded: 10,
                     onSuccess: () => null,
