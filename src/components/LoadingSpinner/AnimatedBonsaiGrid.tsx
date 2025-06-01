@@ -95,8 +95,8 @@ export default function AnimatedBonsaiGrid({
   gridSize = 40,
   dotSizes = { bonsai: 8, background: 3 },
   colors = {
-    bonsai: "#C6FFD9",
-    background: ["#B8D9C5", "#4D7F79", "#9DC4D5"],
+    bonsai: "#2D5A3D",
+    background: ["#1A4A32", "#0F2419", "#2D5A3D"],
   },
   backgroundDensity = 0.15,
   className = "",
@@ -156,29 +156,29 @@ export default function AnimatedBonsaiGrid({
       <style jsx>{`
         @keyframes bonsaiPulse {
           0% {
-            opacity: 0.8;
+            opacity: 0.9;
             transform: scale(1);
-            background-color: #C6FFD9;
+            background-color: #2D5A3D;
           }
           25% {
             opacity: 1;
-            transform: scale(1.1);
-            background-color: #5BE39D;
+            transform: scale(1.15);
+            background-color: #4AE582;
           }
           50% {
             opacity: 0.8;
             transform: scale(1);
-            background-color: #B8D9C5;
+            background-color: #1A4A32;
           }
           75% {
             opacity: 1;
-            transform: scale(1.05);
-            background-color: #9DC4D5;
+            transform: scale(1.08);
+            background-color: #7FFF9F;
           }
           100% {
-            opacity: 0.8;
+            opacity: 0.9;
             transform: scale(1);
-            background-color: #C6FFD9;
+            background-color: #2D5A3D;
           }
         }
       `}</style>
