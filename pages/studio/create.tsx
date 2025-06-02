@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "viem/actions";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
-import CashIcon from "@heroicons/react/solid/CashIcon"
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
@@ -558,7 +557,24 @@ const StudioCreatePage: NextPage = () => {
                 <Sidebar />
               </div>
               <div className="flex-grow overflow-visible">
-                {/* Form Card */}
+                {/* Full-width Template Selector - moved above padding */}
+                {template && (
+                  <div className={`w-full mb-8 ${openTab === 1 ? 'bg-card rounded-xl p-6 flex flex-col shadow-lg' : 'flex items-center gap-4'}`}>
+                    {openTab === 1 && (
+                      <Subtitle className="!text-brand-highlight mb-4 text-2xl">What do you want to create?</Subtitle>
+                    )}
+                    <TemplateSelector
+                      selectedTemplate={template}
+                      summary={openTab > 1}
+                      onTemplateSelect={(newTemplate) => {
+                        if (openTab === 1) {
+                          setTemplate(newTemplate);
+                          setFinalTemplateData({});
+                        }
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10 overflow-visible">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-8 lg:gap-x-8 w-full overflow-visible">
                     <div className="lg:col-span-1 overflow-visible">
@@ -567,16 +583,6 @@ const StudioCreatePage: NextPage = () => {
                       </div>
                       {openTab === 1 && template && (
                         <>
-                          <div className="mb-2"><Subtitle className="!text-brand-highlight">Choose a template</Subtitle></div>
-                          <div className="mb-8">
-                            <TemplateSelector
-                              selectedTemplate={template}
-                              onTemplateSelect={(newTemplate) => {
-                                setTemplate(newTemplate);
-                                setFinalTemplateData({});
-                              }}
-                            />
-                          </div>
                           <CreatePostForm
                             template={template as Template}
                             preview={currentPreview}

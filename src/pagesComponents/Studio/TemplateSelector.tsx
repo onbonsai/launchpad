@@ -1,9 +1,7 @@
 import { useMemo, useRef, useState } from "react"
-import Image from "next/image"
 import { CATEGORIES, TemplateCategory, Template } from "@src/services/madfi/studio";
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
-import { Header2, Subtitle } from "@src/styles/text";
 import ImportTemplatesModal from "@pagesComponents/Studio/ImportTemplatesModal";
 import { brandFont } from "@src/fonts/fonts";
 import { useGetCredits } from "@src/hooks/useGetCredits";
@@ -34,13 +32,15 @@ interface TemplateSelectorProps {
   onTemplateSelect: (template: Template) => void;
   showImportButton?: boolean;
   showCategories?: boolean;
+  summary?: boolean;
 }
 
 const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplate,
   onTemplateSelect,
   showImportButton = true,
-  showCategories = false
+  showCategories = false,
+  summary = false
 }) => {
   const isMobile = useIsMobile();
   const { address, isConnected } = useAccount();
@@ -173,6 +173,16 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       </div>
     );
   };
+
+  if (summary && selectedTemplate) {
+    return (
+      <div className="flex items-center gap-2 px-4 sm:px-6 rounded-full">
+        <TemplateIcon type={selectedTemplate.category} />
+        <span className="font-semibold text-lg text-brand-highlight">{selectedTemplate.displayName}</span>
+        <span className="text-sm text-secondary/60 capitalize">{selectedTemplate.category.replace(/_/g, " ")}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-grow">
