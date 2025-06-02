@@ -139,7 +139,7 @@ export const FinalizePost = ({
             </div>
             <div className="relative">
               <textarea
-                placeholder="Write the content and hit send to preview"
+                placeholder="Update the content and hit preview to see the changes"
                 value={localPostContent}
                 onChange={(e) => setLocalPostContent(e.target.value)}
                 className={`${sharedInputClasses} w-full min-h-[40px] p-4 pr-12 resize-none`}
@@ -151,7 +151,7 @@ export const FinalizePost = ({
                 className="absolute bottom-4 right-2 p-2 rounded-lg bg-brand-highlight/10 hover:bg-brand-highlight/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 title="Update preview"
               >
-                <PaperAirplaneIcon className="w-4 h-4 text-brand-highlight transform rotate-45" />
+                <span className="text-brand-highlight text-sm">Preview Post</span>
               </button>
             </div>
           </div>

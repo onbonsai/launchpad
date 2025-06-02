@@ -9,7 +9,7 @@ import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { MinusIcon, PlusIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
-import { BodySemiBold, Subtitle } from "@src/styles/text";
+import { BodySemiBold } from "@src/styles/text";
 import { Button } from "../Button";
 
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
@@ -338,7 +338,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
               <img
                 className={clsx(
                   "rounded-lg object-cover w-full",
-                  compact ? "h-16" : "h-48"
+                  compact ? "h-20" : "h-48"
                 )}
                 src={file.preview}
                 alt={file.name}
