@@ -12,13 +12,13 @@ export const FairLaunchModeComponent = ({ club, totalSupply }) => {
   }, [club, totalSupply]);
 
   return (
-    <div className="py-4 left-4 right-4 md:right-auto md:left-1/4">
+    <div className="py-4 px-4 md:px-0 md:left-1/4">
       <div className="col-span-3 flex justify-center w-full md:w-auto">
         <div className="flex gap-1 mt-5 w-full md:w-auto">
           {/* Bonding Curve Box */}
           <div className="bg-transparent w-full md:min-w-[360px] h-[84px] rounded-[30px] p-[3px] relative animate-pulse-green">
             <div
-              className="rounded-[30px] absolute top-[3px] bottom-[3px] left-[3px]"
+              className="rounded-[27px] absolute top-[3px] bottom-[3px] left-[3px] right-[3px]"
               style={{
                 width: `${bondingCurveProgress === 0 ? 0 : Math.min(Math.max(bondingCurveProgress, 14), 98)}%`,
                 background: "linear-gradient(90deg, #90EE90 0%, #008000 171.13%)",

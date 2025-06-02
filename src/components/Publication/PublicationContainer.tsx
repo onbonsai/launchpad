@@ -340,6 +340,8 @@ const PublicationContainer = ({
   const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
 
   const onCollectButtonClick = async (e: React.MouseEvent) => {
+    if (hasCollected) return;
+
     if (!!collectAmount) {
       e.preventDefault();
       e.stopPropagation();
@@ -485,6 +487,7 @@ const PublicationContainer = ({
           presenceCount={connectedAccounts?.length}
           hideCommentButton
           hideShareButton
+          onCollectButtonClick={onCollectButtonClick}
         />
       )}
       <div className={clsx(
@@ -492,39 +495,17 @@ const PublicationContainer = ({
         isMobile ? "top-4 right-4" : "top-4 right-4"
       )}>
         <div className="flex">
-          <Tooltip disabled={isMobile} message={hasCollected ? "Already collected" : "Collect this post"} direction={!media?.agentId ? "left" : "bottom"}>
-            <div
-              className={clsx(
-                "md:min-w-[60px] min-w-[45px] flex items-center justify-center border border-card-light py-2 gap-x-1 px-4 bg-card-light",
-                "md:py-2.5 md:px-5",
-                isMobile ? "rounded-xl" : "rounded-l-xl",
-                !media?.agentId && !isMobile ? "rounded-r-xl" : "",
-                hasCollected ? "opacity-50" : "hover:bg-brand-highlight/70 cursor-pointer"
-              )}
-              onClick={(e) => {
-                if (!hasCollected) {
-                  onCollectButtonClick(e);
-                }
-              }}
-            >
-              {!hasCollected ? (
-                <>
-                  <BookmarkAddOutlined className="h-4 w-4 md:h-5 md:w-5" />
-                </>
-              ) : <BookmarkOutlined className="h-4 w-4 md:h-5 md:w-5" />}
-            </div>
-          </Tooltip>
           {!isMobile && media?.agentId && (
             <>
               <div
-                className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-brand-highlight/70 border-l-0 rounded-r-xl"
+                className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-white hover:text-black transition-colors duration-200 rounded-xl"
                 onClick={() => {
                   setIsChatOpen(true);
                   setIsRemixing(true);
                 }}
               >
                 <SwapCalls className="h-5 w-5 mr-2" />
-                Remix
+                REMIX
               </div>
             </>
           )}
@@ -591,7 +572,7 @@ const PublicationContainer = ({
 
       {!!media?.agentId && isAuthenticated && (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-10'}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-3'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
           <div

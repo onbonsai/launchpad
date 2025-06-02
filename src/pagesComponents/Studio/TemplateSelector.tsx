@@ -103,10 +103,9 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   const handleTemplateSelect = (template: Template) => {
     const disabled = (creditBalance!.creditsRemaining || 0) < (template.estimatedCost || 1);
+    // if (disabled) return;
 
-    if (disabled) return;
-
-    if (estimatedGenerations === 0 || (creditBalance!.creditsRemaining < (template.estimatedCost || 0))) {
+    if (estimatedGenerations === 0 || disabled) {
       openTopUpModal("api-credits");
     } else {
       onTemplateSelect(template);
@@ -129,9 +128,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     return (
       <div
         key={`template-${idx}`}
-        className={`bg-card-light rounded-lg ${
-          !disabled ? "cursor-pointer" : ""
-        } px-3 py-4 flex flex-col border ${
+        className={`bg-card-light rounded-lg cursor-pointer px-3 py-4 flex flex-col border ${
           selectedTemplate?.name === template.name
             ? "border-brand-highlight"
             : "border-dark-grey hover:border-brand-highlight"
@@ -164,12 +161,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           )}
           {!isLoadingCredits && estimatedGenerations !== undefined && (
             <button
-              className={`text-sm text-black px-2 py-0.5 rounded-lg ${
-                disabled
-                  ? "bg-brand-highlight/50 cursor-not-allowed"
-                  : "bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
-              }`}
-              disabled={disabled}
+              className="text-sm text-black px-2 py-0.5 rounded-lg bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
+              // disabled={disabled}
             >
               {((creditBalance!.creditsRemaining || 0) > (template.estimatedCost || 0))
                 ? "Select"

@@ -15,6 +15,7 @@ import WalletButton from "@src/components/Creators/WalletButton";
 import { sdk } from '@farcaster/frame-sdk'
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import CoinPile from '@src/components/Icons/CoinPile';
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -113,20 +114,18 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   );
 
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
-    <div className="min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 space-y-1 px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out">
-      <div className="h-8 flex items-center pt-1">
-        <Button
-          variant="dark-grey"
-          size="md"
-          onClick={onClick}
-          disabled={!isConnected}
-          className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 ${brandFont.className}`}
+    <div
+      className="min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg"
+      onClick={(e) => isConnected ? onClick(e) : null}
+    >
+      <div className="flex items-center gap-x-1.5 md:gap-x-3">
+        <CoinPile className="w-6 h-6 md:w-7 md:h-7 -mt-1" color="text-black" />
+        <BodySemiBold
+          className={`text-md md:text-md ${brandFont.className} ${!isConnected ? 'opacity-50' : ''}`}
         >
-          Buy
-        </Button>
+          BUY
+        </BodySemiBold>
       </div>
-      {/* filler to match height of infocard */}
-      <div></div>
     </div>
   );
 

@@ -270,9 +270,9 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh] pt-4  ">
+    <div className="bg-background text-secondary min-h-[90vh] pt-4">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[100rem] px-2 md:px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] w-full px-2 md:px-4 md::px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-12 max-w-full">
               {/* Chart */}
@@ -341,7 +341,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                               {capitalizeFirstLetter(club.chain)}
                             </Subtitle>
                           </div>
-                        } 
+                        }
                         className="flex-1 md:flex-initial"
                         />
                         <InfoCard title='CA' subtitle={
@@ -468,11 +468,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             </div>
                           </div>
                         </>
-                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
-                          <Header2 className="text-white font-medium">
+                        : <div className="flex flex-col w-full justify-center items-stretch md:items-center md:mt-20 mt-12">
+                          <Header2 className="text-white font-medium text-center">
                             ${club.token.symbol} is still in Fair Launch!
                           </Header2>
-                          <Subtitle className="mt-2">
+                          <Subtitle className="mt-2 text-center">
                             Token price will not change until 200mil tokens are minted.
                           </Subtitle>
                           <FairLaunchModeComponent club={club} totalSupply={totalSupply} />

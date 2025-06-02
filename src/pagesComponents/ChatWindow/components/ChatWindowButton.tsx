@@ -164,12 +164,12 @@ export default function ChatWindowButton({
             </Button> */}
             <Button
               onClick={handleRemix}
-              variant="accentBrand"
+              variant="secondary"
               size="sm"
               className="flex-1 ml-2 bg-background border border-dark-grey hover:bg-background"
             >
               <SwapCalls className="h-5 w-5 mr-2" />
-              Remix
+              REMIX
             </Button>
           </div>
         </div>

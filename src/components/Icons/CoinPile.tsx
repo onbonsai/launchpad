@@ -1,5 +1,5 @@
-const CoinPile = ({ isTokensActive }: { isTokensActive: boolean }) => (
-  <svg viewBox="0 0 550 950" className={`w-7 h-7 ${isTokensActive ? "text-brand-highlight" : "text-white"}`}>
+const CoinPile = ({ isTokensActive, className, color }: { isTokensActive?: boolean; className?: string; color?: string }) => (
+  <svg viewBox="0 0 550 950" className={`${className || 'w-7 h-7'} ${color || (isTokensActive ? "text-brand-highlight" : "text-white")}`}>
     <g transform="translate(-325, -60)">
       <path
         d="m431.48 262.51c-71.949 2.3242-136.62 16.047-186.57 39.031-24.973 11.496-46.359 25.301-63.113 43.184-16.754 17.879-29.066 41.461-29.066 67.543h-0.003906c0.035156 9.9492 4.0234 19.477 11.082 26.488 7.0625 7.0078 16.617 10.922 26.566 10.883 9.9023-0.035157 19.387-3.9805 26.387-10.984 7-7 10.949-16.484 10.984-26.387 0-3.543 1.1328-8.3203 8.5898-16.332 7.5117-8.0234 21.176-17.699 39.863-26.297 37.367-17.195 94.133-30.051 157.79-32.113l-0.003906 0.003906c9.9531-0.32422 19.367-4.5898 26.168-11.859s10.434-16.945 10.098-26.895c-0.32422-9.9531-4.5898-19.367-11.859-26.168-7.2695-6.8047-16.945-10.434-26.895-10.098z"

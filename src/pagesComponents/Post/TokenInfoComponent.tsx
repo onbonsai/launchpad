@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 import { sdk } from '@farcaster/frame-sdk';
 import useIsMobile from '@src/hooks/useIsMobile';
 import { SafeImage } from '@src/components/SafeImage/SafeImage';
+import CoinPile from '@src/components/Icons/CoinPile';
 
 const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
@@ -35,7 +36,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
-    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 gap-y-1 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl sm:rounded-none', className || "")}>
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 gap-y-1 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
       {title ? (
         <>
           <Subtitle className="text-xs whitespace-nowrap">{title}</Subtitle>
@@ -69,21 +70,17 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
 
     return (
       <div
-        className="md:min-w-[88px] flex flex-col items-center justify-center border border-card-light py-1 sm:py-2 space-y-1 px-2 sm:px-4 bg-card-light rounded-l-xl sm:rounded-l-none rounded-r-xl hover:!bg-bullish cursor-pointer transition-colors duration-200 ease-in-out"
+        className="min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg"
         onClick={(e) => isConnected ? handleClick(e) : null}
       >
-        <div className="h-6 sm:h-8 flex items-center pt-0 sm:pt-1">
-          <Button
-            variant="dark-grey"
-            size={isMobile ? "sm" : "md"}
-            disabled={!isConnected}
-            className={`!bg-transparent hover:!bg-transparent !border-none !text-white/80 !text-sm sm:!text-base ${brandFont.className}`}
+        <div className="flex items-center gap-x-1.5 md:gap-x-3">
+          <CoinPile className="w-6 h-6 md:w-7 md:h-7 -mt-1" color="text-black" />
+          <BodySemiBold
+            className={`text-md md:text-md ${brandFont.className} ${!isConnected ? 'opacity-50' : ''}`}
           >
-            Buy
-          </Button>
+            BUY
+          </BodySemiBold>
         </div>
-        {/* filler to match height of infocard */}
-        <div></div>
       </div>
     );
   };
@@ -119,7 +116,6 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
         <div className="relative z-10 p-2 pb-4 flex flex-col">
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full flex justify-between">
-              <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
                 <div className='flex items-center gap-x-4 w-full'>
                   <SafeImage
                     src={club.token.image}
@@ -129,25 +125,45 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                     height={48}
                   />
                   <div className="flex flex-col items-start">
-                    <Header2 className="text-white text-md">${club.token.symbol}</Header2>
+                    <div className="flex items-center gap-x-2">
+                      <Header2 className="text-white text-md">${club.token.symbol}</Header2>
+                      <Link href={`/token/${club.chain}/${club.tokenAddress}`}>
+                        <button className="p-1 hover:bg-white/10 rounded-lg transition-colors duration-200">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-white/60 hover:text-white"
+                          >
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15,3 21,3 21,9"/>
+                            <line x1="10" x2="21" y1="14" y2="3"/>
+                          </svg>
+                        </button>
+                      </Link>
+                    </div>
                     <BodySemiBold className="text-white/60 text-sm">{club.token.name}</BodySemiBold>
                   </div>
                 </div>
-              </Link>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 md:gap-0">
+            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 md:gap-0 md:space-x-2">
               <div className="flex flex-row items-center w-full">
                 <InfoCard
                   title='Market Cap'
                   subtitle={<Subtitle>{!tradingInfo?.marketCap ? '-' : localizeNumber(parseFloat(formatUnits(BigInt(tradingInfo.marketCap), _DECIMALS)).toString(), 'currency', 2)}</Subtitle>}
                   roundedLeft
-                  className="flex-1"
+                  className="flex-1 border-r-0"
                 />
                 <InfoCard
                   title='24h'
                   subtitle={<PriceChangeString period={PriceChangePeriod.twentyFourHours} />}
-                  className="flex-1"
+                  className="flex-1 border-r-0"
                 />
                 <InfoCard
                   title='Balance'
@@ -156,7 +172,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                   className="flex-1"
                 />
               </div>
-              <div className={isMobile ? 'w-full mt-1' : 'hidden sm:block'}>
+              <div className={isMobile ? 'w-full' : 'hidden sm:block'}>
                 <ActionCard onClick={(e) => setShowBuyModal(true)} />
               </div>
             </div>

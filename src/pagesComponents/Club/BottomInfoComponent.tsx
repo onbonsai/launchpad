@@ -69,7 +69,7 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
               <BodySemiBold className="text-white">{balance ? balance : "-"}</BodySemiBold>
             </div>
             <Button
-              className="bg-bullish border-transparent max-w-[60px]"
+              className="!bg-brand-highlight !text-black max-w-[60px] !hover:bg-brand-highlight/60"
               size="sm"
               onClick={() => setBuyClubModalOpen(true)}
             >
