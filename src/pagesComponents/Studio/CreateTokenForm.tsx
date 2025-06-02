@@ -377,7 +377,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 <div className="flex items-center gap-1">
                   <Subtitle className="text-white/70">Your Bonsai Launchpad Tokens</Subtitle>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-4 max-h-[460px] overflow-y-auto">
                   {existingTokens.length ? existingTokens?.map((token) => (
                     <div
                       key={token.id}
