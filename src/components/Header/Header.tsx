@@ -172,20 +172,21 @@ export const Header = () => {
 
             {/* Right side of header */}
             <div className="flex items-center justify-end md:w-[40%] w-full">
-              {/* On desktop show actions inline, on mobile they will be in the hamburger menu */}
-              <div className="hidden sm:flex items-center gap-2 mr-2">
-                <Link href="/studio/create" onClick={handleAuthRequiredClick}>
-                  <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1">
-                    <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Create</span>
-                  </Button>
-                </Link>
-                <Balance />
-                <ClaimFeesEarned />
-                <ClaimBonsai />
-              </div>
+              {isAuthenticated && (
+                <div className="hidden sm:flex items-center gap-2 mr-2">
+                  <Link href="/studio/create" onClick={handleAuthRequiredClick}>
+                    <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1">
+                      <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Create</span>
+                    </Button>
+                  </Link>
+                  <Balance />
+                  <ClaimFeesEarned />
+                  <ClaimBonsai />
+                </div>
+              )}
 
               {/* Keep ConnectButton always visible */}
               <ConnectButton

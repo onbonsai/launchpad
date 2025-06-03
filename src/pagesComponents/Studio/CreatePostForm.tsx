@@ -386,13 +386,13 @@ const CreatePostForm = ({
           <div className={`w-full ${!remixPostId ? 'sm:flex-1' : ''}`}>
             <div className="relative">
               <div className="flex flex-col gap-y-2">
-                <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
+                <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
                 <textarea
                   ref={textareaRef}
                   placeholder="What do you want to create?"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className={`${sharedInputClasses} w-full min-h-[108px] p-4 resize-none`}
+                  className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
                   <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>

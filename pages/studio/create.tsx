@@ -559,9 +559,9 @@ const StudioCreatePage: NextPage = () => {
               <div className="flex-grow overflow-visible">
                 {/* Full-width Template Selector - moved above padding */}
                 {template && (
-                  <div className={`w-full mb-8 ${openTab === 1 ? 'bg-card rounded-xl p-6 flex flex-col shadow-lg' : 'flex items-center gap-4'}`}>
+                  <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'}`}>
                     {openTab === 1 && (
-                      <Subtitle className="!text-brand-highlight mb-4 text-2xl">What do you want to create?</Subtitle>
+                      <Subtitle className="!text-brand-highlight mb-2 text-2xl">What do you want to create?</Subtitle>
                     )}
                     <TemplateSelector
                       selectedTemplate={template}
