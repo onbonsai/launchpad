@@ -58,6 +58,7 @@ const StudioCreatePage: NextPage = () => {
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
   const [template, setTemplate] = useState<Template>();
+  const [selectedSubTemplate, setSelectedSubTemplate] = useState<any>();
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
@@ -177,6 +178,14 @@ const StudioCreatePage: NextPage = () => {
         text: preview.text
       }
     }]);
+  };
+
+  const handleTemplateSelect = (newTemplate: Template, subTemplate?: any) => {
+    if (openTab === 1) {
+      setTemplate(newTemplate);
+      setSelectedSubTemplate(subTemplate);
+      setFinalTemplateData({});
+    }
   };
 
   const onCreate = async (collectAmount: number) => {
@@ -567,13 +576,9 @@ const StudioCreatePage: NextPage = () => {
                     )}
                     <TemplateSelector
                       selectedTemplate={template}
+                      selectedSubTemplate={selectedSubTemplate}
                       summary={openTab > 1}
-                      onTemplateSelect={(newTemplate) => {
-                        if (openTab === 1) {
-                          setTemplate(newTemplate);
-                          setFinalTemplateData({});
-                        }
-                      }}
+                      onTemplateSelect={handleTemplateSelect}
                     />
                   </div>
                 )}
@@ -590,6 +595,7 @@ const StudioCreatePage: NextPage = () => {
                             <CreatePostForm
                               template={template as Template}
                               preview={currentPreview}
+                              selectedSubTemplate={selectedSubTemplate}
                               finalTemplateData={finalTemplateData}
                               setPreview={handleSetPreview}
                               postContent={postContent}

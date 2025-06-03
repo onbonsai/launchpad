@@ -90,6 +90,7 @@ export type Template = {
   };
   templateData: {
     form: z.ZodObject<any>;
+    subTemplates?: any[];
   };
 };
 

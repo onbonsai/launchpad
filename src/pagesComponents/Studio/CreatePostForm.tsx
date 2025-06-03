@@ -29,6 +29,7 @@ import { SparklesIcon } from "@heroicons/react/outline";
 
 type CreatePostProps = {
   template: Template;
+  selectedSubTemplate?: any;
   preview?: Preview;
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
@@ -81,6 +82,7 @@ const useAutoGrow = (value: string) => {
 
 const CreatePostForm = ({
   template,
+  selectedSubTemplate,
   preview,
   setPreview,
   next,
@@ -241,11 +243,17 @@ const CreatePostForm = ({
         startTime: audioStartTime || 0
       } : undefined;
 
+      // Include subTemplateId in templateData if a subtemplate is selected
+      const finalTemplateData = {
+        ...templateData,
+        ...(selectedSubTemplate?.id && { subTemplateId: selectedSubTemplate.id })
+      };
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
-        templateData,
+        finalTemplateData,
         prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
@@ -372,6 +380,14 @@ const CreatePostForm = ({
     ...availableFields
   ].filter(Boolean).length;
 
+  // Get placeholder text based on selected subtemplate
+  const getPlaceholderText = () => {
+    if (selectedSubTemplate?.helpText) {
+      return selectedSubTemplate.helpText;
+    }
+    return "What do you want to create?";
+  };
+
   return (
     <form
       className="mx-auto w-full space-y-4"
@@ -389,7 +405,7 @@ const CreatePostForm = ({
                 <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
                 <textarea
                   ref={textareaRef}
-                  placeholder="What do you want to create?"
+                  placeholder={getPlaceholderText()}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}

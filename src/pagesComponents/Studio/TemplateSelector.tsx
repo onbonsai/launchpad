@@ -13,6 +13,7 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { CashIcon } from "@heroicons/react/solid";
 import { InfoOutlined } from "@mui/icons-material";
 import { Tooltip } from "@src/components/Tooltip";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 // Placeholder icons for templates
 const TemplateIcon = ({ type }: { type?: string }) => {
@@ -29,10 +30,11 @@ const TemplateIcon = ({ type }: { type?: string }) => {
 
 interface TemplateSelectorProps {
   selectedTemplate?: Template;
-  onTemplateSelect: (template: Template) => void;
+  onTemplateSelect: (template: Template, subTemplate?: any) => void;
   showImportButton?: boolean;
   showCategories?: boolean;
   summary?: boolean;
+  selectedSubTemplate?: any;
 }
 
 const TemplateSelector: React.FC<TemplateSelectorProps> = ({
@@ -40,7 +42,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateSelect,
   showImportButton = true,
   showCategories = false,
-  summary = false
+  summary = false,
+  selectedSubTemplate
 }) => {
   const isMobile = useIsMobile();
   const { address, isConnected } = useAccount();
@@ -52,6 +55,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const { data: stakingData } = useStakingData(address as string);
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | undefined>();
   const { openTopUpModal } = useTopUpModal();
+  const [selectedSubTemplateState, setSelectedSubTemplateState] = useState<any>(undefined);
 
   const estimatedGenerations = useMemo(() => {
     if (!isLoadingCredits && creditBalance?.creditsRemaining) {
@@ -108,7 +112,15 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     if (estimatedGenerations === 0 || disabled) {
       openTopUpModal("api-credits");
     } else {
-      onTemplateSelect(template);
+      setSelectedSubTemplateState(undefined); // Reset subtemplate when changing templates
+      onTemplateSelect(template, undefined);
+    }
+  };
+
+  const handleSubTemplateSelect = (subTemplate: any) => {
+    setSelectedSubTemplateState(subTemplate);
+    if (selectedTemplate) {
+      onTemplateSelect(selectedTemplate, subTemplate);
     }
   };
 
@@ -174,15 +186,84 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     );
   };
 
+  const renderSubTemplateCard = (subTemplate: any, idx: number) => {
+    const isSelected = selectedSubTemplateState?.id === subTemplate.id || selectedSubTemplate?.id === subTemplate.id;
+
+    return (
+      <div
+        key={`subtemplate-${idx}`}
+        className={`bg-card-light rounded-lg cursor-pointer px-3 py-3 flex flex-row items-center border ${
+          isSelected
+            ? "border-brand-highlight"
+            : "border-dark-grey hover:border-brand-highlight"
+        } transition-colors w-72 min-h-[96px] h-24 flex-shrink-0 group`}
+        onClick={() => handleSubTemplateSelect(subTemplate)}
+      >
+        <div className="h-full flex items-center">
+          {subTemplate.previewImage ? (
+            <SafeImage 
+              src={subTemplate.previewImage} 
+              alt={subTemplate.name}
+              className="h-full w-full object-cover rounded-lg"
+              width={56}
+              height={56}
+            />
+          ) : (
+            <div className="w-16 h-16 flex items-center justify-center bg-brand-highlight/20 rounded-full text-2xl">🎨</div>
+          )}
+        </div>
+        <div className="ml-3 flex-1">
+          <h4 className="font-medium text-sm text-brand-highlight">{subTemplate.name}</h4>
+          <p className="text-xs text-secondary/60 mt-1 line-clamp-2">{subTemplate.description}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderNoneSubTemplateCard = () => {
+    const isSelected = !selectedSubTemplateState && !selectedSubTemplate;
+
+    return (
+      <div
+        className={`bg-card-light rounded-lg cursor-pointer px-3 py-3 flex flex-col border ${
+          isSelected
+            ? "border-brand-highlight"
+            : "border-dark-grey hover:border-brand-highlight"
+        } transition-colors w-72 flex-shrink-0 group`}
+        onClick={() => handleSubTemplateSelect(undefined)}
+      >
+        <div className="flex items-start">
+          <div className="w-16 h-16 bg-brand-highlight/20 rounded-lg flex items-center justify-center text-2xl">
+            ✨
+          </div>
+          <div className="ml-3 flex-1">
+            <h4 className="font-medium text-sm text-brand-highlight">Freeform</h4>
+            <p className="text-xs text-secondary/60 mt-1">Use the basic template however you want</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (summary && selectedTemplate) {
     return (
       <div className="flex items-center gap-2 px-4 sm:px-6 rounded-full">
         <TemplateIcon type={selectedTemplate.category} />
         <span className="font-semibold text-lg text-brand-highlight">{selectedTemplate.displayName}</span>
         <span className="text-sm text-secondary/60 capitalize">{selectedTemplate.category.replace(/_/g, " ")}</span>
+        {(selectedSubTemplateState || selectedSubTemplate) && (
+          <>
+            <span className="text-secondary/40">→</span>
+            <span className="text-sm text-brand-highlight">{(selectedSubTemplateState || selectedSubTemplate).name}</span>
+          </>
+        )}
       </div>
     );
   }
+
+  // Get subtemplates from the selected template
+  const subTemplates = selectedTemplate?.templateData?.subTemplates || [];
+  const hasSubTemplates = subTemplates.length > 0;
 
   return (
     <div className="flex-grow">
@@ -233,6 +314,19 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Subtemplates Row */}
+      {hasSubTemplates && selectedTemplate && (
+        <>
+          <h3 className="text-sm font-medium text-brand-highlight mb-3">(Optional) Choose a style</h3>
+          <div className="overflow-x-auto">
+            <div className="flex gap-x-3 pb-4 min-w-max">
+              {renderNoneSubTemplateCard()}
+              {subTemplates.map((subTemplate: any, idx: number) => renderSubTemplateCard(subTemplate, idx))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Import template modal */}
       {showImportTemplateModal && showImportButton && (

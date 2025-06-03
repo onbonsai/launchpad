@@ -167,6 +167,7 @@ export default function RemixForm({
         </div>
         <CreatePostForm
           template={template}
+          selectedSubTemplate={undefined}
           finalTemplateData={finalTemplateData}
           preview={preview}
           setPreview={handleSetPreview}
