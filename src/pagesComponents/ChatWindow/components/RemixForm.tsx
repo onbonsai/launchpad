@@ -167,7 +167,7 @@ export default function RemixForm({
         </div>
         <CreatePostForm
           template={template}
-          selectedSubTemplate={undefined}
+          selectedSubTemplate={template.templateData?.subTemplates?.find((subTemplate: any) => subTemplate.id === (remixMedia.templateData as any)?.subTemplateId) || undefined}
           finalTemplateData={finalTemplateData}
           preview={preview}
           setPreview={handleSetPreview}
@@ -192,6 +192,7 @@ export default function RemixForm({
             chain: remixMedia.token.chain
           } : undefined}
           remixPostId={remixMedia.postId}
+          remixMediaTemplateData={remixMedia.templateData}
         />
       </div>
     </div>

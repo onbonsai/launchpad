@@ -29,6 +29,7 @@ import { SparklesIcon } from "@heroicons/react/outline";
 
 type CreatePostProps = {
   template: Template;
+  selectedSubTemplate?: any;
   preview?: Preview;
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
@@ -53,6 +54,7 @@ type CreatePostProps = {
     chain: string;
   };
   remixPostId?: string;
+  remixMediaTemplateData?: any;
 };
 
 function getBaseZodType(field: any) {
@@ -81,6 +83,7 @@ const useAutoGrow = (value: string) => {
 
 const CreatePostForm = ({
   template,
+  selectedSubTemplate,
   preview,
   setPreview,
   next,
@@ -101,6 +104,7 @@ const CreatePostForm = ({
   tooltipDirection,
   remixToken,
   remixPostId,
+  remixMediaTemplateData
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -242,11 +246,17 @@ const CreatePostForm = ({
         startTime: audioStartTime || 0
       } : undefined;
 
+      // Include subTemplateId in templateData if a subtemplate is selected
+      const finalTemplateData = {
+        ...templateData,
+        ...(selectedSubTemplate?.id && { subTemplateId: selectedSubTemplate.id })
+      };
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
-        templateData,
+        finalTemplateData,
         prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
@@ -373,6 +383,14 @@ const CreatePostForm = ({
     ...availableFields
   ].filter(Boolean).length;
 
+  // Get placeholder text based on selected subtemplate
+  const getPlaceholderText = () => {
+    return remixMediaTemplateData?.prompt ||
+      selectedSubTemplate?.helpText ||
+      template.placeholderText ||
+      "What do you want to create?";
+  };
+
   return (
     <form
       className="mx-auto w-full space-y-4"
@@ -390,30 +408,10 @@ const CreatePostForm = ({
                 <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
                 <textarea
                   ref={textareaRef}
-                  placeholder="What do you want to create?"
+                  placeholder={getPlaceholderText()}
                   value={prompt}
-                  onChange={(e) => {
-                    setPrompt(e.target.value);
-
-                    // Clear string fields from templateData when user types
-                    if (e.target.value.trim()) {
-                      const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
-
-                      setTemplateData(prevTemplateData => {
-                        const clearedTemplateData = { ...prevTemplateData };
-
-                        Object.entries(shape).forEach(([key, field]) => {
-                          const zodType = getBaseZodType(field);
-                          if (zodType instanceof z.ZodString) {
-                            clearedTemplateData[key] = undefined;
-                          }
-                        });
-
-                        return clearedTemplateData;
-                      });
-                    }
-                  }}
-                  className={`${sharedInputClasses} w-full min-h-[120px] p-4 resize-none`}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className={`${sharedInputClasses} w-full min-h-[60px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
                   <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>

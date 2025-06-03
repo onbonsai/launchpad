@@ -192,30 +192,27 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     return (
       <div
         key={`subtemplate-${idx}`}
-        className={`bg-card-light rounded-lg cursor-pointer px-3 py-3 flex flex-row items-center border ${
+        className={`bg-card-light rounded-lg cursor-pointer p-3 flex flex-col items-center border ${
           isSelected
             ? "border-brand-highlight"
-            : "border-dark-grey hover:border-brand-highlight"
-        } transition-colors w-72 min-h-[96px] h-24 flex-shrink-0 group`}
+            : "border-transparent hover:border-brand-highlight"
+        } transition-colors w-36 flex-shrink-0 group`}
         onClick={() => handleSubTemplateSelect(subTemplate)}
       >
-        <div className="h-full flex items-center">
+        <div className="w-16 h-16 mb-2">
           {subTemplate.previewImage ? (
             <SafeImage
               src={subTemplate.previewImage}
               alt={subTemplate.name}
-              className="h-full w-full object-cover rounded-lg"
-              width={56}
-              height={56}
+              className="w-full h-full object-cover rounded-full"
+              width={64}
+              height={64}
             />
           ) : (
-            <div className="w-16 h-16 flex items-center justify-center bg-brand-highlight/20 rounded-full text-2xl">🎨</div>
+            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-2xl">🎨</div>
           )}
         </div>
-        <div className="ml-3 flex-1">
-          <h4 className="font-medium text-sm text-brand-highlight">{subTemplate.name}</h4>
-          <p className="text-xs text-secondary/60 mt-1 line-clamp-2">{subTemplate.description}</p>
-        </div>
+        <h4 className="font-medium text-xs text-brand-highlight text-center leading-tight">{subTemplate.name}</h4>
       </div>
     );
   };
@@ -225,29 +222,24 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
     return (
       <div
-        className={`bg-card-light rounded-lg cursor-pointer px-3 py-3 flex flex-col border ${
+        className={`bg-card-light rounded-lg cursor-pointer p-3 flex flex-col items-center border ${
           isSelected
             ? "border-brand-highlight"
-            : "border-dark-grey hover:border-brand-highlight"
-        } transition-colors w-72 flex-shrink-0 group`}
+            : "border-transparent hover:border-brand-highlight"
+        } transition-colors w-36 flex-shrink-0 group`}
         onClick={() => handleSubTemplateSelect(undefined)}
       >
-        <div className="flex items-start">
-          <div className="w-16 h-16 bg-brand-highlight/20 rounded-lg flex items-center justify-center text-2xl">
-            ✨
-          </div>
-          <div className="ml-3 flex-1">
-            <h4 className="font-medium text-sm text-brand-highlight">Freeform</h4>
-            <p className="text-xs text-secondary/60 mt-1">Use the basic template however you want</p>
-          </div>
+        <div className="w-16 h-16 mb-2 bg-brand-highlight/20 rounded-full flex items-center justify-center text-2xl">
+          ✏️
         </div>
+        <h4 className="font-medium text-xs text-brand-highlight text-center leading-tight">Default</h4>
       </div>
     );
   };
 
   if (summary && selectedTemplate) {
     return (
-      <div className="flex items-center gap-2 px-4 sm:px-6 rounded-full">
+      <div className="flex items-center gap-2 rounded-full mb-4">
         <TemplateIcon type={selectedTemplate.category} />
         <span className="font-semibold text-lg text-brand-highlight">{selectedTemplate.displayName}</span>
         <span className="text-sm text-secondary/60 capitalize">{selectedTemplate.category.replace(/_/g, " ")}</span>

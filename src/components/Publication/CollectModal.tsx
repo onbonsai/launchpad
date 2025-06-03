@@ -99,7 +99,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
           {isMedia && (
             <div className="flex items-center justify-center text-center">
               <Subtitle className="text-lg">
-                Collect this post
+                Collect this post to affect its evolution
               </Subtitle>
             </div>
           )}
