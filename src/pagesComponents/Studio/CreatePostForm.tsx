@@ -385,7 +385,7 @@ const CreatePostForm = ({
     if (selectedSubTemplate?.helpText) {
       return selectedSubTemplate.helpText;
     }
-    return "What do you want to create?";
+    return template.placeholderText || "What do you want to create?";
   };
 
   return (

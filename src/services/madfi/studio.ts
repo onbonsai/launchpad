@@ -77,6 +77,7 @@ export type Template = {
   name: string;
   displayName: string;
   description: string;
+  placeholderText?: string;
   image: string;
   options: {
     allowPreview?: boolean;
