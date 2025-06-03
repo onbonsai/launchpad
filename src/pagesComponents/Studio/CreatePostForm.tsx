@@ -114,6 +114,7 @@ const CreatePostForm = ({
   const [enhancedText, setEnhancedText] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
   const textareaRef = useAutoGrow(prompt || '');
+  const previousPromptRef = useRef<string | undefined>(prompt);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -391,7 +392,27 @@ const CreatePostForm = ({
                   ref={textareaRef}
                   placeholder="What do you want to create?"
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+
+                    // Clear string fields from templateData when user types
+                    if (e.target.value.trim()) {
+                      const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+
+                      setTemplateData(prevTemplateData => {
+                        const clearedTemplateData = { ...prevTemplateData };
+
+                        Object.entries(shape).forEach(([key, field]) => {
+                          const zodType = getBaseZodType(field);
+                          if (zodType instanceof z.ZodString) {
+                            clearedTemplateData[key] = undefined;
+                          }
+                        });
+
+                        return clearedTemplateData;
+                      });
+                    }
+                  }}
                   className={`${sharedInputClasses} w-full min-h-[120px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
