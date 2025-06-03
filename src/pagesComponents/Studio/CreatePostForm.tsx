@@ -26,10 +26,12 @@ import { useTopUpModal } from "@src/context/TopUpContext";
 import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 type CreatePostProps = {
   template: Template;
   selectedSubTemplate?: any;
+  onSubTemplateChange?: (subTemplate: any) => void;
   preview?: Preview;
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
@@ -84,6 +86,7 @@ const useAutoGrow = (value: string) => {
 const CreatePostForm = ({
   template,
   selectedSubTemplate,
+  onSubTemplateChange,
   preview,
   setPreview,
   next,
@@ -383,6 +386,69 @@ const CreatePostForm = ({
     ...availableFields
   ].filter(Boolean).length;
 
+  // Get subtemplates from the selected template
+  const subTemplates = template?.templateData?.subTemplates || [];
+  const hasSubTemplates = subTemplates.length > 0;
+
+  const handleSubTemplateSelect = (subTemplate: any) => {
+    if (onSubTemplateChange) {
+      onSubTemplateChange(subTemplate);
+    }
+  };
+
+  const renderCompactSubTemplateOption = (subTemplate: any, index: number) => {
+    const isSelected = selectedSubTemplate?.id === subTemplate.id;
+
+    return (
+      <button
+        key={`subtemplate-${index}`}
+        type="button"
+        onClick={() => handleSubTemplateSelect(subTemplate)}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+      >
+        <div className="w-12 h-12 flex-shrink-0">
+          {subTemplate.previewImage ? (
+            <SafeImage
+              src={subTemplate.previewImage}
+              alt={subTemplate.name}
+              className="w-full h-full object-cover rounded-full"
+              width={48}
+              height={48}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-base">🎨</div>
+          )}
+        </div>
+        <span className="text-md text-white/90 truncate">{subTemplate.name}</span>
+      </button>
+    );
+  };
+
+  const renderDefaultSubTemplateOption = () => {
+    const isSelected = !selectedSubTemplate;
+
+    return (
+      <button
+        type="button"
+        onClick={() => handleSubTemplateSelect(undefined)}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+      >
+        <div className="w-8 h-8 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-sm">
+          ✏️
+        </div>
+        <span className="text-sm text-white/90">Default</span>
+      </button>
+    );
+  };
+
   // Get placeholder text based on selected subtemplate
   const getPlaceholderText = () => {
     return remixMediaTemplateData?.prompt ||
@@ -399,13 +465,24 @@ const CreatePostForm = ({
       }}
     >
       <div className="space-y-4">
+        {/* Compact Subtemplate Selector */}
+        {hasSubTemplates && (
+          <div className="space-y-2">
+            <FieldLabel label="Template" classNames="!text-brand-highlight" />
+            <div className="flex flex-wrap gap-2">
+              {renderDefaultSubTemplateOption()}
+              {subTemplates.map((subTemplate: any, idx: number) => renderCompactSubTemplateOption(subTemplate, idx))}
+            </div>
+          </div>
+        )}
+
         {/* Main Row: Prompt and Image */}
         <div className="flex gap-6">
           {/* Main Prompt Input */}
           <div className="flex-1">
             <div className="relative">
               <div className="flex flex-col gap-y-2">
-                <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
+                <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
                 <textarea
                   ref={textareaRef}
                   placeholder={getPlaceholderText()}

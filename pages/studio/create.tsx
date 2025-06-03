@@ -183,12 +183,16 @@ const StudioCreatePage: NextPage = () => {
     }]);
   };
 
-  const handleTemplateSelect = (newTemplate: Template, subTemplate?: any) => {
+  const handleTemplateSelect = (newTemplate: Template) => {
     if (openTab === 1) {
       setTemplate(newTemplate);
-      setSelectedSubTemplate(subTemplate);
+      setSelectedSubTemplate(undefined); // Reset subtemplate when template changes
       setFinalTemplateData({});
     }
+  };
+
+  const handleSubTemplateChange = (subTemplate: any) => {
+    setSelectedSubTemplate(subTemplate);
   };
 
   const onCreate = async (collectAmount: number) => {
@@ -579,9 +583,9 @@ const StudioCreatePage: NextPage = () => {
                     )}
                     <TemplateSelector
                       selectedTemplate={template}
-                      selectedSubTemplate={selectedSubTemplate}
                       summary={openTab > 1}
                       onTemplateSelect={handleTemplateSelect}
+                      selectedSubTemplate={selectedSubTemplate}
                     />
                   </div>
                 )}
@@ -599,6 +603,7 @@ const StudioCreatePage: NextPage = () => {
                               template={template as Template}
                               preview={currentPreview}
                               selectedSubTemplate={selectedSubTemplate}
+                              onSubTemplateChange={handleSubTemplateChange}
                               finalTemplateData={finalTemplateData}
                               setPreview={handleSetPreview}
                               postContent={postContent}
