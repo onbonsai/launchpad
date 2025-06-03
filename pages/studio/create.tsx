@@ -34,6 +34,7 @@ import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
 import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
+import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -61,6 +62,7 @@ const StudioCreatePage: NextPage = () => {
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
   const [localPreviews, setLocalPreviews] = useState<Array<{
+    agentId?: string;
     isAgent: boolean;
     createdAt: string;
     content: {
@@ -70,7 +72,7 @@ const StudioCreatePage: NextPage = () => {
     };
   }>>([]);
   const [roomId, setRoomId] = useState<string | undefined>(
-    typeof router.query.roomId === 'string' ? router.query.roomId : undefined
+    typeof router.query.roomId === 'string' ? router.query.roomId : generateSeededUUID(`studio-${address}`)
   );
   const isMobile = useIsMobile();
 
@@ -575,82 +577,85 @@ const StudioCreatePage: NextPage = () => {
                     />
                   </div>
                 )}
-                <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10 overflow-visible">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-8 lg:gap-x-8 w-full overflow-visible">
-                    <div className="lg:col-span-1 overflow-visible">
-                      <div className="mb-6">
-                        <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
-                      </div>
-                      {openTab === 1 && template && (
-                        <>
-                          <CreatePostForm
-                            template={template as Template}
-                            preview={currentPreview}
-                            finalTemplateData={finalTemplateData}
-                            setPreview={handleSetPreview}
+                <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10">
+                  <div className="flex flex-col lg:flex-row gap-y-8 lg:gap-x-8 w-full">
+                    {/* Sticky Form Section */}
+                    <div className="lg:w-1/2 flex-shrink-0">
+                      <div className="lg:sticky lg:top-6">
+                        <div className="mb-6">
+                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
+                        </div>
+                        {openTab === 1 && template && (
+                          <>
+                            <CreatePostForm
+                              template={template as Template}
+                              preview={currentPreview}
+                              finalTemplateData={finalTemplateData}
+                              setPreview={handleSetPreview}
+                              postContent={postContent}
+                              setPostContent={setPostContent}
+                              prompt={prompt}
+                              setPrompt={setPrompt}
+                              postImage={postImage}
+                              setPostImage={setPostImage}
+                              next={(templateData) => {
+                                setFinalTemplateData(templateData);
+                                setOpenTab(addToken ? 2 : 3);
+                              }}
+                              isGeneratingPreview={isGeneratingPreview}
+                              setIsGeneratingPreview={setIsGeneratingPreview}
+                              roomId={roomId as string}
+                              postAudio={postAudio}
+                              setPostAudio={setPostAudio}
+                              audioStartTime={audioStartTime}
+                              setAudioStartTime={setAudioStartTime}
+                            />
+                          </>
+                        )}
+                        {openTab === 2 && (
+                          <CreateTokenForm
+                            finalTokenData={finalTokenData}
+                            postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
+                            setSavedTokenAddress={setSavedTokenAddress}
+                            savedTokenAddress={savedTokenAddress}
+                            setFinalTokenData={setFinalTokenData}
+                            back={() => setOpenTab(1)}
+                            next={() => setOpenTab(3)}
+                          />
+                        )}
+                        {openTab === 3 && (
+                          <FinalizePost
+                            authenticatedProfile={authenticatedProfile}
+                            finalTokenData={finalTokenData}
+                            onCreate={onCreate}
+                            back={() => {
+                              setOpenTab(addToken ? 2 : 1);
+                            }}
+                            isCreating={isCreating}
+                            addToken={addToken}
+                            onAddToken={() => {
+                              setAddToken(true);
+                              setOpenTab(2);
+                            }}
+                            isRemix={!!remixMedia?.agentId}
+                            setFinalTokenData={setFinalTokenData}
+                            setAddToken={setAddToken}
+                            template={template}
                             postContent={postContent}
                             setPostContent={setPostContent}
-                            prompt={prompt}
-                            setPrompt={setPrompt}
-                            postImage={postImage}
-                            setPostImage={setPostImage}
-                            next={(templateData) => {
-                              setFinalTemplateData(templateData);
-                              setOpenTab(addToken ? 2 : 3);
-                            }}
-                            isGeneratingPreview={isGeneratingPreview}
-                            setIsGeneratingPreview={setIsGeneratingPreview}
-                            roomId={roomId as string}
-                            postAudio={postAudio}
-                            setPostAudio={setPostAudio}
-                            audioStartTime={audioStartTime}
-                            setAudioStartTime={setAudioStartTime}
+                            currentPreview={currentPreview}
+                            setCurrentPreview={setCurrentPreview}
                           />
-                        </>
-                      )}
-                      {openTab === 2 && (
-                        <CreateTokenForm
-                          finalTokenData={finalTokenData}
-                          postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
-                          setSavedTokenAddress={setSavedTokenAddress}
-                          savedTokenAddress={savedTokenAddress}
-                          setFinalTokenData={setFinalTokenData}
-                          back={() => setOpenTab(1)}
-                          next={() => setOpenTab(3)}
-                        />
-                      )}
-                      {openTab === 3 && (
-                        <FinalizePost
-                          authenticatedProfile={authenticatedProfile}
-                          finalTokenData={finalTokenData}
-                          onCreate={onCreate}
-                          back={() => {
-                            setOpenTab(addToken ? 2 : 1);
-                          }}
-                          isCreating={isCreating}
-                          addToken={addToken}
-                          onAddToken={() => {
-                            setAddToken(true);
-                            setOpenTab(2);
-                          }}
-                          isRemix={!!remixMedia?.agentId}
-                          setFinalTokenData={setFinalTokenData}
-                          setAddToken={setAddToken}
-                          template={template}
-                          postContent={postContent}
-                          setPostContent={setPostContent}
-                          currentPreview={currentPreview}
-                          setCurrentPreview={setCurrentPreview}
-                        />
-                      )}
+                        )}
+                      </div>
                     </div>
-                    <div className="lg:col-span-1">
+                    {/* Natural Scrollable Preview History Section */}
+                    <div className="lg:w-1/2 flex-shrink-0">
                       <PreviewHistory
                         currentPreview={currentPreview}
                         setCurrentPreview={setCurrentPreview}
                         setSelectedTemplate={setTemplate}
                         isGeneratingPreview={isGeneratingPreview}
-                        className="h-[calc(100vh-8rem)]"
                         roomId={queryRoomId as string}
                         templateUrl={template?.apiUrl}
                         setFinalTemplateData={setFinalTemplateData}

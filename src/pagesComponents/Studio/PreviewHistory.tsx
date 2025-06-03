@@ -18,7 +18,6 @@ type PreviewHistoryProps = {
   setSelectedTemplate?: (template: Template) => void;
   isGeneratingPreview: boolean;
   templateUrl?: string;
-  className?: string;
   roomId?: string;
   postContent?: string;
   setFinalTemplateData: (t: any) => void;
@@ -55,7 +54,6 @@ export default function PreviewHistory({
   setCurrentPreview,
   setSelectedTemplate,
   isGeneratingPreview,
-  className,
   roomId,
   templateUrl,
   setFinalTemplateData,
@@ -71,7 +69,6 @@ export default function PreviewHistory({
   const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPreviews(templateUrl, roomId);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const bottomRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const selectedPublicationRef = useRef<HTMLDivElement>(null);
 
   // Add logging for debugging
@@ -135,73 +132,31 @@ export default function PreviewHistory({
 
   // Scroll to bottom when generating
   useEffect(() => {
-    if (isGeneratingPreview && containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    if (isGeneratingPreview && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isGeneratingPreview]);
 
-  // Scroll to bottom when mounted with a selected preview and not in finalize
-  useEffect(() => {
-    if (currentPreview && !isFinalize && containerRef.current) {
-      const scrollToBottom = () => {
-        if (containerRef.current) {
-          containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        }
-      };
-
-      // Multiple delayed attempts to ensure content is fully rendered
-      const timeoutIds = [
-        setTimeout(scrollToBottom, 50),
-        setTimeout(scrollToBottom, 150),
-        setTimeout(scrollToBottom, 300),
-        setTimeout(scrollToBottom, 600)
-      ];
-
-      return () => {
-        timeoutIds.forEach(id => clearTimeout(id));
-      };
-    }
-  }, [currentPreview?.agentId, isFinalize]); // Trigger when preview changes or finalize state changes
-
   // Scroll to bottom when done generating and sorted messages changed
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }
-    };
-
-    // Scroll immediately
-    scrollToBottom();
-
-    // Also scroll after a short delay to ensure all content is rendered
-    const timeoutId = setTimeout(scrollToBottom, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [sortedMessages.length]); // Only depend on length changes
+    if (!isGeneratingPreview && bottomRef.current && sortedMessages.length > 0) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [sortedMessages.length, isGeneratingPreview]);
 
   // Center the selected publication when it changes
   useEffect(() => {
-    if (selectedPublicationRef.current && containerRef.current && currentPreview) {
-      const container = containerRef.current;
-      const element = selectedPublicationRef.current;
-
-      // Add a small delay to ensure the element has been fully rendered
+    if (selectedPublicationRef.current && currentPreview && !isGeneratingPreview) {
       setTimeout(() => {
-        // Calculate the center position
-        const containerHeight = container.clientHeight;
-        const elementHeight = element.clientHeight;
-        const elementTop = element.offsetTop;
-        const scrollTo = elementTop - (containerHeight / 2) + (elementHeight / 2);
-
-        // Smooth scroll to center
-        container.scrollTo({
-          top: scrollTo,
-          behavior: 'smooth'
+        selectedPublicationRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
         });
       }, 100);
     }
-  }, [currentPreview?.agentId, sortedMessages.length]); // Also trigger when messages change
+  }, [currentPreview?.agentId, isGeneratingPreview]);
 
   // Helper function to download media
   const downloadMedia = async (preview: any, filename: string) => {
@@ -256,181 +211,161 @@ export default function PreviewHistory({
 
   if (isFinalize) {
     return (
-      <div className={`w-full ${className || 'h-96'}`}>
-        <div className="h-full w-full overflow-y-auto overflow-x-hidden">
-          <div className="space-y-8 p-4" role="log" aria-live="polite">
-            <Publication
-              key={`preview-finalize-${postContent?.length || 0}-${currentPreview?.agentId || 'none'}`}
-              publicationData={{
-                author: authenticatedProfile,
-                timestamp: Date.now(),
-                metadata: {
-                  __typename: currentPreview?.video
-                    ? "VideoMetadata"
-                    : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
-                  content: postContent || currentPreview?.text || '',
-                  video: currentPreview?.video
-                    ? {
-                        item: typeof currentPreview.video === "string" ? currentPreview.video : (currentPreview.video as any)?.url,
-                        cover: currentPreview.image
-                      }
-                    : undefined,
-                  image: currentPreview?.imagePreview || currentPreview?.image
-                    ? { item: currentPreview?.imagePreview || currentPreview.image }
-                    : postImage?.length
-                    ? postImage[0].preview
-                    : undefined
-                }
-              }}
-              theme={Theme.dark}
-              followButtonDisabled={true}
-              environment={LENS_ENVIRONMENT}
-              profilePictureStyleOverride={publicationProfilePictureStyle}
-              containerBorderRadius={'24px'}
-              containerPadding={'10px'}
-              profilePadding={'0 0 0 0'}
-              textContainerStyleOverride={textContainerStyleOverrides}
-              backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-              mediaImageStyleOverride={mediaImageStyleOverride}
-              imageContainerStyleOverride={imageContainerStyleOverride}
-              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-              reactionContainerStyleOverride={reactionContainerStyleOverride}
-              shareContainerStyleOverride={shareContainerStyleOverride}
-              markdownStyleBottomMargin={'0'}
-              heartIconOverride={true}
-              messageIconOverride={true}
-              shareIconOverride={true}
-              fullVideoHeight
-            />
-          </div>
+      <div className="w-full">
+        <div className="space-y-8 p-4" role="log" aria-live="polite">
+          <Publication
+            key={`preview-finalize-${postContent?.length || 0}-${currentPreview?.agentId || 'none'}`}
+            publicationData={{
+              author: authenticatedProfile,
+              timestamp: Date.now(),
+              metadata: {
+                __typename: currentPreview?.video
+                  ? "VideoMetadata"
+                  : ((currentPreview?.image || currentPreview?.imagePreview || postImage?.length) ? "ImageMetadata" : "TextOnlyMetadata"),
+                content: postContent || currentPreview?.text || '',
+                video: currentPreview?.video
+                  ? {
+                      item: typeof currentPreview.video === "string" ? currentPreview.video : (currentPreview.video as any)?.url,
+                      cover: currentPreview.image
+                    }
+                  : undefined,
+                image: currentPreview?.imagePreview || currentPreview?.image
+                  ? { item: currentPreview?.imagePreview || currentPreview.image }
+                  : postImage?.length
+                  ? postImage[0].preview
+                  : undefined
+              }
+            }}
+            theme={Theme.dark}
+            followButtonDisabled={true}
+            environment={LENS_ENVIRONMENT}
+            profilePictureStyleOverride={publicationProfilePictureStyle}
+            containerBorderRadius={'24px'}
+            containerPadding={'10px'}
+            profilePadding={'0 0 0 0'}
+            textContainerStyleOverride={textContainerStyleOverrides}
+            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+            mediaImageStyleOverride={mediaImageStyleOverride}
+            imageContainerStyleOverride={imageContainerStyleOverride}
+            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+            reactionContainerStyleOverride={reactionContainerStyleOverride}
+            shareContainerStyleOverride={shareContainerStyleOverride}
+            markdownStyleBottomMargin={'0'}
+            heartIconOverride={true}
+            messageIconOverride={true}
+            shareIconOverride={true}
+            fullVideoHeight
+          />
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`w-full ${className || 'h-96'}`}>
-      <div
-        ref={containerRef}
-        className="h-full w-full overflow-y-auto overflow-x-hidden"
-        style={{
-          scrollBehavior: 'smooth',
-          overscrollBehavior: 'contain',
-          maxHeight: '100%'
-        }}
-      >
-        <div className="space-y-8 p-2 sm:p-4" role="log" aria-live="polite">
-          {sortedMessages.map((message: MemoryPreview, index) => {
-            if (!message.isAgent) return null; // not showing the user inputs, only previews
-            if (index > 1 && message.agentId === sortedMessages[index - 2].agentId) return null; // HACK: when messages are fetched on the first try
-            const templateData = JSON.parse(sortedMessages[index - 1].content.templateData as string);
-            const content = message.content.text || currentPreview?.text;
-            const preview = message.isAgent ? {
-              ...message.content.preview as unknown as MessageContentPreview,
-              text: content,
-              templateName: (message.content.preview as any)?.templateName,
-            } : undefined;
-            const selected = preview?.agentId === currentPreview?.agentId;
-            return (
-              <div
-                key={`message-${index}`}
-                ref={selected ? selectedPublicationRef : null}
-                className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
-              >
-                <div className="relative">
-                  {/* Download button - only show if there's media to download */}
-                  {(preview?.image || preview?.video) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
-                        downloadMedia(preview, filename);
-                      }}
-                      className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/70 hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
-                      title="Download media"
-                    >
-                      <DownloadIcon className="w-5 h-5 text-white" />
-                    </button>
-                  )}
-
-                  <Publication
-                    key={`preview-${message.id}`}
-                    publicationData={{
-                      author: authenticatedProfile,
-                      timestamp: message.createdAt,
-                      metadata: {
-                        __typename: preview?.video
-                          ? "VideoMetadata"
-                          : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
-                        content,
-                        video: preview?.video
-                          ? {
-                              item: typeof preview.video === "string" ? preview.video : (preview.video as any)?.url,
-                              cover: preview.image
-                            }
-                          : undefined,
-                        image: preview?.image
-                          ? { item: preview.image }
-                          : undefined
-                      }
+    <div className="w-full">
+      <div className="space-y-8 p-2 sm:p-4" role="log" aria-live="polite">
+        {sortedMessages.map((message: MemoryPreview, index) => {
+          if (!message.isAgent) return null; // not showing the user inputs, only previews
+          if (index > 1 && message.agentId === sortedMessages[index - 2].agentId) return null; // HACK: when messages are fetched on the first try
+          const templateData = JSON.parse(sortedMessages[index - 1].content.templateData as string);
+          const content = message.content.text || currentPreview?.text;
+          const preview = message.isAgent ? {
+            ...message.content.preview as unknown as MessageContentPreview,
+            text: content,
+            templateName: (message.content.preview as any)?.templateName,
+          } : undefined;
+          const selected = preview?.agentId === currentPreview?.agentId;
+          return (
+            <div
+              key={`message-${index}`}
+              ref={selected ? selectedPublicationRef : null}
+              className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
+            >
+              <div className="relative">
+                {/* Download button - only show if there's media to download */}
+                {(preview?.image || preview?.video) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
+                      downloadMedia(preview, filename);
                     }}
-                    theme={Theme.dark}
-                    followButtonDisabled={true}
-                    environment={LENS_ENVIRONMENT}
-                    profileContainerStyleOverride={previewProfileContainerStyleOverride}
-                    containerBorderRadius={'24px'}
-                    containerPadding={'10px'}
-                    profilePadding={'0 0 0 0'}
-                    textContainerStyleOverride={textContainerStyleOverrides}
-                    backgroundColorOverride={message.isAgent ? 'rgba(255,255,255, 0.08)' : 'rgba(255,255,255, 0.04)'}
-                    mediaImageStyleOverride={mediaImageStyleOverride}
-                    imageContainerStyleOverride={imageContainerStyleOverride}
-                    reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                    reactionContainerStyleOverride={reactionContainerStyleOverride}
-                    shareContainerStyleOverride={shareContainerStyleOverride}
-                    markdownStyleBottomMargin={'0'}
-                    heartIconOverride={true}
-                    messageIconOverride={true}
-                    shareIconOverride={true}
-                    fullVideoHeight
-                    onClick={message.isAgent ? () => {
-                      setFinalTemplateData(templateData);
-                      setCurrentPreview(preview as Preview);
-                      setPrompt(content || '');
-                      setPostContent('');
+                    className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/70 hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
+                    title="Download media"
+                  >
+                    <DownloadIcon className="w-5 h-5 text-white" />
+                  </button>
+                )}
 
-                      // Find and set the corresponding template
-                      if (setSelectedTemplate && preview?.templateName && registeredTemplates) {
-                        const matchingTemplate = registeredTemplates.find(
-                          template => template.name === preview.templateName
-                        );
-                        if (matchingTemplate) {
-                          setSelectedTemplate(matchingTemplate);
-                        }
+                <Publication
+                  key={`preview-${message.id}`}
+                  publicationData={{
+                    author: authenticatedProfile,
+                    timestamp: message.createdAt,
+                    metadata: {
+                      __typename: preview?.video
+                        ? "VideoMetadata"
+                        : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
+                      content,
+                      video: preview?.video
+                        ? {
+                            item: typeof preview.video === "string" ? preview.video : (preview.video as any)?.url,
+                            cover: preview.image
+                          }
+                        : undefined,
+                      image: preview?.image
+                        ? { item: preview.image }
+                        : undefined
+                    }
+                  }}
+                  theme={Theme.dark}
+                  followButtonDisabled={true}
+                  environment={LENS_ENVIRONMENT}
+                  profileContainerStyleOverride={previewProfileContainerStyleOverride}
+                  containerBorderRadius={'24px'}
+                  containerPadding={'10px'}
+                  profilePadding={'0 0 0 0'}
+                  textContainerStyleOverride={textContainerStyleOverrides}
+                  backgroundColorOverride={message.isAgent ? 'rgba(255,255,255, 0.08)' : 'rgba(255,255,255, 0.04)'}
+                  mediaImageStyleOverride={mediaImageStyleOverride}
+                  imageContainerStyleOverride={imageContainerStyleOverride}
+                  reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+                  reactionContainerStyleOverride={reactionContainerStyleOverride}
+                  shareContainerStyleOverride={shareContainerStyleOverride}
+                  markdownStyleBottomMargin={'0'}
+                  heartIconOverride={true}
+                  messageIconOverride={true}
+                  shareIconOverride={true}
+                  fullVideoHeight
+                  onClick={message.isAgent ? () => {
+                    setFinalTemplateData(templateData);
+                    setCurrentPreview(preview as Preview);
+                    setPrompt(content || '');
+                    setPostContent('');
+
+                    // Find and set the corresponding template
+                    if (setSelectedTemplate && preview?.templateName && registeredTemplates) {
+                      const matchingTemplate = registeredTemplates.find(
+                        template => template.name === preview.templateName
+                      );
+                      if (matchingTemplate) {
+                        setSelectedTemplate(matchingTemplate);
                       }
-                    } : undefined}
-                  />
-                </div>
+                    }
+                  } : undefined}
+                />
               </div>
-            )
-          })}
-          {isGeneratingPreview && (
-            <div className="flex flex-col items-center mt-4">
-              <AnimatedBonsaiGrid />
             </div>
-          )}
-        </div>
-
-        {isFetchingNextPage && (
-          <div className="flex items-center justify-center text-[#ffffff] opacity-70 p-4">
-            <span className="max-w-full font-mono">
-              Loading more...
-            </span>
+          )
+        })}
+        {isGeneratingPreview && (
+          <div className="flex flex-col items-center mt-4">
+            <AnimatedBonsaiGrid />
           </div>
         )}
-
-        <div ref={bottomRef} />
       </div>
+
+      <div ref={bottomRef} />
     </div>
   );
 }

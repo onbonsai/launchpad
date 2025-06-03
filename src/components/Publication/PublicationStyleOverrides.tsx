@@ -66,7 +66,6 @@ export const imageContainerStyleOverride = css`
   align-items: center;
   width: 100%;
   overflow: hidden;
-  max-height: 480px;
 `
 
 export const reactionsContainerStyleOverride = css`
