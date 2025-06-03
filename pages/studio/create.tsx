@@ -70,6 +70,7 @@ const StudioCreatePage: NextPage = () => {
       text?: string;
       preview?: Preview;
       templateData?: string;
+      prompt?: string;
     };
   }>>([]);
   const [roomId, setRoomId] = useState<string | undefined>(
@@ -164,7 +165,8 @@ const StudioCreatePage: NextPage = () => {
       createdAt: now,
       content: {
         templateData: JSON.stringify(preview.templateData || {}),
-        text: Object.entries(preview.templateData || {}).map(([key, value]) => `${key}: ${value}`).join('\n')
+        text: prompt || "",
+        prompt: prompt
       }
     }]);
 
@@ -175,7 +177,8 @@ const StudioCreatePage: NextPage = () => {
       createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
       content: {
         preview: preview,
-        text: preview.text
+        text: preview.text,
+        prompt: prompt
       }
     }]);
   };
@@ -583,10 +586,10 @@ const StudioCreatePage: NextPage = () => {
                   </div>
                 )}
                 <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10">
-                  <div className="flex flex-col lg:flex-row gap-y-8 lg:gap-x-8 w-full">
+                  <div className="flex flex-col md:flex-row gap-y-8 md:gap-x-8 w-full">
                     {/* Sticky Form Section */}
-                    <div className="lg:w-1/2 flex-shrink-0">
-                      <div className="lg:sticky lg:top-6">
+                    <div className="md:w-1/2 flex-shrink-0">
+                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6">
                         <div className="mb-6">
                           <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                         </div>
@@ -655,14 +658,14 @@ const StudioCreatePage: NextPage = () => {
                         )}
                       </div>
                     </div>
-                    {/* Natural Scrollable Preview History Section */}
-                    <div className="lg:w-1/2 flex-shrink-0">
+                    {/* Natural Preview History Section */}
+                    <div className="md:w-1/2 flex-shrink-0">
                       <PreviewHistory
                         currentPreview={currentPreview}
                         setCurrentPreview={setCurrentPreview}
                         setSelectedTemplate={setTemplate}
                         isGeneratingPreview={isGeneratingPreview}
-                        roomId={queryRoomId as string}
+                        roomId={roomId}
                         templateUrl={template?.apiUrl}
                         setFinalTemplateData={setFinalTemplateData}
                         setPrompt={setPrompt}

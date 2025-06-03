@@ -106,7 +106,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   }, [stakingData?.summary]);
 
   const handleTemplateSelect = (template: Template) => {
-    const disabled = (creditBalance!.creditsRemaining || 0) < (template.estimatedCost || 1);
+    const disabled = (creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 1);
     // if (disabled) return;
 
     if (estimatedGenerations === 0 || disabled) {
@@ -176,7 +176,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               className="text-sm text-black px-2 py-0.5 rounded-lg bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"
               // disabled={disabled}
             >
-              {((creditBalance!.creditsRemaining || 0) > (template.estimatedCost || 0))
+              {((creditBalance?.creditsRemaining || 0) > (template.estimatedCost || 0))
                 ? "Select"
                 : "Add credits to use"}
             </button>
@@ -201,8 +201,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       >
         <div className="h-full flex items-center">
           {subTemplate.previewImage ? (
-            <SafeImage 
-              src={subTemplate.previewImage} 
+            <SafeImage
+              src={subTemplate.previewImage}
               alt={subTemplate.name}
               className="h-full w-full object-cover rounded-lg"
               width={56}

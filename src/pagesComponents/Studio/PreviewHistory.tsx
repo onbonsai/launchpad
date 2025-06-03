@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { Publication, Theme } from "@madfi/widgets-react";
 import { uniqBy } from "lodash/array";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
@@ -11,6 +11,8 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import { DownloadIcon } from '@heroicons/react/outline';
+import { RefreshIcon } from '@heroicons/react/outline';
+import Spinner from '@src/components/LoadingSpinner/LoadingSpinner';
 
 type PreviewHistoryProps = {
   currentPreview?: Preview;
@@ -30,6 +32,7 @@ type PreviewHistoryProps = {
       text?: string;
       preview?: Preview;
       templateData?: string;
+      prompt?: string;
     };
   }>;
   isFinalize: boolean;
@@ -65,45 +68,31 @@ export default function PreviewHistory({
   setPostContent,
 }: PreviewHistoryProps) {
   const isMounted = useIsMounted();
+  const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
+  const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetPreviews(templateUrl, roomId);
+  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
   const { data: registeredTemplates } = useRegisteredTemplates();
-  const bottomRef = useRef<HTMLDivElement>(null);
   const selectedPublicationRef = useRef<HTMLDivElement>(null);
+  const generatingRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
-  // Add logging for debugging
-  useEffect(() => {
-    console.log('PreviewHistory: localPreviews changed', {
-      count: localPreviews.length,
-      previews: localPreviews.map(p => ({
-        createdAt: p.createdAt,
-        isAgent: p.isAgent,
-        agentId: p.agentId,
-        hasText: !!p.content.text,
-        hasPreview: !!p.content.preview
-      }))
-    });
-  }, [localPreviews]);
-
-  useEffect(() => {
-    console.log('PreviewHistory: messages changed', {
-      totalPages: messages?.pages?.length || 0,
-      totalMessages: messages?.pages?.flatMap(page => page.messages).length || 0
-    });
-  }, [messages]);
+  // Check if there are any messages available to load
+  const hasMessagesToLoad = (messages?.pages?.[0]?.messages?.length ?? 0) > 0;
 
   // Combine and sort all previews
   const sortedMessages: MemoryPreview[] = useMemo(() => {
-    const _messages = messages?.pages.flatMap(page =>
+    // Always include remote messages if we should show them, otherwise empty array
+    const _messages = shouldShowMessages ? (messages?.pages.flatMap(page =>
       page.messages.map(msg => ({
         ...msg,
         createdAtDate: new Date(msg.createdAt),
         isAgent: msg.userId === GLOBAL_AGENT_ID,
         agentId: msg.content.preview?.agentId,
       }))
-    ) || [];
+    ) || []) : [];
 
-    // Convert local previews to the same format
+    // Always include local previews regardless of shouldShowMessages
     const _localPreviews = localPreviews.map(local => ({
       agentId: local.agentId,
       id: local.createdAt, // Use timestamp as ID
@@ -118,43 +107,67 @@ export default function PreviewHistory({
       a.createdAtDate.getTime() - b.createdAtDate.getTime()
     );
 
-    // Log the combination for debugging
-    console.log('PreviewHistory: sortedMessages computed', {
-      serverMessages: _messages.length,
-      localPreviews: _localPreviews.length,
-      combined: combined.length,
-      duplicateIds: combined.length !== new Set(combined.map(m => m.id)).size,
-      ids: combined.map(m => m.id)
+    // Extract prompts from previous non-agent messages and add them to agent messages
+    const enrichedMessages = combined.map((message, index) => {
+      if (message.isAgent && message.content.preview) {
+        // Find the previous non-agent message to get the prompt
+        const previousMessage = combined[index - 1];
+        if (previousMessage && !previousMessage.isAgent && previousMessage.content.text) {
+          return {
+            ...message,
+            content: {
+              ...message.content,
+              prompt: previousMessage.content.text
+            }
+          };
+        }
+      }
+      return message;
     });
 
-    return combined;
-  }, [messages, localPreviews]);
+    return enrichedMessages;
+  }, [messages, localPreviews, shouldShowMessages]);
 
   // Scroll to bottom when generating
   useEffect(() => {
-    if (isGeneratingPreview && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (isGeneratingPreview && generatingRef.current) {
+      generatingRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [isGeneratingPreview]);
 
   // Scroll to bottom when done generating and sorted messages changed
   useEffect(() => {
-    if (!isGeneratingPreview && bottomRef.current && sortedMessages.length > 0) {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+    // Only scroll when done generating new content, not when loading more messages via pagination
+    if (!isGeneratingPreview && lastMessageRef.current && sortedMessages.length > 0 && !isFetchingNextPage) {
+      // Only scroll if it's local content (new generation) or initial load, not pagination
+      const hasOnlyLocalPreviews = sortedMessages.every(msg => msg.userId === 'local' || msg.userId === GLOBAL_AGENT_ID);
+      if (hasOnlyLocalPreviews || (!shouldShowMessages || (messages?.pages?.length && messages?.pages?.length <= 1))) {
+        setTimeout(() => {
+          lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
+      }
     }
   }, [sortedMessages.length, isGeneratingPreview]);
 
-  // Center the selected publication when it changes
+  // Scroll to bottom when messages are first rendered after clicking the button
+  useEffect(() => {
+    // Only scroll on initial load (when shouldShowMessages becomes true), not on pagination
+    if (shouldShowMessages && !isGeneratingPreview && lastMessageRef.current && sortedMessages.length > 0 && !isFetchingNextPage && messages?.pages?.length === 1) {
+      setTimeout(() => {
+        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 200);
+    }
+  }, [shouldShowMessages, sortedMessages.length, isGeneratingPreview]);
+
+  // Scroll to top of the selected publication when it changes
   useEffect(() => {
     if (selectedPublicationRef.current && currentPreview && !isGeneratingPreview) {
       setTimeout(() => {
         selectedPublicationRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'center'
+          block: 'nearest'
         });
-      }, 100);
+      }, 200); // Slightly longer delay for better positioning
     }
   }, [currentPreview?.agentId, isGeneratingPreview]);
 
@@ -263,11 +276,55 @@ export default function PreviewHistory({
 
   return (
     <div className="w-full">
+      {/* Load Previous Messages Button */}
+      {!isFinalize && (
+        (!shouldShowMessages && hasMessagesToLoad) || (shouldShowMessages && hasNextPage)
+      ) && (
+        <div className="flex justify-center p-4 animate-fade-in-down">
+          <button
+            onClick={() => {
+              if (!shouldShowMessages) {
+                setShouldShowMessages(true);
+              } else if (hasNextPage) {
+                fetchNextPage();
+              }
+            }}
+            disabled={isFetchingNextPage}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition-all duration-300 ease-in-out bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 hover:scale-105 transform group disabled:opacity-50 disabled:scale-100"
+          >
+            {isFetchingNextPage ? (
+              <>
+                <Spinner customClasses="h-4 w-4" color="#9CA3AF" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <RefreshIcon className="w-4 h-4 transition-transform duration-200 ease-in-out group-hover:rotate-45" />
+                {!shouldShowMessages ? "Load previous messages" : "Load more messages"}
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Loading Spinner */}
+      {shouldShowMessages && (isFetching || isFetchingNextPage) && !sortedMessages.length && (
+        <div className="flex justify-center p-4">
+          <Spinner customClasses="h-6 w-6" color="#5be39d" />
+        </div>
+      )}
+
       <div className="space-y-8 p-2 sm:p-4" role="log" aria-live="polite">
         {sortedMessages.map((message: MemoryPreview, index) => {
           if (!message.isAgent) return null; // not showing the user inputs, only previews
           if (index > 1 && message.agentId === sortedMessages[index - 2].agentId) return null; // HACK: when messages are fetched on the first try
-          const templateData = JSON.parse(sortedMessages[index - 1].content.templateData as string);
+
+          // Safely get the previous message and template data
+          const previousMessage = index > 0 ? sortedMessages[index - 1] : null;
+          const templateData = previousMessage?.content?.templateData
+            ? JSON.parse(previousMessage.content.templateData as string)
+            : {};
+
           const content = message.content.text || currentPreview?.text;
           const preview = message.isAgent ? {
             ...message.content.preview as unknown as MessageContentPreview,
@@ -275,10 +332,12 @@ export default function PreviewHistory({
             templateName: (message.content.preview as any)?.templateName,
           } : undefined;
           const selected = preview?.agentId === currentPreview?.agentId;
+          const isLastMessage = index === sortedMessages.length - 1;
+
           return (
             <div
               key={`message-${index}`}
-              ref={selected ? selectedPublicationRef : null}
+              ref={selected ? selectedPublicationRef : (isLastMessage ? lastMessageRef : null)}
               className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
             >
               <div className="relative">
@@ -340,7 +399,9 @@ export default function PreviewHistory({
                   onClick={message.isAgent ? () => {
                     setFinalTemplateData(templateData);
                     setCurrentPreview(preview as Preview);
-                    setPrompt(content || '');
+                    // Use the stored prompt from the message content, ensure it's a string
+                    const promptToSet = String(message.content.prompt || content || '');
+                    setPrompt(promptToSet);
                     setPostContent('');
 
                     // Find and set the corresponding template
@@ -359,13 +420,11 @@ export default function PreviewHistory({
           )
         })}
         {isGeneratingPreview && (
-          <div className="flex flex-col items-center mt-4">
+          <div ref={generatingRef} className="flex flex-col items-center mt-4">
             <AnimatedBonsaiGrid />
           </div>
         )}
       </div>
-
-      <div ref={bottomRef} />
     </div>
   );
 }

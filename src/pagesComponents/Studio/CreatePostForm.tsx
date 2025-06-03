@@ -29,7 +29,6 @@ import { SparklesIcon } from "@heroicons/react/outline";
 
 type CreatePostProps = {
   template: Template;
-  selectedSubTemplate?: any;
   preview?: Preview;
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
@@ -82,7 +81,6 @@ const useAutoGrow = (value: string) => {
 
 const CreatePostForm = ({
   template,
-  selectedSubTemplate,
   preview,
   setPreview,
   next,
@@ -243,17 +241,11 @@ const CreatePostForm = ({
         startTime: audioStartTime || 0
       } : undefined;
 
-      // Include subTemplateId in templateData if a subtemplate is selected
-      const finalTemplateData = {
-        ...templateData,
-        ...(selectedSubTemplate?.id && { subTemplateId: selectedSubTemplate.id })
-      };
-
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
-        finalTemplateData,
+        templateData,
         prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
@@ -380,14 +372,6 @@ const CreatePostForm = ({
     ...availableFields
   ].filter(Boolean).length;
 
-  // Get placeholder text based on selected subtemplate
-  const getPlaceholderText = () => {
-    if (selectedSubTemplate?.helpText) {
-      return selectedSubTemplate.helpText;
-    }
-    return "What do you want to create?";
-  };
-
   return (
     <form
       className="mx-auto w-full space-y-4"
@@ -397,18 +381,18 @@ const CreatePostForm = ({
     >
       <div className="space-y-4">
         {/* Main Row: Prompt and Image */}
-        <div className={`flex flex-col ${!remixPostId ? 'sm:flex-row' : ''} gap-6`}>
+        <div className="flex gap-6">
           {/* Main Prompt Input */}
-          <div className={`w-full ${!remixPostId ? 'sm:flex-1' : ''}`}>
+          <div className="flex-1">
             <div className="relative">
               <div className="flex flex-col gap-y-2">
-                <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
+                <FieldLabel label={"Prompt to create"} classNames="!text-brand-highlight" />
                 <textarea
                   ref={textareaRef}
-                  placeholder={getPlaceholderText()}
+                  placeholder="What do you want to create?"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}
+                  className={`${sharedInputClasses} w-full min-h-[120px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
                   <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
@@ -428,30 +412,25 @@ const CreatePostForm = ({
 
           {/* Image Uploader */}
           {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-            <div className={`w-full ${!remixPostId ? 'sm:w-auto' : ''}`}>
-              <div className="relative -mt-1">
-                <FieldLabel
-                  label={"Image"}
-                  fieldDescription={
-                    template.options.imageRequirement === MediaRequirement.REQUIRED
-                      ? "An image is required for this post."
-                      : "Optionally add an image to your post. Otherwise, one will be generated."
-                  }
-                  tooltipDirection={tooltipDirection}
-                  classNames=""
-                />
-                <div className="mt-1">
-                  <ImageUploader
-                    files={postImage}
-                    setFiles={setPostImage}
-                    maxFiles={1}
-                    enableCrop
-                    selectedAspectRatio={selectedAspectRatio}
-                    onAspectRatioChange={setSelectedAspectRatio}
-                    compact
-                  />
-                </div>
-              </div>
+            <div className="w-56 space-y-1">
+              <FieldLabel
+                label={"Image"}
+                fieldDescription={
+                  template.options.imageRequirement === MediaRequirement.REQUIRED
+                    ? "An image is required for this post."
+                    : "Optionally add an image to your post. Otherwise, one will be generated."
+                }
+                tooltipDirection={tooltipDirection}
+              />
+              <ImageUploader
+                files={postImage}
+                setFiles={setPostImage}
+                maxFiles={1}
+                enableCrop
+                selectedAspectRatio={selectedAspectRatio}
+                onAspectRatioChange={setSelectedAspectRatio}
+                compact
+              />
             </div>
           )}
         </div>
@@ -555,7 +534,6 @@ const CreatePostForm = ({
                       audioStartTime={audioStartTime || 0}
                       setAudioStartTime={setAudioStartTime}
                       tooltipDirection={tooltipDirection}
-                      remixPostId={remixPostId}
                     />
                 }
               </div>
@@ -613,7 +591,6 @@ const DynamicForm = ({
   audioStartTime,
   setAudioStartTime,
   tooltipDirection,
-  remixPostId,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -634,7 +611,6 @@ const DynamicForm = ({
   audioStartTime: number;
   setAudioStartTime: (t: number) => void;
   tooltipDirection?: "right" | "top" | "left" | "bottom";
-  remixPostId?: string;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
@@ -687,7 +663,7 @@ const DynamicForm = ({
   };
 
   return (
-    <div className={`grid gap-4 ${remixPostId ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {Object.entries(shape).map(([key, field]) => {
         if (shouldSkipField(key)) return null;
 
@@ -703,7 +679,7 @@ const DynamicForm = ({
           zodType instanceof z.ZodNumber;
 
         return (
-          <div key={key} className={`space-y-2 ${remixPostId ? '' : (!isSmallerInput ? 'md:col-span-3' : '')}`}>
+          <div key={key} className={`space-y-2 ${!isSmallerInput ? 'md:col-span-3' : ''}`}>
             <FieldLabel label={label} fieldDescription={description} tooltipDirection={tooltipDirection} />
 
             {/* Special handling for dropdown fields */}

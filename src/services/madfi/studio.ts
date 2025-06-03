@@ -249,7 +249,6 @@ export const enhancePrompt = async (
   prompt: string,
 ): Promise<string | undefined> => {
   try {
-    console.log({ prompt, template: template.name })
     const response = await fetch(`${url}/post/enhance-prompt`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
@@ -500,16 +499,23 @@ export const setFeatured = async (idToken: string, postId: string, featured?: bo
   }
 };
 
-export const useGetPreviews = (url?: string, roomId?: string) => {
+export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true) => {
   return useInfiniteQuery({
     queryKey: ["previews", roomId],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
       if (!roomId) return { messages: [] };
 
       const idToken = await _getIdToken();
       if (!idToken) return { messages: [] };
 
-      const response = await fetch(`${url}/previews/${roomId}/messages?start=${pageParam}`, {
+      const DEFAULT_COUNT = 10; // 5 user messages, 5 agent messages
+      // Use pageParam as the timestamp start, or no start param for first page
+      const queryParams = new URLSearchParams({
+        count: DEFAULT_COUNT.toString(),
+        end: pageParam ?? ""
+      });
+
+      const response = await fetch(`${url}/previews/${roomId}/messages?${queryParams}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer: ${idToken}`
@@ -522,14 +528,15 @@ export const useGetPreviews = (url?: string, roomId?: string) => {
       const data = await response.json();
       return {
         messages: data.messages as Memory[],
-        nextCursor: data.messages.length > 0 ? pageParam + data.messages.length : undefined
+        // Use the last message's createdAt as the next cursor
+        nextCursor: data.hasMore ? data.messages[data.messages.length - 1].createdAt : undefined
       };
     },
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!url,
-    initialPageParam: 0
+    enabled: !!url && enabled,
+    initialPageParam: undefined // Start with no timestamp for first page
   });
 };
 
