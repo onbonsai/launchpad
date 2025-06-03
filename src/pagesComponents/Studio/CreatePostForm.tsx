@@ -54,6 +54,7 @@ type CreatePostProps = {
     chain: string;
   };
   remixPostId?: string;
+  remixMediaTemplateData?: any;
 };
 
 function getBaseZodType(field: any) {
@@ -103,6 +104,7 @@ const CreatePostForm = ({
   tooltipDirection,
   remixToken,
   remixPostId,
+  remixMediaTemplateData
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -382,10 +384,10 @@ const CreatePostForm = ({
 
   // Get placeholder text based on selected subtemplate
   const getPlaceholderText = () => {
-    if (selectedSubTemplate?.helpText) {
-      return selectedSubTemplate.helpText;
-    }
-    return template.placeholderText || "What do you want to create?";
+    return remixMediaTemplateData?.prompt || 
+      selectedSubTemplate?.helpText || 
+      template.placeholderText || 
+      "What do you want to create?";
   };
 
   return (
@@ -408,7 +410,7 @@ const CreatePostForm = ({
                   placeholder={getPlaceholderText()}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}
+                  className={`${sharedInputClasses} w-full min-h-[60px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
                   <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
