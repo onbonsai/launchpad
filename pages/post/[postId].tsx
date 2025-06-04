@@ -742,8 +742,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         ? await storageClient.resolve(post.metadata.image.item)
         : post.metadata?.image?.item) ?? null;
 
-  console.log(JSON.stringify(media,null,2));
-
   return {
     props: {
       pageName: "singlePublication",

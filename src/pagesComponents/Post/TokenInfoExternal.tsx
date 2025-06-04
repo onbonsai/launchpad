@@ -131,12 +131,9 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
     </div>
   );
 
-  let logo = tokenMetadata?.logo || "/unknown-logo.jpg";
-  if (token.address.toLowerCase() === PROTOCOL_DEPLOYMENT.lens.Bonsai.toLowerCase()) {
-    logo = "/bonsai-token.png";
-  }
-
   if (!tokenMetadata) return null;
+
+  const logo = tokenMetadata?.logo || "/unknown-logo.jpg";
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">

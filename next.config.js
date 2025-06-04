@@ -158,7 +158,8 @@ const nextConfig = {
       "pink-splendid-urial-219.mypinata.cloud",
       "storage.googleapis.com",
       "app.onbons.ai",
-      "onbonsai.mypinata.cloud"
+      "onbonsai.mypinata.cloud",
+      "token-media.defined.fi"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,

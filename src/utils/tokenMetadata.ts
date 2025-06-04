@@ -90,17 +90,18 @@ export const fetchTokenMetadata = async (tokenAddress: string, network: "lens" |
 
     const data = await response.json();
 
-    if (!data.result.logo) {
+    let logo = data.result.logo;
+    if (!logo) {
       const codexLogo = await fetchTokenImageFromCodex(tokenAddress, network);
       if (codexLogo) {
-        data.result.logo = codexLogo;
+        logo = codexLogo;
       }
     }
 
     if (data.result.name) {
       return {
         ...data.result,
-        logo: data.result.logo || LOGO_PLACEHOLDER,
+        logo: logo || LOGO_PLACEHOLDER,
         network,
       };
     }

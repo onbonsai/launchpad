@@ -337,7 +337,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                             fetchTokenMetadata(manualTokenAddress, 'lens'),
                             fetchTokenMetadata(manualTokenAddress, 'base')
                           ]).then(([lensResult, baseResult]) => {
-                            const result = lensResult || baseResult;
+                            const result = lensResult?.name !== "Unknown" ? lensResult : baseResult;
 
                             if (result) {
                               setSavedTokenAddress(manualTokenAddress);
@@ -363,7 +363,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                       className="whitespace-nowrap"
                       disabled={!manualTokenAddress || !manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42 || isLoadingToken}
                     >
-                      {isLoadingToken ? "Loading..." : "Use Address"}
+                      {isLoadingToken ? "Loading..." : "Use token"}
                     </Button>
                   </div>
                   {manualTokenAddress && (!manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42) && (

@@ -218,11 +218,7 @@ const StudioCreatePage: NextPage = () => {
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-<<<<<<< HEAD
-    } else if (addToken && finalTokenData?.tokenName && finalTokenData?.tokenSymbol && !remixMedia?.agentId) {
-=======
     } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
->>>>>>> f04fcbee4246da4dd60af2b2918b8f28c2b9b597
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
