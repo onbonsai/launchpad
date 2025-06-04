@@ -210,7 +210,7 @@ const StudioCreatePage: NextPage = () => {
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-    } else if (addToken && finalTokenData && !remixMedia?.agentId) {
+    } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
@@ -399,13 +399,13 @@ const StudioCreatePage: NextPage = () => {
         video = { url, type: "video/mp4" };
       }
 
-      if (postImage && postImage.length > 0) {
-        image = (await uploadFile(postImage[0], template?.acl)).image;
-      } else if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
+      if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
         image = { url: currentPreview?.image, type: "image/png" };
       } else if (currentPreview?.image) {
         const { uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl);
         image = { url: imageUri, type };
+      } else if (postImage && postImage.length > 0) {
+        image = (await uploadFile(postImage[0], template?.acl)).image;
       }
 
       // Check if user was referred

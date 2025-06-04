@@ -448,8 +448,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return media || undefined;
   };
 
-  console.log(sortedHighScoreComments)
-
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
@@ -462,7 +460,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             media={safeMedia(media)}
             conversationId={conversationId}
             post={publication}
-            remixVersionQuery={v}
+            remixVersionQuery={v as string}
           />
         </ChatWindowButton>
       )}

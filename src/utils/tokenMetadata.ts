@@ -37,7 +37,13 @@ export const fetchTokenMetadata = async (tokenAddress: string, network: "lens" |
         network,
       };
     }
-    return null;
+    return {
+      name: "Unknown",
+      symbol: "UNKNOWN",
+      logo: LOGO_PLACEHOLDER,
+      decimals: 18,
+      network,
+    };
   } catch (error) {
     console.error(`Error fetching token metadata from ${network}:`, error);
     return null;
