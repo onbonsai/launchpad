@@ -156,6 +156,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
+  const [replyingToFeed, setReplyingToFeed] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
   const [files, setFiles] = useState<any[]>([]);
@@ -252,6 +253,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     setReplyingToComment(commentId || null);
     setReplyingToUsername(username || null);
 
+    // Find the comment and set its feed address
+    if (commentId) {
+      const comment = (freshComments || comments).find(c => c.id === commentId);
+      setReplyingToFeed(comment?.feed?.address || null);
+    } else {
+      setReplyingToFeed(null);
+    }
+
     if (isThread) {
       setPopperAnchor(e.currentTarget as HTMLElement);
     }
@@ -316,7 +325,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        replyingToComment || currentPostId
+        replyingToComment || currentPostId,
+        undefined,
+        replyingToFeed || publication?.feed?.address
       );
       if (!res?.postId) throw new Error("no resulting post id");
 
@@ -327,13 +338,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       toast.success(
         isCollected
           ? "Sent! Your reply will be added to the next update."
-          : "Sent. Collect the post for your reply to affect the next update.",
+          : "Sent. Collect the post to affect the next update.",
         { id: toastId, duration: 10000 },
       );
       setComment("");
       setFiles([]);
       setTimeout(fetchComments, 3000);
       setReplyingToComment(null);
+      setReplyingToFeed(null);
     } catch (error) {
       toast.error("Comment failed", { duration: 5000, id: toastId });
     } finally {
@@ -435,6 +447,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const safeMedia = (media: SmartMedia | null | undefined): SmartMedia | undefined => {
     return media || undefined;
   };
+
+  console.log(sortedHighScoreComments)
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
