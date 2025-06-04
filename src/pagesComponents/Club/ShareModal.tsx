@@ -6,7 +6,6 @@ import { SITE_URL } from "@src/constants/constants";
 import { Button } from "@src/components/Button";
 import { tweetIntentTokenReferral, castIntentTokenReferral } from "@src/utils/utils";
 import Copy from "@src/components/Copy/Copy";
-import { BodySemiBold } from "@src/styles/text";
 import Image from "next/image";
 
 const ShareModal = ({ tokenAddress, chain, symbol }) => {
@@ -22,7 +21,7 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
   }
 
   return (
-    <div className={clsx("flex flex-col md:w-[500px] w-full")}
+    <div className="flex flex-col md:w-[500px] w-full"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}>
@@ -31,11 +30,10 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
       </Dialog.Title>
       <div className="w-full mt-4 md:mb-8 mb-4 md:h-full">
         <div className="flex flex-col w-full my-8 space-y-4">
-          <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 margin-auto space-y-2 md:space-y-0">
-            <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full">
-              <Button className="w-[150px] bg-black hover:bg-black">
-                <Image src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" width={16} height={16} />
-                Orb
+          <div className="flex flex-col md:flex-row items-center md:space-x-2 margin-auto space-y-2 md:space-y-0">
+            <a href={`https://orb.club/create-post?${urlEncodedPostParams()}`} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto">
+              <Button className="w-full md:w-[150px] bg-black hover:bg-black/80" variant="none">
+                <Image src="/svg/orb-logo-white.svg" alt="Orb Logo" className="w-4 h-4" width={20} height={20} />
               </Button>
             </a>
             <a href={tweetIntentTokenReferral({
@@ -43,19 +41,19 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               chain,
               tokenAddress,
               referralAddress: address!
-            })} target="_blank" rel="noopener noreferrer" className="w-full">
-              <Button variant="accent" className="w-[150px] flex items-center justify-center">
-                <Image src="/svg/X_logo_2023.svg" alt="X Logo" className="w-4 h-4" width={16} height={16} />
+            })} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto">
+              <Button variant="accent" className="w-full md:w-[150px] flex items-center justify-center hover:bg-white/80">
+                <Image src="/svg/X_logo_2023.svg" alt="X Logo" className="w-4 h-4" width={20} height={20} />
               </Button>
             </a>
             <a href={castIntentTokenReferral({
-              text: `Trade $${symbol} on the @onbonsai Launchpad`,
+              text: `Trade $${symbol} on the @onbonsai Launchpad \n ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               chain,
               tokenAddress,
               referralAddress: address!
-            })} target="_blank" rel="noopener noreferrer" className="w-full">
-              <Button className="w-[150px] bg-[#472a91] hover:bg-[#472a91] text-white">
-                Warpcast
+            })} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto">
+              <Button className="w-full md:w-[150px] bg-[#7C65C1] hover:bg-[#7C65C1]/80 text-white" variant="none">
+                <Image src="/svg/farcaster-logo.svg" alt="Farcaster Logo" className="-mt-[3px]" width={27} height={27} />
               </Button>
             </a>
           </div>

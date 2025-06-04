@@ -57,9 +57,9 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
               leaveTo={isMobile ? "translate-y-full" : "opacity-0 translate-y-4 scale-95"}
             >
               <Dialog.Panel
-                className={`backdrop-blur-[40px] bg-card relative text-left shadow-xl
-        w-full max-h-[85vh] ${isMobile ? 'rounded-t-2xl' : 'rounded-lg'} md:max-h-none md:my-8 md:max-w-sm md:w-full h-auto md:p-4 md:w-fit
-        md:max-w-6xl lg:max-w-6xl ${panelClassnames} overflow-auto`}
+                className={`backdrop-blur-[40px] bg-card relative text-left shadow-xl w-full max-h-[85vh] md:max-h-none md:my-8 md:max-w-lg md:min-w-[512px] overflow-auto h-auto md:p-4
+                  ${isMobile ? 'rounded-t-2xl' : 'rounded-lg'} ${panelClassnames}`
+                }
               >
                 <div className="absolute top-0 right-0 mt-4 mr-4 sm:block z-50">
                   <button
