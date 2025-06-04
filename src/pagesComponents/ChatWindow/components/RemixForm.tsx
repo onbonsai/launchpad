@@ -193,6 +193,7 @@ export default function RemixForm({
           } : undefined}
           remixPostId={remixMedia.postId}
           remixMediaTemplateData={remixMedia.templateData}
+          onClose={onClose}
         />
       </div>
     </div>

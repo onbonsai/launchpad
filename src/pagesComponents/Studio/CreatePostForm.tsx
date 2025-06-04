@@ -57,6 +57,7 @@ type CreatePostProps = {
   };
   remixPostId?: string;
   remixMediaTemplateData?: any;
+  onClose?: () => void;
 };
 
 function getBaseZodType(field: any) {
@@ -107,7 +108,8 @@ const CreatePostForm = ({
   tooltipDirection,
   remixToken,
   remixPostId,
-  remixMediaTemplateData
+  remixMediaTemplateData,
+  onClose
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -293,6 +295,11 @@ const CreatePostForm = ({
       } as Preview);
 
       toast.success("Done", { id: toastId });
+
+      // Close the form after successful generation
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error("Error generating preview:", error);
       toast.error("Failed to generate preview", { id: toastId });
@@ -477,9 +484,9 @@ const CreatePostForm = ({
         )}
 
         {/* Main Row: Prompt and Image */}
-        <div className="flex gap-6">
+        <div className="flex flex-col gap-2 md:gap-0">
           {/* Main Prompt Input */}
-          <div className="flex-1">
+          <div className="w-full">
             <div className="relative">
               <div className="flex flex-col gap-y-2">
                 <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
@@ -508,7 +515,7 @@ const CreatePostForm = ({
 
           {/* Image Uploader */}
           {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-            <div className="w-56 space-y-1">
+            <div className="w-full space-y-1">
               <FieldLabel
                 label={"Image"}
                 fieldDescription={
@@ -533,7 +540,7 @@ const CreatePostForm = ({
 
         {/* Audio Section */}
         {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
-          <div className="space-y-1">
+          <div className="w-full space-y-1">
             <FieldLabel
               label={"Audio"}
               fieldDescription={
@@ -560,7 +567,7 @@ const CreatePostForm = ({
 
         {/* NFT Section */}
         {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
-          <div className="space-y-1">
+          <div className="w-full space-y-1">
             <FieldLabel
               label={"NFT"}
               fieldDescription={
@@ -759,7 +766,7 @@ const DynamicForm = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {Object.entries(shape).map(([key, field]) => {
         if (shouldSkipField(key)) return null;
 
@@ -775,7 +782,7 @@ const DynamicForm = ({
           zodType instanceof z.ZodNumber;
 
         return (
-          <div key={key} className={`space-y-2 ${!isSmallerInput ? 'md:col-span-3' : ''}`}>
+          <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={description} tooltipDirection={tooltipDirection} />
 
             {/* Special handling for dropdown fields */}

@@ -118,9 +118,9 @@ export default function ChatWindowButton({
             </div>
             <div className="flex flex-col">
               <h3 className="font-medium text-white">
-                Chat with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+                Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
               </h3>
-              <span className="text-sm text-white/60">Explore the reality of the post or remix it</span>
+              {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
             </div>
           </div>
           {/* Close Button in Header */}
