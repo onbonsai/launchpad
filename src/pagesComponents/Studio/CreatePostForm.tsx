@@ -355,11 +355,11 @@ const CreatePostForm = ({
   };
 
   const handleNext = () => {
-    if ((prompt || postContent || (postImage?.length && !preview?.image))) {
+    if ((prompt || postContent || postImage?.length || !preview?.image)) {
       setPreview({
         text: prompt || postContent || "",
-        image: postImage?.length ? postImage[0] : preview?.image,
-        imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
+        image: preview?.image || (postImage?.length ? postImage[0] : undefined),
+        imagePreview: preview?.image || (postImage?.length ? postImage[0].preview : undefined),
         video: preview?.video,
         agentId: preview?.agentId,
         templateName: template.name,

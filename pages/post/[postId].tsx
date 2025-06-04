@@ -460,7 +460,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             media={safeMedia(media)}
             conversationId={conversationId}
             post={publication}
-            remixVersionQuery={v}
+            remixVersionQuery={v as string}
           />
         </ChatWindowButton>
       )}

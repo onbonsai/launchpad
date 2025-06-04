@@ -12,10 +12,10 @@ import dynamic from "next/dynamic";
 import { erc20Abi } from "viem";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import WalletButton from "@src/components/Creators/WalletButton";
-import { sdk } from '@farcaster/frame-sdk'
+import { sdk } from "@farcaster/frame-sdk";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
-import CoinPile from '@src/components/Icons/CoinPile';
+import CoinPile from "@src/components/Icons/CoinPile";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
@@ -78,13 +78,16 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
         sellToken: `eip155:${chainId}/native`,
         buyToken: `eip155:${chainId}/erc20:${token.address}`,
         sellAmount: token.chain === "lens" ? "10000000000000000000" : "10000000",
-      })
+      });
     } else if (token.chain === "base") {
-      window.open(`https://matcha.xyz/tokens/base/${token.address}?sellChain=8453&sellAddress=${USDC_CONTRACT_ADDRESS}`, "_blank");
+      window.open(
+        `https://matcha.xyz/tokens/base/${token.address}?sellChain=8453&sellAddress=${USDC_CONTRACT_ADDRESS}`,
+        "_blank",
+      );
     } else {
       setShowBuyModal(true);
     }
-  }
+  };
 
   const InfoCard: React.FC<{
     title?: string;
@@ -117,13 +120,11 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
     <div
       className="min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg"
-      onClick={(e) => isConnected ? onClick(e) : null}
+      onClick={(e) => (isConnected ? onClick(e) : null)}
     >
       <div className="flex items-center gap-x-1.5 md:gap-x-3">
         <CoinPile className="w-6 h-6 md:w-7 md:h-7 -mt-1" color="text-black" />
-        <BodySemiBold
-          className={`text-md md:text-md ${brandFont.className} ${!isConnected ? 'opacity-50' : ''}`}
-        >
+        <BodySemiBold className={`text-md md:text-md ${brandFont.className} ${!isConnected ? "opacity-50" : ""}`}>
           BUY
         </BodySemiBold>
       </div>
@@ -134,6 +135,8 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   if (token.address.toLowerCase() === PROTOCOL_DEPLOYMENT.lens.Bonsai.toLowerCase()) {
     logo = "/bonsai-token.png";
   }
+
+  if (!tokenMetadata) return null;
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
@@ -151,7 +154,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
         <div className="relative z-10 p-2 pb-4 flex flex-col">
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full">
-              <div className='flex items-center gap-x-4 w-full'>
+              <div className="flex items-center gap-x-4 w-full">
                 <SafeImage
                   src={logo}
                   alt={tokenMetadata?.name || "Token"}
@@ -216,7 +219,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
         <BuySellModal
           club={{
-            clubId: '0', // Required for useGetClubBalance
+            clubId: "0", // Required for useGetClubBalance
             chain: token.chain,
             token: {
               symbol: tokenMetadata?.symbol || "",
