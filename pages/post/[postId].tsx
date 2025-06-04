@@ -448,8 +448,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return media || undefined;
   };
 
-  console.log(sortedHighScoreComments)
-
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
       {/* Chat Sidebar, fixed and underneath main content */}
@@ -743,6 +741,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     : (post.metadata?.image?.item?.startsWith("lens://")
         ? await storageClient.resolve(post.metadata.image.item)
         : post.metadata?.image?.item) ?? null;
+
+  console.log(JSON.stringify(media,null,2));
 
   return {
     props: {

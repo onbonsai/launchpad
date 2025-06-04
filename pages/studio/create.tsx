@@ -38,7 +38,7 @@ import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId, remixVersion: remixVersionQuery } = router.query;
+  const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -73,9 +73,7 @@ const StudioCreatePage: NextPage = () => {
       prompt?: string;
     };
   }>>([]);
-  const [roomId, setRoomId] = useState<string | undefined>(
-    typeof router.query.roomId === 'string' ? router.query.roomId : generateSeededUUID(`studio-${address}`)
-  );
+  const [roomId, setRoomId] = useState<string | undefined>(undefined);
   const isMobile = useIsMobile();
 
   // GHO Balance
@@ -138,6 +136,16 @@ const StudioCreatePage: NextPage = () => {
       setTemplate(registeredTemplates[0]);
     }
   }, [isLoadingRegisteredTemplates]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      setRoomId(
+        typeof router.query.roomId === 'string'
+          ? router.query.roomId
+          : generateSeededUUID(`studio-${address.toLowerCase()}`)
+      );
+    }
+  }, [isConnected, address, router.query.roomId]);
 
   const handleSetPreview = (preview: Preview) => {
     setCurrentPreview(preview);
@@ -210,16 +218,18 @@ const StudioCreatePage: NextPage = () => {
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-    } else if (addToken && finalTokenData && !remixMedia?.agentId) {
+    } else if (addToken && finalTokenData?.tokenName && finalTokenData?.tokenSymbol && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
           try {
+            console.log(`targetChainId: ${targetChainId}`)
             await switchChain(walletClient, { id: targetChainId });
             // HACK: require lens chain for the whole thing
             setIsCreating(false);
             return;
-          } catch {
+          } catch (error) {
+            console.log(error);
             toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
             setIsCreating(false);
             return;
@@ -577,7 +587,7 @@ const StudioCreatePage: NextPage = () => {
               <div className="flex-grow overflow-visible">
                 {/* Full-width Template Selector - moved above padding */}
                 {template && (
-                  <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'}`}>
+                  <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>
                     {openTab === 1 && (
                       <Subtitle className="!text-brand-highlight mb-2 text-2xl">What do you want to create?</Subtitle>
                     )}

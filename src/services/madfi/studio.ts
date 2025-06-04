@@ -504,7 +504,7 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
   return useInfiniteQuery({
     queryKey: ["previews", roomId],
     queryFn: async ({ pageParam }) => {
-      if (!roomId) return { messages: [] };
+      console.log(`roomId: ${roomId}`)
 
       const idToken = await _getIdToken();
       if (!idToken) return { messages: [] };
@@ -536,7 +536,7 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!url && enabled,
+    enabled: !!url && enabled && !!roomId,
     initialPageParam: undefined // Start with no timestamp for first page
   });
 };

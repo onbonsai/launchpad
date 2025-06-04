@@ -373,6 +373,15 @@ export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37ni
 
 export const parseBase64Image = (imageBase64: string): File | undefined => {
   try {
+    // If it's a URL, create a File object from it
+    if (imageBase64.startsWith('http')) {
+      const fileName = `bonsai_generated_${Date.now()}.jpg`;
+      const blob = new File([], fileName, { type: 'image/jpeg' });
+      return Object.assign(blob, {
+        preview: imageBase64,
+      });
+    }
+
     // Extract image type from base64 string
     const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
     if (!matches) {

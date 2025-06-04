@@ -260,7 +260,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                       pricingTier: "SMALL",
                     });
                   }
-                  
+
                   setUseExistingToken(false);
                   setSavedTokenAddress(undefined);
                 }}
@@ -287,7 +287,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     selectedNetwork,
                     pricingTier,
                   });
-                  
+
                   setUseExistingToken(true);
                 }}
                 className={clsx(
@@ -470,14 +470,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">Name</Subtitle>
-                    <div className="text-sm inline-block">
-                      <Tooltip
-                        message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker"
-                        direction="right"
-                      >
-                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
-                      </Tooltip>
-                    </div>
                   </div>
                   <div>
                     <input

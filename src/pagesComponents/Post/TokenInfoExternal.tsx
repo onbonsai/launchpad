@@ -16,6 +16,7 @@ import { sdk } from '@farcaster/frame-sdk'
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from '@src/components/Icons/CoinPile';
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -96,7 +97,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
       className={clsx(
         "min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 gap-y-1 px-4 bg-card-light",
         roundedLeft && "rounded-l-xl",
-        roundedRight && "rounded-r-xl sm:rounded-none",
+        roundedRight && "rounded-r-xl",
         className || "",
       )}
     >
@@ -129,12 +130,17 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
     </div>
   );
 
+  let logo = tokenMetadata?.logo || "/unknown-logo.jpg";
+  if (token.address.toLowerCase() === PROTOCOL_DEPLOYMENT.lens.Bonsai.toLowerCase()) {
+    logo = "/bonsai-token.png";
+  }
+
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full h-[190px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
           <SafeImage
-            src={tokenMetadata?.logo || "/unknown-logo.jpg"}
+            src={logo}
             alt={tokenMetadata?.name || "Token"}
             className="w-full h-full object-cover"
             fill
@@ -147,7 +153,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
             <div className="w-full">
               <div className='flex items-center gap-x-4 w-full'>
                 <SafeImage
-                  src={tokenMetadata?.logo || "/unknown-logo.jpg"}
+                  src={logo}
                   alt={tokenMetadata?.name || "Token"}
                   className="object-cover rounded-lg"
                   width={48}
@@ -160,7 +166,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 md:gap-0">
+            <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2 md:gap-0 md:space-x-2">
               <div className="flex flex-row items-center w-full">
                 <InfoCard
                   title="Chain"
