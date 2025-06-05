@@ -199,13 +199,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         }}>
           Stake
         </MenuItem>
+        <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           setOpenHelpModal?.(true)
           handleClose();
         }}>
           Info
         </MenuItem>
-        <hr className="border-white/10" />
+        <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           disconnect();
           handleClose();
