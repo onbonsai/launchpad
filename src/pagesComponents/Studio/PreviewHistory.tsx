@@ -78,7 +78,9 @@ export default function PreviewHistory({
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   // Check if there are any messages available to load
-  const hasMessagesToLoad = (messages?.pages?.[0]?.messages?.length ?? 0) > 0;
+  const hasMessagesToLoad = messages?.pages?.some(page =>
+    page.messages?.some(msg => msg.userId === GLOBAL_AGENT_ID)
+  ) ?? false;
 
   // Combine and sort all previews
   const sortedMessages: MemoryPreview[] = useMemo(() => {
