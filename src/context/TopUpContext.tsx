@@ -97,7 +97,7 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
         onClose={closeTopUpModal}
         open={isOpen}
         setOpen={setIsOpen}
-        panelClassnames="w-full max-w-full md:max-w-[40vw] max-h-[100dvh] overflow-y-auto p-0 text-secondary bg-background flex flex-col"
+        panelClassnames="w-full max-w-full md:min-w-[632px] max-h-[100dvh] overflow-y-auto p-0 text-secondary bg-background flex flex-col"
         static
       >
         {modalType === "topup" ? (
