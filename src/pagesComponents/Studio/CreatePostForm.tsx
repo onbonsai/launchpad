@@ -411,13 +411,13 @@ const CreatePostForm = ({
         key={`subtemplate-${index}`}
         type="button"
         onClick={() => handleSubTemplateSelect(subTemplate)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+        className={`flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors ${
           isSelected
             ? "border-brand-highlight bg-brand-highlight/10"
             : "border-dark-grey hover:border-brand-highlight bg-card-light"
         }`}
       >
-        <div className="w-12 h-12 flex-shrink-0">
+        <div className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0">
           {subTemplate.previewImage ? (
             <SafeImage
               src={subTemplate.previewImage}
@@ -427,10 +427,10 @@ const CreatePostForm = ({
               height={48}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-base">🎨</div>
+            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-sm md:text-base">🎨</div>
           )}
         </div>
-        <span className="text-md text-white/90 truncate">{subTemplate.name}</span>
+        <span className="text-sm md:text-md text-white/90 truncate">{subTemplate.name}</span>
       </button>
     );
   };
@@ -442,16 +442,16 @@ const CreatePostForm = ({
       <button
         type="button"
         onClick={() => handleSubTemplateSelect(undefined)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+        className={`flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors ${
           isSelected
             ? "border-brand-highlight bg-brand-highlight/10"
             : "border-dark-grey hover:border-brand-highlight bg-card-light"
         }`}
       >
-        <div className="w-8 h-8 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-sm">
+        <div className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xs md:text-sm">
           ✏️
         </div>
-        <span className="text-sm text-white/90">Default</span>
+        <span className="text-xs md:text-sm text-white/90">Default</span>
       </button>
     );
   };
@@ -476,7 +476,7 @@ const CreatePostForm = ({
         {hasSubTemplates && (
           <div className="space-y-2">
             <FieldLabel label="Template" classNames="!text-brand-highlight" />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 md:gap-2">
               {renderDefaultSubTemplateOption()}
               {subTemplates.map((subTemplate: any, idx: number) => renderCompactSubTemplateOption(subTemplate, idx))}
             </div>

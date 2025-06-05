@@ -88,8 +88,8 @@
     "thirdweb": "^5.96.1",
     "tss-react": "^3.7.0",
     "use-debounce": "^9.0.4",
-    "viem": "^2.26.2",
-    "wagmi": "^2.14.16",
+    "viem": "^2.30.6",
+    "wagmi": "^2.15.5",
     "wavesurfer.js": "^7.9.4",
     "zod": "^3.24.2"
   },

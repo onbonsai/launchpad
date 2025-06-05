@@ -92,10 +92,11 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
           await switchChain(walletClient, { id: LENS_CHAIN_ID });
-        } catch {
+        } catch (error) {
+          console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
-          return;
         }
+        return;
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
@@ -179,6 +180,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               {!hasCollected ? (
                 <>
                   <BookmarkAddOutlined />
+                  Collect
                 </>
               ) : (
                 <>
