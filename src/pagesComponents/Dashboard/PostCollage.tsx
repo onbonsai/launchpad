@@ -385,10 +385,9 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
               <Masonry
                 breakpointCols={{
                   default: 4,
-                  1280: 4,
-                  1024: 3,
-                  768: 2,
-                  640: 1,
+                  1530: 3,
+                  1145: 2,
+                  768: 1,
                 }}
                 className="flex w-auto -ml-4"
                 columnClassName="pl-4 bg-clip-padding"
