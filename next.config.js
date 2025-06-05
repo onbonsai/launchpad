@@ -159,7 +159,8 @@ const nextConfig = {
       "storage.googleapis.com",
       "app.onbons.ai",
       "onbonsai.mypinata.cloud",
-      "token-media.defined.fi"
+      "token-media.defined.fi",
+      "imagedelivery.net"
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,

@@ -37,7 +37,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let { name, symbol, uri: image } = club;
 
-    if (!club.name || !club.symbol || !club.uri) {
+    if (club.tokenInfo && (!club.name || !club.symbol || !club.uri)) {
       // backup for v1 clubs
       [name, symbol, image] = decodeAbiParameters(
         [

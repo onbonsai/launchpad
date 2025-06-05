@@ -39,7 +39,7 @@ export const Holdings = React.memo((props: HoldingProps) => {
       const _holdings = holdings.map((h) => {
         let { name, symbol, uri: image } = h.club
 
-        if (!h.club.name || !h.club.symbol || !h.club.uri){
+        if (h.club.tokenInfo && (!h.club.name || !h.club.symbol || !h.club.uri)){
           // backup for v1 clubs
           ;[name, symbol, image] = decodeAbiParameters([
             { name: 'name', type: 'string' }, { name: 'symbol', type: 'string' }, { name: 'uri', type: 'string' }

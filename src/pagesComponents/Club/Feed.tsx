@@ -6,6 +6,7 @@ import {
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
