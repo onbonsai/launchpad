@@ -82,7 +82,7 @@ const IndexPage: NextPage = () => {
     if (isMounted && isAuthenticated && activeTab !== PostTabType.FOR_YOU) {
       setActiveTab(PostTabType.FOR_YOU);
     }
-  }, [isAuthenticated, isMounted, activeTab]);
+  }, [isAuthenticated, isMounted]);
 
   // fix hydration issues
   if (!isMounted) return null;
