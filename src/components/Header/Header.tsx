@@ -15,13 +15,14 @@ import { Button } from "../Button";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { Header2 } from "@src/styles/text";
-import useIsMobile from "@src/hooks/useIsMobile";
 import { Balance } from "./Balance";
 import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
 import { useModal } from "connectkit";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import CoinPile from "../Icons/CoinPile";
+import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
+import useIsMobile from "@src/hooks/useIsMobile";
 
 const headerLinks = [
   {
@@ -77,7 +78,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey sm:hidden z-[1000]">
+    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]">
       <div className="flex justify-between items-center h-16 px-6">
         <Link href="/" className="flex flex-col items-center">
           <svg className={`w-6 h-6 ${isHomeActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,8 +114,8 @@ export const Header = () => {
   const { openSignInModal, setOpenSignInModal, isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const isMounted = useIsMounted();
+  const isAlmostMobile = useIsAlmostMobile();
   const isMobile = useIsMobile();
   const { setOpen } = useModal();
 
@@ -152,30 +153,25 @@ export const Header = () => {
                     </Link>
                   </div>
                 ))}
-                <div
-                  className="h-[40px] py-[12px] px-4 justify-center items-center rounded-lg"
-                  onClick={() => setOpenHelpModal(true)}
-                >
-                  <span className="h-full leading-4 font-medium text-[16px] transition-opacity duration-200 text-white/50 hover:text-white/80 cursor-pointer">
-                    Info
-                  </span>
-                </div>
               </div>
             </div>
 
             {/* On desktop: show search in the center. On mobile: hidden or below */}
-            {!isMobile && (
-              <div className="flex justify-center items-center w-[10%]">
-                <SearchClubs />
-              </div>
+            {!isAlmostMobile && (
+              <SearchClubs />
             )}
 
             {/* Right side of header */}
             <div className="flex items-center justify-end md:w-[40%] w-full">
+              {isAlmostMobile && (
+                <div className="mr-2 hidden sm:block">
+                  <SearchClubs />
+                </div>
+              )}
               {isAuthenticated && (
                 <div className="hidden sm:flex items-center gap-2 mr-2">
                   <Link href="/studio/create" onClick={handleAuthRequiredClick}>
-                    <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1">
+                    <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">
                       <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
                       </svg>
@@ -193,6 +189,7 @@ export const Header = () => {
                 setOpenSignInModal={setOpenSignInModal}
                 autoLensLogin={!isAuthenticated}
                 className="sm:hidden"
+                setOpenHelpModal={setOpenHelpModal}
               />
 
               {/* Hamburger (visible on small screens only) */}
@@ -217,7 +214,7 @@ export const Header = () => {
 
         {/* Mobile Menu Dropdown */}
         {openMobileMenu && (
-          <div className="sm:hidden bg-black border-t border-dark-grey px-4 py-3">
+          <div className="md:hidden bg-black border-t border-dark-grey px-4 py-3">
             <div className="flex flex-col space-y-2 w-full">
               <div className="pb-2 w-full">
                 <SearchClubs />

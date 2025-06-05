@@ -17,6 +17,7 @@ import { useSearchProfiles } from "@src/hooks/useSearchProfiles";
 import { useSearchPosts } from "@src/hooks/useSearchPosts";
 import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getProfileImage } from '@src/services/lens/utils';
+import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +27,7 @@ export const SearchClubs = () => {
   const { data: clubSearchResults, isLoading } = useSearchClubs(debouncedQuery);
   const { data: profileSearchResults, isLoading: isLoadingProfiles } = useSearchProfiles(debouncedQuery);
   const { data: postSearchResults, isLoading: isLoadingPosts } = useSearchPosts(debouncedQuery);
+  const isAlmostMobile = useIsAlmostMobile();
 
   function closeModal() {
     setIsOpen(false);
@@ -68,32 +70,31 @@ export const SearchClubs = () => {
 
   return (
     <>
-      <div className={clsx("lg:min-w-[220px] w-full", brandFont.className)}>
-        <label htmlFor="finder" className="block text-sm font-medium text-gray-700 sr-only">
-          Search anything
-        </label>
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            name="finder"
-            id="finder"
-            placeholder="Search"
-            defaultValue={query}
-            autoComplete="off"
-            onClick={() => openModal()}
-            readOnly
-            className="block w-full rounded-lg text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm cursor-pointer"
-          />
-          <div className="inset-y-0 right-0 py-1.5 pr-1.5 absolute cursor-pointer" onClick={() => openModal()}>
-            <kbd className="inline-flex bg-transparent items-center border border-gray-400 px-2 text-sm font-medium text-gray-400 rounded-lg mr-2 select-none">
-              ⌘ K
-            </kbd>
-          </div>
-          <div className="inset-y-0 left-0 md:py-[10px] py-[11px] pl-3 absolute">
-            <SearchIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
+      {isAlmostMobile ? 
+        <div className="flex justify-center items-center bg-card rounded-lg py-[0.6rem] px-3 cursor-pointer" onClick={() => openModal()}>
+          <SearchIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
+          <span className="ml-2 sm:hidden text-white/50">
+            Search
+          </span>
+        </div> : 
+        <div className={clsx("max-w-[160px]", brandFont.className)} onClick={() => openModal()}>
+          <div className="relative flex items-center">
+            <input
+              type="text"
+              name="finder"
+              id="finder"
+              placeholder="Search"
+              defaultValue={query}
+              autoComplete="off"
+              readOnly
+              className="block w-full rounded-lg text-secondary placeholder:text-secondary/40 border-transparent bg-card pr-12 pl-10 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm cursor-pointer"
+            />
+            <div className="inset-y-0 left-0 md:py-[10px] py-[11px] pl-3 absolute">
+              <SearchIcon className="h-5 w-5 text-secondary" aria-hidden="true" />
+            </div>
           </div>
         </div>
-      </div>
+      }
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-[101]" onClose={closeModal}>
           <Transition.Child
