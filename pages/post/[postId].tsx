@@ -733,7 +733,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (attributes?.some(attr => attr.key === 'template')) {
       media = await resolveSmartMedia(attributes, slug, true);
     }
-  } catch {}
+  } catch {
+    console.log("error resolving media");
+  }
 
   const image = post.metadata?.__typename === "VideoMetadata"
     ? (post.metadata?.video?.cover?.startsWith("lens://")

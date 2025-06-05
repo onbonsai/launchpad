@@ -294,7 +294,7 @@ const CreatePostForm = ({
         templateName: template.name,
       } as Preview);
 
-      toast.success("Done", { id: toastId });
+      toast.success("Done", { id: toastId, duration: 2000 });
 
       // Close the form after successful generation
       if (onClose) {
