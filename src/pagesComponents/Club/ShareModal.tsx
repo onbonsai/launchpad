@@ -37,7 +37,7 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               </Button>
             </a>
             <a href={tweetIntentTokenReferral({
-              text: `Trade $${symbol} on the @onbonsai Launchpad`,
+              text: `Trade $${symbol} on the @onbonsai Launchpad \n`,
               chain,
               tokenAddress,
               referralAddress: address!
@@ -47,7 +47,7 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               </Button>
             </a>
             <a href={castIntentTokenReferral({
-              text: `Trade $${symbol} on the @onbonsai Launchpad \n ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
+              text: `Trade $${symbol} on the @onbonsai.eth Launchpad \n ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               chain,
               tokenAddress,
               referralAddress: address!

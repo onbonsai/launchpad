@@ -12,7 +12,7 @@ const Share = ({ text, url }: { text: string; url: string }) => {
     window.open(ctaLink, "_blank");
   };
   const shareToFarcaster = () => {
-    const ctaLink = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds%5B%5D=${encodeURI(url)}`;
+    const ctaLink = `https://farcaster.xyz/~/compose?text=${encodeURIComponent(text)}&embeds%5B%5D=${encodeURI(url)}`;
     window.open(ctaLink, "_blank");
   };
 
