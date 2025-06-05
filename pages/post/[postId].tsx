@@ -85,16 +85,17 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 
+  // TODO: fix this
   // Load version from URL query parameter when page loads
-  useEffect(() => {
-    if (!isMounted || !media?.versions || !v) return;
+  // useEffect(() => {
+  //   if (!isMounted || !media?.versions || !v) return;
 
-    const versionIndex = parseInt(v as string);
-    // Check if version is within bounds (0 to versions.length)
-    if (versionIndex >= 0 && versionIndex < media.versions.length) {
-      loadVersion(versionIndex);
-    }
-  }, [isMounted, media?.versions, v]);
+  //   const versionIndex = parseInt(v as string);
+  //   // Check if version is within bounds (0 to versions.length)
+  //   if (versionIndex >= 0 && versionIndex < media.versions.length) {
+  //     loadVersion(versionIndex);
+  //   }
+  // }, [isMounted, media?.versions, v]);
 
   // Use router.query.postId instead of postId from destructuring
   const currentPostId = router.query.postId as string;
