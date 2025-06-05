@@ -6,6 +6,7 @@ import Link from "next/link";
 import External from "@src/components/Icons/External";
 import { getHandleAndFollowersByAddresses } from "@src/services/lens/getProfiles";
 import { getLensPfp } from "@src/utils/utils";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 const ReferralListModal = ({ user }) => {
   const [creatorProfiles, setCreatorProfiles] = useState<any[]>([]);
@@ -47,7 +48,7 @@ const ReferralListModal = ({ user }) => {
                   <tr key={index} className="text-white border-b border-gray-500 h-14">
                     <td className="px-2">
                       <div className="flex ">
-                        <Image
+                        <SafeImage
                           src={getLensPfp(creatorProfiles[index])}
                           alt={creatorProfiles[index].handle.localName}
                           className="rounded-full"

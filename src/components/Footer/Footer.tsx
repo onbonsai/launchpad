@@ -2,9 +2,9 @@ import clsx from "clsx";
 
 const links = [
   { name: "Info", href: "/info" },
-  { name: "Hooks", href: "/hooks" },
+  // { name: "Hooks", href: "/hooks" },
   { name: "Orb", href: "https://orb.club/c/bonsai" },
-  { name: "X / Twitter", href: "https://x.com/onbonsai" },
+  { name: "X", href: "https://x.com/onbonsai" },
   // { name: "Uni v4 hooks", href: "/hooks" },
 ];
 
@@ -20,7 +20,10 @@ interface FooterProps {
 export const Footer = (props: FooterProps) => {
   const { short } = props;
   return (
-    <footer className={clsx(short ? `md:mt-4` : `md:mt-32`)}>
+    <footer className={clsx(
+      short ? `md:mt-4` : `md:mt-32`,
+      "mb-32 mt-8 sm:mb-0"
+    )}>
       <div className="flex justify-end pr-4 bg-transparent w-full gap-2">
         {links.map((link, index) => (
           <div key={`footer-${index}`}>

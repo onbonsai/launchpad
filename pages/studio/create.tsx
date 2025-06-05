@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "viem/actions";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
-import CashIcon from "@heroicons/react/solid/CashIcon"
 import { createSmartMedia, Preview, useResolveSmartMedia, type Template } from "@src/services/madfi/studio";
 import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
 import useIsMounted from "@src/hooks/useIsMounted";
+import useIsMobile from "@src/hooks/useIsMobile";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
 import { FinalizePost } from "@pagesComponents/Studio/FinalizePost";
@@ -19,10 +19,9 @@ import { Action, createPost, uploadFile, uploadImageBase64, uploadVideo } from "
 import { resumeSession } from "@src/hooks/useLensLogin";
 import toast from "react-hot-toast";
 import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client";
-import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
-import { pinFile, storjGatewayURL } from "@src/utils/storj";
 import { cacheImageToStorj, parseBase64Image } from "@src/utils/utils";
 import axios from "axios";
 import Link from "next/link";
@@ -30,22 +29,16 @@ import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
-
-type TokenData = {
-  initialSupply: number;
-  rewardPoolPercentage?: number;
-  uniHook?: `0x${string}`;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenImage: any[];
-  selectedNetwork: "lens" | "base";
-  totalRegistrationFee?: bigint;
-  pricingTier?: PricingTier;
-};
+import type { TokenData } from "@src/services/madfi/studio";
+import { sdk } from '@farcaster/frame-sdk';
+import { SITE_URL } from "@src/constants/constants";
+import { storageClient } from "@src/services/lens/client";
+import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
+import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { template: templateName, remix: remixPostId, remixSource: encodedRemixSource, roomId: queryRoomId, remixVersion: remixVersionQuery } = router.query;
+  const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
@@ -56,28 +49,32 @@ const StudioCreatePage: NextPage = () => {
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [postImage, setPostImage] = useState<any[]>([]);
   const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
-  const [addToken, setAddToken] = useState(false);
+  const [addToken, setAddToken] = useState(true);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
+  const [template, setTemplate] = useState<Template>();
+  const [selectedSubTemplate, setSelectedSubTemplate] = useState<any>();
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
   const [localPreviews, setLocalPreviews] = useState<Array<{
+    agentId?: string;
     isAgent: boolean;
     createdAt: string;
     content: {
       text?: string;
       preview?: Preview;
       templateData?: string;
+      prompt?: string;
     };
   }>>([]);
-  const [roomId, setRoomId] = useState<string | undefined>(
-    typeof router.query.roomId === 'string' ? router.query.roomId : undefined
-  );
+  const [roomId, setRoomId] = useState<string | undefined>(undefined);
+  const isMobile = useIsMobile();
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -97,18 +94,6 @@ const StudioCreatePage: NextPage = () => {
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
   });
-
-  const template = useMemo(() => {
-    if (!isMounted || isLoading) return;
-
-    if (!templateName) router.push('/studio');
-
-    const res = registeredTemplates?.find(({ name }) => name === templateName);
-
-    if (!res) router.push('/studio');
-
-    return res;
-  }, [templateName, isMounted, isLoading]);
 
   const checkReferralStatus = async (address: string) => {
     try {
@@ -146,10 +131,36 @@ const StudioCreatePage: NextPage = () => {
     }
   }, [isLoading, remixMedia]);
 
+  useEffect(() => {
+    if (!isLoadingRegisteredTemplates && registeredTemplates) {
+      setTemplate(registeredTemplates[0]);
+    }
+  }, [isLoadingRegisteredTemplates]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      setRoomId(
+        typeof router.query.roomId === 'string'
+          ? router.query.roomId
+          : generateSeededUUID(`studio-${address.toLowerCase()}`)
+      );
+    }
+  }, [isConnected, address, router.query.roomId]);
+
   const handleSetPreview = (preview: Preview) => {
     setCurrentPreview(preview);
     if (preview.roomId && preview.roomId !== roomId) {
       setRoomId(preview.roomId);
+    }
+
+    // Check if this preview already exists in localPreviews
+    const existingPreview = localPreviews.find(lp =>
+      lp.agentId === preview.agentId ||
+      (lp.content.preview && lp.content.preview.agentId === preview.agentId)
+    );
+
+    if (existingPreview) {
+      return;
     }
 
     // Add both template data and preview messages
@@ -162,7 +173,8 @@ const StudioCreatePage: NextPage = () => {
       createdAt: now,
       content: {
         templateData: JSON.stringify(preview.templateData || {}),
-        text: Object.entries(preview.templateData || {}).map(([key, value]) => `${key}: ${value}`).join('\n')
+        text: prompt || "",
+        prompt: prompt
       }
     }]);
 
@@ -173,9 +185,22 @@ const StudioCreatePage: NextPage = () => {
       createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
       content: {
         preview: preview,
-        text: preview.text
+        text: preview.text,
+        prompt: prompt
       }
     }]);
+  };
+
+  const handleTemplateSelect = (newTemplate: Template) => {
+    if (openTab === 1) {
+      setTemplate(newTemplate);
+      setSelectedSubTemplate(undefined); // Reset subtemplate when template changes
+      setFinalTemplateData({});
+    }
+  };
+
+  const handleSubTemplateChange = (subTemplate: any) => {
+    setSelectedSubTemplate(subTemplate);
   };
 
   const onCreate = async (collectAmount: number) => {
@@ -190,18 +215,21 @@ const StudioCreatePage: NextPage = () => {
     // 1. create token (if not remixing)
     let tokenAddress;
     let txHash;
+    let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-    } else if (addToken && finalTokenData && !remixMedia?.agentId) {
+    } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
           try {
+            console.log(`targetChainId: ${targetChainId}`)
             await switchChain(walletClient, { id: targetChainId });
             // HACK: require lens chain for the whole thing
             setIsCreating(false);
             return;
-          } catch {
+          } catch (error) {
+            console.log(error);
             toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
             setIsCreating(false);
             return;
@@ -285,16 +313,24 @@ const StudioCreatePage: NextPage = () => {
               PROTOCOL_DEPLOYMENT.lens.RewardSwap,
               true
             )
-            toastId = toast.loading("Initializing swap action...", { id: toastId });
-            const hash = await walletClient!.writeContract({
-              address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
-              abi: RewardSwapAbi,
-              functionName: 'createRewardsPool',
-              args: [tokenAddress, 0, 200, 50n * parseUnits(rewardPoolAmount !== "0" ? rewardPoolAmount : "80000000", DECIMALS) / 100_00n, result.clubId, zeroAddress],
-            });
-            await publicClient("lens").waitForTransactionReceipt({ hash });
-            toast.success("Swap action initialized", { id: toastId });
           }
+          // always create the reward pool so that clubId will be set on the token
+          toastId = toast.loading("Initializing swap action...", { id: toastId });
+          const hash = await walletClient!.writeContract({
+            address: PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+            abi: RewardSwapAbi,
+            functionName: "createRewardsPool",
+            args: [
+              tokenAddress,
+              0,
+              200,
+              (50n * parseUnits(rewardPoolAmount !== "0" ? rewardPoolAmount : "80000000", DECIMALS)) / 100_00n,
+              result.clubId,
+              zeroAddress,
+            ],
+          });
+          await publicClient("lens").waitForTransactionReceipt({ hash });
+          toast.success("Swap action initialized", { id: toastId });
         }
       } catch (error) {
         console.log(error);
@@ -305,6 +341,28 @@ const StudioCreatePage: NextPage = () => {
     } else if (remixMedia?.token?.address) {
       tokenAddress = remixMedia.token.address;
       setSavedTokenAddress(tokenAddress); // save our progress
+    }  else {
+      // default to bonsai on the correct chain
+      let _chain = chain?.name.toLowerCase() as string;
+      if (!IS_PRODUCTION) {
+        if (_chain === "base sepolia") {
+          _chain = "base";
+        } else {
+          _chain = "lens";
+        }
+      } else {
+        if (_chain !== "base" && _chain !== "lens") {
+          _chain = "lens";
+        }
+      }
+      tokenAddress = PROTOCOL_DEPLOYMENT[_chain].Bonsai;
+      _finalTokenData = {
+        initialSupply: 0,
+        tokenName: "Bonsai",
+        tokenSymbol: "BONSAI",
+        tokenImage: [{ preview: "https://app.onbons.ai/logo-spaced.png" }],
+        selectedNetwork: _chain as "base" | "lens",
+      }
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
@@ -339,9 +397,9 @@ const StudioCreatePage: NextPage = () => {
 
     toastId = toast.loading("Creating your post...", { id: toastId });
     let postId, uri;
+    let video;
     try {
       let image;
-      let video;
 
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
@@ -351,13 +409,13 @@ const StudioCreatePage: NextPage = () => {
         video = { url, type: "video/mp4" };
       }
 
-      if (postImage && postImage.length > 0) {
-        image = (await uploadFile(postImage[0], template?.acl)).image;
-      } else if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
+      if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
         image = { url: currentPreview?.image, type: "image/png" };
       } else if (currentPreview?.image) {
         const { uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl);
         image = { url: imageUri, type };
+      } else if (postImage && postImage.length > 0) {
+        image = (await uploadFile(postImage[0], template?.acl)).image;
       }
 
       // Check if user was referred
@@ -407,7 +465,7 @@ const StudioCreatePage: NextPage = () => {
           }
         }
       }]
-      if (tokenAddress && finalTokenData?.selectedNetwork === "lens") {
+      if (tokenAddress && _finalTokenData?.selectedNetwork === "lens") {
         actions.push({
           unknown: {
             address: toEvmAddress(PROTOCOL_DEPLOYMENT.lens.RewardSwap),
@@ -467,7 +525,8 @@ const StudioCreatePage: NextPage = () => {
           hash: txHash,
           postId,
           handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-          chain: finalTokenData?.selectedNetwork || "lens"
+          chain: _finalTokenData?.selectedNetwork || "lens",
+          tokenAddress
         });
       }
 
@@ -476,9 +535,9 @@ const StudioCreatePage: NextPage = () => {
         agentId: currentPreview?.agentId,
         postId,
         uri,
-        token: (addToken || remixMedia?.agentId) && finalTokenData ? {
-          chain: finalTokenData.selectedNetwork,
-          address: tokenAddress
+        token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
+          chain: _finalTokenData.selectedNetwork,
+          address: tokenAddress,
         } : undefined,
         params: {
           templateName: template.name,
@@ -488,6 +547,20 @@ const StudioCreatePage: NextPage = () => {
       }));
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      if (await sdk.isInMiniApp()) {
+        let embeds: string[] = []
+        if (video) {
+          let resolvedVideoUrl = await storageClient.resolve(video?.url)
+          embeds.push(resolvedVideoUrl)
+        }
+        embeds.push(`${SITE_URL}/post/${postId}`)
+        const text = `${postContent || currentPreview?.text || template?.displayName}\n\nvia @onbonsai.eth`
+        await sdk.actions.composeCast({
+          text,
+          embeds: embeds as [string] | [string, string],
+        });
+      }
 
       toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${postId}`), 2000);
@@ -504,121 +577,124 @@ const StudioCreatePage: NextPage = () => {
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh]">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6">
-        <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full">
-          <div className="flex flex-col md:flex-row gap-y-10 md:gap-x-6 max-w-full">
-            <div className="md:w-64 flex-shrink-0">
-              <Sidebar />
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-grow">
-              {/* Header Card */}
-              <div className="bg-card rounded-lg p-6">
-                <div className="flex items-start gap-4">
-                  <Link
-                    href="/studio"
-                    className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-8 h-8 mt-2 md:mt-0 shrink-0"
-                  >
-                    <ArrowBack className="h-5 w-5" />
-                  </Link>
-                  <div className="flex-1">
-                    <div className="flex flex-row space-x-4">
-                      <h2 className="text-2xl font-semibold text-secondary">{template?.displayName}</h2>
-                      {template?.estimatedCost && (
-                        <span className="flex items-center text-md text-brand-highlight border border-dark-grey rounded-lg px-2 py-1">
-                          <CashIcon className="h-4 w-4 mr-2" />
-                          ~{template.estimatedCost.toFixed(2)} credits
-                        </span>
-                      )}
-                    </div>
-                    <Subtitle className="items-start text-xl leading-tight mt-2 mr-8">{template?.description}</Subtitle>
-                  </div>
-                </div>
+    <div className="bg-background text-secondary min-h-[90vh] w-full overflow-visible">
+      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6 overflow-visible">
+        <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full overflow-visible">
+          <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-8 max-w-full overflow-visible">
+              <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
+                <Sidebar />
               </div>
-
-              {/* Form Card */}
-              <div className="bg-card rounded-lg px-6 py-10 mt-6">
-                {/* <h3 className="text-sm font-medium text-brand-highlight mb-4">Fill out the details for your smart media post</h3> */}
-
-                <div className="grid grid-cols-1 gap-x-16 lg:grid-cols-2 max-w-full">
-                  <div className="lg:col-span-1">
-                    <div className="md:col-span-1 max-h-[95vh] mb-[100px] md:mb-0 relative w-full">
-                      <div className="mb-4">
-                        <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
-                      </div>
-                    </div>
-                    {openTab === 1 && template && (
-                      <CreatePostForm
-                        template={template as Template}
-                        preview={currentPreview}
-                        finalTemplateData={finalTemplateData}
-                        setPreview={handleSetPreview}
-                        postContent={postContent}
-                        setPostContent={setPostContent}
-                        postImage={postImage}
-                        setPostImage={setPostImage}
-                        next={(templateData) => {
-                          setFinalTemplateData(templateData);
-                          setOpenTab(addToken ? 2 : 3);
-                        }}
-                        isGeneratingPreview={isGeneratingPreview}
-                        setIsGeneratingPreview={setIsGeneratingPreview}
-                        roomId={roomId as string}
-                        postAudio={postAudio}
-                        setPostAudio={setPostAudio}
-                        audioStartTime={audioStartTime}
-                        setAudioStartTime={setAudioStartTime}
-                      />
+              <div className="flex-grow overflow-visible">
+                {/* Full-width Template Selector - moved above padding */}
+                {template && (
+                  <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>
+                    {openTab === 1 && (
+                      <Subtitle className="!text-brand-highlight mb-2 text-2xl">What do you want to create?</Subtitle>
                     )}
-                    {openTab === 2 && (
-                      <CreateTokenForm
-                        finalTokenData={finalTokenData}
-                        postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
-                        setSavedTokenAddress={setSavedTokenAddress}
-                        savedTokenAddress={savedTokenAddress}
-                        setFinalTokenData={setFinalTokenData}
-                        back={() => setOpenTab(1)}
-                        next={() => setOpenTab(3)}
-                      />
-                    )}
-                    {openTab === 3 && (
-                      <FinalizePost
-                        authenticatedProfile={authenticatedProfile}
-                        finalTokenData={finalTokenData}
-                        onCreate={onCreate}
-                        back={() => setOpenTab(addToken ? 2 : 1)}
-                        isCreating={isCreating}
-                        addToken={addToken}
-                        onAddToken={() => {
-                          setAddToken(true);
-                          setOpenTab(2);
-                        }}
-                        isRemix={!!remixMedia?.agentId}
-                        setFinalTokenData={setFinalTokenData}
-                        setAddToken={setAddToken}
-                      />
-                    )}
-                  </div>
-                  <div className="lg:col-span-1">
-                    <PreviewHistory
-                      currentPreview={currentPreview}
-                      setCurrentPreview={setCurrentPreview}
-                      isGeneratingPreview={isGeneratingPreview}
-                      className="h-[calc(100vh)]"
-                      roomId={queryRoomId as string}
-                      templateUrl={template?.apiUrl}
-                      setFinalTemplateData={setFinalTemplateData}
-                      localPreviews={localPreviews}
-                      isFinalize={openTab > 1}
-                      postImage={postImage}
+                    <TemplateSelector
+                      selectedTemplate={template}
+                      summary={openTab > 1}
+                      onTemplateSelect={handleTemplateSelect}
+                      selectedSubTemplate={selectedSubTemplate}
                     />
                   </div>
+                )}
+                <div className="px-4 sm:px-6 pt-0 pb-6 sm:pb-10">
+                  <div className="flex flex-col md:flex-row gap-y-8 md:gap-x-8 w-full">
+                    {/* Sticky Form Section */}
+                    <div className="md:w-1/2 flex-shrink-0">
+                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6">
+                        <div className="mb-6">
+                          <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
+                        </div>
+                        {openTab === 1 && template && (
+                          <>
+                            <CreatePostForm
+                              template={template as Template}
+                              preview={currentPreview}
+                              selectedSubTemplate={selectedSubTemplate}
+                              onSubTemplateChange={handleSubTemplateChange}
+                              finalTemplateData={finalTemplateData}
+                              setPreview={handleSetPreview}
+                              postContent={postContent}
+                              setPostContent={setPostContent}
+                              prompt={prompt}
+                              setPrompt={setPrompt}
+                              postImage={postImage}
+                              setPostImage={setPostImage}
+                              next={(templateData) => {
+                                setFinalTemplateData(templateData);
+                                setOpenTab(addToken ? 2 : 3);
+                              }}
+                              isGeneratingPreview={isGeneratingPreview}
+                              setIsGeneratingPreview={setIsGeneratingPreview}
+                              roomId={roomId as string}
+                              postAudio={postAudio}
+                              setPostAudio={setPostAudio}
+                              audioStartTime={audioStartTime}
+                              setAudioStartTime={setAudioStartTime}
+                            />
+                          </>
+                        )}
+                        {openTab === 2 && (
+                          <CreateTokenForm
+                            finalTokenData={finalTokenData}
+                            postImage={typeof currentPreview?.image === 'string' ? [parseBase64Image(currentPreview.image)] : currentPreview?.image ? [currentPreview.image] : postImage}
+                            setSavedTokenAddress={setSavedTokenAddress}
+                            savedTokenAddress={savedTokenAddress}
+                            setFinalTokenData={setFinalTokenData}
+                            back={() => setOpenTab(1)}
+                            next={() => setOpenTab(3)}
+                          />
+                        )}
+                        {openTab === 3 && (
+                          <FinalizePost
+                            authenticatedProfile={authenticatedProfile}
+                            finalTokenData={finalTokenData}
+                            onCreate={onCreate}
+                            back={() => {
+                              setOpenTab(addToken ? 2 : 1);
+                            }}
+                            isCreating={isCreating}
+                            addToken={addToken}
+                            onAddToken={() => {
+                              setAddToken(true);
+                              setOpenTab(2);
+                            }}
+                            isRemix={!!remixMedia?.agentId}
+                            setFinalTokenData={setFinalTokenData}
+                            setAddToken={setAddToken}
+                            template={template}
+                            postContent={postContent}
+                            setPostContent={setPostContent}
+                            currentPreview={currentPreview}
+                            setCurrentPreview={setCurrentPreview}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    {/* Natural Preview History Section */}
+                    <div className="md:w-1/2 flex-shrink-0">
+                      <PreviewHistory
+                        currentPreview={currentPreview}
+                        setCurrentPreview={setCurrentPreview}
+                        setSelectedTemplate={setTemplate}
+                        isGeneratingPreview={isGeneratingPreview}
+                        roomId={roomId}
+                        templateUrl={template?.apiUrl}
+                        setFinalTemplateData={setFinalTemplateData}
+                        setPrompt={setPrompt}
+                        postContent={postContent}
+                        localPreviews={localPreviews}
+                        isFinalize={openTab > 1}
+                        postImage={postImage}
+                        setPostContent={setPostContent}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
         </section>
       </main>
     </div>

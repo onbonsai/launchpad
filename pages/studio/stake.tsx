@@ -375,8 +375,8 @@ const TokenPage: NextPage = () => {
   };
 
   // Collect all post IDs from postUpdates
-  const postUpdateIds = useMemo(() => 
-    Array.from(new Set(creditBalance?.postUpdates?.map((u) => u.postId) || [])), 
+  const postUpdateIds = useMemo(() =>
+    Array.from(new Set(creditBalance?.postUpdates?.map((u) => u.postId) || [])),
     [creditBalance?.postUpdates]
   );
   // Fetch post details
@@ -384,10 +384,10 @@ const TokenPage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
-      <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-4 sm:px-6 pt-6">
+      <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-6 max-w-full">
-          <div className="flex flex-col md-plus:flex-row gap-y-10 md-plus:gap-x-6 max-w-full">
-            <div className="md-plus:w-64 flex-shrink-0">
+          <div className="flex flex-col md-plus:flex-row gap-y-6 md-plus:gap-x-6 max-w-full">
+            <div className="md-plus:w-64 flex-shrink-0 md-plus:sticky md-plus:top-6 md-plus:self-start">
               <Sidebar />
             </div>
             {/* Main Content */}
@@ -748,7 +748,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsStakeModalOpen(false)}
                   open={isStakeModalOpen}
                   setOpen={setIsStakeModalOpen}
-                  panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
+                  panelClassnames="w-screen max-h-[100dvh] md-plus:h-full md-plus:w-[40vw] p-4 text-secondary"
                   static
                 >
                   <StakeModal
@@ -767,7 +767,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsBridgeModalOpen(false)}
                   open={isBridgeModalOpen}
                   setOpen={setIsBridgeModalOpen}
-                  panelClassnames="w-screen h-screen md-plus:h-full md-plus:w-[60vw] p-4 text-secondary"
+                  panelClassnames="w-screen max-h-[100dvh] md-plus:h-full md-plus:w-[30vw] p-4 text-secondary"
                   static
                 >
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
@@ -778,7 +778,7 @@ const TokenPage: NextPage = () => {
                   onClose={() => setIsReferralModalOpen(false)}
                   open={isReferralModalOpen}
                   setOpen={setIsReferralModalOpen}
-                  panelClassnames="w-screen h-screen md-plus:h-fit md-plus:w-[500px] text-secondary"
+                  panelClassnames="w-screen max-h-[100dvh] md-plus:h-fit md-plus:w-[500px] text-secondary"
                 >
                   <ReferralModal onClose={() => setIsReferralModalOpen(false)} referralLink={referralLink} />
                 </Modal>

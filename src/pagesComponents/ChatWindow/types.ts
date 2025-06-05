@@ -1,3 +1,5 @@
+import { Preview } from '@src/services/madfi/studio';
+
 export type Language = 'en' | 'th' | 'zh';
 
 export type StreamEntry = {
@@ -15,6 +17,7 @@ export type StreamEntry = {
     | 'completed';
   content: string;
   attachments?: Attachment[];
+  preview?: Preview;
 };
 
 export type AnimatedData = {

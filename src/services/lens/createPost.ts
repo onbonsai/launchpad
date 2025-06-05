@@ -254,7 +254,7 @@ export const uploadFile = async (
   const acl = _acl || immutable(LENS_CHAIN_ID);
   const { uri: hash } = await storageClient.uploadFile(file, { acl });
   const isImage = file.type.includes("image");
-  console.log(`${isImage ? 'image' : 'video'} hash: ${hash}`);
+  // console.log(`${isImage ? 'image' : 'video'} hash: ${hash}`);
   if (isImage) {
     return { image: { url: uri(hash), type: file.type as MediaImageMimeType } };
   }
@@ -266,7 +266,8 @@ export const createPost = async (
   walletClient: any,
   params: PostParams,
   commentOn?: string,
-  quoteOf?: string
+  quoteOf?: string,
+  feed?: string,
 ): Promise<{ postId: string, uri: URI } | undefined> => {
   const contentUri = await uploadMetadata(params);
   // console.log(`contentUri: ${contentUri}`);
@@ -284,12 +285,12 @@ export const createPost = async (
       }
       : undefined,
     actions: params.actions,
-    feed: evmAddress(LENS_BONSAI_DEFAULT_FEED),
+    feed: feed || evmAddress(LENS_BONSAI_DEFAULT_FEED),
   })
     .andThen(handleOperationWith(walletClient))
     .andThen(sessionClient.waitForTransaction);
 
-  console.log("post result", result);
+  // console.log("post result", result);
 
   if (result.isOk()) {
     let post;

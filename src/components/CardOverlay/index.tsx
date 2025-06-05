@@ -15,7 +15,7 @@ import { Tooltip } from "@src/components/Tooltip";
 import { SparkIcon } from "../Icons/SparkIcon";
 import DropdownMenu from "../Publication/DropdownMenu";
 import { useTopUpModal } from "@src/context/TopUpContext";
-import Image from "next/image";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 interface CardOverlayProps {
   authenticatedProfile?: Account | null;
@@ -92,10 +92,12 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
           await switchChain(walletClient, { id: LENS_CHAIN_ID });
-        } catch {
+          toast.success("Switched to Lens", { id: toastId });
+        } catch (error) {
+          console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });
-          return;
         }
+        return;
       }
       const sessionClient = await resumeSession();
       if (!sessionClient) throw new Error("Not authenticated");
@@ -173,7 +175,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
               variant={hasCollected ? "dark-grey" : "accentBrand"}
               ref={collectButtonRef}
               size="md"
-              className={`text-base font-bold rounded-2xl gap-x-1 md:px-2 py-[5px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default': ''}`}
+              className={`text-base font-bold !rounded-2xl gap-x-1 md:px-2 py-[5px] focus:outline-none focus:ring-0 ${hasCollected ? 'cursor-default': ''}`}
               onClick={(e) => handleButtonClick(e, () => { if (!hasCollected) setShowCollectModal(true) })}
             >
               {!hasCollected ? (
@@ -224,7 +226,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             <Tooltip message={collectorsText} direction="right">
               <div className="flex -space-x-2">
                 {postData?.actors?.map(({ account }, index: number) => (
-                  <Image
+                  <SafeImage
                     key={index}
                     className="inline-block h-8 w-8 rounded-full ring-2 ring-dark-grey"
                     src={account.metadata?.picture || "/default.png"}

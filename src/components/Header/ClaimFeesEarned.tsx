@@ -12,6 +12,7 @@ import { localizeNumber } from "@src/constants/utils";
 import { IS_PRODUCTION, lens, lensTestnet } from "@src/services/madfi/utils";
 import { switchChain } from "viem/actions";
 import Image from "next/image";
+import Popper from "@mui/material/Popper";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { address, chainId, isConnected } = useAccount();
@@ -29,22 +30,14 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       }
     };
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowTooltip(false);
-      }
-    };
-
     // If the tooltip is visible, add the event listener
     if (showTooltip) {
       document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("mousedown", handleClickOutside);
     }
 
     // Cleanup function to remove the event listener
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showTooltip]);
 
@@ -119,7 +112,12 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
     setIsClaiming(false);
   };
 
-  const disabled = !isConnected || isLoading || (!creatorFeesEarned?.grandTotal || Number(creatorFeesEarned?.grandTotal) < 0.01) || isClaiming;
+  const disabled =
+    !isConnected ||
+    isLoading ||
+    !creatorFeesEarned?.grandTotal ||
+    Number(creatorFeesEarned?.grandTotal) < 0.01 ||
+    isClaiming;
 
   if ((isLoading || disabled) && !isClaiming) return null;
 
@@ -128,7 +126,7 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       <Button
         variant="dark-grey"
         size="md"
-        className={`text-base font-medium md:px-2 rounded-lg ${!!openMobileMenu ? 'w-full' : ''}`}
+        className={`text-base font-medium md:px-2 rounded-lg ${!!openMobileMenu ? "w-full" : ""}`}
         onClick={() => setShowTooltip(!showTooltip)}
       >
         <div className="flex flex-row justify-center items-center">
@@ -138,6 +136,8 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
       </Button>
       {showTooltip && (
         <EarningsTooltip
+          showTooltip={showTooltip}
+          anchorEl={containerRef}
           isClaiming={isClaiming}
           creatorFeesFormatted={creatorFeesFormatted}
           creatorFeesEarned={creatorFeesEarned}
@@ -149,58 +149,71 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
 };
 
 const EarningsTooltip = ({
+  showTooltip,
+  anchorEl,
   isClaiming,
   creatorFeesFormatted,
   creatorFeesEarned,
   claimFeesEarned,
 }: {
+  showTooltip: boolean;
+  anchorEl: any;
   isClaiming: boolean;
   creatorFeesFormatted: string;
   creatorFeesEarned: any;
   claimFeesEarned: () => Promise<void>;
 }) => {
-  const formatFee = (value: bigint, chain: string) => localizeNumber(parseFloat(formatUnits(value, chain === "base" ? USDC_DECIMALS : DECIMALS)), undefined, 2);
+  const formatFee = (value: bigint, chain: string) =>
+    localizeNumber(parseFloat(formatUnits(value, chain === "base" ? USDC_DECIMALS : DECIMALS)), undefined, 2);
 
   return (
-    <div className="fixed mt-2 right-4 bg-dark-grey text-white p-4 rounded-lg shadow-lg w-[300px] z-[140]">
-      <Header2>{creatorFeesFormatted}</Header2>
-      <Subtitle className="pt-2">Earned from creator & referral fees</Subtitle>
+    <Popper open={showTooltip} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1400 }}>
+      <div className="fixed mt-2 right-12 top-12 bg-dark-grey text-white p-4 rounded-lg shadow-lg w-[300px] z-[1400]">
+        <Header2>{creatorFeesFormatted}</Header2>
+        <Subtitle className="pt-2">Earned from creator & referral fees</Subtitle>
 
-      <div className="pt-4 space-y-4">
-        {/* Lens Chain Fees */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex items-center gap-x-2">
-            <div className="relative">
-              <Image src="/gho.webp" alt="gho" className="object-cover rounded-lg" width={24} height={24}/>
-            </div>
-            <span className="text-sm text-white">WGHO on Lens Chain</span>
-          </div>
-          <span className="text-sm text-white">
-            {formatFee((creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n), "lens")}
-          </span>
-        </div>
-
-        {/* Base Chain Fees */}
-        {(creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n) > 0n && (
+        <div className="pt-4 space-y-4">
+          {/* Lens Chain Fees */}
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-x-2">
               <div className="relative">
-                <Image src="/usdc.png" alt="usdc" className="object-cover rounded-lg" width={24} height={24}/>
+                <Image src="/gho.webp" alt="gho" className="object-cover rounded-lg" width={24} height={24} />
               </div>
-              <span className="text-sm text-white">USDC on Base</span>
+              <span className="text-sm text-white">WGHO on Lens Chain</span>
             </div>
             <span className="text-sm text-white">
-              {formatFee((creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n), "base")}
+              {formatFee(
+                (creatorFeesEarned?.lens.feesEarned || 0n) + (creatorFeesEarned?.lens.clubFeesTotal || 0n),
+                "lens",
+              )}
             </span>
           </div>
-        )}
-      </div>
 
-      <div className="pt-4 w-full">
-        <Button variant="accent" className="w-full" onClick={claimFeesEarned} disabled={isClaiming}>
-          Claim All
-        </Button>
+          {/* Base Chain Fees */}
+          {(creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n) > 0n && (
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-x-2">
+                <div className="relative">
+                  <Image src="/usdc.png" alt="usdc" className="object-cover rounded-lg" width={24} height={24} />
+                </div>
+                <span className="text-sm text-white">USDC on Base</span>
+              </div>
+              <span className="text-sm text-white">
+                {formatFee(
+                  (creatorFeesEarned?.base.feesEarned || 0n) + (creatorFeesEarned?.base.clubFeesTotal || 0n),
+                  "base",
+                )}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-4 w-full">
+          <Button variant="accent" className="w-full" onClick={claimFeesEarned} disabled={isClaiming}>
+            Claim All
+          </Button>
+        </div>
       </div>
-    </div>
+    </Popper>
   );
 };

@@ -31,8 +31,9 @@ export const roundedToFixed = (input: number, digits = 4): string => {
   });
 };
 
-export function shortAddress(address: string, num = 5) {
-  return address.slice(0, num) + " ... " + address.slice(address.length - (num - 1));
+export function shortAddress(address: string, num = 5, onlyFirst = false) {
+  if (onlyFirst) return address.slice(0, num);
+  return address.slice(0, num) + "..." + address.slice(address.length - (num - 1));
 }
 
 export function trimText(text: string, length: number) {
@@ -119,7 +120,7 @@ export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAd
 
 export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
   const url = `${SITE_URL}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
-  return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
+  return `https://farcaster.xyz/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
@@ -334,7 +335,7 @@ function toDate(argument) {
 
 export const jsonLtoJson = (data: any) => data.split("\n").filter(Boolean).map(JSON.parse);
 
-export const getLensPfp = (profile: any) => profile?.metadata?.picture?.optimized?.uri ?? "/sage.webp";
+export const getLensPfp = (profile: any) => profile?.metadata?.picture ?? "/sage.webp";
 
 export const convertIntToHexLensId = (profileId: string) => {
   let hexProfileId = parseInt(profileId).toString(16);
@@ -372,6 +373,15 @@ export const FARCASTER_BANNER_URL = "https://link.storjshare.io/raw/jxz2u2rv37ni
 
 export const parseBase64Image = (imageBase64: string): File | undefined => {
   try {
+    // If it's a URL, create a File object from it
+    if (imageBase64.startsWith('http')) {
+      const fileName = `bonsai_generated_${Date.now()}.jpg`;
+      const blob = new File([], fileName, { type: 'image/jpeg' });
+      return Object.assign(blob, {
+        preview: imageBase64,
+      });
+    }
+
     // Extract image type from base64 string
     const matches = imageBase64.match(/^data:image\/(\w+);base64,/);
     if (!matches) {
@@ -530,7 +540,7 @@ export const formatNextUpdate = (timestamp: number): string => {
 
 export const cacheImageToStorj = async (imageData: string | Blob, id: string, bucket: string) => {
   let base64Data: string;
-  
+
   if (imageData instanceof Blob) {
     // Convert Blob to base64
     const arrayBuffer = await imageData.arrayBuffer();

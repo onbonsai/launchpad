@@ -9,6 +9,7 @@ import { Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
 import { localizeNumber } from "@src/constants/utils";
 import clsx from "clsx";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 interface Props {
   data: {
@@ -66,14 +67,14 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   const BgImage = () => {
     return (
       <>
-        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5" />
+        <div className="absolute top-0 bottom-0 left-0 right-0 bg-card z-5 rounded-xl" />
         <div
           className="overflow-hidden h-[37%] absolute w-full top-0 left-0 -z-10"
           style={{ filter: 'blur(40px)' }}
         >
-          <Image
+          <SafeImage
             src={club.token.image}
-            alt={club.token.name}
+            alt={club.token.name || "club image"}
             sizes="10vw"
             className="w-full h-full object-cover"
             fill
@@ -88,9 +89,9 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
     return (
       <div className="mb-3">
         <div className="flex flex-row">
-          <Image
+          <SafeImage
             src={club.token.image}
-            alt={club.token.name}
+            alt={club.token.name || "club image"}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
             width={48}
@@ -171,7 +172,16 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             <div className="flex flex-row justify-between items-center">
               <CreatorButton text={club.handle || club.creator} image={creatorProfile?.picture} />
               <Subtitle >
-                {formatRelativeDate(new Date(Number(club.createdAt) * 1000))}
+                <span className="flex items-center gap-1">
+                  <Image
+                    src={`/${data.chain}.png`}
+                    alt={data.chain}
+                    height={12}
+                    width={12}
+                    className="mr-1 w-auto"
+                  />
+                  {formatRelativeDate(new Date(Number(club.createdAt) * 1000))}
+                </span>
               </Subtitle>
             </div>
           </div>

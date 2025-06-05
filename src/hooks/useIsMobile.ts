@@ -5,7 +5,7 @@ const useIsMobile = () => {
 
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+      setIsMobile(window.innerWidth < 768);
     };
 
     // Check on mount (in case the initial window size is mobile)

@@ -33,7 +33,12 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
-import Image from "next/image";
+import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
+import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
+import useIsMobile from "@src/hooks/useIsMobile";
+import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import formatRelativeDate from "@src/utils/formatRelativeDate";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -67,9 +72,10 @@ const COMMENT_SCORE_THRESHOLD = 500;
 
 const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, quotes }) => {
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
   const router = useRouter();
   const { postId, v } = router.query;
-  const { isConnected, chain } = useAccount();
+  const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
@@ -79,62 +85,20 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 
+  // TODO: fix this
   // Load version from URL query parameter when page loads
-  useEffect(() => {
-    if (!isMounted || !media?.versions || !v) return;
+  // useEffect(() => {
+  //   if (!isMounted || !media?.versions || !v) return;
 
-    const versionIndex = parseInt(v as string);
-    // Check if version is within bounds (0 to versions.length)
-    if (versionIndex >= 0 && versionIndex < media.versions.length) {
-      loadVersion(versionIndex);
-    }
-  }, [isMounted, media?.versions, v]);
-
-  // Get the return post ID from localStorage
-  const returnPostId = useMemo(() => {
-    if (!isMounted) return null;
-    if (typeof window !== 'undefined') {
-      const storedId = localStorage.getItem('returnPostId');
-      console.log('[returnPostId useMemo] Retrieved from localStorage:', storedId);
-      return storedId;
-    }
-    return null;
-  }, [isMounted]);
-
-  // Handle back navigation
-  const handleBackNavigation = () => {
-    if (returnPostId && returnPostId !== currentPostId) {
-      localStorage.removeItem('returnPostId');
-      router.push(`/post/${returnPostId}`);
-    } else {
-      router.push('/');
-    }
-  };
+  //   const versionIndex = parseInt(v as string);
+  //   // Check if version is within bounds (0 to versions.length)
+  //   if (versionIndex >= 0 && versionIndex < media.versions.length) {
+  //     loadVersion(versionIndex);
+  //   }
+  // }, [isMounted, media?.versions, v]);
 
   // Use router.query.postId instead of postId from destructuring
   const currentPostId = router.query.postId as string;
-
-  // Store the current post ID as return ID when navigating away
-  useEffect(() => {
-    // Reset the current version metadata and index when the post ID changes
-    setCurrentVersionMetadata(null);
-    setCurrentVersionIndex(null);
-
-    const handleBeforeUnload = () => {
-      if (currentPostId && typeof window !== 'undefined') {
-        localStorage.setItem('returnPostId', currentPostId);
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Also store when component unmounts (for client-side navigation)
-      if (currentPostId && typeof window !== 'undefined') {
-        localStorage.setItem('returnPostId', currentPostId);
-      }
-    };
-  }, [currentPostId]);
 
   // Parse the post data if available from localStorage
   const passedPostData = useMemo(() => {
@@ -176,7 +140,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   );
 
   const { publication, comments } = publicationWithComments || ({} as { publication: any; comments: any[] });
-  const { data: club } = useRegisteredClubByToken(media?.token?.address, media?.token?.chain);
+  const { data: club } = useRegisteredClubByToken({ ...media?.token });
   const { data: freshComments, refetch: fetchComments } = useGetComments(rootPostId as string, false);
 
   // Consider data as loaded if we have passed data, even if the hook is still loading
@@ -193,6 +157,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   const [isCommenting, setIsCommenting] = useState(false);
   const [replyingToComment, setReplyingToComment] = useState<string | null>(null);
+  const [replyingToFeed, setReplyingToFeed] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [replyingToUsername, setReplyingToUsername] = useState<string | null>(null);
   const [files, setFiles] = useState<any[]>([]);
@@ -260,6 +225,13 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     return isLoading;
   }, [isLoading, isConnected]);
 
+  const conversationId = useMemo(() => {
+    if (isMounted && !isLoadingPage)
+      return media?.postId
+        ? generateSeededUUID(`${media.postId}-${authenticatedProfile?.address || address}`)
+        : generateUUID();
+  }, [isMounted, isLoadingPage, authenticatedProfile, address, media]);
+
   const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
   const profilePictureUrl = useMemo(() => {
@@ -281,6 +253,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     e.preventDefault();
     setReplyingToComment(commentId || null);
     setReplyingToUsername(username || null);
+
+    // Find the comment and set its feed address
+    if (commentId) {
+      const comment = (freshComments || comments).find(c => c.id === commentId);
+      setReplyingToFeed(comment?.feed?.address || null);
+    } else {
+      setReplyingToFeed(null);
+    }
 
     if (isThread) {
       setPopperAnchor(e.currentTarget as HTMLElement);
@@ -346,7 +326,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         sessionClient,
         walletClient,
         { text: comment, ...asset },
-        replyingToComment || currentPostId
+        replyingToComment || currentPostId,
+        undefined,
+        replyingToFeed || publication?.feed?.address
       );
       if (!res?.postId) throw new Error("no resulting post id");
 
@@ -357,13 +339,14 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       toast.success(
         isCollected
           ? "Sent! Your reply will be added to the next update."
-          : "Sent. Collect the post for your reply to affect the next update.",
+          : "Sent. Collect the post to affect the next update.",
         { id: toastId, duration: 10000 },
       );
       setComment("");
       setFiles([]);
       setTimeout(fetchComments, 3000);
       setReplyingToComment(null);
+      setReplyingToFeed(null);
     } catch (error) {
       toast.error("Comment failed", { duration: 5000, id: toastId });
     } finally {
@@ -401,7 +384,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         setIsVersionIndicatorVisible(false);
         // Remove element after fade out animation completes
         setTimeout(() => setShowVersionIndicator(false), 300);
-      }, 2000);
+      }, 3000);
       return;
     }
 
@@ -475,20 +458,19 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             agentId={currentPostId as string}
             agentWallet={agentInfoSage.info.wallets[0]}
             agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+            media={safeMedia(media)}
+            conversationId={conversationId}
+            post={publication}
+            remixVersionQuery={v as string}
           />
         </ChatWindowButton>
       )}
       <div className="h-full">
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-8 pb-4 h-full relative">
+        <main className="mx-auto max-w-full md:max-w-[92rem] px-2 sm:px-6 lg:px-8 md:pt-8 md:pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
-            <button
-              onClick={handleBackNavigation}
-              className="flex items-center justify-center text-secondary/60 hover:text-brand-highlight hover:bg-secondary/10 rounded-full transition-colors w-12 h-12 mt-2 md:mt-0 shrink-0"
-            >
-              <ArrowBack className="h-5 w-5" />
-            </button>
-            <div className="flex flex-col gap-2 h-full relative">
+            <div className="flex flex-col md:gap-2 h-full relative pt-4">
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
+              {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">
@@ -519,8 +501,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                         )}
                         {/* Version Indicator - Only show if we're viewing a version */}
                         {media?.versions && showVersionIndicator && (
-                          <div className={`absolute top-4 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-3 py-1 rounded-full text-sm z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
-                            {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1}`}
+                          <div className={`absolute top-2 left-1/2 -translate-x-1/2 bg-dark-grey/80 text-white px-4 py-2 rounded-full text-md z-10 transition-opacity duration-300 ${isVersionIndicatorVisible ? 'opacity-100' : 'opacity-0'}`}>
+                            {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1} (${formatRelativeDate(new Date(getPublicationData.timestamp))})`}
                           </div>
                         )}
                         <div className="hidden sm:block">
@@ -565,8 +547,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           />
                         </div>
                         <div className="min-w-0">
-                          <QuotePreviews 
-                            quotes={quotes} 
+                          <QuotePreviews
+                            quotes={quotes}
                             originalPost={publication?.quoteOf}
                             version={currentVersionIndex ?? media?.versions?.length ?? 0}
                             parentVersion={publication?.metadata.attributes?.find((attr: any) => attr.key === "remixVersion")?.value}
@@ -583,7 +565,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                       {isConnected && isAuthenticated && (
                         <>
                           {replyingToComment && (
-                            <div className="flex items-center gap-x-2 mb-2 text-sm text-secondary/70">
+                            <div className="flex items-center gap-x-2 mb-2 mt-4 text-sm text-secondary/70">
                               <span>Replying to {replyingToUsername}</span>
                               <button
                                 onClick={() => setReplyingToComment(null)}
@@ -593,9 +575,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                               </button>
                             </div>
                           )}
-                          <div className="flex items-center gap-x-6 mt-4">
-                            <Image src={profilePictureUrl} alt="profile" className="w-12 h-12 rounded-full" width={48} height={48} />
-                            <div className="flex items-center space-x-4 flex-1">
+                          <div className={`flex items-center gap-x-3 md:gap-x-6 md:mt-4 ${!replyingToComment ? 'mt-6' : ''}`}>
+                            <SafeImage src={profilePictureUrl} alt="profile" className="w-8 h-8 md:w-12 md:h-12 rounded-full" width={48} height={48} />
+                            <div className="flex items-center space-x-2 md:space-x-4 flex-1">
                               <div className="relative flex-1">
                                 <input
                                   ref={commentInputRef}
@@ -611,9 +593,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                   }}
                                   placeholder="Send a reply"
                                   autoComplete="off"
-                                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-4 pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
+                                  className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 pt-2 pb-2 md:pt-4 md:pb-4 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
                                 />
-                                <div className="absolute right-2 -top-2">
+                                <div className="absolute md:right-2 right-[0.5px] md:-top-2 -top-4">
                                   <GenericUploader files={files} setFiles={setFiles} contained />
                                 </div>
                               </div>
@@ -621,10 +603,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                 disabled={isCommenting || !comment}
                                 onClick={submitComment}
                                 variant="accentBrand"
-                                size="sm"
-                                className="!py-[12px]"
+                                size={isMobile ? "xs" : "sm"}
+                                className="!py-[8px] md:!py-[12px]"
                               >
-                                Reply
+                                <SendSvg />
                               </Button>
                             </div>
                           </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { storjGatewayURL } from "@src/utils/storj";
-import Image from "next/image";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import { pinataGatewayURL } from "@src/utils/pinata";
 
 interface BonsaiNFTProps {
   tree: any;
@@ -21,7 +21,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
   const ipfshHash = (fullUrl: string) => {
     if (fullUrl.startsWith("https://ipfs.io/ipfs") && fullUrl.endsWith(".svg")) {
       const parts = fullUrl.split("/");
-      const finalUrl = storjGatewayURL(parts[parts.length - 2] + "/" + parts[parts.length - 1]);
+      const finalUrl = pinataGatewayURL(parts[parts.length - 2] + "/" + parts[parts.length - 1]);
       return finalUrl;
     }
     return fullUrl;
@@ -30,7 +30,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
   const rawUrl = tree.image?.cachedUrl
     ? ipfshHash(tree.image.cachedUrl)
     : tree.metadata?.image
-    ? storjGatewayURL(tree.metadata?.image)
+    ? pinataGatewayURL(tree.metadata?.image)
     : `${BONSAI_SVG_URL}${tokenId}.svg`;
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function BonsaiNFT(props: BonsaiNFTProps) {
         {svgContent ? (
           <div dangerouslySetInnerHTML={{ __html: svgContent }} style={{ width: "100%", height: "100%" }} />
         ) : (
-          <Image src={rawUrl || ""} loading="lazy" className="object-cover" alt="bonsai" width={size} height={91} />
+          <SafeImage src={rawUrl || ""} loading="lazy" className="object-cover" alt="bonsai" width={size} height={91} />
         )}
       </a>
     </div>

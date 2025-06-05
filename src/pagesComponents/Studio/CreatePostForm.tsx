@@ -1,56 +1,101 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 import imageCompression from "browser-image-compression";
+import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
+import { enhancePrompt } from "@src/services/madfi/studio";
+import { resumeSession } from "@src/hooks/useLensLogin";
 
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
-import { InfoOutlined } from "@mui/icons-material";
+import { InfoOutlined, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { generatePreview, MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
-import { resumeSession } from "@src/hooks/useLensLogin";
 import { brandFont } from "@src/fonts/fonts";
 import type { AspectRatio } from "@src/components/ImageUploader/ImageUploader";
 import WhitelistedNFTsSection from '../Dashboard/WhitelistedNFTsSection';
 import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
-import { storjGatewayURL } from "@src/utils/storj";
-import { ipfsOrNot } from "@src/utils/pinata";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { SparklesIcon } from "@heroicons/react/outline";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 type CreatePostProps = {
   template: Template;
+  selectedSubTemplate?: any;
+  onSubTemplateChange?: (subTemplate: any) => void;
   preview?: Preview;
   setPreview: (p: Preview) => void;
   next: (templateData: any) => void;
   finalTemplateData?: any;
   postContent?: string;
   setPostContent: (s: string) => void;
+  prompt?: string;
+  setPrompt: (s: string) => void;
   postImage?: any;
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
   setIsGeneratingPreview: (b: boolean) => void;
   roomId?: string;
-  postAudio?: any;
-  setPostAudio: (i: any) => void;
+  postAudio?: File | null | string;
+  setPostAudio: (i: File | null) => void;
   audioStartTime?: number;
   setAudioStartTime: (t: number) => void;
+  tooltipDirection?: "right" | "top" | "left" | "bottom";
+  remixToken?: {
+    address: string;
+    symbol: string;
+    chain: string;
+  };
+  remixPostId?: string;
+  remixMediaTemplateData?: any;
+  onClose?: () => void;
+};
+
+function getBaseZodType(field: any) {
+  let current = field;
+  while (
+    current instanceof z.ZodOptional ||
+    current instanceof z.ZodNullable
+  ) {
+    current = current._def.innerType;
+  }
+  return current;
+}
+
+const useAutoGrow = (value: string) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return textareaRef;
 };
 
 const CreatePostForm = ({
   template,
+  selectedSubTemplate,
+  onSubTemplateChange,
   preview,
   setPreview,
   next,
   finalTemplateData,
   postContent,
   setPostContent,
+  prompt,
+  setPrompt,
   postImage,
   setPostImage,
   isGeneratingPreview,
@@ -60,14 +105,25 @@ const CreatePostForm = ({
   setPostAudio,
   audioStartTime,
   setAudioStartTime,
+  tooltipDirection,
+  remixToken,
+  remixPostId,
+  remixMediaTemplateData,
+  onClose
 }: CreatePostProps) => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
-  const { openTopUpModal } = useTopUpModal();
+  const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
+  const { openTopUpModal, openSwapToGenerateModal } = useTopUpModal();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("1:1");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhancedText, setEnhancedText] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
+  const textareaRef = useAutoGrow(prompt || '');
+  const previousPromptRef = useRef<string | undefined>(prompt);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -77,11 +133,20 @@ const CreatePostForm = ({
 
   const isValid = () => {
     try {
-      template.templateData.form.parse(templateData);
-      if (template.options?.requireContent && !postContent) return false;
+      // Check specific media requirements first
       if (template.options?.imageRequirement === MediaRequirement.REQUIRED && !postImage?.length) return false;
       if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT) return false;
       if (template.options?.audioRequirement === MediaRequirement.REQUIRED && !postAudio) return false;
+      // if (template.options?.requireContent && !postContent) return false;
+
+      // If we have a prompt, it takes priority over template string field requirements
+      if (prompt?.trim()) {
+        return true;
+      }
+
+      // If no prompt, then validate template data form (for string inputs)
+      template.templateData.form.parse(templateData);
+
       return true;
     } catch (error) {
       // console.log(error);
@@ -90,10 +155,39 @@ const CreatePostForm = ({
     return false;
   }
 
+  const estimatedCost = useMemo(() => {
+    let credits = template.estimatedCost || 0;
+    if (!!templateData.enableVideo) {
+      credits += 50; // HACK: this depends on the default model we use in the backend
+    }
+
+    return credits;
+  }, [template.estimatedCost, templateData.enableVideo]);
+
   const _generatePreview = async () => {
-    if ((creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 0)) {
-      toast.error(`Insufficient AI credits. Missing ${(template.estimatedCost || 0) - (creditBalance?.creditsRemaining || 0)} credits`);
-      openTopUpModal("api-credits");
+    // Collapse advanced options when generating
+    setIsDrawerExpanded(false);
+
+    const { data: _creditBalance } = await refetchCredits();
+    const creditsNeeded = estimatedCost || 0;
+    const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
+
+    if (!hasEnoughCredits) {
+      // For remix, show the swap modal instead - fix chain.network to chain.name
+      const chainIdentifier = chain?.name?.toLowerCase().includes("lens") ? "lens" : "base";
+      const _token = remixToken || {
+        symbol: "BONSAI",
+        address: PROTOCOL_DEPLOYMENT[chainIdentifier].Bonsai,
+        chain: chainIdentifier,
+      }
+      openSwapToGenerateModal({
+        token: _token,
+        postId: remixPostId,
+        creditsNeeded: creditsNeeded,
+        onSuccess: () => {
+          _generatePreview();
+        }
+      });
       return;
     }
 
@@ -151,11 +245,24 @@ const CreatePostForm = ({
         }
       }
 
+      // Fix audio type issue - only pass if it's a File
+      const audioParam = template.options?.audioRequirement !== MediaRequirement.NONE && postAudio && postAudio instanceof File ? {
+        file: postAudio,
+        startTime: audioStartTime || 0
+      } : undefined;
+
+      // Include subTemplateId in templateData if a subtemplate is selected
+      const finalTemplateData = {
+        ...templateData,
+        ...(selectedSubTemplate?.id && { subTemplateId: selectedSubTemplate.id })
+      };
+
       const res = await generatePreview(
         template.apiUrl,
         idToken,
         template,
-        templateData,
+        finalTemplateData,
+        prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
         !!selectedNFT ? {
@@ -169,10 +276,7 @@ const CreatePostForm = ({
           attributes: selectedNFT.raw?.metadata?.attributes
         } : undefined,
         roomId,
-        template.options?.audioRequirement !== MediaRequirement.NONE && postAudio ? {
-          file: postAudio,
-          startTime: audioStartTime || 0
-        } : undefined
+        audioParam
       );
 
       if (!res) throw new Error("No result from generatePreview");
@@ -183,13 +287,19 @@ const CreatePostForm = ({
       // Set both the template data and preview
       setPreview({
         ...preview,
-        text: preview.text || postContent,
+        text: preview.text || prompt || postContent,
         agentId,
         roomId: newRoomId,
         templateData,
+        templateName: template.name,
       } as Preview);
 
       toast.success("Done", { id: toastId });
+
+      // Close the form after successful generation
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error("Error generating preview:", error);
       toast.error("Failed to generate preview", { id: toastId });
@@ -198,14 +308,68 @@ const CreatePostForm = ({
     }
   }
 
+  const _enhancePrompt = async () => {
+    if (!prompt) {
+      toast.error("Please enter a prompt first");
+      return;
+    }
+
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) return;
+
+    const creds = await sessionClient.getCredentials();
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+      return;
+    }
+
+    setIsEnhancing(true);
+    let toastId = toast.loading("Enhancing your prompt...");
+
+    try {
+      const enhanced = await enhancePrompt(template.apiUrl, idToken, template, prompt);
+      if (!enhanced) throw new Error("No enhanced prompt returned");
+
+      // Start animation
+      setIsAnimating(true);
+      setEnhancedText(enhanced);
+
+      // Animate the text word by word
+      const words = enhanced.split(' ');
+      let currentText = '';
+
+      for (let i = 0; i < words.length; i++) {
+        currentText += (i === 0 ? '' : ' ') + words[i];
+        setPrompt(currentText);
+        await new Promise(resolve => setTimeout(resolve, 50)); // Adjust speed as needed
+      }
+
+      toast.success("Prompt enhanced!", { id: toastId });
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to enhance prompt", { id: toastId });
+      } else {
+        toast.error("Failed to enhance prompt", { id: toastId });
+      }
+    } finally {
+      setIsEnhancing(false);
+      setIsAnimating(false);
+    }
+  };
+
   const handleNext = () => {
-    if ((postContent || (postImage?.length && !preview?.image))) {
+    if ((prompt || postContent || postImage?.length || !preview?.image)) {
       setPreview({
-        text: postContent || "",
-        image: postImage?.length ? postImage[0] : preview?.image,
-        imagePreview: postImage?.length ? postImage[0].preview : preview?.image,
+        text: prompt || postContent || "",
+        image: preview?.image || (postImage?.length ? postImage[0] : undefined),
+        imagePreview: preview?.image || (postImage?.length ? postImage[0].preview : undefined),
         video: preview?.video,
-        agentId: preview?.agentId
+        agentId: preview?.agentId,
+        templateName: template.name,
       });
     }
     next(templateData);
@@ -213,51 +377,285 @@ const CreatePostForm = ({
 
   const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
+  // Count how many form fields there are to show in the drawer header
+  const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+  const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
+  const availableFields = Object.keys(shape).filter(key => {
+    if (key === 'modelId' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) return false;
+    if (key === 'stylePreset' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) return false;
+    return true;
+  });
+
+  const totalOptions = [
+    template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE,
+    template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
+    template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
+    ...availableFields
+  ].filter(Boolean).length;
+
+  // Get subtemplates from the selected template
+  const subTemplates = template?.templateData?.subTemplates || [];
+  const hasSubTemplates = subTemplates.length > 0;
+
+  const handleSubTemplateSelect = (subTemplate: any) => {
+    if (onSubTemplateChange) {
+      onSubTemplateChange(subTemplate);
+    }
+  };
+
+  const renderCompactSubTemplateOption = (subTemplate: any, index: number) => {
+    const isSelected = selectedSubTemplate?.id === subTemplate.id;
+
+    return (
+      <button
+        key={`subtemplate-${index}`}
+        type="button"
+        onClick={() => handleSubTemplateSelect(subTemplate)}
+        className={`flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+      >
+        <div className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0">
+          {subTemplate.previewImage ? (
+            <SafeImage
+              src={subTemplate.previewImage}
+              alt={subTemplate.name}
+              className="w-full h-full object-cover rounded-full"
+              width={48}
+              height={48}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-sm md:text-base">🎨</div>
+          )}
+        </div>
+        <span className="text-sm md:text-md text-white/90 truncate">{subTemplate.name}</span>
+      </button>
+    );
+  };
+
+  const renderDefaultSubTemplateOption = () => {
+    const isSelected = !selectedSubTemplate;
+
+    return (
+      <button
+        type="button"
+        onClick={() => handleSubTemplateSelect(undefined)}
+        className={`flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+      >
+        <div className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xs md:text-sm">
+          ✏️
+        </div>
+        <span className="text-xs md:text-sm text-white/90">Default</span>
+      </button>
+    );
+  };
+
+  // Get placeholder text based on selected subtemplate
+  const getPlaceholderText = () => {
+    return remixMediaTemplateData?.prompt ||
+      selectedSubTemplate?.helpText ||
+      template.placeholderText ||
+      "What do you want to create?";
+  };
+
   return (
     <form
-      className="mt-5 mx-auto md:w-[2/3] w-full space-y-4 divide-y divide-dark-grey"
+      className="mx-auto w-full space-y-4"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
-      <div className="space-y-2">
-        <div className="grid grid-cols-1 gap-y-5 gap-x-8">
-          {
-            isLoadingVeniceImageOptions
-              ? <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
-              : <DynamicForm
-                template={template}
-                templateData={templateData}
-                setTemplateData={setTemplateData}
-                sharedInputClasses={sharedInputClasses}
-                veniceImageOptions={veniceImageOptions}
-                postContent={postContent}
-                setPostContent={setPostContent}
-                postImage={postImage}
-                setPostImage={setPostImage}
-                selectedAspectRatio={selectedAspectRatio}
-                setSelectedAspectRatio={setSelectedAspectRatio}
-                selectedNFT={selectedNFT}
-                setSelectedNFT={setSelectedNFT}
-                loadRemixNFT={finalTemplateData?.nft}
-                postAudio={postAudio}
-                setPostAudio={setPostAudio}
-                audioStartTime={audioStartTime || 0}
-                setAudioStartTime={setAudioStartTime}
+      <div className="space-y-4">
+        {/* Compact Subtemplate Selector */}
+        {hasSubTemplates && (
+          <div className="space-y-2">
+            <FieldLabel label="Template" classNames="!text-brand-highlight" />
+            <div className="flex flex-wrap gap-1 md:gap-2">
+              {renderDefaultSubTemplateOption()}
+              {subTemplates.map((subTemplate: any, idx: number) => renderCompactSubTemplateOption(subTemplate, idx))}
+            </div>
+          </div>
+        )}
+
+        {/* Main Row: Prompt and Image */}
+        <div className="flex flex-col gap-2 md:gap-0">
+          {/* Main Prompt Input */}
+          <div className="w-full">
+            <div className="relative">
+              <div className="flex flex-col gap-y-2">
+                <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
+                <textarea
+                  ref={textareaRef}
+                  placeholder={getPlaceholderText()}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className={`${sharedInputClasses} w-full min-h-[60px] p-4 resize-none`}
+                />
+                <div className="w-fit self-end -mt-10 ml-auto">
+                  <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
+                    <button
+                      type="button"
+                      onClick={_enhancePrompt}
+                      disabled={isEnhancing || isAnimating || !prompt}
+                      className="p-2 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
+                    >
+                      <SparklesIcon className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Image Uploader */}
+          {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
+            <div className="w-full space-y-1">
+              <FieldLabel
+                label={"Image"}
+                fieldDescription={
+                  template.options.imageRequirement === MediaRequirement.REQUIRED
+                    ? "An image is required for this post."
+                    : "Optionally add an image to your post. Otherwise, one will be generated."
+                }
+                tooltipDirection={tooltipDirection}
               />
-          }
-        </div>
-        <div className="pt-4 flex flex-col gap-2 justify-center items-center">
-          {template.options.allowPreview && (
-            <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-              Generate
-              {template.estimatedCost && <span className="ml-1">{`(~${template.estimatedCost.toFixed(2)} credits)`}</span>}
-            </Button>
+              <ImageUploader
+                files={postImage}
+                setFiles={setPostImage}
+                maxFiles={1}
+                enableCrop
+                selectedAspectRatio={selectedAspectRatio}
+                onAspectRatioChange={setSelectedAspectRatio}
+                compact
+              />
+            </div>
           )}
-          <Button size='md' disabled={isGeneratingPreview || !isValid() || (template.options.allowPreview && !preview)} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-            Next
-          </Button>
         </div>
+
+        {/* Audio Section */}
+        {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
+          <div className="w-full space-y-1">
+            <FieldLabel
+              label={"Audio"}
+              fieldDescription={
+                template.options.audioRequirement === MediaRequirement.REQUIRED
+                  ? "Upload an MP3 file to use in your post and select a clip to use"
+                  : "Optionally add audio to your post and select a clip to use"
+              }
+              tooltipDirection={tooltipDirection}
+            />
+            {typeof postAudio === 'string' && postAudio.startsWith('http') ? (
+              <div className="text-secondary/70 bg-card-light rounded-lg p-2 text-sm">The original audio clip will be used.</div>
+            ) : (
+              <AudioUploader
+                file={postAudio}
+                setFile={setPostAudio}
+                startTime={audioStartTime || 0}
+                setStartTime={setAudioStartTime}
+                audioDuration={template.options?.audioDuration}
+                compact
+              />
+            )}
+          </div>
+        )}
+
+        {/* NFT Section */}
+        {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
+          <div className="w-full space-y-1">
+            <FieldLabel
+              label={"NFT"}
+              fieldDescription={
+                template.options.nftRequirement === MediaRequirement.REQUIRED
+                  ? "Select one of your NFTs to use for this post"
+                  : "Optionally include one of your NFTs in this post"
+              }
+              tooltipDirection={tooltipDirection}
+            />
+            <WhitelistedNFTsSection
+              setSelectedNFT={setSelectedNFT}
+              selectedNFT={selectedNFT}
+              selectedAspectRatio={selectedAspectRatio}
+              onAspectRatioChange={setSelectedAspectRatio}
+              loadRemixNFT={finalTemplateData?.nft}
+            />
+          </div>
+        )}
+
+        {/* Advanced Options Drawer */}
+        {totalOptions > 0 && (
+          <div className="bg-card-light rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-grey/20 transition-colors duration-200 text-left"
+            >
+              <div className="flex items-center gap-4">
+                <Subtitle className="text-white/80">
+                  <TuneIcon className="h-4 w-4 mr-4" />
+                  Advanced
+                </Subtitle>
+              </div>
+              {isDrawerExpanded ? (
+                <ExpandLess className="h-5 w-5 text-white/60" />
+              ) : (
+                <ExpandMore className="h-5 w-5 text-white/60" />
+              )}
+            </button>
+
+            <div
+              className={`transition-all duration-300 ease-in-out ${
+                isDrawerExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30 overflow-visible">
+                {
+                  isLoadingVeniceImageOptions
+                    ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+                    : <DynamicForm
+                      template={template}
+                      templateData={templateData}
+                      setTemplateData={setTemplateData}
+                      sharedInputClasses={sharedInputClasses}
+                      veniceImageOptions={veniceImageOptions}
+                      postContent={postContent}
+                      setPostContent={setPostContent}
+                      postImage={postImage}
+                      setPostImage={setPostImage}
+                      selectedAspectRatio={selectedAspectRatio}
+                      setSelectedAspectRatio={setSelectedAspectRatio}
+                      selectedNFT={selectedNFT}
+                      setSelectedNFT={setSelectedNFT}
+                      loadRemixNFT={finalTemplateData?.nft}
+                      postAudio={postAudio}
+                      setPostAudio={setPostAudio}
+                      audioStartTime={audioStartTime || 0}
+                      setAudioStartTime={setAudioStartTime}
+                      tooltipDirection={tooltipDirection}
+                    />
+                }
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-4 flex flex-col gap-2 justify-center items-center">
+        {template.options.allowPreview && (
+          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+            {
+              (creditBalance?.creditsRemaining || 0) >= (estimatedCost) ? `Generate (~${estimatedCost.toFixed(2)} credits)` : `Swap to Generate`
+            }
+          </Button>
+        )}
+        <Button size='md' disabled={isGeneratingPreview || (!preview && (!isValid() || template.options.allowPreview))} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          Next
+        </Button>
       </div>
     </form>
   );
@@ -295,6 +693,7 @@ const DynamicForm = ({
   setPostAudio,
   audioStartTime,
   setAudioStartTime,
+  tooltipDirection,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -310,10 +709,11 @@ const DynamicForm = ({
   selectedNFT?: AlchemyNFTMetadata;
   setSelectedNFT: (s: AlchemyNFTMetadata) => void;
   loadRemixNFT?: NFTMetadata;
-  postAudio?: File | null;
+  postAudio?: string | File | null;
   setPostAudio: (i: File | null) => void;
   audioStartTime: number;
   setAudioStartTime: (t: number) => void;
+  tooltipDirection?: "right" | "top" | "left" | "bottom";
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
@@ -322,7 +722,6 @@ const DynamicForm = ({
   const modelOptions = useMemo(() => {
     if (!models) return [];
     return [{
-      // label: "Image Models",
       options: [
         { value: "", label: "Default" },
         ...models.map(model => ({
@@ -336,7 +735,6 @@ const DynamicForm = ({
   const styleOptions = useMemo(() => {
     if (!stylePresets) return [];
     return [{
-      // label: "Style Presets",
       options: [
         { value: "", label: "Default" },
         ...stylePresets.map(style => ({
@@ -357,120 +755,35 @@ const DynamicForm = ({
   // Get the shape of the zod object
   const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
 
-  const FieldLabel = ({ label, fieldDescription }) => (
-    <div className="flex items-center gap-1">
-      <Subtitle className="text-white/70">
-        {label}
-      </Subtitle>
-      {fieldDescription && (
-        <div className="text-sm inline-block mt-1">
-          <Tooltip message={fieldDescription} direction="right">
-            <InfoOutlined
-              className="max-w-4 max-h-4 inline-block text-white/40"
-            />
-          </Tooltip>
-        </div>
-      )}
-    </div>
-  );
+  // Skip fields that are already shown in the main form
+  const shouldSkipField = (key: string) => {
+    if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return true;
+    if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return true;
+    if (template.options?.imageRequirement !== MediaRequirement.NONE && key === 'image') return true;
+    if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
+    if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
+    return false;
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Post content */}
-      {template.options?.requireContent && (
-        <div className="space-y-2">
-          <FieldLabel label={"Post content"} fieldDescription={"Set the starting content. Updates to your post could change it."} />
-          <textarea
-            placeholder="What is your post about?"
-            value={postContent}
-            onChange={(e) => setPostContent(e.target.value)}
-            className={`${sharedInputClasses} w-full min-h-[100px] p-3`}
-          />
-        </div>
-      )}
-
-      {/* Post image */}
-      {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"Post image"}
-            fieldDescription={
-              template.options.imageRequirement === MediaRequirement.REQUIRED
-                ? "An image is required for this post."
-                : "Optionally add an image to your post. Otherwise, one will be generated."
-            }
-          />
-          <ImageUploader
-            files={postImage}
-            setFiles={setPostImage}
-            maxFiles={1}
-            enableCrop
-            selectedAspectRatio={selectedAspectRatio}
-            onAspectRatioChange={setSelectedAspectRatio}
-          />
-        </div>
-      )}
-
-      {/* NFT */}
-      {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"NFT"}
-            fieldDescription={
-              template.options.nftRequirement === MediaRequirement.REQUIRED
-                ? "Select one of your NFTs to use for this post"
-                : "Optionally include one of your NFTs in this post"
-            }
-          />
-          <WhitelistedNFTsSection
-            setSelectedNFT={setSelectedNFT}
-            selectedNFT={selectedNFT}
-            selectedAspectRatio={selectedAspectRatio}
-            onAspectRatioChange={setSelectedAspectRatio}
-            loadRemixNFT={loadRemixNFT}
-          />
-        </div>
-      )}
-
-      {/* Audio */}
-      {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
-        <div className="space-y-2">
-          <FieldLabel
-            label={"Audio Clip"}
-            fieldDescription={
-              template.options.audioRequirement === MediaRequirement.REQUIRED
-                ? "Upload an MP3 file to use in your post and select a clip to use"
-                : "Optionally add audio to your post and select a clip to use"
-            }
-          />
-          {
-            typeof postAudio === 'string' && postAudio.startsWith('http') ?
-              <div className="text-secondary/70 bg-card-light rounded-lg p-3">The original audio clip will be used.</div> :
-              <AudioUploader
-                file={postAudio}
-                setFile={setPostAudio}
-                startTime={audioStartTime}
-                setStartTime={setAudioStartTime}
-                audioDuration={template.options?.audioDuration}
-              />
-          }
-        </div>
-      )}
-
+    <div className="grid grid-cols-1 gap-4">
       {Object.entries(shape).map(([key, field]) => {
+        if (shouldSkipField(key)) return null;
+
         const label = key.replace('_', ' ').replace(/([A-Z])/g, ' $1').charAt(0).toUpperCase() + key.replace('_', ' ').replace(/([A-Z])/g, ' $1').slice(1)
-
-        if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return null;
-        if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return null;
-
         const placeholderRegex = /\[placeholder: (.*?)\]/;
         const placeholderMatch = field.description?.match(placeholderRegex);
         const placeholder = placeholderMatch ? placeholderMatch[1] : '';
         const description = field.description?.replace(placeholderRegex, '') || '';
 
+        const zodType = getBaseZodType(field);
+        const isSmallerInput = ["modelId", "stylePreset", "elevenLabsVoiceId"].includes(key) ||
+          zodType instanceof z.ZodBoolean ||
+          zodType instanceof z.ZodNumber;
+
         return (
           <div key={key} className="space-y-2">
-            <FieldLabel label={label} fieldDescription={description} />
+            <FieldLabel label={label} fieldDescription={description} tooltipDirection={tooltipDirection} />
 
             {/* Special handling for dropdown fields */}
             {key === 'modelId' && modelOptions?.length > 0 ? (
@@ -497,20 +810,20 @@ const DynamicForm = ({
                 isMulti={false}
                 zIndex={1001}
               />
-            ) : field instanceof z.ZodString || (field instanceof z.ZodOptional && field._def.innerType instanceof z.ZodNullable && field._def.innerType._def.innerType instanceof z.ZodString) ? (
-              (field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks?.some(check => check.kind === 'max') ? (
+            ) : zodType instanceof z.ZodString ? (
+              (zodType._def.checks?.some(check => check.kind === 'max')) ? (
                 <div className="relative">
                   <input
                     type="text"
                     placeholder={placeholder}
                     value={templateData[key] || ''}
                     onChange={(e) => updateField(key, e.target.value || undefined)}
-                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-24`}
-                    maxLength={(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                    className={`${sharedInputClasses} w-full p-3 !focus:none pr-20`}
+                    maxLength={zodType._def.checks.find(check => check.kind === 'max')?.value}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400/70 select-none pointer-events-none">
                     {(templateData[key] || '').length} /{" "}
-                    {(field instanceof z.ZodString ? field : field._def.innerType._def.innerType)._def.checks.find(check => check.kind === 'max')?.value}
+                    {zodType._def.checks.find(check => check.kind === 'max')?.value}
                   </div>
                 </div>
               ) : (
@@ -522,33 +835,59 @@ const DynamicForm = ({
                   className={`${sharedInputClasses} w-full p-3`}
                 />
               )
-            ) : field instanceof z.ZodNumber && (
-              <input
-                type="number"
-                value={templateData[key] || ''}
-                onChange={(e) => updateField(key, parseFloat(e.target.value))}
-                className={`${sharedInputClasses} w-full p-3`}
-              />
-            )}
-
-            {field instanceof z.ZodBoolean && (
-              <div className="flex items-center">
+            ) : zodType instanceof z.ZodNumber ? (
+              <div className="relative">
                 <input
-                  type="checkbox"
-                  checked={templateData[key] || false}
-                  onChange={(e) => updateField(key, e.target.checked)}
-                  className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-brand-highlight"
+                  type="number"
+                  value={templateData[key] || ''}
+                  onChange={(e) => updateField(key, parseFloat(e.target.value))}
+                  className={`${sharedInputClasses} w-full p-3`}
+                  placeholder={placeholder}
                 />
-                <label className="ml-2 text-sm text-secondary">
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </label>
               </div>
-            )}
+            ) : zodType instanceof z.ZodBoolean ? (
+              <div className="relative">
+                <div className="flex items-center bg-card-light rounded-lg p-3">
+                  <input
+                    type="checkbox"
+                    checked={templateData[key] || false}
+                    onChange={(e) => updateField(key, e.target.checked)}
+                    className="h-4 w-4 text-brand-highlight rounded border-dark-grey focus:ring-0 focus:outline-none cursor-pointer"
+                  />
+                  <label className="ml-2 text-sm text-white/70 cursor-pointer">
+                    Enable
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
         );
       })}
     </div>
   );
 };
+
+interface FieldLabelProps {
+  label: string;
+  fieldDescription?: string;
+  tooltipDirection?: "top" | "bottom" | "right" | "left";
+  classNames?: string;
+}
+const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames }: FieldLabelProps) => (
+  <div className="flex items-center gap-1">
+    <Subtitle className={`text-white/70 ${classNames || ""}`}>
+      {label}
+    </Subtitle>
+    {fieldDescription && (
+      <div className="text-sm inline-block mt-1">
+        <Tooltip message={fieldDescription} direction={tooltipDirection}>
+          <InfoOutlined
+            className="max-w-4 max-h-4 inline-block text-white/40"
+          />
+        </Tooltip>
+      </div>
+    )}
+  </div>
+);
 
 export default CreatePostForm;

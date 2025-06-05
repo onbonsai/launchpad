@@ -1,7 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getClientWithApiCredits } from "@src/services/mongo/client";
 import { isAddress, parseAbi, formatUnits } from "viem";
-import { publicClient, WGHO_CONTRACT_ADDRESS, ADMIN_WALLET } from "@src/services/madfi/moneyClubs";
+import {
+  publicClient,
+  WGHO_CONTRACT_ADDRESS,
+  ADMIN_WALLET,
+  USDC_CONTRACT_ADDRESS,
+  USDC_DECIMALS,
+} from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,12 +16,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { txHash } = req.body;
+    const { txHash, chain, price } = req.body;
+
+    if (chain !== "lens" && chain !== "base") {
+      return res.status(400).json({ error: "Invalid chain" });
+    }
+
     if (!txHash || typeof txHash !== "string") {
       return res.status(400).json({ error: "Invalid transaction hash" });
     }
 
-    const _publicClient = publicClient("lens");
+    const _publicClient = publicClient(chain);
 
     // Fetch transaction receipt
     const txReceipt = await _publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` });
@@ -25,34 +36,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Parse logs for Transfer event
     const iface = parseAbi(["event Transfer(address indexed from, address indexed to, uint256 value)"]);
-    let found = false;
     const transferEvent = getEventFromReceipt({
-      contractAddress: WGHO_CONTRACT_ADDRESS,
+      contractAddress: chain === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
       transactionReceipt: txReceipt,
       abi: iface,
       eventName: "Transfer",
     });
+
     const { from, to, value } = transferEvent.args;
-    if (from && to && value) {
-      found = true;
+    if (!from || !to || !value) {
+      return res.status(400).json({ error: "Invalid transfer event data" });
     }
-    if (!found) {
-      return res.status(400).json({ error: "No valid WGHO Transfer event found in transaction" });
-    }
+
     if (to.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
       return res.status(400).json({ error: "Transfer was not sent to admin wallet" });
     }
+
     if (!isAddress(from)) {
       return res.status(400).json({ error: "Invalid sender address" });
     }
-    // Calculate credits: 1 GHO = 66.67 credits (1.5 cents per credit)
-    const credits = Math.floor((200 * Number(formatUnits(value, 18))) / 3);
+
+    // Calculate credits based on the chain
+    const decimals = chain === "base" ? USDC_DECIMALS : 18;
+    const _price = price || 200 / 3;
+    const credits = Math.floor(Number(formatUnits(value, decimals)) * _price);
+
     if (!credits || credits <= 0) {
       return res.status(400).json({ error: "Invalid transfer amount" });
     }
+
     // Normalize the address to lowercase for consistency
     const normalizedAddress = from.toLowerCase();
     const { collection } = await getClientWithApiCredits();
+
     // Get user credits or create if doesn't exist
     const userCredits = await collection.findOne({ address: normalizedAddress });
     if (!userCredits) {
@@ -80,6 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       );
     }
+
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Error purchasing credits:", error);

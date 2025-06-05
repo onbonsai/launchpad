@@ -3,7 +3,7 @@ import { IS_PRODUCTION } from "@src/services/madfi/utils";
 const PRODUCTION_URLS = {
   openSea: "https://opensea.io",
   ipfsDefaultHost: "https://ipfs.io/ipfs",
-  pinataGateway: "https://madfinance.mypinata.cloud/ipfs",
+  pinataGateway: "https://onbonsai.mypinata.cloud/ipfs",
   lensGateway: "https://lens.infura-ipfs.io/ipfs",
   rpc: process.env.NEXT_PUBLIC_POLYGON_RPC,
   ethExplorer: "https://etherscan.io",
@@ -16,7 +16,7 @@ const PRODUCTION_URLS = {
 const STAGING_URLS = {
   openSea: "https://testnets.opensea.io",
   ipfsDefaultHost: "https://ipfs.io/ipfs",
-  pinataGateway: "https://madfinance.mypinata.cloud/ipfs",
+  pinataGateway: "https://onbonsai.mypinata.cloud/ipfs",
   lensGateway: "https://lens.infura-ipfs.io/ipfs",
   rpc: process.env.NEXT_PUBLIC_MUMBAI_RPC,
   ethExplorer: "https://mumbai.polygonscan.com",
@@ -29,7 +29,7 @@ const STAGING_URLS = {
 const DEV_URLS = {
   openSea: "https://testnets.opensea.io",
   ipfsDefaultHost: "https://ipfs.io/ipfs",
-  pinataGateway: "https://madfinance.mypinata.cloud/ipfs",
+  pinataGateway: "https://onbonsai.mypinata.cloud/ipfs",
   lensGateway: "https://lens.infura-ipfs.io/ipfs",
   rpc: "http://127.0.0.1:8545",
   ethExplorer: "",

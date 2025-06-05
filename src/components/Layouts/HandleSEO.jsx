@@ -8,7 +8,7 @@ const frameDataTemplate = {
   version: "next",
   imageUrl: `${SITE_URL}/splash.jpg`,
   button: {
-    title: "Create on Bonsai",
+    title: "Remix AI media",
     action: {
       type: "launch_frame",
       name: "Bonsai",
@@ -66,6 +66,9 @@ const generateMetaTags = (title, description, url, imageUrl, type = "website", i
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
       <meta name="twitter:image:alt" content={imageAlt} />
+      <meta name="twitter:player" content={url} />
+      <meta name="twitter:player:width" content="360" />
+      <meta name="twitter:player:height" content="560" />
       <meta name="theme-color" content="#141414" />
       <link rel="canonical" href={url} />
       <link rel="llms" href={`${SITE_URL}/llms.txt`} />
@@ -88,7 +91,7 @@ const HandleSEO = ({ pageProps }) => {
 
     const frameData = createFrameData(
       absoluteImageUrl,
-      `View ${trimText(`@${handle}`, 12)}'s Profile`,
+      `View ${trimText(`@${handle}`, 12)} on Bonsai`,
       `${trimText(`@${handle}`, 12)}'s Profile`,
       profileUrl
     );
@@ -113,8 +116,8 @@ const HandleSEO = ({ pageProps }) => {
 
     const frameData = createFrameData(
       absoluteImageUrl,
-      `View Post by ${trimText(`@${handle}`, 12)}`,
-      `${trimText(`@${handle}`, 12)}'s Post`,
+      `View Smart Media by ${trimText(`@${handle}`, 12)}`,
+      `${trimText(`@${handle}`, 12)}'s Smart Media`,
       postUrl
     );
 

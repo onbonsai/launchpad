@@ -142,6 +142,43 @@ const REGISTERED_CLUB_BY_TOKEN = gql`
   }
 `;
 
+const REGISTERED_CLUB_BY_TOKEN_ADDRESS_MINI = gql`
+  query Club($tokenAddress: Bytes!) {
+    clubs(where: {tokenAddress: $tokenAddress}, first: 1) {
+      id
+      clubId
+      creator
+      createdAt
+      initialSupply
+      supply
+      feesEarned
+      currentPrice
+      marketCap
+      liquidity
+      complete
+      completedAt
+      liquidityReleasedAt
+      tokenInfo
+      tokenAddress
+      creatorFees
+      holders
+      v2
+      name
+      symbol
+      uri
+      cliffPercent
+      vestingDuration
+      hook
+      v3
+      initialPrice
+      flatThreshold
+      targetPriceMultiplier
+      whitelistModule
+      quoteToken
+    }
+  }
+`;
+
 const REGISTERED_CLUB_INFO = gql`
   query ClubInfo($ids: [Bytes!]!) {
     clubs(where: { id_in: $ids }) {
@@ -670,6 +707,22 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
   }
 };
 
+export const getRegisteredClubByTokenAddress = async (tokenAddress: `0x${string}`, chain = "base") => {
+  try {
+    const client = subgraphClient(chain);
+    const { data } = await client.query({
+      query: REGISTERED_CLUB_BY_TOKEN_ADDRESS_MINI,
+      variables: {
+        tokenAddress: tokenAddress?.toLowerCase(),
+      }
+    });
+
+    return data.clubs ? data.clubs[0] : null;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
@@ -957,7 +1010,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
 export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "base"): Promise<{ clubs: any[], hasMore: boolean }> => {
   const limit = 30;
   const skip = page * limit;
-  const query = sortedBy === "club.marketCap" ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
+  const query = sortedBy.endsWith("Cap") ? REGISTERED_CLUBS : REGISTERED_CLUBS_BY_AGE;
   const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
@@ -1494,7 +1547,8 @@ export const setLensData = async ({
   handle,
   postId,
   chain,
-}: { hash: string; handle: string; postId: string; chain: string }) => {
+  tokenAddress
+}: { hash: string; handle: string; postId: string; chain: string; tokenAddress: string }) => {
   const idToken = await _getIdToken();
   await fetch('/api/clubs/set-lens-data', {
     method: 'POST',
@@ -1502,7 +1556,7 @@ export const setLensData = async ({
       'Content-Type': 'application/json',
       'Authorization': `Bearer: ${idToken}`
     },
-    body: JSON.stringify({ txHash: hash, handle, postId, chain })
+    body: JSON.stringify({ txHash: hash, handle, postId, chain, tokenAddress })
   });
 }
 

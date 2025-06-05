@@ -44,7 +44,7 @@ import useQuoter from "@src/services/uniswap/useQuote";
 
 export const BuySellWidget = ({
   refetchClubBalance,
-  refetchClubPrice,
+  // refetchClubPrice,
   club,
   clubBalance,
   openTab: _openTab,
@@ -80,17 +80,17 @@ export const BuySellWidget = ({
     }
   })
 
-    // GHO/USDC Balance
-    const { data: tokenBalance } = useReadContract({
-      address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
-      abi: erc20Abi,
-      chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
-      functionName: "balanceOf",
-      args: [address!],
-      query: {
-        refetchInterval: 5000,
-      },
-    });
+  // GHO/USDC Balance
+  const { data: tokenBalance } = useReadContract({
+    address: club.chain === "lens" ? (club.complete && (openTab === 2 || useBonsaiAsInput) ? PROTOCOL_DEPLOYMENT.lens.Bonsai : WGHO_CONTRACT_ADDRESS) : USDC_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: club.chain === "lens" ? (IS_PRODUCTION ? lens.id : lensTestnet.id) : CONTRACT_CHAIN_ID,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      refetchInterval: 5000,
+    },
+  });
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
   const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
@@ -548,7 +548,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
                     <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams}`} target="_blank" rel="noopener noreferrer" className="w-full">
-                        <Button className="w-[150px] bg-black hover:bg-black">
+                        <Button className="w-full md:w-[150px] bg-black hover:bg-black/80" variant="none">
                           <Image src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" width={16} height={16} />
                           Orb
                         </Button>
@@ -564,13 +564,13 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         </Button>
                       </a>
                       <a href={castIntentTokenReferral({
-                        text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai`,
+                        text: `Just aped into $${club.token.symbol} on the Launchpad @onbonsai.eth`,
                         chain: club.chain,
                         tokenAddress: club.tokenAddress,
                         referralAddress: address!
                       })} target="_blank" rel="noopener noreferrer" className="w-full">
-                        <Button className="w-[150px] bg-[#472a91] hover:bg-[#472a91] text-white">
-                          Warpcast
+                        <Button className="w-full md:w-[150px] bg-[#7C65C1] hover:bg-[#7C65C1]/80 text-white" variant="none">
+                          <Image src="/svg/farcaster-logo.svg" alt="Farcaster Logo" className="-mt-[3px]" width={27} height={27} />
                         </Button>
                       </a>
                     </div>

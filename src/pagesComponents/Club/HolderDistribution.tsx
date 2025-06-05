@@ -30,7 +30,7 @@ export const InfoPill = (props: InfoPillProps) => {
 const Row = ({ row, supply, creator }) => {
   let share = ((BigInt(row.amount) * BigInt(100)) / BigInt(supply)).toString();
   if (share === "0") share = "<1";
-  const creatorName = row.profile?.handle && row.profile?.handle?.localName ? row.profile.handle.localName : shortAddress(row.trader?.id, 6).split("... ")[0];
+  const creatorName = row.profile?.username?.localName || row.profile.metadata.name || shortAddress(row.trader?.id, 6).split("... ")[0];
 
   const formattedNumber = kFormatter(parseFloat(formatEther(row.amount.toString())));
   return (
@@ -38,8 +38,8 @@ const Row = ({ row, supply, creator }) => {
       <td className="bg-card rounded-2xl">
         <div className="flex flex-col justify-between items-start p-3 gap-5">
           <div className="mr-2 flex items-center gap-2">
-            {!!(row.profile?.handle?.localName)
-              ? <Link href={`/profile/${row.profile.handle.localName}`} target="_blank">
+            {!!(row.profile?.username?.localName)
+              ? <Link href={`/profile/${row.profile.username.localName}`} target="_blank">
                 <CreatorButton text={creatorName} image={getLensPfp(row.profile)} />
               </Link>
               : <CreatorButton text={creatorName} image={getLensPfp(row.profile)} />

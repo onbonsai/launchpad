@@ -37,6 +37,10 @@ class MyDocument extends Document {
           <meta name="twitter:site" content="@onbonsai" />
           <meta name="twitter:creator" content="@onbonsai" />
           <meta name="twitter:image" content={`${SITE_URL}/opengraph-image.jpg`} />
+
+          <meta name="twitter:player" content={SITE_URL} />
+          <meta name="twitter:player:width" content="360" />
+          <meta name="twitter:player:height" content="560" />
         </Head>
         <body>
           <Main />

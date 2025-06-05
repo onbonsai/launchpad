@@ -1,5 +1,5 @@
 import { brandFont } from "@src/fonts/fonts";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import { erc20Abi, formatUnits } from "viem";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
@@ -26,7 +26,9 @@ import CurrencyInput from "@pagesComponents/Club/CurrencyInput";
 import { localizeNumber } from "@src/constants/utils";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
-import Image from "next/image";
+import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -40,11 +42,11 @@ const NETWORK_OPTIONS: NetworkOption[] = [
     label: 'Lens',
     icon: '/lens.png'
   },
-  // {
-  //   value: 'base',
-  //   label: 'Base',
-  //   icon: '/base.png'
-  // }
+  {
+    value: 'base',
+    label: 'Base',
+    icon: '/base.png'
+  }
 ];
 
 const LENS_PRICING_TIERS = {
@@ -97,10 +99,29 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
   const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
-  const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress);
+  const [manualTokenAddress, setManualTokenAddress] = useState<string>("");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
+  const [isLoadingToken, setIsLoadingToken] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
-  const { data: existingTokens } = useCreatorTokens(address as `0x${string}`);
+  // Add state to preserve create token data when switching modes
+  const [previousCreateTokenData, setPreviousCreateTokenData] = useState<any>({
+      initialSupply,
+      rewardPoolPercentage,
+      uniHook,
+      tokenName,
+      tokenSymbol,
+      tokenImage,
+      selectedNetwork,
+      pricingTier,
+  });
+
+  const { data: existingTokens, isLoading: isLoadingExistingTokens } = useCreatorTokens(address as `0x${string}`);
+  const [useExistingToken, setUseExistingToken] = useState<boolean>(!!savedTokenAddress || !!existingTokens?.length);
+
+  useEffect(() => {
+    setUseExistingToken(!!savedTokenAddress || !!existingTokens?.length);
+  }, [savedTokenAddress, existingTokens]);
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -121,7 +142,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     args: [address as `0x${string}`]
   });
 
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address, selectedNetwork, pricingTier);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address as `0x${string}`, selectedNetwork, pricingTier);
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
@@ -180,9 +201,15 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
 
   const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
+  if (isLoadingExistingTokens) {
+    return (
+      <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+    )
+  }
+
   return (
     <form
-      className="mt-5 mx-auto w-full space-y-4 divide-y divide-dark-grey"
+      className="mt-5 mb-4 mx-auto w-full space-y-4 divide-y divide-dark-grey"
       style={{ fontFamily: brandFont.style.fontFamily }}
     >
       <div className="space-y-2">
@@ -201,28 +228,41 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               <button
                 type="button"
                 onClick={() => {
+                  // If we have previous create token data, restore it
+                  if (previousCreateTokenData) {
+                    setInitialSupply(previousCreateTokenData.initialSupply);
+                    setRewardPoolPercentage(previousCreateTokenData.rewardPoolPercentage);
+                    setUniHook(previousCreateTokenData.uniHook);
+                    setTokenName(previousCreateTokenData.tokenName);
+                    setTokenSymbol(previousCreateTokenData.tokenSymbol);
+                    setTokenImage(previousCreateTokenData.tokenImage);
+                    setSelectedNetwork(previousCreateTokenData.selectedNetwork);
+                    setPricingTier(previousCreateTokenData.pricingTier);
+                    setFinalTokenData(previousCreateTokenData);
+                  } else {
+                    // Only reset if no previous data (fresh start)
+                    setInitialSupply(0);
+                    setRewardPoolPercentage(0);
+                    setUniHook("BONSAI_NFT_ZERO_FEES_HOOK");
+                    setTokenName("");
+                    setTokenSymbol("");
+                    setTokenImage([]);
+                    setSelectedNetwork("lens");
+                    setPricingTier("SMALL");
+                    setFinalTokenData({
+                      initialSupply: 0,
+                      rewardPoolPercentage: 0,
+                      uniHook: "BONSAI_NFT_ZERO_FEES_HOOK",
+                      tokenName: "",
+                      tokenSymbol: "",
+                      tokenImage: [],
+                      selectedNetwork: "lens",
+                      pricingTier: "SMALL",
+                    });
+                  }
+
                   setUseExistingToken(false);
                   setSavedTokenAddress(undefined);
-                  // Reset all token-related state
-                  setTokenName("");
-                  setTokenSymbol("");
-                  setInitialSupply(0);
-                  setRewardPoolPercentage(0);
-                  setUniHook("BONSAI_NFT_ZERO_FEES_HOOK");
-                  setTokenImage([]);
-                  setSelectedNetwork("lens");
-                  setPricingTier("SMALL");
-                  // Reset the final token data
-                  setFinalTokenData({
-                    initialSupply: 0,
-                    rewardPoolPercentage: 0,
-                    uniHook: "BONSAI_NFT_ZERO_FEES_HOOK",
-                    tokenName: "",
-                    tokenSymbol: "",
-                    tokenImage: [],
-                    selectedNetwork: "lens",
-                    pricingTier: "SMALL"
-                  });
                 }}
                 className={clsx(
                   "flex-1 py-2 px-4 rounded-lg border-2 transition-all",
@@ -235,7 +275,21 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
               </button>
               <button
                 type="button"
-                onClick={() => setUseExistingToken(true)}
+                onClick={() => {
+                  // Save current create token data before switching
+                  setPreviousCreateTokenData({
+                    initialSupply,
+                    rewardPoolPercentage,
+                    uniHook,
+                    tokenName,
+                    tokenSymbol,
+                    tokenImage,
+                    selectedNetwork,
+                    pricingTier,
+                  });
+
+                  setUseExistingToken(true);
+                }}
                 className={clsx(
                   "flex-1 py-2 px-4 rounded-lg border-2 transition-all",
                   useExistingToken
@@ -252,11 +306,79 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
           {useExistingToken ? (
             <div className="sm:col-span-2 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
-                <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">Select Token</Subtitle>
+
+                {/* Manual Token Address Input */}
+                <div className="my-4">
+                  <div className="flex items-center gap-1 mb-2">
+                    <Subtitle className="text-white/70">Token Address</Subtitle>
+                    <div className="text-sm inline-block">
+                      <Tooltip message="Enter a token address from Base or Lens chain" direction="right">
+                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
+                      </Tooltip>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualTokenAddress}
+                      placeholder="0x..."
+                      className={clsx("flex-1", sharedInputClasses)}
+                      onChange={(e) => setManualTokenAddress(e.target.value)}
+                    />
+                    <Button
+                      size="md"
+                      onClick={() => {
+                        if (manualTokenAddress && manualTokenAddress.startsWith("0x") && manualTokenAddress.length === 42) {
+                          setIsLoadingToken(true);
+                          setTokenError(null);
+
+                          // Try both networks
+                          Promise.all([
+                            fetchTokenMetadata(manualTokenAddress, 'lens'),
+                            fetchTokenMetadata(manualTokenAddress, 'base')
+                          ]).then(([lensResult, baseResult]) => {
+                            const result = lensResult?.name !== "Unknown" ? lensResult : baseResult;
+
+                            if (result) {
+                              setSavedTokenAddress(manualTokenAddress);
+                              setFinalTokenData({
+                                tokenName: result.name || "",
+                                tokenSymbol: result.symbol || "",
+                                tokenImage: [{ preview: result.logo }],
+                                selectedNetwork: result.network,
+                              });
+                              next();
+                            } else {
+                              setTokenError("Token not found on either Lens or Base network");
+                            }
+                          }).catch((error) => {
+                            console.error("Error fetching token metadata:", error);
+                            setTokenError("Error fetching token metadata. Please try again.");
+                          }).finally(() => {
+                            setIsLoadingToken(false);
+                          });
+                        }
+                      }}
+                      variant="accentBrand"
+                      className="whitespace-nowrap"
+                      disabled={!manualTokenAddress || !manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42 || isLoadingToken}
+                    >
+                      {isLoadingToken ? "Loading..." : "Use token"}
+                    </Button>
+                  </div>
+                  {manualTokenAddress && (!manualTokenAddress.startsWith("0x") || manualTokenAddress.length !== 42) && (
+                    <Subtitle className="text-bearish text-sm mt-1">Please enter a valid Ethereum address (0x followed by 40 characters)</Subtitle>
+                  )}
+                  {tokenError && (
+                    <Subtitle className="text-bearish text-sm mt-1">{tokenError}</Subtitle>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {existingTokens?.map((token) => (
+
+                <div className="flex items-center gap-1">
+                  <Subtitle className="text-white/70">Your Bonsai Launchpad Tokens</Subtitle>
+                </div>
+                <div className="grid grid-cols-1 gap-4 max-h-[460px] overflow-y-auto">
+                  {existingTokens.length ? existingTokens?.map((token) => (
                     <div
                       key={token.id}
                       onClick={() => setExistingToken(token, next)}
@@ -269,7 +391,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                     >
                       <div className="flex items-center gap-4">
                         {token.uri && (
-                          <Image src={token.uri} alt={token.name} className="rounded-full object-cover" width={48} height={48} />
+                          <SafeImage src={token.uri} alt={token.name} className="rounded-xl object-cover w-16 h-16" width={48} height={48} />
                         )}
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
@@ -296,8 +418,14 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Subtitle className="text-white/70">No tokens found</Subtitle>
+                    </div>
+                  )}
                 </div>
+
+
               </div>
             </div>
           ) : (
@@ -342,14 +470,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">Name</Subtitle>
-                    <div className="text-sm inline-block">
-                      <Tooltip
-                        message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker"
-                        direction="right"
-                      >
-                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
-                      </Tooltip>
-                    </div>
                   </div>
                   <div>
                     <input

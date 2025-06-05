@@ -1,7 +1,7 @@
 import { getProfileImage } from "@src/services/lens/utils";
 import Link from "next/link";
 import { SwitchHorizontalIcon } from "@heroicons/react/solid";
-import Image from "next/image";
+import { SafeImage } from "@src/components/SafeImage/SafeImage";
 
 interface QuotePreviewsProps {
   version: number;
@@ -42,7 +42,7 @@ export const QuotePreviews = ({ quotes, originalPost, version, parentVersion }: 
       >
         <Link href={`/post/${post.slug}${parentVersion ? `?v=${parentVersion}` : ''}`}>
           <div className="flex items-center gap-2 mb-2">
-            <Image
+            <SafeImage
               src={getProfileImage(post.author)}
               alt={post.author.metadata.name || ""}
               className="w-8 h-8 rounded-full"
@@ -68,20 +68,24 @@ export const QuotePreviews = ({ quotes, originalPost, version, parentVersion }: 
   };
 
   return (
-    <div className="mt-6 flex">
+    <div className="mt-6 flex flex-col md:flex-row gap-6">
       {originalPost && (
-        <div className="mr-6">
-          <h3 className="text-lg font-semibold text-secondary">Original Post</h3>
-          <div className="flex space-x-4 overflow-x-auto pb-4 bg-background rounded-xl py-4">
-            {originalPost && renderPostPreview(originalPost)}
+        <div className="w-full md:w-auto">
+          <h3 className="text-lg font-semibold text-secondary md:mb-2">Original Post</h3>
+          <div className="overflow-x-auto">
+            <div className="flex space-x-4 pb-4 bg-background rounded-xl py-2 min-w-max mb-2">
+              {originalPost && renderPostPreview(originalPost)}
+            </div>
           </div>
         </div>
       )}
       {sortedQuotes && sortedQuotes.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-secondary">Remixes</h3>
-          <div className="flex space-x-4 overflow-x-auto pb-4 bg-background rounded-xl py-4">
-            {sortedQuotes.map(renderPostPreview)}
+        <div className="w-full md:w-auto">
+          <h3 className="text-lg font-semibold text-secondary md:mb-2">Remixes</h3>
+          <div className="overflow-x-auto">
+            <div className="flex space-x-4 pb-4 bg-background rounded-xl py-2 min-w-max mb-2">
+              {sortedQuotes.map(renderPostPreview)}
+            </div>
           </div>
         </div>
       )}

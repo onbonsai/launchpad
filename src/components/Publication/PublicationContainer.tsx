@@ -1,4 +1,4 @@
-import { useMemo, useState, ReactNode, useRef, useEffect } from "react";
+import { useMemo, useState, ReactNode, useRef, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -29,7 +30,10 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
-import { EyeIcon } from "@heroicons/react/outline";
+import { ChatIcon } from "@heroicons/react/outline";
+import useIsMobile from "@src/hooks/useIsMobile";
+import clsx from "clsx";
+import { Tooltip } from "@src/components/Tooltip";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -115,6 +119,7 @@ const PublicationContainer = ({
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
+  const isMobile = useIsMobile();
   const referralAddress = router.query.ref as `0x${string}`;
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -141,6 +146,7 @@ const PublicationContainer = ({
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
   const { openTopUpModal } = useTopUpModal();
   const [showPulse, setShowPulse] = useState(false);
+  const { setIsChatOpen, setIsRemixing } = useContext(ChatSidebarContext);
 
   // bonsai balance of Lens Account
   const { data: bonsaiBalance } = useReadContract({
@@ -334,6 +340,8 @@ const PublicationContainer = ({
   const mediaUrl = useMemo(() => publication.metadata.attributes?.find(({ key }) => key === "apiUrl")?.value, [publication]);
 
   const onCollectButtonClick = async (e: React.MouseEvent) => {
+    if (hasCollected) return;
+
     if (!!collectAmount) {
       e.preventDefault();
       e.stopPropagation();
@@ -474,40 +482,35 @@ const PublicationContainer = ({
           messageIconOverride={true}
           shareIconOverride={true}
           nestedWidget={nestedWidget}
-          updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
+          // updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
+          hideCommentButton
+          hideShareButton
+          onCollectButtonClick={onCollectButtonClick}
         />
       )}
-      {isCollect && isAuthenticated && (
-        <div className="absolute top-2 right-2 z-20">
-          <Button
-            variant={hasCollected ? "dark-grey" : "accentBrand"}
-            size="md"
-            className={`text-base font-bold rounded-[12px] gap-x-1 md:px-2 py-[5px] max-w-[20px] sm:max-w-none ${showPulse ? 'pulse-animation' : ''}`}
-            onClick={(e) => {
-              if (!hasCollected) {
-                onCollectButtonClick(e);
-                return;
-              }
-
-              if (media?.agentId) router.push(`/studio/create?template=${media.template}&remix=${media.postId}&remixSource=${encodeURIComponent(mediaUrl || '')}&remixVersion=${version ?? ''}`);
-            }}
-          >
-            {!hasCollected ? (
-              <>
-                <BookmarkAddOutlined />
-                <span className="hidden sm:block">Collect</span>
-              </>
-            ) : media?.agentId ? (
-              <>
-                <SwapCalls />
-                <span className="hidden sm:block">Remix</span>
-              </>
-            ) : <BookmarkOutlined />}
-          </Button>
+      <div className={clsx(
+        "absolute z-20 flex",
+        isMobile ? "top-4 right-4" : "top-4 right-4"
+      )}>
+        <div className="flex">
+          {!isMobile && media?.agentId && (
+            <>
+              <div
+                className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-white hover:text-black transition-colors duration-200 rounded-xl"
+                onClick={() => {
+                  setIsChatOpen(true);
+                  setIsRemixing(true);
+                }}
+              >
+                <SwapCalls className="h-5 w-5 mr-2" />
+                REMIX
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (
@@ -569,12 +572,12 @@ const PublicationContainer = ({
 
       {!!media?.agentId && isAuthenticated && (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-10'}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-3'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
           <div
             ref={dropdownButtonRef}
-            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[12px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : 'p-[2px] scale-75'}`}
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[2px] scale-77'}`}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
           </div>

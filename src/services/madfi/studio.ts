@@ -2,12 +2,13 @@ import { WalletAddressAcl } from "@lens-chain/storage-client";
 import { MetadataAttribute, Post, SessionClient } from "@lens-protocol/client";
 import { URI } from "@lens-protocol/metadata";
 import z from "zod";
-import { useQuery, UseQueryResult, useInfiniteQuery, UseInfiniteQueryResult } from "@tanstack/react-query";
+import { useQuery, UseQueryResult, useInfiniteQuery } from "@tanstack/react-query";
 import { getSmartMediaUrl } from "@src/utils/utils";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
+import type { PricingTier } from "@src/services/madfi/moneyClubs";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
@@ -17,8 +18,6 @@ export const ELEVENLABS_VOICES = [
   { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },
   { label: 'Social (Male)', value: 'CwhRBWXzGAHq8TQ4Fs17' },
 ];
-// only for stakers, no free generations (generally because they are expensive)
-export const PREMIUM_TEMPLATES = ["video_dot_fun", "adventure_time_video", "nft_dot_fun"];
 // so we can quickly feature posts
 export const SET_FEATURED_ADMINS = [
   "0xdc4471ee9dfca619ac5465fde7cf2634253a9dc6",
@@ -78,6 +77,7 @@ export type Template = {
   name: string;
   displayName: string;
   description: string;
+  placeholderText?: string;
   image: string;
   options: {
     allowPreview?: boolean;
@@ -91,6 +91,7 @@ export type Template = {
   };
   templateData: {
     form: z.ZodObject<any>;
+    subTemplates?: any[];
   };
 };
 
@@ -98,6 +99,7 @@ export type Preview = {
   roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
   text?: string;
+  templateName?: string
   image?: any;
   imagePreview?: string;
   templateData?: any;
@@ -123,6 +125,7 @@ export type SmartMedia = {
   token: {
     chain: "base" | "lens";
     address: `0x${string}`;
+    external?: boolean;
   };
   protocolFeeRecipient: `0x${string}`; // media template
   description?: string;
@@ -146,6 +149,18 @@ export type NFTMetadata = {
   attributes?: any[];
 }
 
+export type TokenData = {
+  initialSupply: number;
+  rewardPoolPercentage?: number;
+  uniHook?: `0x${string}`;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenImage: any[];
+  selectedNetwork: "lens" | "base";
+  totalRegistrationFee?: bigint;
+  pricingTier?: PricingTier;
+};
+
 interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
@@ -157,6 +172,7 @@ export const generatePreview = async (
   idToken: string,
   template: Template,
   templateData: any,
+  prompt?: string,
   image?: File,
   aspectRatio?: string,
   nft?: NFTMetadata,
@@ -178,6 +194,7 @@ export const generatePreview = async (
         nft,
         audioStartTime: audio?.startTime
       },
+      prompt,
     }));
     if (image) formData.append('image', image);
     if (audio) formData.append('audio', audio.file);
@@ -185,6 +202,7 @@ export const generatePreview = async (
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
       body: formData,
+      signal: AbortSignal.timeout(120000) // 2 minutes instead of default ~15s
     });
 
     if (!response.ok) {
@@ -192,8 +210,6 @@ export const generatePreview = async (
         const errorText = await response.text();
         if (errorText.includes("not enough credits")) {
           throw new Error("not enough credits");
-        } else if (errorText.includes("three previews")) {
-          throw new Error("max free previews");
         }
       }
       throw new Error(`Preview generation failed: ${response.statusText}`);
@@ -222,7 +238,39 @@ export const generatePreview = async (
 
     return data;
   } catch (error) {
-    console.error("Error generating preview:", error);
+    console.error(error);
+    throw error;
+  }
+};
+
+export const enhancePrompt = async (
+  url: string,
+  idToken: string,
+  template: Template,
+  prompt: string,
+): Promise<string | undefined> => {
+  try {
+    const response = await fetch(`${url}/post/enhance-prompt`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, template: template.name }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Enhance prompt failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return data.enhanced as string;
+  } catch (error) {
+    console.error(error);
     throw error;
   }
 };
@@ -452,16 +500,23 @@ export const setFeatured = async (idToken: string, postId: string, featured?: bo
   }
 };
 
-export const useGetPreviews = (url?: string, roomId?: string) => {
+export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true) => {
   return useInfiniteQuery({
     queryKey: ["previews", roomId],
-    queryFn: async ({ pageParam = 0 }) => {
-      if (!roomId) return { messages: [] };
+    queryFn: async ({ pageParam }) => {
+      console.log(`roomId: ${roomId}`)
 
       const idToken = await _getIdToken();
       if (!idToken) return { messages: [] };
 
-      const response = await fetch(`${url}/previews/${roomId}/messages?start=${pageParam}`, {
+      const DEFAULT_COUNT = 10; // 5 user messages, 5 agent messages
+      // Use pageParam as the timestamp start, or no start param for first page
+      const queryParams = new URLSearchParams({
+        count: DEFAULT_COUNT.toString(),
+        end: pageParam ?? ""
+      });
+
+      const response = await fetch(`${url}/previews/${roomId}/messages?${queryParams}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer: ${idToken}`
@@ -474,14 +529,15 @@ export const useGetPreviews = (url?: string, roomId?: string) => {
       const data = await response.json();
       return {
         messages: data.messages as Memory[],
-        nextCursor: data.messages.length > 0 ? pageParam + data.messages.length : undefined
+        // Use the last message's createdAt as the next cursor
+        nextCursor: data.hasMore ? data.messages[data.messages.length - 1].createdAt : undefined
       };
     },
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!url,
-    initialPageParam: 0
+    enabled: !!url && enabled && !!roomId,
+    initialPageParam: undefined // Start with no timestamp for first page
   });
 };
 

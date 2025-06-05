@@ -11,11 +11,11 @@ import Spinner from "../LoadingSpinner/LoadingSpinner";
 import { Button } from "../Button";
 import { getPostContentSubstring } from "@src/utils/utils";
 import { ProfilePopper } from "../Profile/ProfilePopper";
-import Image from "next/image";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 const LAST_SEEN_NOTIFICATION_KEY = 'last_seen_notification_id';
 
-export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
+export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { openMobileMenu?: boolean; isMobile?: boolean; onShowChange?: (show: boolean) => void }) => {
   const { ref, inView } = useInView();
   const { data: walletClient } = useWalletClient();
   const { authenticatedProfileId } = useLensSignIn(walletClient);
@@ -158,33 +158,87 @@ export const Notifications = ({ openMobileMenu }: { openMobileMenu?: boolean }) 
     }
   }, [inView, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  if (!authenticatedProfileId || (!isLoading && notifs.length === 0)) return null;
+  const handleTooltipToggle = (show: boolean) => {
+    if (!authenticatedProfileId) return;
+    setShowTooltip(show);
+    onShowChange?.(show);
+  };
+
+  const isMobileBottomNav = isMobile && !openMobileMenu;
+
+  // Define classes for the custom Button component when it's used
+  const buttonBaseClasses = "!bg-none !border-none hover:!outline-none focus:!outline-none";
+  let specificClassesForButtonComponent = "";
+  if (openMobileMenu) { // For the expanded mobile menu item
+    specificClassesForButtonComponent = "w-full text-base font-medium md:px-2 rounded-lg";
+  } else { // For the desktop header icon (isMobileBottomNav is false, openMobileMenu is false)
+    specificClassesForButtonComponent = "text-base font-medium md:px-2 rounded-lg";
+  }
+  const finalButtonClassNameForCustomButton = `${buttonBaseClasses} ${specificClassesForButtonComponent}`.trim();
 
   return (
     <div ref={containerRef} className="relative">
-      <Button
-        size="md"
-        className={`text-base font-medium md:px-2 rounded-lg !bg-none !border-none ${!!openMobileMenu ? 'w-full' : ''} hover:!outline-none`}
-        onClick={() => setShowTooltip(!showTooltip)}
-      >
-        <div className="flex flex-row justify-center items-center space-x-4">
-          <div className="relative">
-            <NotificationsOutlined className="h-5 w-5 text-white" />
+      {isMobileBottomNav ? (
+        // Use a simple HTML button for the mobile bottom navbar icon
+        <button
+          type="button"
+          className="p-0 bg-transparent border-none focus:outline-none appearance-none"
+          onClick={() => handleTooltipToggle(!showTooltip)}
+        >
+          <div className="relative"> {/* Icon wrapper */}
+            <NotificationsOutlined className={`h-6 w-6 ${showTooltip ? 'text-brand-highlight' : 'text-white'}`} />
             {hasNewNotifications && (
               <div className="absolute -top-3 -right-3 h-4 w-4 bg-bearish rounded-full" />
             )}
           </div>
-          {openMobileMenu ? "Notifications" : ""}
-        </div>
-      </Button>
+        </button>
+      ) : (
+        // Use the custom Button component for other cases
+        <Button
+          size="md"
+          className={finalButtonClassNameForCustomButton}
+          onClick={() => handleTooltipToggle(!showTooltip)}
+        >
+          <div className="flex flex-row justify-center items-center">
+            <div className="relative"> {/* Icon wrapper */}
+              <NotificationsOutlined className={`${isMobile ? "h-6 w-6" : "h-5 w-5"} ${showTooltip ? 'text-brand-highlight' : 'text-white'}`} />
+              {hasNewNotifications && (
+                <div className="absolute -top-3 -right-3 h-4 w-4 bg-bearish rounded-full" />
+              )}
+            </div>
+            {openMobileMenu && "Notifications"} {/* Text only if in expanded mobile menu */}
+          </div>
+        </Button>
+      )}
       {showTooltip && containerRef.current && (
         <div className="fixed z-250" style={{
-          top: containerRef.current.getBoundingClientRect().bottom + 8 + 'px',
-          left: `${containerRef.current.getBoundingClientRect().left}px`
+          top: isMobile
+            ? `${containerRef.current.getBoundingClientRect().top - 8}px`
+            : `${containerRef.current.getBoundingClientRect().bottom + 8}px`,
+          right: isMobile ? '16px' : 'auto',
+          left: isMobile ? 'auto' : `${containerRef.current.getBoundingClientRect().left}px`,
+          transform: isMobile ? 'translateY(-100%)' : 'none',
+          width: isMobile ? 'calc(100% - 32px)' : 'auto'
         }}>
-          <div className="bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px] max-h-[45vh] overflow-y-auto">
+          <div className={`bg-dark-grey text-white rounded-lg shadow-lg w-full md:w-[350px] max-h-[45vh] overflow-y-auto ${isMobile ? 'animate-slide-fade-in-mobile' : ''}`}>
+            <div className="sticky top-0 right-0 z-10 flex justify-end pt-2 pr-2 bg-dark-grey/80 backdrop-blur-sm">
+              <button
+                type="button"
+                className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+                onClick={() => setShowTooltip(false)}
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             {isLoading && (
               <div className="flex justify-center p-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+            )}
+            {!isLoading && groupedNotifications.length === 0 && (
+              <div className="flex justify-center p-4 text-white/50 text-sm">
+                Nothing here.
+              </div>
             )}
             {groupedNotifications.map((notification, index) => (
               <NotificationItem
@@ -284,7 +338,7 @@ const GroupedReactionNotification = ({
                       aria-label={username ? `View profile ${username}` : "Profile image"}
                     >
                       {/* Image component */}
-                      <Image
+                      <SafeImage
                         src={profile.metadata?.picture || "/default.png"}
                         alt={username || "profile"}
                         className="w-full h-full object-cover"
@@ -411,7 +465,7 @@ const NotificationItem = ({
                   aria-label={username ? `View profile ${username}` : "Profile image"}
                 >
                   {/* Image component */}
-                  <Image
+                  <SafeImage
                     src={profile.metadata?.picture || "/default.png"}
                     alt={"pfp"}
                     className="w-full h-full object-cover"

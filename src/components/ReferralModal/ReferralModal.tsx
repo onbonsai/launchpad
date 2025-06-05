@@ -10,29 +10,34 @@ interface ReferralModalProps {
 export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => {
   return (
     <div
-      className={clsx("flex flex-col w-full p-4 md:p-0")}
+      className={clsx("flex flex-col w-full p-4 md:p-6 max-h-[90vh] overflow-y-auto")}
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Your Referrals</h2>
+      <div className="flex justify-between items-center mb-4 md:mb-6">
+        <h2 className="text-xl md:text-2xl font-bold">Your Referrals</h2>
       </div>
 
-      <div className="mb-2">
-        <div className="mb-4 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] p-3 rounded-lg">
-          <p className="text-brand-secondary mb-4">
+      <div className="space-y-4">
+        <div className="bg-gradient-to-r from-[#B6D5C2] to-[#52837D] p-3 md:p-4 rounded-lg">
+          <p className="text-brand-secondary text-sm md:text-base mb-2 md:mb-4">
             <b>🎉 Launch Week Special 🎉</b>
           </p>
-          <p className="text-brand-secondary mb-4">
+          <p className="text-brand-secondary text-sm md:text-base">
             Refer at least 1 friend and get a 100% match on your stake up to 10k $BONSAI
           </p>
         </div>
-        <p className="text-secondary/80">
-          Share your referral link to earn rewards.
-        </p>
 
-        <Copy title="" text={referralLink} link={referralLink} />
+        <div className="space-y-2">
+          <p className="text-secondary/80 text-sm md:text-base">
+            Share your referral link to earn rewards.
+          </p>
+
+          <div className="w-full">
+            <Copy title="" text={referralLink} link={referralLink} />
+          </div>
+        </div>
       </div>
     </div>
   );

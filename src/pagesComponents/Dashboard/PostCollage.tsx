@@ -26,6 +26,7 @@ import { brandFont } from "@src/fonts/fonts";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
+import { Button } from "@src/components/Button";
 
 interface PostItemProps {
   post: any;
@@ -77,7 +78,8 @@ const PostItem = ({
     <div
       ref={postRef}
       key={`post-${post.slug}`}
-      className={`mb-4 relative group ${brandFont.className} font-light`}
+      className={`mb-4 mx-1 relative group ${brandFont.className} font-light 
+      transition-all duration-300 ease-out transform-gpu`}
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
     >
@@ -88,7 +90,9 @@ const PostItem = ({
           postData={postData[post.slug]}
         />
       )}
-      <div className="relative">
+      <div className="relative transition-transform duration-300 ease-out hover:scale-[1.02]">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-highlight/10 to-transparent opacity-0 
+          group-hover:opacity-100 transition-opacity duration-300 rounded-[24px] -z-10 blur-xl"></div>
         <Publication
           key={`preview-${post.slug}`}
           publicationData={{
@@ -171,7 +175,7 @@ const PostItem = ({
   );
 };
 
-export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
+export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
   const { data: walletClient } = useWalletClient();
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -312,7 +316,7 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
           {(activeTab === PostTabType.EXPLORE || activeTab === PostTabType.COLLECTED) && (
-            <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <div className="flex-1 overflow-x-auto scrollbar-hide px-2 md:pt-2 pt-4">
               <CategoryScroll
                 categories={categories}
                 categoryFilter={categoryFilter}
@@ -375,20 +379,36 @@ export const PostCollage = ({ activeTab, posts, postData, filterBy, filteredPost
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full">
             {sortedPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-secondary text-lg mb-4">Nothing to see here... yet!</p>
-                <p className="text-secondary/60 text-sm">
-                  Head over to the Explore tab to discover new content and connect with creators
-                </p>
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-6 p-6 rounded-full bg-white/[0.04]">
+                <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
               </div>
+              <p className="text-white text-xl font-medium mb-2">Nothing to see here... yet!</p>
+              <p className="text-white/60 text-base max-w-sm">
+                {activeTab === PostTabType.FOR_YOU 
+                  ? "Follow some creators to see their posts in your feed"
+                  : "Head over to the Explore tab to discover new content and connect with creators"}
+              </p>
+              {activeTab === PostTabType.FOR_YOU && (
+                <Button 
+                  variant="accentBrand" 
+                  size="md" 
+                  className="mt-6"
+                  onClick={() => setActiveTab(PostTabType.EXPLORE)}
+                >
+                  Explore Content
+                </Button>
+              )}
+            </div>
             ) : (
               <Masonry
                 breakpointCols={{
                   default: 4,
-                  1280: 4,
-                  1024: 3,
-                  768: 2,
-                  640: 1,
+                  1530: 3,
+                  1145: 2,
+                  768: 1,
                 }}
                 className="flex w-auto -ml-4"
                 columnClassName="pl-4 bg-clip-padding"

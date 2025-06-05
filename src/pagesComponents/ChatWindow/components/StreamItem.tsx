@@ -2,12 +2,19 @@ import { DIRECT_CLIENT_URL } from '../config';
 import type { StreamEntry } from '../types';
 import ExternalSvg from '../svg/ExternalSvg';
 import Image from 'next/image';
+import type { Preview } from '@src/services/madfi/studio';
+import { Button } from "@src/components/Button";
+import { markdownToPlainText } from '../utils';
 
 type StreamItemProps = {
   entry: StreamEntry;
   author?: string;
   setUserInput?: (input: string) => void;
   setRequestPayload?: (payload: any) => void;
+  preview?: Preview;
+  onPostButtonClick?: (preview: Preview) => void;
+  isSelected?: boolean;
+  onCancel?: () => void;
 };
 
 const formatContent = (content: string) => {
@@ -32,9 +39,23 @@ const formatContent = (content: string) => {
   );
 };
 
-export default function StreamItem({ entry, setUserInput, setRequestPayload }: StreamItemProps) {
+export default function StreamItem({
+  entry,
+  author,
+  setUserInput,
+  setRequestPayload,
+  preview,
+  onPostButtonClick,
+  isSelected,
+  onCancel
+}: StreamItemProps) {
   const isAgent = entry?.type !== 'user';
   const buttonClasses = 'flex w-full whitespace-nowrap px-[10px] py-1 text-start text-[#ffffff] transition-colors hover:bg-zinc-900 hover:text-[#e5e7eb] lg:w-auto bg-backgroundAccent backdrop-blur-xl rounded-[10px]';
+
+  // Don't render if it's a user message with preview or if it's template data
+  if ((!isAgent && preview) || entry?.content.includes('modelId')) {
+    return null;
+  }
 
   return (
     <div>
@@ -49,6 +70,66 @@ export default function StreamItem({ entry, setUserInput, setRequestPayload }: S
             {' '}
             {formatContent(entry?.content)}
           </span>
+        </div>
+      )}
+      {preview && (
+        <div className={`mt-2 border-[1px] ${isSelected ? 'border-brand-highlight' : 'border-dark-grey/50'} rounded-[24px] bg-[rgba(255,255,255,0.08)] relative`}>
+          {isSelected && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onCancel?.();
+              }}
+              className="absolute top-2 right-2 p-1 rounded-full bg-dark-grey/80 hover:bg-dark-grey text-white z-10"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+          {preview.text && <span className="p-4 block whitespace-pre-wrap">{markdownToPlainText(preview.text)}</span>}
+          {preview.video && (
+            <div className={`w-full ${isSelected ? 'h-[450px]' : ''}`}>
+              <video
+                src={preview.video.url}
+                controls
+                className={`w-full ${isSelected ? `h-full object-cover rounded-b-[24px]` : ''} ${!preview.text ? 'rounded-t-[24px]' : ''}`}
+              />
+            </div>
+          )}
+          {preview.image && !preview.video && (
+            <div className="w-full">
+              <Image
+                src={preview.imagePreview || preview.image}
+                alt="Preview"
+                width={400}
+                height={400}
+                className={`w-full ${isSelected ? `h-full object-cover rounded-b-[24px]` : ''} ${!preview.text ? 'rounded-t-[24px]' : ''}`}
+              />
+            </div>
+          )}
+          <div className="flex justify-end">
+            {!isSelected ? (
+              <div className="p-2">
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  onClick={() => {
+                    console.log('Button clicked in StreamItem');
+                    if (onPostButtonClick && preview) {
+                      console.log('Calling onPostButtonClick with preview:', preview);
+                      onPostButtonClick(preview);
+                    } else {
+                      console.log('onPostButtonClick or preview is undefined');
+                    }
+                  }}
+                >
+                  Use this
+                </Button>
+              </div>
+            ) : null}
+          </div>
         </div>
       )}
       {!!entry?.attachments?.length && (

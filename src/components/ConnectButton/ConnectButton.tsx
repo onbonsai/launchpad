@@ -1,9 +1,8 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { styled } from '@mui/material/styles';
 import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
-import { useSIWE, useModal, SIWESession } from "connectkit";
-import { Tooltip } from "@components/Tooltip";
+import { useModal } from "connectkit";
 
 import { Button } from "@components/Button";
 import { transformTextToWithDots } from "@utils/transformTextToWithDots";
@@ -16,6 +15,7 @@ import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
 import Image from "next/image";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -45,9 +45,10 @@ interface Props {
   className?: string;
   setOpenSignInModal?: (b: boolean) => void;
   autoLensLogin?: boolean;
+  setOpenHelpModal?: (b: boolean) => void;
 }
 
-export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin }) => {
+export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin, setOpenHelpModal }) => {
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
@@ -55,6 +56,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
+  const { isMiniApp } = useIsMiniApp();
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -84,15 +86,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
-
-  // useEffect(() => {
-  //   // pop open the lens login modal once connected and signed in with ethereum
-  //   if (connected && autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
-  //     setTimeout(() => {
-  //       setOpenSignInModal(true);
-  //     }, 1000);
-  //   }
-  // }, [connected]);
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
@@ -152,7 +145,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   //   );
   // }
 
-  if (!isAuthenticated && setOpenSignInModal && (profiles?.length && profiles?.length > 0)) {
+  if (!isAuthenticated && setOpenSignInModal) {
     return (
       <Button
         variant="accent"
@@ -161,7 +154,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         disabled={signingIn}
         size="md"
       >
-        Login with Lens
+        Login {isMiniApp ? '' : 'with Lens'}
       </Button>
     )
   }
@@ -206,6 +199,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         }}>
           Stake
         </MenuItem>
+        <hr className="border-white/10 " />
+        <MenuItem onClick={() => {
+          setOpenHelpModal?.(true)
+          handleClose();
+        }}>
+          Info
+        </MenuItem>
+        <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           disconnect();
           handleClose();

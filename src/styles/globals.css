@@ -61,6 +61,14 @@
 
 html {
   font-family: "Favorit", sans-serif;
+  background-color: #141414;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .grid-ram {
@@ -69,10 +77,12 @@ html {
 
 .tooltip {
   --tooltip-tail: 8px;
+  z-index: 9999 !important;
 }
 
 .tooltip::before {
   @apply rounded-sm shadow-md font-normal px-8 py-2;
+  z-index: 9999 !important;
 }
 
 .tooltip-right::before {
@@ -148,10 +158,6 @@ html {
 
 main {
   min-height: calc(var(--vh, 1vh) * 100 - 347px);
-}
-
-html {
-  background-color: #141414;
 }
 
 /* REMOVE NUMBER INPUT DEFAULT STYLES */

@@ -8,14 +8,16 @@ interface Props {
 }
 
 const Copy = ({ title, text, link, onClickFn }: Props) => (
-  <div className="mt-4 text-center mx-auto">
-    <p className="mb-2">{title}</p>
-    <div className="flex items-center justify-center">
-      <span className="mr-2 border p-2 bg-black rounded-lg text-white/60">
-        {text.length > 45 ? `${text.substring(0, 45)}...` : text}
-      </span>
+  <div className="w-full">
+    {title && <p className="mb-2 text-sm md:text-base">{title}</p>}
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <div className="flex-1 min-w-0">
+        <div className="border p-2 sm:p-3 bg-black rounded-lg text-white/60 text-sm md:text-base break-all">
+          {text.length > 45 ? `${text.substring(0, 45)}...` : text}
+        </div>
+      </div>
       <button
-        className="hover:bg-[#3c3e3c] rounded-full pr-2 py-2 flex items-center group"
+        className="hover:bg-[#3c3e3c] rounded-lg sm:rounded-full p-2 sm:px-4 flex items-center justify-center group transition-colors"
         onClick={() => {
           if (onClickFn) onClickFn();
           navigator.clipboard.writeText(link);
@@ -28,7 +30,7 @@ const Copy = ({ title, text, link, onClickFn }: Props) => (
           viewBox="0 0 24 24"
           strokeWidth="1.5"
           stroke="currentColor"
-          className="w-6 h-6 ml-2 transition-colors group-hover:stroke-brand-highlight"
+          className="w-5 h-5 sm:w-6 sm:h-6 transition-colors group-hover:stroke-brand-highlight"
         >
           <path
             strokeLinecap="round"

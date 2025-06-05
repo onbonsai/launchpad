@@ -7,6 +7,7 @@ import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import toast from 'react-hot-toast';
 import { useSIWE } from 'connectkit';
+import { sdk } from '@farcaster/frame-sdk';
 
 import { Modal } from "@src/components/Modal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
@@ -31,6 +32,8 @@ import useGetPublicationWithComments from '@src/hooks/useGetPublicationWithComme
 import { IS_PRODUCTION } from '@src/services/madfi/utils';
 import { getPostId } from '@src/services/lens/getStats';
 import Image from 'next/image';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
+import { SafeImage } from '@src/components/SafeImage/SafeImage';
 
 const Chart = dynamic(() => import("@src/pagesComponents/Club/Chart"), { ssr: false });
 const TradeComponent = dynamic(() => import("@src/pagesComponents/Club/TradeComponent"), { ssr: false });
@@ -114,10 +117,23 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const { address, isConnected } = useAccount();
   const { isReady: ready } = useSIWE();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
-  const { data: vestingData } = useGetAvailableBalance(club.tokenAddress || zeroAddress, address, club.complete, club.chain)
-  const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(club.tokenAddress, club.chain);
+  const typedTokenAddressForBalance: `0x${string}` | undefined = club.tokenAddress ? club.tokenAddress as `0x${string}` : zeroAddress;
+  const { data: vestingData } = useGetAvailableBalance(typedTokenAddressForBalance, address as `0x${string}`, club.complete, club.chain)
+  const typedTokenAddressForSupply: `0x${string}` | undefined = club.tokenAddress ? club.tokenAddress as `0x${string}` : undefined;
+  const { data: totalSupply, isLoading: isLoadingTotalSupply } = useGetClubSupply(typedTokenAddressForSupply, club.chain);
   const { data: publicationWithComments, isLoading } = useGetPublicationWithComments(postId as string);
-  const { data: media } = useResolveSmartMedia(publicationWithComments?.publication?.metadata?.attributes, postId);
+
+  const publicationAttributes = useMemo(() => {
+    if (publicationWithComments?.publication && 'metadata' in publicationWithComments.publication) {
+      // Type guard or assertion might be needed if 'metadata' isn't enough to satisfy TS fully
+      // For now, casting to any to access metadata, assuming the hook handles it.
+      return (publicationWithComments.publication as any).metadata?.attributes;
+    }
+    return undefined;
+  }, [publicationWithComments]);
+  const { data: media } = useResolveSmartMedia(publicationAttributes, postId);
+
+  const { isMiniApp } = useIsMiniApp();
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -166,7 +182,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
     hooks[zeroAddress] = defaultHookInfo;
 
     return new Proxy(hooks, {
-      get: (target, prop) => target[prop] || defaultHookInfo
+      get: (target, prop) => {
+        const key = String(prop);
+        return target[key] || defaultHookInfo;
+      }
     });
   }, [WHITELISTED_UNI_HOOKS]);
 
@@ -251,16 +270,16 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }
 
   return (
-    <div className="bg-background text-secondary min-h-[90vh]">
+    <div className="bg-background text-secondary min-h-[90vh] pt-4">
       <div>
-        <main className="mx-auto max-w-full md:max-w-[100rem] px-4 md:px-4 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-full md:max-w-[100rem] w-full px-2 md:px-4 md::px-8">
           <section aria-labelledby="dashboard-heading" className="pt-0 md:pt-4 max-w-full">
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 lg:grid-cols-12 max-w-full">
               {/* Chart */}
               <div className={clsx("lg:col-span-8 rounded-3xl", club.featured && "animate-pulse")}>
-                <div className={"relative w-full h-[168px] md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
+                <div className={"relative w-full h-auto md:h-[84px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border"}>
                   <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
-                    <Image
+                    <SafeImage
                       src={club.token.image}
                       alt={club.token.name}
                       className="w-full h-full object-cover"
@@ -269,44 +288,45 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
 
-                  <div className="relative z-10 p-3 pb-6 flex flex-col justify-between items-center">
-                    <div className="flex flex-row justify-between items-center w-full">
-                      <div className='flex flex-row items-center'>
-                        <Image
-                          src={club.token.image}
-                          alt={club.token.name}
-                          className="object-cover rounded-lg"
-                          width={64}
-                          height={64}
-                        />
-                        <div className="flex flex-col ml-2">
-                          <div className="flex flex-row justify-between gap-x-8 w-full">
-                            <div className="flex flex-col">
-                              <div className="flex flex-row space-x-4">
-                                <Header2 className={"text-white"}>${club.token.symbol}</Header2>
-                              </div>
-                              <BodySemiBold className={`text-white/60 ${isConnected && "mt-1"}`}>{club.token.name}</BodySemiBold>
+                  <div className="relative z-10 p-3 pb-6 flex flex-col md:flex-row justify-between items-center">
+                    <div className="flex flex-row items-center w-full md:w-auto">
+                      <SafeImage
+                        src={club.token.image}
+                        alt={club.token.name}
+                        className="object-cover rounded-lg"
+                        width={64}
+                        height={64}
+                      />
+                      <div className="flex flex-col ml-2">
+                        <div className="flex flex-row justify-between gap-x-8 w-full">
+                          <div className="flex flex-col">
+                            <div className="flex flex-row space-x-4">
+                              <Header2 className={"text-white"}>${club.token.symbol}</Header2>
                             </div>
-                            {!!club.liquidityReleasedAt && (
-                              <div className="flex flex-col ml-20">
-                                <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
-                                  <BodySemiBold className="text-white/60 font-medium">
-                                    Kyberswap
-                                  </BodySemiBold>
-                                </a>
-                              </div>
-                            )}
+                            <BodySemiBold className={`text-white/60 ${isConnected && "mt-1"}`}>{club.token.name}</BodySemiBold>
                           </div>
+                          {!!club.liquidityReleasedAt && (
+                            <div className="flex flex-col ml-4 md:ml-20">
+                              <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer">
+                                <BodySemiBold className="text-white/60 font-medium">
+                                  Kyberswap
+                                </BodySemiBold>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex flex-row items-center">
+                    <div className="flex flex-col md:flex-row items-center mt-4 md:mt-0 w-full md:w-auto">
+                      <div className="flex flex-row items-center w-full">
                         <InfoCard title='' subtitle={
                           <div className='flex gap-1 items-center'>
                             <ShareClub chain={club.chain} tokenAddress={club.tokenAddress} symbol={club.token.name} />
                           </div>
                         }
                           roundedLeft
+                          className="flex-1 md:flex-initial"
                         />
                         <InfoCard title='Chain' subtitle={
                           <div className='flex gap-1 items-center'>
@@ -321,22 +341,25 @@ const TokenPage: NextPage<TokenPageProps> = ({
                               {capitalizeFirstLetter(club.chain)}
                             </Subtitle>
                           </div>
-                        } />
+                        }
+                        className="flex-1 md:flex-initial"
+                        />
                         <InfoCard title='CA' subtitle={
                           <div className='flex gap-1 items-center'>
                             <WalletButton wallet={club.tokenAddress!} />
                           </div>
                         }
                           roundedRight
+                          className="flex-1 md:flex-initial"
                         />
-                        <div className="flex-row items-center hidden md:flex">
-                          {infoCardRow()}
-                        </div>
+                      </div>
+                      <div className="flex-row items-center hidden md:flex">
+                        {infoCardRow()}
                       </div>
                     </div>
-                    <div className="flex-row pt-4 justify-end items-center flex md:hidden ">
-                      {infoCardRow()}
-                    </div>
+                  </div>
+                  <div className="flex-row pt-4 justify-end items-center flex md:hidden w-full">
+                    {infoCardRow()}
                   </div>
                 </div>
                 <div className='px-4 md:px-3 mt-2 space-y-1'>
@@ -357,11 +380,22 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       </Header2>
                       {
                         club.chain === "base"  ?
-                        <a href={`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`} target="_blank" rel="noopener noreferrer" className='my-4'>
-                          <Button variant="accentBrand" className="text-white mt-4">
-                            Trade on Kyberswap
+                          <Button variant="accentBrand" className="text-white my-4" onClick={async (e) => {
+                            if (isMiniApp) {
+                              e.preventDefault();
+                              const chainId = club.chain === "lens" ? "232" : "8453";
+                              await sdk.actions.swapToken({
+                                sellToken: `eip155:${chainId}/native`,
+                                buyToken: `eip155:${chainId}/erc20:${club.tokenAddress}`,
+                                sellAmount: club.chain === "lens" ? "10000000000000000000" : "10000000",
+                              });
+                            } else {
+                              window.open(`https://kyberswap.com/swap/base/0x474f4cb764df9da079d94052fed39625c147c12c-to-${club.tokenAddress}`, "_blank");
+                            }
+                          }}>
+                            {isMiniApp ? "Swap" : "Trade on Kyberswap"}
                           </Button>
-                        </a> :
+                         :
                         <div className='mt-4'>
                           <TradeComponent
                               defaultBuyAmount={''}
@@ -434,11 +468,11 @@ const TokenPage: NextPage<TokenPageProps> = ({
                             </div>
                           </div>
                         </>
-                        : <div className="flex flex-col w-[100%] justify-center items-center mt-20">
-                          <Header2 className="text-white font-medium">
+                        : <div className="flex flex-col w-full justify-center items-stretch md:items-center md:mt-20 mt-12">
+                          <Header2 className="text-white font-medium text-center">
                             ${club.token.symbol} is still in Fair Launch!
                           </Header2>
-                          <Subtitle className="mt-2">
+                          <Subtitle className="mt-2 text-center">
                             Token price will not change until 200mil tokens are minted.
                           </Subtitle>
                           <FairLaunchModeComponent club={club} totalSupply={totalSupply} />
@@ -461,7 +495,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                   <Tabs openTab={openTab} setOpenTab={setOpenTab} withFeed={!!postId} />
                 </div>
                 {/* Feed - only show for Lens profiles atm */}
-                <div className="min-w-[450px] flex-1 overflow-y-auto">
+                <div className="min-w-0 md:min-w-[450px] flex-1 overflow-y-auto">
                   {openTab === 1 && type === "lens" && (
                     <Feed
                       postId={postId}
@@ -522,8 +556,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const { collection } = await getClientWithClubs();
         result = await collection.findOne(
           { tokenAddress: getAddress(tokenAddress as string) },
-          { 
-            projection: { 
+          {
+            projection: {
               _id: 0,
               featureEndAt: 1,
               postId: 1,
@@ -531,22 +565,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
               profileId: 1,
               handle: 1,
               strategy: 1
-            } 
+            }
           }
         );
       } else {
         const { collection } = await getClientWithMedia();
         result = await collection.findOne(
           { "token.address": getAddress(tokenAddress as string) },
-          { 
-            projection: { 
+          {
+            projection: {
               _id: 0,
               postId: 1,
               pubId: 1,
               profileId: 1,
               handle: 1,
               strategy: 1
-            } 
+            }
           }
         );
       }
@@ -566,7 +600,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const featured = !!dbRecord?.featureEndAt && (Date.now() / 1000) < parseInt(dbRecord.featureEndAt);
 
-  if (!_club?.token?.name) {
+  if (!_club?.token?.name && _club) {
     _club.token = {
       name: _club.name,
       symbol: _club.symbol,

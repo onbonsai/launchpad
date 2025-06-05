@@ -60,7 +60,7 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
     <Popper
       open={showCollectModal}
       anchorEl={anchorEl}
-      placement="bottom-start"
+      placement="top-start"
       className="z-50 pt-2"
       modifiers={[
         {
@@ -98,8 +98,8 @@ const CollectModal = ({ onCollect, bonsaiBalance, collectAmount, anchorEl, setSh
         >
           {isMedia && (
             <div className="flex items-center justify-center text-center">
-              <Subtitle className="text-md">
-                Collect the post to participate & remix
+              <Subtitle className="text-lg">
+                Collect this post to affect its evolution
               </Subtitle>
             </div>
           )}

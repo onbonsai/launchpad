@@ -53,10 +53,9 @@ export const commentTextContainerStyleOverrides = css`
 `
 
 export const mediaImageStyleOverride = css`
-    width: calc(100% - 16px);
+    width: 100%;
     height: auto;
     display: block;
-    border-radius: 16px;
     object-fit: contain;
 `
 
@@ -67,8 +66,6 @@ export const imageContainerStyleOverride = css`
   align-items: center;
   width: 100%;
   overflow: hidden;
-  max-height: 480px;
-  border-radius: 16px;
 `
 
 export const reactionsContainerStyleOverride = css`

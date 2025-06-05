@@ -9,9 +9,9 @@ export const Tabs = ({ openTab, setOpenTab, addToken }) => {
   // };
 
   const tabs = [
-    { name: "Media", id: 1 },
-    addToken ? { name: "Token", id: 2 } : undefined,
-    { name: "Finalize", id: 3 },
+    { name: "Prompt", id: 1 },
+    addToken ? { name: "Add Token", id: 2 } : undefined,
+    { name: "Post", id: 3 },
   ].filter(t => t) ;
 
   return (

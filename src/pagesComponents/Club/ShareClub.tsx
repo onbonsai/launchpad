@@ -30,7 +30,7 @@ export const ShareClub = ({ chain, tokenAddress, symbol }) => {
         onClose={() => setShareClubModal(false)}
         open={shareClubModal}
         setOpen={setShareClubModal}
-        panelClassnames="bg-card-light w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
+        panelClassnames="w-screen max-h-[100dvh] md-plus:h-full p-4 text-secondary md:min-w-[532px]"
       >
         <ShareModal
           chain={chain}

@@ -39,10 +39,21 @@ module.exports = {
             transform: 'translateY(0)'
           },
         },
+        'ease-in': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(20px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        }
       },
       animation: {
         'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
-        'pulse-green': 'pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        'pulse-green': 'pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'ease-in': 'ease-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
       },
       screens: {
         "xs": "510px",

@@ -1,3 +1,4 @@
+import sdk from "@farcaster/frame-sdk";
 import { useQuery } from "@tanstack/react-query";
 
 type PostUpdate = {
@@ -18,7 +19,8 @@ export type CreditBalance = {
 };
 
 export const fetchCredits = async (address: string): Promise<CreditBalance> => {
-  const response = await fetch(`/api/credits/balance?address=${address}`);
+  const isMiniApp = await sdk.isInMiniApp(); // bonus credits for mini app users
+  const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}`);
   if (!response.ok) throw new Error("Failed to fetch credits");
   return response.json();
 };

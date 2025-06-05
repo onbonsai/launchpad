@@ -39,7 +39,7 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
     <>
       <div
         ref={scrollContainerRef}
-        className="bg-card-light rounded-full p-1 flex overflow-x-auto scrollbar-hide relative pr-12"
+        className="bg-card-light rounded-full flex overflow-x-auto scrollbar-hide relative"
         onScroll={checkScroll}
       >
         {categories.map((c) => (
@@ -49,12 +49,12 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
               c.key === categoryFilter
                 ? 'bg-brand-highlight text-white relative group hover:bg-brand-highlight/90'
                 : 'text-secondary/60 hover:bg-card transition-colors',
-              `py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`,
-              c.key === categoryFilter ? 'pl-6 pr-10' : 'px-6'
+              `py-1.5 sm:py-2 rounded-full flex-shrink-0 whitespace-nowrap mr-2 ${brandFont.className}`,
+              c.key === categoryFilter ? 'pl-4 sm:pl-6 pr-8 sm:pr-10' : 'px-4 sm:px-6'
             )}
             onClick={() => setCategoryFilter(c.key === categoryFilter ? undefined : c.key)}
           >
-            <span>{c.label}</span>
+            <span className="text-sm sm:text-md">{c.label}</span>
             {c.key === categoryFilter && (
               <span className="absolute right-4 opacity-40 group-hover:opacity-100 transition-opacity">
                 ×
@@ -65,7 +65,7 @@ export function CategoryScroll({ categories, categoryFilter, setCategoryFilter }
       </div>
 
       {showGradient && (
-        <div className="absolute right-0 top-0 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full" />
+        <div className="absolute right-0 top-2 bottom-0 flex items-center bg-gradient-to-l from-card via-card to-transparent pl-10 pr-2 rounded-r-full" />
       )}
     </>
   )
