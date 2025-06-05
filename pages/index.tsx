@@ -79,10 +79,10 @@ const IndexPage: NextPage = () => {
   useScrollRestoration('posts-page-scroll', isMounted && !isLoadingExplorePosts && !isLoadingTimelinePosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
 
   useEffect(() => {
-    if (isMounted && isAuthenticated && activeTab !== PostTabType.FOR_YOU && !!timelineData?.pages?.length) {
+    if (isMounted && isAuthenticated && activeTab !== PostTabType.FOR_YOU) {
       setActiveTab(PostTabType.FOR_YOU);
     }
-  }, [isAuthenticated, isMounted, timelineData]);
+  }, [isAuthenticated, isMounted, activeTab]);
 
   // fix hydration issues
   if (!isMounted) return null;
