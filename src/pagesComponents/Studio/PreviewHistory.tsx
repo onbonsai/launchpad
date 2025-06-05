@@ -282,7 +282,7 @@ export default function PreviewHistory({
       {!isFinalize && (
         (!shouldShowMessages && hasMessagesToLoad) || (shouldShowMessages && hasNextPage)
       ) && (
-        <div className="flex justify-center p-4 animate-fade-in-down">
+        <div className="flex justify-center pr-4 pb-4 pl-4 animate-fade-in-down">
           <button
             onClick={() => {
               if (!shouldShowMessages) {
