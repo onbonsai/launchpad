@@ -92,6 +92,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       if (LENS_CHAIN_ID !== chain?.id && walletClient) {
         try {
           await switchChain(walletClient, { id: LENS_CHAIN_ID });
+          toast.success("Switched to Lens", { id: toastId });
         } catch (error) {
           console.log(error);
           toast.error("Please switch networks to collect", { id: toastId });

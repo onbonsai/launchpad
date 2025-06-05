@@ -47,7 +47,7 @@ ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
               </Button>
             </a>
             <a href={castIntentTokenReferral({
-              text: `Trade $${symbol} on the @onbonsai.eth Launchpad \n ${SITE_URL}/token/${chain}/${tokenAddress}?ref=${address}`,
+              text: `Trade $${symbol} on the @onbonsai.eth Launchpad`,
               chain,
               tokenAddress,
               referralAddress: address!

@@ -120,7 +120,7 @@ export function tweetIntentTokenReferral({ text, chain, tokenAddress, referralAd
 
 export function castIntentTokenReferral({ text, chain, tokenAddress, referralAddress }: IntentUrlProps) {
   const url = `${SITE_URL}/token/${chain}/${tokenAddress}?ref=${referralAddress}`;
-  return `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
+  return `https://farcaster.xyz/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURI(`${url}`)}`;
 }
 
 export type BountyType = "post" | "mirror" | "comment" | "follow" | "collect";
