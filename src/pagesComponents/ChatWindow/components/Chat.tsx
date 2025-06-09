@@ -409,7 +409,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
-      <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2">
+      <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2 overscroll-contain">
         {isLoadingMessageHistory ? (
           <div className="flex justify-center my-6">
             <Spinner customClasses="h-6 w-6" color="#5be39d" />

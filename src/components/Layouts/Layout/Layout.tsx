@@ -34,9 +34,9 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
     setIsRemixing(false);
   }, [router.asPath]);
 
-  // Prevent body scroll when sidebar is open on mobile
+  // Prevent body scroll when chat is open
   useEffect(() => {
-    if (isMobile && isChatOpen) {
+    if (isChatOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -44,14 +44,14 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isMobile, isChatOpen]);
+  }, [isChatOpen]);
 
   return (
     <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen, isRemixing, setIsRemixing }}>
       <div
         className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300`}
       >
-        {(!isMobile || !isChatOpen) && <Header />}
+        <Header />
         <div className="relative flex-1 flex flex-col w-full max-w-full flex-grow min-h-full transition-transform duration-300">
           <main className="flex-1 flex flex-col bg-background text-secondary w-full max-w-full flex-grow min-h-full">
             {children}
