@@ -19,6 +19,7 @@ import { sdk } from '@farcaster/frame-sdk'
 import { useRouter } from "next/router.js";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const boxTheme = {
   mainBgColor: "#141414",
@@ -37,6 +38,7 @@ const boxTheme = {
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
+  const { isMiniApp } = useIsMiniApp();
 
   const router = useRouter();
 
@@ -99,7 +101,7 @@ export default function MyApp(props: AppProps) {
                 <NextNProgress color="#4D7F79" height={2} />
                 <AppLayout>
                   <BoxThemeProvider theme={boxTheme}>
-                    <Component {...pageProps} />
+                    {(!isMiniApp || (isMiniApp && isSDKLoaded)) && <Component {...pageProps} />}
                   </BoxThemeProvider>
                 </AppLayout>
                 <Analytics />
