@@ -25,7 +25,6 @@ interface LayoutProps {
 export const Layout: FC<LayoutProps> = ({ children }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isRemixing, setIsRemixing] = useState(false);
-  const sidebarWidth = 320; // px, matches w-80
   const router = useRouter();
   const isMobile = useIsMobile();
 
@@ -50,9 +49,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
   return (
     <ChatSidebarContext.Provider value={{ isChatOpen, setIsChatOpen, isRemixing, setIsRemixing }}>
       <div
-        className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300 ${
-          isChatOpen ? (isMobile ? "mr-0" : "mr-80 sm:mr-96") : ""
-        }`}
+        className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300`}
       >
         {(!isMobile || !isChatOpen) && <Header />}
         <div className="relative flex-1 flex flex-col w-full max-w-full flex-grow min-h-full transition-transform duration-300">
@@ -60,16 +57,6 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
             {children}
           </main>
           <Footer />
-        </div>
-        {/* Chat Sidebar, fixed and underneath main content */}
-        <div
-          className={`fixed top-0 right-0 h-full ${
-            isMobile ? 'w-full' : 'w-80 sm:w-96'
-          } z-30 pointer-events-none transition-transform duration-300 ${
-            isChatOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          {/* The actual ChatWindowButton will be rendered here via portal or layout consumer */}
         </div>
       </div>
     </ChatSidebarContext.Provider>

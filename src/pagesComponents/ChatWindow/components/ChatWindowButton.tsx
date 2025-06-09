@@ -92,45 +92,59 @@ export default function ChatWindowButton({
 
   return (
     <>
-      {/* Chat Window */}
-      <div
-        className={clsx(
-          "fixed top-0 right-0 h-full w-80 sm:w-96 bg-black overflow-hidden flex flex-col z-40",
-          "pointer-events-auto transition-all duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "translate-x-full",
-        )}
-        style={{
-          transformOrigin: "right",
-          boxShadow: "inset 16px 0 32px -8px rgba(0,0,0,0.45)",
-        }}
-      >
-        {/* Chat Header */}
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-4">
-            <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
-              <Image
-                src={agentInfo.account?.metadata?.picture || "/default.png"}
-                alt="Agent avatar"
-                className="h-full w-full rounded-full object-cover"
-                width={40}
-                height={40}
-              />
+      {/* Chat Window Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Close when clicking backdrop
+            if (e.target === e.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
+        >
+          {/* Backdrop with blur */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-lg pointer-events-auto animate-fade-in" />
+          
+          {/* Chat Modal */}
+          <div
+            className={clsx(
+              "relative w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl h-[95vh]",
+              "animate-fade-in",
+              "rounded-xl overflow-hidden flex flex-col pointer-events-auto",
+              "z-10"
+            )}
+          >
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-zinc-700/50">
+              <div className="flex items-center space-x-4">
+                <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                  <Image
+                    src={agentInfo.account?.metadata?.picture || "/default.png"}
+                    alt="Agent avatar"
+                    className="h-full w-full rounded-full object-cover"
+                    width={40}
+                    height={40}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="font-medium text-white">
+                    Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+                  </h3>
+                  {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
+                </div>
+              </div>
+              {/* Close Button in Header */}
+              <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">
+                <XIcon size={24} className="text-white" />
+              </button>
             </div>
-            <div className="flex flex-col">
-              <h3 className="font-medium text-white">
-                Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
-              </h3>
-              {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
-            </div>
+            
+            {/* Chat Content Area - Render children (Chat component) here */}
+            <div className="flex-1 overflow-y-auto p-4">{childrenWithProps}</div>
           </div>
-          {/* Close Button in Header */}
-          <button onClick={toggleChat} className="ml-2 p-1 rounded hover:bg-zinc-800 transition-colors">
-            <XIcon size={24} className="text-white" />
-          </button>
         </div>
-        {/* Chat Content Area - Render children (Chat component) here */}
-        <div className="flex-1 overflow-y-auto pt-4 pr-4 pl-4 pb-2">{isOpen && childrenWithProps}</div>
-      </div>
+      )}
 
       {/* Floating Open Button - Desktop */}
       {/* {isConnected && !isOpen && !isMobile && (
