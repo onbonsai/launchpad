@@ -466,6 +466,8 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 </div>
               </div>
 
+              <div className="sm:col-span-4 flex flex-col"></div>
+
               <div className="sm:col-span-2 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
@@ -501,7 +503,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 </div>
               </div>
 
-              <div className="sm:col-span-6 flex flex-col">
+              <div className="sm:col-span-2 flex flex-col">
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center">
                     <Subtitle className="text-white/70 mb-2">Token image</Subtitle>

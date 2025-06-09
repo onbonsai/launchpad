@@ -220,8 +220,27 @@ const TokenPage: NextPage = () => {
         }
       }
 
-      const res = await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
-      if (!res) throw new Error("No stake hash");
+      const txHash = await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
+      if (!txHash) throw new Error("No stake hash");
+
+      // Update credits in database
+      try {
+        await fetch("/api/credits/staked", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            txHash,
+            address,
+            estimatedCredits: calculateCreditsPerDay(amount, lockupPeriod),
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to update staking credits:", error);
+        // Don't throw here - we don't want to revert the UI if credits update fails
+      }
+
       refetchBonsaiBalance();
       setTimeout(() => refetchStakingData(), 4000);
 

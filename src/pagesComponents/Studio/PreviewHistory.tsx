@@ -327,10 +327,12 @@ export default function PreviewHistory({
             ? JSON.parse(previousMessage.content.templateData as string)
             : {};
 
-          const content = message.content.text || message.content.prompt || currentPreview?.text;
+          // Prioritize preview text over prompt for display
+          const previewText = (message.content.preview as any)?.text;
+          const content = previewText || message.content.text || message.content.prompt || currentPreview?.text;
           const preview = message.isAgent ? {
             ...message.content.preview as unknown as MessageContentPreview,
-            text: content,
+            text: previewText || (message.content.preview as any)?.text || content,
             templateName: (message.content.preview as any)?.templateName,
           } : undefined;
           const selected = preview?.agentId === currentPreview?.agentId;
@@ -402,9 +404,11 @@ export default function PreviewHistory({
                     setFinalTemplateData(templateData);
                     setCurrentPreview(preview as Preview);
                     // Use the stored prompt from the message content, ensure it's a string
-                    const promptToSet = String(message.content.prompt || content || '');
+                    const promptToSet = String(message.content.prompt || '');
                     setPrompt(promptToSet);
-                    setPostContent('');
+                    // Set post content to the preview text, prioritizing actual preview text
+                    const previewTextToSet = previewText || (message.content.preview as any)?.text || '';
+                    setPostContent(previewTextToSet);
 
                     // Find and set the corresponding template
                     if (setSelectedTemplate && preview?.templateName && registeredTemplates) {

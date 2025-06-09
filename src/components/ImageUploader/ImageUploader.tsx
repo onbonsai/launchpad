@@ -330,22 +330,22 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         </div>
       ) : files && files.length > 0 && (
         <div className={clsx(
-          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest relative",
-          compact ? "p-2 bg-transparent" : "bg-card-light"
+          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest relative w-fit",
+                      compact ? "p-1 bg-transparent" : "bg-card-light"
         )}>
           {files.map((file: FileWithPreview, i: number) => (
-            <div className="relative w-full" key={`file-${i}`}>
+            <div className="relative w-fit" key={`file-${i}`}>
               <img
                 className={clsx(
-                  "rounded-lg object-cover w-full",
-                  compact ? "h-20" : "h-48"
+                  "rounded-lg object-contain bg-card-lightest",
+                  compact ? "w-8 h-8" : "w-48 h-48"
                 )}
                 src={file.preview}
                 alt={file.name}
               />
               <button
                 onClick={(e) => removeFile(e, file)}
-                className="absolute top-2 right-2 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                className="absolute top-1 right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
               >
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -365,18 +365,18 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             {...rest}
           >
             {({ getRootProps, getInputProps }) => (
-              <div
-                {...getRootProps()}
-                className={clsx(
-                  "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
-                  files.length ? "shadow-xl" : "",
-                  compact ? "p-2 bg-transparent" : "bg-card-light"
-                )}
-              >
+                              <div
+                  {...getRootProps()}
+                  className={clsx(
+                    "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest w-fit min-w-16",
+                    files.length ? "shadow-xl" : "",
+                    compact ? "p-1 bg-transparent" : "bg-card-light"
+                  )}
+                >
                 <input {...getInputProps()} />
                 <div className="text-secondary flex items-center flex-col">
-                  <PhotographIcon width={compact ? 25 : 50} height={compact ? 25 : 50} />
-                  {!compact && <BodySemiBold>Upload an image (max: 8mb)</BodySemiBold>}
+                  <PhotographIcon width={24} height={24} />
+                  <BodySemiBold className="text-xs">Upload</BodySemiBold>
                 </div>
               </div>
             )}

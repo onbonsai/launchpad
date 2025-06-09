@@ -7,7 +7,12 @@ import stakingAbi from '@src/services/madfi/abi/Staking.json';
 import { lensTestnet } from 'viem/chains';
 
 export const useStakingTransactions = () => {
-  const stake = async (walletClient, amount: string, lockupPeriod: number, recipient: `0x${string}`) => {
+  const stake = async (
+    walletClient,
+    amount: string,
+    lockupPeriod: number,
+    recipient: `0x${string}`
+  ): Promise<`0x${string}` | undefined> => {
     if (!walletClient) {
       toast.error('Please connect your wallet');
       return;

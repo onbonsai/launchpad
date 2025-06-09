@@ -623,9 +623,10 @@ const StudioCreatePage: NextPage = () => {
                               postImage={postImage}
                               setPostImage={setPostImage}
                               next={(templateData) => {
-                                setFinalTemplateData(templateData);
-                                setOpenTab(addToken ? 2 : 3);
-                              }}
+                                  setFinalTemplateData(templateData);
+                                  setOpenTab(addToken ? 2 : 3);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
                               isGeneratingPreview={isGeneratingPreview}
                               setIsGeneratingPreview={setIsGeneratingPreview}
                               roomId={roomId as string}
@@ -643,8 +644,14 @@ const StudioCreatePage: NextPage = () => {
                             setSavedTokenAddress={setSavedTokenAddress}
                             savedTokenAddress={savedTokenAddress}
                             setFinalTokenData={setFinalTokenData}
-                            back={() => setOpenTab(1)}
-                            next={() => setOpenTab(3)}
+                            back={() => {
+                              setOpenTab(1);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            next={() => {
+                              setOpenTab(3);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
                           />
                         )}
                         {openTab === 3 && (
@@ -654,6 +661,7 @@ const StudioCreatePage: NextPage = () => {
                             onCreate={onCreate}
                             back={() => {
                               setOpenTab(addToken ? 2 : 1);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             isCreating={isCreating}
                             addToken={addToken}

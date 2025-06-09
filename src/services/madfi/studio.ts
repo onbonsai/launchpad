@@ -527,6 +527,7 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
         return { messages: [] };
       }
       const data = await response.json();
+      console.log(data)
       return {
         messages: data.messages as Memory[],
         // Use the last message's createdAt as the next cursor
