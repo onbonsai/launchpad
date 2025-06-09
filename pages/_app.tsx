@@ -15,7 +15,7 @@ import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { brandFont } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
-import { sdk } from '@farcaster/frame-sdk'
+import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
@@ -69,47 +69,49 @@ export default function MyApp(props: AppProps) {
   }, [isSDKLoaded]);
 
   return (
-    <>
-      <HandleSEO pageProps={pageProps} />
-      <Web3Provider>
-        <ThirdwebProvider>
-          <ThemeProvider>
-            <ClubsProvider>
-              <TopUpModalProvider>
-                <Toaster
-                  position="bottom-right"
-                  toastOptions={{
-                    style: {
-                      backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                      color: "white",
-                      fontFamily: brandFont.style.fontFamily,
-                      zIndex: 1001,
-                    },
-                  }}
-                >
-                  {(t) => (
-                    <ToastBar toast={t}>
-                      {({ icon, message }) => (
-                        <>
-                          {icon}
-                          {message}
-                        </>
-                      )}
-                    </ToastBar>
-                  )}
-                </Toaster>
-                <NextNProgress color="#4D7F79" height={2} />
-                <AppLayout>
-                  <BoxThemeProvider theme={boxTheme}>
-                    {(!isMiniApp || (isMiniApp && isSDKLoaded)) && <Component {...pageProps} />}
-                  </BoxThemeProvider>
-                </AppLayout>
-                <Analytics />
-              </TopUpModalProvider>
-            </ClubsProvider>
-          </ThemeProvider>
-        </ThirdwebProvider>
-      </Web3Provider>
-    </>
+    (!isMiniApp || (isMiniApp && isSDKLoaded)) && (
+      <>
+        <HandleSEO pageProps={pageProps} />
+        <Web3Provider>
+          <ThirdwebProvider>
+            <ThemeProvider>
+              <ClubsProvider>
+                <TopUpModalProvider>
+                  <Toaster
+                    position="bottom-right"
+                    toastOptions={{
+                      style: {
+                        backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                        color: "white",
+                        fontFamily: brandFont.style.fontFamily,
+                        zIndex: 1001,
+                      },
+                    }}
+                  >
+                    {(t) => (
+                      <ToastBar toast={t}>
+                        {({ icon, message }) => (
+                          <>
+                            {icon}
+                            {message}
+                          </>
+                        )}
+                      </ToastBar>
+                    )}
+                  </Toaster>
+                  <NextNProgress color="#4D7F79" height={2} />
+                  <AppLayout>
+                    <BoxThemeProvider theme={boxTheme}>
+                      <Component {...pageProps} />
+                    </BoxThemeProvider>
+                  </AppLayout>
+                  <Analytics />
+                </TopUpModalProvider>
+              </ClubsProvider>
+            </ThemeProvider>
+          </ThirdwebProvider>
+        </Web3Provider>
+      </>
+    )
   );
 }
