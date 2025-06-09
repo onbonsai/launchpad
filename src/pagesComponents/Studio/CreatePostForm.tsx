@@ -248,7 +248,7 @@ const CreatePostForm = ({
       // Fix audio type issue - only pass if it's a File
       const audioParam = template.options?.audioRequirement !== MediaRequirement.NONE && postAudio && postAudio instanceof File ? {
         file: postAudio,
-        startTime: audioStartTime || 0
+        startTime: templateData.audioStartTime || audioStartTime || 0
       } : undefined;
 
       // Include subTemplateId in templateData if a subtemplate is selected
