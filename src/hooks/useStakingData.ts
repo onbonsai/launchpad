@@ -58,7 +58,7 @@ const STAKING_QUERY = gql`
   }
 `;
 
-const fetchStakingData = async (address: string): Promise<StakingData> => {
+export const fetchStakingData = async (address: string): Promise<StakingData> => {
   const client = subgraphClient("lens");
   const { data } = await client.query({
     query: STAKING_QUERY,
