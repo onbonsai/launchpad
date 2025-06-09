@@ -192,7 +192,7 @@ export const generatePreview = async (
         ...templateData,
         aspectRatio,
         nft,
-        audioStartTime: audio?.startTime
+        audioStartTime: templateData.audioStartTime || audio?.startTime
       },
       prompt,
     }));
