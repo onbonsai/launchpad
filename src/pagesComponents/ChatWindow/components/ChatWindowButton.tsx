@@ -95,13 +95,7 @@ export default function ChatWindowButton({
       {/* Chat Window Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
-          onClick={(e) => {
-            // Close when clicking backdrop
-            if (e.target === e.currentTarget) {
-              setIsOpen(false);
-            }
-          }}
+          className="fixed inset-0 z-[10001] flex items-center justify-center p-4"
         >
           {/* Backdrop with blur */}
           <div className="absolute inset-0 bg-black/70 backdrop-blur-lg pointer-events-auto animate-fade-in" />
