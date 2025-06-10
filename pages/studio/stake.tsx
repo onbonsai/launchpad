@@ -83,21 +83,6 @@ const TokenPage: NextPage = () => {
     refetchInterval: 3600000, // Refetch every hour
   });
 
-  const { data: referralStatus } = useQuery({
-    queryKey: ["referral-status", address],
-    queryFn: async () => {
-      if (!address) return false;
-      try {
-        const response = await axios.get(`/api/referrals/status?address=${address}`);
-        return { wasReferred: response.data.hasReferrer, hasReferred: response.data.hasReferred };
-      } catch (error) {
-        console.error("Error checking referral status:", error);
-        return false;
-      }
-    },
-    enabled: !!address,
-  });
-
   const [bonsaiPrice, setBonsaiPrice] = useState(0);
   const [tokenHoldings, setTokenHoldings] = useState(0);
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
@@ -106,7 +91,6 @@ const TokenPage: NextPage = () => {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { setOpen } = useModal();
 
   const [showBuyModal, setShowBuyModal] = useState(false);
 
@@ -683,50 +667,10 @@ const TokenPage: NextPage = () => {
                 )}
 
                 {/* Active Stakes List */}
-                {isConnected && (hasActiveStakes || (referralStatus && referralStatus.wasReferred)) && (
+                {isConnected && (hasActiveStakes) && (
                   <div className="bg-card rounded-lg p-6">
                     <h3 className="text-sm font-medium text-brand-highlight mb-4">Active Stakes</h3>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                      {/* Referral Reward Preview */}
-                      {referralStatus && referralStatus.hasReferred && (
-                        <div className="flex items-center justify-between p-4 bg-card-light rounded-lg border-2 border-[#B6D5C2]/50 relative overflow-hidden">
-                          {/* Gradient overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#B6D5C2]/10 to-[#52837D]/10" />
-
-                          {/* Content */}
-                          <div className="relative z-10">
-                            <div className="flex items-center space-x-2">
-                              <div className="text-lg font-semibold">
-                                {activeStakes[0]
-                                  ? formatStakingAmount(
-                                      getMinBigInt(
-                                        BigInt(stakingData?.summary?.totalStaked || 0),
-                                        parseUnits("10000", 18),
-                                      ).toString(),
-                                    )
-                                  : "0"}{" "}
-                                $BONSAI
-                              </div>
-                              <span className="text-xs font-medium bg-[#B6D5C2]/20 text-[#B6D5C2] px-2 py-0.5 rounded">
-                                Referral Reward
-                              </span>
-                            </div>
-                            <div className="text-xs text-secondary/60">Coming Soon</div>
-                          </div>
-
-                          {/* Disabled buttons */}
-                          <div className="flex items-center gap-x-6 relative z-10">
-                            <div className="text-right">
-                              <div className="text-sm">Coming Soon</div>
-                              <div className="text-xs text-secondary/60">Coming Soon</div>
-                            </div>
-                            <Button variant="dark-grey" size="sm" disabled className="opacity-50">
-                              Locked
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Existing stakes */}
                       {activeStakes.map((stake, index) => (
                         <div key={stake.id} className="flex items-center justify-between p-4 bg-card-light rounded-lg">
