@@ -5,16 +5,42 @@ import clsx from "clsx";
 import { useAccount, useBalance, useWalletClient } from "wagmi";
 import { erc20Abi, formatUnits, parseUnits, encodeAbiParameters, zeroAddress } from "viem";
 import { toast } from "react-hot-toast";
-import { ADMIN_WALLET, USDC_CONTRACT_ADDRESS, USDC_DECIMALS, WGHO_CONTRACT_ADDRESS, WGHO_ABI, publicClient, approveToken, SWAP_TO_BONSAI_POST_ID, DECIMALS, getRegisteredClubByTokenAddress, buyChips, getBuyAmount } from "@src/services/madfi/moneyClubs";
+import {
+  ADMIN_WALLET,
+  USDC_CONTRACT_ADDRESS,
+  USDC_DECIMALS,
+  WGHO_CONTRACT_ADDRESS,
+  WGHO_ABI,
+  approveToken,
+  SWAP_TO_BONSAI_POST_ID,
+  DECIMALS,
+  getRegisteredClubByTokenAddress,
+  buyChips,
+  getBuyAmount,
+} from "@src/services/madfi/moneyClubs";
 import { base } from "viem/chains";
 import { switchChain } from "viem/actions";
-import { ACTION_HUB_ADDRESS, LENS_BONSAI_DEFAULT_FEED, LENS_CHAIN_ID, LENS_GLOBAL_FEED, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import {
+  ACTION_HUB_ADDRESS,
+  LENS_BONSAI_DEFAULT_FEED,
+  LENS_CHAIN_ID,
+  LENS_GLOBAL_FEED,
+  PROTOCOL_DEPLOYMENT,
+} from "@src/services/madfi/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import axios from "axios";
 import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
-import { calculatePath, PARAM__AMOUNT_IN, PARAM__AMOUNT_OUT_MINIMUM, PARAM__CLIENT_ADDRESS, PARAM__PATH, PARAM__REFERRALS } from "@src/services/lens/rewardSwap";
+import {
+  calculatePath,
+  PARAM__AMOUNT_IN,
+  PARAM__AMOUNT_OUT_MINIMUM,
+  PARAM__CLIENT_ADDRESS,
+  PARAM__PATH,
+  PARAM__REFERRALS,
+} from "@src/services/lens/rewardSwap";
 import { sdk } from "@farcaster/frame-sdk";
 import { getPostId } from "@src/services/lens/getStats";
+import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 
 interface SwapToGenerateModalProps {
   open: boolean;
@@ -23,7 +49,7 @@ interface SwapToGenerateModalProps {
     symbol: string;
     address: string;
     chain: string;
-  }
+  };
   postId: string;
   creditsNeeded: number;
   onSuccess: () => void;
@@ -44,11 +70,12 @@ export const SwapToGenerateModal = ({
   const { data: walletClient } = useWalletClient();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(1);
   const [rememberSelection, setRememberSelection] = useState(false);
+  const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { isMiniApp } = useIsMiniApp();
 
   // Load remembered selection
   useEffect(() => {
-    const remembered = localStorage.getItem('swapToGenerateAmount');
+    const remembered = localStorage.getItem("swapToGenerateAmount");
     if (remembered) {
       setSelectedAmount(Number(remembered));
       setRememberSelection(true);
@@ -139,9 +166,9 @@ export const SwapToGenerateModal = ({
     }
 
     if (rememberSelection) {
-      localStorage.setItem('swapToGenerateAmount', selectedAmount.toString());
+      localStorage.setItem("swapToGenerateAmount", selectedAmount.toString());
     } else {
-      localStorage.removeItem('swapToGenerateAmount');
+      localStorage.removeItem("swapToGenerateAmount");
     }
 
     let toastId = toast.loading("Processing swap and credits...");
@@ -161,7 +188,7 @@ export const SwapToGenerateModal = ({
           await walletClient!.writeContract({
             address: WGHO_CONTRACT_ADDRESS,
             abi: WGHO_ABI,
-            functionName: 'deposit',
+            functionName: "deposit",
             args: [],
             value: additionalWGHONeeded,
           });
@@ -188,11 +215,20 @@ export const SwapToGenerateModal = ({
             token.address == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
             postId ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
             [
-              { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(token.address)]) },
-              { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parseUnits(selectedAmount.toString(), DECIMALS)]) },
-              { key: PARAM__AMOUNT_OUT_MINIMUM, value: encodeAbiParameters([{ type: 'uint256' }], [club.complete ? 0n : parseUnits(selectedAmount.toString(), DECIMALS)]) },
-              { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: 'address' }], [zeroAddress]) },
-              { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: 'address[]' }], [[]]) },
+              { key: PARAM__PATH, value: encodeAbiParameters([{ type: "bytes" }], [calculatePath(token.address)]) },
+              {
+                key: PARAM__AMOUNT_IN,
+                value: encodeAbiParameters([{ type: "uint256" }], [parseUnits(selectedAmount.toString(), DECIMALS)]),
+              },
+              {
+                key: PARAM__AMOUNT_OUT_MINIMUM,
+                value: encodeAbiParameters(
+                  [{ type: "uint256" }],
+                  [club.complete ? 0n : parseUnits(selectedAmount.toString(), DECIMALS)],
+                ),
+              },
+              { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
+              { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: "address[]" }], [[]]) },
             ],
           ],
         });
@@ -209,25 +245,14 @@ export const SwapToGenerateModal = ({
         if (club && !club.complete && !club.liquidityReleasedAt) {
           // swap through launchpad
           const _selectedAmount = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
-          await approveToken(
-            USDC_CONTRACT_ADDRESS,
-            _selectedAmount,
-            walletClient,
-            toastId,
-            undefined,
-            "base",
+          await approveToken(USDC_CONTRACT_ADDRESS, _selectedAmount, walletClient, toastId, undefined, "base");
+          const { buyAmount } = await getBuyAmount(
+            address as `0x${string}`,
+            token.address as `0x${string}`,
+            _selectedAmount.toString(),
           );
-          const { buyAmount } = await getBuyAmount(address as `0x${string}`, token.address as `0x${string}`, _selectedAmount.toString())
           toastId = toast.loading("Buying", { id: toastId });
-          await buyChips(
-            walletClient,
-            club.clubId,
-            buyAmount,
-            _selectedAmount,
-            zeroAddress,
-            club.chain,
-            zeroAddress,
-          );
+          await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
         } else {
           if (isMiniApp) {
             await sdk.actions.swapToken({
@@ -286,9 +311,7 @@ export const SwapToGenerateModal = ({
       }}
     >
       <div>
-        <h2 className="text-xl font-bold">
-          Swap to continue
-        </h2>
+        <h2 className="text-xl font-bold">Swap to continue</h2>
         <p className="text-sm text-gray-400 mt-1">
           Buy any amount of ${token.symbol} to continue. Coins are fully yours.
         </p>
@@ -315,7 +338,7 @@ export const SwapToGenerateModal = ({
                 "border focus:outline-none focus:ring-2 focus:ring-[#5be39d]",
                 selectedAmount === amount
                   ? "bg-[#5be39d] border-[#5be39d] text-black"
-                  : "bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600"
+                  : "bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600",
               )}
             >
               ${amount}
@@ -338,32 +361,41 @@ export const SwapToGenerateModal = ({
       </div>
 
       <p className="text-xs text-gray-500">
-        Includes ${generationFee.toFixed(2)} generation fee ({creditsNeeded} credits)
+        Includes ${generationFee.toFixed(2)} generation fee ({creditsNeeded.toFixed(2)} credits)
       </p>
 
-      <div className="flex gap-3">
-        <Button
-          variant="secondary"
-          className="flex-1"
-          onClick={onClose}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="accentBrand"
-          className="flex-1"
-          onClick={handleSwap}
-          disabled={!selectedAmount || !hasSufficientFunds}
-        >
-          {!selectedAmount
-            ? "Select amount"
-            : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
-            ? `Switch to ${isMiniApp ? "Base" : "Lens"}`
-            : !hasSufficientFunds
-            ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
-            : `Swap $${totalCost.toFixed(2)}`}
-        </Button>
-      </div>
+      <Button
+        variant="accentBrand"
+        onClick={handleSwap}
+        disabled={!selectedAmount || !hasSufficientFunds}
+        className={clsx("w-full py-3 text-base font-semibold")}
+      >
+        {!selectedAmount
+          ? "Select amount"
+          : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
+          ? `Switch to ${isMiniApp ? "Base" : "Lens"}`
+          : !hasSufficientFunds
+          ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
+          : `Swap $${totalCost.toFixed(2)}`}
+      </Button>
+      <Button
+        variant={"primary"}
+        size="md"
+        className="w-full !border-none"
+        onClick={() => {
+          setBuyUSDCModalOpen(true);
+        }}
+      >
+        Fund wallet
+      </Button>
+      <BuyUSDCWidget
+        open={buyUSDCModalOpen}
+        buyAmount={totalCost.toString()}
+        onClose={() => {
+          setBuyUSDCModalOpen(false);
+        }}
+        chain={"lens"}
+      />
     </div>
   );
-}; 
+};
