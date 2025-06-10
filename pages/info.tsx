@@ -291,133 +291,186 @@ const Help = () => {
                   </Disclosure>
                 </div>
 
+                {/* Tokenomics */}
+                <div className="bg-card rounded-lg p-6">
+                  <Disclosure as="div" key="tokenomics" defaultOpen={section == "tokenomics"}>
+                    {({ open }) => (
+                      <>
+                        <h3 className="text-xl leading-6 text-secondary">
+                          <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80" onClick={() => handleDisclosureClick("tokenomics")}>
+                            <span className="font-medium">Tokenomics</span>
+                            <span className="ml-6 flex items-center">
+                              {open ? (
+                                <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                              ) : (
+                                <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                              )}
+                            </span>
+                          </Disclosure.Button>
+                        </h3>
+                        <DisclosurePanelWithTransition>
+                          <Disclosure.Panel className="p-2">
+                            <p className="text-lg text-secondary">
+                              $BONSAI was originally created on Polygon and is now live on Base and Lens chain. You can view the token on {" "}
+                              <Link href="https://www.coingecko.com/en/coins/bonsai-token" target="_blank" rel="noreferrer">
+                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">CoinGecko</span>
+                              </Link>.
+                            </p>
+                            <p className="text-lg text-secondary mt-4">
+                              The original supply was airdropped to active Lens users in March 2024. Team and private sale allocations are vesting on Superfluid on Polygon starting April 2024 for 18 months with a 6-month cliff.
+                            </p>
+                            <p className="text-lg text-secondary mt-4">
+                              Treasury Address (Polygon):{" "}
+                              <Link href="https://polygonscan.com/address/0xFf9730b6534087d07692c1262F916521966244E6" target="_blank" rel="noreferrer">
+                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">0xFf9730b6534087d07692c1262F916521966244E6</span>
+                              </Link>
+                            </p>
+                            <p className="text-lg text-secondary mt-4">
+                              $BONSAI, together with our app and Smart Media Protocol are designed to generate sustainable revenue for the project, creators, and users.
+                            </p>
+                            <p className="text-lg text-secondary mt-4">
+                              <Link href="https://fountain.ink/p/natem/jr7nevb4z3rnbg0srg" target="_blank" rel="noreferrer">
+                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">Read more about $BONSAI tokenomics and value accrual</span>
+                              </Link>
+                            </p>
+                          </Disclosure.Panel>
+                        </DisclosurePanelWithTransition>
+                      </>
+                    )}
+                  </Disclosure>
+                </div>
+
                 {/* Contracts */}
                 <div className="bg-card rounded-lg p-6">
                   <Disclosure as="div" key={ANCHOR_DEPLOYED_CONTRACTS} defaultOpen={section == ANCHOR_DEPLOYED_CONTRACTS}>
-                    <h3 className="text-xl leading-6 text-secondary">
-                      <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80">
-                        <span className="font-medium">Deployed Contracts</span>
-                        <span className="ml-6 flex items-center">
-                          {open ? (
-                            <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
-                          ) : (
-                            <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
-                          )}
-                        </span>
-                      </Disclosure.Button>
-                    </h3>
-                    <DisclosurePanelWithTransition>
-                      <Disclosure.Panel className="p-2">
-                        <p className="mt-4 text-lg text-secondary">
-                          Bonsai Token
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.Bonsai, false)}
-                          >
-                            Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
-                          </a>
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Bonsai, false)}
-                          >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
-                          </a>
-                        </p>
-                        <p className="mt-4 text-lg text-secondary">
-                          Bonsai NFT
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiNFT, false)}
-                          >
-                            Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
-                          </a>
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiNFT, false)}
-                          >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
-                          </a>
-                        </p>
-                        <p className="mt-4 text-lg text-secondary">
-                          Launchpad
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={baseScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "base"), false)}
-                          >
-                            Base: {getLaunchpadAddress("BonsaiLaunchpad", 0, "base")}
-                          </a>
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "lens"), false)}
-                          >
-                            Lens: {getLaunchpadAddress("BonsaiLaunchpad", 0, "lens")}
-                          </a>
-                        </p>
-                        <p className="mt-4 text-lg text-secondary">
-                          Launchpad Creator NFT
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={baseScanUrl(getLaunchpadAddress("CreatorNFT", 0, "base"), false)}
-                          >
-                            Base: {getLaunchpadAddress("CreatorNFT", 0, "base")}
-                          </a>
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(getLaunchpadAddress("CreatorNFT", 0, "lens"), false)}
-                          >
-                            Lens: {getLaunchpadAddress("CreatorNFT", 0, "lens")}
-                          </a>
-                        </p>
-                        <p className="mt-4 text-lg text-secondary">
-                          Launchpad Periphery
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(getLaunchpadAddress("Periphery", 0, "lens"), false)}
-                          >
-                            Lens: {getLaunchpadAddress("Periphery", 0, "lens")}
-                          </a>
-                        </p>
-                        <p className="mt-4 text-lg text-secondary">
-                          Staking
-                          <br />
-                          <a
-                            className="link link-hover text-brand-highlight/80"
-                            target="_blank"
-                            rel="noreferrer"
-                            href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Staking, false)}
-                          >
-                            Lens: {PROTOCOL_DEPLOYMENT.lens.Staking}
-                          </a>
-                        </p>
-                      </Disclosure.Panel>
-                    </DisclosurePanelWithTransition>
+                    {({ open }) => (
+                      <>
+                        <h3 className="text-xl leading-6 text-secondary">
+                          <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80">
+                            <span className="font-medium">Deployed Contracts</span>
+                            <span className="ml-6 flex items-center">
+                              {open ? (
+                                <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                              ) : (
+                                <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                              )}
+                            </span>
+                          </Disclosure.Button>
+                        </h3>
+                        <DisclosurePanelWithTransition>
+                          <Disclosure.Panel className="p-2">
+                            <p className="mt-4 text-lg text-secondary">
+                              Bonsai Token
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.Bonsai, false)}
+                              >
+                                Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
+                              </a>
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Bonsai, false)}
+                              >
+                                Lens: {PROTOCOL_DEPLOYMENT.lens.Bonsai}
+                              </a>
+                            </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              Bonsai NFT
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiNFT, false)}
+                              >
+                                Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
+                              </a>
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiNFT, false)}
+                              >
+                                Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
+                              </a>
+                            </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              Launchpad
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={baseScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "base"), false)}
+                              >
+                                Base: {getLaunchpadAddress("BonsaiLaunchpad", 0, "base")}
+                              </a>
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "lens"), false)}
+                              >
+                                Lens: {getLaunchpadAddress("BonsaiLaunchpad", 0, "lens")}
+                              </a>
+                            </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              Launchpad Creator NFT
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={baseScanUrl(getLaunchpadAddress("CreatorNFT", 0, "base"), false)}
+                              >
+                                Base: {getLaunchpadAddress("CreatorNFT", 0, "base")}
+                              </a>
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(getLaunchpadAddress("CreatorNFT", 0, "lens"), false)}
+                              >
+                                Lens: {getLaunchpadAddress("CreatorNFT", 0, "lens")}
+                              </a>
+                            </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              Launchpad Periphery
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(getLaunchpadAddress("Periphery", 0, "lens"), false)}
+                              >
+                                Lens: {getLaunchpadAddress("Periphery", 0, "lens")}
+                              </a>
+                            </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              Staking
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Staking, false)}
+                              >
+                                Lens: {PROTOCOL_DEPLOYMENT.lens.Staking}
+                              </a>
+                            </p>
+                          </Disclosure.Panel>
+                        </DisclosurePanelWithTransition>
+                    </>
+                    )}
                   </Disclosure>
                 </div>
               </div>
