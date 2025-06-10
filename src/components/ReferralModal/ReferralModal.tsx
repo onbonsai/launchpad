@@ -21,11 +21,8 @@ export const ReferralModal = ({ onClose, referralLink }: ReferralModalProps) => 
 
       <div className="space-y-4">
         <div className="bg-gradient-to-r from-[#B6D5C2] to-[#52837D] p-3 md:p-4 rounded-lg">
-          <p className="text-brand-secondary text-sm md:text-base mb-2 md:mb-4">
-            <b>🎉 Launch Week Special 🎉</b>
-          </p>
           <p className="text-brand-secondary text-sm md:text-base">
-            Refer at least 1 friend and get a 100% match on your stake up to 10k $BONSAI
+            Earn a share of $BONSAI rewards for each referral from their first post.
           </p>
         </div>
 
