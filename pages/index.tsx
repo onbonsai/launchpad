@@ -94,7 +94,7 @@ const IndexPage: NextPage = () => {
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
                 <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
-                {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading)
+                {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
                     activeTab={activeTab}
@@ -111,7 +111,7 @@ const IndexPage: NextPage = () => {
                     filteredPosts={filteredClubs}
                     filterBy={filterBy}
                     setFilterBy={setFilterBy}
-                    isLoading={isLoadingExplorePosts || isLoadingTimelinePosts || isFetchingNextExplorePage || isFetchingNextTimelinePage || isLoading || isFetchingNextPage}
+                    isLoading={isLoadingExplorePosts || isLoadingTimelinePosts || isFetchingNextExplorePage || isFetchingNextTimelinePage || isLoading || isFetchingNextPage || isLoadingAuthenticatedProfile}
                     hasMore={activeTab === PostTabType.COLLECTED
                       ? hasNextPage
                       : activeTab === PostTabType.EXPLORE
@@ -122,6 +122,9 @@ const IndexPage: NextPage = () => {
                       : activeTab === PostTabType.EXPLORE
                         ? fetchNextExplorePage
                         : fetchNextTimelinePage}
+                    isLoadingForYou={isLoadingTimelinePosts}
+                    isLoadingExplore={isLoadingExplorePosts}
+                    isLoadingCollected={isLoading}
                   />
                 }
               </div>

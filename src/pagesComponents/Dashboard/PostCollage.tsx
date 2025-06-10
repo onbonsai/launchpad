@@ -78,7 +78,7 @@ const PostItem = ({
     <div
       ref={postRef}
       key={`post-${post.slug}`}
-      className={`mb-4 mx-1 relative group ${brandFont.className} font-light 
+      className={`mb-4 mx-1 relative group ${brandFont.className} font-light
       transition-all duration-300 ease-out transform-gpu`}
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
@@ -91,7 +91,7 @@ const PostItem = ({
         />
       )}
       <div className="relative transition-transform duration-300 ease-out hover:scale-[1.02]">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-highlight/10 to-transparent opacity-0 
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-highlight/10 to-transparent opacity-0
           group-hover:opacity-100 transition-opacity duration-300 rounded-[24px] -z-10 blur-xl"></div>
         <Publication
           key={`preview-${post.slug}`}
@@ -175,7 +175,7 @@ const PostItem = ({
   );
 };
 
-export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage }) => {
+export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, isLoadingForYou, isLoadingExplore, isLoadingCollected }) => {
   const { data: walletClient } = useWalletClient();
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -248,7 +248,6 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
 
   useEffect(() => {
     if (inView && !isLoading && hasMore && !isFetchingRef.current) {
-      console.log('Infinite scroll triggered:', { inView, isLoading, hasMore });
       isFetchingRef.current = true;
       fetchNextPage();
 
@@ -309,6 +308,21 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
       <path fillRule="evenodd" clipRule="evenodd" d="M14.6 14.6958L17.1095 12.5445L17.8905 13.4555L14.3908 16.4558L14.0003 16.7906L13.6098 16.4558L10.1095 13.4555L10.8905 12.5444L13.4 14.6955L13.4 3.99998H14.6L14.6 14.6958ZM2.50004 5.39976L10.5 5.4L10.5 6.6L2.5 6.59976L2.50004 5.39976ZM2.50002 9.4H9.00002V10.6H2.50002V9.4ZM7.50002 13.4H2.50002V14.6H7.50002V13.4Z" fill="white" fillOpacity="0.6" />
     </svg>
   );
+
+  const shouldShowEmptyState = useMemo(() => {
+    // Don't show empty state while loading
+    if (isLoading || isFetchingRef.current) return false;
+
+    // Don't show empty state if we have posts
+    if (sortedPosts.length > 0) return false;
+
+    // Check specific loading states for each tab
+    if (activeTab === PostTabType.FOR_YOU && isLoadingForYou) return false;
+    if (activeTab === PostTabType.EXPLORE && isLoadingExplore) return false;
+    if (activeTab === PostTabType.COLLECTED && isLoadingCollected) return false;
+
+    return true;
+  }, [isLoading, isFetchingRef.current, sortedPosts.length, activeTab, isLoadingForYou, isLoadingExplore, isLoadingCollected]);
 
   return (
     <div className="bg-background text-secondary font-sf-pro-text">
@@ -378,30 +392,30 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
 
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full">
-            {sortedPosts.length === 0 ? (
+            {shouldShowEmptyState ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-6 p-6 rounded-full bg-white/[0.04]">
-                <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
+                <div className="mb-6 p-6 rounded-full bg-white/[0.04]">
+                  <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                  </svg>
+                </div>
+                <p className="text-white text-xl font-medium mb-2">Nothing to see here... yet!</p>
+                <p className="text-white/60 text-base max-w-sm">
+                  {activeTab === PostTabType.FOR_YOU
+                    ? "Follow some creators to see their posts in your feed"
+                    : "Head over to the Explore tab to discover new content and connect with creators"}
+                </p>
+                {activeTab === PostTabType.FOR_YOU && (
+                  <Button
+                    variant="accentBrand"
+                    size="md"
+                    className="mt-6"
+                    onClick={() => setActiveTab(PostTabType.EXPLORE)}
+                  >
+                    Explore Content
+                  </Button>
+                )}
               </div>
-              <p className="text-white text-xl font-medium mb-2">Nothing to see here... yet!</p>
-              <p className="text-white/60 text-base max-w-sm">
-                {activeTab === PostTabType.FOR_YOU 
-                  ? "Follow some creators to see their posts in your feed"
-                  : "Head over to the Explore tab to discover new content and connect with creators"}
-              </p>
-              {activeTab === PostTabType.FOR_YOU && (
-                <Button 
-                  variant="accentBrand" 
-                  size="md" 
-                  className="mt-6"
-                  onClick={() => setActiveTab(PostTabType.EXPLORE)}
-                >
-                  Explore Content
-                </Button>
-              )}
-            </div>
             ) : (
               <Masonry
                 breakpointCols={{
