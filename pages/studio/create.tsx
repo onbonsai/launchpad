@@ -212,12 +212,13 @@ const StudioCreatePage: NextPage = () => {
 
     setIsCreating(true);
 
-    // 1. create token (if not remixing)
+    // 1. create token (if not remixing and not importing a token)
     let tokenAddress;
     let txHash;
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
+
     } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
@@ -538,6 +539,12 @@ const StudioCreatePage: NextPage = () => {
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
           chain: _finalTokenData.selectedNetwork,
           address: tokenAddress,
+          // save metadata when importing tokens
+          metadata: !!savedTokenAddress ? {
+            name: _finalTokenData.tokenName,
+            symbol: _finalTokenData.tokenSymbol,
+            image: _finalTokenData.tokenImage?.length ? _finalTokenData.tokenImage[0].preview : null
+          } : undefined
         } : undefined,
         params: {
           templateName: template.name,

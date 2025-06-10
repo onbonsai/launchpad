@@ -338,7 +338,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
               <img
                 className={clsx(
                   "rounded-lg object-contain bg-card-lightest",
-                  compact ? "w-8 h-8" : "w-48 h-48"
+                  compact ? "w-12 h-12" : "w-48 h-48"
                 )}
                 src={file.preview}
                 alt={file.name}
@@ -375,8 +375,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
                 >
                 <input {...getInputProps()} />
                 <div className="text-secondary flex items-center flex-col">
-                  <PhotographIcon width={24} height={24} />
-                  <BodySemiBold className="text-xs">Upload</BodySemiBold>
+                  <PhotographIcon width={48} height={48} />
                 </div>
               </div>
             )}

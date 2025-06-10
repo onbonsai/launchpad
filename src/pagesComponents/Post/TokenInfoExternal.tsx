@@ -23,6 +23,7 @@ const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"),
 interface Token {
   address: `0x${string}`;
   chain: string;
+  metadata?: TokenMetadata;
 }
 
 interface TokenMetadata {
@@ -45,12 +46,12 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   // Fetch token metadata
   useEffect(() => {
     const getMetadata = async () => {
-      const metadata = await fetchTokenMetadata(token.address, token.chain as "lens" | "base");
+      const metadata = token.metadata || await fetchTokenMetadata(token.address, token.chain as "lens" | "base");
       if (metadata) {
         setTokenMetadata({
           name: metadata.name,
           symbol: metadata.symbol,
-          logo: metadata.logo,
+          logo: metadata.logo || metadata.image,
           decimals: metadata.decimals,
         });
       }

@@ -484,10 +484,10 @@ const CreatePostForm = ({
         )}
 
         {/* Main Row: Prompt and Image */}
-        <div className="flex flex-col gap-2 md:gap-0">
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
           {/* Main Prompt Input */}
-          <div className="w-full">
-            <div className="relative">
+          <div className="w-full md:w-4/5">
+            <div className="relative mt-2">
               <div className="flex flex-col gap-y-2">
                 <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
                 <textarea
@@ -515,16 +515,7 @@ const CreatePostForm = ({
 
           {/* Image Uploader */}
           {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
-            <div className="w-full space-y-1">
-              <FieldLabel
-                label={"Image"}
-                fieldDescription={
-                  template.options.imageRequirement === MediaRequirement.REQUIRED
-                    ? "An image is required for this post."
-                    : "Optionally add an image to your post. Otherwise, one will be generated."
-                }
-                tooltipDirection={tooltipDirection}
-              />
+            <div className="w-full md:w-1/5 space-y-1 md:mt-8">
               <ImageUploader
                 files={postImage}
                 setFiles={setPostImage}

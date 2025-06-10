@@ -133,7 +133,7 @@ export const FinalizePost = ({
         {template?.options?.requireContent && (
           <div className="flex flex-col justify-center space-y-4">
             <div className="flex items-center gap-1">
-              <Subtitle className="text-white/70">
+              <Subtitle className="!text-brand-highlight">
                 Set the content for your post
               </Subtitle>
             </div>
@@ -142,6 +142,14 @@ export const FinalizePost = ({
                 placeholder="Update the content and hit preview to see the changes"
                 value={localPostContent}
                 onChange={(e) => setLocalPostContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (localPostContent !== postContent) {
+                      handleSendContent();
+                    }
+                  }
+                }}
                 className={`${sharedInputClasses} w-full min-h-[40px] p-4 pr-12 resize-none`}
               />
               <button
@@ -151,7 +159,7 @@ export const FinalizePost = ({
                 className="absolute bottom-4 right-2 p-2 rounded-lg bg-brand-highlight/10 hover:bg-brand-highlight/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 title="Update preview"
               >
-                <span className="text-brand-highlight text-sm">Preview Post</span>
+                <span className="text-brand-highlight text-sm">Preview</span>
               </button>
             </div>
           </div>
