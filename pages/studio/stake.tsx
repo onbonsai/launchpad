@@ -30,7 +30,9 @@ import BuySellModal from "@pagesComponents/Club/BuySellModal";
 import { SWAP_TO_BONSAI_POST_ID } from "@src/services/madfi/moneyClubs";
 import { useTopUpModal } from "@src/context/TopUpContext";
 import { useGetPosts } from "@src/services/lens/posts";
-import Image from "next/image"
+import Image from "next/image";
+import { Tooltip } from "@src/components/Tooltip";
+import { InfoOutlined } from "@mui/icons-material";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -478,11 +480,59 @@ const TokenPage: NextPage = () => {
                   {/* Rewards Card */}
                   <div className="bg-card rounded-lg p-6">
                     <div className="pb-2">
-                      <h3 className="text-sm font-medium text-brand-highlight">Staking Rewards</h3>
+                      <div className="flex items-center gap-1">
+                        <h3 className="text-sm font-medium text-brand-highlight">Staking Rewards</h3>
+                        <Tooltip 
+                          message="Rewards are calculated as: (Your Staking Power / Total Staking Power) × 500k $BONSAI. Rewards are distributed every 2 weeks. Staking power increases with longer lockup periods. Mid-epoch stakes are counted proportionally."
+                          direction="top"
+                        >
+                          <InfoOutlined className="max-w-4 max-h-4 text-brand-highlight/60 hover:text-brand-highlight cursor-help transition-colors" />
+                        </Tooltip>
+                      </div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-secondary">Coming Soon</div>
-                      <p className="text-xs text-secondary/60">--% APY</p>
+                      {isConnected && stakingData?.summary && stakingData?.totalStakingSummary ? (
+                        <>
+                          {(() => {
+                            const userStakingPower = parseFloat(formatEther(BigInt(stakingData.summary.totalStakingPower || "0")));
+                            const totalStakingPower = parseFloat(formatEther(BigInt(stakingData.totalStakingSummary.totalStakingPower || "1"))); // Avoid division by zero
+                            const userStakedAmount = parseFloat(formatEther(BigInt(stakingData.summary.totalStaked || "0")));
+                            
+                            // Calculate estimated rewards: (user power / total power) * 500k $BONSAI
+                            const estimatedRewards = totalStakingPower > 0 ? (userStakingPower / totalStakingPower) * 500000 : 0;
+                            
+                            // Calculate APR: rewards every 2 weeks, so 26 periods per year
+                            const annualRewards = estimatedRewards * 26;
+                            const estimatedAPR = userStakedAmount > 0 ? (annualRewards / userStakedAmount) * 100 : 0;
+                            
+                            return (
+                              <>
+                                <div className="text-2xl font-bold text-secondary">
+                                  ~{kFormatter(estimatedRewards.toFixed(0), true)} $BONSAI
+                                </div>
+                                <p className="text-xs text-secondary/60">
+                                  {estimatedAPR.toFixed(1)}% APR
+                                </p>
+                                <p className="text-xs text-secondary/40 mt-1">
+                                  Every 2 weeks
+                                </p>
+                              </>
+                            );
+                          })()}
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-2xl font-bold text-secondary">
+                            {isConnected ? "0 $BONSAI" : "Connect Wallet"}
+                          </div>
+                          <p className="text-xs text-secondary/60">
+                            {isConnected ? "0% APR" : "--% APR"}
+                          </p>
+                          <p className="text-xs text-secondary/40 mt-1">
+                            Every 2 weeks
+                          </p>
+                        </>
+                      )}
                       <div className="mt-4 flex flex-wrap justify-end gap-2">
                         <Button variant="accent" size="sm" disabled>
                           Claim
