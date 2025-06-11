@@ -25,11 +25,17 @@ interface StakingSummary {
   sixMonthLockupAmount: string;
   twelveMonthLockupAmount: string;
   lastUpdated: string;
+  totalStakingPower: string;
+}
+
+interface TotalStakingSummary {
+  totalStakingPower: string;
 }
 
 interface StakingData {
   stakes: Stake[];
   summary: StakingSummary | null;
+  totalStakingSummary: TotalStakingSummary | null;
 }
 
 const STAKING_QUERY = gql`
@@ -54,6 +60,10 @@ const STAKING_QUERY = gql`
       sixMonthLockupAmount
       twelveMonthLockupAmount
       lastUpdated
+      totalStakingPower
+    }
+    totalStakingSummary(id:"0xd51c163134fd3f2403ad68860c02b123503bf3bd") {
+      totalStakingPower
     }
   }
 `;
@@ -68,7 +78,8 @@ export const fetchStakingData = async (address: string): Promise<StakingData> =>
 
   return {
     stakes: data.stakes || [],
-    summary: data.stakingSummary || null
+    summary: data.stakingSummary || null,
+    totalStakingSummary: data.totalStakingSummary || null,
   };
 };
 
