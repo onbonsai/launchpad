@@ -159,7 +159,7 @@ export const FinalizePost = ({
                 className="absolute bottom-4 right-2 p-2 rounded-lg bg-brand-highlight/10 hover:bg-brand-highlight/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 title="Update preview"
               >
-                <span className="text-brand-highlight text-sm">Preview</span>
+                <span className="text-brand-highlight text-sm">Update</span>
               </button>
             </div>
           </div>
