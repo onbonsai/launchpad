@@ -12,6 +12,7 @@ if (!!process.env.NEXT_PUBLIC_VERCEL_ENV) {
       "Proposal expired",
       "Cannot redefine property: ethereum"
     ],
+    environment: process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453" ? "production" : "testnet"
   });
 } else {
   console.log("Sentry not initialized because not in vercel environment");
