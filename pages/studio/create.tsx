@@ -233,7 +233,7 @@ const StudioCreatePage: NextPage = () => {
           } catch (error) {
             console.log(error);
             Sentry.captureException(error);
-            toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
+            toast.error(`Please switch to ${finalTokenData.selectedNetwork}`, { id: toastId });
             setIsCreating(false);
             return;
           }
@@ -373,11 +373,13 @@ const StudioCreatePage: NextPage = () => {
       try {
         await switchChain(walletClient, { id: LENS_CHAIN_ID });
         // HACK: require lens chain for the whole thing
-          setIsCreating(false);
-          return;
+        setIsCreating(false);
+        return;
       } catch (error) {
         console.log(error);
-        toast.error("Please switch networks to create your Lens post");
+        Sentry.addBreadcrumb({ message: `attempting to switch chains: ${LENS_CHAIN_ID}` })
+        Sentry.captureException(error);
+        toast.error("Please switch networks to create your Lens post", { id: toastId });
         setIsCreating(false);
         return;
       }
@@ -393,7 +395,8 @@ const StudioCreatePage: NextPage = () => {
       if (creds.isOk()) {
         idToken = creds.value?.idToken;
       } else {
-        toast.error("Failed to get credentials");
+        Sentry.captureException("Failed to get credentials");
+        toast.error("Failed to get credentials", { id: toastId });
         return;
       }
     }
