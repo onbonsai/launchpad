@@ -232,6 +232,7 @@ const StudioCreatePage: NextPage = () => {
             return;
           } catch (error) {
             console.log(error);
+            Sentry.captureException(error);
             toast.error(`Please switch to ${finalTokenData.selectedNetwork}`);
             setIsCreating(false);
             return;
