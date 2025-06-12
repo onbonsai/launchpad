@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { parseEther } from "viem";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -394,7 +395,8 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       setTimeout(() => router.push(`/post/${result.postId}`), 2000);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create post");
+      toast.error("Failed to create post", { id: toastId });
+      Sentry.captureException(error);
     } finally {
       setIsPosting(false);
       setPostingPreview(undefined);

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextPage } from "next"
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react"
@@ -576,6 +577,7 @@ const StudioCreatePage: NextPage = () => {
       if (error instanceof Error && error.message === "not enough credits") {
         toast.error("Not enough credits to create smart media", { id: toastId, duration: 5000 });
       } else {
+        Sentry.captureException(error);
         toast.error("Failed to create smart media", { id: toastId });
       }
       setIsCreating(false);
