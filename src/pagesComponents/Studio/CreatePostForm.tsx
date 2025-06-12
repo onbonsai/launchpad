@@ -422,7 +422,7 @@ const CreatePostForm = ({
             <SafeImage
               src={subTemplate.previewImage}
               alt={subTemplate.name}
-              className="w-full h-full object-cover rounded-full"
+              className="rounded-full"
               width={48}
               height={48}
             />
@@ -448,7 +448,7 @@ const CreatePostForm = ({
             : "border-dark-grey hover:border-brand-highlight bg-card-light"
         }`}
       >
-        <div className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xs md:text-sm">
+        <div className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0 bg-brand-highlight/20 rounded-full flex items-center justify-center text-sm md:text-md">
           ✏️
         </div>
         <span className="text-xs md:text-sm text-white/90">Default</span>

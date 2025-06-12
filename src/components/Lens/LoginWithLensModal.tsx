@@ -242,15 +242,14 @@ const LoginWithLensModal = ({ closeModal }) => {
                 </div>
               </div>
             )) : null}
-          <div className="flex justify-center mt-4 mb-4 text-sm gap-x-4 pb-8">
-            <div className="absolute right-8 bottom-2">
-              <span
-                className="link link-hover mb-8 text-brand-highlight"
-                onClick={async () => { closeModal(); disconnect(); }}
-              >
-                Switch wallets
-              </span>
-            </div>
+          <div className="flex justify-between items-end mt-4 text-sm gap-x-4 pb-6">
+            <div></div>
+            <span
+              className="link link-hover text-brand-highlight cursor-pointer"
+              onClick={async () => { closeModal(); disconnect(); }}
+            >
+              Switch wallets
+            </span>
           </div>
         </div>
       </div>

@@ -49,11 +49,11 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
       width={width}
       height={height}
       className={className}
-      style={!fill ? {
-        width: 'auto',
-        height: 'auto',
-        ...(width && height ? { maxWidth: `${width}px`, maxHeight: `${height}px` } : {})
-      } : undefined}
+      // style={!fill ? {
+      //   width: 'auto',
+      //   height: 'auto',
+      //   ...(width && height ? { maxWidth: `${width}px`, maxHeight: `${height}px` } : {})
+      // } : undefined}
       onError={() => {
         // If we haven't tried Pinata yet and it's a Storj URL, try Pinata
         if (!hasTriedPinata && currentSrc.includes("storj-ipfs")) {
