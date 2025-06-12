@@ -519,6 +519,7 @@ const StudioCreatePage: NextPage = () => {
       }
     } catch (error) {
       console.log(error);
+      Sentry.captureException(error);
       toast.error("Failed to create post", { id: toastId });
       setIsCreating(false);
       return;
