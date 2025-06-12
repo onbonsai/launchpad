@@ -3,11 +3,10 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
-if (!!process.env.NEXT_RUNTIME) {
 
+if (!!process.env.NEXT_PUBLIC_VERCEL_ENV) {
   Sentry.init({
     dsn: "https://04796f722151ea9b1fae0d561cff9c00@o4509125817073664.ingest.us.sentry.io/4509125819039744",
-
     debug: false,
     ignoreErrors: [
       "Proposal expired",
@@ -15,5 +14,5 @@ if (!!process.env.NEXT_RUNTIME) {
     ],
   });
 } else {
-  console.log("Sentry not initialized because NEXT_RUNTIME is not set");
+  console.log("Sentry not initialized because not in vercel environment");
 }
