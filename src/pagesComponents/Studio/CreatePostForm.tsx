@@ -464,6 +464,9 @@ const CreatePostForm = ({
       "What do you want to create?";
   };
 
+  const showImageUploader = template.options?.imageRequirement &&
+    template.options?.imageRequirement !== MediaRequirement.NONE;
+
   return (
     <form
       className="mx-auto w-full space-y-4"
@@ -486,7 +489,7 @@ const CreatePostForm = ({
         {/* Main Row: Prompt and Image */}
         <div className="flex flex-col md:flex-row gap-2 md:gap-4">
           {/* Main Prompt Input */}
-          <div className="w-full md:w-4/5">
+          <div className={`w-full ${showImageUploader ? 'md:w-4/5' : ''}`}>
             <div className="relative mt-2">
               <div className="flex flex-col gap-y-2">
                 <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
@@ -514,7 +517,7 @@ const CreatePostForm = ({
           </div>
 
           {/* Image Uploader */}
-          {template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE && (
+          {showImageUploader && (
             <div className="w-full md:w-1/5 space-y-1 md:mt-8">
               <ImageUploader
                 files={postImage}
