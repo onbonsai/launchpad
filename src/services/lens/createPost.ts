@@ -220,8 +220,12 @@ export const uploadImageBase64 = async (
 ): Promise<{ uri: URI, type: MediaImageMimeType }> => {
   const file = parseBase64Image(image) as File;
   const acl = _acl || immutable(LENS_CHAIN_ID);
-  const { uri: hash } = await storageClient.uploadFile(file, { acl });
-  // console.log(`image hash: ${hash}`);
+
+  // Convert to ArrayBuffer and back to File for better mobile compatibility
+  const arrayBuffer = await file.arrayBuffer();
+  const newFile = new File([arrayBuffer], file.name, { type: file.type });
+  const { uri: hash } = await storageClient.uploadFile(newFile, { acl });
+
   return {
     uri: uri(hash),
     type: file.type as MediaImageMimeType
@@ -233,11 +237,13 @@ export const uploadVideo = async (
   mimeType: string,
   _acl?: WalletAddressAcl
 ): Promise<{ uri: URI, type: string }> => {
-  // Convert Blob to File with a name
-  const file = new File([videoBlob], `bonsai_generated_${Date.now()}.mp4`, { type: mimeType });
   const acl = _acl || immutable(LENS_CHAIN_ID);
+
+  // Convert Blob to File for better mobile compatibility
+  const arrayBuffer = await videoBlob.arrayBuffer();
+  const file = new File([arrayBuffer], `bonsai_generated_${Date.now()}.mp4`, { type: mimeType });
   const { uri: hash } = await storageClient.uploadFile(file, { acl });
-  // console.log(`video hash: ${hash}`);
+
   return {
     uri: uri(hash),
     type: mimeType
@@ -252,9 +258,13 @@ export const uploadFile = async (
   video?: { url: URI, type: MediaVideoMimeType }
 }> => {
   const acl = _acl || immutable(LENS_CHAIN_ID);
-  const { uri: hash } = await storageClient.uploadFile(file, { acl });
+
+  // Convert to ArrayBuffer and back to File for better mobile compatibility
+  const arrayBuffer = await file.arrayBuffer();
+  const newFile = new File([arrayBuffer], file.name, { type: file.type });
+  const { uri: hash } = await storageClient.uploadFile(newFile, { acl });
+
   const isImage = file.type.includes("image");
-  // console.log(`${isImage ? 'image' : 'video'} hash: ${hash}`);
   if (isImage) {
     return { image: { url: uri(hash), type: file.type as MediaImageMimeType } };
   }
