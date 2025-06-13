@@ -84,7 +84,7 @@ export default function MyApp(props: AppProps) {
                         backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
                         color: "white",
                         fontFamily: brandFont.style.fontFamily,
-                        zIndex: 20000,
+                        zIndex: 9999, // max z-index, everything should be below this
                       },
                     }}
                   >
