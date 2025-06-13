@@ -12,7 +12,7 @@
     "buttonTitle": "Remix AI media",
     "splashImageUrl": "https://app.onbons.ai/splash.jpg",
     "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://app.onbons.ai/api/webhook",
+    "webhookUrl": "https://api.neynar.com/f/app/8d476d5a-532d-4865-aedb-416481cf00c7/event",
     "primaryCategory": "social",
     "tags": [
       "remix",
