@@ -168,16 +168,20 @@ export const Header = () => {
                   <SearchClubs />
                 </div>
               )}
+              {/* Create button - always visible */}
+              <div className="hidden sm:block mr-2">
+                <Link href="/studio/create" onClick={handleAuthRequiredClick}>
+                  <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">
+                    <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Create</span>
+                  </Button>
+                </Link>
+              </div>
+              {/* Authenticated user actions */}
               {isAuthenticated && (
                 <div className="hidden sm:flex items-center gap-2 mr-2">
-                  <Link href="/studio/create" onClick={handleAuthRequiredClick}>
-                    <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">
-                      <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
-                      </svg>
-                      <span>Create</span>
-                    </Button>
-                  </Link>
                   <Balance />
                   <ClaimFeesEarned />
                   <ClaimBonsai />

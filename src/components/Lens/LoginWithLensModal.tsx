@@ -181,11 +181,11 @@ const LoginWithLensModal = ({ closeModal }) => {
             </div>
           ) : (
             <div className="w-full items-center text-center">
-              <p className="mb-2">To create a token or use social features you'll need to get one.</p>
-              <p className="mb-8">You can still trade without a profile.</p>
+              <p className="mb-2">You need a profile to create a post or use social features.</p>
+              <p className="mb-8">You can still trade without one.</p>
               <Button variant="accent">
                 <a href="https://onboarding.lens.xyz/" target="_blank">
-                  <span className="text-grey">Mint a profile on Lens {"->"}</span>
+                  <span className="text-grey">Create a profile on Lens {"->"}</span>
                 </a>
               </Button>
               <div className="my-4">
