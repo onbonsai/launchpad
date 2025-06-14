@@ -83,16 +83,27 @@ const PostItem = ({
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
     >
-      {(timelineItem || postData[post.slug]?.presence) && (
+      {(timelineItem || postData?.presence) && (
         <TimelineItemInteractions
           reposts={timelineItem?.reposts}
           position="top"
-          postData={postData[post.slug]}
+          postData={postData}
         />
       )}
-      <div className="relative transition-transform duration-300 ease-out hover:scale-[1.02]">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-highlight/10 to-transparent opacity-0
-          group-hover:opacity-100 transition-opacity duration-300 rounded-[24px] -z-10 blur-xl"></div>
+      <div className={clsx(
+        "relative transition-transform duration-300 ease-out hover:scale-[1.02]",
+        postData?.remixContest && "border-2 border-brand-highlight rounded-[24px] p-[2px]"
+      )}>
+        {postData?.remixContest && (
+          <div className="absolute -top-6 left-6 bg-brand-highlight text-black px-3 py-1 rounded-t-lg rounded-b-none text-xs font-medium z-10 shadow-lg">
+            Remix contest: win $10
+          </div>
+        )}
+        <div className={clsx(
+          "absolute inset-0 bg-gradient-to-br from-brand-highlight/10 to-transparent opacity-0",
+          "group-hover:opacity-100 transition-opacity duration-300 rounded-[24px] -z-10 blur-xl",
+          postData?.remixContest && "!opacity-100"
+        )}></div>
         <Publication
           key={`preview-${post.slug}`}
           publicationData={{
@@ -147,7 +158,7 @@ const PostItem = ({
             authenticatedProfile={authenticatedProfile}
             bonsaiBalance={bonsaiBalance}
             post={post}
-            postData={postData[post.slug]}
+            postData={postData}
             onShare={() => onShareButtonClick(post.slug)}
             onClick={() => {
               localStorage.setItem('tempPostData', JSON.stringify(post));
@@ -442,7 +453,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                     setActiveCollectModal={setActiveCollectModal}
                     authenticatedProfile={authenticatedProfile}
                     bonsaiBalance={bonsaiBalance}
-                    postData={postData}
+                    postData={postData[post.__typename === "TimelineItem" ? post.primary.slug : post.slug]}
                     onShareButtonClick={onShareButtonClick}
                     router={router}
                   />

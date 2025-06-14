@@ -459,7 +459,7 @@ export const useGetFeaturedPosts = (enabled = true) => {
       try {
         const response = await fetch('/api/media/get-featured-media');
         if (!response.ok) throw new Error('Failed to fetch featured media');
-        const { postIds } = await response.json();
+        const { postIds, remixContest } = await response.json();
         let sessionClient;
         try {
           sessionClient = await resumeSession();
@@ -469,7 +469,18 @@ export const useGetFeaturedPosts = (enabled = true) => {
           getPostData(postIds)
         ]);
 
-        return { posts, postData };
+        return { 
+          posts, 
+          postData: Object.fromEntries(
+            Object.entries(postData).map(([postId, data]) => [
+              postId,
+              {
+                ...data,
+                ...(remixContest === postId && { remixContest: true })
+              }
+            ])
+          )
+        };
       } catch (error) {
         return { posts: [], postData: [] };
       }
