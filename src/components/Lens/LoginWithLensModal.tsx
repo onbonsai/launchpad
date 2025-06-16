@@ -161,6 +161,7 @@ const LoginWithLensModal = ({ closeModal }) => {
         username: { localName: `${editedUsername || context.user.username}`, namespace: evmAddress(BONSAI_NAMESPACE) },
         metadataUri,
         accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
+        enableSignless: true,
       }).andThen(handleOperationWith(lensWalletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
