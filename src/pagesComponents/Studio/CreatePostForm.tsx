@@ -62,6 +62,8 @@ type CreatePostProps = {
   onClose?: () => void;
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  storyboardAudio: File | string | null;
+  setStoryboardAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
 };
 
 function getBaseZodType(field: any) {
@@ -115,7 +117,9 @@ const CreatePostForm = ({
   remixMediaTemplateData,
   onClose,
   storyboardClips,
-  setStoryboardClips
+  setStoryboardClips,
+  storyboardAudio,
+  setStoryboardAudio
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -368,7 +372,12 @@ const CreatePostForm = ({
   };
 
   const handleNext = () => {
-    if ((prompt || postContent || postImage?.length || !preview?.image)) {
+    if (storyboardClips.length > 0) {
+      if (!preview) {
+        // If there's no current preview, set the first clip as the preview
+        setPreview(storyboardClips[0].preview);
+      }
+    } else if ((prompt || postContent || postImage?.length || !preview?.image)) {
       setPreview({
         text: prompt || postContent || "",
         image: preview?.image || (postImage?.length ? postImage[0] : undefined),
@@ -481,6 +490,16 @@ const CreatePostForm = ({
       }}
     >
       <div className="space-y-4">
+        {/* Storyboard Timeline */}
+        {storyboardClips.length > 0 && (
+          <StoryboardTimeline
+            clips={storyboardClips}
+            setClips={setStoryboardClips}
+            audio={storyboardAudio}
+            setAudio={setStoryboardAudio}
+          />
+        )}
+
         {/* Compact Subtemplate Selector */}
         {hasSubTemplates && (
           <div className="space-y-2">
@@ -538,11 +557,6 @@ const CreatePostForm = ({
           )}
         </div>
 
-        {/* Storyboard Timeline */}
-        {!!template.templateData.form.shape.enableVideo && (
-          <StoryboardTimeline clips={storyboardClips} setClips={setStoryboardClips} />
-        )}
-
         {/* Audio Section */}
         {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
           <div className="w-full space-y-1">
@@ -565,6 +579,8 @@ const CreatePostForm = ({
                 setStartTime={setAudioStartTime}
                 audioDuration={template.options?.audioDuration}
                 compact
+                onAddToStoryboard={() => setStoryboardAudio(postAudio)}
+                isAddedToStoryboard={!!storyboardAudio && postAudio === storyboardAudio}
               />
             )}
           </div>
@@ -658,7 +674,13 @@ const CreatePostForm = ({
             }
           </Button>
         )}
-        <Button size='md' disabled={isGeneratingPreview || (!preview && (!isValid() || template.options.allowPreview))} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+        <Button
+          size='md'
+          disabled={isGeneratingPreview || (storyboardClips.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
+          onClick={handleNext}
+          variant={!template.options.allowPreview || !!preview || storyboardClips.length > 0 ? "accentBrand" : "dark-grey"}
+          className="w-full hover:bg-bullish"
+        >
           Next
         </Button>
       </div>

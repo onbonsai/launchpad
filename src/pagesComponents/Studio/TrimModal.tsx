@@ -28,8 +28,8 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-card-light rounded-lg p-6 w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className=" bg-zinc-800 rounded-lg p-6 w-full max-w-2xl">
         <h2 className="text-xl font-bold text-white mb-4">Trim Clip</h2>
         <video
           ref={videoRef}
@@ -62,7 +62,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
           </div>
         </div>
         <div className="flex justify-end gap-4 mt-6">
-          <Button variant="dark-grey" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={onClose}>Cancel</Button>
           <Button variant="accentBrand" onClick={handleSave}>Save</Button>
         </div>
       </div>

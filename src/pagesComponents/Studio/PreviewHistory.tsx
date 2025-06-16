@@ -397,11 +397,11 @@ export default function PreviewHistory({
                         }]);
                         toast.success("Added to storyboard!");
                       }}
-                      className={`bg-black/70 rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
+                      className={`flex items-center gap-2 bg-black/70 rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
                       title={isClipInStoryboard ? "Already in storyboard" : "Add to storyboard"}
                       disabled={isClipInStoryboard || storyboardClips.length >= 10}
                     >
-                      <FilmIcon className="w-5 h-5 text-white" />
+                      <FilmIcon className="w-5 h-5 text-white" /> Add to storyboard
                     </button>
                   )}
 

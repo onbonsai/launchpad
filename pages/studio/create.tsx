@@ -36,7 +36,6 @@ import { SITE_URL } from "@src/constants/constants";
 import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
-import StoryboardTimeline from "@pagesComponents/Studio/StoryboardTimeline";
 
 export interface StoryboardClip {
   id: string; // agentId of the preview
@@ -65,6 +64,7 @@ const StudioCreatePage: NextPage = () => {
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(true);
   const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
+  const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
@@ -559,7 +559,7 @@ const StudioCreatePage: NextPage = () => {
             startTime: clip.startTime,
             endTime: clip.endTime,
           })),
-          audio: postAudio,
+          audio: storyboardAudio,
         } : undefined,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
           chain: _finalTokenData.selectedNetwork,
@@ -674,6 +674,8 @@ const StudioCreatePage: NextPage = () => {
                               setAudioStartTime={setAudioStartTime}
                               storyboardClips={storyboardClips}
                               setStoryboardClips={setStoryboardClips}
+                              storyboardAudio={storyboardAudio}
+                              setStoryboardAudio={setStoryboardAudio}
                             />
                           </>
                         )}

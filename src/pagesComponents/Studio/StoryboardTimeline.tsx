@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { XCircleIcon, ScissorsIcon } from '@heroicons/react/solid';
+import { XCircleIcon, ScissorsIcon, MusicNoteIcon } from '@heroicons/react/solid';
 import type { StoryboardClip } from '@pages/studio/create';
 import { Preview } from '@src/services/madfi/studio';
 import TrimModal from './TrimModal';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface StoryboardTimelineProps {
   clips: StoryboardClip[];
   setClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  audio: File | string | null;
+  setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
 }
 
-const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips }) => {
+const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips, audio, setAudio }) => {
   const [clipToTrim, setClipToTrim] = useState<StoryboardClip | null>(null);
 
   const removeClip = (clipId: string) => {
@@ -40,7 +42,7 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
 
   return (
     <>
-      <div className="w-full bg-card-light rounded-lg p-4 mt-4">
+      <div className="w-full rounded-lg mt-4">
         <h3 className="text-lg font-semibold text-white mb-2">Storyboard</h3>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="storyboard" direction="horizontal">
@@ -65,20 +67,22 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-1">
-                          <div className="flex justify-end gap-1">
+                          <div className="flex justify-end gap-2">
                             <button
+                              type="button"
                               onClick={() => setClipToTrim(clip)}
                               className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Trim clip"
                             >
-                              <ScissorsIcon className="w-4 h-4" />
+                              <ScissorsIcon className="w-6 h-6" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => removeClip(clip.id)}
                               className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Remove clip"
                             >
-                              <XCircleIcon className="w-4 h-4" />
+                              <XCircleIcon className="w-6 h-6" />
                             </button>
                           </div>
                           <span className="text-white text-xs font-mono bg-black/50 px-1 rounded self-start">{index + 1}</span>
@@ -92,6 +96,26 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
             )}
           </Droppable>
         </DragDropContext>
+        {audio && (
+          <div className="mt-2">
+            <div className="flex items-center justify-between p-2 bg-dark-grey rounded-lg">
+              <div className="flex items-center gap-2">
+                <MusicNoteIcon className="w-5 h-5 text-white" />
+                <span className="text-white text-sm">
+                  {typeof audio === 'string' ? 'Background Music' : audio.name}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAudio(null)}
+                className="text-white/70 hover:text-white"
+                title="Remove audio"
+              >
+                <XCircleIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <TrimModal
         clip={clipToTrim}
