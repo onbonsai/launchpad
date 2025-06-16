@@ -370,21 +370,21 @@ const StudioCreatePage: NextPage = () => {
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
-    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
-      try {
-        await switchChain(walletClient, { id: LENS_CHAIN_ID });
-        // HACK: require lens chain for the whole thing
-        setIsCreating(false);
-        return;
-      } catch (error) {
-        console.log(error);
-        Sentry.addBreadcrumb({ message: `attempting to switch chains: ${LENS_CHAIN_ID}` })
-        Sentry.captureException(error);
-        toast.error("Please switch networks to create your Lens post", { id: toastId });
-        setIsCreating(false);
-        return;
-      }
-    }
+    // if (LENS_CHAIN_ID !== chain?.id && walletClient) {
+    //   try {
+    //     await switchChain(walletClient, { id: LENS_CHAIN_ID });
+    //     // HACK: require lens chain for the whole thing
+    //     setIsCreating(false);
+    //     return;
+    //   } catch (error) {
+    //     console.log(error);
+    //     Sentry.addBreadcrumb({ message: `attempting to switch chains: ${LENS_CHAIN_ID}` })
+    //     Sentry.captureException(error);
+    //     toast.error("Please switch networks to create your Lens post", { id: toastId });
+    //     setIsCreating(false);
+    //     return;
+    //   }
+    // }
 
     const sessionClient = await resumeSession(true);
     let idToken;
