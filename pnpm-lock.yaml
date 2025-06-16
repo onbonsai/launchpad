@@ -46,8 +46,8 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7))
       '@lens-chain/storage-client':
-        specifier: 1.0.4
-        version: 1.0.4
+        specifier: 1.0.5
+        version: 1.0.5
       '@lens-protocol/client':
         specifier: 0.0.0-canary-20250611103544
         version: 0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7))
@@ -59,7 +59,7 @@ importers:
         version: 0.3.0(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@types/react@19.1.2)(bufferutil@4.0.9)(encoding@0.1.13)(graphql@16.11.0)(react@18.3.1)(utf-8-validate@5.0.10)
       '@madfi/widgets-react':
         specifier: ^3.2.16
-        version: 3.2.16(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)
+        version: 3.2.16(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^5.8.0
         version: 5.17.1(@mui/material@5.17.1(@emotion/react@11.14.0(@types/react@19.1.2)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.1.2)(react@18.3.1))(@types/react@19.1.2)(react@18.3.1))(@types/react@19.1.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@19.1.2)(react@18.3.1)
@@ -244,7 +244,7 @@ importers:
         specifier: ^9.0.4
         version: 9.0.4(react@18.3.1)
       viem:
-        specifier: ^2.31.0
+        specifier: ^2.26.2
         version: 2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)
       wagmi:
         specifier: ^2.15.5
@@ -991,8 +991,8 @@ packages:
       zksync-ethers:
         optional: true
 
-  '@lens-chain/storage-client@1.0.4':
-    resolution: {integrity: sha512-dORCTVwSWP7MWoJ257oriH7EV8g6YU3Pxgligy28XOglLEO0PBb/D4b6fuSSqWZjvfOjr4KCC4UgqU1z66VckQ==}
+  '@lens-chain/storage-client@1.0.5':
+    resolution: {integrity: sha512-rK8vqS7dTyCYlx3NDma9kTGcAdecxW4G+owQX5hczWdFPllsSQfuSz0ez2+ApiMJl0sTyGvUEy8mqvfr0RtDBw==}
 
   '@lens-protocol/blockchain-bindings@0.10.2':
     resolution: {integrity: sha512-WIlp30gohy/EuTD+Oqb2ACftpIkBE3wOC1WgiaFeu1ybpnIY0PnUn0hAQeecG6TIekhP3VvMXK82BXppsv2Nhw==}
@@ -8129,7 +8129,7 @@ snapshots:
       ethers: 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       viem: 2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)
 
-  '@lens-chain/storage-client@1.0.4': {}
+  '@lens-chain/storage-client@1.0.5': {}
 
   '@lens-protocol/blockchain-bindings@0.10.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -8552,11 +8552,11 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@madfi/widgets-react@3.2.16(@lens-chain/storage-client@1.0.4)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)':
+  '@madfi/widgets-react@3.2.16(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)':
     dependencies:
       '@emotion/css': 11.13.5
       '@ethersproject/providers': 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lens-chain/storage-client': 1.0.4
+      '@lens-chain/storage-client': 1.0.5
       '@lens-protocol/client': 0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7))
       '@madfi/lens-oa-client': 0.3.0(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@types/react@19.1.2)(bufferutil@4.0.9)(encoding@0.1.13)(graphql@16.11.0)(react@18.3.1)(utf-8-validate@5.0.10)
       '@tanstack/react-query': 5.76.1(react@18.3.1)

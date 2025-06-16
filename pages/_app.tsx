@@ -61,7 +61,6 @@ export default function MyApp(props: AppProps) {
   useEffect(() => {
     const load = async () => {
       await sdk.actions.ready(); // hide splash
-      if (isPostRoute && !(await sdk.context).client.added) await sdk.actions.addMiniApp(); // prompt to add mini app
     };
     if (sdk && !isSDKLoaded) {
       setIsSDKLoaded(true);
