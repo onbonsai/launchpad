@@ -22,6 +22,7 @@ import { base } from "viem/chains";
 import { switchChain } from "viem/actions";
 import {
   ACTION_HUB_ADDRESS,
+  getChain,
   LENS_BONSAI_DEFAULT_FEED,
   LENS_CHAIN_ID,
   LENS_GLOBAL_FEED,
@@ -86,7 +87,7 @@ export const SwapToGenerateModal = ({
   const { data: usdcBalance } = useBalance({
     address,
     token: USDC_CONTRACT_ADDRESS,
-    chainId: base.id,
+    chainId: getChain("base").id,
     query: {
       enabled: isConnected && isMiniApp,
     },
@@ -394,7 +395,7 @@ export const SwapToGenerateModal = ({
         onClose={() => {
           setBuyUSDCModalOpen(false);
         }}
-        chain={"lens"}
+        chain={isMiniApp ? "base" : "lens"}
       />
     </div>
   );

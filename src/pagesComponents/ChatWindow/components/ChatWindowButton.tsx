@@ -95,11 +95,11 @@ export default function ChatWindowButton({
       {/* Chat Window Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[1001] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[1001] flex items-center justify-center"
         >
           {/* Backdrop with blur */}
           <div className="absolute inset-0 bg-black/70 backdrop-blur-lg pointer-events-auto animate-fade-in" />
-          
+
           {/* Chat Modal */}
           <div
             className={clsx(
@@ -110,7 +110,7 @@ export default function ChatWindowButton({
             )}
           >
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-zinc-700/50">
+            <div className="flex items-center justify-between pr-4 pb-5 pl-4 border-b border-zinc-700/50">
               <div className="flex items-center space-x-4">
                 <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
                   <Image
@@ -133,7 +133,7 @@ export default function ChatWindowButton({
                 <XIcon size={24} className="text-white" />
               </button>
             </div>
-            
+
             {/* Chat Content Area - Render children (Chat component) here */}
             <div className="flex-1 overflow-y-auto p-4">{childrenWithProps}</div>
           </div>
