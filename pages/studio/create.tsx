@@ -571,7 +571,7 @@ const StudioCreatePage: NextPage = () => {
           embeds.push(resolvedVideoUrl)
         }
         embeds.push(`${SITE_URL}/post/${postId}`)
-        const text = `${postContent || currentPreview?.text || template?.displayName}\n\nvia @onbonsai.eth`
+        const text = `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`
         await sdk.actions.composeCast({
           text,
           embeds: embeds as [string] | [string, string],

@@ -5,7 +5,7 @@ import { CheckCircleIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import { useModal } from "connectkit";
 import { useDisconnect } from 'wagmi'
-import { erc20Abi, formatUnits, parseUnits, custom, createWalletClient } from "viem";
+import { erc20Abi, formatUnits, parseUnits, WalletClient } from "viem";
 import toast from "react-hot-toast";
 import { switchChain } from "viem/actions";
 import { account } from "@lens-protocol/metadata";
@@ -49,7 +49,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isApprovingBudget, setIsApprovingBudget] = useState(false);
-  const [creationStep, setCreationStep] = useState('budget'); // 'create' | 'budget'
+  const [creationStep, setCreationStep] = useState('create'); // 'create' | 'budget'
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDisplayName, setEditedDisplayName] = useState('');
@@ -113,14 +113,6 @@ const LoginWithLensModal = ({ closeModal }) => {
 
     setIsCreatingProfile(true);
     try {
-      const lensTestnet = getChain("lens");
-      console.log("lensTestnet", lensTestnet);
-      const lensWalletClient = createWalletClient({
-        account: walletClient.account,
-        chain: lensTestnet,
-        transport: custom(window.ethereum!)
-      });
-
       // authenticate as onboarding user
       const authenticated = await lensClient.login({
         onboardingUser: {
@@ -158,11 +150,11 @@ const LoginWithLensModal = ({ closeModal }) => {
 
       // deploy account contract
       const result = await createAccountWithUsername(sessionClient, {
-        username: { localName: `${editedUsername || context.user.username}`, namespace: evmAddress(BONSAI_NAMESPACE) },
+        username: { localName: `${editedUsername || context.user.username}`}, // , namespace: evmAddress(BONSAI_NAMESPACE) },
         metadataUri,
         accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
         enableSignless: true,
-      }).andThen(handleOperationWith(lensWalletClient))
+      }).andThen(handleOperationWith({} as WalletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
         .andThen((account) =>

@@ -469,8 +469,8 @@ export const useGetFeaturedPosts = (enabled = true) => {
           getPostData(postIds)
         ]);
 
-        return { 
-          posts, 
+        return {
+          posts,
           postData: Object.fromEntries(
             Object.entries(postData).map(([postId, data]) => [
               postId,
@@ -515,8 +515,6 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
   return useInfiniteQuery({
     queryKey: ["previews", roomId],
     queryFn: async ({ pageParam }) => {
-      console.log(`roomId: ${roomId}`)
-
       const idToken = await _getIdToken();
       if (!idToken) return { messages: [] };
 
@@ -538,7 +536,6 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
         return { messages: [] };
       }
       const data = await response.json();
-      console.log(data)
       return {
         messages: data.messages as Memory[],
         // Use the last message's createdAt as the next cursor

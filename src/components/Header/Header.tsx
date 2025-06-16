@@ -130,7 +130,7 @@ export const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-[100] bg-black/90 backdrop-blur-sm border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
+      <header className="md:sticky top-0 z-[100] bg-black/90 backdrop-blur-sm border-b border-dark-grey shadow-sm max-w-[100vw] overflow-hidden">
         <nav className="mx-auto max-w-[100rem]" aria-label="Top">
           <div className="flex w-full items-center py-3 lg:border-none px-4 md:px-6 justify-between">
             <div className="flex items-center justify-start w-[40%]">
