@@ -36,6 +36,15 @@ import { SITE_URL } from "@src/constants/constants";
 import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
+import StoryboardTimeline from "@pagesComponents/Studio/StoryboardTimeline";
+
+export interface StoryboardClip {
+  id: string; // agentId of the preview
+  preview: Preview;
+  startTime: number;
+  endTime: number; // Will be clip duration initially
+  duration: number;
+}
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -55,6 +64,7 @@ const StudioCreatePage: NextPage = () => {
   const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(true);
+  const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
@@ -543,6 +553,14 @@ const StudioCreatePage: NextPage = () => {
         agentId: currentPreview?.agentId,
         postId,
         uri,
+        video: storyboardClips.length > 0 ? {
+          storyboard: storyboardClips.map(clip => ({
+            agentId: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+          })),
+          audio: postAudio,
+        } : undefined,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
           chain: _finalTokenData.selectedNetwork,
           address: tokenAddress,
@@ -557,6 +575,11 @@ const StudioCreatePage: NextPage = () => {
           templateName: template.name,
           category: template.category,
           templateData: finalTemplateData,
+          storyboard: storyboardClips.length > 0 ? storyboardClips.map(clip => ({
+            agentId: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+          })) : undefined,
         },
       }));
 
@@ -649,6 +672,8 @@ const StudioCreatePage: NextPage = () => {
                               setPostAudio={setPostAudio}
                               audioStartTime={audioStartTime}
                               setAudioStartTime={setAudioStartTime}
+                              storyboardClips={storyboardClips}
+                              setStoryboardClips={setStoryboardClips}
                             />
                           </>
                         )}
@@ -712,6 +737,8 @@ const StudioCreatePage: NextPage = () => {
                         isFinalize={openTab > 1}
                         postImage={postImage}
                         setPostContent={setPostContent}
+                        storyboardClips={storyboardClips}
+                        setStoryboardClips={setStoryboardClips}
                       />
                     </div>
                   </div>

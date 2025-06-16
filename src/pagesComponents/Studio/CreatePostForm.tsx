@@ -27,6 +27,8 @@ import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import type { StoryboardClip } from "@pages/studio/create";
+import StoryboardTimeline from "./StoryboardTimeline";
 
 type CreatePostProps = {
   template: Template;
@@ -58,6 +60,8 @@ type CreatePostProps = {
   remixPostId?: string;
   remixMediaTemplateData?: any;
   onClose?: () => void;
+  storyboardClips: StoryboardClip[];
+  setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
 };
 
 function getBaseZodType(field: any) {
@@ -109,7 +113,9 @@ const CreatePostForm = ({
   remixToken,
   remixPostId,
   remixMediaTemplateData,
-  onClose
+  onClose,
+  storyboardClips,
+  setStoryboardClips
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -531,6 +537,11 @@ const CreatePostForm = ({
             </div>
           )}
         </div>
+
+        {/* Storyboard Timeline */}
+        {!!template.templateData.form.shape.enableVideo && (
+          <StoryboardTimeline clips={storyboardClips} setClips={setStoryboardClips} />
+        )}
 
         {/* Audio Section */}
         {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
