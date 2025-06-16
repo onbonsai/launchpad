@@ -469,6 +469,11 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
         <main className="mx-auto max-w-full md:max-w-[92rem] px-2 sm:px-6 lg:px-8 md:pt-8 md:pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
             <div className="flex flex-col md:gap-2 h-full relative pt-4">
+              {(media as any)?.remixContest && (
+                <div className="bg-brand-highlight text-black px-6 py-3 rounded-lg text-center font-medium mb-4">
+                  🏆 Remix Contest: Win $10 - Create your own version of this post!
+                </div>
+              )}
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
               {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
               <div className="overflow-y-hidden h-full">

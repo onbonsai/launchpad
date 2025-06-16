@@ -29,7 +29,7 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
         className={className}
         onError={() => {
           // If we haven't tried Pinata yet and it's a Storj URL, try Pinata
-          if (!hasTriedPinata && currentSrc.includes("storj-ipfs")) {
+          if (!hasTriedPinata && currentSrc?.includes("storj-ipfs")) {
             const pinataUrl = remapStorjToPinata(currentSrc)
             if (pinataUrl !== currentSrc) {
               setCurrentSrc(pinataUrl)
@@ -56,7 +56,7 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
       // } : undefined}
       onError={() => {
         // If we haven't tried Pinata yet and it's a Storj URL, try Pinata
-        if (!hasTriedPinata && currentSrc.includes("storj-ipfs")) {
+        if (!hasTriedPinata && currentSrc?.includes("storj-ipfs")) {
           const pinataUrl = remapStorjToPinata(currentSrc)
           if (pinataUrl !== currentSrc) {
             setCurrentSrc(pinataUrl)
