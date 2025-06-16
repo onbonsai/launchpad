@@ -52,7 +52,7 @@ export default function RemixForm({
   const [preview, setPreview] = useState<any>();
   const [postContent, setPostContent] = useState<string>('');
   const [prompt, setPrompt] = useState<string>('');
-  const [postImage, setPostImage] = useState<any>();
+  const [postImage, setPostImage] = useState<any>([]);
   const [postAudio, setPostAudio] = useState<File | null>((remixMedia.templateData as any)?.audioData);
   const [audioStartTime, setAudioStartTime] = useState<number>((remixMedia.templateData as any)?.audioStartTime);
   const [finalTemplateData, setFinalTemplateData] = useState(remixMedia.templateData);
