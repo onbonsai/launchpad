@@ -5,7 +5,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   let homeUrl;
   let iconUrl;
   let splashImageUrl;
-  if (process.env.NEXT_PUBLIC_CHAIN_ID === "84532") {
+  if (process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "84532") {
     accountAssociation = {
       "header": "eyJmaWQiOjk0ODQzMSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEVhMDUwNDliYjg5QjkwMmNCQTM3QjA1YTg4Mzk5MzExMTVDRmYxNjcifQ",
       "payload": "eyJkb21haW4iOiJ0ZXN0bmV0Lm9uYm9ucy5haSJ9",
