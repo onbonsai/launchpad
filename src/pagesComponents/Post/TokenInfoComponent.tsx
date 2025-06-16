@@ -102,7 +102,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
-      <div className="relative w-full h-[180px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+      <div className="relative w-full h-auto min-h-[180px] md:min-h-[60px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: 'blur(40px)' }}>
           <SafeImage
             src={club.token.image}
@@ -113,7 +113,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 
-        <div className="relative z-10 p-2 pb-4 flex flex-col">
+        <div className="relative z-10 p-2 flex flex-col">
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full flex justify-between">
                 <div className='flex items-center gap-x-4 w-full'>
