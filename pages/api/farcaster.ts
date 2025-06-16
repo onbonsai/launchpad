@@ -12,7 +12,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       "signature": "MHgwZGUwM2U1MmEwYjY2MWJjOTcyMDA3MzI0YjYzNzM1YjRmOTU2MWZiODM0Y2RlMzNmOTlmOTg1MDczMTdiNmY5MDVhMDY3MmFhN2E3YmY2YjJlODRkYTJhNjkxNmY0Yzk1OTQ1NjdkYjg1M2U0NWFhYWM2YTZhYjEwZWEzNGNiNTFj"
     };
     homeUrl = "https://testnet.onbons.ai"
-    splashImageUrl = "https://app.onbons.ai/splash.jpg";
+    splashImageUrl = "https://testnet.onbons.ai/splash.jpg";
   } else {
     accountAssociation = {
       "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
@@ -20,7 +20,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       "signature": "MHg2ZWM3MzEyODg2NTc4YWI1YjRhYjlkMjFjMzQ2M2E3NmYxOTFlMjg5YjFlMjBjMjE0YzlkZjVmZDFjMGY4MDI3NTQ0NjViOTA5MGRiMWZjZmYzMTM1OTdjMGY3MzgxYmRlODY5ZmFkYTEzY2UxODhhZGJhMTYyMjAzNTI3YmFiYzFj"
     }
     homeUrl = "https://app.onbons.ai";
-    splashImageUrl = "https://testnet.onbons.ai/splash.jpg";
+    splashImageUrl = "https://app.onbons.ai/splash.jpg";
   }
 
   const config = {
