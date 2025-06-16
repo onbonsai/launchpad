@@ -9,6 +9,14 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk"],
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/farcaster.json',
+        destination: '/api/farcaster',
+      },
+    ];
+  },
   experimental: {
     esmExternals: true,
     staleTimes: {
