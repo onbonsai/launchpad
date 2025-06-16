@@ -13,6 +13,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     };
     homeUrl = "https://testnet.onbons.ai"
     splashImageUrl = "https://testnet.onbons.ai/splash.jpg";
+    iconUrl = "https://app.onbons.ai/logo-spaced.png";
   } else {
     accountAssociation = {
       "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
@@ -21,6 +22,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     homeUrl = "https://app.onbons.ai";
     splashImageUrl = "https://app.onbons.ai/splash.jpg";
+    iconUrl = "https://testnet.onbons.ai/logo-spaced.png";
   }
 
   const config = {
