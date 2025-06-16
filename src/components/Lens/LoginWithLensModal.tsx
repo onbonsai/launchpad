@@ -255,7 +255,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   }
 
   // Mini App Profile Creation Flow
-  if (isMiniApp && !!profiles?.length) {
+  if (isMiniApp && !profiles?.length) {
     return (
       <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
         {creationStep === 'create' && (
