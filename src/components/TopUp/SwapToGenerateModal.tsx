@@ -22,6 +22,7 @@ import { base } from "viem/chains";
 import { switchChain } from "viem/actions";
 import {
   ACTION_HUB_ADDRESS,
+  getChain,
   LENS_BONSAI_DEFAULT_FEED,
   LENS_CHAIN_ID,
   LENS_GLOBAL_FEED,
@@ -68,7 +69,7 @@ export const SwapToGenerateModal = ({
 }: SwapToGenerateModalProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(1);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { isMiniApp } = useIsMiniApp();
@@ -86,7 +87,7 @@ export const SwapToGenerateModal = ({
   const { data: usdcBalance } = useBalance({
     address,
     token: USDC_CONTRACT_ADDRESS,
-    chainId: base.id,
+    chainId: getChain("base").id,
     query: {
       enabled: isConnected && isMiniApp,
     },
@@ -394,7 +395,7 @@ export const SwapToGenerateModal = ({
         onClose={() => {
           setBuyUSDCModalOpen(false);
         }}
-        chain={"lens"}
+        chain={isMiniApp ? "base" : "lens"}
       />
     </div>
   );

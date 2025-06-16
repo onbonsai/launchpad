@@ -36,9 +36,11 @@ import { SITE_URL } from "@src/constants/constants";
 import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
+  const { isMiniApp } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const isMounted = useIsMounted();
@@ -370,7 +372,7 @@ const StudioCreatePage: NextPage = () => {
     }
 
     // 2. create lens post with template metadata and ACL; set club db record
-    if (LENS_CHAIN_ID !== chain?.id && walletClient) {
+    if (LENS_CHAIN_ID !== chain?.id && walletClient && !isMiniApp) {
       try {
         await switchChain(walletClient, { id: LENS_CHAIN_ID });
         // HACK: require lens chain for the whole thing
@@ -569,7 +571,7 @@ const StudioCreatePage: NextPage = () => {
           embeds.push(resolvedVideoUrl)
         }
         embeds.push(`${SITE_URL}/post/${postId}`)
-        const text = `${postContent || currentPreview?.text || template?.displayName}\n\nvia @onbonsai.eth`
+        const text = `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`
         await sdk.actions.composeCast({
           text,
           embeds: embeds as [string] | [string, string],

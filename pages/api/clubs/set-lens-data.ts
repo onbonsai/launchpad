@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       });
       const { clubId, tokenAddress: launchpadTokenAddress }: { clubId: bigint, tokenAddress: string } = registeredClubEvent?.args || {};
       if (!clubId) throw new Error("No registered club");
-      
+
       tokenAddress = launchpadTokenAddress;
 
       // Update with clubId for launchpad tokens

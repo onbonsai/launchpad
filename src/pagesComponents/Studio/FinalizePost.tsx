@@ -14,6 +14,7 @@ import { useAccount } from "wagmi";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { InformationCircleIcon, PaperAirplaneIcon } from "@heroicons/react/outline";
 import { Preview } from "@src/services/madfi/studio";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const sharedInputClasses = "bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm";
 
@@ -77,6 +78,7 @@ export const FinalizePost = ({
   currentPreview,
   setCurrentPreview,
 }: FinalizePostProps) => {
+  const { isMiniApp } = useIsMiniApp();
   const { chain } = useAccount();
   const [collectAmountOptions, setCollectAmountOptions] = useState(COLLECT_PRICE_TIERS);
   const [collectAmount, setCollectAmount] = useState<number>(0);
@@ -269,7 +271,7 @@ export const FinalizePost = ({
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
           <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount || 0)} variant="accentBrand" className="w-full hover:bg-bullish">
-            {`${LENS_CHAIN_ID !== chain?.id ? 'Switch to Lens Chain' : 'Post'}`}
+            {`${LENS_CHAIN_ID !== chain?.id && !isMiniApp ? 'Switch to Lens Chain' : 'Post'}`}
           </Button>
           <Button size='md' disabled={isCreating} onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
             Back

@@ -7,7 +7,7 @@ import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import { MinusIcon, PlusIcon } from "@heroicons/react/solid";
+import { MinusIcon, PlusIcon, PencilIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import { BodySemiBold } from "@src/styles/text";
 import { Button } from "../Button";
@@ -29,6 +29,7 @@ interface ImageUploaderProps {
   selectedAspectRatio?: AspectRatio;
   onAspectRatioChange?: (ratio: AspectRatio) => void;
   compact?: boolean;
+  defaultImage?: string;
 }
 
 const MAX_SIZE = 8000000; // 8mb
@@ -92,6 +93,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   selectedAspectRatio,
   onAspectRatioChange,
   compact = false,
+  defaultImage,
   ...rest
 }) => {
   const [cropFile, setCropFile] = useState<FileWithPreview | null>(null);
@@ -328,10 +330,10 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             </div>
           ))}
         </div>
-      ) : files && files.length > 0 && (
+      ) : (files && files.length > 0) ? (
         <div className={clsx(
           "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest relative w-fit",
-                      compact ? "p-1 bg-transparent" : "bg-card-light"
+          compact ? "p-1 bg-transparent" : "bg-card-light"
         )}>
           {files.map((file: FileWithPreview, i: number) => (
             <div className="relative w-fit" key={`file-${i}`}>
@@ -354,9 +356,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             </div>
           ))}
         </div>
-      )}
-
-      {files && files.length !== maxFiles && (
+      ) : defaultImage ? (
         <div data-testid="dropzone">
           <Dropzone
             accept={{ "image/": ["*"] }}
@@ -365,14 +365,48 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
             {...rest}
           >
             {({ getRootProps, getInputProps }) => (
-                              <div
-                  {...getRootProps()}
-                  className={clsx(
-                    "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest w-fit min-w-16",
-                    files.length ? "shadow-xl" : "",
-                    compact ? "p-1 bg-transparent" : "bg-card-light"
-                  )}
-                >
+              <div
+                {...getRootProps()}
+                className={clsx(
+                  "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest w-fit min-w-16 relative",
+                  compact ? "p-1 bg-transparent" : "bg-card-light"
+                )}
+              >
+                <input {...getInputProps()} />
+                <div className="relative">
+                  <img
+                    src={defaultImage}
+                    alt="Default"
+                    className={clsx(
+                      "rounded-lg object-contain bg-card-lightest",
+                      compact ? "w-12 h-12" : "w-48 h-48"
+                    )}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 rounded-lg">
+                    <span className="text-white text-sm font-medium">Edit</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Dropzone>
+        </div>
+      ) : (
+        <div data-testid="dropzone">
+          <Dropzone
+            accept={{ "image/": ["*"] }}
+            onDrop={onDrop}
+            maxFiles={maxFiles}
+            {...rest}
+          >
+            {({ getRootProps, getInputProps }) => (
+              <div
+                {...getRootProps()}
+                className={clsx(
+                  "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest w-fit min-w-16",
+                  files.length ? "shadow-xl" : "",
+                  compact ? "p-1 bg-transparent" : "bg-card-light"
+                )}
+              >
                 <input {...getInputProps()} />
                 <div className="text-secondary flex items-center flex-col">
                   <PhotographIcon width={48} height={48} />
