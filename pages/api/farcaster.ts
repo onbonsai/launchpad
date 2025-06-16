@@ -31,7 +31,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       iconUrl,
       homeUrl,
       "buttonTitle": "Remix AI media",
-      "splashImageUrl": "",
+      splashImageUrl,
       "splashBackgroundColor": "#000000",
       "webhookUrl": "https://api.neynar.com/f/app/8d476d5a-532d-4865-aedb-416481cf00c7/event",
       "primaryCategory": "social",
