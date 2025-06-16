@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { switchChain } from "viem/actions";
 import { account } from "@lens-protocol/metadata";
 import { sdk } from "@farcaster/frame-sdk";
-import { createAccountWithUsername, fetchAccount, addAccountManager } from "@lens-protocol/client/actions";
+import { createAccountWithUsername, fetchAccount } from "@lens-protocol/client/actions";
 import { evmAddress, never } from "@lens-protocol/client";
 import { lensClient, storageClient } from "@src/services/lens/client";
 import { BONSAI_NAMESPACE, getChain, LENS_BONSAI_APP, SAGE_EVM_ADDRESS } from "@src/services/madfi/utils";
@@ -160,6 +160,7 @@ const LoginWithLensModal = ({ closeModal }) => {
       const result = await createAccountWithUsername(sessionClient, {
         username: { localName: `${editedUsername || context.user.username}`, namespace: evmAddress(BONSAI_NAMESPACE) },
         metadataUri,
+        accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
       }).andThen(handleOperationWith(lensWalletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
@@ -172,21 +173,6 @@ const LoginWithLensModal = ({ closeModal }) => {
       if (result.isErr()) throw new Error(result.error.message);
 
       sessionClient = result.value;
-
-      // console.log("enabling profile manager...");
-      // // enable Sage as profile manager
-      // const result2 = await addAccountManager(sessionClient, {
-      //   address: evmAddress(SAGE_EVM_ADDRESS),
-      //   permissions: {
-      //     canExecuteTransactions: true,
-      //     canTransferTokens: false,
-      //     canTransferNative: false,
-      //     canSetMetadataUri: false,
-      //   },
-      // }).andThen(handleOperationWith(lensWalletClient))
-      //   .andThen(sessionClient.waitForTransaction);
-
-      // if (result2.isErr()) throw new Error(result2.error.message);
 
       // create the replika in our db
       let idToken;

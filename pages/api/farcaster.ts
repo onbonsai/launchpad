@@ -7,9 +7,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   let splashImageUrl;
   if (process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "84532") {
     accountAssociation = {
-      "header": "eyJmaWQiOjk0ODQzMSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEVhMDUwNDliYjg5QjkwMmNCQTM3QjA1YTg4Mzk5MzExMTVDRmYxNjcifQ",
+      "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
       "payload": "eyJkb21haW4iOiJ0ZXN0bmV0Lm9uYm9ucy5haSJ9",
-      "signature": "MHgwZGUwM2U1MmEwYjY2MWJjOTcyMDA3MzI0YjYzNzM1YjRmOTU2MWZiODM0Y2RlMzNmOTlmOTg1MDczMTdiNmY5MDVhMDY3MmFhN2E3YmY2YjJlODRkYTJhNjkxNmY0Yzk1OTQ1NjdkYjg1M2U0NWFhYWM2YTZhYjEwZWEzNGNiNTFj"
+      "signature": "MHhiMjlkYzA4ZmQ1OGYzOTI3NjY2MzEzMjY1ZGJmMTg2YmJiOGM5ZmM2ZmZmYWVmYjUyOTgyN2VjM2JmYmE2NGZlNWI1NDcyNWFkNTFkNThkY2Y5NzkwMjlmYThmZGVjZjI2MmQ4NDBiN2U5NWFhNTI4MWEzYWE2NmZlZTk2YzIwMDFj"
     };
     homeUrl = "https://testnet.onbons.ai"
     splashImageUrl = "https://testnet.onbons.ai/splash.jpg";
