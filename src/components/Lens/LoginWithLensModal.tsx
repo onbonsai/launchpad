@@ -429,10 +429,14 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
                 <span className="text-grey">Mint a profile on Lens {"->"}</span>
               </a>
             </Button>
-            <div className="my-4">
-              <a href="https://orb.club/" target="_blank">
-                <span className="text-grey link-hover cursor-pointer">Download Orb for mobile {"->"}</span>
-              </a>
+            <div className="flex justify-between items-end mt-4 text-sm gap-x-4 pb-6">
+              <div></div>
+              <span
+                className="link link-hover text-brand-highlight cursor-pointer"
+                onClick={async () => { closeModal(); disconnect(); }}
+              >
+                Switch wallets
+              </span>
             </div>
           </div>
         ) : (
