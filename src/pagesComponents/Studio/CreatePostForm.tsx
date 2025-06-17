@@ -373,7 +373,7 @@ const CreatePostForm = ({
   };
 
   const handleNext = () => {
-    if (storyboardClips.length > 0) {
+    if (storyboardClips?.length > 0) {
       if (!preview) {
         // If there's no current preview, set the first clip as the preview
         setPreview(storyboardClips[0].preview);
@@ -542,7 +542,7 @@ const CreatePostForm = ({
     >
       <div className="space-y-4">
         {/* Storyboard Timeline */}
-        {storyboardClips.length > 0 && (
+        {storyboardClips?.length > 0 && (
           <StoryboardTimeline
             clips={storyboardClips}
             setClips={setStoryboardClips}
@@ -727,9 +727,9 @@ const CreatePostForm = ({
         )}
         <Button
           size='md'
-          disabled={isGeneratingPreview || isComposing || (storyboardClips.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
-          onClick={storyboardClips.length > 0 ? handleCompose : handleNext}
-          variant={!template.options.allowPreview || !!preview || storyboardClips.length > 0 ? "accentBrand" : "dark-grey"}
+          disabled={isGeneratingPreview || isComposing || (storyboardClips?.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
+          onClick={storyboardClips?.length > 0 ? handleCompose : handleNext}
+          variant={!template.options.allowPreview || !!preview || storyboardClips?.length > 0 ? "accentBrand" : "dark-grey"}
           className="w-full hover:bg-bullish"
         >
           {isComposing ? 'Composing...' : 'Next'}
