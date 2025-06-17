@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useIsMiniApp } from './useIsMiniApp';
 
 const useIsMobile = () => {
+  const { isMiniApp } = useIsMiniApp();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -15,9 +17,9 @@ const useIsMobile = () => {
 
     // Cleanup the event listener on component unmount
     return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
+  }, [isMiniApp]);
 
-  return isMobile;
+  return isMobile || isMiniApp;
 };
 
 export default useIsMobile;
