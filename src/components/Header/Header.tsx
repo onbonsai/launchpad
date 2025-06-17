@@ -109,7 +109,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
 };
 
 export const Header = () => {
-  const { route } = useRouter();
+  const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [openHelpModal, setOpenHelpModal] = useState(false);
@@ -247,7 +247,7 @@ export const Header = () => {
         setOpen={setOpenSignInModal}
         panelClassnames="text-md bg-card w-full md:p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8"
       >
-        <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
+        <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} modal={query.modal as string | undefined } />
       </Modal>
 
       {/* Help Modal */}

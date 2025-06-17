@@ -32,7 +32,7 @@ import { cacheImageToStorj } from "@src/utils/utils";
 
 const ALLOWANCE_AMOUNTS = [2, 5, 15, 50];
 
-const LoginWithLensModal = ({ closeModal }) => {
+const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, modal?: string }) => {
   const { chain, address, isConnected } = useAccount();
   const { disconnect } = useDisconnect()
   const { profiles, isLoading } = useGetProfiles(address);
@@ -49,7 +49,7 @@ const LoginWithLensModal = ({ closeModal }) => {
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isApprovingBudget, setIsApprovingBudget] = useState(false);
-  const [creationStep, setCreationStep] = useState('create'); // 'create' | 'budget'
+  const [creationStep, setCreationStep] = useState(modal || 'create'); // 'create' | 'budget'
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDisplayName, setEditedDisplayName] = useState('');
