@@ -97,6 +97,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       getVolume(clubId as string, chain as string),
       getRegisteredClubById(clubId as string, chain as string)
     ]);
+    if (!club) return res.status(404).end();
 
     // If club is graduated/completed, fetch data from GeckoTerminal
     let geckoData: GeckoTerminalData | null = null;

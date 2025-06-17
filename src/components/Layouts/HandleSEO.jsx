@@ -91,8 +91,8 @@ const HandleSEO = ({ pageProps }) => {
 
     const frameData = createFrameData(
       absoluteImageUrl,
-      `View ${trimText(`@${handle}`, 12)} on Bonsai`,
-      `${trimText(`@${handle}`, 12)}'s Profile`,
+      "View Profile",
+      `@${handle} on Bonsai`,
       profileUrl
     );
 
@@ -116,8 +116,8 @@ const HandleSEO = ({ pageProps }) => {
 
     const frameData = createFrameData(
       absoluteImageUrl,
-      `View Smart Media by ${trimText(`@${handle}`, 12)}`,
-      `${trimText(`@${handle}`, 12)}'s Smart Media`,
+      "Remix",
+      `Smart Media by @${handle}`,
       postUrl
     );
 
