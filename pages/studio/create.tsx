@@ -33,7 +33,6 @@ import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
 import type { TokenData } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
-import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
@@ -574,21 +573,14 @@ const StudioCreatePage: NextPage = () => {
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
       if (await sdk.isInMiniApp()) {
-        let embeds: string[] = []
-        if (video) {
-          let resolvedVideoUrl = await storageClient.resolve(video?.url)
-          embeds.push(resolvedVideoUrl)
-        }
-        embeds.push(`${SITE_URL}/post/${postId}`)
-        const text = `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`
         await sdk.actions.composeCast({
-          text,
-          embeds: embeds as [string] | [string, string],
+          text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
+          embeds: [`${SITE_URL}/post/${postId}`],
         });
       }
 
       toast.success("Done! Going to post...", { duration: 5000, id: toastId });
-      setTimeout(() => router.push(`/post/${postId}`), 2000);
+      // setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);
       if (error instanceof Error && error.message === "not enough credits") {
