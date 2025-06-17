@@ -34,6 +34,7 @@ const getStorjPublicUrl = (bucket: string, key: string): string => {
     previews: "jwrsmshtwuktk3mv4r242qejirrq",
     audio: "jxs2vvpwyboomtmpa6vpa2bvxmma",
     "token-images": "jwqnkhask2gfydqrp2zkawmbo6hq",
+    videos: "jvusxqy7gycsriztqimvlis5wnfa",
   };
   const endpoint = `https://link.storjshare.io/raw/${keys[bucket]}/${bucket}`;
   return `${endpoint}/${key}`;
@@ -77,7 +78,13 @@ const getExtensionFromContentType = (contentType: string): string => {
     'image/jpg': '.jpg',
     'image/gif': '.gif',
     'image/webp': '.webp',
-    'image/svg+xml': '.svg'
+    'image/svg+xml': '.svg',
+    'video/mp4': '.mp4',
+    'video/webm': '.webm',
+    'video/ogg': '.ogg',
+    'video/avi': '.avi',
+    'video/mov': '.mov',
+    'video/quicktime': '.mov'
   };
   return contentTypeMap[contentType] || '';
 };
@@ -154,5 +161,57 @@ export const fetchImagesStorj = async (ids: string[]) => {
   } catch (error) {
     console.log(error);
     return [];
+  }
+};
+
+export const cacheVideoStorj = async ({ 
+  id, 
+  buffer, 
+  bucket = 'videos', 
+  contentType = 'video/mp4' 
+}: {
+  id: string;
+  buffer: Buffer;
+  bucket?: string;
+  contentType?: string;
+}): Promise<StorjUploadResult> => {
+  if (!STORJ_ACCESS_KEY || !STORJ_SECRET_KEY || !STORJ_ENDPOINT) {
+    return {
+      success: false,
+      error: "Storj credentials are not properly configured",
+    };
+  }
+
+  // Add file extension if not present
+  const extension = getExtensionFromContentType(contentType);
+  const finalId = extension && !id.toLowerCase().endsWith(extension) ? `${id}${extension}` : id;
+
+  const s3 = new S3({
+    accessKeyId: STORJ_ACCESS_KEY,
+    secretAccessKey: STORJ_SECRET_KEY,
+    endpoint: STORJ_ENDPOINT,
+    s3ForcePathStyle: true,
+    signatureVersion: "v4",
+  });
+
+  const params = {
+    Bucket: bucket,
+    Key: finalId,
+    Body: buffer,
+    ContentType: contentType,
+  };
+
+  try {
+    await s3.upload(params).promise();
+    return {
+      success: true,
+      url: getStorjPublicUrl(bucket, finalId),
+    };
+  } catch (error) {
+    console.error("Failed to upload video to Storj:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
   }
 };

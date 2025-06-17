@@ -18,7 +18,7 @@ import { immutable, WalletAddressAcl } from "@lens-chain/storage-client";
 import { franc } from 'franc';
 import { storageClient } from "./client";
 import { LENS_BONSAI_DEFAULT_FEED, LENS_CHAIN_ID } from "../madfi/utils";
-import { parseBase64Image } from "@src/utils/utils";
+import { cacheVideoToStorj, parseBase64Image } from "@src/utils/utils";
 import { lensClient } from "./client";
 
 interface SimpleCollect {
@@ -238,10 +238,29 @@ export const uploadVideo = async (
   _acl?: WalletAddressAcl
 ): Promise<{ uri: URI, type: string }> => {
   const acl = _acl || immutable(LENS_CHAIN_ID);
+  const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB in bytes
 
   // Convert Blob to File for better mobile compatibility
   const arrayBuffer = await videoBlob.arrayBuffer();
   const file = new File([arrayBuffer], `bonsai_generated_${Date.now()}.mp4`, { type: mimeType });
+
+  // Check file size - if > 8MB, use Storj instead
+  if (file.size > MAX_FILE_SIZE) {
+    try {
+      const videoId = `bonsai_video_${Date.now()}`;
+      const storjUrl = await cacheVideoToStorj(videoBlob, videoId);
+      
+      return {
+        uri: uri(storjUrl),
+        type: mimeType
+      };
+    } catch (error) {
+      console.error('Failed to upload large video to Storj, falling back to storage client:', error);
+      // Fall back to storage client even for large files as last resort
+    }
+  }
+
+  // Use storage client for files <= 8MB or as fallback
   const { uri: hash } = await storageClient.uploadFile(file, { acl });
 
   return {
