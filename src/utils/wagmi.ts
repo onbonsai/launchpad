@@ -9,10 +9,12 @@ import { IS_PRODUCTION } from "@src/services/madfi/utils";
 import { sdk } from "@farcaster/frame-sdk";
 
 let configInstance: ReturnType<typeof createConfig> | null = null;
+let configPromise: Promise<ReturnType<typeof createConfig>> | null = null;
 
 export const config = () => {
-  if (!configInstance) {
-    sdk.isInMiniApp().then(isMiniApp => {
+  if (!configPromise) {
+    configPromise = (async () => {
+      const isMiniApp = await sdk.isInMiniApp();
       const options = {
         chains: [lens, lensTestnet, polygon, base, baseSepolia, mainnet, zkSync],
         transports: {
@@ -34,8 +36,10 @@ export const config = () => {
       // @ts-expect-error
       const defaultConfig = getDefaultConfig(options);
       defaultConfig.ssr = false; // https://bonsai-labs-ek.sentry.io/issues/6677952145/?project=4509125819039744&query=is:unresolved&stream_index=1
+      // @ts-expect-error
       configInstance = createConfig(defaultConfig);
-    });
+      return configInstance;
+    })();
   }
   return configInstance;
 };
