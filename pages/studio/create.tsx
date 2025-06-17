@@ -580,7 +580,7 @@ const StudioCreatePage: NextPage = () => {
       }
 
       toast.success("Done! Going to post...", { duration: 5000, id: toastId });
-      // setTimeout(() => router.push(`/post/${postId}`), 2000);
+      setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);
       if (error instanceof Error && error.message === "not enough credits") {
