@@ -229,7 +229,6 @@ const StudioCreatePage: NextPage = () => {
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-
     } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
@@ -553,14 +552,6 @@ const StudioCreatePage: NextPage = () => {
         agentId: currentPreview?.agentId,
         postId,
         uri,
-        video: storyboardClips.length > 0 ? {
-          storyboard: storyboardClips.map(clip => ({
-            agentId: clip.id,
-            startTime: clip.startTime,
-            endTime: clip.endTime,
-          })),
-          audio: storyboardAudio,
-        } : undefined,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
           chain: _finalTokenData.selectedNetwork,
           address: tokenAddress,
@@ -575,11 +566,6 @@ const StudioCreatePage: NextPage = () => {
           templateName: template.name,
           category: template.category,
           templateData: finalTemplateData,
-          storyboard: storyboardClips.length > 0 ? storyboardClips.map(clip => ({
-            agentId: clip.id,
-            startTime: clip.startTime,
-            endTime: clip.endTime,
-          })) : undefined,
         },
       }));
 
