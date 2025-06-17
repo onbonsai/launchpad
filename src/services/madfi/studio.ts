@@ -9,6 +9,7 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
+import type { StoryboardClip } from "@pages/studio/create";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
@@ -202,7 +203,7 @@ export const generatePreview = async (
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
       body: formData,
-      signal: AbortSignal.timeout(120000) // 2 minutes instead of default ~15s
+      signal: AbortSignal.timeout(160000) // 2.5 minutes instead of default ~15s
     });
 
     if (!response.ok) {
@@ -574,6 +575,7 @@ type SmartMediaLight = {
 export const fetchSmartMedia = async (post: Post, resolve?: boolean): Promise<SmartMediaLight | SmartMedia | null> => {
   const LENS_BONSAI_APP = "0x640c9184b31467C84096EB2829309756DDbB3f44";
   // handle root post
+  // @ts-ignore
   const attributes = !post.root ? post.metadata.attributes : post.root.metadata.attributes;
   const slug = !post.root ? post.slug : post.root.slug;
 
@@ -582,9 +584,13 @@ export const fetchSmartMedia = async (post: Post, resolve?: boolean): Promise<Sm
   if (resolve) {
     return await resolveSmartMedia(attributes, slug, true);
   } else {
+    // @ts-ignore
     const template = post.metadata.attributes?.find(({ key }) => key === "template");
+    // @ts-ignore
     const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
+    // @ts-ignore
     const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
+    // @ts-ignore
     const isCanvas = post.metadata.attributes?.find(({ key }) => key === "isCanvas");
 
     return {
@@ -619,3 +625,77 @@ const _getIdToken = async (): Promise<string | undefined> => {
     }
   }
 }
+
+export const composeStoryboard = async (
+  url: string,
+  idToken: string,
+  clips: StoryboardClip[],
+  audio: File | string | null,
+  audioStartTime: number,
+  roomId?: string,
+): Promise<GeneratePreviewResponse | undefined> => {
+  try {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify({
+      roomId,
+      storyboard: clips.map(clip => ({
+        agentId: clip.id,
+        startTime: clip.startTime,
+        endTime: clip.endTime,
+      })),
+      audioStartTime,
+    }));
+
+    if (audio && audio instanceof File) {
+      formData.append('audio', audio);
+    } else if (typeof audio === 'string') {
+      formData.append('data', JSON.stringify({
+        ...JSON.parse(formData.get('data') as string),
+        audioUrl: audio,
+      }));
+    }
+
+    const response = await fetch(`${url}/storyboard/compose`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${idToken}` },
+      body: formData,
+      signal: AbortSignal.timeout(300000) // 5 minutes for composition
+    });
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        const errorText = await response.text();
+        if (errorText.includes("not enough credits")) {
+          throw new Error("not enough credits");
+        }
+      }
+      throw new Error(`Composition failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.preview?.video) {
+      const videoData = new Uint8Array(data.preview.video.buffer);
+      const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
+      return {
+        preview: {
+          video: {
+            mimeType: data.preview.video.mimeType,
+            size: videoBlob.size,
+            blob: videoBlob,
+            url: URL.createObjectURL(videoBlob),
+          },
+          ...(data.preview.image && { image: data.preview.image }),
+          text: data.preview.text,
+        },
+        agentId: data.agentId,
+        roomId: data.roomId
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
