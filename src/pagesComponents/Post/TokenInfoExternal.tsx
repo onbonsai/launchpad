@@ -16,7 +16,7 @@ import { sdk } from "@farcaster/frame-sdk";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from "@src/components/Icons/CoinPile";
-import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getChain, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -63,7 +63,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   const { data: tokenBalance } = useReadContract({
     address: token.address,
     abi: erc20Abi,
-    chainId: token.chain === "lens" ? 137 : 8453, // Lens is on Polygon (137), Base is 8453
+    chainId: getChain(token.chain).id,
     functionName: "balanceOf",
     args: [address!],
     query: {
@@ -74,7 +74,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   const buyOnClick = async () => {
     if (isMiniApp) {
-      const chainId = token.chain === "lens" ? "232" : "8453";
+      const chainId = getChain("base").id;
       await sdk.actions.swapToken({
         sellToken: `eip155:${chainId}/native`,
         buyToken: `eip155:${chainId}/erc20:${token.address}`,

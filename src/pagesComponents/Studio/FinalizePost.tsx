@@ -1,6 +1,7 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useEffect, useState } from "react";
 import { InfoOutlined, LocalAtmOutlined } from "@mui/icons-material";
+import { useDebounce } from "use-debounce";
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
@@ -87,24 +88,27 @@ export const FinalizePost = ({
 
   // Local state for the textarea content before sending
   const [localPostContent, setLocalPostContent] = useState(postContent);
+  const [debouncedContent] = useDebounce(localPostContent, 500);
 
   // Update local content when postContent prop changes
   useEffect(() => {
     setLocalPostContent(postContent);
   }, [postContent]);
 
-  // Function to handle sending the content update
-  const handleSendContent = () => {
-    setPostContent(localPostContent);
+  // Effect to handle debounced content updates
+  useEffect(() => {
+    if (debouncedContent !== postContent) {
+      setPostContent(debouncedContent);
 
-    // Update preview text immediately
-    if (currentPreview && setCurrentPreview) {
-      setCurrentPreview({
-        ...currentPreview,
-        text: localPostContent,
-      });
+      // Update preview text immediately
+      if (currentPreview && setCurrentPreview) {
+        setCurrentPreview({
+          ...currentPreview,
+          text: debouncedContent,
+        });
+      }
     }
-  };
+  }, [debouncedContent, postContent, setPostContent, currentPreview, setCurrentPreview]);
 
   useEffect(() => {
     const fetchBonsaiPrice = async () => {
@@ -144,25 +148,8 @@ export const FinalizePost = ({
                 placeholder="Update the content and hit preview to see the changes"
                 value={localPostContent}
                 onChange={(e) => setLocalPostContent(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    if (localPostContent !== postContent) {
-                      handleSendContent();
-                    }
-                  }
-                }}
-                className={`${sharedInputClasses} w-full min-h-[40px] p-4 pr-12 resize-none`}
+                className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}
               />
-              <button
-                type="button"
-                onClick={handleSendContent}
-                disabled={localPostContent === postContent}
-                className="absolute bottom-4 right-2 p-2 rounded-lg bg-brand-highlight/10 hover:bg-brand-highlight/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                title="Update preview"
-              >
-                <span className="text-brand-highlight text-sm">Update</span>
-              </button>
             </div>
           </div>
         )}

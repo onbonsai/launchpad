@@ -33,6 +33,7 @@ export const config = () => {
       }
       // @ts-expect-error
       const defaultConfig = getDefaultConfig(options);
+      defaultConfig.ssr = false; // https://bonsai-labs-ek.sentry.io/issues/6677952145/?project=4509125819039744&query=is:unresolved&stream_index=1
       configInstance = createConfig(defaultConfig);
     });
   }

@@ -63,8 +63,8 @@ export default async function handler(req: NextRequest) {
       profileImageUrl = storjGatewayURL(profileImageUrl, true);
     }
 
-    // Get first 50 characters of post content for display
-    const truncatedContent = postContent ? postContent.substring(0, 50) + (postContent.length > 50 ? "..." : "") : "";
+    // Get first 75 characters of post content for display
+    const truncatedContent = postContent ? postContent.substring(0, 75) + (postContent.length > 75 ? "..." : "") : "";
 
     // Create a dynamic image based on the parameters
     return new ImageResponse(

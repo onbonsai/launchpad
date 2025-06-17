@@ -5,7 +5,7 @@ import { CheckCircleIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import { useModal } from "connectkit";
 import { useDisconnect } from 'wagmi'
-import { erc20Abi, formatUnits, parseUnits, WalletClient } from "viem";
+import { erc20Abi, formatUnits, parseUnits, createWalletClient, http } from "viem";
 import toast from "react-hot-toast";
 import { switchChain } from "viem/actions";
 import { account } from "@lens-protocol/metadata";
@@ -113,6 +113,12 @@ const LoginWithLensModal = ({ closeModal }) => {
 
     setIsCreatingProfile(true);
     try {
+      const lensWalletClient = createWalletClient({
+        account: walletClient.account,
+        chain: getChain("lens"),
+        transport: http()
+      });
+
       // authenticate as onboarding user
       const authenticated = await lensClient.login({
         onboardingUser: {
@@ -154,7 +160,7 @@ const LoginWithLensModal = ({ closeModal }) => {
         metadataUri,
         accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
         enableSignless: true,
-      }).andThen(handleOperationWith({} as WalletClient))
+      }).andThen(handleOperationWith(lensWalletClient))
         .andThen(sessionClient.waitForTransaction)
         .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
         .andThen((account) =>

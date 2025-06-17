@@ -60,12 +60,7 @@ const Publications = dynamic(
 // Add the dynamic import for PublicationContainer with loading state
 const PublicationContainer = dynamic(
   () => import("@src/components/Publication/PublicationContainer"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-    )
-  }
+  { ssr: false }
 );
 
 const COMMENT_SCORE_THRESHOLD = 500;
@@ -222,8 +217,12 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   };
 
   const isLoadingPage = useMemo(() => {
-    return isLoading;
-  }, [isLoading, isConnected]);
+    if (passedPostData) return false;
+    if (isLoadingPublication) return true;
+    if (isLoadingAgentInfo) return true;
+
+    return false;
+  }, [isLoadingPublication, isLoadingAgentInfo, passedPostData]);
 
   const conversationId = useMemo(() => {
     if (isMounted && !isLoadingPage)
@@ -476,7 +475,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
               )}
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
               {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
-              <div className="overflow-y-hidden h-full">
+              <div className="overflow-y-hidden h-full space-y-4">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">
                     <Spinner customClasses="h-6 w-6" color="#5be39d" />
@@ -510,7 +509,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             {currentVersionIndex === null ? 'Current Version' : `Version ${currentVersionIndex + 1} of ${(media?.versions?.length ?? 0) + 1} (${formatRelativeDate(new Date(getPublicationData.timestamp))})`}
                           </div>
                         )}
-                        <div className="hidden sm:block">
+                        <div className="hidden sm:block animate-fade-in-down">
                           <PublicationContainer
                             key={`pub-${getPublicationData.id}-v-${currentVersionIndex ?? 'current'}`}
                             publication={getPublicationData}
