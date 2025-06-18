@@ -16,7 +16,7 @@ import { sdk } from "@farcaster/frame-sdk";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from "@src/components/Icons/CoinPile";
-import { getChain, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { getChain } from "@src/services/madfi/utils";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -120,12 +120,16 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => (
     <div
-      className="min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg"
+      className={`min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg ${
+        isConnected
+          ? "bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer"
+          : "bg-dark-grey text-white/50 cursor-not-allowed"
+      }`}
       onClick={(e) => (isConnected ? onClick(e) : null)}
     >
       <div className="flex items-center gap-x-1.5 md:gap-x-3">
-        <CoinPile className="w-6 h-6 md:w-7 md:h-7 -mt-1" color="text-black" />
-        <BodySemiBold className={`text-md md:text-md ${brandFont.className} ${!isConnected ? "opacity-50" : ""}`}>
+        <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1 ${!isConnected ? "opacity-80" : ""}`} />
+        <BodySemiBold className={`text-md md:text-md ${brandFont.className}`}>
           BUY
         </BodySemiBold>
       </div>
@@ -138,7 +142,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
-      <div className="relative w-full h-[190px] md:h-[63px] rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
+      <div className="relative w-full rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
           <SafeImage
             src={logo}

@@ -16,12 +16,23 @@ interface AudioUploaderProps {
   setStartTime: (t: number) => void;
   audioDuration?: number;
   compact?: boolean;
+  onAddToStoryboard?: () => void;
+  isAddedToStoryboard?: boolean;
 }
 
 const MAX_SIZE = 10_000_000; // 10MB
 const DEFAULT_CLIP_LENGTH = 10; // 10 seconds
 
-export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime, setStartTime, audioDuration, compact = false }) => {
+export const AudioUploader: FC<AudioUploaderProps> = ({
+  file,
+  setFile,
+  startTime,
+  setStartTime,
+  audioDuration,
+  compact = false,
+  onAddToStoryboard,
+  isAddedToStoryboard,
+}) => {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurfer = useRef<WaveSurfer | null>(null);
   const regionsPlugin = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
@@ -143,7 +154,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime
     <div className={clsx("space-y-4", compact ? "space-y-2" : "")}>
       {file ? (
         <div className={clsx(
-          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-3 border-card-lightest",
+          "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all p-3 border-card-lightest",
           "bg-card-light"
         )}>
           <div className="flex flex-row w-full items-center justify-between relative">
@@ -171,6 +182,18 @@ export const AudioUploader: FC<AudioUploaderProps> = ({ file, setFile, startTime
               <span className={clsx("text-white/60", compact ? "text-xs" : "text-sm")}>
                 {formatTime(startTime)} - {formatTime(endTime)}
               </span>
+              {onAddToStoryboard && (
+                <Button
+                  type="button"
+                  size="xs"
+                  variant={isAddedToStoryboard ? "primary" : "accentBrand"}
+                  className={clsx("w-fit ml-auto", compact ? "max-h-5" : "max-h-6")}
+                  onClick={onAddToStoryboard}
+                  disabled={isAddedToStoryboard}
+                >
+                  {isAddedToStoryboard ? "Added" : "Add to Storyboard"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -33,10 +33,17 @@ import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
 import type { TokenData } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
-import { storageClient } from "@src/services/lens/client";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+
+export interface StoryboardClip {
+  id: string; // agentId of the preview
+  preview: Preview;
+  startTime: number;
+  endTime: number; // Will be clip duration initially
+  duration: number;
+}
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -57,6 +64,8 @@ const StudioCreatePage: NextPage = () => {
   const [postAudio, setPostAudio] = useState<File | string | null>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
   const [addToken, setAddToken] = useState(true);
+  const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
+  const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
@@ -221,7 +230,6 @@ const StudioCreatePage: NextPage = () => {
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
-
     } else if (addToken && finalTokenData && finalTokenData.tokenName && finalTokenData.tokenSymbol && finalTokenData.tokenImage && !remixMedia?.agentId) {
       try {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
@@ -565,16 +573,9 @@ const StudioCreatePage: NextPage = () => {
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
       if (await sdk.isInMiniApp()) {
-        let embeds: string[] = []
-        if (video) {
-          let resolvedVideoUrl = await storageClient.resolve(video?.url)
-          embeds.push(resolvedVideoUrl)
-        }
-        embeds.push(`${SITE_URL}/post/${postId}`)
-        const text = `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`
         await sdk.actions.composeCast({
-          text,
-          embeds: embeds as [string] | [string, string],
+          text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
+          embeds: [`${SITE_URL}/post/${postId}`],
         });
       }
 
@@ -651,6 +652,10 @@ const StudioCreatePage: NextPage = () => {
                               setPostAudio={setPostAudio}
                               audioStartTime={audioStartTime}
                               setAudioStartTime={setAudioStartTime}
+                              storyboardClips={storyboardClips}
+                              setStoryboardClips={setStoryboardClips}
+                              storyboardAudio={storyboardAudio}
+                              setStoryboardAudio={setStoryboardAudio}
                             />
                           </>
                         )}
@@ -714,6 +719,8 @@ const StudioCreatePage: NextPage = () => {
                         isFinalize={openTab > 1}
                         postImage={postImage}
                         setPostContent={setPostContent}
+                        storyboardClips={storyboardClips}
+                        setStoryboardClips={setStoryboardClips}
                       />
                     </div>
                   </div>

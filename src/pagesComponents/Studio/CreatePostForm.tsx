@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import imageCompression from "browser-image-compression";
 import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
-import { enhancePrompt } from "@src/services/madfi/studio";
+import { enhancePrompt, generatePreview, composeStoryboard } from "@src/services/madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
 
 import { Tooltip } from "@src/components/Tooltip";
@@ -13,7 +13,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined, ExpandMore, ExpandLess } from "@mui/icons-material";
-import { generatePreview, MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
+import { MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { brandFont } from "@src/fonts/fonts";
@@ -27,6 +27,8 @@ import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import type { StoryboardClip } from "@pages/studio/create";
+import StoryboardTimeline from "./StoryboardTimeline";
 
 type CreatePostProps = {
   template: Template;
@@ -58,6 +60,10 @@ type CreatePostProps = {
   remixPostId?: string;
   remixMediaTemplateData?: any;
   onClose?: () => void;
+  storyboardClips: StoryboardClip[];
+  setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  storyboardAudio: File | string | null;
+  setStoryboardAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
 };
 
 function getBaseZodType(field: any) {
@@ -109,7 +115,11 @@ const CreatePostForm = ({
   remixToken,
   remixPostId,
   remixMediaTemplateData,
-  onClose
+  onClose,
+  storyboardClips,
+  setStoryboardClips,
+  storyboardAudio,
+  setStoryboardAudio
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -120,6 +130,7 @@ const CreatePostForm = ({
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
   const [enhancedText, setEnhancedText] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
   const textareaRef = useAutoGrow(prompt || '');
@@ -362,7 +373,12 @@ const CreatePostForm = ({
   };
 
   const handleNext = () => {
-    if ((prompt || postContent || postImage?.length || !preview?.image)) {
+    if (storyboardClips?.length > 0) {
+      if (!preview) {
+        // If there's no current preview, set the first clip as the preview
+        setPreview(storyboardClips[0].preview);
+      }
+    } else if ((prompt || postContent || postImage?.length || !preview?.image)) {
       setPreview({
         text: prompt || postContent || "",
         image: preview?.image || (postImage?.length ? postImage[0] : undefined),
@@ -374,6 +390,56 @@ const CreatePostForm = ({
     }
     next(templateData);
   }
+
+  const handleCompose = async () => {
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) return;
+
+    const creds = await sessionClient.getCredentials();
+    let idToken;
+    if (creds.isOk()) {
+      idToken = creds.value?.idToken;
+    } else {
+      toast.error("Must be logged in");
+      return;
+    }
+
+    setIsComposing(true);
+    let toastId = toast.loading("Composing video... this might take a few minutes.");
+
+    try {
+      const res = await composeStoryboard(
+        template.apiUrl,
+        idToken,
+        storyboardClips,
+        storyboardAudio,
+        audioStartTime || 0,
+        roomId
+      );
+
+      if (!res) throw new Error("No result from composeStoryboard");
+      const { agentId, preview, roomId: newRoomId } = res;
+
+      if (!preview) throw new Error("No preview");
+
+      setPreview({
+        ...preview,
+        text: preview.text || postContent,
+        agentId,
+        roomId: newRoomId,
+        templateData,
+        templateName: template.name,
+      });
+
+      toast.success("Done", { id: toastId, duration: 2000 });
+      next(templateData); // Move to the next step
+    } catch (error) {
+      console.error("Error composing storyboard:", error);
+      toast.error("Failed to compose storyboard", { id: toastId });
+    } finally {
+      setIsComposing(false);
+    }
+  };
 
   const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
@@ -475,6 +541,16 @@ const CreatePostForm = ({
       }}
     >
       <div className="space-y-4">
+        {/* Storyboard Timeline */}
+        {storyboardClips?.length > 0 && (
+          <StoryboardTimeline
+            clips={storyboardClips}
+            setClips={setStoryboardClips}
+            audio={storyboardAudio}
+            setAudio={setStoryboardAudio}
+          />
+        )}
+
         {/* Compact Subtemplate Selector */}
         {hasSubTemplates && (
           <div className="space-y-2">
@@ -554,6 +630,8 @@ const CreatePostForm = ({
                 setStartTime={setAudioStartTime}
                 audioDuration={template.options?.audioDuration}
                 compact
+                onAddToStoryboard={() => postAudio && setStoryboardAudio(postAudio)}
+                isAddedToStoryboard={!!storyboardAudio && postAudio === storyboardAudio}
               />
             )}
           </div>
@@ -647,8 +725,14 @@ const CreatePostForm = ({
             }
           </Button>
         )}
-        <Button size='md' disabled={isGeneratingPreview || (!preview && (!isValid() || template.options.allowPreview))} onClick={handleNext} variant={!template.options.allowPreview || !!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
-          Next
+        <Button
+          size='md'
+          disabled={isGeneratingPreview || isComposing || (storyboardClips?.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
+          onClick={storyboardClips?.length > 0 ? handleCompose : handleNext}
+          variant={!template.options.allowPreview || !!preview || storyboardClips?.length > 0 ? "accentBrand" : "dark-grey"}
+          className="w-full hover:bg-bullish"
+        >
+          {isComposing ? 'Composing...' : 'Next'}
         </Button>
       </div>
     </form>

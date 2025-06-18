@@ -13,6 +13,9 @@ import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import { DownloadIcon } from '@heroicons/react/outline';
 import { RefreshIcon } from '@heroicons/react/outline';
 import Spinner from '@src/components/LoadingSpinner/LoadingSpinner';
+import { FilmIcon } from '@heroicons/react/solid';
+import type { StoryboardClip } from '@pages/studio/create';
+import { toast } from 'react-hot-toast';
 
 type PreviewHistoryProps = {
   currentPreview?: Preview;
@@ -38,6 +41,8 @@ type PreviewHistoryProps = {
   isFinalize: boolean;
   postImage?: any[];
   setPostContent: (c: string) => void;
+  storyboardClips: StoryboardClip[];
+  setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
 };
 
 type MemoryPreview = Memory & {
@@ -66,10 +71,13 @@ export default function PreviewHistory({
   isFinalize,
   postImage,
   setPostContent,
+  storyboardClips,
+  setStoryboardClips,
 }: PreviewHistoryProps) {
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
+  const videoRefs = useRef<Record<string, HTMLVideoElement>>({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
   const { data: registeredTemplates } = useRegisteredTemplates();
@@ -337,6 +345,7 @@ export default function PreviewHistory({
           } : undefined;
           const selected = preview?.agentId === currentPreview?.agentId;
           const isLastMessage = index === sortedMessages.length - 1;
+          const isClipInStoryboard = storyboardClips.some(clip => clip.id === preview?.agentId);
 
           return (
             <div
@@ -345,20 +354,72 @@ export default function PreviewHistory({
               className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
             >
               <div className="relative">
-                {/* Download button - only show if there's media to download */}
-                {(preview?.image || preview?.video) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
-                      downloadMedia(preview, filename);
+                {/* Hidden video element to get duration */}
+                {preview?.video && (
+                  <video
+                    ref={el => {
+                      if (el && preview.agentId) {
+                        videoRefs.current[preview.agentId] = el;
+                      }
                     }}
-                    className="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/70 hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
-                    title="Download media"
-                  >
-                    <DownloadIcon className="w-5 h-5 text-white" />
-                  </button>
+                    src={typeof preview.video === 'string' ? preview.video : preview.video.url}
+                    preload="metadata"
+                    className="hidden"
+                  />
                 )}
+                {/* Action buttons */}
+                <div className="absolute bottom-3 right-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Add to Storyboard button - only for videos */}
+                  {preview?.video && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (storyboardClips.length >= 10) {
+                          toast.error("You can add a maximum of 10 clips to the storyboard.");
+                          return;
+                        }
+                        if (isClipInStoryboard) return;
+
+                        const videoEl = preview.agentId ? videoRefs.current[preview.agentId] : null;
+                        const duration = videoEl ? videoEl.duration : 0;
+
+                        if (duration === 0) {
+                          toast.error("Could not determine video duration. Please try again.");
+                          return;
+                        }
+
+                        setStoryboardClips(prev => [...prev, {
+                          id: preview.agentId as string,
+                          preview: preview as Preview,
+                          startTime: 0,
+                          endTime: duration,
+                          duration,
+                        }]);
+                        toast.success("Added to storyboard!");
+                      }}
+                      className={`flex items-center gap-2 bg-black/70 rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
+                      title={isClipInStoryboard ? "Already in storyboard" : "Add to storyboard"}
+                      disabled={isClipInStoryboard || storyboardClips.length >= 10}
+                    >
+                      <FilmIcon className="w-5 h-5 text-white" /> Add to storyboard
+                    </button>
+                  )}
+
+                  {/* Download button - only show if there's media to download */}
+                  {(preview?.image || preview?.video) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
+                        downloadMedia(preview, filename);
+                      }}
+                      className="bg-black/70 hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
+                      title="Download media"
+                    >
+                      <DownloadIcon className="w-5 h-5 text-white" />
+                    </button>
+                  )}
+                </div>
 
                 <Publication
                   key={`preview-${message.id}`}

@@ -475,7 +475,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
               )}
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
               {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
-              <div className="overflow-y-hidden h-full space-y-4">
+              <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">
                     <Spinner customClasses="h-6 w-6" color="#5be39d" />
@@ -616,7 +616,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           </div>
                         </>
                       )}
-                      <div className="animate-fade-in-down">
+                      <div className="animate-fade-in-down pt-4">
                         {isMounted && (
                           <>
                             <Publications

@@ -30,7 +30,7 @@ import { publicClient, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/service
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { cacheImageToStorj } from "@src/utils/utils";
 
-const ALLOWANCE_AMOUNTS = [2, 5, 15, 50];
+const ALLOWANCE_AMOUNTS = [5, 10, 25, 50];
 
 const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, modal?: string }) => {
   const { chain, address, isConnected } = useAccount();
@@ -195,8 +195,7 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
       // Handle successful profile creation
       await fullRefetch();
 
-      // Instead of closing modal, move to budget step
-      setCreationStep('budget');
+      closeModal();
     } catch (error) {
       console.error("Error creating profile:", error);
       toast.error(`Failed to create profile`, { duration: 5000 });
@@ -236,7 +235,11 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
 
       // Prompt to add mini app
       if (!(await sdk.context).client.added) {
-        await sdk.actions.addMiniApp();
+        try {
+          await sdk.actions.addMiniApp();
+        } catch (error) {
+          console.log(error);
+        }
       }
     } catch (error) {
       console.error("Error approving budget:", error);
@@ -255,7 +258,7 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
   }
 
   // Mini App Profile Creation Flow
-  if (isMiniApp && !profiles?.length) {
+  if (isMiniApp && (!profiles?.length || creationStep === "budget")) {
     return (
       <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
         {creationStep === 'create' && (
@@ -429,10 +432,14 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
                 <span className="text-grey">Mint a profile on Lens {"->"}</span>
               </a>
             </Button>
-            <div className="my-4">
-              <a href="https://orb.club/" target="_blank">
-                <span className="text-grey link-hover cursor-pointer">Download Orb for mobile {"->"}</span>
-              </a>
+            <div className="flex justify-between items-end mt-4 text-sm gap-x-4 pb-6">
+              <div></div>
+              <span
+                className="link link-hover text-brand-highlight cursor-pointer"
+                onClick={async () => { closeModal(); disconnect(); }}
+              >
+                Switch wallets
+              </span>
             </div>
           </div>
         ) : (

@@ -70,16 +70,16 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
 
     return (
       <div
-        className="min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg"
-        onClick={(e) => isConnected ? handleClick(e) : null}
+        className={`min-w-[88px] md:min-w-[120px] flex flex-col items-center justify-center border border-card-light py-1.5 md:py-3 gap-y-1 px-3 md:px-6 transition-colors duration-200 ease-in-out flex-1 md:rounded-xl rounded-lg ${
+          isConnected
+            ? "bg-brand-highlight text-black hover:bg-brand-highlight/80 cursor-pointer"
+            : "bg-dark-grey text-white/50 cursor-not-allowed"
+        }`}
+        onClick={(e) => (isConnected ? handleClick(e) : null)}
       >
         <div className="flex items-center gap-x-1.5 md:gap-x-3">
-          <CoinPile className="w-6 h-6 md:w-7 md:h-7 -mt-1" color="text-black" />
-          <BodySemiBold
-            className={`text-md md:text-md ${brandFont.className} ${!isConnected ? 'opacity-50' : ''}`}
-          >
-            BUY
-          </BodySemiBold>
+          <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1 ${!isConnected ? "opacity-80" : ""}`} />
+          <BodySemiBold className={`text-md md:text-md ${brandFont.className}`}>BUY</BodySemiBold>
         </div>
       </div>
     );

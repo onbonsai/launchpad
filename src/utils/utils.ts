@@ -569,3 +569,35 @@ export const cacheImageToStorj = async (imageData: string | Blob, id: string, bu
   }
   return result.url;
 };
+
+export const cacheVideoToStorj = async (videoData: string | Blob, id: string, bucket: string = 'videos') => {
+  let base64Data: string;
+
+  if (videoData instanceof Blob) {
+    // Convert Blob to base64
+    const arrayBuffer = await videoData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const mimeType = videoData.type;
+    base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } else {
+    // If it's already a base64 string, use it as is
+    base64Data = videoData;
+  }
+
+  const response = await fetch('/api/storj/cache-video', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      videoData: base64Data,
+      id,
+      bucket
+    })
+  });
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to cache video');
+  }
+  return result.url;
+};

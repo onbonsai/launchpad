@@ -6,7 +6,7 @@ import { type Account, evmAddress, SessionClient } from "@lens-protocol/client";
 import { currentSession, fetchAccount, fetchAccountsAvailable } from "@lens-protocol/client/actions";
 import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
 import { createWalletClient, http, WalletClient } from "viem";
-import { getChain, IS_PRODUCTION, LENS_BONSAI_APP } from "@src/services/madfi/utils";
+import { getChain, IS_PRODUCTION, LENS_BONSAI_APP, SAGE_EVM_ADDRESS } from "@src/services/madfi/utils";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const fetchAvailableAccounts = async (address: string) => {
@@ -105,26 +105,6 @@ export const useIsAuthenticated = () => {
     },
     enabled: true,
   });
-};
-
-// only used server-side
-export const loginAsManager = async (account: `0x${string}`): Promise<{ success: boolean, walletClient: any }> => {
-  const walletClient = createWalletClient({
-    chain: getChain("lens"),
-    account: privateKeyToAccount(process.env.SAGE_EVM_PRIVATE_KEY as `0x${string}`),
-    transport: http(IS_PRODUCTION ? process.env.NEXT_PUBLIC_LENS_RPC as string : undefined),
-  });
-  const authenticated = await lensClient.login({
-    accountManager: {
-      app: LENS_BONSAI_APP,
-      manager: address,
-      account,
-    },
-    signMessage: (message) => walletClient.signMessage({ account, message }),
-  });
-
-  const success = authenticated.isOk();
-  return { success, walletClient };
 };
 
 // basic login, for more functionality. see `useLensSignIn`
