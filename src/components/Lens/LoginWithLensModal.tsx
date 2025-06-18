@@ -195,8 +195,7 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
       // Handle successful profile creation
       await fullRefetch();
 
-      // Instead of closing modal, move to budget step
-      setCreationStep('budget');
+      closeModal();
     } catch (error) {
       console.error("Error creating profile:", error);
       toast.error(`Failed to create profile`, { duration: 5000 });
