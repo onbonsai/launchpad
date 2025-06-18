@@ -683,7 +683,7 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
     });
 
     const club = !tokenAddress ? data.club : (data.clubs ? data.clubs[0] : null);
-    if (!club) return;
+    if (!club) return null;
 
     const prevTrade24h = club?.prevTrade24h ? club?.prevTrade24h[0] : {};
     const prevTrade6h = club?.prevTrade6h ? club?.prevTrade6h[0] : {};
@@ -705,6 +705,7 @@ export const getRegisteredClubById = async (clubId: string, chain = "base", toke
     };
   } catch (error) {
     console.log(error);
+    return null;
   }
 };
 

@@ -236,7 +236,11 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
 
       // Prompt to add mini app
       if (!(await sdk.context).client.added) {
-        await sdk.actions.addMiniApp();
+        try {
+          await sdk.actions.addMiniApp();
+        } catch (error) {
+          console.log(error);
+        }
       }
     } catch (error) {
       console.error("Error approving budget:", error);
@@ -255,7 +259,7 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
   }
 
   // Mini App Profile Creation Flow
-  if (isMiniApp && !profiles?.length) {
+  if (isMiniApp && (!profiles?.length || creationStep === "budget")) {
     return (
       <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
         {creationStep === 'create' && (

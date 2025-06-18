@@ -2,7 +2,7 @@ import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
 import { ConnectButton } from "@components/ConnectButton";
@@ -23,6 +23,7 @@ import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import CoinPile from "../Icons/CoinPile";
 import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 import useIsMobile from "@src/hooks/useIsMobile";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const headerLinks = [
   {
@@ -45,6 +46,7 @@ const headerLinks = [
 const MobileBottomNav = ({ setOpenSignInModal }) => {
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
+  const { isMiniApp } = useIsMiniApp();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [showNotifications, setShowNotifications] = useState(false);
   const { setOpen } = useModal({
@@ -76,6 +78,10 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       setOpen(true);
     }
   };
+
+  useEffect(() => {
+    if (isMiniApp && (!isAuthenticated || query.modal === "budget")) setOpenSignInModal(true);
+  }, [isMiniApp, isAuthenticated]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]">

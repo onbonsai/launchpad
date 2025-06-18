@@ -1,6 +1,5 @@
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { request, gql } from "graphql-request";
-import { getAddress } from "viem";
 
 const LENS_ALCHEMY_URL = `https://lens-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`;
 const BASE_ALCHEMY_URL = `https://base-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`;
