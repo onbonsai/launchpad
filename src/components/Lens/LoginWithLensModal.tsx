@@ -30,7 +30,7 @@ import { publicClient, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/service
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
 import { cacheImageToStorj } from "@src/utils/utils";
 
-const ALLOWANCE_AMOUNTS = [2, 5, 15, 50];
+const ALLOWANCE_AMOUNTS = [5, 10, 25, 50];
 
 const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, modal?: string }) => {
   const { chain, address, isConnected } = useAccount();
