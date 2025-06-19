@@ -288,7 +288,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                     ) : (
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-800">
                         <SafeImage
-                          src={editedPfpUrl}
+                          src={editedPfpUrl || context.user.pfpUrl}
                           alt={editedUsername}
                           className="object-cover aspect-square w-full h-full"
                           width={64}
