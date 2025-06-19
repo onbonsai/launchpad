@@ -180,7 +180,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
                       <SafeImage
                         src={`/${token.chain}.png`}
                         alt={token.chain}
-                        className="opacity-7 w-auto"
+                        className="opacity-7 w-auto h-4"
                         height={12}
                         width={12}
                       />

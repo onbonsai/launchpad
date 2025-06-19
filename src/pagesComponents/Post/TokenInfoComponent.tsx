@@ -30,9 +30,9 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
-  const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
+  const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number | string>(0);
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
-  const { data: clubBalance } = useGetClubBalance(club.clubId.toString(), address, club.chain, club.complete, club.tokenAddress);
+  const { data: clubBalance } = useGetClubBalance(club.clubId.toString(), address as `0x${string}`, club.chain, club.complete, club.tokenAddress);
   const _DECIMALS = club.chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
