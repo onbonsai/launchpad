@@ -258,7 +258,11 @@ export const Header = () => {
         setOpen={setOpenSignInModal}
         panelClassnames="text-md bg-card w-full md:p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8"
       >
-        <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} modal={query.modal as string | undefined } />
+        <LoginWithLensModal
+          closeModal={() => setOpenSignInModal(false)}
+          modal={query.modal as string | undefined }
+          withBudget={!!query.onboard}
+        />
       </Modal>
 
       {/* Help Modal */}
