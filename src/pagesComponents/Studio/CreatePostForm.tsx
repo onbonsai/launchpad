@@ -64,6 +64,8 @@ type CreatePostProps = {
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
   storyboardAudio: File | string | null;
   setStoryboardAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
+  storyboardAudioStartTime: number;
+  setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
 };
 
 function getBaseZodType(field: any) {
@@ -119,7 +121,9 @@ const CreatePostForm = ({
   storyboardClips,
   setStoryboardClips,
   storyboardAudio,
-  setStoryboardAudio
+  setStoryboardAudio,
+  storyboardAudioStartTime,
+  setStoryboardAudioStartTime
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -424,7 +428,7 @@ const CreatePostForm = ({
         idToken,
         storyboardClips,
         storyboardAudio,
-        audioStartTime || 0,
+        storyboardAudioStartTime || 0,
         roomId
       );
 
@@ -560,6 +564,8 @@ const CreatePostForm = ({
             setClips={setStoryboardClips}
             audio={storyboardAudio}
             setAudio={setStoryboardAudio}
+            audioStartTime={storyboardAudioStartTime}
+            setAudioStartTime={setStoryboardAudioStartTime}
           />
         )}
 
@@ -642,8 +648,6 @@ const CreatePostForm = ({
                 setStartTime={setAudioStartTime}
                 audioDuration={template.options?.audioDuration}
                 compact
-                onAddToStoryboard={() => postAudio && setStoryboardAudio(postAudio)}
-                isAddedToStoryboard={!!storyboardAudio && postAudio === storyboardAudio}
               />
             )}
           </div>

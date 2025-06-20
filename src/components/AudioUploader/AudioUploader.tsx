@@ -38,7 +38,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
   const regionsPlugin = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
   const [duration, setDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const CLIP_LENGTH = audioDuration || DEFAULT_CLIP_LENGTH;
+  const clipLength = audioDuration ?? DEFAULT_CLIP_LENGTH;
 
   // Load audio into WaveSurfer
   useEffect(() => {
@@ -54,25 +54,28 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
         height: 64,
         barWidth: 2,
         cursorColor: "transparent",
-        interact: false,
+        interact: true,
         plugins: [RegionsPlugin.create()],
       });
 
       regionsPlugin.current = wavesurfer.current.getActivePlugins()[0] as ReturnType<typeof RegionsPlugin.create>;
 
-      wavesurfer.current.load(file.preview);
+      wavesurfer.current.load(typeof file === 'string' ? file : file.preview);
       wavesurfer.current.on("ready", () => {
-        setDuration(wavesurfer.current!.getDuration());
+        const newDuration = wavesurfer.current!.getDuration();
+        setDuration(newDuration);
         setStartTime(0);
 
-        regionsPlugin.current!.addRegion({
-          id: "clip-region",
-          start: 0,
-          end: CLIP_LENGTH,
-          color: "rgba(255,255,255,0.3)",
-          drag: true,
-          resize: false,
-        });
+        if (clipLength > 0) {
+          regionsPlugin.current!.addRegion({
+            id: "clip-region",
+            start: 0,
+            end: Math.min(clipLength, newDuration),
+            color: "rgba(255,255,255,0.3)",
+            drag: true,
+            resize: false,
+          });
+        }
       });
 
       regionsPlugin.current.on("region-updated", (region) => {
@@ -85,26 +88,31 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
         } catch {}
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file]);
+  }, [file, clipLength, setStartTime]);
 
   // Stop playback at end of clip
   useEffect(() => {
     if (!wavesurfer.current) return;
     const ws = wavesurfer.current;
     const checkTime = () => {
-      if (ws.getCurrentTime() >= Math.min(startTime + CLIP_LENGTH, duration)) {
+      if (ws.getCurrentTime() >= Math.min(startTime + clipLength, duration)) {
         ws.pause();
-        setIsPlaying(false);
       }
-    };
+    }
     ws.on("audioprocess", checkTime);
-    ws.on("finish", () => setIsPlaying(false));
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    ws.on('play', onPlay);
+    ws.on('pause', onPause);
+    ws.on("finish", onPause);
+
     return () => {
       ws.un("audioprocess", checkTime);
-      ws.un("finish", () => setIsPlaying(false));
+      ws.un('play', onPlay);
+      ws.un('pause', onPause);
+      ws.un("finish", onPause);
     };
-  }, [startTime, duration]);
+  }, [startTime, duration, clipLength]);
 
   const onDrop = (acceptedFiles: any[]) => {
     const file = acceptedFiles[0];
@@ -135,18 +143,15 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const endTime = Math.min(startTime + CLIP_LENGTH, duration);
+  const endTime = Math.min(startTime + clipLength, duration);
 
   // Play or pause from startTime for 10s
   const togglePlayPause = () => {
     if (!wavesurfer.current) return;
     if (isPlaying) {
       wavesurfer.current.pause();
-      setIsPlaying(false);
     } else {
-      wavesurfer.current.seekTo(startTime / duration);
-      wavesurfer.current.play();
-      setIsPlaying(true);
+      wavesurfer.current.play(startTime, endTime);
     }
   };
 
@@ -160,7 +165,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
           <div className="flex flex-row w-full items-center justify-between relative">
             <div className="flex items-center gap-3">
               <MusicNoteIcon className={clsx("text-white", compact ? "h-4 w-4" : "h-6 w-6")} />
-              <Subtitle className={clsx("text-white", compact ? "text-sm" : "")}>{file.name}</Subtitle>
+              <Subtitle className={clsx("text-white", compact ? "text-sm" : "")}>{typeof file === 'string' ? 'audio.mp3' : file.name}</Subtitle>
             </div>
             <button
               onClick={removeFile}

@@ -66,6 +66,7 @@ const StudioCreatePage: NextPage = () => {
   const [addToken, setAddToken] = useState(true);
   const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
   const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
+  const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
@@ -676,6 +677,8 @@ const StudioCreatePage: NextPage = () => {
                               setStoryboardClips={setStoryboardClips}
                               storyboardAudio={storyboardAudio}
                               setStoryboardAudio={setStoryboardAudio}
+                              storyboardAudioStartTime={storyboardAudioStartTime}
+                              setStoryboardAudioStartTime={setStoryboardAudioStartTime}
                             />
                           </>
                         )}
