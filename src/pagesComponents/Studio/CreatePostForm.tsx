@@ -186,7 +186,7 @@ const CreatePostForm = ({
     if (!hasEnoughCredits) {
       // Check if we're in remix view
       const isRemixView = !!(remixToken || remixPostId);
-      
+
       if (isRemixView) {
         // For remix, show the swap modal
         const chainIdentifier = chain?.name?.toLowerCase().includes("lens") ? "lens" : "base";
@@ -229,7 +229,10 @@ const CreatePostForm = ({
     }
 
     setIsGeneratingPreview(true);
-    let toastId = toast.loading("Generating - this could take a minute...");
+    const toastMessage = template.name === "video" || templateData.enabledVideo
+      ? "Generating - this could take a few minutes..."
+      : "Generating - this could take a minute...";
+    let toastId = toast.loading(toastMessage);
 
     try {
       // Compress the NFT image if it exists
@@ -771,10 +774,10 @@ const CreatePostForm = ({
         {template.options.allowPreview && (
           <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
-              (creditBalance?.creditsRemaining || 0) >= (estimatedCost) 
-                ? `Generate (~${estimatedCost.toFixed(2)} credits)` 
-                : (remixToken || remixPostId) 
-                  ? `Swap to Generate` 
+              (creditBalance?.creditsRemaining || 0) >= (estimatedCost)
+                ? `Generate (~${estimatedCost.toFixed(2)} credits)`
+                : (remixToken || remixPostId)
+                  ? `Swap to Generate`
                   : `Top up credits`
             }
           </Button>
