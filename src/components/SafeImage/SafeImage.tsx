@@ -14,12 +14,63 @@ interface SafeImageProps {
   loading?: "lazy" | "eager"
 }
 
+// List of allowed domains from next.config.js
+const ALLOWED_DOMAINS = [
+  "arweave.net",
+  "api.grove.storage",
+  "media.firefly.land",
+  "lh3.googleusercontent.com",
+  "img.seadn.io",
+  "ipfs.infura.io",
+  "ipfs.io",
+  "madfinance.mypinata.cloud",
+  "placeimg.com",
+  "ik.imagekit.io",
+  "www.storj-ipfs.com",
+  "link.storjshare.io",
+  "lens.infura-ipfs.io",
+  "gateway.storjshare.io",
+  "pbs.twimg.com",
+  "cdn.stamp.fyi",
+  "oaidalleapiprodscus.blob.core.windows.net",
+  "gw.ipfs-lens.dev",
+  "nft-cdn.alchemy.com",
+  "ipfs.4everland.io",
+  "imagedelivery.net",
+  "wrpcd.net",
+  "raw.seadn.io",
+  "pink-splendid-urial-219.mypinata.cloud",
+  "storage.googleapis.com",
+  "app.onbons.ai",
+  "onbonsai.mypinata.cloud",
+  "token-media.defined.fi",
+]
+
+function isDomainAllowed(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname
+    return ALLOWED_DOMAINS.some(domain => {
+      // Handle wildcard domains like "statics-polygon-lens.s3.*.amazonaws.com"
+      if (domain.includes('*')) {
+        const regex = new RegExp(domain.replace(/\*/g, '.*'))
+        return regex.test(hostname)
+      }
+      return hostname === domain
+    })
+  } catch {
+    return false
+  }
+}
+
 export function SafeImage({ src, alt, width, height, className, sizes, fill, unoptimized, loading }: SafeImageProps) {
   const [useFallback, setUseFallback] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(src)
   const [hasTriedPinata, setHasTriedPinata] = useState(false)
 
-  if (useFallback) {
+  // Check if we should use fallback immediately
+  const shouldUseFallback = useFallback || !isDomainAllowed(currentSrc)
+
+  if (shouldUseFallback) {
     return (
       <img
         src={currentSrc}

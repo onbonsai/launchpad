@@ -32,7 +32,7 @@ import { cacheImageToStorj } from "@src/utils/utils";
 
 const ALLOWANCE_AMOUNTS = [5, 10, 25, 50];
 
-const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, modal?: string }) => {
+const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () => void, modal?: string, withBudget?: boolean }) => {
   const { chain, address, isConnected } = useAccount();
   const { disconnect } = useDisconnect()
   const { profiles, isLoading } = useGetProfiles(address);
@@ -195,7 +195,11 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
       // Handle successful profile creation
       await fullRefetch();
 
-      closeModal();
+      if (withBudget) {
+        setCreationStep("budget");
+      } else {
+        closeModal();
+      }
     } catch (error) {
       console.error("Error creating profile:", error);
       toast.error(`Failed to create profile`, { duration: 5000 });
@@ -284,7 +288,7 @@ const LoginWithLensModal = ({ closeModal, modal }: { closeModal: () => void, mod
                     ) : (
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-800">
                         <SafeImage
-                          src={editedPfpUrl}
+                          src={editedPfpUrl || context.user.pfpUrl}
                           alt={editedUsername}
                           className="object-cover aspect-square w-full h-full"
                           width={64}
