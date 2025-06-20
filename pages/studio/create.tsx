@@ -211,6 +211,26 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
+  const handleAnimateImage = () => {
+    if (!currentPreview?.image || !registeredTemplates) return;
+
+    // find a template with "video" in the name (case-insensitive)
+    const videoTemplate = registeredTemplates.find(t => t.name.toLowerCase().includes('video'));
+    if (!videoTemplate) {
+      toast.error("Video template not found");
+      return;
+    }
+    handleTemplateSelect(videoTemplate);
+
+    const imageFile = parseBase64Image(currentPreview.image);
+    setPostImage([imageFile]);
+
+    // scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    toast.success("Switched to video template with your image!");
+  };
+
   const handleSubTemplateChange = (subTemplate: any) => {
     setSelectedSubTemplate(subTemplate);
   };
@@ -721,6 +741,7 @@ const StudioCreatePage: NextPage = () => {
                         setPostContent={setPostContent}
                         storyboardClips={storyboardClips}
                         setStoryboardClips={setStoryboardClips}
+                        onAnimateImage={handleAnimateImage}
                       />
                     </div>
                   </div>

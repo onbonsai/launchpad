@@ -16,6 +16,7 @@ import Spinner from '@src/components/LoadingSpinner/LoadingSpinner';
 import { FilmIcon } from '@heroicons/react/solid';
 import type { StoryboardClip } from '@pages/studio/create';
 import { toast } from 'react-hot-toast';
+import { SparklesIcon } from '@heroicons/react/solid';
 
 type PreviewHistoryProps = {
   currentPreview?: Preview;
@@ -43,6 +44,7 @@ type PreviewHistoryProps = {
   setPostContent: (c: string) => void;
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  onAnimateImage: () => void;
 };
 
 type MemoryPreview = Memory & {
@@ -73,6 +75,7 @@ export default function PreviewHistory({
   setPostContent,
   storyboardClips,
   setStoryboardClips,
+  onAnimateImage,
 }: PreviewHistoryProps) {
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
@@ -351,7 +354,7 @@ export default function PreviewHistory({
             <div
               key={`message-${index}`}
               ref={selected ? selectedPublicationRef : (isLastMessage ? lastMessageRef : null)}
-              className={`relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
+              className={`pb-10 bg-[#141414] rounded-3xl relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
             >
               <div className="relative">
                 {/* Hidden video element to get duration */}
@@ -368,7 +371,21 @@ export default function PreviewHistory({
                   />
                 )}
                 {/* Action buttons */}
-                <div className="absolute bottom-3 right-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="absolute -bottom-7 right-3 z-10 flex gap-2 transition-opacity duration-200">
+                  {/* Animate image button - only for images */}
+                  {preview?.image && !preview.video && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAnimateImage();
+                      }}
+                      className="flex items-center bg-transparent gap-2 rounded-xl p-2 backdrop-blur-sm hover:bg-brand-highlight/60"
+                      title="Animate this image"
+                    >
+                      <SparklesIcon className="w-5 h-5 text-white" /> Use in video
+                    </button>
+                  )}
+
                   {/* Add to Storyboard button - only for videos */}
                   {preview?.video && (
                     <button
@@ -397,11 +414,11 @@ export default function PreviewHistory({
                         }]);
                         toast.success("Added to storyboard!");
                       }}
-                      className={`flex items-center gap-2 bg-black/70 rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
+                      className={`flex items-center gap-2 bg-transparent rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
                       title={isClipInStoryboard ? "Already in storyboard" : "Add to storyboard"}
                       disabled={isClipInStoryboard || storyboardClips.length >= 10}
                     >
-                      <FilmIcon className="w-5 h-5 text-white" /> Add to storyboard
+                      <FilmIcon className="w-5 h-5 text-white" /> Add{isClipInStoryboard ? "ed" : ""} to storyboard
                     </button>
                   )}
 
@@ -413,7 +430,7 @@ export default function PreviewHistory({
                         const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
                         downloadMedia(preview, filename);
                       }}
-                      className="bg-black/70 hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
+                      className="bg-transparent hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
                       title="Download media"
                     >
                       <DownloadIcon className="w-5 h-5 text-white" />
@@ -450,7 +467,7 @@ export default function PreviewHistory({
                   containerPadding={'10px'}
                   profilePadding={'0 0 0 0'}
                   textContainerStyleOverride={textContainerStyleOverrides}
-                  backgroundColorOverride={message.isAgent ? 'rgba(255,255,255, 0.08)' : 'rgba(255,255,255, 0.04)'}
+                  backgroundColorOverride={message.isAgent ? '#141414' : '#141414'}
                   mediaImageStyleOverride={mediaImageStyleOverride}
                   imageContainerStyleOverride={imageContainerStyleOverride}
                   reactionsContainerStyleOverride={reactionsContainerStyleOverride}
