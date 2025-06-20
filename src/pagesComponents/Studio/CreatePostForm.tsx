@@ -184,21 +184,29 @@ const CreatePostForm = ({
     const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
 
     if (!hasEnoughCredits) {
-      // For remix, show the swap modal instead - fix chain.network to chain.name
-      const chainIdentifier = chain?.name?.toLowerCase().includes("lens") ? "lens" : "base";
-      const _token = remixToken || {
-        symbol: "BONSAI",
-        address: PROTOCOL_DEPLOYMENT[chainIdentifier].Bonsai,
-        chain: chainIdentifier,
-      }
-      openSwapToGenerateModal({
-        token: _token,
-        postId: remixPostId,
-        creditsNeeded: creditsNeeded,
-        onSuccess: () => {
-          _generatePreview();
+      // Check if we're in remix view
+      const isRemixView = !!(remixToken || remixPostId);
+      
+      if (isRemixView) {
+        // For remix, show the swap modal
+        const chainIdentifier = chain?.name?.toLowerCase().includes("lens") ? "lens" : "base";
+        const _token = remixToken || {
+          symbol: "BONSAI",
+          address: PROTOCOL_DEPLOYMENT[chainIdentifier].Bonsai,
+          chain: chainIdentifier,
         }
-      });
+        openSwapToGenerateModal({
+          token: _token,
+          postId: remixPostId,
+          creditsNeeded: creditsNeeded,
+          onSuccess: () => {
+            _generatePreview();
+          }
+        });
+      } else {
+        // For regular view, show the top up modal
+        openTopUpModal("api-credits");
+      }
       return;
     }
 
@@ -721,7 +729,11 @@ const CreatePostForm = ({
         {template.options.allowPreview && (
           <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
-              (creditBalance?.creditsRemaining || 0) >= (estimatedCost) ? `Generate (~${estimatedCost.toFixed(2)} credits)` : `Swap to Generate`
+              (creditBalance?.creditsRemaining || 0) >= (estimatedCost) 
+                ? `Generate (~${estimatedCost.toFixed(2)} credits)` 
+                : (remixToken || remixPostId) 
+                  ? `Swap to Generate` 
+                  : `Top up credits`
             }
           </Button>
         )}
