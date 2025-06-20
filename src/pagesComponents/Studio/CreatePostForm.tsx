@@ -464,6 +464,7 @@ const CreatePostForm = ({
     template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE,
     template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
     template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
+    !!postImage?.length, // Add aspect ratio options when image uploader is shown
     ...availableFields
   ].filter(Boolean).length;
 
@@ -694,30 +695,71 @@ const CreatePostForm = ({
               }`}
             >
               <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30 overflow-visible">
+                {/* Aspect Ratio Options */}
+                {showImageUploader && (
+                  <div className="space-y-2 mb-4">
+                    <FieldLabel 
+                      label="Aspect Ratio" 
+                      fieldDescription="Choose the aspect ratio for your image"
+                      tooltipDirection={tooltipDirection}
+                    />
+                    <div className="flex gap-2">
+                      {[
+                        { ratio: "9:16" as const, label: "Vertical" },
+                        { ratio: "16:9" as const, label: "Horizontal" }
+                      ].map(({ ratio, label }) => (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => !postImage?.length && setSelectedAspectRatio(ratio)}
+                          disabled={!!postImage?.length}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                            selectedAspectRatio === ratio
+                              ? "border-brand-highlight bg-brand-highlight/10"
+                              : "border-dark-grey hover:border-brand-highlight bg-card-light"
+                          } ${postImage?.length ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
+                        >
+                          <div 
+                            className={`border border-current rounded-sm ${
+                              ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
+                            }`}
+                          />
+                          <span className="text-sm text-white/90">{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {postImage?.length ? (
+                      <p className="text-xs text-secondary/70">
+                        Aspect ratio is locked to the selection made during image cropping. Remove the image to change it.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+
                 {
                   isLoadingVeniceImageOptions
                     ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                     : <DynamicForm
-                      template={template}
-                      templateData={templateData}
-                      setTemplateData={setTemplateData}
-                      sharedInputClasses={sharedInputClasses}
-                      veniceImageOptions={veniceImageOptions}
-                      postContent={postContent}
-                      setPostContent={setPostContent}
-                      postImage={postImage}
-                      setPostImage={setPostImage}
-                      selectedAspectRatio={selectedAspectRatio}
-                      setSelectedAspectRatio={setSelectedAspectRatio}
-                      selectedNFT={selectedNFT}
-                      setSelectedNFT={setSelectedNFT}
-                      loadRemixNFT={finalTemplateData?.nft}
-                      postAudio={postAudio}
-                      setPostAudio={setPostAudio}
-                      audioStartTime={audioStartTime || 0}
-                      setAudioStartTime={setAudioStartTime}
-                      tooltipDirection={tooltipDirection}
-                    />
+                        template={template}
+                        templateData={templateData}
+                        setTemplateData={setTemplateData}
+                        sharedInputClasses={sharedInputClasses}
+                        veniceImageOptions={veniceImageOptions}
+                        postContent={postContent}
+                        setPostContent={setPostContent}
+                        postImage={postImage}
+                        setPostImage={setPostImage}
+                        selectedAspectRatio={selectedAspectRatio}
+                        setSelectedAspectRatio={setSelectedAspectRatio}
+                        selectedNFT={selectedNFT}
+                        setSelectedNFT={setSelectedNFT}
+                        loadRemixNFT={finalTemplateData?.nft}
+                        postAudio={postAudio}
+                        setPostAudio={setPostAudio}
+                        audioStartTime={audioStartTime || 0}
+                        setAudioStartTime={setAudioStartTime}
+                        tooltipDirection={tooltipDirection}
+                      />
                 }
               </div>
             </div>
