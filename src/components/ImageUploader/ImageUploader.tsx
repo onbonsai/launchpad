@@ -12,7 +12,7 @@ import clsx from "clsx";
 import { BodySemiBold } from "@src/styles/text";
 import { Button } from "../Button";
 
-export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
+export type AspectRatio = "16:9" | "9:16";
 
 interface FileWithPreview extends File {
   preview: string;
@@ -35,12 +35,8 @@ interface ImageUploaderProps {
 const MAX_SIZE = 8000000; // 8mb
 
 const ASPECT_RATIOS: { [key in AspectRatio]: { width: number; height: number; label: string } } = {
-  "16:9": { width: 16, height: 9, label: "16:9" },
-  "9:16": { width: 9, height: 16, label: "9:16" },
-  "1:1": { width: 1, height: 1, label: "1:1" },
-  "4:3": { width: 4, height: 3, label: "4:3" },
-  "3:4": { width: 3, height: 4, label: "3:4" },
-  "21:9": { width: 21, height: 9, label: "21:9" },
+  "9:16": { width: 9, height: 16, label: "Vertical" },
+  "16:9": { width: 16, height: 9, label: "Horizontal" },
 };
 
 // Preview icon component for aspect ratios
@@ -100,7 +96,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   const [crop, setCrop] = useState<Crop>();
   const [zoom, setZoom] = useState(1);
   const [isCropping, setIsCropping] = useState(false);
-  const [internalSelectedRatio, setInternalSelectedRatio] = useState<AspectRatio>(selectedAspectRatio as AspectRatio || "1:1");
+  const [internalSelectedRatio, setInternalSelectedRatio] = useState<AspectRatio>(selectedAspectRatio as AspectRatio || "9:16");
   const [cropperAnchorEl, setCropperAnchorEl] = useState<HTMLElement | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 

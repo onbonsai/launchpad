@@ -54,7 +54,7 @@ const WhitelistedNFTsSection = ({
   const [crop, setCrop] = useState<Crop>();
   const [cropperAnchorEl, setCropperAnchorEl] = useState<HTMLElement | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const [internalSelectedRatio, setInternalSelectedRatio] = useState<AspectRatio>(selectedAspectRatio || "1:1");
+  const [internalSelectedRatio, setInternalSelectedRatio] = useState<AspectRatio>(selectedAspectRatio || "9:16");
 
   // Use either controlled or internal state
   const currentRatio = selectedAspectRatio || internalSelectedRatio;
