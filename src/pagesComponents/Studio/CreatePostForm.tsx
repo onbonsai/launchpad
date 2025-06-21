@@ -592,7 +592,7 @@ const CreatePostForm = ({
                   placeholder={getPlaceholderText()}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className={`${sharedInputClasses} w-full min-h-[60px] p-4 resize-none`}
+                  className={`${sharedInputClasses} w-full min-h-[90px] p-4 resize-none`}
                 />
                 <div className="w-fit self-end -mt-10 ml-auto">
                   <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
