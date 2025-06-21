@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { generatePreview, TemplateCategory, NFTMetadata } from "@src/services/madfi/studio.worker";
+import { generatePreview, TemplateCategory, NFTMetadata } from "@src/services/studio.worker";
 
 // This is needed to make TypeScript happy about the global scope of the worker
 declare const self: DedicatedWorkerGlobalScope;

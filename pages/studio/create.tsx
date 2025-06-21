@@ -90,7 +90,7 @@ const StudioCreatePage: NextPage = () => {
 
   useEffect(() => {
     console.log('[create.tsx] Initializing preview worker...');
-    workerRef.current = new Worker(new URL('./preview.worker.ts', import.meta.url));
+    workerRef.current = new Worker(new URL('../../src/services/preview.worker.ts', import.meta.url));
     workerRef.current.onmessage = async (event: MessageEvent) => {
       const { success, error, tempId } = event.data;
       if (success) {

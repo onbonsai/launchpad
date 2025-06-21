@@ -10,7 +10,7 @@ import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
 import type { StoryboardClip } from "@pages/studio/create";
-import { generatePreview } from "./studio.worker";
+import { generatePreview } from "./../studio.worker";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
