@@ -17,39 +17,46 @@ import { FilmIcon } from '@heroicons/react/solid';
 import type { StoryboardClip } from '@pages/studio/create';
 import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
+import { ANIMATED_HINT_LINES } from '@src/constants/constants';
+
+export type LocalPreview = {
+  agentId?: string;
+  isAgent: boolean;
+  createdAt: string;
+  content: {
+    text?: string;
+    preview?: Preview;
+    templateData?: string;
+    prompt?: string;
+  };
+  pending?: boolean;
+  tempId?: string;
+};
 
 type PreviewHistoryProps = {
   currentPreview?: Preview;
   setCurrentPreview: (c: Preview) => void;
   setSelectedTemplate?: (template: Template) => void;
-  isGeneratingPreview: boolean;
   templateUrl?: string;
   roomId?: string;
   postContent?: string;
   setFinalTemplateData: (t: any) => void;
   setPrompt: (s: string) => void;
-  localPreviews: Array<{
-    agentId?: string;
-    isAgent: boolean;
-    createdAt: string;
-    content: {
-      text?: string;
-      preview?: Preview;
-      templateData?: string;
-      prompt?: string;
-    };
-  }>;
+  localPreviews: LocalPreview[];
+  setLocalPreviews: React.Dispatch<React.SetStateAction<LocalPreview[]>>;
   isFinalize: boolean;
   postImage?: any[];
   setPostContent: (c: string) => void;
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
   onAnimateImage: () => void;
+  generatePreview: (prompt: string, image?: File, audio?: { file: File; startTime: number }) => void;
 };
 
 type MemoryPreview = Memory & {
   isAgent: boolean;
   createdAtDate: Date;
+  pending?: boolean;
 }
 
 type MessageContentPreview = {
@@ -63,13 +70,13 @@ export default function PreviewHistory({
   currentPreview,
   setCurrentPreview,
   setSelectedTemplate,
-  isGeneratingPreview,
   roomId,
   templateUrl,
   setFinalTemplateData,
   setPrompt,
   postContent,
   localPreviews,
+  setLocalPreviews,
   isFinalize,
   postImage,
   setPostContent,
@@ -88,6 +95,8 @@ export default function PreviewHistory({
   const selectedPublicationRef = useRef<HTMLDivElement>(null);
   const generatingRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+
+  const isGeneratingPreview = useMemo(() => localPreviews.some(p => p.pending), [localPreviews]);
 
   // Check if there are any messages available to load
   const hasMessagesToLoad = messages?.pages?.some(page =>
@@ -115,11 +124,17 @@ export default function PreviewHistory({
       isAgent: local.isAgent,
       content: local.content,
       userId: local.isAgent ? GLOBAL_AGENT_ID : 'local',
+      pending: local.pending,
     }));
 
-    const combined = [..._messages, ..._localPreviews].sort((a, b) =>
-      a.createdAtDate.getTime() - b.createdAtDate.getTime()
-    );
+    const combined = [..._messages, ..._localPreviews].sort((a, b) => {
+      const aIsPending = !!a.pending;
+      const bIsPending = !!b.pending;
+      if (aIsPending !== bIsPending) {
+        return aIsPending ? 1 : -1;
+      }
+      return a.createdAtDate.getTime() - b.createdAtDate.getTime();
+    });
 
     // Extract prompts from previous non-agent messages and add them to agent messages
     const enrichedMessages = combined.map((message, index) => {
@@ -149,41 +164,35 @@ export default function PreviewHistory({
     }
   }, [isGeneratingPreview]);
 
-  // Scroll to bottom when done generating and sorted messages changed
+  // Unified scroll handling effect
   useEffect(() => {
-    // Only scroll when done generating new content, not when loading more messages via pagination
-    if (!isGeneratingPreview && lastMessageRef.current && sortedMessages.length > 0 && !isFetchingNextPage) {
-      // Only scroll if it's local content (new generation) or initial load, not pagination
-      const hasOnlyLocalPreviews = sortedMessages.every(msg => msg.userId === 'local' || msg.userId === GLOBAL_AGENT_ID);
-      if (hasOnlyLocalPreviews || (!shouldShowMessages || (messages?.pages?.length && messages?.pages?.length <= 1))) {
-        setTimeout(() => {
-          lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 200);
-      }
-    }
-  }, [sortedMessages.length, isGeneratingPreview]);
+    if (isFinalize) return; // Don't run scroll logic in finalize view
 
-  // Scroll to bottom when messages are first rendered after clicking the button
-  useEffect(() => {
-    // Only scroll on initial load (when shouldShowMessages becomes true), not on pagination
-    if (shouldShowMessages && !isGeneratingPreview && lastMessageRef.current && sortedMessages.length > 0 && !isFetchingNextPage && messages?.pages?.length === 1) {
-      setTimeout(() => {
-        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 200);
-    }
-  }, [shouldShowMessages, sortedMessages.length, isGeneratingPreview]);
-
-  // Scroll to top of the selected publication when it changes
-  useEffect(() => {
-    if (selectedPublicationRef.current && currentPreview && !isGeneratingPreview) {
-      setTimeout(() => {
-        selectedPublicationRef.current?.scrollIntoView({
+    const timer = setTimeout(() => {
+      // Priority 1: Scroll to the selected preview if it exists and we're not generating.
+      if (currentPreview && selectedPublicationRef.current && !isGeneratingPreview) {
+        selectedPublicationRef.current.scrollIntoView({
           behavior: 'smooth',
           block: 'nearest'
         });
-      }, 200); // Slightly longer delay for better positioning
-    }
-  }, [currentPreview?.agentId, isGeneratingPreview]);
+        return; // Prioritize selected preview, so we don't scroll elsewhere
+      }
+
+      // Priority 2: Scroll to the last message on initial load or for new local previews.
+      // This avoids scrolling on pagination.
+      if (!isGeneratingPreview && lastMessageRef.current && !isFetchingNextPage) {
+        // Condition for initial load of remote messages or when only local previews exist.
+        if (shouldShowMessages && messages?.pages.length === 1 || localPreviews.length > 0 && !shouldShowMessages) {
+          lastMessageRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+          });
+        }
+      }
+    }, 200); // Delay to allow refs to be set and DOM to update
+
+    return () => clearTimeout(timer);
+  }, [sortedMessages.length, currentPreview, isGeneratingPreview, isFetchingNextPage, shouldShowMessages, isFinalize]);
 
   // Helper function to download media
   const downloadMedia = async (preview: any, filename: string) => {
@@ -294,7 +303,7 @@ export default function PreviewHistory({
       {!isFinalize && (
         (!shouldShowMessages && hasMessagesToLoad) || (shouldShowMessages && hasNextPage)
       ) && (
-        <div className="flex justify-center pr-4 pb-4 pl-4 animate-fade-in-down">
+        <div className="flex justify-center pr-4 pl-4 animate-fade-in-down">
           <button
             onClick={() => {
               if (!shouldShowMessages) {
@@ -304,7 +313,7 @@ export default function PreviewHistory({
               }
             }}
             disabled={isFetchingNextPage}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white transition-all duration-300 ease-in-out bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 hover:scale-105 transform group disabled:opacity-50 disabled:scale-100"
+            className="flex items-center gap-2 px-3 py-1 text-xs text-gray-500 transition-colors duration-200 enabled:hover:text-brand-highlight disabled:opacity-50"
           >
             {isFetchingNextPage ? (
               <>
@@ -313,8 +322,8 @@ export default function PreviewHistory({
               </>
             ) : (
               <>
-                <RefreshIcon className="w-4 h-4 transition-transform duration-200 ease-in-out group-hover:rotate-45" />
-                {!shouldShowMessages ? "Load previous messages" : "Load more messages"}
+                <RefreshIcon className="w-4 h-4" />
+                {!shouldShowMessages ? "Load previous generations" : "Load more"}
               </>
             )}
           </button>
@@ -333,6 +342,15 @@ export default function PreviewHistory({
           if (!message.isAgent) return null; // not showing the user inputs, only previews
           if (index > 1 && message.agentId === sortedMessages[index - 2].agentId) return null; // HACK: when messages are fetched on the first try
 
+          if (message.pending) {
+            return (
+              <div key={`pending-${index}`} ref={generatingRef} className="flex flex-col items-center space-y-4">
+                <AnimatedBonsaiGrid />
+                <AnimatedText lines={ANIMATED_HINT_LINES} className="md:w-[400px] w-full md:text-lg" />
+              </div>
+            );
+          }
+
           // Safely get the previous message and template data
           const previousMessage = index > 0 ? sortedMessages[index - 1] : null;
           const templateData = previousMessage?.content?.templateData
@@ -344,9 +362,11 @@ export default function PreviewHistory({
           const content = previewText || message.content.text || message.content.prompt || currentPreview?.text;
           const preview = message.isAgent ? {
             ...message.content.preview as unknown as MessageContentPreview,
+            agentId: message.agentId,
             text: previewText || (message.content.preview as any)?.text || content,
             templateName: (message.content.preview as any)?.templateName,
           } : undefined;
+
           const selected = preview?.agentId === currentPreview?.agentId;
           const isLastMessage = index === sortedMessages.length - 1;
           const isClipInStoryboard = storyboardClips.some(clip => clip.id === preview?.agentId);
@@ -356,7 +376,7 @@ export default function PreviewHistory({
             const firstClipAgentId = storyboardClips[0].id;
             const firstClipAspectRatio = videoAspectRatios[firstClipAgentId];
             const currentClipAspectRatio = videoAspectRatios[preview.agentId];
-        
+
             if (firstClipAspectRatio && currentClipAspectRatio) {
               if (Math.abs(firstClipAspectRatio - currentClipAspectRatio) > 0.01) {
                 isAspectRatioMismatch = true;
@@ -377,7 +397,7 @@ export default function PreviewHistory({
             <div
               key={`message-${index}`}
               ref={selected ? selectedPublicationRef : (isLastMessage ? lastMessageRef : null)}
-              className={`pb-10 bg-[#141414] rounded-3xl relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group`}
+              className={`pb-10 bg-[#141414] rounded-3xl relative space-y-2 ${!message.isAgent ? 'ml-auto max-w-[80%]' : ''} ${selected && !isGeneratingPreview ? "border-[1px] border-brand-highlight rounded-[24px]" : ""} group animate-fade-in-down`}
             >
               <div className="relative">
                 {/* Hidden video element to get duration */}
@@ -430,12 +450,10 @@ export default function PreviewHistory({
                           const firstVideoEl = firstClip.id ? videoRefs.current[firstClip.id] : null;
                           const currentVideoEl = preview.agentId ? videoRefs.current[preview.agentId] : null;
 
-                          console.log(firstVideoEl, currentVideoEl)
-
                           if (firstVideoEl && currentVideoEl && firstVideoEl.videoWidth > 0 && currentVideoEl.videoWidth > 0) {
                             const firstAspectRatio = firstVideoEl.videoWidth / firstVideoEl.videoHeight;
                             const currentAspectRatio = currentVideoEl.videoWidth / currentVideoEl.videoHeight;
-                
+
                             if (Math.abs(firstAspectRatio - currentAspectRatio) > 0.01) {
                               toast.error("Video aspect ratio must match the first clip in the storyboard.");
                               return;
@@ -504,7 +522,7 @@ export default function PreviewHistory({
                     metadata: {
                       __typename: preview?.video
                         ? "VideoMetadata"
-                        : (preview?.image ? "ImageMetadata" : "TextOnlyMetadata"),
+                        : (((preview as any)?.imagePreview || preview?.image) ? "ImageMetadata" : "TextOnlyMetadata"),
                       content,
                       video: preview?.video
                         ? {
@@ -512,8 +530,8 @@ export default function PreviewHistory({
                             cover: preview.image
                           }
                         : undefined,
-                      image: preview?.image
-                        ? { item: preview.image }
+                      image: (preview as any)?.imagePreview || preview?.image
+                        ? { item: (preview as any)?.imagePreview || preview.image }
                         : undefined
                     }
                   }}
@@ -561,11 +579,6 @@ export default function PreviewHistory({
             </div>
           )
         })}
-        {isGeneratingPreview && (
-          <div ref={generatingRef} className="flex flex-col items-center mt-4">
-            <AnimatedBonsaiGrid />
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextPage } from "next"
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { useAccount, useBalance, useReadContract, useWalletClient } from "wagmi";
 import { switchChain } from "viem/actions";
 import { erc20Abi, parseUnits, zeroAddress } from "viem";
@@ -25,17 +25,18 @@ import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
 import { cacheImageToStorj, parseBase64Image } from "@src/utils/utils";
 import axios from "axios";
-import Link from "next/link";
-import { ArrowBack } from "@mui/icons-material";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
-import PreviewHistory from "@pagesComponents/Studio/PreviewHistory";
-import type { TokenData } from "@src/services/madfi/studio";
+import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
+import type { NFTMetadata, TokenData } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useGetCredits } from "@src/hooks/useGetCredits";
+import useWebNotifications from "@src/hooks/useWebNotifications";
+import { cloneDeep } from "lodash/lang";
 
 export interface StoryboardClip {
   id: string; // agentId of the preview
@@ -75,19 +76,132 @@ const StudioCreatePage: NextPage = () => {
   const remixSource = useMemo(() => encodedRemixSource ? decodeURIComponent(encodedRemixSource as string) : undefined, [encodedRemixSource]);
   const { data: remixMedia, isLoading: isLoadingRemixMedia } = useResolveSmartMedia(undefined, remixPostId as string | undefined, false, remixSource);
   const isLoading = isLoadingRegisteredTemplates || isLoadingRemixMedia;
-  const [localPreviews, setLocalPreviews] = useState<Array<{
-    agentId?: string;
-    isAgent: boolean;
-    createdAt: string;
-    content: {
-      text?: string;
-      preview?: Preview;
-      templateData?: string;
-      prompt?: string;
-    };
-  }>>([]);
+  const [localPreviews, setLocalPreviews] = useState<LocalPreview[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
   const isMobile = useIsMobile();
+  const workerRef = useRef<Worker>();
+  const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
+  const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
+  const { requestPermission, sendNotification } = useWebNotifications();
+
+  useEffect(() => {
+    setOptimisticCreditBalance(creditBalance?.creditsRemaining);
+  }, [creditBalance]);
+
+  useEffect(() => {
+    console.log('[create.tsx] Initializing preview worker...');
+    workerRef.current = new Worker(new URL('./preview.worker.ts', import.meta.url));
+    workerRef.current.onmessage = async (event: MessageEvent) => {
+      const { success, error, tempId } = event.data;
+      if (success) {
+        // Deep clone the result to prevent mutation of shared objects in the state
+        const result = cloneDeep(event.data.result);
+
+        if (result.preview?.video?.buffer) {
+          const videoBlob = new Blob([result.preview.video.buffer], { type: result.preview.video.mimeType });
+          result.preview.video.url = URL.createObjectURL(videoBlob);
+          result.preview.video.blob = videoBlob;
+          delete result.preview.video.buffer;
+        }
+
+        // Handle large image ArrayBuffers
+        if (result.preview?.image?.buffer && result.preview?.image?.isLargeImage) {
+          const imageBlob = new Blob([result.preview.image.buffer], { type: result.preview.image.mimeType });
+          const imageDataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(imageBlob);
+          });
+          result.preview.image = imageDataUrl;
+        }
+        sendNotification("Your generation is ready", {
+          body: "Click to view it on Bonsai",
+          icon: '/logo.png'
+        });
+        console.log(`[create.tsx] Worker successfully generated preview for tempId: ${tempId}`, result);
+
+        const previewWithMetadata = {
+          ...result.preview,
+          agentId: result.agentId,
+          roomId: result.roomId
+        };
+
+        handleSetPreview(previewWithMetadata, tempId);
+      } else {
+        console.error(`[create.tsx] Worker failed for tempId: ${tempId}`, error);
+        toast.error(`Generation failed: ${error}`);
+        setLocalPreviews(prev => prev.filter(p => p.tempId !== tempId));
+      }
+    };
+    return () => {
+      console.log('[create.tsx] Terminating preview worker.');
+      workerRef.current?.terminate();
+    }
+  }, []);
+
+  const generatePreview = async (
+    prompt: string,
+    templateData: any,
+    image?: File,
+    aspectRatio?: string,
+    nft?: NFTMetadata,
+    audio?: { file: File, startTime: number }
+  ) => {
+    if (!template) return;
+
+    // Calculate cost before doing anything else
+    let credits = template.estimatedCost || 0;
+    if (!!templateData.enableVideo) {
+      credits += 50;
+    }
+
+    if ((optimisticCreditBalance || 0) < credits) {
+      toast.error("You don't have enough credits to generate this preview.");
+      return;
+    }
+
+    const sessionClient = await resumeSession(true);
+    if (!sessionClient) {
+      toast.error("Please log in to generate previews.");
+      return;
+    }
+    const creds = await sessionClient.getCredentials();
+    if (creds.isErr() || !creds.value) {
+      toast.error("Authentication failed.");
+      return;
+    }
+    const idToken = creds.value.idToken;
+    const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
+
+    // Request notification permission when first generation is fired
+    requestPermission();
+
+    setOptimisticCreditBalance((prev) => (prev !== undefined ? prev - credits : undefined));
+    console.log(`[create.tsx] Adding pending preview with tempId: ${tempId}`);
+    setLocalPreviews(prev => [...prev, {
+      tempId,
+      isAgent: true,
+      pending: true,
+      createdAt: new Date().toISOString(),
+      content: { prompt }
+    }]);
+
+    console.log(`[create.tsx] Posting message to worker for tempId: ${tempId}`);
+    workerRef.current?.postMessage({
+      url: template.apiUrl,
+      idToken,
+      category: template.category,
+      templateName: template.name,
+      templateData: templateData,
+      prompt,
+      image,
+      aspectRatio: aspectRatio || "1:1",
+      nft,
+      roomId,
+      audio,
+      tempId
+    });
+  }
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -160,10 +274,30 @@ const StudioCreatePage: NextPage = () => {
     }
   }, [isConnected, address, router.query.roomId]);
 
-  const handleSetPreview = (preview: Preview) => {
+  const handleSetPreview = (preview: Preview, tempId?: string) => {
+    if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) return;
     setCurrentPreview(preview);
     if (preview.roomId && preview.roomId !== roomId) {
       setRoomId(preview.roomId);
+    }
+
+    if (tempId) {
+      setLocalPreviews(prev => prev.map(p => {
+        if (p.tempId === tempId) {
+          return {
+            ...p,
+            pending: false,
+            agentId: preview.agentId,
+            content: {
+              ...p.content,
+              preview: cloneDeep(preview), // Deep copy to avoid shared references
+              text: preview.text,
+            }
+          };
+        }
+        return p;
+      }));
+      return;
     }
 
     // Check if this preview already exists in localPreviews
@@ -176,32 +310,33 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    // Add both template data and preview messages
+    // Add both template data and preview messages in a single state update
     const now = new Date().toISOString();
 
-    // First add the template data message
-    setLocalPreviews(prev => [...prev, {
-      agentId: `templateData-${preview.agentId}`,
-      isAgent: false,
-      createdAt: now,
-      content: {
-        templateData: JSON.stringify(preview.templateData || {}),
-        text: prompt || "",
-        prompt: prompt
+    setLocalPreviews(prev => [...prev,
+      // First add the template data message
+      {
+        agentId: `templateData-${preview.agentId}`,
+        isAgent: false,
+        createdAt: now,
+        content: {
+          templateData: JSON.stringify(preview.templateData || {}),
+          text: prompt || "",
+          prompt: prompt
+        }
+      },
+      // Then add the preview message
+      {
+        agentId: preview.agentId,
+        isAgent: true,
+        createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
+        content: {
+          preview: cloneDeep(preview), // Deep copy to avoid shared references
+          text: preview.text,
+          prompt: prompt
+        }
       }
-    }]);
-
-    // Then add the preview message
-    setLocalPreviews(prev => [...prev, {
-      agentId: preview.agentId,
-      isAgent: true,
-      createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
-      content: {
-        preview: preview,
-        text: preview.text,
-        prompt: prompt
-      }
-    }]);
+    ]);
   };
 
   const handleTemplateSelect = (newTemplate: Template) => {
@@ -666,8 +801,8 @@ const StudioCreatePage: NextPage = () => {
                                   setOpenTab(addToken ? 2 : 3);
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                              isGeneratingPreview={isGeneratingPreview}
-                              setIsGeneratingPreview={setIsGeneratingPreview}
+                              generatePreview={generatePreview}
+                              isGeneratingPreview={localPreviews.some(p => p.pending)}
                               roomId={roomId as string}
                               postAudio={postAudio}
                               setPostAudio={setPostAudio}
@@ -679,6 +814,8 @@ const StudioCreatePage: NextPage = () => {
                               setStoryboardAudio={setStoryboardAudio}
                               storyboardAudioStartTime={storyboardAudioStartTime}
                               setStoryboardAudioStartTime={setStoryboardAudioStartTime}
+                              creditBalance={optimisticCreditBalance}
+                              refetchCredits={refetchCredits}
                             />
                           </>
                         )}
@@ -732,13 +869,14 @@ const StudioCreatePage: NextPage = () => {
                         currentPreview={currentPreview}
                         setCurrentPreview={setCurrentPreview}
                         setSelectedTemplate={setTemplate}
-                        isGeneratingPreview={isGeneratingPreview}
                         roomId={roomId}
                         templateUrl={template?.apiUrl}
                         setFinalTemplateData={setFinalTemplateData}
                         setPrompt={setPrompt}
                         postContent={postContent}
                         localPreviews={localPreviews}
+                        setLocalPreviews={setLocalPreviews}
+                        generatePreview={generatePreview}
                         isFinalize={openTab > 1}
                         postImage={postImage}
                         setPostContent={setPostContent}

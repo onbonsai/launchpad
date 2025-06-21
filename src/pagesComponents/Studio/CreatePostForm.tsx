@@ -3,9 +3,8 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import imageCompression from "browser-image-compression";
 import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
-import { enhancePrompt, generatePreview, composeStoryboard } from "@src/services/madfi/studio";
+import { enhancePrompt, composeStoryboard } from "@src/services/madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
-
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
@@ -45,7 +44,14 @@ type CreatePostProps = {
   postImage?: any;
   setPostImage: (i: any) => void;
   isGeneratingPreview: boolean;
-  setIsGeneratingPreview: (b: boolean) => void;
+  generatePreview: (
+    prompt: string,
+    templateData: any,
+    image?: File,
+    aspectRatio?: string,
+    nft?: NFTMetadata,
+    audio?: { file: File, startTime: number }
+  ) => void;
   roomId?: string;
   postAudio?: File | null | string;
   setPostAudio: (i: File | null) => void;
@@ -66,6 +72,8 @@ type CreatePostProps = {
   setStoryboardAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
   storyboardAudioStartTime: number;
   setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
+  creditBalance?: number;
+  refetchCredits: () => void;
 };
 
 function getBaseZodType(field: any) {
@@ -107,7 +115,7 @@ const CreatePostForm = ({
   postImage,
   setPostImage,
   isGeneratingPreview,
-  setIsGeneratingPreview,
+  generatePreview,
   roomId,
   postAudio,
   setPostAudio,
@@ -123,11 +131,12 @@ const CreatePostForm = ({
   storyboardAudio,
   setStoryboardAudio,
   storyboardAudioStartTime,
-  setStoryboardAudioStartTime
+  setStoryboardAudioStartTime,
+  creditBalance,
+  refetchCredits,
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
-  const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const { openTopUpModal, openSwapToGenerateModal } = useTopUpModal();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("9:16");
@@ -139,6 +148,7 @@ const CreatePostForm = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const textareaRef = useAutoGrow(prompt || '');
   const previousPromptRef = useRef<string | undefined>(prompt);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -180,12 +190,13 @@ const CreatePostForm = ({
   }, [template.estimatedCost, templateData.enableVideo]);
 
   const _generatePreview = async () => {
+    console.log('[CreatePostForm] _generatePreview called.');
     // Collapse advanced options when generating
     setIsDrawerExpanded(false);
+    setIsSubmitting(true);
 
-    const { data: _creditBalance } = await refetchCredits();
     const creditsNeeded = estimatedCost || 0;
-    const hasEnoughCredits = (_creditBalance?.creditsRemaining || 0) >= creditsNeeded;
+    const hasEnoughCredits = (creditBalance || 0) >= creditsNeeded;
 
     if (!hasEnoughCredits) {
       // Check if we're in remix view
@@ -211,32 +222,15 @@ const CreatePostForm = ({
         // For regular view, show the top up modal
         openTopUpModal("api-credits");
       }
-      return;
-    }
-
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) return;
-
-    const creds = await sessionClient.getCredentials();
-
-    let idToken;
-    if (creds.isOk()) {
-      idToken = creds.value?.idToken;
-    } else {
-      toast.error("Must be logged in");
+      setIsSubmitting(false);
       return;
     }
 
     if (template.options?.nftRequirement === MediaRequirement.REQUIRED && !selectedNFT?.image?.croppedBase64) {
       toast.error("Failed to parse NFT image");
+      setIsSubmitting(false);
       return;
     }
-
-    setIsGeneratingPreview(true);
-    const toastMessage = template.name === "video" || templateData.enabledVideo
-      ? "Generating - this could take a few minutes..."
-      : "Generating - this could take a minute...";
-    let toastId = toast.loading(toastMessage);
 
     try {
       // Compress the NFT image if it exists
@@ -283,44 +277,27 @@ const CreatePostForm = ({
         ...(selectedSubTemplate?.id && { subTemplateId: selectedSubTemplate.id })
       };
 
-      const res = await generatePreview(
-        template.apiUrl,
-        idToken,
-        template,
+      const nftMetadata = !!selectedNFT ? {
+        tokenId: selectedNFT.tokenId,
+        contract: {
+          address: selectedNFT.contract.address,
+          network: selectedNFT.network
+        },
+        collection: { name: selectedNFT.collection?.name },
+        image: compressedNFTImage as string,
+        attributes: selectedNFT.raw?.metadata?.attributes
+      } : undefined;
+
+      await generatePreview(
+        prompt as string,
         finalTemplateData,
-        prompt,
         template.options?.imageRequirement !== MediaRequirement.NONE && postImage?.length ? postImage[0] : undefined,
         selectedAspectRatio,
-        !!selectedNFT ? {
-          tokenId: selectedNFT.tokenId,
-          contract: {
-            address: selectedNFT.contract.address,
-            network: selectedNFT.network
-          },
-          collection: { name: selectedNFT.collection?.name },
-          image: compressedNFTImage as string,
-          attributes: selectedNFT.raw?.metadata?.attributes
-        } : undefined,
-        roomId,
+        nftMetadata,
         audioParam
       );
 
-      if (!res) throw new Error("No result from generatePreview");
-      const { agentId, preview, roomId: newRoomId } = res;
-
-      if (!preview) throw new Error("No preview");
-
-      // Set both the template data and preview
-      setPreview({
-        ...preview,
-        text: preview.text || prompt || postContent,
-        agentId,
-        roomId: newRoomId,
-        templateData,
-        templateName: template.name,
-      } as Preview);
-
-      toast.success("Done", { id: toastId, duration: 2000 });
+      toast.success("Generation started", { duration: 5000 });
 
       // Close the form after successful generation
       if (onClose) {
@@ -328,9 +305,9 @@ const CreatePostForm = ({
       }
     } catch (error) {
       console.error("Error generating preview:", error);
-      toast.error("Failed to generate preview", { id: toastId });
+      toast.error("Failed to start preview generation");
     } finally {
-      setIsGeneratingPreview(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -705,8 +682,8 @@ const CreatePostForm = ({
                 {/* Aspect Ratio Options */}
                 {showImageUploader && (
                   <div className="space-y-2 mb-4">
-                    <FieldLabel 
-                      label="Aspect Ratio" 
+                    <FieldLabel
+                      label="Aspect Ratio"
                       fieldDescription="Choose the aspect ratio for your image"
                       tooltipDirection={tooltipDirection}
                     />
@@ -726,7 +703,7 @@ const CreatePostForm = ({
                               : "border-dark-grey hover:border-brand-highlight bg-card-light"
                           } ${postImage?.length ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
                         >
-                          <div 
+                          <div
                             className={`border border-current rounded-sm ${
                               ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
                             }`}
@@ -776,9 +753,9 @@ const CreatePostForm = ({
 
       <div className="pt-4 flex flex-col gap-2 justify-center items-center">
         {template.options.allowPreview && (
-          <Button size='md' disabled={isGeneratingPreview || !isValid()} onClick={_generatePreview} variant={!preview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isSubmitting || !isValid()} onClick={_generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
-              (creditBalance?.creditsRemaining || 0) >= (estimatedCost)
+              (creditBalance || 0) >= (estimatedCost)
                 ? `Generate (~${estimatedCost.toFixed(2)} credits)`
                 : (remixToken || remixPostId)
                   ? `Swap to Generate`

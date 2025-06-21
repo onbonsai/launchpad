@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 // Define types for the component props
 export interface AnimatedBonsaiGridProps {
@@ -91,7 +91,7 @@ const getBonsaiShape = (): Point[] => {
 
 export default function AnimatedBonsaiGrid({
   width = 480,
-  height = 480,
+  height = 300,
   gridSize = 40,
   dotSizes = { bonsai: 8, background: 3 },
   colors = {
@@ -113,6 +113,19 @@ export default function AnimatedBonsaiGrid({
     }[]
   >([])
 
+  const { shiftedShape, shapeHeight } = useMemo(() => {
+    const shape = getBonsaiShape()
+    if (shape.length === 0) {
+      return { shiftedShape: [], shapeHeight: 0 }
+    }
+    const yCoords = shape.map(p => p.y)
+    const minY = Math.min(...yCoords)
+    const maxY = Math.max(...yCoords)
+    const height = maxY - minY
+    const shifted = shape.map(p => ({ x: p.x, y: p.y - minY }))
+    return { shiftedShape: shifted, shapeHeight: height }
+  }, [])
+
   // Generate the dot pattern
   useEffect(() => {
     const newDots: {
@@ -124,10 +137,9 @@ export default function AnimatedBonsaiGrid({
       animationDelay: number
       size: number
     }[] = []
-    const bonsaiShape = getBonsaiShape()
 
     // Add bonsai shape dots
-    bonsaiShape.forEach(({ x, y }, index) => {
+    shiftedShape.forEach(({ x, y }, index) => {
       newDots.push({
         x,
         y,
@@ -140,10 +152,16 @@ export default function AnimatedBonsaiGrid({
     })
 
     setDots(newDots)
-  }, [colors.bonsai, dotSizes.bonsai])
+  }, [colors.bonsai, dotSizes.bonsai, shiftedShape])
 
   // Calculate the scale factor based on the width and gridSize
   const scaleFactor = typeof width === "number" ? width / gridSize : 12
+
+  const verticalPadding = useMemo(() => {
+    if (typeof height !== "number") return 0
+    const renderedShapeHeight = shapeHeight * scaleFactor
+    return (height - renderedShapeHeight) / 2
+  }, [height, shapeHeight, scaleFactor])
 
   return (
     <div
@@ -189,7 +207,7 @@ export default function AnimatedBonsaiGrid({
           className="absolute rounded-full"
           style={{
             left: `${dot.x * scaleFactor}px`,
-            top: `${dot.y * scaleFactor}px`,
+            top: `${dot.y * scaleFactor + verticalPadding}px`,
             width: `${dot.size}px`,
             height: `${dot.size}px`,
             backgroundColor: dot.color,

@@ -104,3 +104,16 @@ export const MEDIA_SERVER_URL =
 export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
   ? ``
   : `https://bundler.biconomy.io/api/v2/168587773/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`;
+
+
+export const ANIMATED_HINT_LINES = [
+  "You can enhance your prompt by clicking the spark icon on the bottom right of the input",
+  "Clicking a generation will auto-fill the prompt and template options so you can modify and generate again",
+  "Need more credits? Stake more tokens from the sidebar or purchase a pack with GHO",
+  "The advanced template options allow finer control over your generations",
+  "Video generations will typically take longer. Enable notifications so you can leave and come back when your video is ready",
+  "Use the Storyboard feature to compose multiple video generations into a longer & more immersive video",
+  "You can always load your previous generations by clicking 'Load previous generations'",
+  "Want some inspiration? Go to the Feed to see what others are creating",
+  "You can Remix any post to start with the prompt and template options the original poster used"
+];
