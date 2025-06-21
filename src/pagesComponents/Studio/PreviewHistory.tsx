@@ -80,6 +80,7 @@ export default function PreviewHistory({
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
+  const [videoAspectRatios, setVideoAspectRatios] = useState<Record<string, number>>({});
   const videoRefs = useRef<Record<string, HTMLVideoElement>>({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
@@ -350,6 +351,28 @@ export default function PreviewHistory({
           const isLastMessage = index === sortedMessages.length - 1;
           const isClipInStoryboard = storyboardClips.some(clip => clip.id === preview?.agentId);
 
+          let isAspectRatioMismatch = false;
+          if (storyboardClips.length > 0 && preview?.video && preview.agentId) {
+            const firstClipAgentId = storyboardClips[0].id;
+            const firstClipAspectRatio = videoAspectRatios[firstClipAgentId];
+            const currentClipAspectRatio = videoAspectRatios[preview.agentId];
+        
+            if (firstClipAspectRatio && currentClipAspectRatio) {
+              if (Math.abs(firstClipAspectRatio - currentClipAspectRatio) > 0.01) {
+                isAspectRatioMismatch = true;
+              }
+            }
+          }
+
+          const isComposition = !!(preview?.video && !preview?.image);
+
+          const isAddButtonDisabled = isClipInStoryboard || storyboardClips.length >= 10 || isAspectRatioMismatch;
+          const addButtonTitle = isAspectRatioMismatch
+            ? "Aspect ratio must match first clip"
+            : isClipInStoryboard
+            ? "Already in storyboard"
+            : "Add to storyboard";
+
           return (
             <div
               key={`message-${index}`}
@@ -368,6 +391,15 @@ export default function PreviewHistory({
                     src={typeof preview.video === 'string' ? preview.video : preview.video.url}
                     preload="metadata"
                     className="hidden"
+                    onLoadedMetadata={(e) => {
+                      const videoEl = e.currentTarget;
+                      if (preview.agentId && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+                        setVideoAspectRatios(prev => ({
+                          ...prev,
+                          [preview.agentId as string]: videoEl.videoWidth / videoEl.videoHeight
+                        }));
+                      }
+                    }}
                   />
                 )}
                 {/* Action buttons */}
@@ -387,10 +419,33 @@ export default function PreviewHistory({
                   )}
 
                   {/* Add to Storyboard button - only for videos */}
-                  {preview?.video && (
+                  {preview?.video && !isComposition && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+
+                        // Final aspect ratio check on click
+                        if (storyboardClips.length > 0) {
+                          const firstClip = storyboardClips[0];
+                          const firstVideoEl = firstClip.id ? videoRefs.current[firstClip.id] : null;
+                          const currentVideoEl = preview.agentId ? videoRefs.current[preview.agentId] : null;
+
+                          console.log(firstVideoEl, currentVideoEl)
+
+                          if (firstVideoEl && currentVideoEl && firstVideoEl.videoWidth > 0 && currentVideoEl.videoWidth > 0) {
+                            const firstAspectRatio = firstVideoEl.videoWidth / firstVideoEl.videoHeight;
+                            const currentAspectRatio = currentVideoEl.videoWidth / currentVideoEl.videoHeight;
+                
+                            if (Math.abs(firstAspectRatio - currentAspectRatio) > 0.01) {
+                              toast.error("Video aspect ratio must match the first clip in the storyboard.");
+                              return;
+                            }
+                          } else {
+                            toast.error("Cannot determine video aspect ratio. Please wait a moment and try again.");
+                            return;
+                          }
+                        }
+
                         if (storyboardClips.length >= 10) {
                           toast.error("You can add a maximum of 10 clips to the storyboard.");
                           return;
@@ -414,11 +469,14 @@ export default function PreviewHistory({
                         }]);
                         toast.success("Added to storyboard!");
                       }}
-                      className={`flex items-center gap-2 bg-transparent rounded-xl p-2 backdrop-blur-sm ${isClipInStoryboard || storyboardClips.length >= 10 ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
-                      title={isClipInStoryboard ? "Already in storyboard" : "Add to storyboard"}
-                      disabled={isClipInStoryboard || storyboardClips.length >= 10}
+                      className={`flex items-center gap-2 bg-transparent rounded-xl p-2 backdrop-blur-sm ${isAddButtonDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-brand-highlight/60'}`}
+                      title={addButtonTitle}
+                      disabled={isAddButtonDisabled}
                     >
-                      <FilmIcon className="w-5 h-5 text-white" /> Add{isClipInStoryboard ? "ed" : ""} to storyboard
+                      <FilmIcon className="w-5 h-5 text-white" />
+                      {isAspectRatioMismatch
+                        ? "Incompatible aspect ratio"
+                        : `Add${isClipInStoryboard ? "ed" : ""} to storyboard`}
                     </button>
                   )}
 
