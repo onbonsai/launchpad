@@ -22,25 +22,11 @@ interface WorkerData {
     tempId: string;
 }
 
-self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
-  // console.log('[previewWorker] Received message from main thread:', event.data);
-  const {
-    url,
-    idToken,
-    category,
-    templateName,
-    templateData,
-    prompt,
-    image,
-    aspectRatio,
-    nft,
-    roomId,
-    audio,
-    tempId,
-  } = event.data;
-
-  try {
-    const result = await generatePreview(
+// Only run this code if we're in a web worker environment
+if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
+  self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
+    // console.log('[previewWorker] Received message from main thread:', event.data);
+    const {
       url,
       idToken,
       category,
@@ -52,24 +38,41 @@ self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
       nft,
       roomId,
       audio,
-    );
+      tempId,
+    } = event.data;
 
-    // console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
+    try {
+      const result = await generatePreview(
+        url,
+        idToken,
+        category,
+        templateName,
+        templateData,
+        prompt,
+        image,
+        aspectRatio,
+        nft,
+        roomId,
+        audio,
+      );
 
-    // If there's video data with ArrayBuffer, we need to transfer it properly
-    const transferList: Transferable[] = [];
-    if (result?.preview?.video?.buffer instanceof ArrayBuffer) {
-      transferList.push(result.preview.video.buffer);
+      // console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
+
+      // If there's video data with ArrayBuffer, we need to transfer it properly
+      const transferList: Transferable[] = [];
+      if (result?.preview?.video?.buffer instanceof ArrayBuffer) {
+        transferList.push(result.preview.video.buffer);
+      }
+
+      // Handle large image ArrayBuffers
+      if (result?.preview?.image?.buffer instanceof ArrayBuffer) {
+        transferList.push(result.preview.image.buffer);
+      }
+
+      self.postMessage({ success: true, result, tempId }, transferList);
+    } catch (error) {
+      console.error('[previewWorker] Error during preview generation for tempId:', tempId, error);
+      self.postMessage({ success: false, error: (error as Error).message, tempId });
     }
-
-    // Handle large image ArrayBuffers
-    if (result?.preview?.image?.buffer instanceof ArrayBuffer) {
-      transferList.push(result.preview.image.buffer);
-    }
-
-    self.postMessage({ success: true, result, tempId }, transferList);
-  } catch (error) {
-    console.error('[previewWorker] Error during preview generation for tempId:', tempId, error);
-    self.postMessage({ success: false, error: (error as Error).message, tempId });
-  }
-});
+  });
+}

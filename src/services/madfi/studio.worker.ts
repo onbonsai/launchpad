@@ -79,7 +79,8 @@ interface GeneratePreviewResponse {
   roomId: string;
 }
 
-export const generatePreview = async (
+// Only define the function if we're in a browser environment
+const generatePreviewImpl = async (
   url: string,
   idToken: string,
   category: TemplateCategory,
@@ -197,3 +198,10 @@ export const generatePreview = async (
     throw error;
   }
 };
+
+// Export the function only if we're in a browser environment
+export const generatePreview = typeof window !== 'undefined' || typeof self !== 'undefined'
+  ? generatePreviewImpl
+  : (() => {
+      throw new Error('generatePreview can only be used in a browser environment');
+    }) as typeof generatePreviewImpl;
