@@ -484,6 +484,7 @@ export default function PreviewHistory({
                           startTime: 0,
                           endTime: duration,
                           duration,
+                          templateData,
                         }]);
                         toast.success("Added to storyboard!");
                       }}
@@ -531,7 +532,7 @@ export default function PreviewHistory({
                           }
                         : undefined,
                       image: (preview as any)?.imagePreview || preview?.image
-                        ? { item: (preview as any)?.imagePreview || preview.image }
+                        ? { item: (preview as any)?.imagePreview || preview?.image }
                         : undefined
                     }
                   }}

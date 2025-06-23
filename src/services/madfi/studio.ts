@@ -565,7 +565,7 @@ export const composeStoryboard = async (
     formData.append('data', JSON.stringify({
       roomId,
       storyboard: clips.map(clip => ({
-        agentId: clip.id,
+        id: clip.id,
         startTime: clip.startTime,
         endTime: clip.endTime,
       })),

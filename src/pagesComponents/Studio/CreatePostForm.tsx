@@ -397,7 +397,7 @@ const CreatePostForm = ({
     }
 
     setIsComposing(true);
-    let toastId = toast.loading("Composing video... this might take a few minutes.");
+    let toastId = toast.loading("Composing video... this might take a minute.");
 
     try {
       const res = await composeStoryboard(
