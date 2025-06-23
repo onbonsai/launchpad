@@ -44,6 +44,7 @@ export interface StoryboardClip {
   startTime: number;
   endTime: number; // Will be clip duration initially
   duration: number;
+  templateData?: any;
 }
 
 const StudioCreatePage: NextPage = () => {
@@ -704,6 +705,20 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
+      let storyboardAudioData;
+      if (storyboardAudio) {
+        if (typeof storyboardAudio === 'string') {
+          storyboardAudioData = storyboardAudio;
+        } else {
+          storyboardAudioData = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(storyboardAudio as File);
+          });
+        }
+      }
+
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
@@ -724,6 +739,20 @@ const StudioCreatePage: NextPage = () => {
           category: template.category,
           templateData: finalTemplateData,
         },
+        storyboard: storyboardClips.length > 0 ? {
+          clips: storyboardClips.map(clip => ({
+            id: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+            templateData: {
+              video: clip.preview.video,
+              ...clip.templateData,
+            },
+          })),
+          audioData: storyboardAudioData,
+          audioStartTime: storyboardAudioStartTime,
+          roomId: roomId as string
+        } : undefined
       }));
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
@@ -876,7 +905,6 @@ const StudioCreatePage: NextPage = () => {
                         postContent={postContent}
                         localPreviews={localPreviews}
                         setLocalPreviews={setLocalPreviews}
-                        generatePreview={generatePreview}
                         isFinalize={openTab > 1}
                         postImage={postImage}
                         setPostContent={setPostContent}
