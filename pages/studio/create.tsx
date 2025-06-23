@@ -575,7 +575,7 @@ const StudioCreatePage: NextPage = () => {
     let postId, uri;
     let video;
     try {
-      let image;
+      let image, imageUri, type;
 
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
@@ -588,7 +588,7 @@ const StudioCreatePage: NextPage = () => {
       if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
         image = { url: currentPreview?.image, type: "image/png" };
       } else if (currentPreview?.image) {
-        const { uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl);
+        ({ uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl));
         image = { url: imageUri, type };
       } else if (postImage && postImage.length > 0) {
         image = (await uploadFile(postImage[0], template?.acl)).image;
@@ -707,19 +707,21 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
-      let storyboardAudioData;
-      if (storyboardAudio) {
-        if (typeof storyboardAudio === 'string') {
-          storyboardAudioData = storyboardAudio;
-        } else {
-          storyboardAudioData = await new Promise((resolve, reject) => {
+      const processAudio = async (audio: any) => {
+        if (!audio) return undefined;
+        if (typeof audio === 'string') return { data: audio };
+        if ('url'in audio && audio.url) return { name: audio.name, data: audio.url };
+        if (audio instanceof File) {
+          const data = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
-            reader.readAsDataURL(storyboardAudio as File);
+            reader.readAsDataURL(audio);
           });
+          return { name: audio.name, data };
         }
-      }
+        return audio;
+      };
 
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
@@ -740,7 +742,10 @@ const StudioCreatePage: NextPage = () => {
         params: {
           templateName: template.name,
           category: template.category,
-          templateData: finalTemplateData,
+          templateData: {
+            ...finalTemplateData,
+            audioData: await processAudio((finalTemplateData as any)?.audioData),
+          },
         },
         storyboard: storyboardClips.length > 0 ? {
           clips: storyboardClips.map(clip => ({
@@ -752,7 +757,7 @@ const StudioCreatePage: NextPage = () => {
               ...clip.templateData,
             },
           })),
-          audioData: storyboardAudioData,
+          audioData: await processAudio(storyboardAudio),
           audioStartTime: storyboardAudioStartTime,
           roomId: roomId as string
         } : undefined
@@ -914,6 +919,7 @@ const StudioCreatePage: NextPage = () => {
                         storyboardClips={storyboardClips}
                         setStoryboardClips={setStoryboardClips}
                         onAnimateImage={handleAnimateImage}
+                        generatePreview={generatePreview}
                       />
                     </div>
                   </div>

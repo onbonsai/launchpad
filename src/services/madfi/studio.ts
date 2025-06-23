@@ -556,7 +556,7 @@ export const composeStoryboard = async (
   url: string,
   idToken: string,
   clips: StoryboardClip[],
-  audio: File | string | null,
+  audio: File | { url: string, name: string } | null,
   audioStartTime: number,
   roomId?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
@@ -570,15 +570,11 @@ export const composeStoryboard = async (
         endTime: clip.endTime,
       })),
       audioStartTime,
+      audio
     }));
 
     if (audio && audio instanceof File) {
       formData.append('audio', audio);
-    } else if (typeof audio === 'string') {
-      formData.append('data', JSON.stringify({
-        ...JSON.parse(formData.get('data') as string),
-        audioUrl: audio,
-      }));
     }
 
     const response = await fetch(`${url}/storyboard/compose`, {

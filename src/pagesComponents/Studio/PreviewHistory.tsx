@@ -18,6 +18,7 @@ import type { StoryboardClip } from '@pages/studio/create';
 import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
 import { ANIMATED_HINT_LINES } from '@src/constants/constants';
+import { NFTMetadata } from '@src/services/madfi/studio';
 
 export type LocalPreview = {
   agentId?: string;
@@ -50,7 +51,7 @@ type PreviewHistoryProps = {
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
   onAnimateImage: () => void;
-  generatePreview: (prompt: string, image?: File, audio?: { file: File; startTime: number }) => void;
+  generatePreview: (prompt: string, templateData: any, image?: File, aspectRatio?: string, nft?: NFTMetadata, audio?: { file: File; startTime: number; }) => void;
 };
 
 type MemoryPreview = Memory & {

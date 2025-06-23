@@ -265,11 +265,29 @@ const CreatePostForm = ({
         }
       }
 
-      // Fix audio type issue - only pass if it's a File
-      const audioParam = template.options?.audioRequirement !== MediaRequirement.NONE && postAudio && postAudio instanceof File ? {
-        file: postAudio,
-        startTime: templateData.audioStartTime || audioStartTime || 0
-      } : undefined;
+      // Fix audio type issue
+      let audioParam: { file: File; startTime: number } | undefined = undefined;
+      if (template.options?.audioRequirement !== MediaRequirement.NONE && postAudio) {
+        let audioFile: File | undefined = undefined;
+        if (postAudio instanceof File) {
+          audioFile = postAudio;
+        } else {
+          // It's a string URL or a library object with a URL
+          const url = typeof postAudio === 'string' ? postAudio : (postAudio as any).url;
+          if (url) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const name = typeof postAudio === 'string' ? 'audio.mp3' : (postAudio as any).name || 'audio.mp3';
+            audioFile = new File([blob], name, { type: blob.type });
+          }
+        }
+        if (audioFile) {
+          audioParam = {
+            file: audioFile,
+            startTime: templateData.audioStartTime || audioStartTime || 0
+          };
+        }
+      }
 
       // Include subTemplateId in templateData if a subtemplate is selected
       const finalTemplateData = {
@@ -404,7 +422,7 @@ const CreatePostForm = ({
         template.apiUrl,
         idToken,
         storyboardClips,
-        storyboardAudio,
+        storyboardAudio as any,
         storyboardAudioStartTime || 0,
         roomId
       );

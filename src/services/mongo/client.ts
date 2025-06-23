@@ -164,3 +164,11 @@ export const getClientWithMedia = async (__client?: any) => {
 
   return { collection, database };
 };
+
+export const getClientWithUserAudio = async (__client?: any) => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("user-audio");
+
+  return { collection, database };
+};
