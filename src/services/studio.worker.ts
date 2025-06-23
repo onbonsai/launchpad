@@ -77,6 +77,7 @@ interface GeneratePreviewResponse {
   preview: Preview | undefined;
   agentId: string;
   roomId: string;
+  agentMessageId?: string;
 }
 
 // Only define the function if we're in a browser environment
@@ -167,7 +168,8 @@ const generatePreviewImpl = async (
           text: data.preview.text,
         },
         agentId: data.agentId,
-        roomId: data.roomId
+        roomId: data.roomId,
+        agentMessageId: data.agentMessageId,
       };
     }
 

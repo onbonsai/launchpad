@@ -123,7 +123,8 @@ const StudioCreatePage: NextPage = () => {
         const previewWithMetadata = {
           ...result.preview,
           agentId: result.agentId,
-          roomId: result.roomId
+          roomId: result.roomId,
+          agentMessageId: result.agentMessageId,
         };
 
         handleSetPreview(previewWithMetadata, tempId);
@@ -288,6 +289,7 @@ const StudioCreatePage: NextPage = () => {
             ...p,
             pending: false,
             agentId: preview.agentId,
+            agentMessageId: preview.agentMessageId,
             content: {
               ...p.content,
               preview: cloneDeep(preview), // Deep copy to avoid shared references
@@ -707,6 +709,7 @@ const StudioCreatePage: NextPage = () => {
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
+        agentMessageId: currentPreview?.agentMessageId,
         postId,
         uri,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
