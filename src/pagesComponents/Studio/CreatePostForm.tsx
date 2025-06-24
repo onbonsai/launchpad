@@ -858,10 +858,10 @@ const DynamicForm = ({
     return [{
       options: [
         { value: "", label: "Default" },
-        ...models.map(model => ({
+        ...(models.map(model => ({
           value: model,
           label: `${model}: ${imageModelDescriptions[model] || ''}`,
-        }))
+        })).filter(({ label }) => label))
       ]
     }];
   }, [models]);
