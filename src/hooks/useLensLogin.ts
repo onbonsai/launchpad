@@ -108,7 +108,7 @@ export const useIsAuthenticated = () => {
 };
 
 // basic login, for more functionality. see `useLensSignIn`
-export const useLensLogin = (options: UseQueryOptions = {}, walletClient?: WalletClient) => {
+export const useLensLogin = (options?: UseQueryOptions, walletClient?: WalletClient) => {
   const [selectedProfile, setSelectedProfile] = useState<Account | undefined>();
 
   const query = useQuery({

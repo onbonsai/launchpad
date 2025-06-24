@@ -26,7 +26,7 @@ export default (walletClient: any): LensSignInReturnType => {
   const [openSignInModal, setOpenSignInModal] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [authenticatedLensClient, setAuthenticatedLensClient] = useState<any>();
-  const { refetch: loginWithLens, setSelectedProfile, selectedProfile } = useLensLogin({}, walletClient);
+  const { refetch: loginWithLens, setSelectedProfile, selectedProfile } = useLensLogin(undefined, walletClient);
   const { data: isAuthenticated, refetch: fetchIsAuthenticated } = useIsAuthenticated();
   const { data: authenticatedProfileId, refetch: fetchAuthenticatedProfileId } = useAuthenticatedProfileId();
   const { data: authenticatedProfile, refetch: fetchAuthenticatedProfile } = useAuthenticatedLensProfile();
@@ -37,11 +37,11 @@ export default (walletClient: any): LensSignInReturnType => {
     fetchAuthenticatedProfile();
   };
 
-  const signInWithLens = async (selectedProfile?: Account) => {
+  const signInWithLens = async () => {
     setSigningIn(true);
     const toastId = toast.loading("Signing in...");
     try {
-      const connected = await loginWithLens({ queryKey: ["lens-login", selectedProfile?.address] });
+      const connected = await loginWithLens();
       if (!connected) throw new Error();
 
       fullRefetch();
