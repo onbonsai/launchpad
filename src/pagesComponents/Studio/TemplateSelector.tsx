@@ -157,7 +157,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             <div className="flex items-center text-sm text-brand-highlight border border-dark-grey rounded-lg px-1.5 py-0.5 w-fit bg-background">
               <CashIcon className="h-3 w-3 mr-1" />
               {template.estimatedCost.toFixed(1)}
-              {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 50).toFixed(1)}` : ''}
+              {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 26).toFixed(1)}` : ''}
             </div>
           )}
           {!isLoadingCredits && estimatedGenerations !== undefined && (
