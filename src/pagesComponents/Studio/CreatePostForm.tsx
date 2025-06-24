@@ -774,7 +774,7 @@ const CreatePostForm = ({
           <Button size='md' disabled={isSubmitting || !isValid()} onClick={_generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
               (creditBalance || 0) >= (estimatedCost)
-                ? `Generate (~${estimatedCost.toFixed(2)} credits)`
+                ? `Generate`
                 : (remixToken || remixPostId)
                   ? `Swap to Generate`
                   : `Top up credits`
