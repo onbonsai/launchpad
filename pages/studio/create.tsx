@@ -37,6 +37,7 @@ import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useWebNotifications from "@src/hooks/useWebNotifications";
 import { cloneDeep } from "lodash/lang";
+import { last } from "lodash/array";
 
 export interface StoryboardClip {
   id: string; // agentId of the preview
@@ -197,7 +198,7 @@ const StudioCreatePage: NextPage = () => {
       templateData: templateData,
       prompt,
       image,
-      aspectRatio: aspectRatio || "1:1",
+      aspectRatio: aspectRatio || last(storyboardClips)?.templateData?.aspectRatio || "9:16",
       nft,
       roomId,
       audio,
@@ -276,8 +277,21 @@ const StudioCreatePage: NextPage = () => {
     }
   }, [isConnected, address, router.query.roomId]);
 
+  useEffect(() => {
+    if (currentPreview && !localPreviews.some(p => p.agentId === currentPreview.agentId || p.content.preview?.agentId === currentPreview.agentId)) {
+      handleSetPreview(currentPreview);
+    }
+  }, [currentPreview]);
+
   const handleSetPreview = (preview: Preview, tempId?: string) => {
-    if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) return;
+    if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) {
+      const isExisting = localPreviews.some(lp =>
+        lp.agentId === preview.agentId ||
+        (lp.content.preview && lp.content.preview.agentId === preview.agentId)
+      );
+      if (isExisting) return;
+    }
+
     setCurrentPreview(preview);
     if (preview.roomId && preview.roomId !== roomId) {
       setRoomId(preview.roomId);
@@ -303,43 +317,45 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    // Check if this preview already exists in localPreviews
-    const existingPreview = localPreviews.find(lp =>
-      lp.agentId === preview.agentId ||
-      (lp.content.preview && lp.content.preview.agentId === preview.agentId)
-    );
-
-    if (existingPreview) {
-      return;
-    }
-
     // Add both template data and preview messages in a single state update
     const now = new Date().toISOString();
 
-    setLocalPreviews(prev => [...prev,
-      // First add the template data message
-      {
-        agentId: `templateData-${preview.agentId}`,
-        isAgent: false,
-        createdAt: now,
-        content: {
-          templateData: JSON.stringify(preview.templateData || {}),
-          text: prompt || "",
-          prompt: prompt
-        }
-      },
-      // Then add the preview message
-      {
-        agentId: preview.agentId,
-        isAgent: true,
-        createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
-        content: {
-          preview: cloneDeep(preview), // Deep copy to avoid shared references
-          text: preview.text,
-          prompt: prompt
-        }
+    setLocalPreviews(prev => {
+      // Check if this preview already exists in localPreviews
+      const existingPreview = prev.find(lp =>
+        lp.agentId === preview.agentId ||
+        (lp.content.preview && lp.content.preview.agentId === preview.agentId)
+      );
+
+      if (existingPreview) {
+        return prev;
       }
-    ]);
+
+      return [...prev,
+        // First add the template data message
+        {
+          agentId: `templateData-${preview.agentId}`,
+          isAgent: false,
+          createdAt: now,
+          content: {
+            templateData: JSON.stringify(preview.templateData || {}),
+            text: prompt || "",
+            prompt: prompt
+          }
+        },
+        // Then add the preview message
+        {
+          agentId: preview.agentId,
+          isAgent: true,
+          createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
+          content: {
+            preview: cloneDeep(preview), // Deep copy to avoid shared references
+            text: preview.text,
+            prompt: prompt
+          }
+        }
+      ]
+    });
   };
 
   const handleTemplateSelect = (newTemplate: Template) => {
@@ -350,8 +366,8 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
-  const handleAnimateImage = () => {
-    if (!currentPreview?.image || !registeredTemplates) return;
+  const handleAnimateImage = (preview) => {
+    if (!preview?.image || !registeredTemplates) return;
 
     // find a template with "video" in the name (case-insensitive)
     const videoTemplate = registeredTemplates.find(t => t.name.toLowerCase().includes('video'));
@@ -361,7 +377,7 @@ const StudioCreatePage: NextPage = () => {
     }
     handleTemplateSelect(videoTemplate);
 
-    const imageFile = parseBase64Image(currentPreview.image);
+    const imageFile = parseBase64Image(preview.image);
     setPostImage([imageFile]);
 
     // scroll to top

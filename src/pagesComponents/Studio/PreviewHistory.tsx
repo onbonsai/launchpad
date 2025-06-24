@@ -50,7 +50,7 @@ type PreviewHistoryProps = {
   setPostContent: (c: string) => void;
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
-  onAnimateImage: () => void;
+  onAnimateImage: (p: any) => void;
   generatePreview: (prompt: string, templateData: any, image?: File, aspectRatio?: string, nft?: NFTMetadata, audio?: { file: File; startTime: number; }) => void;
 };
 
@@ -345,7 +345,7 @@ export default function PreviewHistory({
 
           if (message.pending) {
             return (
-              <div key={`pending-${index}`} ref={generatingRef} className="flex flex-col items-center space-y-4">
+              <div key={`pending-${index}`} ref={generatingRef} className="flex flex-col items-center space-y-4 pb-4">
                 <AnimatedBonsaiGrid />
                 <AnimatedText lines={ANIMATED_HINT_LINES} className="md:w-[400px] w-full md:text-lg" />
               </div>
@@ -360,7 +360,7 @@ export default function PreviewHistory({
 
           // Prioritize preview text over prompt for display
           const previewText = (message.content.preview as any)?.text;
-          const content = previewText || message.content.text || message.content.prompt || currentPreview?.text;
+          const content = previewText || message.content.text || message.content.prompt || currentPreview?.text || "";
           const preview = message.isAgent ? {
             ...message.content.preview as unknown as MessageContentPreview,
             agentId: message.agentId,
@@ -430,7 +430,7 @@ export default function PreviewHistory({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onAnimateImage();
+                        onAnimateImage(preview);
                       }}
                       className="flex items-center bg-transparent gap-2 rounded-xl p-2 backdrop-blur-sm hover:bg-brand-highlight/60"
                       title="Animate this image"
