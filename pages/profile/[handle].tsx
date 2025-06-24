@@ -28,6 +28,7 @@ import { Tabs } from '@src/components/Profile/Tabs';
 import { ProfileContainer } from "@src/components/Profile/ProfileContainer";
 import { Account } from '@lens-protocol/client';
 import { getAccountStats } from '@src/services/lens/getStats';
+import { EditProfileModal } from '@src/components/Profile/EditProfileModal';
 
 interface CreatorPageProps {
   profile: any;
@@ -78,6 +79,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const { data: bonsaiNFTs } = useGetBonsaiNFTs(profileAddress(profile, creatorInfo?.address));
 
   const [openSignInModal, setOpenSignInModal] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [openTab, setOpenTab] = useState<number>(type === "lens" ? 1 : 5);
   const [mobileView, setMobileView] = useState('profile');
 
@@ -159,6 +161,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
                   profile={isAuthenticated ? profileData as Account : profile}
                   isProfileAdmin={isProfileAdmin}
                   onFollowClick={handleFollowClick}
+                  onEditClick={() => setIsEditModalOpen(true)}
                   followersYouKnow={followersYouKnow}
                   isLoadingFollowers={isLoadingFollowers}
                   isConnected={isConnected}
@@ -199,6 +202,22 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
         panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] p-4 text-secondary"
       >
         <LoginWithLensModal closeModal={() => setOpenSignInModal(false)} />
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        onClose={() => setIsEditModalOpen(false)}
+        open={isEditModalOpen}
+        setOpen={setIsEditModalOpen}
+        panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] lg:w-[40vw] p-4 text-secondary"
+      >
+        <EditProfileModal 
+          profile={profileData as Account} 
+          closeModal={() => setIsEditModalOpen(false)}
+          onProfileUpdate={() => {
+            refetch();
+          }}
+        />
       </Modal>
     </div>
   );

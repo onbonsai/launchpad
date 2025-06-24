@@ -298,7 +298,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
                   No audio files found in your library.
                 </p>
               )}
-              <Button type="button" variant="secondary" size="sm" className="text-md w-full" onClick={open}>
+              <Button type="button" variant="secondary" size="sm" className="mt-4 text-md w-full" onClick={open}>
                 Upload new audio
               </Button>
             </div>
