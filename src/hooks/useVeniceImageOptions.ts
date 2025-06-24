@@ -5,11 +5,16 @@ interface VeniceImageOptionsResponse {
   stylePresets: string[];
 }
 
-// no xxx... yet
 const filterImageModels = [
+  // no xxx... yet
   "flux-dev-uncensored",
   "pony-realism",
   "lustify-sdxl",
+  // haven't tested the width height divisor or deprecated
+  "fluently-xl",
+  "flux-dev",
+  "pony-realism",
+  "stable-diffusion-3.5",
 ];
 
 const fetchImageOptions = async (): Promise<VeniceImageOptionsResponse | undefined> => {

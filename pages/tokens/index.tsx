@@ -35,7 +35,7 @@ const IndexPage: NextPage = () => {
     isFetchingNextPage,
   } = useGetRegisteredClubs(sortedBy);
   const { data: featuredClubs, isLoading: isLoadingFeaturedClubs } = useGetFeaturedClubs();
-  const { data: bonsaiNFTs } = useGetBonsaiNFTs(address);
+  const { data: bonsaiNFTs } = useGetBonsaiNFTs(address as `0x${string}`);
   const clubs = useMemo(() => [...(featuredClubs || []), ...(data?.pages.flatMap(page => page.clubs) || [])], [featuredClubs, data]);
 
   const { data: bonsaiBalance } = useReadContract({
@@ -81,7 +81,7 @@ const IndexPage: NextPage = () => {
                   <div className="bg-card rounded-lg p-4 hidden lg:block">
                     {!!address &&
                       <>
-                        <Holdings address={address} bonsaiAmount={bonsaiBalance ?? 0n} />
+                        <Holdings address={address as `0x${string}`} bonsaiAmount={bonsaiBalance ?? 0n} />
                         <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
                       </>
                     }

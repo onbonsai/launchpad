@@ -65,6 +65,7 @@ export const imageContainerStyleOverride = css`
   justify-content: center;
   align-items: center;
   width: 100%;
+  height: auto;
   overflow: hidden;
 `
 

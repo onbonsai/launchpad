@@ -10,6 +10,7 @@ import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
 import type { StoryboardClip } from "@pages/studio/create";
+import { generatePreview } from "./../studio.worker";
 
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
@@ -99,6 +100,7 @@ export type Template = {
 export type Preview = {
   roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
+  agentMessageId?: string; // to associate memories with published posts
   text?: string;
   templateName?: string
   image?: any;
@@ -167,82 +169,6 @@ interface GeneratePreviewResponse {
   agentId: string;
   roomId: string;
 }
-
-export const generatePreview = async (
-  url: string,
-  idToken: string,
-  template: Template,
-  templateData: any,
-  prompt?: string,
-  image?: File,
-  aspectRatio?: string,
-  nft?: NFTMetadata,
-  roomId?: string,
-  audio?: {
-    file: File;
-    startTime: number;
-  },
-): Promise<GeneratePreviewResponse | undefined> => {
-  try {
-    const formData = new FormData();
-    formData.append('data', JSON.stringify({
-      roomId,
-      category: template.category,
-      templateName: template.name,
-      templateData: {
-        ...templateData,
-        aspectRatio,
-        nft,
-        audioStartTime: templateData.audioStartTime || audio?.startTime
-      },
-      prompt,
-    }));
-    if (image) formData.append('image', image);
-    if (audio) formData.append('audio', audio.file);
-    const response = await fetch(`${url}/post/create-preview`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${idToken}` },
-      body: formData,
-      signal: AbortSignal.timeout(160000) // 2.5 minutes instead of default ~15s
-    });
-
-    if (!response.ok) {
-      if (response.status === 403) {
-        const errorText = await response.text();
-        if (errorText.includes("not enough credits")) {
-          throw new Error("not enough credits");
-        }
-      }
-      throw new Error(`Preview generation failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.preview?.video) {
-      const videoData = new Uint8Array(data.preview.video.buffer);
-      const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
-      return {
-        preview: {
-          video: {
-            mimeType: data.preview.video.mimeType,
-            size: videoBlob.size,
-            blob: videoBlob,
-            url: URL.createObjectURL(videoBlob),
-          },
-          ...(data.preview.image && { image: data.preview.image }),
-          text: data.preview.text,
-        },
-        agentId: data.agentId,
-        roomId: data.roomId
-      };
-    }
-
-    return data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
 
 export const enhancePrompt = async (
   url: string,
@@ -630,7 +556,7 @@ export const composeStoryboard = async (
   url: string,
   idToken: string,
   clips: StoryboardClip[],
-  audio: File | string | null,
+  audio: File | { url: string, name: string } | null,
   audioStartTime: number,
   roomId?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
@@ -639,20 +565,16 @@ export const composeStoryboard = async (
     formData.append('data', JSON.stringify({
       roomId,
       storyboard: clips.map(clip => ({
-        agentId: clip.id,
+        id: clip.id,
         startTime: clip.startTime,
         endTime: clip.endTime,
       })),
       audioStartTime,
+      audio
     }));
 
     if (audio && audio instanceof File) {
       formData.append('audio', audio);
-    } else if (typeof audio === 'string') {
-      formData.append('data', JSON.stringify({
-        ...JSON.parse(formData.get('data') as string),
-        audioUrl: audio,
-      }));
     }
 
     const response = await fetch(`${url}/storyboard/compose`, {
@@ -699,3 +621,5 @@ export const composeStoryboard = async (
     throw error;
   }
 };
+
+export { generatePreview };

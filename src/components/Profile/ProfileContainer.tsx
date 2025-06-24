@@ -3,6 +3,7 @@ import { FollowButton } from '@src/components/Profile/FollowButton';
 import { FollowersYouKnow } from "./FollowersYouKnow";
 import { Account } from "@lens-protocol/client";
 import { SafeImage } from "../SafeImage/SafeImage";
+import { Button } from '../Button';
 
 interface ProfileContainerProps {
   profile: Account;
@@ -15,6 +16,7 @@ interface ProfileContainerProps {
   isLoadingProfile?: boolean;
   following?: number;
   followers?: number;
+  onEditClick: () => void;
 }
 
 export const ProfileContainer = ({
@@ -28,6 +30,7 @@ export const ProfileContainer = ({
   isLoadingProfile = false,
   following,
   followers,
+  onEditClick,
 }: ProfileContainerProps) => {
   if (!profile?.metadata) return null;
   return (
@@ -52,13 +55,12 @@ export const ProfileContainer = ({
             <div className="flex flex-col">
               <SafeImage
                 src={profile.metadata?.picture || "/default.png"}
-                alt="pfp"
-                width={80}
-                height={80}
-                className="bg-[#ffffff] rounded-[20px]"
-                role="img"
-                aria-label="pfp"
-                unoptimized={true}
+                alt={profile?.metadata?.name || 'Profile picture'}
+                width={96}
+                height={96}
+                className="rounded-full h-24 w-24"
+                aria-label="Profile picture"
+                unoptimized
               />
             </div>
             <div className="mt-6 flex justify-between items-center w-full">
@@ -85,6 +87,13 @@ export const ProfileContainer = ({
               <p className="text-[#ffffff] text-[16px] leading-tight font-light mt-8">
                 {profile.metadata.bio}
               </p>
+            )}
+            {isProfileAdmin && (
+              <div className="my-4">
+                <Button onClick={onEditClick} variant="primary" className="w-fit" size="sm">
+                  Edit Profile
+                </Button>
+              </div>
             )}
             <div className='mt-5 flex flex-col gap-5'>
               <div className='flex gap-5'>

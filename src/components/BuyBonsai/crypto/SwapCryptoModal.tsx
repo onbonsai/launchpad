@@ -13,7 +13,7 @@ interface SwapCryptoModalProps {
 
 const SwapCryptoModal = (props: SwapCryptoModalProps) => {
     const { onClose } = props;
-    const { address, isConnected } = useAccount();
+    const { address } = useAccount();
 
     useEffect(() => {
         setTimeout(() => {

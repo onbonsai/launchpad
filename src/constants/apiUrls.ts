@@ -20,7 +20,7 @@ const STAGING_URLS = {
   lensGateway: "https://lens.infura-ipfs.io/ipfs",
   rpc: process.env.NEXT_PUBLIC_MUMBAI_RPC,
   ethExplorer: "https://mumbai.polygonscan.com",
-  lensAPI: "https://api.testnet.lens.dev/graphql",
+  lensAPI: "https://api.testnet.lens.xyz/graphql",
   madfiSubgraph: "https://api.thegraph.com/subgraphs/name/mad-finance/testnet-madfi-subgraph",
   madfiSubgraphBase: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest",
   storjGateway: "https://www.storj-ipfs.com",
@@ -33,7 +33,7 @@ const DEV_URLS = {
   lensGateway: "https://lens.infura-ipfs.io/ipfs",
   rpc: "http://127.0.0.1:8545",
   ethExplorer: "",
-  lensAPI: "https://api-mumbai.lens.dev",
+  lensAPI: "https://api-mumbai.lens.xyz",
   lensAPIv2: "https://api-v2-mumbai.lens.dev",
   // @TODO: replace with mumbai
   madfiSubgraph: "http://localhost:8000/subgraphs/name/imthatcarlos/madfi-subgraph",
