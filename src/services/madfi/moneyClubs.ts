@@ -23,6 +23,7 @@ import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
 import { getPosts } from "../lens/posts";
 import { Post, SessionClient } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { apolloClientReadOnly } from "../lens/apolloClient";
 
 export const V1_LAUNCHPAD_URL = "https://launch-v1.onbons.ai";
 
@@ -1832,3 +1833,28 @@ const _getIdToken = async (): Promise<string | undefined> => {
     }
   }
 }
+
+export const queryAvailableHandles = async (localName: string) => {
+  if (!localName || localName.length < 3) return { available: false };
+
+  const GET_HANDLES = gql`
+    query Username($request: UsernameRequest!) {
+      username(request: $request) {
+        id
+      }
+    }
+  `;
+
+  const {data} = await apolloClientReadOnly.query({
+    query: GET_HANDLES,
+    variables: {
+      request: {
+        username: {
+          localName,
+        }
+      }
+    },
+  });
+
+  return !data.username;
+};
