@@ -697,8 +697,8 @@ const CreatePostForm = ({
               }`}
             >
               <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30 overflow-visible">
-                {/* Aspect Ratio Options */}
-                {showImageUploader && (
+                {/* Aspect Ratio Options - NOT SHOWING FOR VIDEO RIGHT NOW */}
+                {showImageUploader && (template?.name !== "video") && (
                   <div className="space-y-2 mb-4">
                     <FieldLabel
                       label="Aspect Ratio"
