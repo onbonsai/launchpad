@@ -153,7 +153,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
                       <div>$21-$100 = 0.25× credits</div>
                       <div>$101+ = 0.1× credits</div>
                     </div>
-                    <div className="mt-2 text-secondary/60">Maximum staking credits: 100 (+ 10 free tier credits)</div>
+                    <div className="mt-2 text-secondary/60">Maximum staking credits: 200 (+ 10 free tier credits)</div>
                   </div>
                 </div>
               </div>
