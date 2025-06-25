@@ -89,9 +89,9 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   return (
     <div className={clsx(
       "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
-      isStandalone && "pb-10"
+      isStandalone ? "pb-6" : "pb-1"
     )}>
-      <div className="flex justify-between items-center h-16 px-6">
+      <div className="flex justify-between items-center h-14 px-6">
         <Link href="/" className="flex flex-col items-center">
           <svg className={`w-6 h-6 ${isHomeActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
