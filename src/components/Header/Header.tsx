@@ -24,6 +24,7 @@ import CoinPile from "../Icons/CoinPile";
 import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { usePWA } from "@src/hooks/usePWA";
 
 const headerLinks = [
   {
@@ -83,8 +84,13 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     if (isMiniApp && (!isAuthenticated || query.modal === "budget")) setOpenSignInModal(true);
   }, [isMiniApp, isAuthenticated]);
 
+  const { isStandalone } = usePWA();
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]">
+    <div className={clsx(
+      "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
+      isStandalone && "pb-10"
+    )}>
       <div className="flex justify-between items-center h-16 px-6">
         <Link href="/" className="flex flex-col items-center">
           <svg className={`w-6 h-6 ${isHomeActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

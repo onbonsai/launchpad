@@ -10,7 +10,26 @@ class MyDocument extends Document {
           <link rel="shortcut icon" href="/favicon.ico" />
           <link href="/webclip.png" rel="apple-touch-icon image_src" />
           <meta name="msapplication-TileColor" content="#da532c" />
-          <meta name="theme-color" content="#ffffff" />
+          <meta name="theme-color" content="#000000" />
+          
+          {/* PWA Manifest */}
+          <link rel="manifest" href="/manifest.json" />
+          
+          {/* Apple Touch Icons */}
+          <link rel="apple-touch-icon" href="/webclip.png" />
+          <link rel="apple-touch-icon" sizes="152x152" href="/webclip.png" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/webclip.png" />
+          <link rel="apple-touch-icon" sizes="167x167" href="/webclip.png" />
+          
+          {/* Apple Mobile Web App Capable */}
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="Bonsai" />
+          
+          {/* Microsoft Tiles */}
+          <meta name="msapplication-TileImage" content="/logo.png" />
+          <meta name="msapplication-config" content="/browserconfig.xml" />
+          
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
           <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
