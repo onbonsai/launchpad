@@ -12,7 +12,13 @@ if (!!process.env.NEXT_PUBLIC_VERCEL_ENV) {
       "Proposal expired",
       "Cannot redefine property: ethereum"
     ],
-    environment: process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453" ? "production" : "testnet"
+    environment: process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453" ? "production" : "testnet",
+    integrations: [
+      Sentry.replayIntegration(),
+    ],
+    // Session Replay
+    replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+    replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
   });
 } else {
   console.log("Sentry not initialized because not in vercel environment");
