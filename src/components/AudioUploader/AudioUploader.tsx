@@ -23,7 +23,7 @@ interface AudioUploaderProps {
   isAddedToStoryboard?: boolean;
 }
 
-const MAX_SIZE = 10_000_000; // 10MB
+const MAX_SIZE = 30_000_000; // 30MB
 const DEFAULT_CLIP_LENGTH = 10; // 10 seconds
 
 export const AudioUploader: FC<AudioUploaderProps> = ({
