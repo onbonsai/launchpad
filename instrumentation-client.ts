@@ -14,7 +14,9 @@ if (!!process.env.NEXT_PUBLIC_VERCEL_ENV) {
     ],
     environment: process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "8453" ? "production" : "testnet",
     integrations: [
-      Sentry.replayIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: false,
+      }),
     ],
     // Session Replay
     replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
