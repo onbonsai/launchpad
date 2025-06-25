@@ -8,6 +8,7 @@ interface VeniceImageOptionsResponse {
 const filterImageModels = [
   // no xxx... yet
   "flux-dev-uncensored",
+  "flux-dev-uncensored-11",
   "pony-realism",
   "lustify-sdxl",
   // haven't tested the width height divisor or deprecated
@@ -23,7 +24,7 @@ const fetchImageOptions = async (): Promise<VeniceImageOptionsResponse | undefin
     if (!response.ok) throw new Error('Failed to fetch image options');
     const res = await response.json();
     if (!res.models?.length) return undefined;
-    const models = res.models.filter((m) => !filterImageModels.includes(m));
+    const models = res.models.filter((m) => !filterImageModels.includes(m) && !!imageModelDescriptions[m]);
     return { models, stylePresets: res.stylePresets };
   } catch (error) {
     console.error('Error fetching image options:', error);
