@@ -57,7 +57,7 @@ const PWAInstallPrompt: React.FC = () => {
   if (!showInstallPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">
+    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0">
           <img src="/logo.png" alt="Bonsai" className="w-12 h-12 rounded-lg" />
