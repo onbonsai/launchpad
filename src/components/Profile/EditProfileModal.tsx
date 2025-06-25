@@ -27,9 +27,11 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({ profile, closeModa
   const [name, setName] = useState(profile.metadata?.name || '');
   const [bio, setBio] = useState(profile.metadata?.bio || '');
   const [picture, setPicture] = useState<any[]>([]);
+  const [coverPicture, setCoverPicture] = useState<any[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const currentPfp = getProfileImage(profile);
+  const currentCover = profile.metadata?.coverPicture
 
   const handleUpdate = async () => {
     if (!walletClient) {
@@ -50,14 +52,20 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({ profile, closeModa
             pictureUrl = uri;
         }
 
+        let coverPictureUrl = currentCover;
+        if (coverPicture.length > 0) {
+            const { uri } = await storageClient.uploadFile(coverPicture[0], { acl: immutable(LENS_CHAIN_ID) });
+            coverPictureUrl = uri;
+        }
+
         const newMetadataPayload: any = {
             name: name,
             bio: bio,
             picture: pictureUrl,
         };
 
-        if (profile.metadata?.coverPicture) {
-            newMetadataPayload.coverPicture = profile.metadata.coverPicture;
+        if (coverPictureUrl) {
+          newMetadataPayload.coverPicture = coverPictureUrl;
         }
 
         if (profile.metadata?.attributes && profile.metadata.attributes.length > 0) {
@@ -98,14 +106,25 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({ profile, closeModa
     <div className="p-4 bg-cardBackground rounded-lg text-white">
       <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
       
-      <div className="mb-6 flex flex-col items-center">
-        <ImageUploader 
-          files={picture}
-          setFiles={setPicture}
-          maxFiles={1}
-          compact
-          defaultImage={currentPfp}
-        />
+      <div className="flex items-start justify-center gap-4 mb-6">
+        <div className="flex flex-col items-center">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Cover Photo</label>
+            <ImageUploader 
+              files={coverPicture}
+              setFiles={setCoverPicture}
+              maxFiles={1}
+              defaultImage={currentCover}
+            />
+        </div>
+        <div className="flex flex-col items-center">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Profile Picture</label>
+            <ImageUploader 
+              files={picture}
+              setFiles={setPicture}
+              maxFiles={1}
+              defaultImage={currentPfp}
+            />
+        </div>
       </div>
 
       <div className="space-y-4">
