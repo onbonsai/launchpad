@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const { withSentryConfig } = require("@sentry/nextjs");
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+});
 
 const nextConfig = {
   webpack: (config, options) => {
@@ -86,6 +92,15 @@ const nextConfig = {
           {
             key: 'Content-Type',
             value: 'text/plain',
+          },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
           },
         ],
       },
@@ -195,4 +210,4 @@ const sentryWebpackPluginOptions = {
 // Make sure to add the following to your deployment environment variables:
 // SENTRY_AUTH_TOKEN
 
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+module.exports = withPWA(withSentryConfig(nextConfig, sentryWebpackPluginOptions));
