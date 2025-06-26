@@ -124,9 +124,14 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (!signingIn && authenticatedProfileId === selectedProfile?.address) {
-      handleCloseModal();
+      // If modal is "budget", transition to budget step instead of closing
+      if (modal === "budget") {
+        setCreationStep("budget");
+      } else {
+        handleCloseModal();
+      }
     }
-  }, [signingIn, authenticatedProfileId, selectedProfile?.address]);
+  }, [signingIn, authenticatedProfileId, selectedProfile?.address, modal]);
 
   const checkHandleAvailability = async (handle: string) => {
     if (!handle || handle.length < 3) {
