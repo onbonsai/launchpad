@@ -22,7 +22,7 @@ export const Footer = (props: FooterProps) => {
   return (
     <footer className={clsx(
       short ? `md:mt-4` : `md:mt-32`,
-      "mb-32 mt-8 sm:mb-0"
+      "md:mb-0 mb-16 mt-8 sm:mb-0"
     )}>
       <div className="flex justify-end pr-4 bg-transparent w-full gap-2">
         {links.map((link, index) => (
