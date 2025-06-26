@@ -87,7 +87,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       return;
     }
     if (isMiniApp && (!isAuthenticated || query.modal === "budget")) setOpenSignInModal(true);
-  }, [isMiniApp, isAuthenticated]);
+  }, [isMiniApp, isAuthenticated, isConnected]);
 
   const { isStandalone } = usePWA();
 
