@@ -36,7 +36,8 @@ const createFrameData = (imageUrl, buttonTitle, actionName, actionUrl) => {
       action: {
         ...frameDataTemplate.button.action,
         name: actionName,
-        url: actionUrl,
+        // USE THE CURRENT URL: https://github.com/farcasterxyz/miniapps/discussions/189
+        // url: actionUrl,
       },
     },
   };
