@@ -25,10 +25,23 @@ const useWebNotifications = () => {
     }
   };
 
-  const sendNotification = (title: string, options?: NotificationOptions) => {
-    if (permission === 'granted') {
-      new Notification(title, options);
+  const sendNotification = async (title: string, options?: NotificationOptions) => {
+    if (permission !== 'granted') {
+      return;
     }
+
+    // Prefer showing the notification via the service worker for a better PWA experience
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        // The service worker will handle displaying the notification
+        registration.showNotification(title, options);
+        return;
+      }
+    }
+
+    // Fallback for when no service worker is active
+    new Notification(title, options);
   };
 
   return { permission, requestPermission, sendNotification };

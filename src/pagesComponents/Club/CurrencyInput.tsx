@@ -12,7 +12,7 @@ interface CurrencyInputProps {
   trailingAmount?: string;
   trailingAmountSymbol?: string;
   isError: boolean;
-  tokenBalance: bigint;
+  tokenBalance: bigint | undefined;
   onPriceSet: (price: string) => void;
   symbol: string;
   tokenImage?: string;
@@ -129,7 +129,7 @@ const CurrencyInput = (props: CurrencyInputProps) => {
             {parseInt(price || "0")}
           </span>
         </div>
-        {showMax && tokenBalance > 0 && (
+        {showMax && tokenBalance && tokenBalance > 0 && (
           <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
             <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
           </div>

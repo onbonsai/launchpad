@@ -11,7 +11,7 @@ import { IS_PRODUCTION } from "@src/services/madfi/utils";
 interface TradeComponentProps {
   club: any;
   address: `0x${string}` | undefined;
-  onBuyUSDC?: () => void;
+  onBuyUSDC?: (amount: string, amountNeeded: number) => void;
   defaultBuyAmount?: string;
   mediaProtocolFeeRecipient?: string;
   useRemixReferral?: `0x${string}`;

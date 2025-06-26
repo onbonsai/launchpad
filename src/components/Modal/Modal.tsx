@@ -46,15 +46,15 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
         </Transition.Child>
 
         <div className="fixed z-[1000] inset-0 overflow-y-auto">
-          <div className={`flex min-h-screen ${isMobile ? 'items-end' : 'items-center'} justify-center p-0 text-center md:p-4`}>
+          <div className={`flex min-h-[100dvh] ${isMobile ? 'items-end' : 'items-center'} justify-center p-0 text-center md:p-4`}>
             <Transition.Child
               as={Fragment}
               enter="transform transition-all ease-in-out duration-[500ms]"
-              enterFrom={isMobile ? "translate-y-full" : "opacity-0 translate-y-4 scale-95"}
-              enterTo={isMobile ? "translate-y-0" : "opacity-100 translate-y-0 scale-100"}
+              enterFrom={isMobile ? "opacity-0 translate-y-full" : "opacity-0 translate-y-4 scale-95"}
+              enterTo={isMobile ? "opacity-100 translate-y-0" : "opacity-100 translate-y-0 scale-100"}
               leave="transform transition-all ease-in duration-[300ms]"
-              leaveFrom={isMobile ? "translate-y-0" : "opacity-100 translate-y-0 scale-100"}
-              leaveTo={isMobile ? "translate-y-full" : "opacity-0 translate-y-4 scale-95"}
+              leaveFrom={isMobile ? "opacity-100 translate-y-0" : "opacity-100 translate-y-0 scale-100"}
+              leaveTo={isMobile ? "opacity-0 translate-y-full" : "opacity-0 translate-y-4 scale-95"}
             >
               <Dialog.Panel
                 className={`backdrop-blur-[40px] bg-card relative text-left shadow-xl w-full max-h-[90vh] md:max-h-none md:my-8 md:max-w-lg md:min-w-[512px] overflow-auto h-auto md:p-4

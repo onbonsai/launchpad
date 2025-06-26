@@ -41,6 +41,7 @@ import { PARAM__AMOUNT_OUT_MINIMUM } from "@src/services/lens/rewardSwap";
 import { PARAM__AMOUNT_IN } from "@src/services/lens/rewardSwap";
 import { PARAM__PATH } from "@src/services/lens/rewardSwap";
 import useQuoter from "@src/services/uniswap/useQuote";
+import { getPostId } from "@src/services/lens/getStats";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -93,15 +94,15 @@ export const BuySellWidget = ({
   });
 
   // const { data: buyPriceResult, isLoading: isLoadingBuyPrice } = useGetBuyPrice(address, club?.clubId, buyAmount);
-  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address, club?.tokenAddress, buyPrice, club.chain, club.initialPrice ? {
+  const { data: buyAmountResult, isLoading: isLoadingBuyAmount } = useGetBuyAmount(address as `0x${string}`, club?.tokenAddress as `0x${string}`, buyPrice, club.chain, club.initialPrice ? {
     initialPrice: club.initialPrice,
     targetPriceMultiplier: club.targetPriceMultiplier,
     flatThreshold: club.flatThreshold,
     completed: club.complete
   } : undefined);
   const { buyAmount, effectiveSpend } = buyAmountResult || {};
-  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address, club?.clubId, sellAmount, club.chain);
-  const { refresh: refreshTradingInfo } = useGetTradingInfo(club.clubId, club.chain);
+  const { data: sellPriceResult, isLoading: isLoadingSellPrice } = useGetSellPrice(address as `0x${string}`, club?.clubId, sellAmount, club.chain);
+  const { refetch: refreshTradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const { sellPrice, sellPriceAfterFees } = sellPriceResult || {};
   const [justBought, setJustBought] = useState(false);
   const [justBoughtAmount, setJustBoughtAmount] = useState<string>();
@@ -340,7 +341,7 @@ export const BuySellWidget = ({
           PROTOCOL_DEPLOYMENT.lens.RewardSwap,
           // if output is Bonsai, use the global feed, since its a specific post
           club.tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
-          postId,
+          postId ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
           [
             { key: PARAM__PATH, value: encodeAbiParameters([{ type: 'bytes' }], [calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined)]) },
             { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: 'uint256' }], [parsedBuyPrice]) },
@@ -450,7 +451,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
   }, [club]);
 
   return (
-    <div className="flex flex-col w-[calc(100vw-65px)] sm:w-full"
+    <div className="flex flex-col w-full"
       style={{
         fontFamily: brandFont.style.fontFamily
       }
@@ -507,7 +508,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         }}
                         symbol={club.token.symbol}
                         // NOTE: as long as lens only uses wgho for quote token then the decimal factor is 36
-                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice)), club.chain === "lens" ? 36 : 24)}
+                        overridePrice={formatUnits((BigInt(clubBalance || 0) * BigInt(club.currentPrice || 0)), club.chain === "lens" ? 36 : 24)}
                         disabled
                         chain={club.chain}
                       />
@@ -516,7 +517,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 </div>
               </div>
               <div className="w-full flex flex-col justify-center items-center space-y-2">
-                {!club.complete && BigInt(buyAmount || 0n) + BigInt(club.supply) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
+                {!club.complete && BigInt(buyAmount || 0) + BigInt(club.supply || 0) >= MAX_MINTABLE_SUPPLY && <p className="max-w-sm text-center text-sm text-brand-highlight/90">This {club.chain === "lens" ? "WGHO" : "USDC"} amount goes over the liquidity threshold. Your price will be automatically adjusted to {effectiveSpend} {club.chain === "lens" ? "WGHO" : "USDC"}</p>}
                 {!justBought && (
                   <>
                     <Button className="w-full hover:bg-bullish" disabled={!isConnected || isBuying ||  club.complete ? (!buyPrice || isLoadingBuyAmount) : false || !buyAmount || notEnoughFunds} onClick={club.complete ? buyRewardSwap : buyChips} variant="accentBrand">
@@ -546,7 +547,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                   <div className="w-full flex flex-col items-center space-y-4">
                     <p className="text-center gradient-txt">{`You bought ${localizeNumber((justBoughtAmount || "0"), "decimal")} $${club.token.symbol}!`}</p>
                     <p className="text-center gradient-txt">{`Share and earn referral rewards`}</p>
-                    <div className="flex flex-row md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
+                    <div className="flex md:flex-row flex-col items-center md:space-x-2 space-y-2 md:space-y-0">
                       <a href={`https://orb.club/create-post?${urlEncodedPostParams}`} target="_blank" rel="noopener noreferrer" className="w-full">
                         <Button className="w-full md:w-[150px] bg-black hover:bg-black/80" variant="none">
                           <Image src="/svg/orb-logo-white.svg" alt="X Logo" className="mr-2 w-4 h-4" width={16} height={16} />
@@ -651,7 +652,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || club.supply == (Number(sellAmount) * 1e6)} onClick={club.complete ? sellRewardSwap : sellChips} variant="accentBrand">
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || (club.supply && sellAmount ? (parseUnits(sellAmount, DECIMALS) >= BigInt(club.supply)) : false)} onClick={club.complete ? sellRewardSwap : sellChips} variant="accentBrand">
                   Sell ${club.token.symbol}
                 </Button>
               </div>

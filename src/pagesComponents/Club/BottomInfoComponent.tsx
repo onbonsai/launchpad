@@ -7,12 +7,15 @@ import { localizeNumber } from "@src/constants/utils";
 import { formatEther, formatUnits } from "viem";
 import { MAX_MINTABLE_SUPPLY } from "@src/services/madfi/moneyClubs";
 import BuyUSDCWidget from "./BuyUSDCWidget";
+import { usePWA } from "@src/hooks/usePWA";
+import clsx from "clsx";
 
 export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   const [buyClubModalOpen, setBuyClubModalOpen] = useState(false);
   const [BuyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>('');
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
+  const { isStandalone } = usePWA();
 
   const { data: clubBalance } = useGetClubBalance(club?.clubId, address, club.chain, club.complete, club.tokenAddress);
   const [balance, setBalance] = useState<string>();
@@ -41,7 +44,10 @@ export const BottomInfoComponent = ({ club, address, totalSupply, media }) => {
   }, [club, totalSupply]);
 
   return (
-    <div className="fixed bottom-14 lg:bottom-0 py-4 left-4 right-4 md:right-auto md:left-1/4 z-50">
+    <div className={clsx(
+      "fixed py-4 left-4 right-4 md:right-auto md:left-1/4 z-50 lg:bottom-0",
+      isStandalone ? "bottom-[calc(3.5rem+1.5rem)]" : "bottom-14"
+    )}>
       <div className="col-span-3 flex justify-center w-full md:w-auto">
         <div className="flex gap-1 mt-5 w-full md:w-auto">
           {/* Bonding Curve Box */}

@@ -16,18 +16,18 @@ export const MobileViewSelector = ({ activeView, setActiveView }: ViewSelectorPr
         Profile
       </button>
       <button
-        onClick={() => setActiveView('holdings')}
-        className={`flex-1 py-2 px-4 rounded-lg ${activeView === 'holdings' ? 'bg-white text-true-black' : 'bg-transparent'
-          }`}
-      >
-        Holdings
-      </button>
-      <button
         onClick={() => setActiveView('feed')}
         className={`flex-1 py-2 px-4 rounded-lg ${activeView === 'feed' ? 'bg-white text-true-black' : 'bg-transparent'
           }`}
       >
         Feed
+      </button>
+      <button
+        onClick={() => setActiveView('holdings')}
+        className={`flex-1 py-2 px-4 rounded-lg ${activeView === 'holdings' ? 'bg-white text-true-black' : 'bg-transparent'
+          }`}
+      >
+        Holdings
       </button>
     </div>
   );
