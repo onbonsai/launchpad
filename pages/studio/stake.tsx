@@ -74,7 +74,7 @@ const TokenPage: NextPage = () => {
     },
   });
 
-  const { data: creditBalance, isLoading: isLoadingCredits } = useGetCredits(address as string, isConnected);
+  const { data: creditBalance, isLoading: isLoadingCredits, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
 
   const { data: stakingData, isLoading: isLoadingStaking, refetch: refetchStakingData } = useStakingData(address);
 
@@ -209,26 +209,24 @@ const TokenPage: NextPage = () => {
       const txHash = await stake(walletClient, amount, lockupPeriod, address as `0x${string}`);
       if (!txHash) throw new Error("No stake hash");
 
-      // Update credits in database
-      try {
-        await fetch("/api/credits/staked", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            txHash,
-            address,
-            estimatedCredits: calculateCreditsPerDay(amount, lockupPeriod),
-          }),
+      // Recalculate credits after a short delay to allow subgraph to index
+      fetch("/api/credits/recalculate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address }),
+      })
+        .then(() => {
+          // Refetch credits on the client to update UI
+          refetchCredits();
+          refetchStakingData(); // also refetch staking data
+        })
+        .catch((error) => {
+          console.error("Failed to recalculate credits:", error);
         });
-      } catch (error) {
-        console.error("Failed to update staking credits:", error);
-        // Don't throw here - we don't want to revert the UI if credits update fails
-      }
 
       refetchBonsaiBalance();
-      setTimeout(() => refetchStakingData(), 4000);
 
       setIsStakeModalOpen(false);
       setIsReferralModalOpen(true);
@@ -242,6 +240,8 @@ const TokenPage: NextPage = () => {
           // Don't throw here - we don't want to revert the stake if referral recording fails
         }
       }
+
+      toast.success("Stake successful. Your credits will be updated in a few moments.");
 
       return true;
     } catch (error) {
