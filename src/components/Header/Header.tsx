@@ -48,6 +48,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { isMiniApp } = useIsMiniApp();
+  const { isConnected } = useAccount();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [showNotifications, setShowNotifications] = useState(false);
   const { setOpen } = useModal({
@@ -81,6 +82,10 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
+    if (isMiniApp && !isConnected) {
+      setOpen(true);
+      return;
+    }
     if (isMiniApp && (!isAuthenticated || query.modal === "budget")) setOpenSignInModal(true);
   }, [isMiniApp, isAuthenticated]);
 

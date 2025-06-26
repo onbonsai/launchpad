@@ -40,6 +40,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   const {
     signInWithLens,
     signingIn,
+    isAuthenticated,
     authenticatedProfileId,
     setSelectedProfile,
     selectedProfile,
@@ -49,13 +50,14 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isApprovingBudget, setIsApprovingBudget] = useState(false);
-  const [creationStep, setCreationStep] = useState(modal || 'create'); // 'create' | 'budget'
+  const [creationStep, setCreationStep] = useState('create'); // 'create' | 'budget'
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDisplayName, setEditedDisplayName] = useState('');
   const [editedUsername, setEditedUsername] = useState('');
   const [editedPfpUrl, setEditedPfpUrl] = useState('');
   const [uploadedImage, setUploadedImage] = useState<any[]>([]);
+  const [hasPreventedBudgetClose, setHasPreventedBudgetClose] = useState(false);
 
   // Profile creation flow state
   const [showCreateFlow, setShowCreateFlow] = useState(false);
@@ -67,6 +69,13 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   const [isCheckingHandle, setIsCheckingHandle] = useState(false);
   const [handleAvailable, setHandleAvailable] = useState<boolean | null>(null);
   const [handleError, setHandleError] = useState<string>('');
+
+  useEffect(() => {
+    if (modal) {
+      if (modal === "budget" && !isAuthenticated) setCreationStep("create");
+      else setCreationStep(modal);
+    }
+  }, [modal, isAuthenticated]);
 
   // Initialize edited values when context changes
   useEffect(() => {
@@ -115,7 +124,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (!signingIn && authenticatedProfileId === selectedProfile?.address) {
-      closeModal();
+      handleCloseModal();
     }
   }, [signingIn, authenticatedProfileId, selectedProfile?.address]);
 
@@ -134,11 +143,11 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
     setIsCheckingHandle(true);
     setHandleError('');
-    
+
     try {
       const result = await queryAvailableHandles(handle);
       const isAvailable = typeof result === 'boolean' ? result : result.available;
-      
+
       if (isAvailable) {
         setHandleAvailable(true);
         setHandleError('');
@@ -260,7 +269,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       if (withBudget) {
         setCreationStep("budget");
       } else {
-        closeModal();
+        handleCloseModal();
       }
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -305,7 +314,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
           'profile-images'
         );
       }
-      
+
       const metadata = account({
         name: displayName,
         bio: `Welcome to my Lens profile!`,
@@ -341,7 +350,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       setSelectedHandle('');
       setDisplayName('');
       setProfilePicture([]);
-      closeModal();
+      handleCloseModal();
     } catch (error) {
       console.error("Error creating profile:", error);
       toast.error(`Failed to create profile: ${error instanceof Error ? error.message : 'Unknown error'}`, { duration: 5000 });
@@ -377,7 +386,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       console.log(`hash: ${hash}`)
       await client.waitForTransactionReceipt({ hash });
 
-      closeModal();
+      handleCloseModal();
 
       // Prompt to add mini app
       if (!(await sdk.context).client.added) {
@@ -393,6 +402,15 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
     } finally {
       setIsApprovingBudget(false);
     }
+  };
+
+  // Wrapper function to prevent closing modal when modal === "budget" (but only once)
+  const handleCloseModal = () => {
+    if (modal === "budget" && !hasPreventedBudgetClose) {
+      setHasPreventedBudgetClose(true);
+      return; // Don't close the modal
+    }
+    closeModal(); // Close the modal normally
   };
 
   if (isLoading) {
@@ -574,7 +592,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
             <div className="w-full items-center text-center">
               <p className="mb-2">To use social features or create a token you'll need to get one.</p>
               <p className="mb-8">You can still trade without a profile.</p>
-              <Button 
+              <Button
                 variant="accent"
                 onClick={() => setShowCreateFlow(true)}
                 className="w-full mb-4"
@@ -629,7 +647,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">Choose your handle</h3>
                   <p className="text-gray-400 mb-6">Select a unique username for your profile</p>
-                  
+
                   <div className="relative mb-4">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-gray-400 text-lg">@</span>
@@ -662,7 +680,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                   {handleError && (
                     <p className="text-bearish text-sm mb-4">{handleError}</p>
                   )}
-                  
+
                   {handleAvailable === true && (
                     <p className="text-green-400 text-sm mb-4">✓ @{searchHandle} is available!</p>
                   )}
@@ -686,7 +704,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">What's your name?</h3>
                   <p className="text-gray-400 mb-6">This is how others will see you on Lens</p>
-                  
+
                   <input
                     type="text"
                     value={displayName}
@@ -721,7 +739,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">Complete your profile</h3>
                   <p className="text-gray-400 mb-6">Review your profile and add a picture (optional)</p>
-                  
+
                   <div className="rounded-lg p-6 mb-6">
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-16 h-16 flex-shrink-0">
