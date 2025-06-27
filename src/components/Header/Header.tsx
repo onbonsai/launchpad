@@ -82,12 +82,18 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
-    if (isMiniApp && !isConnected) {
-      setOpen(true);
-      return;
-    }
-    if (isMiniApp && (!isAuthenticated || query.modal === "budget")) setOpenSignInModal(true);
-  }, [isMiniApp, isAuthenticated, isConnected]);
+    const timer = setTimeout(() => {
+      if (isMiniApp && !isConnected) {
+        setOpen(true);
+        return;
+      }
+      if (isMiniApp && (!isAuthenticated || query.modal === "budget")) {
+        setOpenSignInModal(true);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);
 
   const { isStandalone } = usePWA();
 

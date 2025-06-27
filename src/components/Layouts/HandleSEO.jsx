@@ -12,7 +12,7 @@ const frameDataTemplate = {
     action: {
       type: "launch_frame",
       name: "Bonsai",
-      url: SITE_URL,
+      // url: SITE_URL,
       splashImageUrl: `${SITE_URL}/splash.jpg`,
       splashBackgroundColor: "#000000",
     },
