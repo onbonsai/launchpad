@@ -90,7 +90,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       if (isMiniApp && (!isAuthenticated || query.modal === "budget")) {
         setOpenSignInModal(true);
       }
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);

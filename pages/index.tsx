@@ -14,7 +14,8 @@ import { useGetFeaturedPosts } from "@src/services/madfi/studio";
 import useScrollRestoration from "@src/hooks/useScrollRestoration";
 import { PostsTabs, PostTabType } from "@src/components/Publication/PostsTabs";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 interface TimelinePosts {
   posts: Post[];
@@ -27,11 +28,13 @@ interface TimelinePosts {
 
 const IndexPage: NextPage = () => {
   const isMounted = useIsMounted();
+  const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated } = useLensSignIn(walletClient);
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const [openBuyModal, setOpenBuyModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<PostTabType>(isAuthenticated ? PostTabType.FOR_YOU : PostTabType.EXPLORE);
+  const { isMiniApp } = useIsMiniApp();
+  const [activeTab, setActiveTab] = useState<PostTabType>(isConnected && isAuthenticated && !isMiniApp ? PostTabType.FOR_YOU : PostTabType.EXPLORE);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
 
   const { data: exploreData, fetchNextPage: fetchNextExplorePage, isFetchingNextPage: isFetchingNextExplorePage, hasNextPage: hasNextExplorePage, isLoading: isLoadingExplorePosts } = useGetExplorePosts({
@@ -79,7 +82,7 @@ const IndexPage: NextPage = () => {
   useScrollRestoration('posts-page-scroll', isMounted && !isLoadingExplorePosts && !isLoadingTimelinePosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
 
   useEffect(() => {
-    if (isMounted && isAuthenticated && activeTab !== PostTabType.FOR_YOU) {
+    if (isMounted && isConnected && isAuthenticated && !isMiniApp && activeTab !== PostTabType.FOR_YOU) {
       setActiveTab(PostTabType.FOR_YOU);
     }
   }, [isAuthenticated, isMounted]);

@@ -429,7 +429,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   // Mini App Profile Creation Flow
   if (isMiniApp && (!profiles?.length || creationStep === "budget")) {
     return (
-      <div className={clsx("flex flex-col w-full mt-6 px-4 bg-black bg-opacity-90 min-h-[80vh]", brandFont.className)}>
+      <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
         {creationStep === 'create' && (
           <>
             <h2 className="text-3xl text-center font-bold">Continue with a Replika</h2>
