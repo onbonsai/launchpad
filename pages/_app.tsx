@@ -71,7 +71,7 @@ export default function MyApp(props: AppProps) {
   return (
     (!isMiniApp || (isMiniApp && isSDKLoaded)) && (
       <>
-        <HandleSEO pageProps={pageProps} />
+        <HandleSEO pageProps={pageProps} query={router.query.modal} />
         <Web3Provider>
           <ThirdwebProvider>
             <ThemeProvider>

@@ -1,12 +1,12 @@
 import Head from "next/head";
-import { bucketImageLinkStorj, trimText } from "@src/utils/utils";
+import { trimText } from "@src/utils/utils";
 import { getProfileImage } from "@src/services/lens/utils";
 import { SITE_URL } from "@src/constants/constants";
 
 // Base frame data template
 const frameDataTemplate = {
   version: "next",
-  imageUrl: `${SITE_URL}/splash.jpg`,
+  imageUrl: `${SITE_URL}/frameImage.jpg`,
   button: {
     title: "Remix AI media",
     action: {
@@ -77,7 +77,7 @@ const generateMetaTags = (title, description, url, imageUrl, type = "website", i
   );
 };
 
-const HandleSEO = ({ pageProps }) => {
+const HandleSEO = ({ pageProps, query }) => {
   const { profile, pageName } = pageProps;
 
   // Profile page
@@ -160,11 +160,19 @@ const HandleSEO = ({ pageProps }) => {
   const description = "Create autonomous, agentic content on Lens";
   const ogImageUrl = `${SITE_URL}/api/og-image`;
 
+  // Consider Signup / Budget flow
+  const frameData = { ...frameDataTemplate };
+  if (!!query.onboard) {
+    frameData.button.title = "Signup";
+  } else if (query.modal === "budget") {
+    frameData.button.title = "Approve allowance";
+  }
+
   return (
     <Head>
       <meta name="viewport" content="initial-scale=1, width=device-width" />
       {generateMetaTags("Bonsai", description, SITE_URL, ogImageUrl)}
-      <meta name="fc:frame" content={JSON.stringify(frameDataTemplate)} />
+      <meta name="fc:frame" content={JSON.stringify(frameData)} />
     </Head>
   );
 };
