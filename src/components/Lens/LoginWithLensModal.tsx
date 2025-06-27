@@ -401,6 +401,8 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
           console.log(error);
         }
       }
+
+      closeModal(); // Close the modal normally
     } catch (error) {
       console.error("Error approving budget:", error);
       toast.error("Failed to approve allowance", { duration: 5000 });

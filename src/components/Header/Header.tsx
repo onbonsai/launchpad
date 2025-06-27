@@ -2,7 +2,7 @@ import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { cx } from "@src/utils/classnames";
 import { routesApp } from "@src/constants/routesApp";
 import { ConnectButton } from "@components/ConnectButton";
@@ -81,14 +81,19 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     }
   };
 
+  const hasHandledBudgetModal = useRef(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isMiniApp && !isConnected) {
         setOpen(true);
         return;
       }
-      if (isMiniApp && (!isAuthenticated || query.modal === "budget")) {
+      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current))) {
         setOpenSignInModal(true);
+        if (query.modal === "budget") {
+          hasHandledBudgetModal.current = true;
+        }
       }
     }, 1500);
 
