@@ -162,9 +162,9 @@ const HandleSEO = ({ pageProps, query }) => {
 
   // Consider Signup / Budget flow
   const frameData = { ...frameDataTemplate };
-  if (!!query.onboard) {
+  if (!!query?.onboard) {
     frameData.button.title = "Signup";
-  } else if (query.modal === "budget") {
+  } else if (query?.modal === "budget") {
     frameData.button.title = "Approve allowance";
   }
 
