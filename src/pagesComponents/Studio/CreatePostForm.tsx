@@ -697,9 +697,34 @@ const CreatePostForm = ({
               }`}
             >
               <div className="px-4 pb-4 pt-4 border-t border-dark-grey/30 overflow-visible">
-                {/* Aspect Ratio Options - NOT SHOWING FOR VIDEO RIGHT NOW */}
-                {showImageUploader && (template?.name !== "video") && (
-                  <div className="space-y-2 mb-4">
+                {
+                  isLoadingVeniceImageOptions
+                    ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
+                    : <DynamicForm
+                        template={template}
+                        templateData={templateData}
+                        setTemplateData={setTemplateData}
+                        sharedInputClasses={sharedInputClasses}
+                        veniceImageOptions={veniceImageOptions}
+                        postContent={postContent}
+                        setPostContent={setPostContent}
+                        postImage={postImage}
+                        setPostImage={setPostImage}
+                        selectedAspectRatio={selectedAspectRatio}
+                        setSelectedAspectRatio={setSelectedAspectRatio}
+                        selectedNFT={selectedNFT}
+                        setSelectedNFT={setSelectedNFT}
+                        loadRemixNFT={finalTemplateData?.nft}
+                        postAudio={postAudio}
+                        setPostAudio={setPostAudio}
+                        audioStartTime={audioStartTime || 0}
+                        setAudioStartTime={setAudioStartTime}
+                        tooltipDirection={tooltipDirection}
+                      />
+                }
+                {/* Aspect Ratio Options */}
+                {showImageUploader && (
+                  <div className="space-y-2 mt-4">
                     <FieldLabel
                       label="Aspect Ratio"
                       fieldDescription="Choose the aspect ratio for your image"
@@ -737,32 +762,6 @@ const CreatePostForm = ({
                     ) : null}
                   </div>
                 )}
-
-                {
-                  isLoadingVeniceImageOptions
-                    ? <div className="flex justify-center py-4"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
-                    : <DynamicForm
-                        template={template}
-                        templateData={templateData}
-                        setTemplateData={setTemplateData}
-                        sharedInputClasses={sharedInputClasses}
-                        veniceImageOptions={veniceImageOptions}
-                        postContent={postContent}
-                        setPostContent={setPostContent}
-                        postImage={postImage}
-                        setPostImage={setPostImage}
-                        selectedAspectRatio={selectedAspectRatio}
-                        setSelectedAspectRatio={setSelectedAspectRatio}
-                        selectedNFT={selectedNFT}
-                        setSelectedNFT={setSelectedNFT}
-                        loadRemixNFT={finalTemplateData?.nft}
-                        postAudio={postAudio}
-                        setPostAudio={setPostAudio}
-                        audioStartTime={audioStartTime || 0}
-                        setAudioStartTime={setAudioStartTime}
-                        tooltipDirection={tooltipDirection}
-                      />
-                }
               </div>
             </div>
           </div>
