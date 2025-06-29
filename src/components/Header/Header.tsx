@@ -259,6 +259,15 @@ export const Header = () => {
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
               <ClaimBonsai openMobileMenu />
+              <Link
+                href={routesApp.stake}
+                className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"
+                onClick={() => {
+                  setOpenMobileMenu(false);
+                }}
+              >
+                Stake
+              </Link>
               <div
                 className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
                 onClick={() => {

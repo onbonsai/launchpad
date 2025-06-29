@@ -79,7 +79,7 @@ const StudioSidebar = () => {
 
   return (
     <>
-      <MobileNavigation />
+      {/* <MobileNavigation /> */}
       <div className="hidden lg:flex flex-col w-full lg:w-64 bg-card rounded-lg p-4 sticky top-24 overflow-hidden">
         {/* Main Navigation */}
         <nav className="space-y-2">
