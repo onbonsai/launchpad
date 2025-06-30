@@ -22,7 +22,7 @@ export const ClaimBonsai = ({ openMobileMenu }: { openMobileMenu?: boolean }) =>
     data: bonsaiClaim,
     isLoading,
     refetch
-  } = useGetBonsaiClaim(walletClient, isAuthenticated, authenticatedProfile?.address);
+  } = useGetBonsaiClaim(walletClient, isAuthenticated);
   const { proof, amount } = bonsaiClaim || {};
   const [showTooltip, setShowTooltip] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);

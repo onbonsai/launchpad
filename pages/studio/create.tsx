@@ -81,14 +81,115 @@ const StudioCreatePage: NextPage = () => {
   const [localPreviews, setLocalPreviews] = useState<LocalPreview[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
   const isMobile = useIsMobile();
-  const workerRef = useRef<Worker>();
+  const workerRef = useRef<Worker | undefined>(undefined);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
   const { requestPermission, sendNotification } = useWebNotifications();
 
+  // Track pending generations to check when tab becomes visible
+  const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     setOptimisticCreditBalance(creditBalance?.creditsRemaining);
   }, [creditBalance]);
+
+  // Handle page visibility changes - check for completed generations when tab becomes active
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (!document.hidden && pendingGenerations.size > 0 && roomId && template?.apiUrl) {
+        console.log('[create.tsx] Tab became visible, checking for completed generations...');
+        
+        try {
+          const sessionClient = await resumeSession(true);
+          if (!sessionClient) return;
+
+          const creds = await sessionClient.getCredentials();
+          if (creds.isErr() || !creds.value) return;
+          
+          const idToken = creds.value.idToken;
+          
+          // Fetch recent messages
+          const queryParams = new URLSearchParams({
+            count: '5',
+            end: ''
+          });
+
+          const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer: ${idToken}`
+            },
+          });
+          
+          if (!response.ok) return;
+          
+          const data = await response.json();
+          const messages = data.messages || [];
+          
+          // Check if any pending generations have completed
+          const completedGenerations = new Set<string>();
+          
+          for (const msg of messages) {
+            if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
+              const agentId = msg.content.preview.agentId;
+              
+              // Check if this was a pending generation
+              const isPending = localPreviews.some(lp => 
+                lp.pending && (lp.tempId === agentId || lp.agentId === agentId)
+              );
+              
+              if (isPending) {
+                completedGenerations.add(agentId);
+                
+                // Send notification for completed generation
+                sendNotification("Your generation is ready", {
+                  body: "Click to view it on Bonsai",
+                  icon: '/logo.png'
+                });
+                
+                // Update local previews to mark as completed
+                setLocalPreviews(prev => prev.map(p => {
+                  if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
+                    return {
+                      ...p,
+                      pending: false,
+                      agentId: agentId,
+                      content: {
+                        ...p.content,
+                        preview: msg.content.preview,
+                        text: msg.content.preview.text,
+                      }
+                    };
+                  }
+                  return p;
+                }));
+                
+                // Set as current preview if none is selected
+                if (!currentPreview || currentPreview.agentId !== agentId) {
+                  setCurrentPreview(msg.content.preview);
+                }
+              }
+            }
+          }
+          
+          // Remove completed generations from pending set
+          if (completedGenerations.size > 0) {
+            setPendingGenerations(prev => {
+              const newSet = new Set(prev);
+              completedGenerations.forEach(id => newSet.delete(id));
+              return newSet;
+            });
+          }
+          
+        } catch (error) {
+          console.error('[create.tsx] Error checking for completed generations:', error);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [pendingGenerations, roomId, template?.apiUrl, localPreviews, currentPreview]);
 
   useEffect(() => {
     console.log('[create.tsx] Initializing preview worker...');
@@ -116,6 +217,7 @@ const StudioCreatePage: NextPage = () => {
           });
           result.preview.image = imageDataUrl;
         }
+        
         sendNotification("Your generation is ready", {
           body: "Click to view it on Bonsai",
           icon: '/logo.png'
@@ -130,12 +232,57 @@ const StudioCreatePage: NextPage = () => {
         };
 
         handleSetPreview(previewWithMetadata, tempId);
+        
+        // Remove from pending generations
+        setPendingGenerations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(tempId);
+          return newSet;
+        });
+
+        // Remove from service worker pending list
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(registration => {
+            if (registration.active) {
+              registration.active.postMessage({
+                type: 'REMOVE_PENDING_GENERATION',
+                generationId: tempId
+              });
+            }
+          }).catch(console.error);
+        }
       } else {
         console.error(`[create.tsx] Worker failed for tempId: ${tempId}`, error);
         toast.error(`Generation failed: ${error}`);
         setLocalPreviews(prev => prev.filter(p => p.tempId !== tempId));
+        
+        // Remove from pending generations
+        setPendingGenerations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(tempId);
+          return newSet;
+        });
+
+        // Remove from service worker pending list
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(registration => {
+            if (registration.active) {
+              registration.active.postMessage({
+                type: 'REMOVE_PENDING_GENERATION',
+                generationId: tempId
+              });
+            }
+          }).catch(console.error);
+        }
       }
     };
+    
+    // Handle worker errors
+    workerRef.current.onerror = (error) => {
+      console.error('[create.tsx] Worker error:', error);
+      toast.error('Generation worker encountered an error');
+    };
+    
     return () => {
       console.log('[create.tsx] Terminating preview worker.');
       workerRef.current?.terminate();
@@ -188,6 +335,27 @@ const StudioCreatePage: NextPage = () => {
       createdAt: new Date().toISOString(),
       content: { prompt }
     }]);
+
+    // Track this generation as pending
+    setPendingGenerations(prev => new Set(prev).add(tempId));
+
+    // Register with service worker for background checking
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(registration => {
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'REGISTER_PENDING_GENERATION',
+            generation: {
+              id: tempId,
+              roomId,
+              apiUrl: template.apiUrl,
+              expectedAgentId: tempId,
+              timestamp: Date.now()
+            }
+          });
+        }
+      }).catch(console.error);
+    }
 
     console.log(`[create.tsx] Posting message to worker for tempId: ${tempId}`);
     workerRef.current?.postMessage({

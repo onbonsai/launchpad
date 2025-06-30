@@ -5,7 +5,7 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: false,
-  sw: 'sw.js',
+  sw: 'custom-sw.js',
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
