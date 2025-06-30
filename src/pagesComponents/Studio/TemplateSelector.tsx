@@ -17,8 +17,9 @@ import { Tooltip } from "@src/components/Tooltip";
 // Placeholder icons for templates
 const TemplateIcon = ({ type }: { type?: string }) => {
   const iconMap = {
-    "evolving_post": "❇️",
-    "evolving_art": "🖼️",
+    "story": "❇️",
+    "image": "🖼️",
+    "video": "🎞️",
     "insights": "🤖",
     "campfire": "💬",
     "default": "🤖"
@@ -138,7 +139,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       >
         <div className="flex items-start pb-2">
           <div className="w-10 h-10 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xl">
-            <TemplateIcon type={template.category} />
+            <TemplateIcon type={template.name} />
           </div>
           <div className="ml-3 flex-1">
             <div className="flex flex-col">
