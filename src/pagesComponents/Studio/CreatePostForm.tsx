@@ -612,39 +612,64 @@ const CreatePostForm = ({
           </div>
         )}
 
-        {/* Main Row: Prompt and Image */}
-        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
-          {/* Main Prompt Input */}
-          <div className={`w-full ${showImageUploader ? 'md:w-4/5' : ''}`}>
-            <div className="relative mt-2">
-              <div className="flex flex-col gap-y-2">
-                <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
-                <textarea
-                  ref={textareaRef}
-                  placeholder={getPlaceholderText()}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className={`${sharedInputClasses} w-full min-h-[90px] p-4 resize-none`}
+        {/* Labels Row: Prompt Label and MAX Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
+          {shape.enableMaxMode && (
+            <div className="flex items-center gap-2">
+              <FieldLabel
+                label="MAX Mode"
+                fieldDescription={shape.enableMaxMode.description?.replace(/\[placeholder: (.*?)\]/, '') || 'Enable maximum generation quality'}
+                tooltipDirection={tooltipDirection || "left"}
+                classNames="!text-brand-highlight !text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setTemplateData({ ...templateData, enableMaxMode: !templateData.enableMaxMode })}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
+                  templateData.enableMaxMode ? 'bg-brand-highlight/90' : 'bg-dark-grey'
+                }`}
+              >
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                    templateData.enableMaxMode ? 'translate-x-5' : 'translate-x-1'
+                  }`}
                 />
-                <div className="w-fit self-end -mt-10 ml-auto">
-                  <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
-                    <button
-                      type="button"
-                      onClick={_enhancePrompt}
-                      disabled={isEnhancing || isAnimating || !prompt}
-                      className="p-2 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
-                    >
-                      <SparklesIcon className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Inputs Row: Prompt and Image */}
+        <div className="flex flex-row justify-between gap-8">
+          {/* Main Prompt Input */}
+          <div className={`w-full ${showImageUploader ? 'md:w-4/5 lg:w-4/5' : ''}`}>
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                placeholder={getPlaceholderText()}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className={`${sharedInputClasses} w-full min-h-[60px] p-4 resize-none`}
+              />
+              <div className="w-fit self-end -mt-10 ml-auto">
+                <Tooltip message="Enhance your prompt with AI" direction={tooltipDirection || "top"}>
+                  <button
+                    type="button"
+                    onClick={_enhancePrompt}
+                    disabled={isEnhancing || isAnimating || !prompt}
+                    className="p-2 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                  </button>
+                </Tooltip>
               </div>
             </div>
           </div>
 
           {/* Image Uploader */}
           {showImageUploader && (
-            <div className="w-full md:w-1/5 space-y-1 md:mt-8">
+            <div className="w-full md:w-1/5 lg:w-1/5 space-y-1 flex justify-center">
               <ImageUploader
                 ref={imageUploaderRef}
                 files={postImage}
@@ -664,6 +689,7 @@ const CreatePostForm = ({
           <div className="w-full space-y-1">
             <FieldLabel
               label={"Audio"}
+              classNames="!text-brand-highlight"
               fieldDescription={
                 template.options.audioRequirement === MediaRequirement.REQUIRED
                   ? "Upload an MP3 file to use in your post and select a clip to use"
@@ -942,6 +968,7 @@ const DynamicForm = ({
     if (template.options?.imageRequirement !== MediaRequirement.NONE && key === 'image') return true;
     if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
     if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
+    if (key === 'enableMaxMode') return true; // Skip enableMaxMode as it's rendered above the prompt
     return false;
   };
 

@@ -104,7 +104,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
         const _combinedClubs = [...lensClubs, ...baseClubs];
 
         // Combine and sort the clubs according to sortedBy parameter
-        const combinedClubs = sortedBy === "sortingMarketCap" 
+        const combinedClubs = sortedBy === "sortingMarketCap"
           ? _combinedClubs.sort((a, b) => {
               const marketCapA = a.sortingMarketCap;
               const marketCapB = b.sortingMarketCap;
@@ -142,7 +142,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     staleTime: 60000,
     gcTime: 60000,
   });
-};  
+};
 
 export const useGetClubVolume = (clubId?: string) => {
   return useQuery({
@@ -307,9 +307,9 @@ export const useGetFeesEarned = (account?: string) => {
     queryKey: ["fees-earned", account],
     queryFn: () => getFeesEarned(account! as `0x${string}`),
     enabled: !!account,
-    refetchInterval: 15000, // fetch every 15seconds
-    staleTime: 15000,
-    gcTime: 15000,
+    refetchInterval: 60000, // fetch every 60seconds
+    staleTime: 60000,
+    gcTime: 60000,
   });
 };
 

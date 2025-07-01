@@ -98,6 +98,7 @@ const generatePreviewImpl = async (
   },
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
+    // Step 1: Make the initial request to create the preview task
     const formData = new FormData();
     formData.append('data', JSON.stringify({
       roomId,
@@ -113,6 +114,7 @@ const generatePreviewImpl = async (
     }));
     if (image) formData.append('image', image);
     if (audio) formData.append('audio', audio.file);
+
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
@@ -130,71 +132,110 @@ const generatePreviewImpl = async (
       throw new Error(`Preview generation failed: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    // Step 2: Extract taskId from the response
+    const taskResponse = await response.json();
+    const taskId = taskResponse.taskId;
 
-    if (data.preview?.video) {
-      const videoData = new Uint8Array(data.preview.video.buffer);
-      const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
-      const videoBuffer = await videoBlob.arrayBuffer();
-
-      // Handle large base64 images by converting them to ArrayBuffers
-      let imageData: string | { buffer: ArrayBuffer; mimeType: string; isLargeImage: boolean } | undefined = undefined;
-      if (data.preview.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
-        try {
-          // Convert base64 to ArrayBuffer for large images
-          const response = await fetch(data.preview.image);
-          const imageBuffer = await response.arrayBuffer();
-          imageData = {
-            buffer: imageBuffer,
-            mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
-            isLargeImage: true
-          };
-        } catch (error) {
-          console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
-          imageData = data.preview.image;
-        }
-      } else if (data.preview.image) {
-        imageData = data.preview.image;
-      }
-
-      return {
-        preview: {
-          video: {
-            mimeType: data.preview.video.mimeType,
-            size: videoBlob.size,
-            buffer: videoBuffer,
-          },
-          ...(imageData && { image: imageData }),
-          text: data.preview.text,
-        },
-        agentId: data.agentId,
-        roomId: data.roomId,
-        agentMessageId: data.agentMessageId,
-      };
+    if (!taskId) {
+      throw new Error("No taskId received from server");
     }
 
-    // Handle large base64 images for non-video responses
-    if (data.preview?.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
-      try {
-        const response = await fetch(data.preview.image);
-        const imageBuffer = await response.arrayBuffer();
-        return {
-          ...data,
-          preview: {
-            ...data.preview,
-            image: {
+    // Step 3: Poll the status endpoint until completion
+    const pollStatus = async (): Promise<GeneratePreviewResponse> => {
+      const statusResponse = await fetch(`${url}/task/${taskId}/status`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Status check failed: ${statusResponse.statusText}`);
+      }
+
+      const statusData = await statusResponse.json();
+
+      switch (statusData.status) {
+        case 'completed':
+          return await processCompletedTask(statusData.result);
+        case 'failed':
+          throw new Error(statusData.error || 'Task failed');
+        case 'processing':
+        case 'queued':
+          // Wait 10 seconds before polling again
+          await new Promise(resolve => setTimeout(resolve, 10000));
+          return pollStatus();
+        default:
+          throw new Error(`Unknown task status: ${statusData.status}`);
+      }
+    };
+
+    // Helper function to process the completed task result
+    const processCompletedTask = async (data: any): Promise<GeneratePreviewResponse> => {
+      if (data.preview?.video) {
+        const videoData = new Uint8Array(data.preview.video.buffer);
+        const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
+        const videoBuffer = await videoBlob.arrayBuffer();
+
+        // Handle large base64 images by converting them to ArrayBuffers
+        let imageData: string | { buffer: ArrayBuffer; mimeType: string; isLargeImage: boolean } | undefined = undefined;
+        if (data.preview.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
+          try {
+            // Convert base64 to ArrayBuffer for large images
+            const response = await fetch(data.preview.image);
+            const imageBuffer = await response.arrayBuffer();
+            imageData = {
               buffer: imageBuffer,
               mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
               isLargeImage: true
-            }
+            };
+          } catch (error) {
+            console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
+            imageData = data.preview.image;
           }
-        };
-      } catch (error) {
-        console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
-      }
-    }
+        } else if (data.preview.image) {
+          imageData = data.preview.image;
+        }
 
-    return data;
+        return {
+          preview: {
+            video: {
+              mimeType: data.preview.video.mimeType,
+              size: videoBlob.size,
+              buffer: videoBuffer,
+            },
+            ...(imageData && { image: imageData }),
+            text: data.preview.text,
+          },
+          agentId: data.agentId,
+          roomId: data.roomId,
+          agentMessageId: data.agentMessageId,
+        };
+      }
+
+      // Handle large base64 images for non-video responses
+      if (data.preview?.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
+        try {
+          const response = await fetch(data.preview.image);
+          const imageBuffer = await response.arrayBuffer();
+          return {
+            ...data,
+            preview: {
+              ...data.preview,
+              image: {
+                buffer: imageBuffer,
+                mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
+                isLargeImage: true
+              }
+            }
+          };
+        } catch (error) {
+          console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
+        }
+      }
+
+      return data;
+    };
+
+    return await pollStatus();
   } catch (error) {
     console.error(error);
     throw error;
