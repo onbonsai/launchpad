@@ -156,6 +156,13 @@ const CreatePostForm = ({
     }
   }, [finalTemplateData]);
 
+  // Lock aspect ratio to horizontal when subject reference is present
+  useEffect(() => {
+    if (templateData.subjectReference && selectedAspectRatio !== "16:9") {
+      setSelectedAspectRatio("16:9");
+    }
+  }, [templateData.subjectReference, selectedAspectRatio, setSelectedAspectRatio]);
+
   const isValid = () => {
     try {
       // Check specific media requirements first
@@ -764,13 +771,13 @@ const CreatePostForm = ({
                         <button
                           key={ratio}
                           type="button"
-                          onClick={() => !postImage?.length && setSelectedAspectRatio(ratio)}
-                          disabled={!!postImage?.length}
+                          onClick={() => !postImage?.length && !templateData.subjectReference && setSelectedAspectRatio(ratio)}
+                          disabled={!!postImage?.length || !!templateData.subjectReference}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                             selectedAspectRatio === ratio
                               ? "border-brand-highlight bg-brand-highlight/10"
                               : "border-dark-grey hover:border-brand-highlight bg-card-light"
-                          } ${postImage?.length ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
+                          } ${(postImage?.length || templateData.subjectReference) ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
                         >
                           <div
                             className={`border border-current rounded-sm ${
@@ -784,6 +791,10 @@ const CreatePostForm = ({
                     {postImage?.length ? (
                       <p className="text-xs text-secondary/70">
                         Aspect ratio is locked to the selection made during image cropping. Remove the image to change it.
+                      </p>
+                    ) : templateData.subjectReference ? (
+                      <p className="text-xs text-secondary/70">
+                        Aspect ratio is locked to horizontal when using a subject reference image
                       </p>
                     ) : null}
                   </div>
@@ -934,7 +945,7 @@ const DynamicForm = ({
         const placeholderRegex = /\[placeholder: (.*?)\]/;
         const placeholderMatch = field.description?.match(placeholderRegex);
         const placeholder = placeholderMatch ? placeholderMatch[1] : '';
-        const description = field.description?.replace(placeholderRegex, '') || '';
+        let description = field.description?.replace(placeholderRegex, '') || '';
 
         const zodType = getBaseZodType(field);
         const isSmallerInput = ["modelId", "stylePreset", "elevenLabsVoiceId"].includes(key) ||
@@ -945,8 +956,78 @@ const DynamicForm = ({
           <div key={key} className="space-y-2">
             <FieldLabel label={label} fieldDescription={description} tooltipDirection={tooltipDirection} />
 
-            {/* Special handling for dropdown fields */}
-            {key === 'modelId' && modelOptions?.length > 0 ? (
+            {/* Special handling for subject reference image upload */}
+            {key === 'subjectReference' ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  {templateData[key] && (
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-card-light">
+                      <img
+                        src={templateData[key]}
+                        alt="Subject reference"
+                        className="w-full h-full object-cover"
+                      />
+                                             <button
+                         type="button"
+                         onClick={() => {
+                           updateField(key, undefined);
+                           // Allow aspect ratio selection again when subject reference is removed
+                           // Reset to default vertical if no other constraints
+                           if (!postImage?.length) {
+                             setSelectedAspectRatio("9:16");
+                           }
+                         }}
+                         className="absolute top-1 right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                       >
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                                         <input
+                       type="file"
+                       accept="image/*"
+                       onChange={async (e) => {
+                         const file = e.target.files?.[0];
+                         if (file) {
+                           // Compress the image before converting to base64
+                           try {
+                             const options = {
+                               maxSizeMB: 1,
+                               maxWidthOrHeight: 1024,
+                               useWebWorker: true,
+                             };
+                             const compressedFile = await imageCompression(file, options);
+                             
+                             const reader = new FileReader();
+                             reader.onloadend = () => {
+                               updateField(key, reader.result as string);
+                               // Lock aspect ratio to horizontal when subject reference is added
+                               setSelectedAspectRatio("16:9");
+                             };
+                             reader.readAsDataURL(compressedFile);
+                           } catch (error) {
+                             console.error("Error compressing image:", error);
+                             // Fallback to original file if compression fails
+                             const reader = new FileReader();
+                             reader.onloadend = () => {
+                               updateField(key, reader.result as string);
+                               // Lock aspect ratio to horizontal when subject reference is added
+                               setSelectedAspectRatio("16:9");
+                             };
+                             reader.readAsDataURL(file);
+                           }
+                         }
+                       }}
+                      className={`${sharedInputClasses} w-full p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary file:text-black hover:file:bg-secondary/80 cursor-pointer`}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : /* Special handling for dropdown fields */
+            key === 'modelId' && modelOptions?.length > 0 ? (
               <SelectDropdown
                 options={modelOptions}
                 onChange={(option) => updateField(key, option.value)}
