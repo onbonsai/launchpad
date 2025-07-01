@@ -513,7 +513,7 @@ export default function PreviewHistory({
                       className="flex items-center bg-transparent gap-2 rounded-xl p-2 backdrop-blur-sm hover:bg-brand-highlight/60"
                       title="Extend this video"
                     >
-                      <FastForwardIcon className="w-5 h-5 text-white" /> Extend video
+                      <FastForwardIcon className="w-5 h-5 text-white" /> Extend
                     </button>
                   )}
 
