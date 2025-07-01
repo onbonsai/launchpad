@@ -99,6 +99,14 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     }
   }, [isOpen]);
 
+  // Cleanup drag state on modal close
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset body styles in case modal was closed during drag
+      document.body.style.userSelect = '';
+    }
+  }, [isOpen]);
+
   const formatTime = (time: number, showMilliseconds = true) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -272,6 +280,9 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   };
 
   const onDragEnd = (result: DropResult) => {
+    // Re-enable body scroll and text selection
+    document.body.style.userSelect = '';
+    
     const { destination, source } = result;
     if (!destination) return;
 
@@ -331,124 +342,6 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
         </div>
 
         <div className="space-y-6">
-          {/* Clips Timeline */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Clips</h3>
-            <DragDropContext onDragEnd={onDragEnd}>
-              <Droppable droppableId="storyboard" direction="horizontal">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="flex space-x-3 overflow-x-auto pb-3 pt-1 pl-1"
-                  >
-                    {clips.map((clip, index) => (
-                      <Draggable key={clip.id} draggableId={clip.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            onClick={() => handleClipSelect(clip)}
-                            className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ${
-                              selectedClip?.id === clip.id 
-                                ? 'ring-2 ring-blue-500 shadow-lg' 
-                                : 'hover:ring-1 hover:ring-blue-300'
-                            }`}
-                          >
-                            <img
-                              src={clip.preview.imagePreview || clip.preview.image}
-                              alt={`Clip ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-2">
-                              <div className="flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeClip(clip.id);
-                                  }}
-                                  className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                  title="Remove clip"
-                                >
-                                  <XCircleIcon className="w-5 h-5" />
-                                </button>
-                              </div>
-                              <div className="flex justify-between items-end">
-                                <span className="text-white text-xs font-mono bg-black/60 px-1.5 py-0.5 rounded">
-                                  {index + 1}
-                                </span>
-                                {selectedClip?.id === clip.id && (
-                                  <ScissorsIcon className="w-4 h-4 text-blue-400" />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-            
-            {clips.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                No clips in storyboard yet
-              </div>
-            )}
-          </div>
-
-          {/* Audio Section */}
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold text-white mb-3">Background Audio</h3>
-            {isEditingAudio ? (
-              <>
-                <AudioUploader
-                  file={audio}
-                  setFile={setAudio}
-                  startTime={storyboardAudioStartTime}
-                  setStartTime={setStoryboardAudioStartTime}
-                  audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
-                  compact
-                />
-                {audio && storyboardDuration > 0 && (
-                  <div className="flex justify-end mt-2">
-                    <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
-                  </div>
-                )}
-              </>
-            ) : audio ? (
-              <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
-                <div className="flex items-center gap-6">
-                  <MusicNoteIcon className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm">
-                    {typeof audio === 'string' ? 'audio.mp3' : audio.name}
-                  </span>
-                  <span className="text-white/60 text-sm">
-                    ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
-                  <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
-                </div>
-              </div>
-            ) : (
-              // Show uploader if no audio
-              <AudioUploader
-                file={null}
-                setFile={setAudio}
-                startTime={storyboardAudioStartTime}
-                setStartTime={setStoryboardAudioStartTime}
-                audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
-                compact
-              />
-            )}
-          </div>
-
           {/* Clip Editor Section */}
           {selectedClip && (
             <div>
@@ -574,9 +467,179 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
           {!selectedClip && clips.length > 0 && (
             <div className="text-center py-8 text-gray-400">
-              Click on a clip above to edit it
+              Click on a clip below to edit it
             </div>
           )}
+
+          {/* Clips Timeline */}
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-4">Clips</h3>
+            <DragDropContext 
+              onDragEnd={onDragEnd}
+              onDragStart={() => {
+                // Disable body scroll during drag to prevent positioning issues
+                document.body.style.userSelect = 'none';
+              }}
+              onDragUpdate={() => {
+                // Keep body scroll disabled during drag
+                document.body.style.userSelect = 'none';
+              }}
+            >
+              <Droppable 
+                droppableId="storyboard" 
+                direction="horizontal"
+                renderClone={(provided, snapshot, rubric) => (
+                  <div
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    ref={provided.innerRef}
+                    className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ring-2 ring-blue-500 shadow-lg`}
+                    style={{
+                      ...provided.draggableProps.style,
+                      // Force the clone to be positioned properly
+                      position: 'fixed',
+                      zIndex: 9999,
+                      pointerEvents: 'none',
+                      transform: provided.draggableProps.style?.transform || 'none',
+                    }}
+                  >
+                    <img
+                      src={clips[rubric.source.index]?.preview.imagePreview || clips[rubric.source.index]?.preview.image}
+                      alt={`Clip ${rubric.source.index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-2">
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove clip"
+                        >
+                          <XCircleIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="flex justify-between items-end">
+                        <span className="text-white text-xs font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                          {rubric.source.index + 1}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              >
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="flex space-x-3 overflow-x-auto pb-3 pt-1 pl-1"
+                  >
+                    {clips.map((clip, index) => (
+                      <Draggable key={clip.id} draggableId={clip.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            onClick={() => handleClipSelect(clip)}
+                            className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ${
+                              selectedClip?.id === clip.id 
+                                ? 'ring-2 ring-blue-500 shadow-lg' 
+                                : 'hover:ring-1 hover:ring-blue-300'
+                            } ${snapshot.isDragging ? 'opacity-50' : ''}`}
+                            style={provided.draggableProps.style}
+                          >
+                            <img
+                              src={clip.preview.imagePreview || clip.preview.image}
+                              alt={`Clip ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-2">
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeClip(clip.id);
+                                  }}
+                                  className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Remove clip"
+                                >
+                                  <XCircleIcon className="w-5 h-5" />
+                                </button>
+                              </div>
+                              <div className="flex justify-between items-end">
+                                <span className="text-white text-xs font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                                  {index + 1}
+                                </span>
+                                {selectedClip?.id === clip.id && (
+                                  <ScissorsIcon className="w-4 h-4 text-blue-400" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+            
+            {clips.length === 0 && (
+              <div className="text-center py-8 text-gray-400">
+                No clips in storyboard yet
+              </div>
+            )}
+          </div>
+
+          {/* Audio Section */}
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold text-white mb-3">Background Audio</h3>
+            {isEditingAudio ? (
+              <>
+                <AudioUploader
+                  file={audio}
+                  setFile={setAudio}
+                  startTime={storyboardAudioStartTime}
+                  setStartTime={setStoryboardAudioStartTime}
+                  audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
+                  compact
+                />
+                {audio && storyboardDuration > 0 && (
+                  <div className="flex justify-end mt-2">
+                    <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
+                  </div>
+                )}
+              </>
+            ) : audio ? (
+              <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
+                <div className="flex items-center gap-6">
+                  <MusicNoteIcon className="w-5 h-5 text-white" />
+                  <span className="text-white text-sm">
+                    {typeof audio === 'string' ? 'audio.mp3' : audio.name}
+                  </span>
+                  <span className="text-white/60 text-sm">
+                    ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
+                  <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
+                </div>
+              </div>
+            ) : (
+              // Show uploader if no audio
+              <AudioUploader
+                file={null}
+                setFile={setAudio}
+                startTime={storyboardAudioStartTime}
+                setStartTime={setStoryboardAudioStartTime}
+                audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
+                compact
+              />
+            )}
+          </div>
         </div>
       </div>
     </Modal>

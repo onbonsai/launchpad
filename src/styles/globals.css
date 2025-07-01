@@ -580,3 +580,26 @@ header .bonsaiLogo {
   border-radius: inherit;
   z-index: -1;
 }
+
+/* Drag and drop fixes */
+[data-rfd-drag-handle-draggable-id] {
+  /* Ensure proper cursor during drag */
+  cursor: grab;
+}
+
+[data-rfd-drag-handle-draggable-id]:active,
+[data-rfd-drag-handle-draggable-id][data-rfd-dragging-for-position="true"] {
+  cursor: grabbing !important;
+}
+
+/* Fix transform origin issues during drag */
+[data-rfd-draggable-id] {
+  transform-origin: top left;
+}
+
+/* Ensure drag clones have proper positioning */
+[data-rfd-draggable-id][data-rfd-drag-clone="true"] {
+  pointer-events: none;
+  z-index: 9999 !important;
+  transform-origin: top left !important;
+}
