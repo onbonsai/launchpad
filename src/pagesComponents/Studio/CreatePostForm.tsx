@@ -556,7 +556,6 @@ const CreatePostForm = ({
   // Function to check if any advanced fields have values
   const hasAdvancedFieldsWithValues = () => {
     if (!template.templateData?.form?.shape) return false;
-    console.log('templateData', templateData);
     
     const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
     const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
@@ -669,7 +668,7 @@ const CreatePostForm = ({
 
           {/* Image Uploader */}
           {showImageUploader && (
-            <div className="w-full md:w-1/5 lg:w-1/5 space-y-1 flex justify-center">
+            <div className="w-1/5 space-y-1 flex justify-center">
               <ImageUploader
                 ref={imageUploaderRef}
                 files={postImage}
