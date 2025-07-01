@@ -557,10 +557,10 @@ const CreatePostForm = ({
   const hasAdvancedFieldsWithValues = () => {
     if (!template.templateData?.form?.shape) return false;
     console.log('templateData', templateData);
-    
+
     const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
     const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
-    
+
     // Check each field in the advanced section
     for (const [key, field] of Object.entries(shape)) {
       // Skip fields that are already shown in the main form (same logic as DynamicForm)
@@ -570,14 +570,14 @@ const CreatePostForm = ({
       if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') continue;
       if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') continue;
       if (key === "aspectRatio") continue;
-      
+
       // Check if this field has a non-empty value
       const value = templateData[key];
       if (value !== undefined && value !== null && value !== '' && value !== false) {
         return true;
       }
     }
-    
+
     return false;
   };
 
@@ -749,7 +749,7 @@ const CreatePostForm = ({
                     Advanced
                   </Subtitle>
                   {hasAdvancedFieldsWithValues() && (
-                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-bearish rounded-full" />
+                    <div className="absolute -top-1 -right-3 h-3 w-3 bg-bearish rounded-full" />
                   )}
                 </div>
               </div>
@@ -1036,7 +1036,7 @@ const DynamicForm = ({
                                useWebWorker: true,
                              };
                              const compressedFile = await imageCompression(file, options);
-                             
+
                              const reader = new FileReader();
                              reader.onloadend = () => {
                                updateField(key, reader.result as string);
