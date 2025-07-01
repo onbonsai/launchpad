@@ -1,5 +1,5 @@
 import { PhotographIcon } from "@heroicons/react/solid";
-import { FC, ReactNode, SetStateAction, useState, useRef, useEffect } from "react";
+import { FC, ReactNode, SetStateAction, useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import Dropzone from "react-dropzone";
 import { toast } from "react-hot-toast";
 import imageCompression from "browser-image-compression";
@@ -16,6 +16,11 @@ export type AspectRatio = "16:9" | "9:16";
 
 interface FileWithPreview extends File {
   preview: string;
+}
+
+// Add this interface for the ref methods
+export interface ImageUploaderRef {
+  openCropModal: (imageUrl: string, fileName?: string) => Promise<void>;
 }
 
 interface ImageUploaderProps {
@@ -79,7 +84,7 @@ const centerAspectCrop = (
   };
 };
 
-export const ImageUploader: FC<ImageUploaderProps> = ({
+export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
   files,
   setFiles,
   maxFiles = 6,
@@ -91,7 +96,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
   compact = false,
   defaultImage,
   ...rest
-}) => {
+}, ref) => {
   const [cropFile, setCropFile] = useState<FileWithPreview | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [zoom, setZoom] = useState(1);
@@ -110,6 +115,89 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
     }
   };
 
+  // Expose the openCropModal method to parent components
+  useImperativeHandle(ref, () => ({
+    openCropModal: async (imageUrl: string, fileName = 'bonsai_image.png') => {
+      if (!enableCrop) {
+        console.warn('Crop modal cannot be opened when enableCrop is false');
+        return;
+      }
+
+      try {
+        let fileWithPreview: FileWithPreview;
+
+        // For base64 images, convert directly to blob
+        if (imageUrl.startsWith('data:')) {
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          
+          const file = new File([blob], fileName, { 
+            type: blob.type || 'image/png' 
+          });
+
+          fileWithPreview = Object.assign(file, {
+            preview: imageUrl // Keep the original base64 as preview
+          }) as FileWithPreview;
+        } else {
+          // For regular URLs, try to fetch with CORS
+          try {
+            const response = await fetch(imageUrl, { 
+              mode: 'cors',
+              headers: {
+                'Accept': 'image/*'
+              }
+            });
+            const blob = await response.blob();
+            
+            const file = new File([blob], fileName, { 
+              type: blob.type || 'image/png' 
+            });
+
+            // Create an object URL for the blob to avoid CORS issues
+            const objectUrl = URL.createObjectURL(blob);
+
+            fileWithPreview = Object.assign(file, {
+              preview: objectUrl
+            }) as FileWithPreview;
+          } catch (corsError) {
+            // If CORS fails, try to use the original URL but this might still cause issues
+            console.warn('CORS fetch failed, using original URL:', corsError);
+            
+            // Create a dummy file for the interface
+            const file = new File([], fileName, { type: 'image/png' });
+            
+            fileWithPreview = Object.assign(file, {
+              preview: imageUrl
+            }) as FileWithPreview;
+          }
+        }
+
+        setCropFile(fileWithPreview);
+        
+        // Set the anchor element to the dropzone element
+        const dropzoneElement = document.querySelector('[data-testid="dropzone"]');
+        if (dropzoneElement) {
+          setCropperAnchorEl(dropzoneElement as HTMLElement);
+        }
+
+        // Set a default crop immediately to ensure the button isn't disabled
+        // This will be overridden when the image loads
+        const defaultCrop = {
+          unit: '%' as const,
+          width: 80,
+          height: 80,
+          x: 10,
+          y: 10,
+        };
+        setCrop(defaultCrop);
+        
+      } catch (error) {
+        console.error('Failed to open crop modal:', error);
+        toast.error('Failed to load image for cropping');
+      }
+    }
+  }), [enableCrop, selectedRatio]);
+
   const handleZoomChange = (newZoom: number) => {
     setZoom(Math.max(1, Math.min(3, newZoom)));
   };
@@ -119,8 +207,9 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
     const ratio = ASPECT_RATIOS[selectedRatio];
     const aspect = ratio.width / ratio.height;
 
-    const crop = centerAspectCrop(width, height, aspect);
-    setCrop(crop);
+    const newCrop = centerAspectCrop(width, height, aspect);
+    console.log('Setting crop on image load:', newCrop); // Debug log
+    setCrop(newCrop);
     setZoom(1);
   };
 
@@ -135,6 +224,22 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
     const crop = centerAspectCrop(width, height, aspect);
     setCrop(crop);
   }, [selectedRatio]);
+
+  // Add this useEffect after the existing ones
+  useEffect(() => {
+    if (cropFile && !crop) {
+      // If we have a crop file but no crop, set a default crop
+      const defaultCrop = {
+        unit: '%' as const,
+        width: 80,
+        height: 80,
+        x: 10,
+        y: 10,
+      };
+      console.log('Setting default crop for cropFile:', defaultCrop); // Debug log
+      setCrop(defaultCrop);
+    }
+  }, [cropFile, crop]);
 
   const onDrop = async (acceptedFiles: any[]) => {
     if (files.length + acceptedFiles.length > maxFiles) {
@@ -227,6 +332,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
 
     if (!ctx) {
       toast.error('Failed to crop image');
+      setIsCropping(false);
       return;
     }
 
@@ -250,6 +356,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
     canvas.toBlob(async (blob) => {
       if (!blob) {
         toast.error('Failed to crop image');
+        setIsCropping(false);
         return;
       }
 
@@ -260,7 +367,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
       try {
         const options = {
           maxSizeMB: 1,
-          maxWidthOrHeight: 1920, // Increased from 720 to maintain better quality
+          maxWidthOrHeight: 1920,
           useWebWorker: true,
           preserveExif: true,
         };
@@ -270,6 +377,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
 
         if (compressedBlob.size > MAX_SIZE) {
           toast.error(`File too large. Maximum size is 8 MB.`);
+          setIsCropping(false);
           return;
         }
 
@@ -278,6 +386,12 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
         });
 
         setFiles([...files, processedFile]);
+        
+        // Clean up the crop file's object URL
+        if (cropFile.preview && cropFile.preview.startsWith('blob:')) {
+          URL.revokeObjectURL(cropFile.preview);
+        }
+        
         setCropFile(null);
         setCropperAnchorEl(null);
         setCrop(undefined);
@@ -286,11 +400,17 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
       } catch (error) {
         console.error("Compression error:", error);
         toast.error(`Error compressing ${croppedFile.name}`);
+        setIsCropping(false);
       }
-    }, cropFile.type, 1.0); // Added quality parameter of 1.0 for maximum quality
+    }, cropFile.type, 1.0);
   };
 
   const handleClose = () => {
+    // Clean up object URLs to prevent memory leaks
+    if (cropFile?.preview && cropFile.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(cropFile.preview);
+    }
+    
     setCropFile(null);
     setCropperAnchorEl(null);
     setCrop(undefined);
@@ -437,6 +557,7 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
                     alt="Crop preview"
                     className="max-h-[400px] w-auto object-contain"
                     onLoad={onImageLoad}
+                    crossOrigin="anonymous"
                     style={{
                       transform: `scale(${zoom})`,
                       transformOrigin: 'center'
@@ -504,8 +625,9 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
                   disabled={!crop || isCropping}
                   size="xs"
                   className="transition-all duration-200"
+                  title={!crop ? 'Waiting for crop area...' : isCropping ? 'Processing...' : 'Crop image'}
                 >
-                  Crop
+                  {isCropping ? 'Cropping...' : 'Crop'}
                 </Button>
               </div>
             </div>
@@ -514,4 +636,6 @@ export const ImageUploader: FC<ImageUploaderProps> = ({
       </Popper>
     </>
   );
-};
+});
+
+ImageUploader.displayName = 'ImageUploader';

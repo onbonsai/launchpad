@@ -38,6 +38,7 @@ import { useGetCredits } from "@src/hooks/useGetCredits";
 import useWebNotifications from "@src/hooks/useWebNotifications";
 import { cloneDeep } from "lodash/lang";
 import { last } from "lodash/array";
+import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
 
 export interface StoryboardClip {
   id: string; // agentId of the preview
@@ -88,6 +89,9 @@ const StudioCreatePage: NextPage = () => {
 
   // Track pending generations to check when tab becomes visible
   const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());
+
+  // Add a ref for the ImageUploader that will be passed to CreatePostForm
+  const imageUploaderRef = useRef<ImageUploaderRef>(null);
 
   useEffect(() => {
     setOptimisticCreditBalance(creditBalance?.creditsRemaining);
@@ -534,7 +538,7 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
-  const handleAnimateImage = (preview) => {
+  const handleAnimateImage = async (preview) => {
     if (!preview?.image || !registeredTemplates) return;
 
     // find a template with "video" in the name (case-insensitive)
@@ -545,13 +549,120 @@ const StudioCreatePage: NextPage = () => {
     }
     handleTemplateSelect(videoTemplate);
 
-    const imageFile = parseBase64Image(preview.image);
-    setPostImage([imageFile]);
-
     // scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    toast.success("Switched to video template with your image!");
+    // Use the ImageUploader ref to open crop modal instead of directly setting postImage
+    if (imageUploaderRef.current) {
+      try {
+        await imageUploaderRef.current.openCropModal(preview.image, `bonsai-${preview.agentId || 'preview'}.png`);
+        toast.success("Image loaded for cropping! Please crop and confirm to use in video.");
+      } catch (error) {
+        console.error('Failed to open crop modal:', error);
+        // Fallback to the old behavior if crop modal fails
+        const imageFile = parseBase64Image(preview.image);
+        setPostImage([imageFile]);
+        toast.success("Switched to video template with your image!");
+      }
+    } else {
+      // Fallback to the old behavior if ref is not available
+      const imageFile = parseBase64Image(preview.image);
+      setPostImage([imageFile]);
+      toast.success("Switched to video template with your image!");
+    }
+  };
+
+  const handleExtendVideo = async (preview) => {
+    if (!preview?.video || !registeredTemplates) return;
+
+    // Find a template with "video" in the name (case-insensitive)
+    const videoTemplate = registeredTemplates.find(t => t.name.toLowerCase().includes('video'));
+    if (!videoTemplate) {
+      toast.error("Video template not found");
+      return;
+    }
+
+    try {
+      // Extract last frame from video
+      const lastFrame = await extractLastFrameFromVideo(preview.video);
+      
+      handleTemplateSelect(videoTemplate);
+      
+      // scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Use the ImageUploader ref to open crop modal with the extracted frame
+      if (imageUploaderRef.current) {
+        try {
+          await imageUploaderRef.current.openCropModal(lastFrame, `bonsai-extend-${preview.agentId || 'preview'}.png`);
+          toast.success("Last frame extracted! Please crop and confirm to extend the video.", {duration: 10000});
+        } catch (error) {
+          console.error('Failed to open crop modal:', error);
+          // Fallback to the old behavior if crop modal fails
+          const imageFile = parseBase64Image(lastFrame);
+          setPostImage([imageFile]);
+          toast.success("Switched to video template with last frame!");
+        }
+      } else {
+        // Fallback to the old behavior if ref is not available
+        const imageFile = parseBase64Image(lastFrame);
+        setPostImage([imageFile]);
+        toast.success("Switched to video template with last frame!");
+      }
+    } catch (error) {
+      console.error('Failed to extract last frame:', error);
+      toast.error("Failed to extract last frame from video");
+    }
+  };
+
+  // Helper function to extract the last frame from a video
+  const extractLastFrameFromVideo = (video: any): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const videoElement = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      videoElement.crossOrigin = 'anonymous';
+      videoElement.muted = true;
+      
+      videoElement.onloadedmetadata = () => {
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        
+        // Set time to near the end (90% of duration to avoid potential issues at the very end)
+        videoElement.currentTime = videoElement.duration * 0.9;
+      };
+
+      videoElement.onseeked = () => {
+        try {
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve(dataURL);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      videoElement.onerror = () => {
+        reject(new Error('Failed to load video'));
+      };
+
+      // Handle different video source types
+      if (typeof video === 'string') {
+        videoElement.src = video;
+      } else if (video.url) {
+        videoElement.src = video.url;
+      } else if (video.blob) {
+        videoElement.src = URL.createObjectURL(video.blob);
+      } else {
+        reject(new Error('Invalid video source'));
+      }
+    });
   };
 
   const handleSubTemplateChange = (subTemplate: any) => {
@@ -1037,6 +1148,7 @@ const StudioCreatePage: NextPage = () => {
                               setStoryboardAudioStartTime={setStoryboardAudioStartTime}
                               creditBalance={optimisticCreditBalance}
                               refetchCredits={refetchCredits}
+                              imageUploaderRef={imageUploaderRef}
                             />
                           </>
                         )}
@@ -1103,6 +1215,7 @@ const StudioCreatePage: NextPage = () => {
                         storyboardClips={storyboardClips}
                         setStoryboardClips={setStoryboardClips}
                         onAnimateImage={handleAnimateImage}
+                        onExtendVideo={handleExtendVideo}
                         generatePreview={generatePreview}
                       />
                     </div>
