@@ -14,6 +14,7 @@ import { DownloadIcon } from '@heroicons/react/outline';
 import { RefreshIcon } from '@heroicons/react/outline';
 import Spinner from '@src/components/LoadingSpinner/LoadingSpinner';
 import { FilmIcon } from '@heroicons/react/solid';
+import { FastForwardIcon } from '@heroicons/react/solid';
 import type { StoryboardClip } from '@pages/studio/create';
 import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
@@ -51,6 +52,7 @@ type PreviewHistoryProps = {
   storyboardClips: StoryboardClip[];
   setStoryboardClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
   onAnimateImage: (p: any) => void;
+  onExtendVideo: (p: any) => void;
   generatePreview: (prompt: string, templateData: any, image?: File, aspectRatio?: string, nft?: NFTMetadata, audio?: { file: File; startTime: number; }) => void;
 };
 
@@ -84,6 +86,7 @@ export default function PreviewHistory({
   storyboardClips,
   setStoryboardClips,
   onAnimateImage,
+  onExtendVideo,
 }: PreviewHistoryProps) {
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
@@ -497,6 +500,20 @@ export default function PreviewHistory({
                       {isAspectRatioMismatch
                         ? "Incompatible aspect ratio"
                         : `Add${isClipInStoryboard ? "ed" : ""} to storyboard`}
+                    </button>
+                  )}
+
+                  {/* Extend Video button - only for videos */}
+                  {preview?.video && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExtendVideo(preview);
+                      }}
+                      className="flex items-center bg-transparent gap-2 rounded-xl p-2 backdrop-blur-sm hover:bg-brand-highlight/60"
+                      title="Extend this video"
+                    >
+                      <FastForwardIcon className="w-5 h-5 text-white" /> Extend video
                     </button>
                   )}
 

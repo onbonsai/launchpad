@@ -7,7 +7,7 @@ import { enhancePrompt, composeStoryboard } from "@src/services/madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
-import { ImageUploader } from "@src/components/ImageUploader/ImageUploader";
+import { ImageUploader, ImageUploaderRef } from "@src/components/ImageUploader/ImageUploader";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
@@ -74,6 +74,7 @@ type CreatePostProps = {
   setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
   creditBalance?: number;
   refetchCredits: () => void;
+  imageUploaderRef: React.RefObject<ImageUploaderRef | null>;
 };
 
 function getBaseZodType(field: any) {
@@ -134,6 +135,7 @@ const CreatePostForm = ({
   setStoryboardAudioStartTime,
   creditBalance,
   refetchCredits,
+  imageUploaderRef,
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -551,6 +553,34 @@ const CreatePostForm = ({
   const showImageUploader = template.options?.imageRequirement &&
     template.options?.imageRequirement !== MediaRequirement.NONE;
 
+  // Function to check if any advanced fields have values
+  const hasAdvancedFieldsWithValues = () => {
+    if (!template.templateData?.form?.shape) return false;
+    console.log('templateData', templateData);
+    
+    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+    const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
+    
+    // Check each field in the advanced section
+    for (const [key, field] of Object.entries(shape)) {
+      // Skip fields that are already shown in the main form (same logic as DynamicForm)
+      if (key === 'modelId' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) continue;
+      if (key === 'stylePreset' && (!veniceImageOptions?.models?.length || removeImageModelOptions)) continue;
+      if (template.options?.imageRequirement !== MediaRequirement.NONE && key === 'image') continue;
+      if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') continue;
+      if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') continue;
+      if (key === "aspectRatio") continue;
+      
+      // Check if this field has a non-empty value
+      const value = templateData[key];
+      if (value !== undefined && value !== null && value !== '' && value !== false) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
   return (
     <form
       className="mx-auto w-full space-y-4"
@@ -641,6 +671,7 @@ const CreatePostForm = ({
           {showImageUploader && (
             <div className="w-full md:w-1/5 lg:w-1/5 space-y-1 flex justify-center">
               <ImageUploader
+                ref={imageUploaderRef}
                 files={postImage}
                 setFiles={setPostImage}
                 maxFiles={1}
@@ -712,10 +743,15 @@ const CreatePostForm = ({
               className="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-grey/20 transition-colors duration-200 text-left"
             >
               <div className="flex items-center gap-4">
-                <Subtitle className="text-white/80">
-                  <TuneIcon className="h-4 w-4 mr-4" />
-                  Advanced
-                </Subtitle>
+                <div className="flex items-center relative">
+                  <Subtitle className="text-white/80">
+                    <TuneIcon className="h-4 w-4 mr-4" />
+                    Advanced
+                  </Subtitle>
+                  {hasAdvancedFieldsWithValues() && (
+                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-bearish rounded-full" />
+                  )}
+                </div>
               </div>
               {isDrawerExpanded ? (
                 <ExpandLess className="h-5 w-5 text-white/60" />
