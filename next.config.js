@@ -4,8 +4,12 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: false, // Enable PWA in all environments for push notifications
+  disable: false, // Force enable for all environments
+  scope: '/',
+  sw: 'sw.js',
   customWorkerDir: 'worker',
+  cacheOnFrontEndNav: true,
+  reloadOnOnline: true,
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,

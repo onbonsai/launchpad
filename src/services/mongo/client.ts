@@ -148,7 +148,6 @@ export const getClientWithStakingReferrals = async () => {
   return { collection, database };
 };
 
-
 export const getClientWithBonsaiClaim = async (__client?: any) => {
   // @ts-ignore
   const { database } = await connectToDatabase("moonshot");
@@ -169,6 +168,14 @@ export const getClientWithUserAudio = async (__client?: any) => {
   // @ts-ignore
   const { database } = await connectToDatabase("client-bonsai");
   const collection = database.collection("user-audio");
+
+  return { collection, database };
+};
+
+export const getClientWithPushSubscriptions = async (__client?: any) => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("client-bonsai");
+  const collection = database.collection("push-subscriptions");
 
   return { collection, database };
 };
