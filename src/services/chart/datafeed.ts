@@ -186,11 +186,84 @@ export const createDatafeed = (chain: string) => {
       });
 
       cache.set(subscriberUID, unwatch);
+
+      // Handle bfcache for chart subscriptions
+      if (typeof window !== 'undefined') {
+        const handlePageHide = () => {
+          console.log('[Chart] Page hiding - pausing chart subscription for bfcache');
+          const storedUnwatch = cache.get(subscriberUID);
+          if (storedUnwatch) {
+            storedUnwatch();
+            cache.set(`${subscriberUID}_paused`, true);
+          }
+        };
+
+        const handlePageShow = (event: PageTransitionEvent) => {
+          if (event.persisted && cache.get(`${subscriberUID}_paused`)) {
+            console.log('[Chart] Page restored from bfcache - resuming chart subscription');
+            // Resubscribe to the same contract event
+            const newUnwatch = client.watchContractEvent({
+              address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
+              abi: BonsaiLaunchpadAbi,
+              eventName: "Trade",
+              args: { clubId },
+              onLogs: (logs: any[]) => {
+                const events = logs
+                  .map((l) => {
+                    try {
+                      const event = decodeEventLog({ abi: BonsaiLaunchpadAbi, data: l.data, topics: l.topics });
+                      return { event: event.args, transactionHash: l.transactionHash, createdAt: Date.now() } as TradeEvent;
+                    } catch { }
+                  }).filter((d) => d);
+
+                const trades = events.map((event) => {
+                  const res = {
+                    price: event!.event!.price.toString(),
+                    prevPrice: cache.get('close'),
+                    createdAt: event!.createdAt!.toString(),
+                  };
+
+                  cache.set('close', event!.event!.price);
+
+                  return res;
+                });
+
+                trades.forEach((trade) => onRealtimeCallback(formatTrades([trade], resolution)[0]));
+              }
+            });
+            
+            cache.set(subscriberUID, newUnwatch);
+            cache.delete(`${subscriberUID}_paused`);
+          }
+        };
+
+        window.addEventListener('pagehide', handlePageHide);
+        window.addEventListener('pageshow', handlePageShow);
+        
+        // Store cleanup function for this subscription
+        cache.set(`${subscriberUID}_cleanup`, () => {
+          window.removeEventListener('pagehide', handlePageHide);
+          window.removeEventListener('pageshow', handlePageShow);
+        });
+      }
     },
     unsubscribeBars: (subscriberUID) => {
       console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID);
       const unwatch = cache.get(subscriberUID);
-      unwatch();
+      if (unwatch) {
+        unwatch();
+        cache.delete(subscriberUID);
+      }
+      
+      // Clean up bfcache event listeners
+      const cleanup = cache.get(`${subscriberUID}_cleanup`);
+      if (cleanup) {
+        cleanup();
+        cache.delete(`${subscriberUID}_cleanup`);
+      }
+      
+      // Clean up paused state
+      cache.delete(`${subscriberUID}_paused`);
     },
   };
 };

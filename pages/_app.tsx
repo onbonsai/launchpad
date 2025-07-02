@@ -88,7 +88,7 @@ export default function MyApp(props: AppProps) {
     console.log('✅ [PWA DEBUG] Service Worker API supported');
     
     // Check if sw.js exists
-    fetch('/sw.js', { method: 'HEAD' })
+    fetch('/sw.js')
       .then(response => {
         console.log(`🔍 [PWA DEBUG] /sw.js status: ${response.status}`);
         if (response.status === 200) {
@@ -138,6 +138,46 @@ export default function MyApp(props: AppProps) {
       console.log('📨 [PWA DEBUG] Message from service worker:', event.data);
     });
     
+  }, []);
+
+  // bfcache optimization - ensure page can be cached
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePageHide = (event: PageTransitionEvent) => {
+      console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
+      
+      // Don't prevent bfcache if user is navigating away
+      // The individual socket hooks will handle their own cleanup
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        console.log('🗄️ [BFCACHE] Page restored from bfcache');
+        // Individual socket hooks will handle reconnection
+      }
+    };
+
+    // Add freeze event for additional bfcache support
+    const handleFreeze = () => {
+      console.log('🧊 [BFCACHE] Page frozen');
+    };
+
+    const handleResume = () => {
+      console.log('▶️ [BFCACHE] Page resumed');
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('freeze', handleFreeze);
+    window.addEventListener('resume', handleResume);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('freeze', handleFreeze);
+      window.removeEventListener('resume', handleResume);
+    };
   }, []);
 
   return (

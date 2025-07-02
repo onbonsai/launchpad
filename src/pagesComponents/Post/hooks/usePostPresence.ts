@@ -11,7 +11,7 @@ type ConnectedUser = {
 
 type UsePostPresenceProps = {
   postId: string;
-  account?: Account | null;
+  account: Account | null;
   connect?: boolean;
 };
 
@@ -28,9 +28,10 @@ export default function usePostPresence({
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedUser[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const socket = useRef<Socket | null>(null);
+  const shouldReconnect = useRef(true);
 
-  useEffect(() => {
-    if (!postId || !connect || !account?.address) return;
+  const connectSocket = () => {
+    if (!postId || !connect || !account?.address || !shouldReconnect.current) return;
 
     socket.current = io(TERMINAL_API_URL, {
       query: {
@@ -55,9 +56,40 @@ export default function usePostPresence({
     socket.current.on('connectedAccounts', (accounts: ConnectedUser[]) => {
       setConnectedAccounts(accounts);
     });
+  };
+
+  const disconnectSocket = () => {
+    if (socket.current) {
+      socket.current.disconnect();
+      socket.current = null;
+      setIsConnected(false);
+    }
+  };
+
+  useEffect(() => {
+    connectSocket();
+
+    // Handle bfcache - disconnect on pagehide, reconnect on pageshow
+    const handlePageHide = () => {
+      console.log('Page hiding - disconnecting presence socket for bfcache');
+      disconnectSocket();
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        console.log('Page restored from bfcache - reconnecting presence socket');
+        connectSocket();
+      }
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
 
     return () => {
-      socket.current?.disconnect();
+      shouldReconnect.current = false;
+      disconnectSocket();
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
     };
   }, [postId, account, connect]);
 
