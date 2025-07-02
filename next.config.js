@@ -1,28 +1,5 @@
 /** @type {import('next').NextConfig} */
 const { withSentryConfig } = require("@sentry/nextjs");
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: false, // Force enable for all environments
-  scope: '/',
-  sw: 'sw.js',
-  customWorkerDir: 'worker',
-  cacheOnFrontEndNav: true,
-  reloadOnOnline: true,
-  runtimeCaching: [
-    {
-      urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'offlineCache',
-        expiration: {
-          maxEntries: 200,
-        },
-      },
-    },
-  ],
-});
 
 const nextConfig = {
   webpack: (config, { isServer, dev }) => {
@@ -188,6 +165,24 @@ const nextConfig = {
           },
         ],
       },
+      // Service Worker headers for security (from Next.js guide)
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
     ];
   },
   images: {
@@ -249,4 +244,4 @@ const sentryWebpackPluginOptions = {
 // Make sure to add the following to your deployment environment variables:
 // SENTRY_AUTH_TOKEN
 
-module.exports = withSentryConfig(withPWA(nextConfig), sentryWebpackPluginOptions);
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

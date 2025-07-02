@@ -5,7 +5,6 @@ const useWebNotifications = (userAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   // Helper function to detect PWA mode
   const isPWAMode = () => {
@@ -32,90 +31,31 @@ const useWebNotifications = (userAddress?: string) => {
     }
   }, []);
 
+  // Following the Next.js guide pattern
   const registerServiceWorker = async () => {
     try {
-      console.log('🔍 [PWA DEBUG] Environment Analysis:');
-      console.log('- Environment:', process.env.NODE_ENV);
-      console.log('- URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
-      console.log('- HTTPS:', typeof window !== 'undefined' ? window.location.protocol === 'https:' : 'SSR');
-      console.log('- VAPID Key:', process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? '✅ SET' : '❌ MISSING');
+      console.log('🔍 [PWA] Registering service worker...');
       
-      // Check if service worker is supported
-      if (!('serviceWorker' in navigator)) {
-        console.error('❌ [PWA DEBUG] Service Worker not supported');
-        return;
-      }
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none',
+      });
       
-      console.log('✅ [PWA DEBUG] Service Worker API supported');
+      console.log('✅ [PWA] Service worker registered successfully:', registration);
       
-      // Check if sw.js exists
-      const swResponse = await fetch('/sw.js');
-      console.log(`🔍 [PWA DEBUG] /sw.js status: ${swResponse.status}`);
-      
-      if (swResponse.status !== 200) {
-        console.error('❌ [PWA DEBUG] Service worker file missing - next-pwa build failed');
-        console.error('❌ [PWA DEBUG] This is why push notifications are not working on Vercel');
-        return;
-      }
-      
-      console.log('✅ [PWA DEBUG] Service worker file found');
-      
-      // Check existing registrations
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      console.log(`🔍 [PWA DEBUG] Existing registrations: ${registrations.length}`);
-      
-      let activeRegistration: ServiceWorkerRegistration;
-      
-      if (registrations.length === 0) {
-        console.log('⚠️ [PWA DEBUG] No service worker registered - next-pwa auto-registration may have failed');
-        console.log('🔧 [PWA DEBUG] Attempting manual registration...');
-        
-        // Manual registration as fallback (similar to Next.js example)
-        activeRegistration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/',
-          updateViaCache: 'none',
-        });
-        console.log('✅ [PWA DEBUG] Manual registration successful:', activeRegistration);
-      } else {
-        registrations.forEach((reg, i) => {
-          console.log(`✅ [PWA DEBUG] Registration ${i}:`, reg.scope, reg.active?.state);
-        });
-        
-        // Use the first registration
-        activeRegistration = registrations[0];
-      }
-      
-      // Cache the registration for later use
-      setRegistration(activeRegistration);
-      console.log('📦 [PWA DEBUG] Cached registration:', activeRegistration);
-      
-      // Get existing subscription from the registration
-      const sub = await activeRegistration.pushManager.getSubscription();
+      // Get existing subscription
+      const sub = await registration.pushManager.getSubscription();
       setSubscription(sub);
-      console.log("[useWebNotifications] Subscription:", sub);
-      
-      // Monitor service worker events
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('🔄 [PWA DEBUG] Service worker controller changed');
-      });
-      
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        console.log('📨 [PWA DEBUG] Message from service worker:', event.data);
-      });
+      console.log("[useWebNotifications] Existing subscription:", sub);
       
     } catch (error) {
-      console.error('❌ [PWA DEBUG] Error in service worker registration:', error);
+      console.error('❌ [PWA] Service worker registration failed:', error);
     }
   };
 
-  const requestPermissionAndSubscribe = async () => {
+  const subscribeToPush = async () => {
     if (!isSupported) {
       console.log("[useWebNotifications] Push notifications not supported");
-      return false;
-    }
-
-    if (!registration) {
-      console.log("[useWebNotifications] No service worker registration available");
       return false;
     }
 
@@ -139,26 +79,21 @@ const useWebNotifications = (userAddress?: string) => {
           return false;
         }
 
-        console.log("[useWebNotifications] Registration:", registration);
-        console.log("[useWebNotifications] Subscription:", subscription);
-
         // Check if already subscribed
         if (subscription) {
           console.log("[useWebNotifications] Already subscribed to push notifications");
           return true;
         }
 
-        // Subscribe to push notifications for PWA using cached registration
-        console.log("[useWebNotifications] Subscribing to push notifications for PWA");
-        console.log("[useWebNotifications] Using cached registration:", registration);
-        
+        // Following Next.js guide pattern
+        const registration = await navigator.serviceWorker.ready;
         const newSubscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
         });
-        console.log("[useWebNotifications] New subscription:", newSubscription);
-
+        
         setSubscription(newSubscription);
+        console.log("[useWebNotifications] New subscription:", newSubscription);
 
         // Send subscription to server
         await sendSubscriptionToServer(newSubscription);
@@ -212,9 +147,6 @@ const useWebNotifications = (userAddress?: string) => {
       await subscription?.unsubscribe();
       setSubscription(null);
       
-      // Optionally call server to remove subscription
-      // await unsubscribeUser();
-      
       console.log("[useWebNotifications] Unsubscribed from push notifications");
     } catch (error) {
       console.error("[useWebNotifications] Error unsubscribing:", error);
@@ -251,9 +183,8 @@ const useWebNotifications = (userAddress?: string) => {
   return { 
     permission,
     subscription,
-    registration,
     isSupported,
-    requestPermissionAndSubscribe,
+    subscribeToPush,
     unsubscribeFromPush,
     sendNotification,
     isPWAMode: isPWAMode()
