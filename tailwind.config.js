@@ -69,14 +69,16 @@ module.exports = {
         "md-plus": "920px",
       },
       fontFamily: {
-        sans: ["Favorit", "sans-serif"],
+        sans: ["var(--font-brand)", "Favorit", "sans-serif"],
         owners: ["owners-narrow", "sans-serif"],
         ownersx: ["owners-xnarrow", "sans-serif"],
         "helvetica-display": ["HelveticaNowDisplay", "sans-serif"],
         "helvetica-text": ["HelveticaNowText", "sans-serif"],
         "helvetica-micro": ["HelveticaNowMicro", "sans-serif"],
-        "sf-pro-text": ["SF Pro Text", "system-ui", "Open Sans", "sans-serif"],
+        "sf-pro-text": ["SF Pro Text", "system-ui", "var(--font-open-sans)", "Open Sans", "sans-serif"],
         "top-secret": ["TopSecret", "sans-serif"],
+        "source-code-pro": ["var(--font-source-code-pro)", "Source Code Pro", "monospace"],
+        "open-sans": ["var(--font-open-sans)", "Open Sans", "sans-serif"],
       },
       backgroundSize: {
         "size-200": "200% 200%",

@@ -30,16 +30,11 @@ class MyDocument extends Document {
           <meta name="msapplication-TileImage" content="/logo.png" />
           <meta name="msapplication-config" content="/browserconfig.xml" />
           
+          {/* Font preconnects for performance - actual fonts loaded via next/font and next/script */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-          <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet" />
-
-          <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-          <link
-            href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,500italic,300,300italic,400,400italic&display=optional"
-            rel="stylesheet"
-            type="text/css"
-          />
+          <link rel="preconnect" href="https://use.typekit.net" />
+          <link rel="preconnect" href="https://p.typekit.net" />
 
           {/* Base OpenGraph Meta Tags - These will be available to crawlers */}
           <meta property="og:type" content="website" />

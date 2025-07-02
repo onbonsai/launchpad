@@ -8,12 +8,13 @@ import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
 import { ThirdwebProvider } from "thirdweb/react";
+import Script from "next/script";
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
-import { brandFont } from "@src/fonts/fonts";
+import { brandFont, openSans, sourceCodePro } from "@src/fonts/fonts";
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
@@ -142,6 +143,37 @@ export default function MyApp(props: AppProps) {
   return (
     (!isMiniApp || (isMiniApp && isSDKLoaded)) && (
       <>
+        <style jsx global>{`
+          :root {
+            --font-brand: ${brandFont.style.fontFamily};
+            --font-open-sans: ${openSans.style.fontFamily};
+            --font-source-code-pro: ${sourceCodePro.style.fontFamily};
+          }
+        `}</style>
+
+        {/* Non-blocking TypeKit loading */}
+        <link
+          rel="stylesheet"
+          href="https://p.typekit.net/p.css?s=1&k=lwh2pue&ht=tk&f=48418.48432&a=15201506&app=typekit&e=css"
+          media="print"
+          onLoad={(e) => {
+            const target = e.target as HTMLLinkElement;
+            target.media = 'all';
+          }}
+        />
+
+        {/* Non-blocking Material Icons loading */}
+        <Script id="material-icons-loader" strategy="afterInteractive">
+          {`
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+            link.media = 'print';
+            link.onload = function() { this.media = 'all'; };
+            document.head.appendChild(link);
+          `}
+        </Script>
+
         <HandleSEO pageProps={pageProps} query={router.query} />
         <Web3Provider>
           <ThirdwebProvider>
