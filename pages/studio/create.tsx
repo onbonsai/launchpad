@@ -85,7 +85,7 @@ const StudioCreatePage: NextPage = () => {
   const workerRef = useRef<Worker | undefined>(undefined);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
-  const { requestPermission, sendNotification } = useWebNotifications();
+  const { requestPermission, sendNotification } = useWebNotifications(address);
 
   // Track pending generations to check when tab becomes visible
   const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());

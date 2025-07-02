@@ -16,23 +16,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = authHeader.substring(7);
-    let userAddress: string;
     
+    // Verify the token for authentication (but don't use the address from it)
     try {
       const payload = await verifyIdToken(token) as any;
       if (!payload || !payload.act?.sub) {
         return res.status(401).json({ error: 'Invalid token payload' });
       }
-      userAddress = getAddress(payload.act.sub as `0x${string}`);
+      // Token is valid, but we'll use the connected wallet address from the request body
     } catch {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const subscription = req.body;
+    const { subscription, userAddress } = req.body;
 
-    // Validate subscription object
+    // Validate request data
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       return res.status(400).json({ error: 'Invalid subscription data' });
+    }
+
+    if (!userAddress) {
+      return res.status(400).json({ error: 'Missing userAddress' });
+    }
+
+    // Validate and normalize the connected wallet address
+    let normalizedUserAddress: string;
+    try {
+      normalizedUserAddress = getAddress(userAddress as `0x${string}`);
+    } catch {
+      return res.status(400).json({ error: 'Invalid userAddress format' });
     }
 
     // Forward the subscription to your backend server
@@ -43,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        userAddress,
+        userAddress: normalizedUserAddress,
         subscription
       })
     });

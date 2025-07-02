@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const useWebNotifications = () => {
+const useWebNotifications = (userAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
@@ -108,27 +108,55 @@ const useWebNotifications = () => {
   };
 
   const sendSubscriptionToServer = async (subscription: PushSubscription) => {
+    console.log("[useWebNotifications] Sending subscription to server...");
+    
+    if (!userAddress) {
+      console.log("[useWebNotifications] No user address provided, skipping subscription");
+      return;
+    }
+    
     try {
       // Get auth token for the request
       const sessionClient = await (await import('@src/hooks/useLensLogin')).resumeSession(true);
-      if (!sessionClient) return;
+      if (!sessionClient) {
+        console.log("[useWebNotifications] No session client available");
+        return;
+      }
       
       const creds = await sessionClient.getCredentials();
-      if (creds.isErr() || !creds.value) return;
+      if (creds.isErr() || !creds.value) {
+        console.log("[useWebNotifications] No credentials available");
+        return;
+      }
       
       const idToken = creds.value.idToken;
 
-      // Send subscription to your server
-      await fetch('/api/push/subscribe', {
+      console.log("[useWebNotifications] Making API request for address:", userAddress);
+      // Send subscription to your server with connected wallet address
+      const response = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify(subscription)
+        body: JSON.stringify({
+          subscription,
+          userAddress // Send the connected wallet address
+        })
       });
+
+      console.log("[useWebNotifications] API response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[useWebNotifications] API error:", errorText);
+        throw new Error(`Failed to send subscription: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("[useWebNotifications] Subscription sent successfully:", result);
     } catch (error) {
-      console.error("Error sending subscription to server:", error);
+      console.error("[useWebNotifications] Error sending subscription to server:", error);
     }
   };
 
