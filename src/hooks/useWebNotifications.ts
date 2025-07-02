@@ -1,17 +1,26 @@
+import { urlBase64ToUint8Array } from "@src/utils/utils";
 import { useState, useEffect } from "react";
 
 const useWebNotifications = (userAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
+  // Helper function to detect PWA mode
+  const isPWAMode = () => {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           (window.navigator as any).standalone === true ||
+           document.referrer.includes('android-app://');
+  };
+
   useEffect(() => {
+    console.log("[useWebNotifications] isPWAMode:", isPWAMode());
     // Set initial permission state from browser
     if ("Notification" in window) {
       setPermission(Notification.permission);
     }
 
-    // Get existing subscription if available
-    if ("serviceWorker" in navigator && "PushManager" in window) {
+    // Only get existing subscription if we're in PWA mode (where we need server push)
+    if (isPWAMode() && "serviceWorker" in navigator && "PushManager" in window) {
       navigator.serviceWorker.ready.then(registration => {
         registration.pushManager.getSubscription().then(existingSubscription => {
           setSubscription(existingSubscription);
@@ -21,13 +30,8 @@ const useWebNotifications = (userAddress?: string) => {
   }, []);
 
   const requestPermissionAndSubscribe = async () => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-      console.log("[useWebNotifications] Push notifications not supported");
-      return false;
-    }
-
-    if (!userAddress) {
-      console.log("[useWebNotifications] No user address provided");
+    if (!("Notification" in window)) {
+      console.log("[useWebNotifications] Notifications not supported");
       return false;
     }
 
@@ -44,28 +48,45 @@ const useWebNotifications = (userAddress?: string) => {
         return false;
       }
 
-      // Check if already subscribed
-      if (subscription) {
-        console.log("[useWebNotifications] Already subscribed");
-        return true;
+      // Only subscribe to push notifications if we're in PWA mode
+      if (isPWAMode()) {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          console.log("[useWebNotifications] Push notifications not supported in PWA mode");
+          return false;
+        }
+
+        if (!userAddress) {
+          console.log("[useWebNotifications] No user address provided for PWA subscription");
+          return false;
+        }
+
+        // Check if already subscribed
+        if (subscription) {
+          console.log("[useWebNotifications] Already subscribed to push notifications");
+          return true;
+        }
+
+        // Subscribe to push notifications for PWA
+        console.log("[useWebNotifications] Subscribing to push notifications for PWA");
+        const registration = await navigator.serviceWorker.ready;
+        console.log("[useWebNotifications] Registration:", registration);
+        const newSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+        });
+        console.log("[useWebNotifications] New subscription:", newSubscription);
+
+        setSubscription(newSubscription);
+
+        // Send subscription to server
+        await sendSubscriptionToServer(newSubscription);
+      } else {
+        console.log("[useWebNotifications] Browser mode - using client-side notifications only");
       }
-
-      // Subscribe to push notifications
-      const registration = await navigator.serviceWorker.ready;
-      const newSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
-      });
-
-      console.log("[useWebNotifications] New subscription created");
-      setSubscription(newSubscription);
-
-      // Send subscription to server
-      await sendSubscriptionToServer(newSubscription);
       
       return true;
     } catch (error) {
-      console.error("[useWebNotifications] Error subscribing to push notifications:", error);
+      console.error("[useWebNotifications] Error setting up notifications:", error);
       return false;
     }
   };
@@ -104,44 +125,28 @@ const useWebNotifications = (userAddress?: string) => {
     }
   };
 
-  // Utility function to convert VAPID key
-  const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
   const sendNotification = async (title: string, options?: NotificationOptions) => {
     try {
-      // For local development/fallback, still use the old approach
-      // In production, notifications will come from the server via push
-      if (permission === "granted") {
-        // Check if we're in PWA mode
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                     (window.navigator as any).standalone === true ||
-                     document.referrer.includes('android-app://');
-
-        if (isPWA || process.env.NODE_ENV === 'development') {
-          // Fallback to regular notification for immediate feedback in dev
-          const notification = new Notification(title, {
-            ...options,
-            icon: options?.icon || "/logo.png",
-            tag: 'generation-complete'
-          });
-          
-          // Auto-close after 5 seconds if not interacted with
-          setTimeout(() => {
-            notification.close();
-          }, 5000);
-        }
+      // Check if we're in PWA mode
+      if (isPWAMode()) {
+        // In PWA mode, don't send client-side notifications
+        // Rely on server-side push notifications instead
+        console.log("[useWebNotifications] PWA mode - notifications handled by server push");
+        return;
       }
+
+      // In browser mode, send client-side notifications
+      console.log("[useWebNotifications] Browser mode - sending client-side notification");
+      const notification = new Notification(title, {
+        ...options,
+        icon: options?.icon || "/logo.png",
+        tag: 'generation-complete'
+      });
+      
+      // Auto-close after 5 seconds if not interacted with
+      setTimeout(() => {
+        notification.close();
+      }, 5000);
     } catch (error) {
       console.error("Error sending notification:", error);
     }
@@ -151,7 +156,8 @@ const useWebNotifications = (userAddress?: string) => {
     permission,
     subscription,
     requestPermissionAndSubscribe, 
-    sendNotification
+    sendNotification,
+    isPWAMode: isPWAMode()
   };
 };
 
