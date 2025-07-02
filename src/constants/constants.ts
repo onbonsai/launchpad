@@ -109,11 +109,12 @@ export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
 export const ANIMATED_HINT_LINES = [
   "Click the spark icon to enhance your prompt with AI suggestions.",
   "Click a generation to auto-fill the prompt and template - edit and regenerate instantly.",
-  "Need more credits? Stake tokens from the sidebar or buy a pack with GHO.",
+  "Need more credits? You can purchase them or stake tokens on the Studio sidebar.",
   "Use advanced template options for more control over your output.",
-  "Video generations take longer. Enable notifications to get alerted when they’re ready.",
+  "Video generations take longer. Enable notifications to get alerted when they're ready.",
   "Use Storyboard to stitch multiple generations into a longer, immersive video.",
   "View your past creations anytime - just click 'Load previous generations'.",
   "Looking for ideas? Check the Feed to see what others are making.",
-  "Remix any post to start from the original prompt and template."
+  "Remix any post to start from the original prompt and template.",
+  "Enable MAX Mode for Veo 3 generation with multiple scenes"
 ];

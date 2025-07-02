@@ -151,12 +151,34 @@ const CreatePostForm = ({
   const textareaRef = useAutoGrow(prompt || '');
   const previousPromptRef = useRef<string | undefined>(prompt);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showMaxModeTooltip, setShowMaxModeTooltip] = useState(false);
+  const maxModeTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (finalTemplateData) {
       setTemplateData(finalTemplateData);
     }
   }, [finalTemplateData]);
+
+  // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds
+  useEffect(() => {
+    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+    const showTooltipTimer = setTimeout(() => {
+      if (shape.enableMaxMode) {
+        setShowMaxModeTooltip(true);
+        maxModeTooltipTimeoutRef.current = setTimeout(() => {
+          setShowMaxModeTooltip(false);
+        }, 5000);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(showTooltipTimer);
+      if (maxModeTooltipTimeoutRef.current) {
+        clearTimeout(maxModeTooltipTimeoutRef.current);
+      }
+    };
+  }, [template.templateData.form]);
 
   // Lock aspect ratio to horizontal when subject reference is present
   useEffect(() => {
@@ -556,7 +578,7 @@ const CreatePostForm = ({
   // Function to check if any advanced fields have values
   const hasAdvancedFieldsWithValues = () => {
     if (!template.templateData?.form?.shape) return false;
-    
+
     const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
     const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
 
@@ -578,6 +600,24 @@ const CreatePostForm = ({
     }
 
     return false;
+  };
+
+  const handleMaxModeToggle = () => {
+    const hasEnoughCredits = (creditBalance || 0) >= 3000;
+
+    if (!hasEnoughCredits) {
+      // Show custom top up modal
+      openTopUpModal(
+        "api-credits",
+        undefined,
+        "Unlock MAX Mode",
+        "MAX Mode enables video generation with Veo 3. You need at least 3,000 credits."
+      );
+      return;
+    }
+
+    // User has enough credits, toggle MAX mode
+    setTemplateData({ ...templateData, enableMaxMode: !templateData.enableMaxMode });
   };
 
   return (
@@ -618,13 +658,14 @@ const CreatePostForm = ({
             <div className="flex items-center gap-2">
               <FieldLabel
                 label="MAX Mode"
-                fieldDescription={shape.enableMaxMode.description?.replace(/\[placeholder: (.*?)\]/, '') || 'Enable maximum generation quality'}
-                tooltipDirection={tooltipDirection || "left"}
+                fieldDescription="Enable MAX Mode for Veo 3 generation with multiple scenes"
+                tooltipDirection={tooltipDirection || "top"}
                 classNames="!text-brand-highlight !text-sm"
+                open={showMaxModeTooltip}
               />
               <button
                 type="button"
-                onClick={() => setTemplateData({ ...templateData, enableMaxMode: !templateData.enableMaxMode })}
+                onClick={handleMaxModeToggle}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
                   templateData.enableMaxMode ? 'bg-brand-highlight/90' : 'bg-dark-grey'
                 }`}
@@ -1148,15 +1189,16 @@ interface FieldLabelProps {
   fieldDescription?: string;
   tooltipDirection?: "top" | "bottom" | "right" | "left";
   classNames?: string;
+  open?: boolean;
 }
-const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames }: FieldLabelProps) => (
+const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames, open }: FieldLabelProps) => (
   <div className="flex items-center gap-1">
     <Subtitle className={`text-white/70 ${classNames || ""}`}>
       {label}
     </Subtitle>
     {fieldDescription && (
       <div className="text-sm inline-block mt-1">
-        <Tooltip message={fieldDescription} direction={tooltipDirection}>
+        <Tooltip message={fieldDescription} direction={tooltipDirection} open={open}>
           <InfoOutlined
             className="max-w-4 max-h-4 inline-block text-white/40"
           />
