@@ -51,7 +51,7 @@ interface SwapToGenerateConfig {
 }
 
 interface TopUpModalContextType {
-  openTopUpModal: (type?: ModalType, requiredAmount?: bigint) => void;
+  openTopUpModal: (type?: ModalType, requiredAmount?: bigint, customHeader?: string, customSubheader?: string) => void;
   closeTopUpModal: () => void;
   openSwapToGenerateModal: (config: SwapToGenerateConfig) => void;
 }
@@ -63,11 +63,15 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
   const [requiredAmount, setRequiredAmount] = useState<bigint | undefined>(undefined);
   const [modalType, setModalType] = useState<ModalType>("topup");
   const [swapConfig, setSwapConfig] = useState<SwapToGenerateConfig | undefined>(undefined);
+  const [customHeader, setCustomHeader] = useState<string | undefined>(undefined);
+  const [customSubheader, setCustomSubheader] = useState<string | undefined>(undefined);
   const { isMiniApp } = useIsMiniApp();
 
-  const openTopUpModal = (type: ModalType = "topup", amount?: bigint) => {
+  const openTopUpModal = (type: ModalType = "topup", amount?: bigint, header?: string, subheader?: string) => {
     setModalType(type);
     setRequiredAmount(amount);
+    setCustomHeader(header);
+    setCustomSubheader(subheader);
     setIsOpen(true);
   };
 
@@ -88,6 +92,8 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
     setIsOpen(false);
     setRequiredAmount(undefined);
     setSwapConfig(undefined);
+    setCustomHeader(undefined);
+    setCustomSubheader(undefined);
   };
 
   return (
@@ -104,7 +110,7 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
           <TopUpModal requiredAmount={requiredAmount} />
         ) : modalType === "api-credits" ? (
           <div className="flex-1 overflow-y-auto">
-            <ApiCreditsModal />
+            <ApiCreditsModal customHeader={customHeader} customSubheader={customSubheader} />
           </div>
         ) : modalType === "swap-to-generate" && swapConfig ? (
           <SwapToGenerateModal

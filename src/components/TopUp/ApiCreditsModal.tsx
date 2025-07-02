@@ -24,7 +24,12 @@ interface TopUpOption {
   highlight?: boolean;
 }
 
-export const ApiCreditsModal = () => {
+interface ApiCreditsModalProps {
+  customHeader?: string;
+  customSubheader?: string;
+}
+
+export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsModalProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
@@ -75,7 +80,7 @@ export const ApiCreditsModal = () => {
   });
 
   const topUpOptions: TopUpOption[] = useMemo(() => {
-    const credits = [100, 350, 750, 2500];
+    const credits = [500, 1000, 3000, 10000];
     return credits.map((credit, index) => {
       const price = (3 * credit) / 200;
       const ghoRequired = parseUnits(price.toString(), 18);
@@ -230,20 +235,19 @@ export const ApiCreditsModal = () => {
 
   return (
     <div
-      className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 w-full text-white"
+      className="p-4 space-y-4 min-w-[600px] text-white"
       style={{
         fontFamily: brandFont.style.fontFamily,
       }}
     >
       <div className="flex items-center justify-between">
-        <Dialog.Title as="h2" className="text-lg sm:text-xl md:text-2xl font-bold">
-          Buy AI Credits
+        <Dialog.Title as="h2" className="text-2xl font-bold">
+          {customHeader || "Buy API Credits"}
         </Dialog.Title>
       </div>
 
-      <div className="text-gray-400 text-xs sm:text-sm md:text-base space-y-1">
-        <p>AI credits are used to make requests to our generative AI services.</p>
-        <p>Purchased credits are one time use and do not refresh or expire.</p>
+      <div className="text-gray-400">
+        <p>{customSubheader || "Generate stunning media using AI models. Credits purchased will be saved to your account balance."}</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between p-2 sm:p-3 rounded-xl bg-gray-800/50 border border-gray-700/50 gap-2 sm:gap-3 md:gap-0">
