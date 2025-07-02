@@ -3,9 +3,6 @@ module.exports = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
-    // More specific paths for better CSS purging
-    "!./node_modules/**",
-    "!./public/static/charting_library/**/*.css",
   ],
   // Safelist for dynamic classes that might be missed by purging
   safelist: [
@@ -15,11 +12,8 @@ module.exports = {
     { pattern: /^(bg|text|border)-(brand-|bullish|bearish|red|blue|grey)/ },
     // Animation classes
     { pattern: /^animate-(fade-in|pulse|ease-in)/ },
-    // Dynamic width/height classes
-    { pattern: /^(w|h)-\d+$/ },
   ],
   daisyui: {
-    // Reduce DaisyUI CSS by only including used themes and components
     themes: [
       {
         mytheme: {
@@ -39,14 +33,7 @@ module.exports = {
         },
       },
     ],
-    // Disable unused DaisyUI components to reduce CSS size
-    styled: true,
-    base: false, // Disable base styles since we have our own
-    utils: false, // Disable utility classes since we use Tailwind
     logs: false,
-    rtl: false,
-    prefix: "",
-    darkTheme: "dark",
   },
   theme: {
     extend: {
@@ -164,17 +151,8 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/forms")({
-      strategy: 'class', // Use class strategy to reduce CSS output
-    }),
+    require("@tailwindcss/forms"),
     require("daisyui"),
-    // Conditionally load heavy plugins - remove in production if not essential
-    ...(process.env.NODE_ENV === 'development' ? [
-      require("@tailwindcss/typography"),
-      require("tailwindcss-gradients")
-    ] : [
-      // Only include typography in production if you actually use prose classes
-      require("@tailwindcss/typography")
-    ])
+    require("@tailwindcss/typography"),
   ],
 };

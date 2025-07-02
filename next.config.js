@@ -25,26 +25,33 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig = {
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         fs: false,
         module: false,
       };
     }
+
+    // Additional CSS optimization in production
+    if (!dev && !isServer) {
+      config.optimization.splitChunks.cacheGroups.styles = {
+        name: 'styles',
+        test: /\.(css|scss|sass)$/,
+        chunks: 'all',
+        enforce: true,
+      };
+    }
+
     return config;
   },
   reactStrictMode: true,
-  swcMinify: true,
-  // CSS Optimization for reducing unused CSS
-  // compiler: {
-  //   removeConsole: process.env.NODE_ENV === 'production',
-  // },
   // CSS optimization in production
   productionBrowserSourceMaps: false,
-  // Optimize CSS loading
-  optimizeFonts: true,
-  // Compress CSS
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Compress responses
   compress: true,
   transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk", "@madfi/widgets-react"],
   async rewrites() {
@@ -223,9 +230,6 @@ const nextConfig = {
       port: "",
       pathname: "/**",
     })),
-  },
-  sentry: {
-    hideSourceMaps: false,
   },
   env: {
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
