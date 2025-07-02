@@ -85,7 +85,7 @@ const StudioCreatePage: NextPage = () => {
   const workerRef = useRef<Worker | undefined>(undefined);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
-  const { requestPermissionAndSubscribe, sendNotification } = useWebNotifications(address);
+  const { subscribeToPush, sendNotification } = useWebNotifications(address);
 
   // Track pending generations to check when tab becomes visible
   const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());
@@ -346,7 +346,7 @@ const StudioCreatePage: NextPage = () => {
     const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
     // Request notification permission and subscribe to push notifications when first generation is fired
-    requestPermissionAndSubscribe();
+    subscribeToPush();
 
     setOptimisticCreditBalance((prev) => (prev !== undefined ? prev - credits : undefined));
     console.log(`[create.tsx] Adding pending preview with tempId: ${tempId}`);
