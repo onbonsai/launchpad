@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 const useWebNotifications = (userAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [isSupported, setIsSupported] = useState(false);
 
   // Helper function to detect PWA mode
   const isPWAMode = () => {
@@ -14,24 +15,95 @@ const useWebNotifications = (userAddress?: string) => {
 
   useEffect(() => {
     console.log("[useWebNotifications] isPWAMode:", isPWAMode());
+    
+    // Check if notifications and service workers are supported
+    if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
+      setIsSupported(true);
+      registerServiceWorker();
+    } else {
+      console.log("[useWebNotifications] Push notifications not supported in this browser");
+      setIsSupported(false);
+    }
+
     // Set initial permission state from browser
     if ("Notification" in window) {
       setPermission(Notification.permission);
     }
-
-    // Only get existing subscription if we're in PWA mode (where we need server push)
-    if (isPWAMode() && "serviceWorker" in navigator && "PushManager" in window) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.pushManager.getSubscription().then(existingSubscription => {
-          setSubscription(existingSubscription);
-        });
-      }).catch(console.error);
-    }
   }, []);
 
+  const registerServiceWorker = async () => {
+    try {
+      console.log('🔍 [PWA DEBUG] Environment Analysis:');
+      console.log('- Environment:', process.env.NODE_ENV);
+      console.log('- URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+      console.log('- HTTPS:', typeof window !== 'undefined' ? window.location.protocol === 'https:' : 'SSR');
+      console.log('- VAPID Key:', process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? '✅ SET' : '❌ MISSING');
+      
+      // Check if service worker is supported
+      if (!('serviceWorker' in navigator)) {
+        console.error('❌ [PWA DEBUG] Service Worker not supported');
+        return;
+      }
+      
+      console.log('✅ [PWA DEBUG] Service Worker API supported');
+      
+      // Check if sw.js exists
+      const swResponse = await fetch('/sw.js');
+      console.log(`🔍 [PWA DEBUG] /sw.js status: ${swResponse.status}`);
+      
+      if (swResponse.status !== 200) {
+        console.error('❌ [PWA DEBUG] Service worker file missing - next-pwa build failed');
+        console.error('❌ [PWA DEBUG] This is why push notifications are not working on Vercel');
+        return;
+      }
+      
+      console.log('✅ [PWA DEBUG] Service worker file found');
+      
+      // Check existing registrations
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      console.log(`🔍 [PWA DEBUG] Existing registrations: ${registrations.length}`);
+      
+      if (registrations.length === 0) {
+        console.log('⚠️ [PWA DEBUG] No service worker registered - next-pwa auto-registration may have failed');
+        console.log('🔧 [PWA DEBUG] Attempting manual registration...');
+        
+        // Manual registration as fallback (similar to Next.js example)
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none',
+        });
+        console.log('✅ [PWA DEBUG] Manual registration successful:', registration);
+        
+        // Get existing subscription after registration
+        const sub = await registration.pushManager.getSubscription();
+        setSubscription(sub);
+      } else {
+        registrations.forEach((reg, i) => {
+          console.log(`✅ [PWA DEBUG] Registration ${i}:`, reg.scope, reg.active?.state);
+        });
+        
+        // Get existing subscription from first registration
+        const sub = await registrations[0].pushManager.getSubscription();
+        setSubscription(sub);
+      }
+      
+      // Monitor service worker events
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('🔄 [PWA DEBUG] Service worker controller changed');
+      });
+      
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        console.log('📨 [PWA DEBUG] Message from service worker:', event.data);
+      });
+      
+    } catch (error) {
+      console.error('❌ [PWA DEBUG] Error in service worker registration:', error);
+    }
+  };
+
   const requestPermissionAndSubscribe = async () => {
-    if (!("Notification" in window)) {
-      console.log("[useWebNotifications] Notifications not supported");
+    if (!isSupported) {
+      console.log("[useWebNotifications] Push notifications not supported");
       return false;
     }
 
@@ -50,11 +122,6 @@ const useWebNotifications = (userAddress?: string) => {
 
       // Only subscribe to push notifications if we're in PWA mode
       if (isPWAMode()) {
-        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-          console.log("[useWebNotifications] Push notifications not supported in PWA mode");
-          return false;
-        }
-
         if (!userAddress) {
           console.log("[useWebNotifications] No user address provided for PWA subscription");
           return false;
@@ -66,7 +133,7 @@ const useWebNotifications = (userAddress?: string) => {
           return true;
         }
 
-        // Subscribe to push notifications for PWA
+        // Subscribe to push notifications for PWA (similar to Next.js example)
         console.log("[useWebNotifications] Subscribing to push notifications for PWA");
         const registration = await navigator.serviceWorker.ready;
         console.log("[useWebNotifications] Registration:", registration);
@@ -125,6 +192,20 @@ const useWebNotifications = (userAddress?: string) => {
     }
   };
 
+  const unsubscribeFromPush = async () => {
+    try {
+      await subscription?.unsubscribe();
+      setSubscription(null);
+      
+      // Optionally call server to remove subscription
+      // await unsubscribeUser();
+      
+      console.log("[useWebNotifications] Unsubscribed from push notifications");
+    } catch (error) {
+      console.error("[useWebNotifications] Error unsubscribing:", error);
+    }
+  };
+
   const sendNotification = async (title: string, options?: NotificationOptions) => {
     try {
       // Check if we're in PWA mode
@@ -155,7 +236,9 @@ const useWebNotifications = (userAddress?: string) => {
   return { 
     permission,
     subscription,
-    requestPermissionAndSubscribe, 
+    isSupported,
+    requestPermissionAndSubscribe,
+    unsubscribeFromPush,
     sendNotification,
     isPWAMode: isPWAMode()
   };
