@@ -9,11 +9,11 @@
 import { Open_Sans, Source_Code_Pro } from 'next/font/google';
 import localFont from "next/font/local";
 
-// Optimized Google Fonts with next/font
+// Optimized Google Fonts with next/font - using 'optional' to prevent layout shift
 export const openSans = Open_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
-  display: 'swap',
+  display: 'optional',
   variable: '--font-open-sans',
 });
 
@@ -25,9 +25,9 @@ export const sourceCodePro = Source_Code_Pro({
   variable: '--font-source-code-pro',
 });
 
-// Local font (Favorit) - already optimized
+// Local font (Favorit) - simplified configuration
 export const brandFont = localFont({
     src: "./abc-favorit.woff2",
     variable: '--font-brand',
-    display: 'swap',
+    display: 'optional',
 });
