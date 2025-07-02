@@ -97,103 +97,121 @@ const StudioCreatePage: NextPage = () => {
     setOptimisticCreditBalance(creditBalance?.creditsRemaining);
   }, [creditBalance]);
 
+  // Function to check for completed generations
+  const checkForCompletedGenerations = async () => {
+    if (!roomId || !template?.apiUrl) return;
+    
+    console.log('[create.tsx] Checking for completed generations...');
+    
+    try {
+      const sessionClient = await resumeSession(true);
+      if (!sessionClient) return;
+
+      const creds = await sessionClient.getCredentials();
+      if (creds.isErr() || !creds.value) return;
+      
+      const idToken = creds.value.idToken;
+      
+      // Fetch recent messages
+      const queryParams = new URLSearchParams({
+        count: '5',
+        end: ''
+      });
+
+      const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer: ${idToken}`
+        },
+      });
+      
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const messages = data.messages || [];
+      
+      // Check if any pending generations have completed
+      const completedGenerations = new Set<string>();
+      
+      for (const msg of messages) {
+        if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
+          const agentId = msg.content.preview.agentId;
+          
+          // Check if this was a pending generation
+          const isPending = localPreviews.some(lp => 
+            lp.pending && (lp.tempId === agentId || lp.agentId === agentId)
+          );
+          
+          if (isPending) {
+            completedGenerations.add(agentId);
+            
+            // Update local previews to mark as completed
+            setLocalPreviews(prev => prev.map(p => {
+              if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
+                return {
+                  ...p,
+                  pending: false,
+                  agentId: agentId,
+                  content: {
+                    ...p.content,
+                    preview: msg.content.preview,
+                    text: msg.content.preview.text,
+                  }
+                };
+              }
+              return p;
+            }));
+            
+            // Set as current preview if none is selected
+            if (!currentPreview || currentPreview.agentId !== agentId) {
+              setCurrentPreview(msg.content.preview);
+            }
+          }
+        }
+      }
+      
+      // Remove completed generations from pending set
+      if (completedGenerations.size > 0) {
+        setPendingGenerations(prev => {
+          const newSet = new Set(prev);
+          completedGenerations.forEach(id => newSet.delete(id));
+          return newSet;
+        });
+      }
+      
+    } catch (error) {
+      console.error('[create.tsx] Error checking for completed generations:', error);
+    }
+  };
+
   // Handle page visibility changes - check for completed generations when tab becomes active
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (!document.hidden && pendingGenerations.size > 0 && roomId && template?.apiUrl) {
-        console.log('[create.tsx] Tab became visible, checking for completed generations...');
-        
-        try {
-          const sessionClient = await resumeSession(true);
-          if (!sessionClient) return;
-
-          const creds = await sessionClient.getCredentials();
-          if (creds.isErr() || !creds.value) return;
-          
-          const idToken = creds.value.idToken;
-          
-          // Fetch recent messages
-          const queryParams = new URLSearchParams({
-            count: '5',
-            end: ''
-          });
-
-          const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer: ${idToken}`
-            },
-          });
-          
-          if (!response.ok) return;
-          
-          const data = await response.json();
-          const messages = data.messages || [];
-          
-          // Check if any pending generations have completed
-          const completedGenerations = new Set<string>();
-          
-          for (const msg of messages) {
-            if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
-              const agentId = msg.content.preview.agentId;
-              
-              // Check if this was a pending generation
-              const isPending = localPreviews.some(lp => 
-                lp.pending && (lp.tempId === agentId || lp.agentId === agentId)
-              );
-              
-              if (isPending) {
-                completedGenerations.add(agentId);
-                
-                // Send notification for completed generation
-                sendNotification("Your generation is ready", {
-                  body: "Click to view it on Bonsai",
-                  icon: '/logo.png'
-                });
-                
-                // Update local previews to mark as completed
-                setLocalPreviews(prev => prev.map(p => {
-                  if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
-                    return {
-                      ...p,
-                      pending: false,
-                      agentId: agentId,
-                      content: {
-                        ...p.content,
-                        preview: msg.content.preview,
-                        text: msg.content.preview.text,
-                      }
-                    };
-                  }
-                  return p;
-                }));
-                
-                // Set as current preview if none is selected
-                if (!currentPreview || currentPreview.agentId !== agentId) {
-                  setCurrentPreview(msg.content.preview);
-                }
-              }
-            }
-          }
-          
-          // Remove completed generations from pending set
-          if (completedGenerations.size > 0) {
-            setPendingGenerations(prev => {
-              const newSet = new Set(prev);
-              completedGenerations.forEach(id => newSet.delete(id));
-              return newSet;
-            });
-          }
-          
-        } catch (error) {
-          console.error('[create.tsx] Error checking for completed generations:', error);
-        }
+      if (!document.hidden && pendingGenerations.size > 0) {
+        checkForCompletedGenerations();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [pendingGenerations, roomId, template?.apiUrl, localPreviews, currentPreview]);
+
+  // Listen for messages from service worker
+  useEffect(() => {
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'RELOAD_MESSAGES') {
+        console.log('[create.tsx] Received reload message from service worker', event.data);
+        
+        // If roomId matches or no specific roomId, reload messages
+        if (!event.data.roomId || event.data.roomId === roomId) {
+          checkForCompletedGenerations();
+        }
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
+    return () => navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
+  }, [roomId, template?.apiUrl, localPreviews, currentPreview]);
 
   useEffect(() => {
     console.log('[create.tsx] Initializing preview worker...');

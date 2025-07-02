@@ -4,8 +4,9 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: false,
-  sw: 'custom-sw.js',
+  disable: process.env.NODE_ENV === "development",
+  sw: '/sw.js',
+  customWorkerDir: 'worker',
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
@@ -21,13 +22,18 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig = {
-  webpack: (config, options) => {
-    config.resolve.fallback = { fs: false, net: false, tls: false };
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        fs: false,
+        module: false,
+      };
+    }
     return config;
   },
   reactStrictMode: true,
   swcMinify: true,
-  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk"],
+  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk", "@madfi/widgets-react"],
   async rewrites() {
     return [
       {
@@ -37,7 +43,7 @@ const nextConfig = {
     ];
   },
   experimental: {
-    esmExternals: true,
+    esmExternals: 'loose',
     staleTimes: {
       dynamic: 30,
       static: 180,
@@ -207,7 +213,10 @@ const nextConfig = {
   },
   sentry: {
     hideSourceMaps: false,
-  }
+  },
+  env: {
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  },
 };
 
 const sentryWebpackPluginOptions = {
@@ -223,4 +232,4 @@ const sentryWebpackPluginOptions = {
 // Make sure to add the following to your deployment environment variables:
 // SENTRY_AUTH_TOKEN
 
-module.exports = withPWA(withSentryConfig(nextConfig, sentryWebpackPluginOptions));
+module.exports = withSentryConfig(withPWA(nextConfig), sentryWebpackPluginOptions);
