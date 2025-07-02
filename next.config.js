@@ -4,8 +4,7 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
-  sw: '/sw.js',
+  disable: false, // Enable PWA in all environments for push notifications
   customWorkerDir: 'worker',
   runtimeCaching: [
     {
@@ -43,7 +42,7 @@ const nextConfig = {
     ];
   },
   experimental: {
-    esmExternals: 'loose',
+    esmExternals: true,
     staleTimes: {
       dynamic: 30,
       static: 180,

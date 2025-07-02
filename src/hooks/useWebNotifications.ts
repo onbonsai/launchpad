@@ -53,8 +53,33 @@ const useWebNotifications = () => {
 
     try {
       console.log("[useWebNotifications] Waiting for service worker ready...");
+      console.log("[useWebNotifications] Service worker:", navigator.serviceWorker);
       const registration = await navigator.serviceWorker.ready;
-      console.log("[useWebNotifications] Service worker ready");
+      console.log("[useWebNotifications] Service worker ready:", registration);
+      
+      // If no controller, wait for it to take control
+      if (!navigator.serviceWorker.controller) {
+        console.log("[useWebNotifications] No controller yet, waiting for controllerchange...");
+        await new Promise<void>((resolve) => {
+          const handleControllerChange = () => {
+            if (navigator.serviceWorker.controller) {
+              console.log("[useWebNotifications] Controller acquired!", navigator.serviceWorker.controller);
+              navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+              resolve();
+            }
+          };
+          navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+          
+          // Fallback timeout after 5 seconds
+          setTimeout(() => {
+            console.log("[useWebNotifications] Controller timeout, proceeding anyway...");
+            navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+            resolve();
+          }, 5000);
+        });
+      } else {
+        console.log("[useWebNotifications] Controller already available:", navigator.serviceWorker.controller);
+      }
       
       // Check if already subscribed
       const existingSubscription = await registration.pushManager.getSubscription();
