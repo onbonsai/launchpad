@@ -36,6 +36,16 @@ const nextConfig = {
   },
   reactStrictMode: true,
   swcMinify: true,
+  // CSS Optimization for reducing unused CSS
+  // compiler: {
+  //   removeConsole: process.env.NODE_ENV === 'production',
+  // },
+  // CSS optimization in production
+  productionBrowserSourceMaps: false,
+  // Optimize CSS loading
+  optimizeFonts: true,
+  // Compress CSS
+  compress: true,
   transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk", "@madfi/widgets-react"],
   async rewrites() {
     return [

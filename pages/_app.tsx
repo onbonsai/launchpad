@@ -1,23 +1,21 @@
 import "./../polyfills.js";
 import { AppProps } from "next/app";
-import "@decent.xyz/the-box/index.css";
 import "@styles/globals.css";
-import "@styles/calendar-override.css";
 import { Analytics } from "@vercel/analytics/react";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
 import { BoxThemeProvider } from "@decent.xyz/the-box";
 import { ThirdwebProvider } from "thirdweb/react";
 import Script from "next/script";
+import { useState, useEffect } from "react";
+import { sdk } from "@farcaster/frame-sdk";
+import { useRouter } from "next/router.js";
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
 import { ClubsProvider } from "@src/context/ClubsContext";
 import { brandFont, openSans, sourceCodePro } from "@src/fonts/fonts";
-import { useState, useEffect } from "react";
-import { sdk } from "@farcaster/frame-sdk";
-import { useRouter } from "next/router.js";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
@@ -68,6 +66,41 @@ export default function MyApp(props: AppProps) {
       load();
     }
   }, [isSDKLoaded]);
+
+  // Load non-critical CSS after initial render
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Defer loading of non-critical CSS
+    const loadNonCriticalCSS = () => {
+      // Load calendar override CSS only when needed
+      const calendarCSS = document.createElement('link');
+      calendarCSS.rel = 'stylesheet';
+      calendarCSS.href = '/styles/calendar-override.css';
+      calendarCSS.media = 'print';
+      calendarCSS.onload = function() { 
+        (this as HTMLLinkElement).media = 'all'; 
+      };
+      document.head.appendChild(calendarCSS);
+
+      // Load The Box CSS asynchronously
+      const boxCSS = document.createElement('link');
+      boxCSS.rel = 'stylesheet';
+      boxCSS.href = '/node_modules/@decent.xyz/the-box/dist/index.css';
+      boxCSS.media = 'print';
+      boxCSS.onload = function() { 
+        (this as HTMLLinkElement).media = 'all'; 
+      };
+      document.head.appendChild(boxCSS);
+    };
+
+    // Load after initial paint using requestIdleCallback or fallback
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadNonCriticalCSS, { timeout: 1000 });
+    } else {
+      setTimeout(loadNonCriticalCSS, 100);
+    }
+  }, []);
 
   // PWA Service Worker Debugging for Vercel Issues
   useEffect(() => {
