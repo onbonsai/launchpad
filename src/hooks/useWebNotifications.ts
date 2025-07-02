@@ -5,6 +5,7 @@ const useWebNotifications = (userAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   // Helper function to detect PWA mode
   const isPWAMode = () => {
@@ -63,29 +64,35 @@ const useWebNotifications = (userAddress?: string) => {
       const registrations = await navigator.serviceWorker.getRegistrations();
       console.log(`🔍 [PWA DEBUG] Existing registrations: ${registrations.length}`);
       
+      let activeRegistration: ServiceWorkerRegistration;
+      
       if (registrations.length === 0) {
         console.log('⚠️ [PWA DEBUG] No service worker registered - next-pwa auto-registration may have failed');
         console.log('🔧 [PWA DEBUG] Attempting manual registration...');
         
         // Manual registration as fallback (similar to Next.js example)
-        const registration = await navigator.serviceWorker.register('/sw.js', {
+        activeRegistration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
           updateViaCache: 'none',
         });
-        console.log('✅ [PWA DEBUG] Manual registration successful:', registration);
-        
-        // Get existing subscription after registration
-        const sub = await registration.pushManager.getSubscription();
-        setSubscription(sub);
+        console.log('✅ [PWA DEBUG] Manual registration successful:', activeRegistration);
       } else {
         registrations.forEach((reg, i) => {
           console.log(`✅ [PWA DEBUG] Registration ${i}:`, reg.scope, reg.active?.state);
         });
         
-        // Get existing subscription from first registration
-        const sub = await registrations[0].pushManager.getSubscription();
-        setSubscription(sub);
+        // Use the first registration
+        activeRegistration = registrations[0];
       }
+      
+      // Cache the registration for later use
+      setRegistration(activeRegistration);
+      console.log('📦 [PWA DEBUG] Cached registration:', activeRegistration);
+      
+      // Get existing subscription from the registration
+      const sub = await activeRegistration.pushManager.getSubscription();
+      setSubscription(sub);
+      console.log("[useWebNotifications] Subscription:", sub);
       
       // Monitor service worker events
       navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -104,6 +111,11 @@ const useWebNotifications = (userAddress?: string) => {
   const requestPermissionAndSubscribe = async () => {
     if (!isSupported) {
       console.log("[useWebNotifications] Push notifications not supported");
+      return false;
+    }
+
+    if (!registration) {
+      console.log("[useWebNotifications] No service worker registration available");
       return false;
     }
 
@@ -127,16 +139,19 @@ const useWebNotifications = (userAddress?: string) => {
           return false;
         }
 
+        console.log("[useWebNotifications] Registration:", registration);
+        console.log("[useWebNotifications] Subscription:", subscription);
+
         // Check if already subscribed
         if (subscription) {
           console.log("[useWebNotifications] Already subscribed to push notifications");
           return true;
         }
 
-        // Subscribe to push notifications for PWA (similar to Next.js example)
+        // Subscribe to push notifications for PWA using cached registration
         console.log("[useWebNotifications] Subscribing to push notifications for PWA");
-        const registration = await navigator.serviceWorker.ready;
-        console.log("[useWebNotifications] Registration:", registration);
+        console.log("[useWebNotifications] Using cached registration:", registration);
+        
         const newSubscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
@@ -236,6 +251,7 @@ const useWebNotifications = (userAddress?: string) => {
   return { 
     permission,
     subscription,
+    registration,
     isSupported,
     requestPermissionAndSubscribe,
     unsubscribeFromPush,
