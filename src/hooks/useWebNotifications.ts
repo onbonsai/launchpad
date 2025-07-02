@@ -33,10 +33,8 @@ const useWebNotifications = () => {
       localStorage.setItem("notification-permission", newPermission);
       setPermission(newPermission);
 
-      // If permission granted, set up push subscription
-      if (newPermission === "granted") {
-        await subscribeToPush();
-      }
+      // Subscribe to push notifications
+      await subscribeToPush();
     } else if (permission === "granted" && !subscription) {
       // Permission already granted but no subscription yet
       await subscribeToPush();
@@ -44,16 +42,24 @@ const useWebNotifications = () => {
   };
 
   const subscribeToPush = async () => {
+    console.log("[useWebNotifications] Starting subscribeToPush...");
+    
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      console.log("Push messaging is not supported");
+      console.log("[useWebNotifications] Push messaging is not supported");
       return;
     }
 
+    console.log("[useWebNotifications] VAPID public key:", process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? "SET" : "NOT SET");
+
     try {
+      console.log("[useWebNotifications] Waiting for service worker ready...");
       const registration = await navigator.serviceWorker.ready;
+      console.log("[useWebNotifications] Service worker ready");
       
       // Check if already subscribed
       const existingSubscription = await registration.pushManager.getSubscription();
+      console.log("[useWebNotifications] Existing subscription:", existingSubscription ? "EXISTS" : "NONE");
+      
       if (existingSubscription) {
         setSubscription(existingSubscription);
         // Send to server in case it's not stored there
@@ -61,16 +67,18 @@ const useWebNotifications = () => {
         return;
       }
 
+      console.log("[useWebNotifications] Creating new subscription...");
       // Create new subscription
       const newSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
       });
 
+      console.log("[useWebNotifications] New subscription created:", newSubscription);
       setSubscription(newSubscription);
       await sendSubscriptionToServer(newSubscription);
     } catch (error) {
-      console.error("Error subscribing to push notifications:", error);
+      console.error("[useWebNotifications] Error subscribing to push notifications:", error);
     }
   };
 
