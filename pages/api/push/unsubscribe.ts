@@ -17,23 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const token = authHeader.substring(7);
     
-    // Verify the token for authentication (but don't use the address from it)
+    // Verify the token for authentication
     try {
       const payload = await verifyIdToken(token) as any;
       if (!payload || !payload.act?.sub) {
         return res.status(401).json({ error: 'Invalid token payload' });
       }
-      // Token is valid, but we'll use the connected wallet address from the request body
     } catch {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const { subscription, userAddress } = req.body;
-
-    // Validate request data
-    if (!subscription || !subscription.endpoint || !subscription.keys) {
-      return res.status(400).json({ error: 'Invalid subscription data' });
-    }
+    const { userAddress } = req.body;
 
     if (!userAddress) {
       return res.status(400).json({ error: 'Missing userAddress' });
@@ -42,21 +36,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Validate and normalize the connected wallet address
     let normalizedUserAddress: string;
     try {
-      normalizedUserAddress = getAddress(userAddress as `0x${string}`).toLowerCase();
+      normalizedUserAddress = getAddress(userAddress as `0x${string}`);
     } catch {
       return res.status(400).json({ error: 'Invalid userAddress format' });
     }
 
-    // Forward the subscription to your backend server
-    const response = await fetch(`${ELIZA_API_URL}/push/subscribe`, {
+    // Forward the unsubscribe request to your backend server
+    const response = await fetch(`${ELIZA_API_URL}/push/unsubscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        userAddress: normalizedUserAddress,
-        subscription
+        userAddress: normalizedUserAddress
       })
     });
 
@@ -67,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await response.json();
     res.status(200).json(result);
   } catch (error) {
-    console.error('Error handling push subscription:', error);
+    console.error('Error handling push unsubscribe:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 } 

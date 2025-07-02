@@ -5,11 +5,8 @@ const useWebNotifications = (userAddress?: string) => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
   useEffect(() => {
-    // Set initial permission state from browser and localStorage
-    const storedPermission = localStorage.getItem("notification-permission");
-    if (storedPermission === "granted" || storedPermission === "denied") {
-      setPermission(storedPermission);
-    } else if ("Notification" in window) {
+    // Set initial permission state from browser
+    if ("Notification" in window) {
       setPermission(Notification.permission);
     }
 
@@ -19,120 +16,72 @@ const useWebNotifications = (userAddress?: string) => {
         registration.pushManager.getSubscription().then(existingSubscription => {
           setSubscription(existingSubscription);
         });
-      });
+      }).catch(console.error);
     }
   }, []);
 
-  const requestPermission = async () => {
-    if (!("Notification" in window)) {
-      return;
+  const requestPermissionAndSubscribe = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.log("[useWebNotifications] Push notifications not supported");
+      return false;
     }
 
-    if (permission === "default") {
-      const newPermission = await Notification.requestPermission();
-      localStorage.setItem("notification-permission", newPermission);
-      setPermission(newPermission);
-
-      // Subscribe to push notifications
-      await subscribeToPush();
-    } else if (permission === "granted" && !subscription) {
-      // Permission already granted but no subscription yet
-      await subscribeToPush();
+    if (!userAddress) {
+      console.log("[useWebNotifications] No user address provided");
+      return false;
     }
-  };
-
-  const subscribeToPush = async () => {
-    console.log("[useWebNotifications] Starting subscribeToPush...");
-    
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      console.log("[useWebNotifications] Push messaging is not supported");
-      return;
-    }
-
-    console.log("[useWebNotifications] VAPID public key:", process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? "SET" : "NOT SET");
 
     try {
-      console.log("[useWebNotifications] Waiting for service worker ready...");
-      console.log("[useWebNotifications] Service worker:", navigator.serviceWorker);
-      const registration = await navigator.serviceWorker.ready;
-      console.log("[useWebNotifications] Service worker ready:", registration);
-      
-      // If no controller, wait for it to take control
-      if (!navigator.serviceWorker.controller) {
-        console.log("[useWebNotifications] No controller yet, waiting for controllerchange...");
-        await new Promise<void>((resolve) => {
-          const handleControllerChange = () => {
-            if (navigator.serviceWorker.controller) {
-              console.log("[useWebNotifications] Controller acquired!", navigator.serviceWorker.controller);
-              navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-              resolve();
-            }
-          };
-          navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-          
-          // Fallback timeout after 5 seconds
-          setTimeout(() => {
-            console.log("[useWebNotifications] Controller timeout, proceeding anyway...");
-            navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-            resolve();
-          }, 5000);
-        });
-      } else {
-        console.log("[useWebNotifications] Controller already available:", navigator.serviceWorker.controller);
-      }
-      
-      // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
-      console.log("[useWebNotifications] Existing subscription:", existingSubscription ? "EXISTS" : "NONE");
-      
-      if (existingSubscription) {
-        setSubscription(existingSubscription);
-        // Send to server in case it's not stored there
-        await sendSubscriptionToServer(existingSubscription);
-        return;
+      // Request notification permission first
+      let newPermission = permission;
+      if (permission === "default") {
+        newPermission = await Notification.requestPermission();
+        setPermission(newPermission);
       }
 
-      console.log("[useWebNotifications] Creating new subscription...");
-      // Create new subscription
+      if (newPermission !== "granted") {
+        console.log("[useWebNotifications] Permission denied");
+        return false;
+      }
+
+      // Check if already subscribed
+      if (subscription) {
+        console.log("[useWebNotifications] Already subscribed");
+        return true;
+      }
+
+      // Subscribe to push notifications
+      const registration = await navigator.serviceWorker.ready;
       const newSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
       });
 
-      console.log("[useWebNotifications] New subscription created:", newSubscription);
+      console.log("[useWebNotifications] New subscription created");
       setSubscription(newSubscription);
+
+      // Send subscription to server
       await sendSubscriptionToServer(newSubscription);
+      
+      return true;
     } catch (error) {
       console.error("[useWebNotifications] Error subscribing to push notifications:", error);
+      return false;
     }
   };
 
   const sendSubscriptionToServer = async (subscription: PushSubscription) => {
-    console.log("[useWebNotifications] Sending subscription to server...");
-    
-    if (!userAddress) {
-      console.log("[useWebNotifications] No user address provided, skipping subscription");
-      return;
-    }
+    if (!userAddress) return;
     
     try {
-      // Get auth token for the request
       const sessionClient = await (await import('@src/hooks/useLensLogin')).resumeSession(true);
-      if (!sessionClient) {
-        console.log("[useWebNotifications] No session client available");
-        return;
-      }
+      if (!sessionClient) return;
       
       const creds = await sessionClient.getCredentials();
-      if (creds.isErr() || !creds.value) {
-        console.log("[useWebNotifications] No credentials available");
-        return;
-      }
+      if (creds.isErr() || !creds.value) return;
       
       const idToken = creds.value.idToken;
 
-      console.log("[useWebNotifications] Making API request for address:", userAddress);
-      // Send subscription to your server with connected wallet address
       const response = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
@@ -141,23 +90,32 @@ const useWebNotifications = (userAddress?: string) => {
         },
         body: JSON.stringify({
           subscription,
-          userAddress // Send the connected wallet address
+          userAddress
         })
       });
 
-      console.log("[useWebNotifications] API response status:", response.status);
-      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[useWebNotifications] API error:", errorText);
         throw new Error(`Failed to send subscription: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log("[useWebNotifications] Subscription sent successfully:", result);
+      console.log("[useWebNotifications] Subscription sent to server successfully");
     } catch (error) {
       console.error("[useWebNotifications] Error sending subscription to server:", error);
     }
+  };
+
+  // Utility function to convert VAPID key
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   const sendNotification = async (title: string, options?: NotificationOptions) => {
@@ -189,28 +147,11 @@ const useWebNotifications = (userAddress?: string) => {
     }
   };
 
-  // Utility function to convert VAPID key
-  const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
   return { 
-    permission, 
+    permission,
     subscription,
-    requestPermission, 
-    sendNotification,
-    subscribeToPush
+    requestPermissionAndSubscribe, 
+    sendNotification
   };
 };
 

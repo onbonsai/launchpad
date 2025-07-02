@@ -2,7 +2,18 @@
 
 // Listen for push events
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : {};
+  console.log('[SW] Push event received:', event);
+  console.log('[SW] Push event data:', event.data);
+  
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+    console.log('[SW] Parsed push data:', data);
+  } catch (error) {
+    console.error('[SW] Error parsing push data:', error);
+    console.log('[SW] Raw push data:', event.data ? event.data.text() : 'No data');
+  }
+  
   const title = data.title || 'Bonsai Notification';
   const options = {
     body: data.body || 'You have a new notification',
@@ -30,8 +41,16 @@ self.addEventListener('push', function(event) {
     ]
   };
 
+  console.log('[SW] Showing notification with title:', title, 'and options:', options);
+
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => {
+        console.log('[SW] Notification shown successfully');
+      })
+      .catch((error) => {
+        console.error('[SW] Error showing notification:', error);
+      })
   );
 });
 

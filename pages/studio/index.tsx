@@ -138,7 +138,7 @@ const StudioCreatePage: NextPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {isLoading && <div className="flex justify-center"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>}
                   {!isLoading && templatesFiltered?.map((template, idx) => {
-                    const disabled = creditBalance!.creditsRemaining < (template.estimatedCost || 1);
+                    const disabled = (creditBalance?.creditsRemaining || 0) < (template.estimatedCost || 1);
                     return (
                       <div
                         key={`template-${idx}`}
