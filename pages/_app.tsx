@@ -137,13 +137,13 @@ export default function MyApp(props: AppProps) {
                 console.log('🔧 [PWA DEBUG] Attempting manual registration...');
                 
                 // Manual registration as fallback
-                navigator.serviceWorker.register('/sw.js')
-                  .then(registration => {
-                    console.log('✅ [PWA DEBUG] Manual registration successful:', registration);
-                  })
-                  .catch(error => {
-                    console.error('❌ [PWA DEBUG] Manual registration failed:', error);
-                  });
+                // navigator.serviceWorker.register('/sw.js')
+                //   .then(registration => {
+                //     console.log('✅ [PWA DEBUG] Manual registration successful:', registration);
+                //   })
+                //   .catch(error => {
+                //     console.error('❌ [PWA DEBUG] Manual registration failed:', error);
+                //   });
               } else {
                 registrations.forEach((reg, i) => {
                   console.log(`✅ [PWA DEBUG] Registration ${i}:`, reg.scope, reg.active?.state);
