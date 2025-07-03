@@ -157,44 +157,104 @@ function addThumbnailMetadata(videoPath: string, thumbnailPath: string): Promise
 }
 
 function concatenateVideos(inputPath: string, outroPath: string, outputPath: string): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // First, check if input video has audio
+      const hasAudio = await checkVideoHasAudio(inputPath);
+      console.log(`Input video has audio: ${hasAudio}`);
+      
+      let ffmpegArgs;
+      
+      if (hasAudio) {
+        // Input has audio, outro doesn't - need to handle audio properly
+        ffmpegArgs = [
+          '-i', inputPath,
+          '-i', outroPath,
+          '-filter_complex',
+          // Concatenate video streams and create silent audio for outro
+          '[0:v][1:v]concat=n=2:v=1[outv];' +
+          '[0:a]apad=pad_dur=3[audio_padded]', // Pad input audio to cover outro duration
+          '-map', '[outv]',
+          '-map', '[audio_padded]',
+          '-c:v', 'libx264',
+          '-c:a', 'aac',
+          '-preset', 'fast',
+          '-crf', '23',
+          '-pix_fmt', 'yuv420p',
+          '-shortest', // Stop when shortest stream ends
+          '-movflags', '+faststart',
+          outputPath,
+          '-y'
+        ];
+      } else {
+        // Input has no audio - simple video-only concatenation
+        ffmpegArgs = [
+          '-i', inputPath,
+          '-i', outroPath,
+          '-filter_complex',
+          '[0:v][1:v]concat=n=2:v=1:a=0[outv]',
+          '-map', '[outv]',
+          '-c:v', 'libx264',
+          '-preset', 'fast',
+          '-crf', '23',
+          '-pix_fmt', 'yuv420p',
+          '-movflags', '+faststart',
+          outputPath,
+          '-y'
+        ];
+      }
+
+      const ffmpeg = spawn('ffmpeg', ffmpegArgs);
+
+      let errorOutput = '';
+      
+      ffmpeg.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+        console.log('FFmpeg:', data.toString());
+      });
+
+      ffmpeg.on('close', (code) => {
+        if (code !== 0) {
+          console.error('FFmpeg error output:', errorOutput);
+          reject(new Error(`FFmpeg exited with code ${code}`));
+          return;
+        }
+        resolve();
+      });
+
+      ffmpeg.on('error', (error) => {
+        reject(new Error(`FFmpeg process error: ${error.message}`));
+      });
+      
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Check if video has audio stream
+function checkVideoHasAudio(videoPath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    // Simple concatenation with keyframe at 1 second for thumbnail
-    const ffmpeg = spawn('ffmpeg', [
-      '-i', inputPath,
-      '-i', outroPath,
-      '-filter_complex',
-      '[0:v][1:v]concat=n=2:v=1:a=0[outv]',
-      '-map', '[outv]',
-      '-c:v', 'libx264',
-      '-preset', 'fast',
-      '-crf', '23',
-      '-pix_fmt', 'yuv420p',
-      // Force keyframes at specific times (0s and 1s)
-      '-force_key_frames', 'expr:gte(t,n_forced*1)',
-      // Optimize for streaming and set poster at 1s
-      '-movflags', '+faststart',
-      outputPath,
-      '-y'
+    const ffprobe = spawn('ffprobe', [
+      '-v', 'error',
+      '-select_streams', 'a:0',
+      '-show_entries', 'stream=codec_type',
+      '-of', 'csv=p=0',
+      videoPath
     ]);
 
-    let errorOutput = '';
-    
-    ffmpeg.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-      console.log('FFmpeg:', data.toString());
+    let output = '';
+    ffprobe.stdout.on('data', (data) => {
+      output += data.toString().trim();
     });
 
-    ffmpeg.on('close', (code) => {
-      if (code !== 0) {
-        console.error('FFmpeg error output:', errorOutput);
-        reject(new Error(`FFmpeg exited with code ${code}`));
-        return;
-      }
-      resolve();
+    ffprobe.on('close', (code) => {
+      // If there's audio, output will contain "audio", if not it will be empty
+      resolve(output.includes('audio'));
     });
 
-    ffmpeg.on('error', (error) => {
-      reject(new Error(`FFmpeg process error: ${error.message}`));
+    ffprobe.on('error', (error) => {
+      reject(new Error(`FFprobe audio check error: ${error.message}`));
     });
   });
 }
