@@ -610,6 +610,7 @@ const PublicationContainer = ({
         onRequestGeneration={() => setIsProcessing(true)}
         creditBalance={creatorCreditBalance}
         insufficientCredits={creatorInsufficientCredits}
+        videoUrl={publication?.metadata?.video?.item}
       />
 
       {/* {publication?.metadata?.encryptedWith && decryptGatedPosts && (

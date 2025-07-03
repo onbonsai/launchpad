@@ -1,7 +1,7 @@
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { addPostNotInterested, deletePost, reportPost } from "@lens-protocol/client/actions";
-import { FlagOutlined, RemoveCircle, Block, AccountBalanceWallet, Star, StarBorderOutlined, StarOutline} from "@mui/icons-material";
+import { FlagOutlined, RemoveCircle, Block, AccountBalanceWallet, Star, StarBorderOutlined, StarOutline, Download} from "@mui/icons-material";
 import { postId as toPostId, PostReportReason, SessionClient } from '@lens-protocol/client';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
@@ -28,6 +28,7 @@ interface DropdownMenuProps {
   postId: string;
   postSlug: string;
   mediaUrl?: string;
+  videoUrl?: string;
   media?: SmartMedia;
   token?: {
     address: `0x${string}`;
@@ -47,6 +48,7 @@ export default ({
   postId,
   postSlug,
   mediaUrl,
+  videoUrl,
   media,
   token,
   onRequestGeneration,
@@ -63,6 +65,7 @@ export default ({
   const [topUpAmount, setTopUpAmount] = useState('');
   const [currentView, setCurrentView] = useState<ViewState>('initial');
   const [isFeatured, setIsFeatured] = useState(media?.featured || false);
+  const [isDownloadingVideo, setIsDownloadingVideo] = useState(false);
   const showFeaturedToggle = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()) && mediaUrl?.includes("onbons.ai"), [mediaUrl, address]);
 
   const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
@@ -193,7 +196,7 @@ export default ({
       idToken = await getIdToken(sessionClient as SessionClient);
       if (!idToken) return;
 
-      const success = await requestPostDisable(mediaUrl, postSlug, idToken);
+      const success = await requestPostDisable(mediaUrl || '', postSlug, idToken);
       if (!success) throw new Error("Result not successful");
 
       setShowDropdown(false);
@@ -269,6 +272,54 @@ export default ({
       toast.error("Failed to set featured", { id: toastId });
     }
   }
+
+  const handleVideoDownload = async () => {
+    if (!videoUrl || isDownloadingVideo) return;
+    
+    setIsDownloadingVideo(true);
+    let toastId = toast.loading('Downloading video...');
+    
+    try {
+      const aspectRatio = 1.77;
+      
+      const response = await fetch('/api/media/add-outro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          filename: `bonsai-video-${Date.now()}.mp4`,
+          aspectRatio,
+          isBlob: false
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to process video');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bonsai-video-${postSlug}-${Date.now()}.mp4`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Video downloaded!', { id: toastId });
+      setShowDropdown(false);
+    } catch (error) {
+      console.error('Video download failed:', error);
+      toast.error('Video download failed', { id: toastId });
+    } finally {
+      setIsDownloadingVideo(false);
+    }
+  };
 
   useEffect(() => {
     if (!showDropdown) return;
@@ -375,7 +426,7 @@ export default ({
               <div className="border-t border-white/10">
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
-                  onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
+                  onClick={(e) => handleButtonClick(e, handleDelete)}
                 >
                   Delete
                 </button>
@@ -523,6 +574,20 @@ export default ({
                   <span className="ml-2">Manage Rewards</span>
                 </button>
               )}
+              {videoUrl && (
+                <button
+                  className={`w-full py-3 px-4 text-left flex items-center ${isDownloadingVideo ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-black/10'}`}
+                  onClick={(e) => handleButtonClick(e, handleVideoDownload)}
+                  disabled={isDownloadingVideo}
+                >
+                  <div className="w-4 flex items-center justify-center">
+                    <Download sx={{ fontSize: '1rem', color: "rgba(255,255,255,0.8)" }} />
+                  </div>
+                  <span className="ml-2">
+                    {isDownloadingVideo ? 'Downloading...' : 'Download video'}
+                  </span>
+                </button>
+              )}
               {media && (
                 <div className="px-4 py-2 flex items-center justify-end border-t border-white/10">
                   <div className="relative flex items-center justify-center w-3 h-3">
@@ -616,7 +681,7 @@ export default ({
             <div className="border-t border-white/10">
               <button
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-red-500"
-                onClick={(e) => handleButtonClick(e, () => handleDelete(PostReportReason.Spam))}
+                onClick={(e) => handleButtonClick(e, handleDelete)}
               >
                 Delete
               </button>
@@ -643,6 +708,20 @@ export default ({
                   : <StarOutline sx={{ fontSize: '1rem', marginTop: "-4px", color: "rgba(255,255,255,0.8)" }} />
                 }
                 <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
+              </button>
+            )}
+            {videoUrl && (
+              <button
+                className={`w-full py-3 px-4 text-left flex items-center ${isDownloadingVideo ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-black/10'}`}
+                onClick={(e) => handleButtonClick(e, handleVideoDownload)}
+                disabled={isDownloadingVideo}
+              >
+                <div className="w-4 flex items-center justify-center">
+                  <Download sx={{ fontSize: '1rem', color: "rgba(255,255,255,0.8)" }} />
+                </div>
+                <span className="ml-2">
+                  {isDownloadingVideo ? 'Downloading...' : 'Download video'}
+                </span>
               </button>
             )}
             <button

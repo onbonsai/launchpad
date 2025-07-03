@@ -76,7 +76,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
   const { connectedAccounts, isConnected: isPresenceConnected } = usePostPresence({
     postId: rootPostId || postId as string,
-    account: authenticatedProfile
+    account: authenticatedProfile || null
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 

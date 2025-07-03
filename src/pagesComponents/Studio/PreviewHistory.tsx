@@ -1,6 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { Publication, Theme } from "@madfi/widgets-react";
-import { uniqBy } from "lodash/array";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import { Preview, useGetPreviews, Template } from "@src/services/madfi/studio";
@@ -92,6 +91,7 @@ export default function PreviewHistory({
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
   const [videoAspectRatios, setVideoAspectRatios] = useState<Record<string, number>>({});
+  const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
   const videoRefs = useRef<Record<string, HTMLVideoElement>>({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
@@ -198,40 +198,143 @@ export default function PreviewHistory({
     return () => clearTimeout(timer);
   }, [sortedMessages.length, currentPreview, isGeneratingPreview, isFetchingNextPage, shouldShowMessages, isFinalize]);
 
-  // Helper function to download media
+  // Server-side video processing with outro
+  const downloadVideoWithOutro = async (preview: any, filename: string) => {
+    const agentId = preview.agentId;
+    if (!agentId) {
+      toast.error('Unable to process video: missing ID');
+      return downloadVideoSimple(preview, filename);
+    }
+
+    // Check if we have the aspect ratio
+    const aspectRatio = videoAspectRatios[agentId];
+    if (!aspectRatio) {
+      toast.error('Video aspect ratio not available. Please wait a moment and try again.');
+      return downloadVideoSimple(preview, filename);
+    }
+
+    try {
+      setIsProcessingVideo(prev => ({ ...prev, [agentId]: true }));
+      toast.loading('Downloading video...', { id: `processing-${agentId}` });
+
+      // Get video URL or convert blob to base64
+      let videoUrl: string;
+      let isBlob = false;
+      
+      if (preview.video.blob) {
+        // Convert blob to base64 data URL
+        const reader = new FileReader();
+        videoUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Failed to read blob'));
+          reader.readAsDataURL(preview.video.blob);
+        });
+        isBlob = true;
+      } else if (typeof preview.video === 'string') {
+        videoUrl = preview.video;
+      } else if (preview.video.url) {
+        videoUrl = preview.video.url;
+      } else {
+        throw new Error('No video URL available');
+      }
+
+      const response = await fetch('/api/media/add-outro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          filename: filename.replace(/\.[^/.]+$/, '.mp4'),
+          aspectRatio, // Pass the aspect ratio we already have
+          isBlob // Flag to indicate this is blob data
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to process video');
+      }
+
+      // Get the processed video as blob
+      const blob = await response.blob();
+      
+      // Download the processed video
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename.replace(/\.[^/.]+$/, '.mp4');
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Video downloaded!', { id: `processing-${agentId}` });
+
+    } catch (error) {
+      console.error('Video processing failed:', error);
+      toast.error('Video processing failed, downloading original video instead');
+      downloadVideoSimple(preview, filename);
+    } finally {
+      setIsProcessingVideo(prev => ({ ...prev, [agentId]: false }));
+    }
+  };
+
+  // Enhanced download function
   const downloadMedia = async (preview: any, filename: string) => {
+    try {
+      // Handle video download with outro
+      if (preview?.video) {
+        return downloadVideoWithOutro(preview, filename);
+      }
+
+      // Handle image download (unchanged)
+      if (preview?.image) {
+        let url: string;
+        if (preview.image.startsWith('data:')) {
+          url = preview.image;
+        } else {
+          url = preview.image;
+        }
+        filename = filename.replace(/\.[^/.]+$/, '.png');
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      throw new Error('No media to download');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Download failed');
+    }
+  };
+
+  // Simple video download fallback function
+  const downloadVideoSimple = async (preview: any, filename: string) => {
     try {
       let url: string;
       let shouldRevoke = false;
 
-      if (preview?.video) {
-        // Handle video download
-        if (preview.video.blob) {
-          // For blob videos, create object URL
-          url = URL.createObjectURL(preview.video.blob);
-          shouldRevoke = true;
-          filename = filename.replace(/\.[^/.]+$/, '.mp4'); // Ensure video extension
-        } else if (typeof preview.video === 'string') {
-          url = preview.video;
-        } else if (preview.video.url) {
-          url = preview.video.url;
-        } else {
-          throw new Error('No video URL available');
-        }
-      } else if (preview?.image) {
-        // Handle image download
-        if (preview.image.startsWith('data:')) {
-          // For base64 images
-          url = preview.image;
-        } else {
-          url = preview.image;
-        }
-        filename = filename.replace(/\.[^/.]+$/, '.png'); // Ensure image extension
+      if (preview.video.blob) {
+        url = URL.createObjectURL(preview.video.blob);
+        shouldRevoke = true;
+      } else if (typeof preview.video === 'string') {
+        url = preview.video;
+      } else if (preview.video.url) {
+        url = preview.video.url;
       } else {
-        throw new Error('No media to download');
+        throw new Error('No video URL available');
       }
 
-      // Create download link
+      filename = filename.replace(/\.[^/.]+$/, '.mp4');
+
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
@@ -240,12 +343,12 @@ export default function PreviewHistory({
       link.click();
       document.body.removeChild(link);
 
-      // Revoke object URL if it was created
       if (shouldRevoke) {
         setTimeout(() => URL.revokeObjectURL(url), 100);
       }
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error('Simple video download failed:', error);
+      toast.error('Download failed');
     }
   };
 
@@ -525,10 +628,16 @@ export default function PreviewHistory({
                         const filename = `bonsai-${preview?.agentId || 'preview'}-${Date.now()}`;
                         downloadMedia(preview, filename);
                       }}
-                      className="bg-transparent hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm"
-                      title="Download media"
+                      disabled={!!preview?.video && isProcessingVideo[preview.agentId as string]}
+                      className={`relative bg-transparent hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm ${preview?.video && isProcessingVideo[preview.agentId as string] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title={`Download media${preview?.video ? ' (with branding)' : ''}`}
                     >
                       <DownloadIcon className="w-5 h-5 text-white" />
+                      {preview?.video && isProcessingVideo[preview.agentId as string] && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Spinner customClasses="h-4 w-4" color="#ffffff" />
+                        </div>
+                      )}
                     </button>
                   )}
                 </div>

@@ -36,6 +36,12 @@ importers:
       '@farcaster/frame-wagmi-connector':
         specifier: ^0.0.53
         version: 0.0.53(@farcaster/frame-sdk@0.0.64(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7))(@wagmi/core@2.17.3(@tanstack/query-core@5.76.0)(@types/react@19.1.2)(react@18.3.1)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@18.3.1))(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7))
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.10
+        version: 0.12.15
+      '@ffmpeg/util':
+        specifier: ^0.12.1
+        version: 0.12.2
       '@headlessui/react':
         specifier: ^1.6.6
         version: 1.7.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -61,8 +67,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@types/react@19.1.2)(bufferutil@4.0.9)(encoding@0.1.13)(graphql@16.11.0)(react@18.3.1)(utf-8-validate@5.0.10)
       '@madfi/widgets-react':
-        specifier: ^3.2.17
-        version: 3.2.17(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)
+        specifier: file:../lens-widgets/lens-widgets-react
+        version: file:../lens-widgets/lens-widgets-react(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)
       '@mui/icons-material':
         specifier: ^5.8.0
         version: 5.17.1(@mui/material@5.17.1(@emotion/react@11.14.0(@types/react@19.1.2)(react@18.3.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.1.2)(react@18.3.1))(@types/react@19.1.2)(react@18.3.1))(@types/react@19.1.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@19.1.2)(react@18.3.1)
@@ -246,6 +252,9 @@ importers:
       use-debounce:
         specifier: ^9.0.4
         version: 9.0.4(react@18.3.1)
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       viem:
         specifier: ^2.31.3
         version: 2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)
@@ -280,6 +289,9 @@ importers:
       '@types/react-dom':
         specifier: 19.1.2
         version: 19.1.2(@types/react@19.1.2)
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.31.0
         version: 8.32.1(@typescript-eslint/parser@8.32.1(eslint@9.27.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.27.0(jiti@2.4.2))(typescript@5.8.3)
@@ -761,6 +773,18 @@ packages:
     peerDependencies:
       typescript: 5.8.3
 
+  '@ffmpeg/ffmpeg@0.12.15':
+    resolution: {integrity: sha512-1C8Obr4GsN3xw+/1Ww6PFM84wSQAGsdoTuTWPOj2OizsRDLT4CXTaVjPhkw6ARyDus1B9X/L2LiXHqYYsGnRFw==}
+    engines: {node: '>=18.x'}
+
+  '@ffmpeg/types@0.12.4':
+    resolution: {integrity: sha512-k9vJQNBGTxE5AhYDtOYR5rO5fKsspbg51gbcwtbkw2lCdoIILzklulcjJfIDwrtn7XhDeF2M+THwJ2FGrLeV6A==}
+    engines: {node: '>=16.x'}
+
+  '@ffmpeg/util@0.12.2':
+    resolution: {integrity: sha512-ouyoW+4JB7WxjeZ2y6KpRvB+dLp7Cp4ro8z0HIVpZVCM7AwFlHa0c4R8Y/a4M3wMqATpYKhC7lSFHQ0T11MEDw==}
+    engines: {node: '>=18.x'}
+
   '@floating-ui/core@1.7.0':
     resolution: {integrity: sha512-FRdBLykrPPA6P76GGGqlex/e7fbe0F1ykgxHYNXQsH/iTEtjMj/f9bpY5oQqbjt5VgZvgz/uKXbGuROijh3VLA==}
 
@@ -1172,8 +1196,8 @@ packages:
     resolution: {integrity: sha512-9hldbMK/L1fGP2jE3F29YkD3YcYHj8GfW39H8tVqUs3sHik/NQwVdGBJOHqM9iYPZRI0SUTQ7isiOQoTPUVJpw==}
     engines: {node: '>=18.0.0'}
 
-  '@madfi/widgets-react@3.2.17':
-    resolution: {integrity: sha512-rscGSJMHoBrrRO5rB469i5VywCPGOq3iKxOneP7Yw63Ldyycx0lnwp5HqPdXzl/lbZ5sZG+3M89U5Wp9+qISFg==}
+  '@madfi/widgets-react@file:../lens-widgets/lens-widgets-react':
+    resolution: {directory: ../lens-widgets/lens-widgets-react, type: directory}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@lens-chain/storage-client': '>=1.0.0'
@@ -2573,6 +2597,9 @@ packages:
 
   '@types/use-sync-external-store@0.0.6':
     resolution: {integrity: sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==}
+
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/uuid@8.3.4':
     resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
@@ -7221,6 +7248,10 @@ packages:
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   uuid@8.0.0:
     resolution: {integrity: sha512-jOXGuXZAWdsTH7eZLtyXMqUb9EcWMGZNbL9YcGBJl4MH4nrxHmZJhEHvyLFrkxo+28uLb/NYRcStH48fnD0Vzw==}
     hasBin: true
@@ -8332,6 +8363,14 @@ snapshots:
       typescript: 5.8.3
       zod: 3.25.7
 
+  '@ffmpeg/ffmpeg@0.12.15':
+    dependencies:
+      '@ffmpeg/types': 0.12.4
+
+  '@ffmpeg/types@0.12.4': {}
+
+  '@ffmpeg/util@0.12.2': {}
+
   '@floating-ui/core@1.7.0':
     dependencies:
       '@floating-ui/utils': 0.2.9
@@ -8978,7 +9017,7 @@ snapshots:
       - utf-8-validate
       - wait-for-expect
 
-  '@madfi/widgets-react@3.2.17(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)':
+  '@madfi/widgets-react@file:../lens-widgets/lens-widgets-react(@lens-chain/storage-client@1.0.5)(@lens-protocol/client@0.0.0-canary-20250611103544(ethers@5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.7)))(@lens-protocol/metadata@2.1.0(typescript@5.8.3)(zod@3.25.7))(@tanstack/react-query@5.76.1(react@18.3.1))(bufferutil@4.0.9)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@5.0.10)':
     dependencies:
       '@emotion/css': 11.13.5
       '@ethersproject/providers': 5.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -11046,6 +11085,8 @@ snapshots:
   '@types/unist@2.0.11': {}
 
   '@types/use-sync-external-store@0.0.6': {}
+
+  '@types/uuid@10.0.0': {}
 
   '@types/uuid@8.3.4': {}
 
@@ -17196,6 +17237,8 @@ snapshots:
       is-generator-function: 1.1.0
       is-typed-array: 1.1.15
       which-typed-array: 1.1.19
+
+  uuid@11.1.0: {}
 
   uuid@8.0.0: {}
 
