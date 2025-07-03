@@ -180,12 +180,12 @@ const CreatePostForm = ({
     };
   }, [template.templateData.form]);
 
-  // Lock aspect ratio to horizontal when subject reference is present
+  // Lock aspect ratio to horizontal when subject reference is present or MAX Mode is enabled
   useEffect(() => {
-    if (templateData.subjectReference && selectedAspectRatio !== "16:9") {
+    if ((templateData.subjectReference || templateData.enableMaxMode) && selectedAspectRatio !== "16:9") {
       setSelectedAspectRatio("16:9");
     }
-  }, [templateData.subjectReference, selectedAspectRatio, setSelectedAspectRatio]);
+  }, [templateData.subjectReference, templateData.enableMaxMode, selectedAspectRatio, setSelectedAspectRatio]);
 
   const isValid = () => {
     try {
@@ -847,13 +847,13 @@ const CreatePostForm = ({
                         <button
                           key={ratio}
                           type="button"
-                          onClick={() => !postImage?.length && !templateData.subjectReference && setSelectedAspectRatio(ratio)}
-                          disabled={!!postImage?.length || !!templateData.subjectReference}
+                          onClick={() => !postImage?.length && !templateData.subjectReference && !templateData.enableMaxMode && setSelectedAspectRatio(ratio)}
+                          disabled={!!postImage?.length || !!templateData.subjectReference || !!templateData.enableMaxMode}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                             selectedAspectRatio === ratio
                               ? "border-brand-highlight bg-brand-highlight/10"
                               : "border-dark-grey hover:border-brand-highlight bg-card-light"
-                          } ${(postImage?.length || templateData.subjectReference) ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
+                          } ${(postImage?.length || templateData.subjectReference || templateData.enableMaxMode) ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
                         >
                           <div
                             className={`border border-current rounded-sm ${
@@ -868,9 +868,9 @@ const CreatePostForm = ({
                       <p className="text-xs text-secondary/70">
                         Aspect ratio is locked to the selection made during image cropping. Remove the image to change it.
                       </p>
-                    ) : templateData.subjectReference ? (
+                    ) : templateData.subjectReference || templateData.enableMaxMode ? (
                       <p className="text-xs text-secondary/70">
-                        Aspect ratio is locked to horizontal when using a subject reference image
+                        Aspect ratio is locked to horizontal when using {templateData.subjectReference && templateData.enableMaxMode ? 'a subject reference image or MAX Mode' : templateData.subjectReference ? 'a subject reference image' : 'MAX Mode'}
                       </p>
                     ) : null}
                   </div>
@@ -1049,7 +1049,7 @@ const DynamicForm = ({
                            updateField(key, undefined);
                            // Allow aspect ratio selection again when subject reference is removed
                            // Reset to default vertical if no other constraints
-                           if (!postImage?.length) {
+                           if (!postImage?.length && !templateData.enableMaxMode) {
                              setSelectedAspectRatio("9:16");
                            }
                          }}

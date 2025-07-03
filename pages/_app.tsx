@@ -37,7 +37,7 @@ const boxTheme = {
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
 
   const router = useRouter();
 
@@ -60,6 +60,17 @@ export default function MyApp(props: AppProps) {
   useEffect(() => {
     const load = async () => {
       await sdk.actions.ready(); // hide splash
+
+      // Prompt to add mini app when ?install
+      if (!!router.query.install) {
+        if (!context?.client.added) {
+          try {
+            await sdk.actions.addMiniApp();
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }
     };
     if (sdk && !isSDKLoaded) {
       setIsSDKLoaded(true);
@@ -78,8 +89,8 @@ export default function MyApp(props: AppProps) {
       calendarCSS.rel = 'stylesheet';
       calendarCSS.href = '/styles/calendar-override.css';
       calendarCSS.media = 'print';
-      calendarCSS.onload = function() { 
-        (this as HTMLLinkElement).media = 'all'; 
+      calendarCSS.onload = function() {
+        (this as HTMLLinkElement).media = 'all';
       };
       document.head.appendChild(calendarCSS);
 
@@ -88,8 +99,8 @@ export default function MyApp(props: AppProps) {
       boxCSS.rel = 'stylesheet';
       boxCSS.href = '/node_modules/@decent.xyz/the-box/dist/index.css';
       boxCSS.media = 'print';
-      boxCSS.onload = function() { 
-        (this as HTMLLinkElement).media = 'all'; 
+      boxCSS.onload = function() {
+        (this as HTMLLinkElement).media = 'all';
       };
       document.head.appendChild(boxCSS);
     };
@@ -108,7 +119,7 @@ export default function MyApp(props: AppProps) {
 
     const handlePageHide = (event: PageTransitionEvent) => {
       console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
-      
+
       // Don't prevent bfcache if user is navigating away
       // The individual socket hooks will handle their own cleanup
     };
