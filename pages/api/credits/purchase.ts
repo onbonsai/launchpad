@@ -56,9 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid sender address" });
     }
 
-    // Calculate credits based on the chain
+    // Calculate credits based on the chain and price multiplier
     const decimals = chain === "base" ? USDC_DECIMALS : 18;
-    const _price = price || 200 / 3;
+    const _price = price || 200 / 3; // Default to regular pricing (200/3 = 66.67 credits per dollar)
     const credits = Math.floor(Number(formatUnits(value, decimals)) * _price);
 
     if (!credits || credits <= 0) {

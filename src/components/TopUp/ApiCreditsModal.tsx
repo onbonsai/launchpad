@@ -227,6 +227,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
       const response = await axios.post("/api/credits/purchase", {
         txHash,
         chain: isMiniApp ? "base" : "lens",
+        price: selectedOption?.isMaxMode ? 200 / 2.5 : 200 / 3, // Credits per dollar ratio
       });
 
       if (response.status !== 200) {
@@ -277,24 +278,31 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
               "flex flex-row sm:flex-col items-center justify-between sm:justify-center text-center group",
               "focus:outline-none focus:ring-1 focus:ring-[#0891B2]",
               "text-white",
-              // Max Mode styling
+                            // Max Mode styling
               option.isMaxMode ? [
-                "border-2 border-brand-highlight p-[2px] shining-border",
-                "hover:scale-105 transform-gpu",
+                "p-[2px] shining-border hover:scale-105 transform-gpu",
+                index === 2
+                  ? "border-2 border-slate-400" // Silver border for third option
+                  : "border-2 border-yellow-400", // Gold border for fourth option
                 selectedOption === option
-                  ? "bg-brand-highlight/10 shadow-lg shadow-brand-highlight/20"
-                  : index === 2
-                    ? "bg-gradient-to-br from-slate-400/20 to-slate-600/20" // Silver for third option
-                    : "bg-gradient-to-br from-yellow-400/20 to-yellow-600/20" // Gold for fourth option
+                  ? (index === 2
+                      ? "bg-gradient-to-br from-slate-400/20 to-slate-600/20 shadow-lg shadow-slate-400/20" // Silver bg when selected
+                      : "bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 shadow-lg shadow-yellow-400/20") // Gold bg when selected
+                  : "bg-gray-800/50"
               ] : [
                 // Regular styling
-                "border border-white/80 hover:border-white p-2 sm:p-3 hover:scale-[1.02]",
+                "border border-white/40 hover:border-white p-2 sm:p-3 hover:scale-[1.02]",
                 selectedOption === option ? "border-[#0891B2] bg-[#0891B2]/10" : "bg-gray-800/50"
               ]
             )}
           >
             {option.isMaxMode && (
-              <div className="absolute -top-6 left-4 bg-brand-highlight text-black px-3 py-1 rounded-t-lg rounded-b-none text-xs font-medium z-10 shadow-lg">
+              <div className={clsx(
+                "absolute -top-6 left-4 text-black px-3 py-1 rounded-t-lg rounded-b-none text-xs font-medium z-10 shadow-lg",
+                index === 2
+                  ? "bg-gradient-to-r from-slate-400 to-slate-500" // Silver gradient for third option
+                  : "bg-gradient-to-r from-yellow-400 to-yellow-500" // Gold gradient for fourth option
+              )}>
                 MAX Mode
               </div>
             )}
