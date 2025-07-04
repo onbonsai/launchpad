@@ -10,6 +10,7 @@ import Script from "next/script";
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
+import { ViewTransitions } from "next-view-transitions";
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -188,45 +189,47 @@ export default function MyApp(props: AppProps) {
         </Script>
 
         <HandleSEO pageProps={pageProps} query={router.query} />
-        <Web3Provider>
-          <ThirdwebProvider>
-            <ThemeProvider>
-              <ClubsProvider>
-                <TopUpModalProvider>
-                  <Toaster
-                    position="bottom-right"
-                    toastOptions={{
-                      style: {
-                        backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                        color: "white",
-                        fontFamily: brandFont.style.fontFamily,
-                        zIndex: 9999, // max z-index, everything should be below this
-                      },
-                    }}
-                  >
-                    {(t) => (
-                      <ToastBar toast={t}>
-                        {({ icon, message }) => (
-                          <>
-                            {icon}
-                            {message}
-                          </>
-                        )}
-                      </ToastBar>
-                    )}
-                  </Toaster>
-                  <NextNProgress color="#4D7F79" height={2} />
-                  <AppLayout>
-                    <BoxThemeProvider theme={boxTheme}>
-                      <Component {...pageProps} />
-                    </BoxThemeProvider>
-                  </AppLayout>
-                  <Analytics />
-                </TopUpModalProvider>
-              </ClubsProvider>
-            </ThemeProvider>
-          </ThirdwebProvider>
-        </Web3Provider>
+        <ViewTransitions>
+          <Web3Provider>
+            <ThirdwebProvider>
+              <ThemeProvider>
+                <ClubsProvider>
+                  <TopUpModalProvider>
+                    <Toaster
+                      position="bottom-right"
+                      toastOptions={{
+                        style: {
+                          backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                          color: "white",
+                          fontFamily: brandFont.style.fontFamily,
+                          zIndex: 9999, // max z-index, everything should be below this
+                        },
+                      }}
+                    >
+                      {(t) => (
+                        <ToastBar toast={t}>
+                          {({ icon, message }) => (
+                            <>
+                              {icon}
+                              {message}
+                            </>
+                          )}
+                        </ToastBar>
+                      )}
+                    </Toaster>
+                    <NextNProgress color="#4D7F79" height={2} />
+                    <AppLayout>
+                      <BoxThemeProvider theme={boxTheme}>
+                        <Component {...pageProps} />
+                      </BoxThemeProvider>
+                    </AppLayout>
+                    <Analytics />
+                  </TopUpModalProvider>
+                </ClubsProvider>
+              </ThemeProvider>
+            </ThirdwebProvider>
+          </Web3Provider>
+        </ViewTransitions>
       </>
     )
   );

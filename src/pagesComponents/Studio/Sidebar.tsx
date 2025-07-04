@@ -1,7 +1,7 @@
 "use client"
 
 import { Header2 } from "@src/styles/text"
-import Link from "next/link"
+import { Link } from "next-view-transitions"
 import clsx from "clsx"
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile"
 import { formatStakingAmount, useStakingData } from "@src/hooks/useStakingData"

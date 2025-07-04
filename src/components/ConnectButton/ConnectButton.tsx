@@ -10,7 +10,7 @@ import useENS from "@src/hooks/useENS";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
-import { useRouter } from "next/router";
+import { useTransitionRouter } from "next-view-transitions";
 import { brandFont } from "@src/fonts/fonts";
 import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
@@ -81,7 +81,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   //     if ((!!authenticatedProfile?.address)) asyncLogout();
   //   }
   // });
-  const router = useRouter();
+  const router = useTransitionRouter();
 
   const {
     fullRefetch,

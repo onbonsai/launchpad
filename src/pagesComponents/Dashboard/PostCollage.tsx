@@ -1,6 +1,4 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { orderBy } from "lodash/collection";
-import { get } from "lodash/object";
 import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
@@ -8,7 +6,8 @@ import { Publication, Theme } from "@madfi/widgets-react";
 import { Post, TimelineItem } from "@lens-protocol/client";
 import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
-import { useRouter } from "next/router";
+import { useTransitionRouter } from "next-view-transitions";
+import { haptics } from "@src/utils/haptics";
 import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
@@ -196,7 +195,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
   const isFetchingRef = useRef(false);
   const isMobile = useIsMobile();
 
-  const router = useRouter();
+  const router = useTransitionRouter();
   const {
     isAuthenticated,
     authenticatedProfile,
@@ -312,6 +311,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
   const onShareButtonClick = (postSlug: string) => {
     navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
     toast.success("Copied", { position: "bottom-center", duration: 2000 });
+    haptics.success();
   };
 
   const SortIcon = () => (

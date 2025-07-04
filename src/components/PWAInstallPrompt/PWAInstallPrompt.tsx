@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePWA } from '@src/hooks/usePWA';
 import useIsMobile from '@src/hooks/useIsMobile';
+import { Button } from '@src/components/Button';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -50,6 +51,12 @@ const PWAInstallPrompt: React.FC = () => {
     }
   };
 
+  // Detect iOS for specific instructions
+  const isIOS = (): boolean => {
+    if (typeof window === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(window.navigator.userAgent);
+  };
+
   useEffect(() => {
     const handler = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
@@ -68,9 +75,7 @@ const PWAInstallPrompt: React.FC = () => {
     if (isMobile && !isStandalone && shouldShowPrompt()) {
       // Small delay to ensure any deferred prompt is available
       const timer = setTimeout(() => {
-        if (deferredPrompt) {
-          setShowInstallPrompt(true);
-        }
+        setShowInstallPrompt(true);
       }, 1000);
       
       return () => {
@@ -82,31 +87,7 @@ const PWAInstallPrompt: React.FC = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [isStandalone, deferredPrompt, isMobile]);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    // Show the install prompt
-    deferredPrompt.prompt();
-
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-      // Clear dismissal data since user installed
-      localStorage.removeItem(PWA_DISMISSAL_KEY);
-    } else {
-      console.log('User dismissed the install prompt');
-      // Track this as a dismissal
-      trackDismissal();
-    }
-
-    // Clear the deferredPrompt so it can be garbage collected
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
-  };
+  }, [isStandalone, isMobile]);
 
   const trackDismissal = () => {
     try {
@@ -134,23 +115,40 @@ const PWAInstallPrompt: React.FC = () => {
 
   if (!showInstallPrompt || !isMobile || isStandalone) return null;
 
+  // Handler for Install button (Android/Chrome)
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.removeItem(PWA_DISMISSAL_KEY);
+    } else {
+      trackDismissal();
+    }
+    setDeferredPrompt(null);
+    setShowInstallPrompt(false);
+  };
+
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">
+    <div 
+      className="fixed bottom-0 md:left-auto md:right-4 md:w-80 bg-[#1C1D1C] text-white rounded-lg shadow-lg p-6 z-[1000]"
+      style={{ viewTransitionName: 'pwa-install-prompt' }}
+    >
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0">
           <img src="/logo.png" alt="Bonsai" className="w-12 h-12 rounded-lg" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+          <h3 className="text-sm font-medium text-white">
             Install Bonsai
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-300 mt-1">
             Add Bonsai to your home screen for quick access and offline use.
           </p>
         </div>
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="flex-shrink-0 text-gray-400 hover:text-gray-200"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -161,19 +159,61 @@ const PWAInstallPrompt: React.FC = () => {
           </svg>
         </button>
       </div>
-      <div className="mt-4 flex space-x-2">
-        <button
-          onClick={handleInstallClick}
-          className="flex-1 bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-        >
-          Install
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-        >
-          Not now
-        </button>
+      {/* Installation Instructions */}
+      <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600 flex items-start space-x-3">
+        <div className="flex-shrink-0 pt-0.5">
+          <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-white mb-1">
+            {isIOS() ? 'To install on iOS:' : 'To install on Android:'}
+          </div>
+          <ol className="list-decimal list-inside text-sm text-gray-200 space-y-0.5">
+            {isIOS() ? (
+              <>
+                <li>Tap the Share button</li>
+                <li>Select "Add to Home Screen"</li>
+                <li>Tap "Add"</li>
+              </>
+            ) : (
+              <>
+                <li>Tap the menu (⋮) button</li>
+                <li>Select "Add to Home screen"</li>
+                <li>Tap "Add"</li>
+              </>
+            )}
+          </ol>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-2">
+        {deferredPrompt ? (
+          <>
+            <Button
+              onClick={handleInstallClick}
+              className="w-1/2"
+              variant="primary"
+            >
+              Install
+            </Button>
+            <Button
+              onClick={handleDismiss}
+              className="w-1/2"
+              variant="secondary"
+            >
+              Not now
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={handleDismiss}
+            className="w-full"
+            variant="secondary"
+          >
+            Got it
+          </Button>
+        )}
       </div>
     </div>
   );

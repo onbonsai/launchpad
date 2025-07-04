@@ -1,6 +1,6 @@
 import { brandFont } from "@src/fonts/fonts";
 import { Disclosure, Transition } from "@headlessui/react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useRouter } from 'next/router';
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
 import { Header2, Subtitle } from "@src/styles/text";

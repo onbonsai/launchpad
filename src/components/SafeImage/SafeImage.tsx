@@ -12,6 +12,7 @@ interface SafeImageProps {
   fill?: boolean
   unoptimized?: boolean
   loading?: "lazy" | "eager"
+  style?: React.CSSProperties
 }
 
 // List of allowed domains from next.config.js
@@ -62,7 +63,7 @@ function isDomainAllowed(url: string): boolean {
   }
 }
 
-export function SafeImage({ src, alt, width, height, className, sizes, fill, unoptimized, loading }: SafeImageProps) {
+export function SafeImage({ src, alt, width, height, className, sizes, fill, unoptimized, loading, style }: SafeImageProps) {
   const [useFallback, setUseFallback] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(src)
   const [hasTriedPinata, setHasTriedPinata] = useState(false)
@@ -78,6 +79,7 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
         width={width}
         height={height}
         className={className}
+        style={style}
         onError={() => {
           // If we haven't tried Pinata yet and it's a Storj URL, try Pinata
           if (!hasTriedPinata && currentSrc?.includes("storj-ipfs")) {
@@ -100,11 +102,7 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
       width={width}
       height={height}
       className={className}
-      // style={!fill ? {
-      //   width: 'auto',
-      //   height: 'auto',
-      //   ...(width && height ? { maxWidth: `${width}px`, maxHeight: `${height}px` } : {})
-      // } : undefined}
+      style={style}
       onError={() => {
         // If we haven't tried Pinata yet and it's a Storj URL, try Pinata
         if (!hasTriedPinata && currentSrc?.includes("storj-ipfs")) {

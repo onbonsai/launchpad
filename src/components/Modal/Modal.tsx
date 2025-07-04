@@ -60,6 +60,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
                 className={`backdrop-blur-[40px] bg-card relative text-left shadow-xl w-full max-h-[90vh] md:max-h-none md:my-8 md:max-w-lg md:min-w-[512px] overflow-auto h-auto md:p-4
                   ${isMobile ? 'rounded-t-2xl pb-6' : 'rounded-lg'} ${panelClassnames}`
                 }
+                style={{ viewTransitionName: 'modal' }}
               >
                 <div className="absolute top-0 right-0 mt-4 mr-4 sm:block z-50">
                   <button

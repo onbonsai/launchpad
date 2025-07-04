@@ -1,5 +1,5 @@
 import { brandFont } from "@src/fonts/fonts";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState, useRef } from "react";

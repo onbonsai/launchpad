@@ -5,6 +5,7 @@ import { useWalletClient } from "wagmi";
 import { useInView } from "react-intersection-observer";
 import { Account, Post } from "@lens-protocol/client";
 import Link from "next/link";
+import { haptics } from "@src/utils/haptics";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useGetNotifications } from "@src/services/lens/getNotifications";
 import Spinner from "../LoadingSpinner/LoadingSpinner";

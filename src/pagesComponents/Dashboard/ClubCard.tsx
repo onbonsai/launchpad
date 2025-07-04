@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { formatEther, formatUnits } from "viem";
 import Image from "next/image";
 
@@ -94,6 +94,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             alt={club.token.name || "club image"}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
+            style={{ viewTransitionName: `club-card-${club.clubId}` }}
             width={48}
             height={48}
           />

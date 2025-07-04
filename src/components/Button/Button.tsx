@@ -1,5 +1,6 @@
 import { ComponentPropsWithRef, FC, ReactNode, forwardRef } from "react";
 import { VariantProps, cva } from "cva";
+import { haptics } from "@src/utils/haptics";
 
 const buttonStyles = cva(
   `
@@ -42,21 +43,32 @@ const buttonStyles = cva(
 interface BtnProps {
   iconStart?: ReactNode;
   iconEnd?: ReactNode;
+  enableHaptics?: boolean;
 }
 type ButtonProps = VariantProps<typeof buttonStyles> & BtnProps & ComponentPropsWithRef<"button">;
 
 export const Button: FC<ButtonProps> = forwardRef(
   (
-    { children, className = "", variant = "primary", type = "button", iconStart, iconEnd, onClick, disabled, size },
+    { children, className = "", variant = "primary", type = "button", iconStart, iconEnd, onClick, disabled, size, enableHaptics = true },
     forwardRef,
   ) => {
     const hasIcon = iconStart || iconEnd ? true : false;
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      // Trigger haptic feedback on button press (if enabled and not disabled)
+      if (enableHaptics && !disabled) {
+        haptics.button();
+      }
+      
+      // Call the original onClick handler
+      onClick?.(event);
+    };
 
     return (
       <button
         type={type}
         className={`${buttonStyles({ variant, hasIcon, disabled, size })} ${className}`}
-        onClick={onClick}
+        onClick={handleClick}
         disabled={disabled ?? false}
         ref={forwardRef}
       >

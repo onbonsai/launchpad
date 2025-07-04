@@ -603,3 +603,212 @@ header .bonsaiLogo {
   z-index: 9999 !important;
   transform-origin: top left !important;
 }
+
+/* View Transitions API Styles */
+::view-transition-root {
+  position: relative;
+  color-scheme: dark;
+}
+
+/* Default page transition - smooth slide */
+::view-transition-old(root) {
+  animation: slide-out-left 0.3s ease-in-out;
+}
+
+::view-transition-new(root) {
+  animation: slide-in-right 0.3s ease-in-out;
+}
+
+/* Slide animations */
+@keyframes slide-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Shared element morphing animations */
+::view-transition-group(*) {
+  animation-duration: 0.4s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Profile picture transitions */
+::view-transition-old(profile-pic) {
+  animation: morph-out 0.4s ease-in-out;
+}
+
+::view-transition-new(profile-pic) {
+  animation: morph-in 0.4s ease-in-out;
+}
+
+/* Club card transitions */
+::view-transition-old(club-card) {
+  animation: scale-down 0.3s ease-in-out;
+}
+
+::view-transition-new(club-card) {
+  animation: scale-up 0.3s ease-in-out;
+}
+
+/* Modal transitions */
+::view-transition-old(modal) {
+  animation: modal-fade-out 0.25s ease-in-out;
+}
+
+::view-transition-new(modal) {
+  animation: modal-slide-up 0.25s ease-in-out;
+}
+
+/* Hero image transitions */
+::view-transition-old(hero-image) {
+  animation: hero-zoom-out 0.5s ease-in-out;
+}
+
+::view-transition-new(hero-image) {
+  animation: hero-zoom-in 0.5s ease-in-out;
+}
+
+/* Navigation button transitions */
+::view-transition-old(nav-button) {
+  animation: button-press-out 0.2s ease-in-out;
+}
+
+::view-transition-new(nav-button) {
+  animation: button-press-in 0.2s ease-in-out;
+}
+
+/* Animation keyframes */
+@keyframes morph-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes morph-in {
+  0% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scale-down {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes scale-up {
+  0% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes modal-fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes modal-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hero-zoom-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-zoom-in {
+  0% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes button-press-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes button-press-in {
+  0% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

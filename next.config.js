@@ -41,6 +41,7 @@ const nextConfig = {
     ];
   },
   experimental: {
+    viewTransition: true,
     esmExternals: true,
     staleTimes: {
       dynamic: 30,
