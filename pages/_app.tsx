@@ -10,7 +10,7 @@ import Script from "next/script";
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
-import { ViewTransitions } from "next-view-transitions";
+// Removed ViewTransitions import
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -189,8 +189,7 @@ export default function MyApp(props: AppProps) {
         </Script>
 
         <HandleSEO pageProps={pageProps} query={router.query} />
-        <ViewTransitions>
-          <Web3Provider>
+        <Web3Provider>
             <ThirdwebProvider>
               <ThemeProvider>
                 <ClubsProvider>
@@ -229,7 +228,7 @@ export default function MyApp(props: AppProps) {
               </ThemeProvider>
             </ThirdwebProvider>
           </Web3Provider>
-        </ViewTransitions>
+                          {/* Removed ViewTransitions closing tag */}
       </>
     )
   );

@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
+import { shareClub } from "@src/utils/webShare";
+import { ShareIcon } from "@heroicons/react/outline";
 import { formatEther, formatUnits } from "viem";
 import Image from "next/image";
 
@@ -42,6 +44,23 @@ interface Props {
 
 const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   const { club, chain } = data;
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    await shareClub(
+      club.clubId,
+      club.token.symbol,
+      {
+        title: `$${club.token.symbol} on Bonsai`,
+        text: `Check out $${club.token.symbol} - ${club.token.description || 'Trade and join the community on Bonsai'}`,
+        url: window.location.origin + (club.v2
+          ? `/token/${chain}/${club?.tokenAddress.toLowerCase()}`
+          : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`)
+      }
+    );
+  };
 
   const bondingCurveProgress = useMemo(() => {
     if (club.v2) {
@@ -94,7 +113,6 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             alt={club.token.name || "club image"}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
-            style={{ viewTransitionName: `club-card-${club.clubId}` }}
             width={48}
             height={48}
           />
@@ -142,6 +160,14 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
         ></canvas>
         <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '', funnier ? 'h-[400px]' : '')}>
           <BgImage />
+          {/* Share button */}
+          <button
+            onClick={handleShare}
+            className="absolute top-3 right-3 z-30 p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+            title="Share"
+          >
+            <ShareIcon className="w-4 h-4 text-white" />
+          </button>
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />
             <div className="flex flex-row justify-between items-end">

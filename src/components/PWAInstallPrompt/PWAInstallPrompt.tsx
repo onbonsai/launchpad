@@ -130,10 +130,7 @@ const PWAInstallPrompt: React.FC = () => {
   };
 
   return (
-    <div 
-      className="fixed bottom-0 md:left-auto md:right-4 md:w-80 bg-[#1C1D1C] text-white rounded-lg shadow-lg p-6 z-[1000]"
-      style={{ viewTransitionName: 'pwa-install-prompt' }}
-    >
+    <div className="fixed bottom-0 md:left-auto md:right-4 md:w-80 bg-[#1C1D1C] text-white rounded-lg shadow-lg p-6 z-[1000]">
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0">
           <img src="/logo.png" alt="Bonsai" className="w-12 h-12 rounded-lg" />

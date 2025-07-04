@@ -5,7 +5,7 @@ import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef, useContext } from "react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { ArrowBack } from "@mui/icons-material";
 import { switchChain } from "viem/actions";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";

@@ -41,7 +41,6 @@ const nextConfig = {
     ];
   },
   experimental: {
-    viewTransition: true,
     esmExternals: true,
     staleTimes: {
       dynamic: 30,
@@ -182,6 +181,16 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
+      // Allow external images and resources for main pages
+      {
+        source: '/((?!api/).*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; img-src 'self' data: blob: https://ik.imagekit.io https://*.imagekit.io https://*.lens.dev https://*.amazonaws.com https://*.infura.io https://*.storjshare.io https://*.mypinata.cloud; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: ws:;",
           },
         ],
       },

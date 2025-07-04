@@ -6,8 +6,9 @@ import { Publication, Theme } from "@madfi/widgets-react";
 import { Post, TimelineItem } from "@lens-protocol/client";
 import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
-import { useTransitionRouter } from "next-view-transitions";
+import { useRouter } from "next/router";
 import { haptics } from "@src/utils/haptics";
+import { sharePost, isWebShareSupported } from "@src/utils/webShare";
 import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
@@ -195,7 +196,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
   const isFetchingRef = useRef(false);
   const isMobile = useIsMobile();
 
-  const router = useTransitionRouter();
+  const router = useRouter();
   const {
     isAuthenticated,
     authenticatedProfile,
@@ -308,10 +309,18 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
     return [...featuredPosts, ...nonFeaturedPosts];
   }, [filterBy, filteredPosts, processedPosts, showCompleted, categoryFilter, activeTab]);
 
-  const onShareButtonClick = (postSlug: string) => {
-    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
-    toast.success("Copied", { position: "bottom-center", duration: 2000 });
-    haptics.success();
+  const onShareButtonClick = async (postSlug: string) => {
+    const success = await sharePost(postSlug, {
+      title: 'Check out this post on Bonsai',
+      text: 'Discover amazing content and trade tokens on Bonsai',
+      url: `${BONSAI_POST_URL}/${postSlug}`
+    });
+    
+    // Haptic feedback is handled in the webShare utility
+    if (!success && !isWebShareSupported()) {
+      // Fallback already handled in webShare utility
+      console.log('Share completed via fallback');
+    }
   };
 
   const SortIcon = () => (

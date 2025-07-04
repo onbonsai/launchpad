@@ -1,5 +1,7 @@
 import { brandFont } from "@src/fonts/fonts";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
+import { shareBonsai, isWebShareSupported } from "@src/utils/webShare";
+import { ShareIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState, useRef } from "react";
@@ -210,6 +212,17 @@ export const Header = () => {
                     </Button>
                   </Link>
                 </div>
+              )}
+
+              {/* Share button */}
+              {isWebShareSupported() && (
+                <button
+                  onClick={() => shareBonsai()}
+                  className="hidden sm:block mr-2 p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  title="Share Bonsai"
+                >
+                  <ShareIcon className="w-5 h-5 text-white/70 hover:text-white" />
+                </button>
               )}
 
               {/* Authenticated user actions */}

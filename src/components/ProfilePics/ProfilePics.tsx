@@ -10,7 +10,6 @@ const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
         <SafeImage
           key={index}
           className="inline-block h-10 w-10 rounded-full ring-2 ring-dark-grey"
-          style={{ viewTransitionName: `profile-pic-${p.address || index}` }}
           src={p.metadata?.picture}
           alt="/sage.webp"
           height={32}
