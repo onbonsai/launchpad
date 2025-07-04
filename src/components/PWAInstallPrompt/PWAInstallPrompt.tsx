@@ -10,6 +10,11 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+interface PWADismissalData {
+  count: number;
+  lastDismissed: number;
+}
+
 // Check if device is Android or iOS
 const isMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -21,10 +26,38 @@ const isMobileDevice = (): boolean => {
   return isAndroid || isIOS;
 };
 
+const PWA_DISMISSAL_KEY = 'pwa-install-dismissals';
+const HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
+const MAX_DISMISSALS = 2;
+
 const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isStandalone } = usePWA();
+
+  // Check if prompt should be shown based on dismissal history
+  const shouldShowPrompt = (): boolean => {
+    try {
+      const stored = localStorage.getItem(PWA_DISMISSAL_KEY);
+      if (!stored) return true;
+
+      const data: PWADismissalData = JSON.parse(stored);
+      
+      // If dismissed 2 or more times, hide permanently
+      if (data.count >= MAX_DISMISSALS) return false;
+      
+      // If dismissed once, check if 24 hours have passed
+      if (data.count === 1) {
+        const timeSinceLastDismissal = Date.now() - data.lastDismissed;
+        return timeSinceLastDismissal >= HOURS_24_IN_MS;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking PWA dismissal data:', error);
+      return true;
+    }
+  };
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -32,18 +65,33 @@ const PWAInstallPrompt: React.FC = () => {
       e.preventDefault();
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Only show prompt on mobile devices and if not already installed
-      if (isMobileDevice() && !isStandalone) {
+      // Only show prompt on mobile devices, if not already installed, and if allowed by dismissal logic
+      if (isMobileDevice() && !isStandalone && shouldShowPrompt()) {
         setShowInstallPrompt(true);
       }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
+    // Also check on component mount if we should show the prompt
+    if (isMobileDevice() && !isStandalone && shouldShowPrompt()) {
+      // Small delay to ensure any deferred prompt is available
+      const timer = setTimeout(() => {
+        if (deferredPrompt) {
+          setShowInstallPrompt(true);
+        }
+      }, 1000);
+      
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+        clearTimeout(timer);
+      };
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [isStandalone]);
+  }, [isStandalone, deferredPrompt]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -56,8 +104,12 @@ const PWAInstallPrompt: React.FC = () => {
 
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
+      // Clear dismissal data since user installed
+      localStorage.removeItem(PWA_DISMISSAL_KEY);
     } else {
       console.log('User dismissed the install prompt');
+      // Track this as a dismissal
+      trackDismissal();
     }
 
     // Clear the deferredPrompt so it can be garbage collected
@@ -65,7 +117,26 @@ const PWAInstallPrompt: React.FC = () => {
     setShowInstallPrompt(false);
   };
 
+  const trackDismissal = () => {
+    try {
+      const stored = localStorage.getItem(PWA_DISMISSAL_KEY);
+      let data: PWADismissalData = { count: 0, lastDismissed: 0 };
+      
+      if (stored) {
+        data = JSON.parse(stored);
+      }
+      
+      data.count += 1;
+      data.lastDismissed = Date.now();
+      
+      localStorage.setItem(PWA_DISMISSAL_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error storing PWA dismissal data:', error);
+    }
+  };
+
   const handleDismiss = () => {
+    trackDismissal();
     setShowInstallPrompt(false);
     setDeferredPrompt(null);
   };

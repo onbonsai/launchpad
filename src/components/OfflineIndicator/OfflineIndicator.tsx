@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { usePWA } from '@src/hooks/usePWA';
 
@@ -25,12 +24,6 @@ const OfflineIndicator: React.FC = () => {
         <span className="text-sm font-medium">
           You're offline. Some features may be limited.
         </span>
-        <Link 
-          href="/offline" 
-          className="text-sm underline hover:no-underline transition-all duration-200"
-        >
-          Learn more
-        </Link>
       </div>
     </div>
   );
