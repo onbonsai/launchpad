@@ -1,5 +1,108 @@
 // This file is used by next-pwa to inject custom code into the service worker
 
+// Cache names
+const CACHE_NAME = 'bonsai-cache-v1';
+const OFFLINE_URL = '/offline';
+
+// Install event - cache offline page
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Caching offline page');
+        return cache.addAll([
+          OFFLINE_URL,
+          '/',
+          '/favicon.ico',
+          '/logo.png',
+        ]);
+      })
+      .then(() => {
+        console.log('[SW] Offline page cached');
+        self.skipWaiting();
+      })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[SW] Claiming clients');
+        return self.clients.claim();
+      })
+  );
+});
+
+// Fetch event - handle offline fallback
+self.addEventListener('fetch', (event) => {
+  // Only handle navigation requests (page requests)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // If we got a response, cache it and return it
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed, try to serve from cache
+          return caches.match(event.request)
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // If not in cache and it's a navigation request, serve offline page
+              return caches.match(OFFLINE_URL);
+            });
+        })
+    );
+  }
+  // For non-navigation requests, try cache first, then network
+  else if (event.request.destination === 'image' || 
+           event.request.destination === 'script' || 
+           event.request.destination === 'style') {
+    event.respondWith(
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return fetch(event.request)
+            .then((response) => {
+              if (response.status === 200) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(event.request, responseClone);
+                  });
+              }
+              return response;
+            });
+        })
+    );
+  }
+});
+
 // Listen for push events
 self.addEventListener("push", function (event) {
   console.log("[SW] Push event received:", event);

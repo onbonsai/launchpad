@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePWA } from '@src/hooks/usePWA';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -9,9 +10,21 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// Check if device is Android or iOS
+const isMobileDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const userAgent = window.navigator.userAgent;
+  const isAndroid = /Android/i.test(userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+  
+  return isAndroid || isIOS;
+};
+
 const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const { isStandalone } = usePWA();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -19,7 +32,10 @@ const PWAInstallPrompt: React.FC = () => {
       e.preventDefault();
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
+      // Only show prompt on mobile devices and if not already installed
+      if (isMobileDevice() && !isStandalone) {
+        setShowInstallPrompt(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -27,7 +43,7 @@ const PWAInstallPrompt: React.FC = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, []);
+  }, [isStandalone]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -54,7 +70,7 @@ const PWAInstallPrompt: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  if (!showInstallPrompt) return null;
+  if (!showInstallPrompt || !isMobileDevice() || isStandalone) return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">

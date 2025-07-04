@@ -7,6 +7,9 @@ class MyDocument extends Document {
     return (
       <Html lang="en" className="w-full h-full bg-background">
         <Head>
+          {/* Viewport meta tag for mobile optimization */}
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+          
           <link rel="shortcut icon" href="/favicon.ico" />
           <link href="/webclip.png" rel="apple-touch-icon image_src" />
           <meta name="msapplication-TileColor" content="#da532c" />
