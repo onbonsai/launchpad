@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePWA } from '@src/hooks/usePWA';
+import useIsMobile from '@src/hooks/useIsMobile';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -15,17 +16,6 @@ interface PWADismissalData {
   lastDismissed: number;
 }
 
-// Check if device is Android or iOS
-const isMobileDevice = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  const userAgent = window.navigator.userAgent;
-  const isAndroid = /Android/i.test(userAgent);
-  const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-  
-  return isAndroid || isIOS;
-};
-
 const PWA_DISMISSAL_KEY = 'pwa-install-dismissals';
 const HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
 const MAX_DISMISSALS = 2;
@@ -34,6 +24,7 @@ const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isStandalone } = usePWA();
+  const isMobile = useIsMobile();
 
   // Check if prompt should be shown based on dismissal history
   const shouldShowPrompt = (): boolean => {
@@ -66,7 +57,7 @@ const PWAInstallPrompt: React.FC = () => {
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       // Only show prompt on mobile devices, if not already installed, and if allowed by dismissal logic
-      if (isMobileDevice() && !isStandalone && shouldShowPrompt()) {
+      if (isMobile && !isStandalone && shouldShowPrompt()) {
         setShowInstallPrompt(true);
       }
     };
@@ -74,7 +65,7 @@ const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handler);
 
     // Also check on component mount if we should show the prompt
-    if (isMobileDevice() && !isStandalone && shouldShowPrompt()) {
+    if (isMobile && !isStandalone && shouldShowPrompt()) {
       // Small delay to ensure any deferred prompt is available
       const timer = setTimeout(() => {
         if (deferredPrompt) {
@@ -91,7 +82,7 @@ const PWAInstallPrompt: React.FC = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [isStandalone, deferredPrompt]);
+  }, [isStandalone, deferredPrompt, isMobile]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -141,7 +132,7 @@ const PWAInstallPrompt: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  if (!showInstallPrompt || !isMobileDevice() || isStandalone) return null;
+  if (!showInstallPrompt || !isMobile || isStandalone) return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">
