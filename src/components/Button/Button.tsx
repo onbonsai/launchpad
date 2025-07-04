@@ -55,11 +55,6 @@ export const Button: FC<ButtonProps> = forwardRef(
     const hasIcon = iconStart || iconEnd ? true : false;
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      // Trigger haptic feedback on button press (if enabled and not disabled)
-      if (enableHaptics && !disabled) {
-        haptics.button();
-      }
-      
       // Call the original onClick handler
       onClick?.(event);
     };

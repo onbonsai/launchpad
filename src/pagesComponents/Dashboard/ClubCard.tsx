@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
-import { shareClub } from "@src/utils/webShare";
-import { ShareIcon } from "@heroicons/react/outline";
+import { shareClub, copyLink } from "@src/utils/webShare";
+import { ShareIcon, ClipboardCopyIcon } from "@heroicons/react/outline";
 import { formatEther, formatUnits } from "viem";
 import Image from "next/image";
 
@@ -60,6 +60,17 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
           : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`)
       }
     );
+  };
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const url = window.location.origin + (club.v2
+      ? `/token/${chain}/${club?.tokenAddress.toLowerCase()}`
+      : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`);
+    
+    await copyLink(url, `$${club.token.symbol} link copied!`);
   };
 
   const bondingCurveProgress = useMemo(() => {
@@ -160,14 +171,23 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
         ></canvas>
         <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '', funnier ? 'h-[400px]' : '')}>
           <BgImage />
-          {/* Share button */}
-          <button
-            onClick={handleShare}
-            className="absolute top-3 right-3 z-30 p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
-            title="Share"
-          >
-            <ShareIcon className="w-4 h-4 text-white" />
-          </button>
+          {/* Share buttons */}
+          <div className="absolute top-3 right-3 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+            <button
+              onClick={handleShare}
+              className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
+              title="Share"
+            >
+              <ShareIcon className="w-4 h-4 text-white" />
+            </button>
+            <button
+              onClick={handleCopyLink}
+              className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
+              title="Copy Link"
+            >
+              <ClipboardCopyIcon className="w-4 h-4 text-white" />
+            </button>
+          </div>
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />
             <div className="flex flex-row justify-between items-end">
