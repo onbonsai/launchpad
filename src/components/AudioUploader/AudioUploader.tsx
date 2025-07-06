@@ -149,7 +149,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
 
   const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
     onDrop,
-    accept: { "audio/": ["*"] },
+    accept: { "audio/mp3": [".mp3"] },
     maxFiles: 1,
     maxSize: MAX_SIZE,
     noClick: true,

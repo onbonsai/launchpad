@@ -1067,6 +1067,7 @@ const StudioCreatePage: NextPage = () => {
             endTime: clip.endTime,
             templateData: {
               video: clip.preview.video,
+              image: clip.preview.image,
               ...clip.templateData,
             },
           })),

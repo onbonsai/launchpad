@@ -475,7 +475,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : defaultImage ? (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}
@@ -509,7 +509,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}

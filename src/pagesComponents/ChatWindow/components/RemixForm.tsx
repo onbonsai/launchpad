@@ -88,6 +88,21 @@ export default function RemixForm({
   // Check if this is a storyboard post
   const isStoryboardPost = storyboardClips.length > 0;
 
+  // Helper function to get video duration
+  const getVideoDuration = (videoUrl: string): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.addEventListener('loadedmetadata', () => {
+        resolve(video.duration || 6); // Default to 6 seconds if duration is 0
+      });
+      video.addEventListener('error', () => {
+        resolve(6); // Default to 6 seconds on error
+      });
+      video.src = videoUrl;
+      video.load();
+    });
+  };
+
   // Extract storyboard data from remixMediaTemplateData
   useEffect(() => {
     if (remixMedia.templateData) {
@@ -96,48 +111,67 @@ export default function RemixForm({
       // Check if this is a storyboard post (has clips array)
       if (templateData.clips && Array.isArray(templateData.clips)) {
         // Convert clips to StoryboardClip format
-        const clips: StoryboardClip[] = templateData.clips.map((clip: any, index: number) => {
-          // Create a preview object from the clip data
-          const clipPreview: Preview = {
-            video: clip.video?.url ? { url: clip.video.url } : clip.video,
-            image: clip.image || clip.thumbnail,
-            imagePreview: clip.imagePreview || clip.thumbnail,
-            text: clip.sceneDescription || clip.text || '',
-            agentId: clip.agentId || `clip-${index}`,
-            templateName: template?.name || 'unknown',
-            templateData: {
-              prompt: clip.prompt || clip.sceneDescription || '',
-              sceneDescription: clip.sceneDescription || '',
-              elevenLabsVoiceId: clip.elevenLabsVoiceId,
-              narration: clip.narration,
-              stylePreset: clip.stylePreset,
-              subjectReference: clip.subjectReference,
-              aspectRatio: clip.aspectRatio,
-              ...clip.templateData
-            },
-          };
+        const processClips = async () => {
+          const clips: StoryboardClip[] = await Promise.all(
+            templateData.clips.map(async (clip: any, index: number) => {
+              // Get actual video duration if available
+              let actualDuration = clip.duration;
+              if (!actualDuration && clip.video?.url) {
+                try {
+                  actualDuration = await getVideoDuration(clip.video.url);
+                } catch (error) {
+                  console.warn('Failed to get video duration, using default:', error);
+                  actualDuration = 6; // Default to 6 seconds instead of 10
+                }
+              } else if (!actualDuration) {
+                actualDuration = 6; // Default to 6 seconds instead of 10
+              }
+              
+              // Create a preview object from the clip data
+              const clipPreview: Preview = {
+                video: clip.video?.url ? { url: clip.video.url } : clip.video,
+                image: clip.image || clip.thumbnail,
+                imagePreview: clip.imagePreview || clip.thumbnail,
+                text: clip.sceneDescription || clip.text || '',
+                agentId: clip.agentId || `clip-${index}`,
+                templateName: template?.name || 'unknown',
+                templateData: {
+                  prompt: clip.prompt || clip.sceneDescription || '',
+                  sceneDescription: clip.sceneDescription || '',
+                  elevenLabsVoiceId: clip.elevenLabsVoiceId,
+                  narration: clip.narration,
+                  stylePreset: clip.stylePreset,
+                  subjectReference: clip.subjectReference,
+                  aspectRatio: clip.aspectRatio,
+                  ...clip.templateData
+                },
+              };
 
-          return {
-            id: clip.agentId || `clip-${index}`,
-            preview: clipPreview,
-            templateData: clipPreview.templateData,
-            startTime: clip.startTime || 0,
-            endTime: clip.endTime || clip.duration || 10, // Default to 10 seconds if no duration
-            duration: clip.duration || 10,
-          };
-        });
+              return {
+                id: clip.agentId || `clip-${index}`,
+                preview: clipPreview,
+                templateData: clipPreview.templateData,
+                startTime: clip.startTime || 0,
+                endTime: clip.endTime || actualDuration,
+                duration: actualDuration,
+              };
+            })
+          );
+          
+          setStoryboardClips(clips);
+          
+          // Set the first clip as the current preview if no preview is set
+          if (clips.length > 0 && !currentPreview) {
+            setPreview(clips[0].preview);
+          }
+          
+          // Set the prompt from the first clip if available
+          if (clips.length > 0 && clips[0].templateData.prompt) {
+            setPrompt(clips[0].templateData.prompt);
+          }
+        };
         
-        setStoryboardClips(clips);
-        
-        // Set the first clip as the current preview if no preview is set
-        if (clips.length > 0 && !currentPreview) {
-          setPreview(clips[0].preview);
-        }
-        
-        // Set the prompt from the first clip if available
-        if (clips.length > 0 && clips[0].templateData.prompt) {
-          setPrompt(clips[0].templateData.prompt);
-        }
+        processClips();
       }
       
       // Extract audio data - handle both old and new formats

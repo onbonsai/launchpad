@@ -190,7 +190,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; img-src 'self' data: blob: https://ik.imagekit.io https://*.imagekit.io https://*.lens.dev https://*.amazonaws.com https://*.infura.io https://*.storjshare.io https://*.mypinata.cloud; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: ws:;",
+            value: "default-src 'self'; img-src 'self' data: blob: https://ik.imagekit.io https://*.imagekit.io https://*.lens.dev https://*.amazonaws.com https://*.infura.io https://*.storjshare.io https://*.mypinata.cloud; media-src 'self' data: blob: https://*.storjshare.io https://*.mypinata.cloud https://*.amazonaws.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: ws:;",
           },
         ],
       },
