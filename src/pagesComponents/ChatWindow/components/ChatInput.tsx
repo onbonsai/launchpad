@@ -132,7 +132,6 @@ export default function ChatInput({
   handleSubmit,
   userInput,
   setUserInput,
-  handleKeyPress,
   disabled = false,
   attachment,
   setAttachment,
@@ -157,7 +156,35 @@ export default function ChatInput({
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
-  const remixTemplate = remixMedia ? templates?.find((t) => t.name === remixMedia?.template) : undefined;
+  
+  // Find the template for remixMedia - be more flexible with matching
+  const remixTemplate = useMemo(() => {
+    if (!remixMedia || !templates) return undefined;
+    
+    // First try exact match
+    let template = templates.find((t) => t.name === remixMedia.template);
+    
+    // If no exact match, try case-insensitive match
+    if (!template) {
+      template = templates.find((t) => 
+        t.name.toLowerCase() === remixMedia.template?.toLowerCase()
+      );
+    }
+    
+    // If still no match, try to find a video template for storyboard posts
+    if (!template && remixMedia.templateData && (remixMedia.templateData as any).clips) {
+      template = templates.find((t) => t.name.toLowerCase().includes('video'));
+    }
+    
+    // If still no match, just use the first available template
+    if (!template && templates.length > 0) {
+      template = templates[0];
+      console.warn(`Template "${remixMedia.template}" not found, using fallback: ${template.name}`);
+    }
+    
+    return template;
+  }, [remixMedia, templates]);
+  
   const { openSwapToGenerateModal } = useTopUpModal();
 
   // Focus input on mount
@@ -168,10 +195,10 @@ export default function ChatInput({
   }, [showRemixForm, isGeneratingPreview]);
 
   useEffect(() => {
-    if (isRemixing) {
+    if (isRemixing && remixMedia) {
       setShowRemixForm(true);
     }
-  }, [isRemixing]);
+  }, [isRemixing, remixMedia, templates]);
 
   const handleTemplateSelect = useCallback((selection: { name: string; inputText: string; description?: string }) => {
     setUserInput(selection.inputText);
@@ -204,6 +231,17 @@ export default function ChatInput({
     await onPost(userInput.trim());
   }, [userInput, onPost]);
 
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (isPosting) {
+        handlePost(e as any);
+      } else {
+        handleSubmit(e as any);
+      }
+    }
+  }, [handleSubmit, handlePost, isPosting]);
+
   useEffect(() => {
     if (userInput && textareaRef.current && document.activeElement !== textareaRef.current) {
       textareaRef.current.focus();
@@ -223,11 +261,17 @@ export default function ChatInput({
     return true;
   }, [requireAttachment, attachment]);
 
+  const canSubmit = useMemo(() => {
+    if (!userInput.trim()) return false;
+    if (requireAttachment && !attachment) return false;
+    return true;
+  }, [requireAttachment, attachment]);
+
   return (
     <>
-      {showRemixForm && remixMedia && remixTemplate && !isGeneratingPreview && (
+      {showRemixForm && remixMedia && !isGeneratingPreview && (
         <RemixForm
-          template={remixTemplate}
+          template={remixTemplate as Template}
           remixMedia={remixMedia}
           onClose={() => {
             setShowRemixForm(false);
@@ -239,6 +283,17 @@ export default function ChatInput({
           setLocalPreviews={setLocalPreviews}
           isGeneratingPreview={isGeneratingPreview}
           setIsGeneratingPreview={setIsGeneratingPreview}
+          onGenerateClip={async (prompt, templateData, clipId) => {
+            // This callback should be passed from the parent Chat component
+            // For now, we'll just log it
+            console.log('Generate clip called:', { prompt, templateData, clipId });
+            // Return a dummy preview for now
+            return {
+              text: prompt,
+              templateName: remixTemplate?.name || 'unknown',
+              agentId: clipId || `clip-${Date.now()}`,
+            } as any;
+          }}
         />
       )}
       <form
