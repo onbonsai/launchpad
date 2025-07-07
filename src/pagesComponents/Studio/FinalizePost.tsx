@@ -145,7 +145,7 @@ export const FinalizePost = ({
             </div>
             <div className="relative">
               <textarea
-                placeholder="Update the content and hit preview to see the changes"
+                placeholder="Update the content to see the changes"
                 value={localPostContent}
                 onChange={(e) => setLocalPostContent(e.target.value)}
                 className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}

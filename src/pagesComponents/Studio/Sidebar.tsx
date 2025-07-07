@@ -11,6 +11,7 @@ import { kFormatter } from "@src/utils/utils"
 import PlusCircleIcon from "@heroicons/react/outline/PlusCircleIcon"
 import UserIcon from "@heroicons/react/outline/UserIcon"
 import CurrencyDollarIcon from "@heroicons/react/outline/CurrencyDollarIcon"
+import LightningBoltIcon from "@heroicons/react/outline/LightningBoltIcon"
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useGetPostsByAuthor } from "@src/services/lens/posts"
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner"
@@ -27,6 +28,7 @@ interface MenuItem {
 const mobileMenuItems: MenuItem[] = [
   { label: "Create", href: "/studio/create", disabled: false },
   { label: "Stake", href: "/studio/stake", disabled: false },
+  { label: "Integrations", href: "/studio/integrations", disabled: false },
 ];
 
 const MobileNavigation = () => {
@@ -75,6 +77,7 @@ const StudioSidebar = () => {
     { icon: <PlusCircleIcon className="h-4 w-4" />, label: "Create", href: "/studio/create", disabled: false },
     { icon: <UserIcon className="h-4 w-4" />, label: "Profile", href: `/profile/${authenticatedProfile?.username?.localName}`, disabled: profileDisabled },
     { icon: <CurrencyDollarIcon className="h-4 w-4" />, label: "Stake", href: "/studio/stake", disabled: false },
+    { icon: <LightningBoltIcon className="h-4 w-4" />, label: "Integrations", href: "/studio/integrations", disabled: false },
   ]
 
   return (
