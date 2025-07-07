@@ -1,7 +1,5 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
-import { shareClub, copyLink } from "@src/utils/webShare";
-import { ShareIcon, ClipboardCopyIcon } from "@heroicons/react/outline";
 import { formatEther, formatUnits } from "viem";
 import Image from "next/image";
 
@@ -44,34 +42,6 @@ interface Props {
 
 const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   const { club, chain } = data;
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    await shareClub(
-      club.clubId,
-      club.token.symbol,
-      {
-        title: `$${club.token.symbol} on Bonsai`,
-        text: `Check out $${club.token.symbol} - ${club.token.description || 'Trade and join the community on Bonsai'}`,
-        url: window.location.origin + (club.v2
-          ? `/token/${chain}/${club?.tokenAddress.toLowerCase()}`
-          : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`)
-      }
-    );
-  };
-
-  const handleCopyLink = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const url = window.location.origin + (club.v2
-      ? `/token/${chain}/${club?.tokenAddress.toLowerCase()}`
-      : `${V1_LAUNCHPAD_URL}/token/${club?.clubId}`);
-    
-    await copyLink(url, `$${club.token.symbol} link copied!`);
-  };
 
   const bondingCurveProgress = useMemo(() => {
     if (club.v2) {
@@ -124,8 +94,8 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             alt={club.token.name || "club image"}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
-            width={48}
-            height={48}
+            width={64}
+            height={64}
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">
@@ -171,23 +141,6 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
         ></canvas>
         <div className={clsx("rounded-3xl card card-compact shadow-md relative z-10", funny ? 'h-[300px]' : '', funnier ? 'h-[400px]' : '')}>
           <BgImage />
-          {/* Share buttons */}
-          <div className="absolute top-3 right-3 z-30 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
-              title="Share"
-            >
-              <ShareIcon className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={handleCopyLink}
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
-              title="Copy Link"
-            >
-              <ClipboardCopyIcon className="w-4 h-4 text-white" />
-            </button>
-          </div>
           <div className="flex flex-col justify-between gap-2 p-3 flex-grow mb-0 relative z-20">
             <TokenInfoHeader />
             <div className="flex flex-row justify-between items-end">
