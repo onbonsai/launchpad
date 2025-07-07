@@ -352,6 +352,34 @@ export default function RemixForm({
     }
   };
 
+  // Handler to copy field values from RemixPanel back to the form
+  const handleCopyField = (fieldKey: string, value: any) => {
+    switch (fieldKey) {
+      case 'prompt':
+        // Update the main prompt field
+        setPrompt(value);
+        break;
+      case 'sceneDescription':
+      case 'stylePreset':
+      case 'subjectReference':
+      case 'elevenLabsVoiceId':
+      case 'narration':
+        // Update the template data
+        setFinalTemplateData(prev => ({
+          ...prev,
+          [fieldKey]: value
+        }));
+        break;
+      default:
+        // For any other fields, add them to template data
+        setFinalTemplateData(prev => ({
+          ...prev,
+          [fieldKey]: value
+        }));
+        break;
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="border border-dark-grey/50 rounded-lg bg-black/50 p-4">
@@ -454,6 +482,7 @@ export default function RemixForm({
             onReplaceClip={handleReplaceClip}
             onEditClip={handleEditClip}
             onPreviewClip={handlePreviewClip}
+            onCopyField={handleCopyField}
             className="max-h-[70vh] overflow-y-auto"
           />
           <div className="mt-4 flex justify-end">

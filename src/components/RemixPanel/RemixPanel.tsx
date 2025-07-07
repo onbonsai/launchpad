@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { PlayIcon } from '@heroicons/react/solid';
+import { PlayIcon, ClipboardCopyIcon } from '@heroicons/react/solid';
 import type { StoryboardClip } from '@pages/studio/create';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 
 export interface RemixPanelProps {
   clips: StoryboardClip[];
@@ -10,13 +11,15 @@ export interface RemixPanelProps {
   onReplaceClip?: (clipId: string) => void;
   onEditClip?: (clip: StoryboardClip) => void;
   onPreviewClip?: (clip: StoryboardClip) => void;
+  onCopyField?: (fieldKey: string, value: any) => void;
   className?: string;
   isCompact?: boolean;
 }
 
 const RemixPanel: React.FC<RemixPanelProps> = ({
   clips,
-  className
+  className,
+  onCopyField
 }) => {
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
 
@@ -36,7 +39,6 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
     const fields = [
       { key: 'prompt', label: 'Prompt' },
       { key: 'sceneDescription', label: 'Scene Description' },
-      { key: 'aspectRatio', label: 'Aspect Ratio' },
       { key: 'stylePreset', label: 'Style Preset' },
       { key: 'subjectReference', label: 'Subject Reference' },
       { key: 'elevenLabsVoiceId', label: 'Voice ID' },
@@ -47,8 +49,16 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
       .filter(field => templateData[field.key] !== undefined && templateData[field.key] !== null)
       .map(field => ({
         label: field.label,
+        key: field.key,
         value: templateData[field.key]
       }));
+  };
+
+  const handleCopyField = (fieldKey: string, value: any) => {
+    if (onCopyField) {
+      onCopyField(fieldKey, value);
+      toast.success(`Copied ${fieldKey} to form`);
+    }
   };
 
   const renderClipCard = (clip: StoryboardClip, index: number) => {
@@ -111,8 +121,29 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
                       <div className="text-xs font-medium text-gray-400 mb-1">
                         {field.label}
                       </div>
-                      <div className="text-sm text-white bg-gray-900 rounded-lg p-3">
-                        {typeof field.value === 'string' ? field.value : String(field.value)}
+                      <div 
+                        className={clsx(
+                          "text-sm text-white bg-gray-900 rounded-lg p-3 transition-colors",
+                          onCopyField && "hover:bg-gray-800 cursor-pointer group relative"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onCopyField) {
+                            handleCopyField(field.key, field.value);
+                          }
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <span className="flex-1">
+                            {typeof field.value === 'string' ? field.value : String(field.value)}
+                          </span>
+                          {onCopyField && (
+                            <ClipboardCopyIcon className="w-4 h-4 text-gray-500 group-hover:text-blue-400 ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </div>
+                        {onCopyField && (
+                          <div className="absolute inset-0 rounded-lg border border-transparent group-hover:border-blue-500/30 pointer-events-none" />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -139,7 +170,9 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
             {clips.length} clip{clips.length !== 1 ? 's' : ''} • {formatTime(getTotalDuration())}
           </span>
         </div>
-        <p className="text-sm text-gray-500 mt-1">Click on a clip to view its details</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Click on a clip to view its details{onCopyField ? ' • Click on any field to copy it to the form' : ''}
+        </p>
       </div>
 
       {/* Content */}
