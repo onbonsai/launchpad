@@ -208,7 +208,6 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
     const aspect = ratio.width / ratio.height;
 
     const newCrop = centerAspectCrop(width, height, aspect);
-    console.log('Setting crop on image load:', newCrop); // Debug log
     setCrop(newCrop);
     setZoom(1);
   };
@@ -236,7 +235,6 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         x: 10,
         y: 10,
       };
-      console.log('Setting default crop for cropFile:', defaultCrop); // Debug log
       setCrop(defaultCrop);
     }
   }, [cropFile, crop]);
@@ -475,7 +473,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : defaultImage ? (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}
@@ -509,7 +507,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}

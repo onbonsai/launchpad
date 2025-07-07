@@ -249,7 +249,7 @@ export default function ChatInput({
           <div className="relative flex flex-col w-full px-[10px]">
             {isGeneratingPreview && (
               <div className="mt-4 mb-4 flex justify-center">
-                <div className="w-full w-[250px] p-4">
+                <div className="w-[250px] p-4">
                   <div className="flex flex-col items-center gap-4">
                     <AnimatedBonsaiGrid />
                   </div>
@@ -265,9 +265,8 @@ export default function ChatInput({
                   })}>
                     Swap to continue
                   </Button> :
-                  <input
+                  <textarea
                     ref={textareaRef}
-                    type="text"
                     value={userInput}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
