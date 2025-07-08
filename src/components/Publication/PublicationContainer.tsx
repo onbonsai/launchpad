@@ -7,7 +7,9 @@ import dynamic from 'next/dynamic';
 import { Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { DownloadIcon } from '@heroicons/react/outline';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
@@ -146,6 +148,7 @@ const PublicationContainer = ({
   const isAdmin = useMemo(() => address && SET_FEATURED_ADMINS.includes(address?.toLowerCase()), [address]);
   const { openTopUpModal } = useTopUpModal();
   const [showPulse, setShowPulse] = useState(false);
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const { setIsChatOpen, setIsRemixing } = useContext(ChatSidebarContext);
 
   // bonsai balance of Lens Account
@@ -405,6 +408,102 @@ const PublicationContainer = ({
     setIsCollecting(false);
   }
 
+  // Download video with outro functionality
+  const downloadVideoWithOutro = async (videoUrl: string, filename: string) => {
+    const agentId = media?.agentId || 'publication';
+
+    try {
+      setIsProcessingVideo(true);
+      toast.loading('Downloading video...', { id: `processing-${agentId}` });
+
+      // Get video resolution to determine aspect ratio
+      const video = document.createElement('video');
+      video.src = videoUrl;
+
+      const aspectRatio = await new Promise<string>((resolve) => {
+        video.onloadedmetadata = () => {
+          const ratio = video.videoWidth / video.videoHeight;
+          resolve(ratio > 1 ? 'landscape' : 'portrait');
+        };
+      });
+
+      const response = await fetch('/api/media/add-outro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          filename: filename.replace(/\.[^/.]+$/, '.mp4'),
+          aspectRatio,
+          isBlob: false
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to process video');
+      }
+
+      // Get the processed video as blob
+      const blob = await response.blob();
+
+      // Download the processed video
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename.replace(/\.[^/.]+$/, '.mp4');
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Video downloaded!', { id: `processing-${agentId}` });
+
+    } catch (error) {
+      console.error('Video processing failed:', error);
+      toast.error('Video processing failed, downloading original video instead');
+      downloadVideoSimple(videoUrl, filename);
+    } finally {
+      setIsProcessingVideo(false);
+    }
+  };
+
+  // Simple video download fallback
+  const downloadVideoSimple = async (videoUrl: string, filename: string) => {
+    try {
+      filename = filename.replace(/\.[^/.]+$/, '.mp4');
+
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Simple video download failed:', error);
+      toast.error('Download failed');
+    }
+  };
+
+  // Main download function
+  const downloadMedia = async () => {
+    try {
+      const videoUrl = publication?.metadata?.video?.item;
+      if (videoUrl) {
+        const filename = `bonsai-${publication?.slug || 'video'}-${Date.now()}`;
+        return downloadVideoWithOutro(videoUrl, filename);
+      }
+
+      throw new Error('No video to download');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Download failed');
+    }
+  };
+
   let PublicationType = HorizontalPublication;
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
@@ -569,6 +668,27 @@ const PublicationContainer = ({
           )}
         </div>
       )}
+
+      {/* Download button for video content (only for creator) */}
+      {!!publication?.metadata?.video?.item && isAuthenticated && true ? (
+        <div
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-14' : 'bottom-3 right-12'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            downloadMedia();
+          }}
+        >
+          <div
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[4px] scale-77'} ${isProcessingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isProcessingVideo ? (
+              <Spinner customClasses="h-4 w-4" color="#ffffff" />
+            ) : (
+              <DownloadIcon className={`text-white ${sideBySideMode ? 'w-6 h-6' : 'w-4 h-4'}`} />
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {!!media?.agentId && isAuthenticated && (
         <div
