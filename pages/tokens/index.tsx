@@ -11,8 +11,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { useGetRegisteredClubs, useGetFeaturedClubs } from "@src/hooks/useMoneyClubs";
 import { ClubList, Holdings } from "@src/pagesComponents/Dashboard";
 import { BONSAI_TOKEN_BASE_ADDRESS, CONTRACT_CHAIN_ID, BENEFITS_AUTO_FEATURE_HOURS } from "@src/services/madfi/moneyClubs";
-import { Modal } from "@src/components/Modal";
-import BuyBonsaiModal from "@src/components/BuyBonsai/BuyBonsaiModal";
+
 import { useClubs } from "@src/context/ClubsContext";
 import { Header2, Subtitle } from "@src/styles/text";
 import CreatorButton from "@src/components/Creators/CreatorButton";
@@ -25,7 +24,6 @@ const IndexPage: NextPage = () => {
   const { address, isConnected } = useAccount();
   const isMounted = useIsMounted();
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
-  const [openBuyModal, setOpenBuyModal] = useState(false);
   const { data: authenticatedProfile, isLoading: isLoadingAuthenicatedProfile } = useAuthenticatedLensProfile();
   const {
     data,
@@ -82,7 +80,7 @@ const IndexPage: NextPage = () => {
                     {!!address &&
                       <>
                         <Holdings address={address as `0x${string}`} bonsaiAmount={bonsaiBalance ?? 0n} />
-                        <BonsaiNFTsSection nfts={bonsaiNFTs} onBuyBonsai={() => setOpenBuyModal(true)} />
+                        <BonsaiNFTsSection nfts={bonsaiNFTs} />
                       </>
                     }
                   </div>
@@ -134,17 +132,7 @@ const IndexPage: NextPage = () => {
             </div >
           </section >
 
-          {/* Buy Bonsai Modal */}
-          < Modal
-            onClose={() => setOpenBuyModal(false)}
-            open={openBuyModal}
-            setOpen={setOpenBuyModal}
-            panelClassnames="bg-black/70 w-screen h-screen md:h-full md:w-[30vw]"
-          >
-            <div className="p-4">
-              <BuyBonsaiModal />
-            </div>
-          </Modal >
+
         </main >
       </div >
     </div >

@@ -38,6 +38,8 @@ import useWebNotifications from "@src/hooks/useWebNotifications";
 import { cloneDeep } from "lodash/lang";
 import { last } from "lodash/array";
 import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
+import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
+import { storageClient } from "@src/services/lens/client";
 
 export interface StoryboardClip {
   id: string; // agentId of the preview
@@ -83,6 +85,7 @@ const StudioCreatePage: NextPage = () => {
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
   const { subscribeToPush, sendNotification } = useWebNotifications(address);
+  const tikTokIntegration = useTikTokIntegration();
 
   // Track pending generations to check when tab becomes visible
   const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());
@@ -97,18 +100,18 @@ const StudioCreatePage: NextPage = () => {
   // Function to check for completed generations
   const checkForCompletedGenerations = async () => {
     if (!roomId || !template?.apiUrl) return;
-    
+
     console.log('[create.tsx] Checking for completed generations...');
-    
+
     try {
       const sessionClient = await resumeSession(true);
       if (!sessionClient) return;
 
       const creds = await sessionClient.getCredentials();
       if (creds.isErr() || !creds.value) return;
-      
+
       const idToken = creds.value.idToken;
-      
+
       // Fetch recent messages
       const queryParams = new URLSearchParams({
         count: '5',
@@ -121,27 +124,27 @@ const StudioCreatePage: NextPage = () => {
           'Authorization': `Bearer: ${idToken}`
         },
       });
-      
+
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const messages = data.messages || [];
-      
+
       // Check if any pending generations have completed
       const completedGenerations = new Set<string>();
-      
+
       for (const msg of messages) {
         if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
           const agentId = msg.content.preview.agentId;
-          
+
           // Check if this was a pending generation
-          const isPending = localPreviews.some(lp => 
+          const isPending = localPreviews.some(lp =>
             lp.pending && (lp.tempId === agentId || lp.agentId === agentId)
           );
-          
+
           if (isPending) {
             completedGenerations.add(agentId);
-            
+
             // Update local previews to mark as completed
             setLocalPreviews(prev => prev.map(p => {
               if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
@@ -158,7 +161,7 @@ const StudioCreatePage: NextPage = () => {
               }
               return p;
             }));
-            
+
             // Set as current preview if none is selected
             if (!currentPreview || currentPreview.agentId !== agentId) {
               setCurrentPreview(msg.content.preview);
@@ -166,7 +169,7 @@ const StudioCreatePage: NextPage = () => {
           }
         }
       }
-      
+
       // Remove completed generations from pending set
       if (completedGenerations.size > 0) {
         setPendingGenerations(prev => {
@@ -175,7 +178,7 @@ const StudioCreatePage: NextPage = () => {
           return newSet;
         });
       }
-      
+
     } catch (error) {
       console.error('[create.tsx] Error checking for completed generations:', error);
     }
@@ -198,7 +201,7 @@ const StudioCreatePage: NextPage = () => {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'RELOAD_MESSAGES') {
         console.log('[create.tsx] Received reload message from service worker', event.data);
-        
+
         // If roomId matches or no specific roomId, reload messages
         if (!event.data.roomId || event.data.roomId === roomId) {
           checkForCompletedGenerations();
@@ -236,7 +239,7 @@ const StudioCreatePage: NextPage = () => {
           });
           result.preview.image = imageDataUrl;
         }
-        
+
         sendNotification("Your generation is ready", {
           body: "Click to view it on Bonsai",
           icon: '/logo.png'
@@ -251,7 +254,7 @@ const StudioCreatePage: NextPage = () => {
         };
 
         handleSetPreview(previewWithMetadata, tempId);
-        
+
         // Remove from pending generations
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
@@ -274,7 +277,7 @@ const StudioCreatePage: NextPage = () => {
         console.error(`[create.tsx] Worker failed for tempId: ${tempId}`, error);
         toast.error(`Generation failed: ${error}`);
         setLocalPreviews(prev => prev.filter(p => p.tempId !== tempId));
-        
+
         // Remove from pending generations
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
@@ -295,13 +298,13 @@ const StudioCreatePage: NextPage = () => {
         }
       }
     };
-    
+
     // Handle worker errors
     workerRef.current.onerror = (error) => {
       console.error('[create.tsx] Worker error:', error);
       toast.error('Generation worker encountered an error');
     };
-    
+
     return () => {
       console.log('[create.tsx] Terminating preview worker.');
       workerRef.current?.terminate();
@@ -420,6 +423,33 @@ const StudioCreatePage: NextPage = () => {
       console.error('Error checking referral status:', error);
       return null;
     }
+  };
+
+  const postToTikTok = async (videoUrl: string, title: string, description?: string) => {
+    if (!address || !tikTokIntegration.isConnected) {
+      throw new Error('User not connected or TikTok integration not available');
+    }
+
+    const response = await fetch('/api/integrations/tiktok/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userAddress: address,
+        videoUrl,
+        title,
+        description
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to post to TikTok');
+    }
+
+    return data.result;
   };
 
   // set the default form data to use the remixed version
@@ -600,9 +630,9 @@ const StudioCreatePage: NextPage = () => {
     try {
       // Extract last frame from video
       const lastFrame = await extractLastFrameFromVideo(preview.video);
-      
+
       handleTemplateSelect(videoTemplate);
-      
+
       // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -644,11 +674,11 @@ const StudioCreatePage: NextPage = () => {
 
       videoElement.crossOrigin = 'anonymous';
       videoElement.muted = true;
-      
+
       videoElement.onloadedmetadata = () => {
         canvas.width = videoElement.videoWidth;
         canvas.height = videoElement.videoHeight;
-        
+
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
         videoElement.currentTime = videoElement.duration * 0.99;
       };
@@ -1076,6 +1106,41 @@ const StudioCreatePage: NextPage = () => {
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
+      // Post to TikTok if user has integration connected and this is a video
+      const hasVideoToPost = currentPreview?.video || video;
+      const willPostToTikTok = tikTokIntegration.isConnected && hasVideoToPost;
+
+      if (willPostToTikTok) {
+        let videoUrlForTikTok = video?.url || (typeof currentPreview?.video === 'string' ? currentPreview.video : currentPreview?.video?.url);
+        if (videoUrlForTikTok.startsWith("lens://")) {
+          videoUrlForTikTok = await storageClient.resolve(videoUrlForTikTok);
+        }
+
+        if (videoUrlForTikTok) {
+          const tikTokTitle = postContent || currentPreview?.text || template.displayName;
+          const tikTokDescription = `${tikTokTitle}\n\nCreated with @createonbonsai`;
+
+          // Post to TikTok synchronously
+          toastId = toast.loading("Posting to TikTok...", { id: toastId });
+          try {
+            const tikTokResult = await postToTikTok(videoUrlForTikTok, tikTokTitle, tikTokDescription);
+
+            if (tikTokResult.sandboxMode) {
+              toast.success("Posted to Lens & saved as TikTok draft! Check your TikTok app to publish.", { duration: 8000, id: toastId });
+            } else {
+              toast.success(`Posted to Lens & TikTok successfully! @${tikTokResult.username}`, { duration: 8000, id: toastId });
+            }
+          } catch (error) {
+            console.error('TikTok posting failed:', error);
+            toast.success("Posted to Lens successfully! TikTok posting failed.", { duration: 5000, id: toastId });
+          }
+        } else {
+          toast.success("Done! Going to post...", { duration: 5000, id: toastId });
+        }
+      } else {
+        toast.success("Done! Going to post...", { duration: 5000, id: toastId });
+      }
+
       if (await sdk.isInMiniApp()) {
         await sdk.actions.composeCast({
           text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
@@ -1083,7 +1148,6 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
-      toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);

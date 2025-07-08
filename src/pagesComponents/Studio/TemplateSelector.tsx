@@ -178,7 +178,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   if (summary && selectedTemplate) {
     return (
       <div className="flex items-center gap-2 rounded-full mb-4">
-        <TemplateIcon type={selectedTemplate.category} />
+        <TemplateIcon type={selectedTemplate.name} />
         <span className="font-semibold text-lg text-brand-highlight">{selectedTemplate.displayName}</span>
         <span className="text-sm text-secondary/60 capitalize">{selectedTemplate.category.replace(/_/g, " ")}</span>
         {selectedSubTemplate && (

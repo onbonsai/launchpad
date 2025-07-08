@@ -36,7 +36,7 @@ const headerLinks = [
   },
   {
     label: "Studio",
-    href: "/studio",
+    href: "/studio/create",
     requiresAuth: true,
   },
   {

@@ -50,8 +50,6 @@ const nextConfig = {
       '@emotion/css',
       '@emotion/styled',
       '@apollo/client',
-      '@decent.xyz/box-common',
-      '@decent.xyz/the-box',
       '@ensdomains/ensjs',
       '@farcaster/frame-sdk',
       '@farcaster/frame-wagmi-connector',

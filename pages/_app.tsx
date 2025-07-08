@@ -4,13 +4,11 @@ import "@styles/globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
-import { BoxThemeProvider } from "@decent.xyz/the-box";
 import { ThirdwebProvider } from "thirdweb/react";
 import Script from "next/script";
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
-// Removed ViewTransitions import
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -20,21 +18,6 @@ import { brandFont, openSans, sourceCodePro } from "@src/fonts/fonts";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
-
-const boxTheme = {
-  mainBgColor: "#141414",
-  mainTextColor: "#ffffff",
-  tokenSwapCardBgColor: "#1B1B1B",
-  buyBtnBgColor: "#e42101",
-  buyBtnTextColor: "#ffffff",
-  switchBtnBgColor: "#3A3842",
-  tokenDialogHoverColor: "#444444",
-  boxSubtleColor1: "#999999",
-  borderColor: "transparent",
-  borderRadius: "0",
-  loadShineColor1: "#121212",
-  loadShineColor2: "#333333",
-};
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
@@ -94,16 +77,6 @@ export default function MyApp(props: AppProps) {
         (this as HTMLLinkElement).media = 'all';
       };
       document.head.appendChild(calendarCSS);
-
-      // Load The Box CSS asynchronously
-      const boxCSS = document.createElement('link');
-      boxCSS.rel = 'stylesheet';
-      boxCSS.href = '/node_modules/@decent.xyz/the-box/dist/index.css';
-      boxCSS.media = 'print';
-      boxCSS.onload = function() {
-        (this as HTMLLinkElement).media = 'all';
-      };
-      document.head.appendChild(boxCSS);
     };
 
     // Load after initial paint using requestIdleCallback or fallback
@@ -218,9 +191,7 @@ export default function MyApp(props: AppProps) {
                     </Toaster>
                     <NextNProgress color="#4D7F79" height={2} />
                     <AppLayout>
-                      <BoxThemeProvider theme={boxTheme}>
-                        <Component {...pageProps} />
-                      </BoxThemeProvider>
+                      <Component {...pageProps} />
                     </AppLayout>
                     <Analytics />
                   </TopUpModalProvider>
