@@ -10,7 +10,6 @@ import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
-import useIsMounted from "@src/hooks/useIsMounted";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
@@ -54,13 +53,11 @@ const StudioCreatePage: NextPage = () => {
   const { isMiniApp } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
-  const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
   const [openTab, setOpenTab] = useState<number>(1);
   const [currentPreview, setCurrentPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -653,7 +650,7 @@ const StudioCreatePage: NextPage = () => {
         canvas.height = videoElement.videoHeight;
         
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
-        videoElement.currentTime = videoElement.duration * 0.9;
+        videoElement.currentTime = videoElement.duration * 0.99;
       };
 
       videoElement.onseeked = () => {

@@ -7,7 +7,7 @@ import { useAccount, useWalletClient } from 'wagmi';
 import toast from 'react-hot-toast';
 import useChat from '../hooks/useChat';
 import type { AgentMessage, StreamEntry } from '../types';
-import { generateSeededUUID, generateUUID, markdownToPlainText } from '../utils';
+import { markdownToPlainText } from '../utils';
 import ChatInput from './ChatInput';
 import StreamItem from './StreamItem';
 import { pinFile, storjGatewayURL } from "@src/utils/storj";
@@ -32,15 +32,13 @@ import { encodeAbi } from '@src/utils/viem';
 import { cloneDeep } from "lodash/lang";
 import { Publication, Theme } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
-import { AnimatedText } from '@src/components/LoadingSpinner/AnimatedText';
+import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
-import { ANIMATED_HINT_LINES } from '@src/constants/constants';
-import { Button } from '@src/components/Button';
 import { DownloadIcon } from '@heroicons/react/outline';
 import { FastForwardIcon, FilmIcon } from '@heroicons/react/solid';
 import { SparklesIcon } from '@heroicons/react/solid';
-import { parseBase64Image } from '@src/utils/utils';
+import { type StoryboardClip } from '@pages/studio/create';
+import { mapTemplateNameToTemplate } from "@src/utils/utils";
 
 type ChatProps = {
   agentId: string;
@@ -68,7 +66,8 @@ const PreviewMessage = ({
   onAnimateImage,
   onExtendVideo,
   onDownload,
-  isProcessingVideo = false
+  isProcessingVideo = false,
+  isPosting = false
 }: { 
   preview?: Preview;
   isAgent: boolean;
@@ -83,12 +82,14 @@ const PreviewMessage = ({
   onExtendVideo?: (preview: Preview) => void;
   onDownload?: (preview: Preview) => void;
   isProcessingVideo?: boolean;
+  isPosting?: boolean;
 }) => {
   if (isPending) {
     return (
-      <div className="flex flex-col items-center space-y-2 py-4">
-        <AnimatedBonsaiGrid />
-        <AnimatedText lines={ANIMATED_HINT_LINES} className="w-full text-sm" />
+      <div className={`${isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
+        <div className="relative group">
+          <AnimatedBonsaiGrid />
+        </div>
       </div>
     );
   }
@@ -102,7 +103,7 @@ const PreviewMessage = ({
   const canAddToStoryboard = hasVideo && onAddToStoryboard && storyboardCount < 10;
 
   return (
-    <div className={`${isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
+    <div className={`${isPosting ? '' : isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
       <div className="rounded-2xl bg-[#141414] relative overflow-hidden group">
         {/* Custom video container with max height */}
         {hasVideo && (
@@ -188,7 +189,7 @@ const PreviewMessage = ({
             )}
 
             {/* Extend Video button - only for videos */}
-            {hasVideo && onExtendVideo && (
+            {hasVideo && onExtendVideo && !isPosting && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -203,7 +204,7 @@ const PreviewMessage = ({
             )}
 
             {/* Download button - only show if there's media to download */}
-            {(hasImage || hasVideo) && onDownload && (
+            {(hasImage || hasVideo) && onDownload && !isPosting && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -223,7 +224,7 @@ const PreviewMessage = ({
             )}
 
             {/* Use this button */}
-            {onUseThis && (
+            {onUseThis && !isPosting && (
               <button
                 onClick={() => onUseThis(preview)}
                 className="flex items-center gap-1 bg-brand-highlight rounded-lg px-2 py-1 hover:bg-brand-highlight/80 transition-colors text-black font-medium"
@@ -232,7 +233,7 @@ const PreviewMessage = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                Post
+                Use this
               </button>
             )}
           </div>
@@ -275,8 +276,10 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const [postingPreview, setPostingPreview] = useState<Preview | undefined>();
   const [imageToExtend, setImageToExtend] = useState<string | null>(null);
   
-  const storyboardKey = `storyboard-${post?.id || 'default'}`;
-  const [storyboardPreviews, setStoryboardPreviews] = useState<Preview[]>([]);
+  const storyboardKey = `storyboard-${post?.slug || 'default'}`;
+  const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
+  const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
+  const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
   const [isStoryboardInitialized, setIsStoryboardInitialized] = useState(false);
   const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
 
@@ -296,9 +299,9 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   };
 
   useEffect(() => {
-    const storyboardKey = `storyboard-${post?.id || 'default'}`;
+    const storyboardKey = `storyboard-${post?.slug || 'default'}`;
     // This effect runs once per post to initialize the storyboard state
-    if (isStoryboardInitialized || !post?.id) return;
+    if (isStoryboardInitialized || !post?.slug) return;
 
     const initializeStoryboard = async () => {
       // 1. Try to load from localStorage first
@@ -306,7 +309,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         const saved = localStorage.getItem(storyboardKey);
         if (saved) {
           try {
-            setStoryboardPreviews(JSON.parse(saved));
+            const storyboardData = JSON.parse(saved);
+            setStoryboardClips(storyboardData.clips.map(c => ({
+              id: c.id,
+              preview: c.preview,
+              startTime: c.startTime,
+              endTime: c.endTime,
+              duration: c.duration
+            })));
+            setStoryboardAudio(storyboardData.audio);
+            setStoryboardAudioStartTime(storyboardData.audioStartTime);
             setIsStoryboardInitialized(true);
             return;
           } catch (e) {
@@ -319,56 +331,70 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       // 2. If nothing in localStorage, initialize from the original post media if it's a storyboard
       const templateData = media?.templateData as any;
       if (templateData?.clips && Array.isArray(templateData.clips)) {
-        const initialPreviews: Preview[] = await Promise.all(
+        const initialClips: StoryboardClip[] = await Promise.all(
           templateData.clips.map(async (clip: any, index: number) => {
             const duration = await getVideoDuration(clip.video?.url).catch(() => 6);
             
-            const clipPreview: Preview = {
-              video: clip.video?.url ? { url: clip.video.url } : clip.video,
-              image: clip.image || clip.thumbnail,
-              imagePreview: clip.imagePreview || clip.thumbnail,
-              text: clip.sceneDescription || clip.text || '',
-              agentId: clip.agentId || `clip-${index}`,
-              templateName: media?.template || 'unknown',
-              templateData: {
-                prompt: clip.prompt || clip.sceneDescription || '',
-                sceneDescription: clip.sceneDescription || '',
-                elevenLabsVoiceId: clip.elevenLabsVoiceId,
-                narration: clip.narration,
-                stylePreset: clip.stylePreset,
-                subjectReference: clip.subjectReference,
-                aspectRatio: clip.aspectRatio,
-                ...clip.templateData
+            const clipPreview: StoryboardClip = {
+              id: clip.agentId || `clip-${index}`,
+              preview: {
+                video: clip.video?.url ? { url: clip.video.url } : clip.video,
+                image: clip.image || clip.thumbnail,
+                imagePreview: clip.imagePreview || clip.thumbnail,
+                text: clip.sceneDescription || clip.text || '',
+                agentId: clip.agentId || `clip-${index}`,
+                templateName: media?.template || 'unknown',
+                templateData: {
+                  prompt: clip.prompt || clip.sceneDescription || '',
+                  sceneDescription: clip.sceneDescription || '',
+                  elevenLabsVoiceId: clip.elevenLabsVoiceId,
+                  narration: clip.narration,
+                  stylePreset: clip.stylePreset,
+                  subjectReference: clip.subjectReference,
+                  aspectRatio: clip.aspectRatio,
+                  ...clip.templateData
+                },
               },
+              startTime: 0,
+              endTime: duration,
+              duration: duration,
             };
             return clipPreview;
           })
         );
-        setStoryboardPreviews(initialPreviews);
+        setStoryboardClips(initialClips);
+      }
+      if (templateData?.audioData) {
+        setStoryboardAudio(templateData.audioData);
+      }
+      if (templateData?.audioStartTime) {
+        setStoryboardAudioStartTime(templateData.audioStartTime);
       }
       setIsStoryboardInitialized(true);
     };
 
     initializeStoryboard();
-  }, [post?.id, media, isStoryboardInitialized]);
+  }, [post?.slug, media, isStoryboardInitialized]);
 
   // Save storyboard to localStorage whenever it changes
   useEffect(() => {
-    // Only save to localStorage after initialization is complete
     if (isStoryboardInitialized) {
-      const storyboardKey = `storyboard-${post?.id || 'default'}`;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(storyboardKey, JSON.stringify(storyboardPreviews));
-      }
+      const storyboardData = {
+        clips: storyboardClips.map(c => ({
+          id: c.id,
+          preview: c.preview,
+          startTime: c.startTime,
+          endTime: c.endTime,
+          duration: c.duration
+        })),
+        audio: storyboardAudio,
+        audioStartTime: storyboardAudioStartTime
+      };
+      localStorage.setItem(storyboardKey, JSON.stringify(storyboardData));
     }
-  }, [storyboardPreviews, post?.id, isStoryboardInitialized]);
+  }, [storyboardClips, storyboardAudio, storyboardAudioStartTime, post?.id, isStoryboardInitialized]);
   
   const router = useRouter();
-
-  console.log('[Chat] messageData', messageData);
-  console.log('[Chat] localPreviews', localPreviews);
-  console.log('[Chat] storyboardPreviews', storyboardPreviews);
-  console.log('[Chat] localPreviews length:', localPreviews.length);
 
   // --- Worker Management Logic ---
   const workerRef = useRef<Worker | undefined>(undefined);
@@ -377,7 +403,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
   useEffect(() => {
     if (!workerRef.current) {
-      console.log('[Chat] Creating preview worker...');
       const worker = new Worker(new URL('../../../services/preview.worker.ts', import.meta.url));
       
       worker.onmessage = (event) => {
@@ -396,7 +421,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     
     return () => {
       if (workerRef.current) {
-        console.log('[Chat] Unmounting, terminating worker');
         workerRef.current.terminate();
         workerRef.current = undefined;
       }
@@ -427,8 +451,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           result.preview.image = imageDataUrl;
         }
         
-        console.log(`[Chat] Worker successfully generated preview for tempId: ${tempId}`, result);
-
         const previewWithMetadata = {
           ...result.preview,
           agentId: result.agentId,
@@ -669,7 +691,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       toastId = toast.loading("Creating your post...", { id: toastId });
 
-      const template = media ? registeredTemplates?.find((t) => t.name === media?.template) : undefined;
+      const template = media ? mapTemplateNameToTemplate(media?.template, registeredTemplates || []) : undefined;
       if (!template) throw new Error("template not found")
 
       if (postingPreview.video && !postingPreview.video.url?.startsWith("https://")) {
@@ -811,19 +833,27 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
   // Handler for adding to storyboard
   const handleAddToStoryboard = useCallback((preview: Preview) => {
-    if (storyboardPreviews.length >= 10) {
+    if (storyboardClips.length >= 10) {
       toast.error("You can add a maximum of 10 clips to the storyboard");
       return;
     }
     
-    if (storyboardPreviews.some(p => p.agentId === preview.agentId)) {
+    if (storyboardClips.some(c => c.id === preview.agentId)) {
       toast("This clip is already in your storyboard", { icon: 'ℹ️' });
       return;
     }
     
-    setStoryboardPreviews(prev => [...prev, preview]);
+    // Add the new clip to the storyboard
+    const newClip: StoryboardClip = {
+      id: preview.agentId as string,
+      preview: preview,
+      startTime: 0,
+      endTime: 6, // Default duration, will be updated
+      duration: 6,
+    };
+    setStoryboardClips(prev => [...prev, newClip]);
     toast.success("Added to storyboard!");
-  }, [storyboardPreviews]);
+  }, [storyboardClips]);
 
   // Handler for animating image (extending video)
   const handleAnimateImage = useCallback(async (preview: Preview) => {
@@ -880,7 +910,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         canvas.height = videoElement.videoHeight;
         
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
-        videoElement.currentTime = videoElement.duration * 0.9;
+        videoElement.currentTime = videoElement.duration * 0.99;
       };
 
       videoElement.onseeked = () => {
@@ -914,7 +944,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const downloadVideoWithOutro = async (preview: any, filename: string) => {
     const agentId = preview.agentId || 'unknown';
     
-    if (isProcessingVideo[agentId]) {
+    if (isProcessingVideo?.[agentId]) {
       return;
     }
 
@@ -1071,24 +1101,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
       {/* Storyboard indicator */}
-      {storyboardPreviews.length > 0 && (
-        <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4">
+      {storyboardClips.length > 0 && (
+        <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
           <div className="flex items-center gap-2">
             <FilmIcon className="w-4 h-4" />
-            <span className="text-sm text-white">
-              Storyboard: {storyboardPreviews.length} clip{storyboardPreviews.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setStoryboardPreviews([])}
-              className="text-xs text-white/60 hover:text-white transition-colors"
-            >
-              Clear
-            </button>
-            <span className="text-xs text-white/40">•</span>
-            <span className="text-xs text-white/60">
-              {10 - storyboardPreviews.length} slots remaining
+            <span className="text-xs text-white">
+              Storyboard: {storyboardClips.length} clip{storyboardClips.length !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
@@ -1108,10 +1126,9 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                     <div className="text-xs text-zinc-500 mb-2 text-center">Last {messageHistory.length} messages</div>
                     <div className="space-y-8">
                       {[...messageHistory].reverse().map((message, index) => {
-                        console.log('[Chat] Rendering messageHistory', index, message);
                         return (
-                          <div key={message.id} className="space-y-2">
-                                                      {message.content.preview ? (
+                        <div key={message.id} className="space-y-2">
+                          {message.content.preview ? (
                               <div className="mb-4">
                                 {/* Show user prompt if this is an agent message with preview */}
                                 {message.content.source !== "bonsai-terminal" && message.content.text && (
@@ -1122,40 +1139,41 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                   </div>
                                 )}
                                 <PreviewMessage
-                              preview={{
-                                ...(message.content.preview as Preview),
-                                text: message.content.text,
-                              }}
+                                  preview={{
+                                    ...(message.content.preview as Preview),
+                                    text: message.content.text,
+                                  }}
                                   isAgent={message.content.source !== "bonsai-terminal"}
                                   timestamp={new Date(message.createdAt as number)}
                                   authenticatedProfile={authenticatedProfile}
                                   onUseThis={handlePostButtonClick}
                                   onAddToStoryboard={handleAddToStoryboard}
-                                  isInStoryboard={storyboardPreviews.some(p => p.agentId === (message.content.preview as Preview).agentId)}
-                                  storyboardCount={storyboardPreviews.length}
+                                  isInStoryboard={storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
+                                  storyboardCount={storyboardClips.length}
                                   onAnimateImage={handleAnimateImage}
                                   onExtendVideo={handleExtendVideo}
                                   onDownload={handleDownload}
-                                  isProcessingVideo={isProcessingVideo[(message.content.preview as Preview).agentId || 'unknown']}
+                                  isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
+                                  isPosting={isPosting}
                                 />
                               </div>
-                            ) : (
-                              <StreamItem
-                                entry={{
-                                  timestamp: new Date(message.createdAt as number),
-                                  type: message.content.source === "bonsai-terminal" ? "user" : "agent",
-                                  content: markdownToPlainText(message.content.text),
-                                }}
-                                setUserInput={setUserInput}
-                                setRequestPayload={setRequestPayload}
-                              />
-                            )}
-                            {index === messageHistory.length - 1 && (
-                              <div className="text-xs text-zinc-500 text-center">
-                                {format(new Date(message.createdAt as number), "EEEE, MMMM do h:mmaaa")}
-                              </div>
-                            )}
-                          </div>
+                          ) : (
+                            <StreamItem
+                              entry={{
+                                timestamp: new Date(message.createdAt as number),
+                                type: message.content.source === "bonsai-terminal" ? "user" : "agent",
+                                content: markdownToPlainText(message.content.text),
+                              }}
+                              setUserInput={setUserInput}
+                              setRequestPayload={setRequestPayload}
+                            />
+                          )}
+                          {index === messageHistory.length - 1 && (
+                            <div className="text-xs text-zinc-500 text-center">
+                              {format(new Date(message.createdAt as number), "EEEE, MMMM do h:mmaaa")}
+                            </div>
+                          )}
+                        </div>
                         );
                       })}
                     </div>
@@ -1165,17 +1183,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                 <div className="space-y-8 flex-grow" role="log" aria-live="polite">
                   {/* Render stream entries without previews */}
                   {streamEntries.filter(entry => !entry.preview).map((entry, index) => (
-                    <StreamItem
+                        <StreamItem
                       key={`stream-${entry.timestamp.toISOString()}-${index}`}
-                      entry={entry}
-                      setUserInput={setUserInput}
-                      setRequestPayload={setRequestPayload}
+                          entry={entry}
+                          setUserInput={setUserInput}
+                          setRequestPayload={setRequestPayload}
                     />
                   ))}
                   
                                     {/* Render local previews in chronological order */}
                   {[...localPreviews].reverse().map((preview, index) => {
-                    console.log(`[Chat] Rendering localPreview ${index}:`, preview);
                     
                     // Determine if this is a user message (no preview) or agent message (has preview or pending)
                     const isUserMessage = !preview.content.preview && !(preview as any).pending;
@@ -1204,19 +1221,20 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                             onUseThis={preview.content.preview ? handlePostButtonClick : undefined}
                             isPending={(preview as any).pending}
                             onAddToStoryboard={preview.content.preview ? handleAddToStoryboard : undefined}
-                            isInStoryboard={preview.content.preview ? storyboardPreviews.some(p => p.agentId === preview.content.preview?.agentId) : false}
-                            storyboardCount={storyboardPreviews.length}
+                            isInStoryboard={preview.content.preview ? storyboardClips.some(c => c.id === preview.content.preview?.agentId) : false}
+                            storyboardCount={storyboardClips.length}
                             onAnimateImage={handleAnimateImage}
                             onExtendVideo={handleExtendVideo}
                             onDownload={handleDownload}
-                            isProcessingVideo={isProcessingVideo[(preview.content.preview as Preview).agentId || 'unknown']}
+                            isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
+                            isPosting={isPosting}
                         />
                         </div>
                       );
                     }
                     
                     // If it doesn't match either pattern, don't render
-                    return null;
+                      return null;
                     })}
                   <div
                     className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${
@@ -1250,13 +1268,14 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           </button>
           <div className="ring-2 ring-brand-highlight rounded-2xl">
             <PreviewMessage
-              preview={postingPreview}
+            preview={postingPreview}
               isAgent={true}
               timestamp={new Date()}
               authenticatedProfile={authenticatedProfile}
               onAnimateImage={handleAnimateImage}
               onExtendVideo={handleExtendVideo}
               onDownload={handleDownload}
+              isPosting={isPosting}
             />
           </div>
         </div>
@@ -1294,8 +1313,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         pendingGenerations={pendingGenerations}
         setPendingGenerations={setPendingGenerations}
         postId={post?.id || undefined}
-        storyboardPreviews={storyboardPreviews}
-        setStoryboardPreviews={setStoryboardPreviews}
+        storyboardClips={storyboardClips}
+        storyboardAudio={storyboardAudio}
+        storyboardAudioStartTime={storyboardAudioStartTime}
+        setStoryboardClips={setStoryboardClips}
+        setStoryboardAudio={setStoryboardAudio}
+        setStoryboardAudioStartTime={setStoryboardAudioStartTime}
         imageToExtend={imageToExtend}
         setImageToExtend={setImageToExtend}
       />

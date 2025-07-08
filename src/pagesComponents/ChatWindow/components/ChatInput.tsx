@@ -5,11 +5,10 @@ import ImageAttachment from "../svg/ImageAttachment";
 import toast from 'react-hot-toast';
 import { PROMOTE_TOKEN_COST } from '../constants';
 import { Button } from '@src/components/Button';
-import { TemplateSuggestions } from './TemplateSuggestions';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import RemixForm from './RemixForm';
-import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import { useTopUpModal } from '@src/context/TopUpContext';
+import { type StoryboardClip } from '@pages/studio/create';
 
 type PremadeChatInputProps = {
   label: string;
@@ -130,8 +129,12 @@ export type ChatInputProps = {
   pendingGenerations?: Set<string>;
   setPendingGenerations?: React.Dispatch<React.SetStateAction<Set<string>>>;
   postId?: string;
-  storyboardPreviews?: Preview[];
-  setStoryboardPreviews?: React.Dispatch<React.SetStateAction<Preview[]>>;
+  storyboardClips?: StoryboardClip[];
+  storyboardAudio?: File | string | null;
+  storyboardAudioStartTime?: number;
+  setStoryboardClips?: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  setStoryboardAudio?: React.Dispatch<React.SetStateAction<File | string | null>>;
+  setStoryboardAudioStartTime?: React.Dispatch<React.SetStateAction<number>>;
   imageToExtend?: string | null;
   setImageToExtend?: React.Dispatch<React.SetStateAction<string | null>>;
 };
@@ -163,15 +166,18 @@ export default function ChatInput({
   pendingGenerations,
   setPendingGenerations,
   postId,
-  storyboardPreviews = [],
-  setStoryboardPreviews,
+  storyboardClips = [],
+  storyboardAudio,
+  storyboardAudioStartTime,
+  setStoryboardClips,
+  setStoryboardAudio,
+  setStoryboardAudioStartTime,
   imageToExtend,
   setImageToExtend,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
-  const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   
@@ -217,13 +223,6 @@ export default function ChatInput({
       setShowRemixForm(true);
     }
   }, [imageToExtend]);
-
-  const handleTemplateSelect = useCallback((selection: { name: string; inputText: string; description?: string }) => {
-    setUserInput(selection.inputText);
-    setDynamicPlaceholder(selection.description || placeholder || DEFAULT_PLACEHOLDER);
-    setSelectedTemplateName(selection.name);
-    textareaRef.current?.focus();
-  }, [setUserInput, placeholder]);
 
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -302,8 +301,12 @@ export default function ChatInput({
           pendingGenerations={pendingGenerations}
           setPendingGenerations={setPendingGenerations}
           postId={postId}
-          storyboardPreviews={storyboardPreviews}
-          setStoryboardPreviews={setStoryboardPreviews}
+          storyboardClips={storyboardClips}
+          storyboardAudio={storyboardAudio}
+          storyboardAudioStartTime={storyboardAudioStartTime}
+          setStoryboardClips={setStoryboardClips}
+          setStoryboardAudio={setStoryboardAudio}
+          setStoryboardAudioStartTime={setStoryboardAudioStartTime}
           extendedImage={imageToExtend}
         />
       )}
@@ -313,15 +316,6 @@ export default function ChatInput({
       >
         <div className="flex flex-col w-full">
           <div className="relative flex flex-col w-full px-[10px]">
-            {isGeneratingPreview && (
-              <div className="mt-4 mb-4 flex justify-center">
-                <div className="w-[250px] p-4">
-                  <div className="flex flex-col items-center gap-4">
-                    <AnimatedBonsaiGrid />
-                  </div>
-                </div>
-              </div>
-            )}
             {!showRemixForm && !isGeneratingPreview && (
               <div className="relative">
                 {disabled && placeholder === "Insufficient credits" ?

@@ -568,6 +568,7 @@ export const composeStoryboard = async (
         id: clip.id,
         startTime: clip.startTime,
         endTime: clip.endTime,
+        videoUrl: clip.preview?.video?.url,
       })),
       audioStartTime,
       audio

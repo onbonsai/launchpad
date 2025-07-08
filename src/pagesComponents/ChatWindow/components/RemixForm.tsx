@@ -59,8 +59,12 @@ type RemixFormProps = {
   pendingGenerations?: Set<string>;
   setPendingGenerations?: React.Dispatch<React.SetStateAction<Set<string>>>;
   postId?: string;
-  storyboardPreviews?: Preview[];
-  setStoryboardPreviews?: React.Dispatch<React.SetStateAction<Preview[]>>;
+  storyboardClips?: StoryboardClip[];
+  storyboardAudio?: File | string | null;
+  storyboardAudioStartTime?: number;
+  setStoryboardClips?: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  setStoryboardAudio?: React.Dispatch<React.SetStateAction<File | string | null>>;
+  setStoryboardAudioStartTime?: React.Dispatch<React.SetStateAction<number>>;
   extendedImage?: string | null;
 };
 
@@ -80,8 +84,12 @@ export default function RemixForm({
   pendingGenerations = new Set(),
   setPendingGenerations,
   postId,
-  storyboardPreviews = [],
-  setStoryboardPreviews,
+  storyboardClips = [],
+  storyboardAudio,
+  storyboardAudioStartTime,
+  setStoryboardClips,
+  setStoryboardAudio,
+  setStoryboardAudioStartTime,
   extendedImage,
 }: RemixFormProps) {
   const { address, isConnected } = useAccount();
@@ -100,23 +108,6 @@ export default function RemixForm({
     tokenLogo: string;
   } | undefined>(undefined);
   
-  // Initialize storyboard clips from parent's storyboard previews
-  const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>(() => {
-    if (storyboardPreviews && storyboardPreviews.length > 0) {
-      return storyboardPreviews.map((preview, index) => ({
-        id: preview.agentId || `clip-${index}`,
-        preview: preview,
-        templateData: preview.templateData,
-        startTime: 0,
-        endTime: 6, // Default duration
-        duration: 6,
-      }));
-    }
-    return [];
-  });
-  const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
-  const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
-  
   const [showRemixPanel, setShowRemixPanel] = useState(false);
   const [editingClip, setEditingClip] = useState<StoryboardClip | null>(null);
   const [editingPrompt, setEditingPrompt] = useState<string>("");
@@ -124,7 +115,7 @@ export default function RemixForm({
   
   const imageUploaderRef = useRef<ImageUploaderRef | null>(null);
   const { subscribeToPush } = useWebNotifications(address);
-  
+
   const isStoryboardPost = storyboardClips.length > 0;
 
   useEffect(() => {
@@ -139,36 +130,6 @@ export default function RemixForm({
       setIsGeneratingPreview(pendingGenerations.size > 0);
     }
   }, [pendingGenerations.size, setIsGeneratingPreview]);
-
-  // Sync storyboard clips back to parent's storyboard previews
-  useEffect(() => {
-    if (setStoryboardPreviews) {
-      const previews = storyboardClips.map(clip => clip.preview);
-      setStoryboardPreviews(previews);
-    }
-  }, [storyboardClips, setStoryboardPreviews]);
-
-  // Sync storyboard clips when storyboardPreviews prop changes (e.g., from chat interface)
-  useEffect(() => {
-    if (storyboardPreviews && storyboardPreviews.length > 0) {
-      const newClips = storyboardPreviews.map((preview, index) => ({
-        id: preview.agentId || `clip-${index}`,
-        preview: preview,
-        templateData: preview.templateData,
-        startTime: 0,
-        endTime: 6, // Default duration
-        duration: 6,
-      }));
-      
-      // Only update if the clips are actually different
-      const currentClipIds = storyboardClips.map(c => c.id).sort();
-      const newClipIds = newClips.map(c => c.id).sort();
-      
-      if (JSON.stringify(currentClipIds) !== JSON.stringify(newClipIds)) {
-        setStoryboardClips(newClips);
-      }
-    }
-  }, [storyboardPreviews]);
 
   useEffect(() => {
     setOptimisticCreditBalance(creditBalance?.creditsRemaining);
@@ -205,8 +166,6 @@ export default function RemixForm({
         
         const data = await response.json();
         const messages = data.messages || [];
-
-        console.log('[RemixForm] Messages:', messages);
         
         // Convert messages to localPreviews format
         const previews = messages
@@ -387,7 +346,7 @@ export default function RemixForm({
                 ...editingClip,
                 preview: msg.content.preview
               };
-              setStoryboardClips(prev => prev.map(c => c.id === agentId ? updatedClip : c));
+              setStoryboardClips?.(prev => prev.map(c => c.id === agentId ? updatedClip : c));
               setPreview(msg.content.preview);
             } else if (!currentPreview || currentPreview.agentId !== agentId) {
               setCurrentPreview?.(msg.content.preview);
@@ -635,25 +594,15 @@ export default function RemixForm({
 
   useEffect(() => {
     if (remixMedia.templateData) {
-        const templateData = remixMedia.templateData as any;
-        if (templateData.audioData) {
-            setStoryboardAudio(templateData.audioData.data || templateData.audioData.url || templateData.audioData);
-            setStoryboardAudioStartTime(
-            typeof templateData.audioStartTime === 'object' && templateData.audioStartTime.$numberDouble
-                ? parseFloat(templateData.audioStartTime.$numberDouble)
-                : templateData.audioStartTime || 0
-            );
-        } else if (templateData.audioStartTime !== undefined) {
-            setStoryboardAudioStartTime(
-            typeof templateData.audioStartTime === 'object' && templateData.audioStartTime.$numberDouble
-                ? parseFloat(templateData.audioStartTime.$numberDouble)
-                : templateData.audioStartTime || 0
-            );
-        }
-        
-        if (templateData.prompt && !templateData.clips) {
-            setPrompt(templateData.prompt);
-        }
+      const templateData = remixMedia.templateData as any;
+      if (templateData.audioData) {
+        setStoryboardAudio?.(templateData.audioData.data || templateData.audioData.url || templateData.audioData);
+        setStoryboardAudioStartTime?.(templateData.audioStartTime || 0);
+      }
+      
+      if (templateData.prompt && !templateData.clips) {
+        setPrompt(templateData.prompt);
+      }
     }
   }, [remixMedia.templateData]);
 
@@ -763,17 +712,17 @@ export default function RemixForm({
     setShowEditPromptModal(false);
     
     await generatePreview(
-      editingPrompt || editingClip.preview.templateData?.prompt || "",
-      editingClip.templateData,
+        editingPrompt || editingClip.preview.templateData?.prompt || "",
+        editingClip.templateData,
       undefined,
       editingClip.templateData?.aspectRatio,
       undefined,
       undefined,
-      editingClip.id
-    );
-    
-    setEditingClip(null);
-    setEditingPrompt("");
+        editingClip.id
+      );
+      
+      setEditingClip(null);
+      setEditingPrompt("");
   };
 
   const handleCopyField = (fieldKey: string, value: any) => {
@@ -797,6 +746,46 @@ export default function RemixForm({
           [fieldKey]: value
         }));
         break;
+    }
+  };
+
+  // Sync storyboard clips back to parent's storyboard previews
+  useEffect(() => {
+    if (setStoryboardClips) {
+      setStoryboardClips(storyboardClips);
+    }
+  }, [storyboardClips, setStoryboardClips]);
+
+  // Handle successful composition by adding to local previews
+  const handleCompositionSuccess = (composedPreview: Preview) => {
+    if (setLocalPreviews) {
+      const now = new Date().toISOString();
+      
+      // Ensure video structure is correct for rendering
+      const previewToAdd = {
+        ...composedPreview,
+        video: composedPreview.video ? {
+          ...composedPreview.video,
+          // Make sure we have the blob or URL available
+          ...(composedPreview.video.url && { url: composedPreview.video.url }),
+          ...(composedPreview.video.blob && { blob: composedPreview.video.blob })
+        } : undefined
+      };
+      
+      setLocalPreviews(prev => {
+        const newPreviews = [{
+          isAgent: true,
+          createdAt: now,
+          agentId: composedPreview.agentId,
+          content: {
+            preview: previewToAdd,
+            text: "Storyboard composed successfully!",
+          }
+        }, ...prev];
+        return newPreviews;
+      });
+
+      onClose();
     }
   };
 
@@ -843,44 +832,45 @@ export default function RemixForm({
           </div>
         ) : (
           <>
-            <CreatePostForm
-              template={template}
-              selectedSubTemplate={template.templateData?.subTemplates?.find((subTemplate: any) => subTemplate.id === (remixMedia.templateData as any)?.subTemplateId) || undefined}
-              finalTemplateData={finalTemplateData}
-              preview={preview}
-              setPreview={handleSetPreview}
-              next={handleNext}
-              postContent={postContent}
-              setPostContent={setPostContent}
-              prompt={prompt}
-              setPrompt={setPrompt}
-              postImage={postImage}
-              setPostImage={setPostImage}
-              isGeneratingPreview={isGeneratingPreview}
-              postAudio={postAudio}
-              setPostAudio={setPostAudio}
-              audioStartTime={audioStartTime}
-              setAudioStartTime={setAudioStartTime}
-              roomId={roomId}
-              tooltipDirection="top"
-              remixToken={finalTokenData ? {
-                address: remixMedia.token.address,
-                symbol: finalTokenData.tokenSymbol,
-                chain: remixMedia.token.chain
-              } : undefined}
-              remixPostId={remixMedia.postId}
-              remixMediaTemplateData={remixMedia.templateData}
-              onClose={onClose}
-              storyboardClips={storyboardClips}
-              setStoryboardClips={setStoryboardClips}
-              storyboardAudio={storyboardAudio}
-              setStoryboardAudio={setStoryboardAudio}
-              storyboardAudioStartTime={storyboardAudioStartTime}
-              setStoryboardAudioStartTime={setStoryboardAudioStartTime}
-              creditBalance={creditBalance?.creditsRemaining}
+          <CreatePostForm
+            template={template}
+            selectedSubTemplate={template.templateData?.subTemplates?.find((subTemplate: any) => subTemplate.id === (remixMedia.templateData as any)?.subTemplateId) || undefined}
+            finalTemplateData={finalTemplateData}
+            preview={preview}
+            setPreview={handleSetPreview}
+            next={handleNext}
+            postContent={postContent}
+            setPostContent={setPostContent}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            postImage={postImage}
+            setPostImage={setPostImage}
+            isGeneratingPreview={isGeneratingPreview}
+            postAudio={postAudio}
+            setPostAudio={setPostAudio}
+            audioStartTime={audioStartTime}
+            setAudioStartTime={setAudioStartTime}
+            roomId={roomId}
+            tooltipDirection="top"
+            remixToken={finalTokenData ? {
+              address: remixMedia.token.address,
+              symbol: finalTokenData.tokenSymbol,
+              chain: remixMedia.token.chain
+            } : undefined}
+            remixPostId={remixMedia.postId}
+            remixMediaTemplateData={remixMedia.templateData}
+            onClose={onClose}
+            storyboardClips={storyboardClips}
+            setStoryboardClips={setStoryboardClips || (() => {})}
+            storyboardAudio={storyboardAudio || null}
+            setStoryboardAudio={setStoryboardAudio || (() => {})}
+            storyboardAudioStartTime={storyboardAudioStartTime || 0}
+            setStoryboardAudioStartTime={setStoryboardAudioStartTime || (() => {})}
+            creditBalance={creditBalance?.creditsRemaining}
               refetchCredits={refetchCredits}
-              imageUploaderRef={imageUploaderRef}
+            imageUploaderRef={imageUploaderRef}
               generatePreview={generatePreview}
+            onCompositionSuccess={handleCompositionSuccess}
             />
             
             {pendingGenerations.size > 0 && (
@@ -931,7 +921,7 @@ export default function RemixForm({
           <h2 className="text-xl font-bold text-white mb-4">Storyboard Clips</h2>
           <RemixPanel
             clips={storyboardClips}
-            setClips={setStoryboardClips}
+            setClips={setStoryboardClips || (() => {})}
             onAddClip={handleAddClip}
             onReplaceClip={handleReplaceClip}
             onEditClip={handleEditClip}

@@ -75,6 +75,7 @@ type CreatePostProps = {
   creditBalance?: number;
   refetchCredits: () => void;
   imageUploaderRef: React.RefObject<ImageUploaderRef | null>;
+  onCompositionSuccess?: (preview: Preview) => void;
 };
 
 function getBaseZodType(field: any) {
@@ -136,6 +137,7 @@ const CreatePostForm = ({
   creditBalance,
   refetchCredits,
   imageUploaderRef,
+  onCompositionSuccess,
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -463,17 +465,26 @@ const CreatePostForm = ({
 
       if (!preview) throw new Error("No preview");
 
-      setPreview({
+      const composedPreview = {
         ...preview,
-        text: preview.text || postContent,
+        text: preview.text || postContent || "",
         agentId,
         roomId: newRoomId,
         templateData,
         templateName: template.name,
-      });
+      };
 
-      toast.success("Done", { id: toastId, duration: 2000 });
-      next(templateData); // Move to the next step
+      setPreview(composedPreview);
+
+      if (onCompositionSuccess) {
+        // Call the callback to add to local previews in chat
+        onCompositionSuccess(composedPreview);
+        toast.success("Composed video added to chat! You can now use it to create your post.", { id: toastId, duration: 5000 });
+      } else {
+        // Fallback for non-chat usage (studio)
+        toast.success("Done", { id: toastId, duration: 2000 });
+        next(templateData); // Move to the next step
+      }
     } catch (error) {
       console.error("Error composing storyboard:", error);
       toast.error("Failed to compose storyboard", { id: toastId });
