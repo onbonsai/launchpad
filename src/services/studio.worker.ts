@@ -97,6 +97,8 @@ const generatePreviewImpl = async (
     startTime: number;
   },
 ): Promise<GeneratePreviewResponse | undefined> => {
+  console.log('[studio.worker] generatePreview called with:', { url, category, templateName, prompt, roomId });
+  
   try {
     // Step 1: Make the initial request to create the preview task
     const formData = new FormData();
@@ -115,6 +117,8 @@ const generatePreviewImpl = async (
     if (image) formData.append('image', image);
     if (audio) formData.append('audio', audio.file);
 
+    console.log('[studio.worker] Making POST request to:', `${url}/post/create-preview`);
+
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}` },
@@ -122,9 +126,12 @@ const generatePreviewImpl = async (
       signal: AbortSignal.timeout(600000) // 10 minutes instead of default ~15s
     });
 
+    console.log('[studio.worker] Response status:', response.status);
+
     if (!response.ok) {
       if (response.status === 403) {
         const errorText = await response.text();
+        console.error('[studio.worker] 403 error:', errorText);
         if (errorText.includes("not enough credits")) {
           throw new Error("not enough credits");
         }

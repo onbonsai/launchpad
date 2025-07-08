@@ -24,7 +24,7 @@ function PremadeChatInput({ label, setUserInput, input, disabled, setRequirement
     <button
       type="button"
       onClick={(e) => {
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
         setUserInput(input);
         if (setRequirement) setRequirement();
       }}
@@ -109,21 +109,31 @@ export type ChatInputProps = {
     isAgent: boolean;
     createdAt: string;
     content: {
+      text?: string;
       preview?: Preview;
       templateData?: string;
     };
   }>;
-  setLocalPreviews?: (previews: Array<{
+  setLocalPreviews?: React.Dispatch<React.SetStateAction<Array<{
     isAgent: boolean;
     createdAt: string;
     content: {
+      text?: string;
       preview?: Preview;
       templateData?: string;
     };
-  }>) => void;
+  }>>>;
   isPosting?: boolean;
   onPost?: (text: string) => Promise<void>;
   isRemixing?: boolean;
+  worker?: Worker;
+  pendingGenerations?: Set<string>;
+  setPendingGenerations?: React.Dispatch<React.SetStateAction<Set<string>>>;
+  postId?: string;
+  storyboardPreviews?: Preview[];
+  setStoryboardPreviews?: React.Dispatch<React.SetStateAction<Preview[]>>;
+  imageToExtend?: string | null;
+  setImageToExtend?: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const DEFAULT_PLACEHOLDER = "Ask anything";
@@ -149,6 +159,14 @@ export default function ChatInput({
   isPosting = false,
   onPost,
   isRemixing = false,
+  worker,
+  pendingGenerations,
+  setPendingGenerations,
+  postId,
+  storyboardPreviews = [],
+  setStoryboardPreviews,
+  imageToExtend,
+  setImageToExtend,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
@@ -157,26 +175,21 @@ export default function ChatInput({
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   
-  // Find the template for remixMedia - be more flexible with matching
   const remixTemplate = useMemo(() => {
     if (!remixMedia || !templates) return undefined;
     
-    // First try exact match
     let template = templates.find((t) => t.name === remixMedia.template);
     
-    // If no exact match, try case-insensitive match
     if (!template) {
       template = templates.find((t) => 
         t.name.toLowerCase() === remixMedia.template?.toLowerCase()
       );
     }
     
-    // If still no match, try to find a video template for storyboard posts
     if (!template && remixMedia.templateData && (remixMedia.templateData as any).clips) {
       template = templates.find((t) => t.name.toLowerCase().includes('video'));
     }
     
-    // If still no match, just use the first available template
     if (!template && templates.length > 0) {
       template = templates[0];
       console.warn(`Template "${remixMedia.template}" not found, using fallback: ${template.name}`);
@@ -187,7 +200,6 @@ export default function ChatInput({
   
   const { openSwapToGenerateModal } = useTopUpModal();
 
-  // Focus input on mount
   useEffect(() => {
     if (textareaRef.current && !showRemixForm && !isGeneratingPreview) {
       textareaRef.current.focus();
@@ -199,6 +211,12 @@ export default function ChatInput({
       setShowRemixForm(true);
     }
   }, [isRemixing, remixMedia, templates]);
+
+  useEffect(() => {
+    if (imageToExtend) {
+      setShowRemixForm(true);
+    }
+  }, [imageToExtend]);
 
   const handleTemplateSelect = useCallback((selection: { name: string; inputText: string; description?: string }) => {
     setUserInput(selection.inputText);
@@ -261,20 +279,17 @@ export default function ChatInput({
     return true;
   }, [requireAttachment, attachment]);
 
-  const canSubmit = useMemo(() => {
-    if (!userInput.trim()) return false;
-    if (requireAttachment && !attachment) return false;
-    return true;
-  }, [requireAttachment, attachment]);
-
   return (
     <>
-      {showRemixForm && remixMedia && !isGeneratingPreview && (
+      {showRemixForm && remixMedia && (
         <RemixForm
           template={remixTemplate as Template}
           remixMedia={remixMedia}
           onClose={() => {
             setShowRemixForm(false);
+            if (setImageToExtend) {
+              setImageToExtend(null);
+            }
           }}
           currentPreview={currentPreview}
           setCurrentPreview={setCurrentPreview}
@@ -283,17 +298,13 @@ export default function ChatInput({
           setLocalPreviews={setLocalPreviews}
           isGeneratingPreview={isGeneratingPreview}
           setIsGeneratingPreview={setIsGeneratingPreview}
-          onGenerateClip={async (prompt, templateData, clipId) => {
-            // This callback should be passed from the parent Chat component
-            // For now, we'll just log it
-            console.log('Generate clip called:', { prompt, templateData, clipId });
-            // Return a dummy preview for now
-            return {
-              text: prompt,
-              templateName: remixTemplate?.name || 'unknown',
-              agentId: clipId || `clip-${Date.now()}`,
-            } as any;
-          }}
+          worker={worker}
+          pendingGenerations={pendingGenerations}
+          setPendingGenerations={setPendingGenerations}
+          postId={postId}
+          storyboardPreviews={storyboardPreviews}
+          setStoryboardPreviews={setStoryboardPreviews}
+          extendedImage={imageToExtend}
         />
       )}
       <form

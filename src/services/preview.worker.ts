@@ -25,7 +25,7 @@ interface WorkerData {
 // Only run this code if we're in a web worker environment
 if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
   self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
-    // console.log('[previewWorker] Received message from main thread:', event.data);
+    console.log('[previewWorker] Received message from main thread:', event.data);
     const {
       url,
       idToken,
@@ -56,7 +56,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
         audio,
       );
 
-      // console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
+      console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
 
       // If there's video data with ArrayBuffer, we need to transfer it properly
       const transferList: Transferable[] = [];

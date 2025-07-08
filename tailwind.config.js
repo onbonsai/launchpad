@@ -65,13 +65,22 @@ module.exports = {
             opacity: '1',
             transform: 'translateY(0)'
           }
+        },
+        'shimmer': {
+          '0%': {
+            transform: 'translateX(-100%)',
+          },
+          '100%': {
+            transform: 'translateX(100%)',
+          },
         }
       },
       animation: {
         'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
         'fade-in': 'fade-in 0.2s ease-out forwards',
         'pulse-green': 'pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'ease-in': 'ease-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+        'ease-in': 'ease-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+        'shimmer': 'shimmer 2s ease-in-out infinite'
       },
       screens: {
         "xs": "510px",

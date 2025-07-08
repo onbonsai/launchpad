@@ -503,7 +503,7 @@ const CreatePostForm = ({
 
   // Get subtemplates from the selected template
   const subTemplates = template?.templateData?.subTemplates || [];
-  const hasSubTemplates = subTemplates.length > 0;
+  const hasSubTemplates = subTemplates.length > 0 && !remixMediaTemplateData;
 
   const handleSubTemplateSelect = (subTemplate: any) => {
     if (onSubTemplateChange) {
