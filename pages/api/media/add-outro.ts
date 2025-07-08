@@ -33,7 +33,7 @@ if (!fs.existsSync(TEMP_DIR)) {
 async function downloadFile(url: string, outputPath: string): Promise<void> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-  
+
   const buffer = await response.arrayBuffer();
   fs.writeFileSync(outputPath, Buffer.from(buffer));
 }
@@ -88,7 +88,7 @@ function extractThumbnail(videoPath: string, thumbnailPath: string): Promise<voi
     ]);
 
     let errorOutput = '';
-    
+
     ffmpeg.stderr.on('data', (data) => {
       errorOutput += data.toString();
     });
@@ -112,7 +112,7 @@ function extractThumbnail(videoPath: string, thumbnailPath: string): Promise<voi
 function addThumbnailMetadata(videoPath: string, thumbnailPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tempPath = videoPath.replace('.mp4', '_with_thumb.mp4');
-    
+
     const ffmpeg = spawn('ffmpeg', [
       '-i', videoPath,
       '-i', thumbnailPath,
@@ -125,7 +125,7 @@ function addThumbnailMetadata(videoPath: string, thumbnailPath: string): Promise
     ]);
 
     let errorOutput = '';
-    
+
     ffmpeg.stderr.on('data', (data) => {
       errorOutput += data.toString();
     });
@@ -137,14 +137,14 @@ function addThumbnailMetadata(videoPath: string, thumbnailPath: string): Promise
         resolve();
         return;
       }
-      
+
       // Replace original with thumbnail version
       try {
         fs.renameSync(tempPath, videoPath);
       } catch (error) {
         console.error('Failed to replace video with thumbnail version:', error);
       }
-      
+
       resolve();
     });
 
@@ -161,18 +161,21 @@ function concatenateVideos(inputPath: string, outroPath: string, outputPath: str
     try {
       // First, check if input video has audio
       const hasAudio = await checkVideoHasAudio(inputPath);
-      console.log(`Input video has audio: ${hasAudio}`);
-      
+
+      // Get input video resolution to ensure outro matches
+      const inputResolution = await getVideoResolution(inputPath);
+
       let ffmpegArgs;
-      
+
       if (hasAudio) {
         // Input has audio, outro doesn't - need to handle audio properly
         ffmpegArgs = [
           '-i', inputPath,
           '-i', outroPath,
           '-filter_complex',
-          // Concatenate video streams and create silent audio for outro
-          '[0:v][1:v]concat=n=2:v=1[outv];' +
+          // Scale outro to match input resolution, then concatenate
+          `[1:v]scale=${inputResolution.width}:${inputResolution.height}[outro_scaled];` +
+          '[0:v][outro_scaled]concat=n=2:v=1[outv];' +
           '[0:a]apad=pad_dur=3[audio_padded]', // Pad input audio to cover outro duration
           '-map', '[outv]',
           '-map', '[audio_padded]',
@@ -187,12 +190,14 @@ function concatenateVideos(inputPath: string, outroPath: string, outputPath: str
           '-y'
         ];
       } else {
-        // Input has no audio - simple video-only concatenation
+        // Input has no audio - simple video-only concatenation with scaling
         ffmpegArgs = [
           '-i', inputPath,
           '-i', outroPath,
           '-filter_complex',
-          '[0:v][1:v]concat=n=2:v=1:a=0[outv]',
+          // Scale outro to match input resolution, then concatenate
+          `[1:v]scale=${inputResolution.width}:${inputResolution.height}[outro_scaled];` +
+          '[0:v][outro_scaled]concat=n=2:v=1:a=0[outv]',
           '-map', '[outv]',
           '-c:v', 'libx264',
           '-preset', 'fast',
@@ -207,10 +212,9 @@ function concatenateVideos(inputPath: string, outroPath: string, outputPath: str
       const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 
       let errorOutput = '';
-      
+
       ffmpeg.stderr.on('data', (data) => {
         errorOutput += data.toString();
-        console.log('FFmpeg:', data.toString());
       });
 
       ffmpeg.on('close', (code) => {
@@ -225,7 +229,7 @@ function concatenateVideos(inputPath: string, outroPath: string, outputPath: str
       ffmpeg.on('error', (error) => {
         reject(new Error(`FFmpeg process error: ${error.message}`));
       });
-      
+
     } catch (error) {
       reject(error);
     }
@@ -275,12 +279,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const outroPath = path.join(TEMP_DIR, `outro_${sessionId}.mp4`);
   const outputPath = path.join(TEMP_DIR, `output_${sessionId}.mp4`);
   const thumbnailPath = path.join(TEMP_DIR, `thumb_${sessionId}.jpg`);
-  
+
   const tempFiles = [inputPath, outroPath, outputPath, thumbnailPath];
 
   try {
-    console.log('Downloading input video...');
-    
     if (isBlob && videoUrl.startsWith('data:')) {
       // Handle blob data URL
       const base64Data = videoUrl.split(',')[1];
@@ -294,59 +296,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await downloadFile(videoUrl, inputPath);
     }
 
-    console.log(`Using provided aspect ratio: ${aspectRatio}`);
-    
     // Get input video resolution to choose the right outro
-    console.log('Detecting video resolution...');
     const resolution = await getVideoResolution(inputPath);
-    console.log(`Input video resolution: ${resolution.width}x${resolution.height}`);
-    
+
     // Choose the right outro URL set based on resolution
     let outroUrls;
     if (resolution.height === 720 || resolution.height === 1280) {
       // 720p videos: 1280x720 (landscape) or 720x1280 (portrait)
       outroUrls = OUTRO_URLS_720;
-      console.log('Using 720p outro videos');
     } else {
-      // 768p videos: 1364x768 (landscape) or 768x1364 (portrait) 
+      // 768p videos: 1364x768 (landscape) or 768x1364 (portrait)
       outroUrls = OUTRO_URLS;
-      console.log('Using 768p outro videos');
     }
-    
-    console.log('Downloading outro...');
+
     // Use the actual video aspect ratio instead of the passed one
     const actualAspectRatio = resolution.width / resolution.height;
     const outroUrl = actualAspectRatio > 1 ? outroUrls.landscape : outroUrls.portrait;
-    console.log(`Video is ${actualAspectRatio > 1 ? 'landscape' : 'portrait'} (${actualAspectRatio.toFixed(2)}), using ${actualAspectRatio > 1 ? 'landscape' : 'portrait'} outro`);
     await downloadFile(outroUrl, outroPath);
 
-    console.log('Processing video...');
-    
     // First, extract thumbnail from 1 second mark of input video
     await extractThumbnail(inputPath, thumbnailPath);
-    
+
     // Then concatenate videos
     await concatenateVideos(inputPath, outroPath, outputPath);
-    
+
     // Finally, add the thumbnail as metadata
     await addThumbnailMetadata(outputPath, thumbnailPath);
 
-    console.log('Video processing complete, sending response...');
-
     // Read the processed video and send as response
     const processedVideo = fs.readFileSync(outputPath);
-    
+
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Length', processedVideo.length.toString());
-    
+
     res.status(200).send(processedVideo);
 
   } catch (error) {
     console.error('Video processing error:', error);
-    res.status(500).json({ 
-      error: 'Video processing failed', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
+    res.status(500).json({
+      error: 'Video processing failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   } finally {
     // Cleanup temp files
@@ -360,4 +350,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
   }
-} 
+}

@@ -25,3 +25,5 @@ if (!!process.env.NEXT_PUBLIC_VERCEL_ENV) {
 } else {
   console.log("Sentry not initialized because not in vercel environment");
 }
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart

@@ -10,7 +10,7 @@ export const config = {
   runtime: "edge",
 };
 
-const defaultImageUrl = "https://onbons.ai/opengraph-image.png";
+const defaultImageUrl = "https://app.onbons.ai/opengraph-image.jpg";
 
 const getPost = async (_postId: string) => {
   try {
