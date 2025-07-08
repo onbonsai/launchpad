@@ -334,8 +334,8 @@ self.addEventListener("notificationclick", function (event) {
 
       // If no existing window, open a new one
       if (clients.openWindow) {
-        const finalUrl = roomId ? `${url}?roomId=${roomId}` : url;
-        return clients.openWindow(finalUrl);
+        // const finalUrl = roomId ? `${url}?roomId=${roomId}` : url;
+        return clients.openWindow(url);
       }
     }),
   );

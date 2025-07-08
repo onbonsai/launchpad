@@ -64,7 +64,7 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
   const renderClipCard = (clip: StoryboardClip, index: number) => {
     const isSelected = selectedClipId === clip.id;
     const clipDuration = clip.endTime - clip.startTime;
-    const formattedData = formatTemplateData(clip.templateData);
+    const formattedData = formatTemplateData(clip.templateData || clip.preview.templateData);
 
     return (
       <div

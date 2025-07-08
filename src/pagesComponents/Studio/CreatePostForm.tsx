@@ -474,13 +474,12 @@ const CreatePostForm = ({
         templateName: template.name,
       };
 
-      setPreview(composedPreview);
-
       if (onCompositionSuccess) {
         // Call the callback to add to local previews in chat
         onCompositionSuccess(composedPreview);
         toast.success("Composed video added to chat! You can now use it to create your post.", { id: toastId, duration: 5000 });
       } else {
+        setPreview(composedPreview);
         // Fallback for non-chat usage (studio)
         toast.success("Done", { id: toastId, duration: 2000 });
         next(templateData); // Move to the next step
@@ -648,6 +647,7 @@ const CreatePostForm = ({
             setAudio={setStoryboardAudio}
             audioStartTime={storyboardAudioStartTime}
             setAudioStartTime={setStoryboardAudioStartTime}
+            isRemixAudio={!!remixMediaTemplateData?.audioData && typeof storyboardAudio === 'string' && storyboardAudio.startsWith('http')}
           />
         )}
 

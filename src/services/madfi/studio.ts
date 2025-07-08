@@ -556,12 +556,17 @@ export const composeStoryboard = async (
   url: string,
   idToken: string,
   clips: StoryboardClip[],
-  audio: File | { url: string, name: string } | null,
+  audio: File | { url: string, name: string } | string | null,
   audioStartTime: number,
   roomId?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
+    let audioData: any = audio;
+    if (typeof audio === 'string' && audio.startsWith('http')) {
+      audioData = { url: audio };
+    }
+
     formData.append('data', JSON.stringify({
       roomId,
       storyboard: clips.map(clip => ({
@@ -571,7 +576,7 @@ export const composeStoryboard = async (
         videoUrl: clip.preview?.video?.url,
       })),
       audioStartTime,
-      audio
+      audio: audioData
     }));
 
     if (audio && audio instanceof File) {

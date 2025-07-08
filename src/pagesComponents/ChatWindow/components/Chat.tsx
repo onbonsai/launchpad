@@ -795,6 +795,24 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       if (!result?.postId) throw new Error("No result from createPost");
 
       toastId = toast.loading("Finalizing...", { id: toastId });
+      
+      // Process audio helper function (same as in studio create)
+      const processAudio = async (audio: any) => {
+        if (!audio) return undefined;
+        if (typeof audio === 'string') return { data: audio };
+        if ('url'in audio && audio.url) return { name: audio.name, data: audio.url };
+        if (audio instanceof File) {
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(audio);
+          });
+          return { name: audio.name, data };
+        }
+        return audio;
+      };
+
       const smartMediaResult = await createSmartMedia(
         template.apiUrl,
         idToken,
@@ -809,10 +827,28 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
             category: template.category,
             templateData: postingPreview.templateData,
           },
+          storyboard: storyboardClips.length > 0 ? {
+            clips: storyboardClips.map(clip => ({
+              id: clip.id,
+              startTime: clip.startTime,
+              endTime: clip.endTime,
+              templateData: {
+                video: clip.preview.video,
+                image: clip.preview.image,
+                ...clip.templateData,
+              },
+            })),
+            audioData: await processAudio(storyboardAudio),
+            audioStartTime: storyboardAudioStartTime,
+            roomId: conversationId as string
+          } : undefined
         })
       );
 
       if (!smartMediaResult) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      // Delete the storyboard from localStorage
+      localStorage.removeItem(storyboardKey);
 
       toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${result.postId}`), 2000);
@@ -1098,6 +1134,64 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     handleAnimateImage(preview);
   }, [handleAnimateImage]);
 
+    // Combine and sort all messages chronologically
+  const allMessages = useMemo(() => {
+    const messages: Array<{
+      type: 'message' | 'stream' | 'local';
+      timestamp: Date;
+      data: any;
+      id: string;
+    }> = [];
+
+    // Add message history
+    if (messageHistory && messageHistory.length > 0) {
+      messageHistory.forEach((message) => {
+        messages.push({
+          type: 'message',
+          timestamp: new Date(message.createdAt as number),
+          data: message,
+          id: `message-${message.id}`
+        });
+      });
+    }
+
+    // Add stream entries (without previews)
+    streamEntries.filter(entry => !entry.preview).forEach((entry, index) => {
+      messages.push({
+        type: 'stream',
+        timestamp: entry.timestamp,
+        data: entry,
+        id: `stream-${entry.timestamp.toISOString()}-${index}`
+      });
+    });
+
+    // Add local previews
+    localPreviews.forEach((preview, index) => {
+      // Handle both string and numeric timestamps
+      let timestamp: Date;
+      if (typeof preview.createdAt === 'string') {
+        // Try parsing as ISO string first, then as unix timestamp
+        if (preview.createdAt.includes('-') || preview.createdAt.includes('T')) {
+          timestamp = new Date(preview.createdAt);
+        } else {
+          timestamp = new Date(parseInt(preview.createdAt));
+        }
+      } else {
+        timestamp = new Date(preview.createdAt);
+      }
+
+      messages.push({
+        type: 'local',
+        timestamp,
+        data: preview,
+        id: `local-${preview.createdAt}-${index}`
+      });
+    });
+
+    // Sort by timestamp (oldest first)
+    return messages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }, [messageHistory, streamEntries, localPreviews]);
+
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
       {/* Storyboard indicator */}
@@ -1121,132 +1215,128 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           <>
             {!isPosting && (
               <>
-                {messageHistory && messageHistory.length > 0 && (
+                {allMessages.length > 0 && (
                   <div className="mb-2">
-                    <div className="text-xs text-zinc-500 mb-2 text-center">Last {messageHistory.length} messages</div>
-                    <div className="space-y-8">
-                      {[...messageHistory].reverse().map((message, index) => {
-                        return (
-                        <div key={message.id} className="space-y-2">
-                          {message.content.preview ? (
-                              <div className="mb-4">
-                                {/* Show user prompt if this is an agent message with preview */}
-                                {message.content.source !== "bonsai-terminal" && message.content.text && (
-                                  <div className="flex justify-end mb-2">
-                                    <div className="bg-dark-grey px-3 py-2 rounded-2xl rounded-br-sm max-w-[80%]">
-                                      <span className="text-white text-[16px]">{message.content.text}</span>
+                    <div className="text-xs text-zinc-500 mb-2 text-center">
+                      Conversation ({allMessages.length} messages)
+                    </div>
+                    <div className="space-y-4">
+                      {allMessages.map((item, index) => {
+                        if (item.type === 'message') {
+                          const message = item.data;
+                          return (
+                            <div key={item.id} className="space-y-2">
+                              {message.content.preview ? (
+                                <div className="mb-4">
+                                  {/* Show user prompt if this is an agent message with preview */}
+                                  {message.content.source !== "bonsai-terminal" && message.content.text && (
+                                    <div className="flex justify-end mb-2">
+                                      <div className="bg-dark-grey px-3 py-2 rounded-2xl rounded-br-sm max-w-[80%]">
+                                        <span className="text-white text-[16px]">{message.content.text}</span>
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                                <PreviewMessage
-                                  preview={{
-                                    ...(message.content.preview as Preview),
-                                    text: message.content.text,
+                                  )}
+                                  <PreviewMessage
+                                    preview={{
+                                      ...(message.content.preview as Preview),
+                                      text: message.content.text,
+                                    }}
+                                    isAgent={message.content.source !== "bonsai-terminal"}
+                                    timestamp={item.timestamp}
+                                    authenticatedProfile={authenticatedProfile}
+                                    onUseThis={handlePostButtonClick}
+                                    onAddToStoryboard={handleAddToStoryboard}
+                                    isInStoryboard={storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
+                                    storyboardCount={storyboardClips.length}
+                                    onAnimateImage={handleAnimateImage}
+                                    onExtendVideo={handleExtendVideo}
+                                    onDownload={handleDownload}
+                                    isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
+                                    isPosting={isPosting}
+                                  />
+                                </div>
+                              ) : (
+                                <StreamItem
+                                  entry={{
+                                    timestamp: item.timestamp,
+                                    type: message.content.source === "bonsai-terminal" ? "user" : "agent",
+                                    content: markdownToPlainText(message.content.text),
                                   }}
-                                  isAgent={message.content.source !== "bonsai-terminal"}
-                                  timestamp={new Date(message.createdAt as number)}
+                                  setUserInput={setUserInput}
+                                  setRequestPayload={setRequestPayload}
+                                />
+                              )}
+                            </div>
+                          );
+                        } else if (item.type === 'stream') {
+                          const entry = item.data;
+                          return (
+                            <StreamItem
+                              key={item.id}
+                              entry={entry}
+                              setUserInput={setUserInput}
+                              setRequestPayload={setRequestPayload}
+                            />
+                          );
+                        } else if (item.type === 'local') {
+                          const preview = item.data;
+                          
+                          // Determine if this is a user message (no preview) or agent message (has preview or pending)
+                          const isUserMessage = !preview.content.preview && !(preview as any).pending;
+                          const isAgentMessage = preview.content.preview || (preview as any).pending;
+                          
+                          if (isUserMessage) {
+                            // User messages go on the right side
+                            return (
+                              <div key={item.id} className="flex justify-end mb-2">
+                                <div className="bg-dark-grey px-3 py-2 rounded-2xl rounded-br-sm max-w-[80%]">
+                                  <span className="text-white text-[16px]">{preview.content.text}</span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          
+                          if (isAgentMessage) {
+                            // Agent messages go on the left side with extra bottom margin
+                            return (
+                              <div key={item.id} className="mb-4">
+                                <PreviewMessage
+                                  preview={preview.content.preview}
+                                  isAgent={true} // Force to true for agent messages
+                                  timestamp={item.timestamp}
                                   authenticatedProfile={authenticatedProfile}
-                                  onUseThis={handlePostButtonClick}
-                                  onAddToStoryboard={handleAddToStoryboard}
-                                  isInStoryboard={storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
+                                  onUseThis={preview.content.preview ? handlePostButtonClick : undefined}
+                                  isPending={(preview as any).pending}
+                                  onAddToStoryboard={preview.content.preview ? handleAddToStoryboard : undefined}
+                                  isInStoryboard={preview.content.preview ? storyboardClips.some(c => c.id === preview.content.preview?.agentId) : false}
                                   storyboardCount={storyboardClips.length}
                                   onAnimateImage={handleAnimateImage}
                                   onExtendVideo={handleExtendVideo}
                                   onDownload={handleDownload}
-                                  isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
+                                  isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
                                   isPosting={isPosting}
                                 />
                               </div>
-                          ) : (
-                            <StreamItem
-                              entry={{
-                                timestamp: new Date(message.createdAt as number),
-                                type: message.content.source === "bonsai-terminal" ? "user" : "agent",
-                                content: markdownToPlainText(message.content.text),
-                              }}
-                              setUserInput={setUserInput}
-                              setRequestPayload={setRequestPayload}
-                            />
-                          )}
-                          {index === messageHistory.length - 1 && (
-                            <div className="text-xs text-zinc-500 text-center">
-                              {format(new Date(message.createdAt as number), "EEEE, MMMM do h:mmaaa")}
-                            </div>
-                          )}
-                        </div>
-                        );
+                            );
+                          }
+                        }
+                        
+                        return null;
                       })}
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-8 flex-grow" role="log" aria-live="polite">
-                  {/* Render stream entries without previews */}
-                  {streamEntries.filter(entry => !entry.preview).map((entry, index) => (
-                        <StreamItem
-                      key={`stream-${entry.timestamp.toISOString()}-${index}`}
-                          entry={entry}
-                          setUserInput={setUserInput}
-                          setRequestPayload={setRequestPayload}
-                    />
-                  ))}
-                  
-                                    {/* Render local previews in chronological order */}
-                  {[...localPreviews].reverse().map((preview, index) => {
-                    
-                    // Determine if this is a user message (no preview) or agent message (has preview or pending)
-                    const isUserMessage = !preview.content.preview && !(preview as any).pending;
-                    const isAgentMessage = preview.content.preview || (preview as any).pending;
-                    
-                    if (isUserMessage) {
-                      // User messages go on the right side
-                      return (
-                        <div key={`local-user-${preview.createdAt}-${index}`} className="flex justify-end mb-2">
-                          <div className="bg-dark-grey px-3 py-2 rounded-2xl rounded-br-sm max-w-[80%]">
-                            <span className="text-white text-[16px]">{preview.content.text}</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    
-                    if (isAgentMessage) {
-                      // Agent messages go on the left side with extra bottom margin
-                      return (
-                        <div key={`local-agent-${preview.createdAt}-${index}`} className="mb-4">
-                          <PreviewMessage
-                            preview={preview.content.preview}
-                            isAgent={true} // Force to true for agent messages
-                            timestamp={new Date(preview.createdAt)}
-                            authenticatedProfile={authenticatedProfile}
-                            onUseThis={preview.content.preview ? handlePostButtonClick : undefined}
-                            isPending={(preview as any).pending}
-                            onAddToStoryboard={preview.content.preview ? handleAddToStoryboard : undefined}
-                            isInStoryboard={preview.content.preview ? storyboardClips.some(c => c.id === preview.content.preview?.agentId) : false}
-                            storyboardCount={storyboardClips.length}
-                            onAnimateImage={handleAnimateImage}
-                            onExtendVideo={handleExtendVideo}
-                            onDownload={handleDownload}
-                            isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
-                            isPosting={isPosting}
-                        />
-                        </div>
-                      );
-                    }
-                    
-                    // If it doesn't match either pattern, don't render
-                      return null;
-                    })}
-                  <div
-                    className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${
-                      !isPosting ? "flex-grow min-h-6" : "h-6"
-                    }`}
-                  >
-                    {isThinking && (
-                      <span className="max-w-full font-mono">
-                        {currentAction ? `${currentAction} ${loadingDots}` : loadingDots}
-                      </span>
-                    )}
-                  </div>
+                <div
+                  className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${
+                    !isPosting ? "flex-grow min-h-6" : "h-6"
+                  }`}
+                >
+                  {isThinking && (
+                    <span className="max-w-full font-mono">
+                      {currentAction ? `${currentAction} ${loadingDots}` : loadingDots}
+                    </span>
+                  )}
                 </div>
               </>
             )}
@@ -1312,7 +1402,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         worker={workerRef.current}
         pendingGenerations={pendingGenerations}
         setPendingGenerations={setPendingGenerations}
-        postId={post?.id || undefined}
+        postId={post?.slug || post?.id || undefined}
         storyboardClips={storyboardClips}
         storyboardAudio={storyboardAudio}
         storyboardAudioStartTime={storyboardAudioStartTime}

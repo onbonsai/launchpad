@@ -131,6 +131,20 @@ export default function RemixForm({
     }
   }, [pendingGenerations.size, setIsGeneratingPreview]);
 
+  // Check for completed generations when pendingGenerations changes
+  useEffect(() => {
+    if (pendingGenerations.size > 0) {
+      // Add a delay to allow for state updates
+      const timer = setTimeout(() => {
+        checkForCompletedGenerations();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingGenerations]);
+
+  // Note: Pending generation restoration is now handled by the service worker check below
+  // to avoid duplicates. This useEffect is disabled.
+
   useEffect(() => {
     setOptimisticCreditBalance(creditBalance?.creditsRemaining);
   }, [creditBalance]);
@@ -182,7 +196,19 @@ export default function RemixForm({
           }));
         
         if (previews.length > 0 && setLocalPreviews) {
-          setLocalPreviews(previews);
+          // Don't overwrite existing localPreviews, merge with them
+          setLocalPreviews(prev => {
+            // Check if we already have these previews to avoid duplicates
+            const existingAgentIds = new Set(prev.map((p: any) => p.agentId).filter(Boolean));
+            const newPreviews = previews.filter((p: any) => 
+              !existingAgentIds.has(p.agentId) && p.agentId
+            );
+            
+            if (newPreviews.length > 0) {
+              return [...newPreviews, ...prev];
+            }
+            return prev;
+          });
           
           // Set the most recent preview as current if none is set
           const lastAgentPreview = previews
@@ -200,12 +226,15 @@ export default function RemixForm({
     };
 
     loadExistingPreviews();
-  }, [roomId, template?.apiUrl]); // Only run on mount and when roomId/apiUrl changes
+  }, []); // Only run once on mount
 
   // Check for pending generations when component mounts
   useEffect(() => {
     const checkPendingGenerations = async () => {
       if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator)) return;
+      
+      // Wait a bit for localPreviews to be loaded from other sources first
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       try {
         // Request pending generations from service worker
@@ -231,21 +260,53 @@ export default function RemixForm({
           ]);
           
           if (response.pendingGenerations && response.pendingGenerations.length > 0) {
-            // Add pending generations to local state
-            const pendingPreviews = response.pendingGenerations.map((gen: any) => ({
-              tempId: gen.id,
-              taskId: gen.id,
-              isAgent: true,
-              pending: true,
-              createdAt: new Date(gen.timestamp).toISOString(),
-              content: { 
-                prompt: gen.prompt || 'Generating preview...'
+            setLocalPreviews?.(prev => {
+              // Filter out pending generations that already exist in current localPreviews
+              const existingTempIds = new Set(prev.map((p: any) => p.tempId).filter(Boolean));
+              const existingTaskIds = new Set(prev.map((p: any) => p.taskId).filter(Boolean));
+              const existingPendingIds = new Set(prev.filter((p: any) => p.pending).map((p: any) => p.tempId || p.taskId).filter(Boolean));
+              
+              const newPendingGenerations = response.pendingGenerations.filter((gen: any) => 
+                !existingTempIds.has(gen.id) && !existingTaskIds.has(gen.id) && !existingPendingIds.has(gen.id)
+              );
+              
+              if (newPendingGenerations.length > 0) {
+                // Add pending generations to local state with both user prompt and pending animation
+                const now = new Date().toISOString();
+                const allPreviews: any[] = [];
+                
+                newPendingGenerations.forEach((gen: any, index: number) => {
+                  const baseTime = Date.parse(now) + (index * 2);
+                  const prompt = gen.prompt || 'Generating preview...';
+                  
+                  // Add pending agent message first (will be at bottom after reverse)
+                  allPreviews.push({
+                    tempId: gen.id,
+                    taskId: gen.id,
+                    isAgent: true,
+                    pending: true,
+                    createdAt: new Date(baseTime + 1).toISOString(),
+                    content: { 
+                      text: prompt
+                    }
+                  });
+                  
+                  // Add user prompt message second (will be above pending after reverse)
+                  allPreviews.push({
+                    isAgent: false,
+                    createdAt: new Date(baseTime).toISOString(),
+                    content: { 
+                      text: prompt
+                    }
+                  });
+                });
+                
+                // Add new previews at the beginning so they appear at bottom after reverse
+                return [...allPreviews, ...prev];
               }
-            }));
-            
-            if (setLocalPreviews) {
-              setLocalPreviews(prev => [...prev, ...pendingPreviews]);
-            }
+              
+              return prev;
+            });
             
             if (setPendingGenerations) {
               setPendingGenerations(new Set(response.pendingGenerations.map((g: any) => g.id)));
@@ -258,7 +319,7 @@ export default function RemixForm({
     };
 
     checkPendingGenerations();
-  }, [roomId, template?.apiUrl]);
+  }, []); // Only run once on mount
 
   // Check for completed generations when tab becomes visible
   const checkForCompletedGenerations = async () => {
@@ -383,7 +444,8 @@ export default function RemixForm({
         
         // If roomId matches or no specific roomId, reload messages
         if (!event.data.roomId || event.data.roomId === roomId) {
-          checkForCompletedGenerations();
+          // Always check for completed generations when we get a reload message
+          setTimeout(() => checkForCompletedGenerations(), 500);
         }
       }
     };
@@ -417,6 +479,17 @@ export default function RemixForm({
       toast.error("You don't have enough credits to generate this preview.");
       return;
     }
+    
+    // Prevent multiple generations with same prompt simultaneously (for non-clip generations)
+    if (!clipId) {
+      const hasPendingPrompt = localPreviews.some((p: any) => 
+        p.pending && p.content.text === prompt
+      );
+      if (hasPendingPrompt) {
+        toast("Already generating a preview with this prompt", { icon: 'ℹ️' });
+        return;
+      }
+    }
 
     const sessionClient = await resumeSession(true);
     if (!sessionClient) {
@@ -440,8 +513,18 @@ export default function RemixForm({
     if (!clipId && setLocalPreviews) {
       const now = new Date().toISOString();
       setLocalPreviews([
-        ...localPreviews, 
-        // Add user message with prompt
+        // Add pending agent message first (so it appears at top when reversed)
+        {
+          tempId,
+          taskId: null, // Will be updated when we get the taskId
+          isAgent: true,
+          pending: true,
+          createdAt: new Date(Date.parse(now) + 1).toISOString(), // After user message
+          content: { 
+            text: prompt // Store the prompt here too for reference
+          }
+        } as any,
+        // Add user message with prompt second (so it appears at bottom when reversed)
         {
           isAgent: false,
           createdAt: now,
@@ -449,17 +532,7 @@ export default function RemixForm({
             text: prompt 
           }
         },
-        // Add pending agent message
-        {
-          tempId,
-          taskId: null, // Will be updated when we get the taskId
-          isAgent: true,
-          pending: true,
-          createdAt: new Date(Date.parse(now) + 1).toISOString(), // Slightly after user message
-          content: { 
-            text: prompt // Store the prompt here too for reference
-          }
-        } as any
+        ...localPreviews
       ]);
     }
 
@@ -476,14 +549,16 @@ export default function RemixForm({
         category: template.category,
         templateName: template.name,
         templateData: {
-          ...templateData,
+          ...(templateData.clips ? {} : { ...templateData }),
           aspectRatio: aspectRatio || last(storyboardClips)?.templateData?.aspectRatio || "9:16",
           nft,
-          audioStartTime: templateData.audioStartTime || audio?.startTime
+          // Only include audioStartTime if audio is explicitly provided by user
+          ...(audio && { audioStartTime: audio.startTime })
         },
         prompt,
       }));
       if (image) formData.append('image', image);
+      // Only append audio if explicitly provided by user (not from original post)
       if (audio) formData.append('audio', audio.file);
 
       const response = await fetch(`${template.apiUrl}/post/create-preview`, {
@@ -779,7 +854,7 @@ export default function RemixForm({
           agentId: composedPreview.agentId,
           content: {
             preview: previewToAdd,
-            text: "Storyboard composed successfully!",
+            text: "",
           }
         }, ...prev];
         return newPreviews;
@@ -873,7 +948,7 @@ export default function RemixForm({
             onCompositionSuccess={handleCompositionSuccess}
             />
             
-            {pendingGenerations.size > 0 && (
+            {/* {pendingGenerations.size > 0 && (
               <div className="mt-4">
                 <div className="text-xs text-white/40 mb-2">Generating...</div>
                 <div className="space-y-2">
@@ -906,7 +981,7 @@ export default function RemixForm({
                   })}
                 </div>
               </div>
-            )}
+            )} */}
           </>
         )}
       </div>
