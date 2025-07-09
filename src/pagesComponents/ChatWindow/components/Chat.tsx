@@ -592,7 +592,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       attachments: message?.attachments,
     };
     setStreamEntries((prev) => [...prev, streamEntry]);
-    
+
     // Ensure thinking state is cleared when we get a response
     setIsThinking(false);
     setCurrentAction(undefined);
@@ -606,6 +606,25 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     setIsThinking,
     setCurrentAction
   });
+
+  // Clean up temporary messages when they appear in messageHistory
+  useEffect(() => {
+    if (messageHistory && messageHistory.length > 0) {
+      setStreamEntries(prev => prev.filter(entry => {
+        // Keep all non-temporary entries
+        if (!entry.isTemporary) return true;
+        
+        // Check if this temporary message now exists in messageHistory
+        const existsInHistory = messageHistory.some(msg => 
+          msg.content.source === "bonsai-terminal" && 
+          msg.content.text === entry.content.split('\n')[0]
+        );
+        
+        // Keep temporary messages that aren't in history yet
+        return !existsInHistory;
+      }));
+    }
+  }, [messageHistory]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -649,18 +668,34 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         console.log(`imageURL: ${imageURL}`);
       }
 
+      // Store the user input before clearing it
+      const messageContent = userInput.trim() + (imageURL ? `\n${imageURL}` : '');
+      const originalUserInput = userInput.trim();
+      
       setUserInput('');
       setAttachment(undefined);
       setRequireBonsaiPayment(undefined);
 
-      const userMessage: StreamEntry = {
+      // Add a temporary local message that will be replaced when the backend confirms
+      const tempUserMessage: StreamEntry = {
         timestamp: new Date(),
         type: 'user',
-        content: userInput.trim() + (imageURL ? `\n${imageURL}` : ''),
+        content: messageContent,
+        isTemporary: true, // Mark it as temporary
       };
+      
+      setStreamEntries((prev) => [...prev, tempUserMessage]);
 
-      setStreamEntries((prev) => [...prev, userMessage]);
-      postChat(userInput, { ...requestPayload, ..._requestPayload }, imageURL);
+      // Call postChat but don't rely on its onSuccess callback since it might be unreliable
+      try {
+        await postChat(originalUserInput, { ...requestPayload, ..._requestPayload }, imageURL);
+      } catch (error) {
+        console.error('Error in postChat:', error);
+        // Remove the temporary message on error
+        setStreamEntries((prev) => prev.filter(entry => entry !== tempUserMessage));
+        setIsThinking(false);
+        toast.error("Failed to send message");
+      }
 
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -1177,9 +1212,17 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       id: string;
     }> = [];
 
+    // Track user message IDs from backend to filter out temporary ones
+    const backendUserMessageContents = new Set<string>();
+    
     // Add message history
     if (messageHistory && messageHistory.length > 0) {
       messageHistory.forEach((message) => {
+        // Track user messages from backend
+        if (message.content.source === "bonsai-terminal") {
+          backendUserMessageContents.add(message.content.text);
+        }
+        
         messages.push({
           type: 'message',
           timestamp: new Date(message.createdAt as number),
@@ -1189,14 +1232,22 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       });
     }
 
-    // Add stream entries (without previews)
-    streamEntries.filter(entry => !entry.preview).forEach((entry, index) => {
-      messages.push({
-        type: 'stream',
-        timestamp: entry.timestamp,
-        data: entry,
-        id: `stream-${entry.timestamp.toISOString()}-${index}`
-      });
+    // Add stream entries - include temporary user messages until they appear in messageHistory
+    streamEntries.forEach((entry, index) => {
+      // Skip temporary user messages if they're already in messageHistory
+      if (entry.type === 'user' && entry.isTemporary && backendUserMessageContents.has(entry.content)) {
+        return;
+      }
+      
+      // Add all agent messages and temporary user messages not yet in backend
+      if (entry.type === 'agent' || (entry.type === 'user' && entry.isTemporary)) {
+        messages.push({
+          type: 'stream',
+          timestamp: entry.timestamp,
+          data: entry,
+          id: `stream-${entry.timestamp.toISOString()}-${index}`
+        });
+      }
     });
 
     // Add local previews
