@@ -245,7 +245,6 @@ export default function PreviewHistory({
         body: JSON.stringify({
           videoUrl,
           filename: filename.replace(/\.[^/.]+$/, '.mp4'),
-          aspectRatio, // Pass the aspect ratio we already have
           isBlob // Flag to indicate this is blob data
         })
       });

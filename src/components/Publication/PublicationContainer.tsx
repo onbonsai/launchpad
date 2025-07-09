@@ -435,7 +435,6 @@ const PublicationContainer = ({
         body: JSON.stringify({
           videoUrl,
           filename: filename.replace(/\.[^/.]+$/, '.mp4'),
-          aspectRatio,
           isBlob: false
         })
       });
