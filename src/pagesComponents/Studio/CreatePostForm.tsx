@@ -938,8 +938,8 @@ const CreatePostForm = ({
           size='md'
           disabled={isGeneratingPreview || isComposing || (storyboardClips?.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
           onClick={storyboardClips?.length > 0 ? handleCompose : handleNext}
-          variant={!template.options.allowPreview || !!preview || storyboardClips?.length > 0 ? "accentBrand" : "dark-grey"}
-          className="w-full hover:bg-bullish"
+          variant={!template.options.allowPreview || !!preview ? "accentBrand" : "primary"}
+          className="w-full"
         >
           {isComposing ? 'Composing...' : 'Next'}
         </Button>

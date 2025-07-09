@@ -298,85 +298,51 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     });
   };
 
-  useEffect(() => {
-    const storyboardKey = `storyboard-${post?.slug || 'default'}`;
-    // This effect runs once per post to initialize the storyboard state
-    if (isStoryboardInitialized || !post?.slug) return;
-
-    const initializeStoryboard = async () => {
-      // 1. Try to load from localStorage first
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem(storyboardKey);
-        if (saved) {
-          try {
-            const storyboardData = JSON.parse(saved);
-            setStoryboardClips(storyboardData.clips.map(c => ({
-              id: c.id,
-              preview: c.preview,
-              startTime: c.startTime,
-              endTime: c.endTime,
-              duration: c.duration
-            })));
-            setStoryboardAudio(storyboardData.audio);
-            setStoryboardAudioStartTime(storyboardData.audioStartTime);
-            setIsStoryboardInitialized(true);
-            return;
-          } catch (e) {
-            console.error('Failed to parse saved storyboard:', e);
-            // If parsing fails, proceed to initialize from media
-          }
-        }
-      }
-
-      // 2. If nothing in localStorage, initialize from the original post media
-      const templateData = media?.templateData as any;
-      if (templateData?.clips && Array.isArray(templateData.clips)) {
-        // Handle storyboard posts with multiple clips
-        const initialClips: StoryboardClip[] = await Promise.all(
-          templateData.clips.map(async (clip: any, index: number) => {
-            const duration = await getVideoDuration(clip.video?.url).catch(() => 6);
-
-            const clipPreview: StoryboardClip = {
-              id: clip.agentId || `clip-${index}`,
-              preview: {
-                video: clip.video?.url ? { url: clip.video.url } : clip.video,
-                image: clip.image || clip.thumbnail,
-                imagePreview: clip.imagePreview || clip.thumbnail,
-                text: clip.sceneDescription || clip.text || '',
-                agentId: clip.agentId || `clip-${index}`,
-                templateName: media?.template || 'unknown',
-                templateData: {
-                  prompt: clip.prompt || clip.sceneDescription || '',
-                  sceneDescription: clip.sceneDescription || '',
-                  elevenLabsVoiceId: clip.elevenLabsVoiceId,
-                  narration: clip.narration,
-                  stylePreset: clip.stylePreset,
-                  subjectReference: clip.subjectReference,
-                  aspectRatio: clip.aspectRatio,
-                  ...clip.templateData
-                },
+  // 1. Refactor: extract the 'initialize from original post media' logic to a function
+  const initializeStoryboardFromOriginal = useCallback(async () => {
+    const templateData = media?.templateData as any;
+    if (templateData?.clips && Array.isArray(templateData.clips)) {
+      const initialClips: StoryboardClip[] = await Promise.all(
+        templateData.clips.map(async (clip: any, index: number) => {
+          const duration = await getVideoDuration(clip.video?.url).catch(() => 6);
+          return {
+            id: clip.agentId || `clip-${index}`,
+            preview: {
+              video: clip.video?.url ? { url: clip.video.url } : clip.video,
+              image: clip.image || clip.thumbnail,
+              imagePreview: clip.imagePreview || clip.thumbnail,
+              text: clip.sceneDescription || clip.text || '',
+              agentId: clip.agentId || `clip-${index}`,
+              templateName: media?.template || 'unknown',
+              templateData: {
+                prompt: clip.prompt || clip.sceneDescription || '',
+                sceneDescription: clip.sceneDescription || '',
+                elevenLabsVoiceId: clip.elevenLabsVoiceId,
+                narration: clip.narration,
+                stylePreset: clip.stylePreset,
+                subjectReference: clip.subjectReference,
+                aspectRatio: clip.aspectRatio,
+                ...clip.templateData
               },
-              startTime: 0,
-              endTime: duration,
-              duration: duration,
-            };
-            return clipPreview;
-          })
-        );
-        setStoryboardClips(initialClips);
-      } else if (media?.template === 'video' && templateData) {
-        // Handle single video posts - create a default storyboard with one clip
-        const videoData = (templateData as any).video ||
-          ((post.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
-        const imageData = (templateData as any).image ||
-          (templateData as any).imagePreview ||
-          (post.metadata as any)?.video?.cover ||
-          null;
-
-        const videoUrl = videoData?.url || videoData;
-        const duration = videoUrl ? await getVideoDuration(videoUrl).catch(() => 6) : 6;
-
-        const singleClip: StoryboardClip = {
+            },
+            startTime: 0,
+            endTime: duration,
+            duration: duration,
+          };
+        })
+      );
+      setStoryboardClips(initialClips);
+    } else if (media?.template === 'video' && templateData) {
+      const videoData = (templateData as any).video || 
+        ((post.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
+      const imageData = (templateData as any).image || 
+        (templateData as any).imagePreview || 
+        (post.metadata as any)?.video?.cover || 
+        null;
+      const videoUrl = videoData?.url || videoData;
+      const duration = videoUrl ? await getVideoDuration(videoUrl).catch(() => 6) : 6;
+      setStoryboardClips([
+        {
           id: media.agentId || 'single-clip',
           preview: {
             video: videoData,
@@ -401,20 +367,53 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           startTime: 0,
           endTime: duration,
           duration: duration,
-        };
-        setStoryboardClips([singleClip]);
-      }
-      if (templateData?.audioData) {
-        setStoryboardAudio(templateData.audioData);
-      }
-      if (templateData?.audioStartTime) {
-        setStoryboardAudioStartTime(templateData.audioStartTime);
-      }
-      setIsStoryboardInitialized(true);
-    };
+        },
+      ]);
+    } else {
+      setStoryboardClips([]);
+    }
+    if (templateData?.audioData) {
+      setStoryboardAudio(templateData.audioData);
+    } else {
+      setStoryboardAudio(null);
+    }
+    if (templateData?.audioStartTime) {
+      setStoryboardAudioStartTime(templateData.audioStartTime);
+    } else {
+      setStoryboardAudioStartTime(0);
+    }
+    setIsStoryboardInitialized(true);
+  }, [media, post, getVideoDuration]);
 
-    initializeStoryboard();
-  }, [post?.slug, media, isStoryboardInitialized]);
+  // 2. Update useEffect to use the new function
+  useEffect(() => {
+    const storyboardKey = `storyboard-${post?.slug || 'default'}`;
+    if (isStoryboardInitialized || !post?.slug) return;
+    // Try to load from localStorage first
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(storyboardKey);
+      if (saved) {
+        try {
+          const storyboardData = JSON.parse(saved);
+          setStoryboardClips(storyboardData.clips.map((c: any) => ({
+            id: c.id,
+            preview: c.preview,
+            startTime: c.startTime,
+            endTime: c.endTime,
+            duration: c.duration
+          })));
+          setStoryboardAudio(storyboardData.audio);
+          setStoryboardAudioStartTime(storyboardData.audioStartTime);
+          setIsStoryboardInitialized(true);
+          return;
+        } catch (e) {
+          console.error('Failed to parse saved storyboard:', e);
+        }
+      }
+    }
+    // If nothing in localStorage, initialize from original post media
+    initializeStoryboardFromOriginal();
+  }, [post?.slug, media, isStoryboardInitialized, initializeStoryboardFromOriginal]);
 
   // Save storyboard to localStorage whenever it changes
   useEffect(() => {
@@ -593,7 +592,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       attachments: message?.attachments,
     };
     setStreamEntries((prev) => [...prev, streamEntry]);
-  }, []);
+    
+    // Ensure thinking state is cleared when we get a response
+    setIsThinking(false);
+    setCurrentAction(undefined);
+  }, [setIsThinking, setCurrentAction]);
 
   const { postChat, isLoading, canMessageAgain } = useChat({
     onSuccess: handleSuccess,
@@ -681,20 +684,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   );
 
   useEffect(() => {
-    if (!isLoadingMessageHistory) {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  }, [streamEntries, isLoadingMessageHistory, messageHistory]);
-
-  useEffect(() => {
     if (!isLoadingMessageHistory && messageHistory) {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [isLoadingMessageHistory, messageHistory]);
+  }, [streamEntries, isLoadingMessageHistory, messageHistory]);
 
   const checkReferralStatus = async (address: string) => {
     try {
@@ -1231,18 +1226,51 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     return messages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }, [messageHistory, streamEntries, localPreviews]);
 
+  // 3. Add reset handler
+  const handleResetStoryboard = useCallback(() => {
+    const storyboardKey = `storyboard-${post?.slug || 'default'}`;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(storyboardKey);
+    }
+    initializeStoryboardFromOriginal();
+  }, [post?.slug, initializeStoryboardFromOriginal]);
+
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
-      {/* Storyboard indicator */}
-      {storyboardClips.length > 0 && (
+      {/* Storyboard indicator - always show when remixing */}
+      {isRemixing ? (
         <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
           <div className="flex items-center gap-2">
             <FilmIcon className="w-4 h-4" />
             <span className="text-xs text-white">
               Storyboard: {storyboardClips.length} clip{storyboardClips.length !== 1 ? 's' : ''}
             </span>
+            {/* Reset button, small and subtle */}
+            <button
+              onClick={handleResetStoryboard}
+              className="ml-3 text-xs px-2 py-1 rounded bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border border-zinc-600 transition-colors"
+              style={{ fontSize: '11px', lineHeight: '1.1' }}
+              type="button"
+            >
+              Reset
+            </button>
           </div>
+          {/* If no clips, show 'Nothing added yet' */}
+          {storyboardClips.length === 0 && (
+            <span className="text-xs text-zinc-400 ml-4">Nothing added yet</span>
+          )}
         </div>
+      ) : (
+        storyboardClips.length > 0 && (
+          <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
+            <div className="flex items-center gap-2">
+              <FilmIcon className="w-4 h-4" />
+              <span className="text-xs text-white">
+                Storyboard: {storyboardClips.length} clip{storyboardClips.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        )
       )}
 
       <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2 overscroll-contain">
