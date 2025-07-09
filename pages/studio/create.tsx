@@ -228,13 +228,16 @@ const StudioCreatePage: NextPage = () => {
 
         // Handle storyboard clips' video buffers
         if (result.preview?.storyboard && result.preview.storyboard.length > 0) {
+          console.log('[create.tsx] Processing storyboard video buffers:', result.preview.storyboard.length);
           result.preview.storyboard = result.preview.storyboard.map((clip: any, index: number) => {
+            console.log(`[create.tsx] Clip ${index} has video buffer:`, !!clip.preview?.video?.buffer, 'size:', clip.preview?.video?.buffer?.byteLength);
             if (clip.preview?.video?.buffer) {
               const videoBlob = new Blob([clip.preview.video.buffer], { type: clip.preview.video.mimeType });
               const videoUrl = URL.createObjectURL(videoBlob);
               clip.preview.video.url = videoUrl;
               clip.preview.video.blob = videoBlob;
               delete clip.preview.video.buffer;
+              console.log(`[create.tsx] Clip ${index} converted to blob URL:`, videoUrl.substring(0, 50) + '...');
             }
             return clip;
           });
