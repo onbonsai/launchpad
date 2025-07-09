@@ -157,7 +157,7 @@ const HandleSEO = ({ pageProps, query }) => {
   }
 
   // Default page
-  const description = "Create autonomous, agentic content on Lens";
+  const description = "Create & monetize evolving media";
   const ogImageUrl = `${SITE_URL}/api/og-image`;
 
   // Consider Signup / Budget flow
