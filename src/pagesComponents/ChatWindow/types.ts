@@ -18,6 +18,7 @@ export type StreamEntry = {
   content: string;
   attachments?: Attachment[];
   preview?: Preview;
+  isTemporary?: boolean;
 };
 
 export type AnimatedData = {
