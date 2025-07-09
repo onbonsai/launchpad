@@ -107,12 +107,12 @@ export default function RemixForm({
     tokenName: string;
     tokenLogo: string;
   } | undefined>(undefined);
-  
+
   const [showRemixPanel, setShowRemixPanel] = useState(false);
   const [editingClip, setEditingClip] = useState<StoryboardClip | null>(null);
   const [editingPrompt, setEditingPrompt] = useState<string>("");
   const [showEditPromptModal, setShowEditPromptModal] = useState(false);
-  
+
   const imageUploaderRef = useRef<ImageUploaderRef | null>(null);
   const { subscribeToPush } = useWebNotifications(address);
 
@@ -153,16 +153,16 @@ export default function RemixForm({
   useEffect(() => {
     const loadExistingPreviews = async () => {
       if (!roomId || !template?.apiUrl) return;
-      
+
       try {
         const sessionClient = await resumeSession(true);
         if (!sessionClient) return;
 
         const creds = await sessionClient.getCredentials();
         if (creds.isErr() || !creds.value) return;
-        
+
         const idToken = creds.value.idToken;
-        
+
         // Fetch recent messages from the room
         const queryParams = new URLSearchParams({
           count: '20',
@@ -175,12 +175,12 @@ export default function RemixForm({
             'Authorization': `Bearer: ${idToken}`
           },
         });
-        
+
         if (!response.ok) return;
-        
+
         const data = await response.json();
         const messages = data.messages || [];
-        
+
         // Convert messages to localPreviews format
         const previews = messages
           .filter((msg: any) => msg.content && (msg.content.preview || msg.content.text || msg.content.templateData))
@@ -194,27 +194,27 @@ export default function RemixForm({
               templateData: msg.content?.templateData ? JSON.stringify(msg.content.templateData) : undefined
             }
           }));
-        
+
         if (previews.length > 0 && setLocalPreviews) {
           // Don't overwrite existing localPreviews, merge with them
           setLocalPreviews(prev => {
             // Check if we already have these previews to avoid duplicates
             const existingAgentIds = new Set(prev.map((p: any) => p.agentId).filter(Boolean));
-            const newPreviews = previews.filter((p: any) => 
+            const newPreviews = previews.filter((p: any) =>
               !existingAgentIds.has(p.agentId) && p.agentId
             );
-            
+
             if (newPreviews.length > 0) {
               return [...newPreviews, ...prev];
             }
             return prev;
           });
-          
+
           // Set the most recent preview as current if none is set
           const lastAgentPreview = previews
             .filter((p: any) => p.isAgent && p.content.preview)
             .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-            
+
           if (lastAgentPreview && !currentPreview && setCurrentPreview) {
             setCurrentPreview(lastAgentPreview.content.preview);
             setPreview(lastAgentPreview.content.preview);
@@ -232,53 +232,53 @@ export default function RemixForm({
   useEffect(() => {
     const checkPendingGenerations = async () => {
       if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator)) return;
-      
+
       // Wait a bit for localPreviews to be loaded from other sources first
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       try {
         // Request pending generations from service worker
         const registration = await navigator.serviceWorker.ready;
         if (registration.active) {
           // Create a one-time message channel to get response
           const messageChannel = new MessageChannel();
-          
+
           const responsePromise = new Promise<any>((resolve) => {
             messageChannel.port1.onmessage = (event) => {
               resolve(event.data);
             };
           });
-          
+
           registration.active.postMessage({
             type: 'GET_PENDING_GENERATIONS',
             roomId: roomId
           }, [messageChannel.port2]);
-          
+
           const response = await Promise.race([
             responsePromise,
             new Promise(resolve => setTimeout(() => resolve({ pendingGenerations: [] }), 1000))
           ]);
-          
+
           if (response.pendingGenerations && response.pendingGenerations.length > 0) {
             setLocalPreviews?.(prev => {
               // Filter out pending generations that already exist in current localPreviews
               const existingTempIds = new Set(prev.map((p: any) => p.tempId).filter(Boolean));
               const existingTaskIds = new Set(prev.map((p: any) => p.taskId).filter(Boolean));
               const existingPendingIds = new Set(prev.filter((p: any) => p.pending).map((p: any) => p.tempId || p.taskId).filter(Boolean));
-              
-              const newPendingGenerations = response.pendingGenerations.filter((gen: any) => 
+
+              const newPendingGenerations = response.pendingGenerations.filter((gen: any) =>
                 !existingTempIds.has(gen.id) && !existingTaskIds.has(gen.id) && !existingPendingIds.has(gen.id)
               );
-              
+
               if (newPendingGenerations.length > 0) {
                 // Add pending generations to local state with both user prompt and pending animation
                 const now = new Date().toISOString();
                 const allPreviews: any[] = [];
-                
+
                 newPendingGenerations.forEach((gen: any, index: number) => {
                   const baseTime = Date.parse(now) + (index * 2);
                   const prompt = gen.prompt || 'Generating preview...';
-                  
+
                   // Add pending agent message first (will be at bottom after reverse)
                   allPreviews.push({
                     tempId: gen.id,
@@ -286,28 +286,28 @@ export default function RemixForm({
                     isAgent: true,
                     pending: true,
                     createdAt: new Date(baseTime + 1).toISOString(),
-                    content: { 
+                    content: {
                       text: prompt
                     }
                   });
-                  
+
                   // Add user prompt message second (will be above pending after reverse)
                   allPreviews.push({
                     isAgent: false,
                     createdAt: new Date(baseTime).toISOString(),
-                    content: { 
+                    content: {
                       text: prompt
                     }
                   });
                 });
-                
+
                 // Add new previews at the beginning so they appear at bottom after reverse
                 return [...allPreviews, ...prev];
               }
-              
+
               return prev;
             });
-            
+
             if (setPendingGenerations) {
               setPendingGenerations(new Set(response.pendingGenerations.map((g: any) => g.id)));
             }
@@ -324,16 +324,16 @@ export default function RemixForm({
   // Check for completed generations when tab becomes visible
   const checkForCompletedGenerations = async () => {
     if (!roomId || !template?.apiUrl || pendingGenerations.size === 0) return;
-    
+
     try {
       const sessionClient = await resumeSession(true);
       if (!sessionClient) return;
 
       const creds = await sessionClient.getCredentials();
       if (creds.isErr() || !creds.value) return;
-      
+
       const idToken = creds.value.idToken;
-      
+
       // Fetch recent messages
       const queryParams = new URLSearchParams({
         count: '10',
@@ -346,40 +346,34 @@ export default function RemixForm({
           'Authorization': `Bearer: ${idToken}`
         },
       });
-      
+
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const messages = data.messages || [];
-      
+
       // Check if any pending generations have completed
       const completedGenerations = new Set<string>();
-      
+
       for (const msg of messages) {
         if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
           const agentId = msg.content.preview.agentId;
-          
-          // Check if this was a pending generation - we might have the taskId stored
-          const isPending = Array.from(pendingGenerations).some(id => {
-            // Check if this preview matches our pending generations
-            return localPreviews.some((p: any) => 
+
+          // Check if this was a pending generation (simplified logic like studio create)
+          const isPending = localPreviews.some((p: any) =>
+            p.pending && (p.tempId === agentId || p.agentId === agentId)
+          );
+
+          if (isPending) {
+            // Find the taskId that corresponds to this preview in localPreviews
+            const pendingPreview = localPreviews.find((p: any) =>
               p.pending && (p.tempId === agentId || p.agentId === agentId)
             );
-          });
-          
-          if (isPending) {
-            // Find the taskId that corresponds to this preview
-            const taskId = Array.from(pendingGenerations).find(id => {
-              const pendingPreview = localPreviews.find((p: any) => 
-                p.pending && (p.tempId === agentId || p.agentId === agentId)
-              );
-              return pendingPreview !== undefined;
-            });
-            
-            if (taskId) {
-              completedGenerations.add(taskId);
+
+            if (pendingPreview?.taskId) {
+              completedGenerations.add(pendingPreview.taskId);
             }
-            
+
             // Update local previews to mark as completed
             if (setLocalPreviews) {
               setLocalPreviews((prev: typeof localPreviews) => prev.map((p: any) => {
@@ -398,7 +392,19 @@ export default function RemixForm({
                 return p;
               }));
             }
-            
+
+            // Remove from service worker pending list
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.ready.then(registration => {
+                if (registration.active) {
+                  registration.active.postMessage({
+                    type: 'REMOVE_PENDING_GENERATION',
+                    generationId: pendingPreview?.taskId || agentId
+                  });
+                }
+              }).catch(console.error);
+            }
+
             // Set as current preview if it's for an edited clip
             if (editingClip && editingClip.id === agentId) {
               const updatedClip = {
@@ -413,7 +419,7 @@ export default function RemixForm({
           }
         }
       }
-      
+
       // Remove completed generations from pending set
       if (completedGenerations.size > 0 && setPendingGenerations) {
         setPendingGenerations(prev => {
@@ -422,7 +428,7 @@ export default function RemixForm({
           return newSet;
         });
       }
-      
+
     } catch (error) {
       console.error('[RemixForm] Error checking for completed generations:', error);
     }
@@ -448,7 +454,7 @@ export default function RemixForm({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
@@ -475,10 +481,10 @@ export default function RemixForm({
       toast.error("You don't have enough credits to generate this preview.");
       return;
     }
-    
+
     // Prevent multiple generations with same prompt simultaneously (for non-clip generations)
     if (!clipId) {
-      const hasPendingPrompt = localPreviews.some((p: any) => 
+      const hasPendingPrompt = localPreviews.some((p: any) =>
         p.pending && p.content.text === prompt
       );
       if (hasPendingPrompt) {
@@ -505,7 +511,7 @@ export default function RemixForm({
 
     setOptimisticCreditBalance((prev) => (prev !== undefined ? prev - credits : undefined));
     setIsGeneratingPreview(true);
-    
+
     if (!clipId && setLocalPreviews) {
       const now = new Date().toISOString();
       setLocalPreviews([
@@ -516,7 +522,7 @@ export default function RemixForm({
           isAgent: true,
           pending: true,
           createdAt: new Date(Date.parse(now) + 1).toISOString(), // After user message
-          content: { 
+          content: {
             text: prompt // Store the prompt here too for reference
           }
         } as any,
@@ -524,8 +530,8 @@ export default function RemixForm({
         {
           isAgent: false,
           createdAt: now,
-          content: { 
-            text: prompt 
+          content: {
+            text: prompt
           }
         },
         ...localPreviews
@@ -537,7 +543,8 @@ export default function RemixForm({
         setPendingGenerations(prev => new Set(prev).add(tempId));
     }
 
-    // Create task on server
+        // Create task on server
+    let taskId: string | null = null;
     try {
       const formData = new FormData();
       formData.append('data', JSON.stringify({
@@ -574,7 +581,7 @@ export default function RemixForm({
       }
 
       const taskResponse = await response.json();
-      const taskId = taskResponse.taskId;
+      taskId = taskResponse.taskId;
 
       if (!taskId) {
         throw new Error("No taskId received from server");
@@ -623,26 +630,40 @@ export default function RemixForm({
 
     } catch (error: any) {
       console.error('[RemixForm] Error creating preview:', error);
-      
+
       if (error.message === "not enough credits") {
         toast.error("Not enough credits to generate preview");
       } else {
         toast.error("Failed to generate preview");
       }
-      
-      // Clean up on error
+
+      // Clean up on error - use taskId if we got one, otherwise use tempId
+      const generationIdToRemove = taskId || tempId;
+
       if (setPendingGenerations) {
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
-          newSet.delete(tempId);
+          newSet.delete(generationIdToRemove);
           return newSet;
         });
       }
-      
+
       if (setLocalPreviews) {
-        setLocalPreviews(localPreviews.filter((p: any) => p.tempId !== tempId));
+        setLocalPreviews(prev => prev.filter((p: any) => p.tempId !== tempId));
       }
-      
+
+      // Remove from service worker pending list
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'REMOVE_PENDING_GENERATION',
+              generationId: generationIdToRemove
+            });
+          }
+        }).catch(console.error);
+      }
+
       setIsGeneratingPreview(false);
     }
   }
@@ -668,7 +689,7 @@ export default function RemixForm({
         setStoryboardAudio?.(templateData.audioData.data || templateData.audioData.url || templateData.audioData);
         setStoryboardAudioStartTime?.(templateData.audioStartTime || 0);
       }
-      
+
       if (templateData.prompt && !templateData.clips) {
         setPrompt(templateData.prompt);
       }
@@ -677,7 +698,7 @@ export default function RemixForm({
       if (storyboardClips.length === 0 && !templateData.clips && currentPreview && setStoryboardClips) {
         const createDefaultClip = async () => {
           let duration = 6; // Default duration
-          
+
           // Try to get actual video duration if video exists
           if (currentPreview.video?.url) {
             try {
@@ -686,7 +707,7 @@ export default function RemixForm({
               console.warn('Could not get video duration, using default:', error);
             }
           }
-          
+
           const defaultClip: StoryboardClip = {
             id: currentPreview.agentId || generateSeededUUID(`${address}-${Date.now()}`),
             preview: currentPreview,
@@ -697,7 +718,7 @@ export default function RemixForm({
           };
           setStoryboardClips([defaultClip]);
         };
-        
+
         createDefaultClip();
       }
     }
@@ -805,9 +826,9 @@ export default function RemixForm({
 
   const handleRegenerateClip = async () => {
     if (!editingClip) return;
-    
+
     setShowEditPromptModal(false);
-    
+
     await generatePreview(
         editingPrompt || editingClip.preview.templateData?.prompt || "",
         editingClip.templateData,
@@ -817,7 +838,7 @@ export default function RemixForm({
       undefined,
         editingClip.id
       );
-      
+
       setEditingClip(null);
       setEditingPrompt("");
   };
@@ -857,7 +878,7 @@ export default function RemixForm({
   const handleCompositionSuccess = (composedPreview: Preview) => {
     if (setLocalPreviews) {
       const now = new Date().toISOString();
-      
+
       // Ensure video structure is correct for rendering
       const previewToAdd = {
         ...composedPreview,
@@ -868,7 +889,7 @@ export default function RemixForm({
           ...(composedPreview.video.blob && { blob: composedPreview.video.blob })
         } : undefined
       };
-      
+
       setLocalPreviews(prev => {
         const newPreviews = [{
           isAgent: true,
@@ -915,11 +936,11 @@ export default function RemixForm({
           </div>
         </div>
 
-        
+
         {!template ? (
           <div className="text-center py-8">
             <p className="text-white/60 mb-4">
-              {isStoryboardPost 
+              {isStoryboardPost
                 ? "This storyboard post uses a template that isn't currently available."
                 : "This post uses a template that isn't currently available."}
             </p>
@@ -969,20 +990,20 @@ export default function RemixForm({
               generatePreview={generatePreview}
             onCompositionSuccess={handleCompositionSuccess}
             />
-            
+
             {/* {pendingGenerations.size > 0 && (
               <div className="mt-4">
                 <div className="text-xs text-white/40 mb-2">Generating...</div>
                 <div className="space-y-2">
                   {Array.from(pendingGenerations).map((generationId) => {
                     // generationId could be either a tempId or taskId
-                    const pendingPreview = localPreviews.find((p: any) => 
+                    const pendingPreview = localPreviews.find((p: any) =>
                       p.tempId === generationId || p.taskId === generationId
                     );
                     return (
                       <div key={generationId} className="flex items-start gap-3 p-3 bg-card-light/30 rounded-lg border border-dark-grey/20 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-highlight/10 to-transparent animate-shimmer" />
-                        
+
                         <div className="relative flex items-center gap-3 w-full">
                           <div className="flex-shrink-0">
                             <div className="w-8 h-8 rounded-full bg-brand-highlight/20 flex items-center justify-center">
@@ -1047,7 +1068,7 @@ export default function RemixForm({
           <h3 className="text-lg font-semibold text-white mb-4">
             {editingClip ? 'Edit & Regenerate Clip' : 'Edit Clip'}
           </h3>
-          
+
           {editingClip && (
             <div className="space-y-4">
               <div className="flex items-center gap-4 p-3 bg-gray-800 rounded-lg">
