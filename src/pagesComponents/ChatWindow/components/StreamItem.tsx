@@ -116,12 +116,8 @@ export default function StreamItem({
                   variant="secondary"
                   size="xs"
                   onClick={() => {
-                    console.log('Button clicked in StreamItem');
                     if (onPostButtonClick && preview) {
-                      console.log('Calling onPostButtonClick with preview:', { hasVideo: !!preview?.video, hasImage: !!preview?.image, agentId: preview?.agentId });
                       onPostButtonClick(preview);
-                    } else {
-                      console.log('onPostButtonClick or preview is undefined');
                     }
                   }}
                 >

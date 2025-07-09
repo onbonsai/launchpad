@@ -25,7 +25,6 @@ interface WorkerData {
 // Only run this code if we're in a web worker environment
 if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
   self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
-    console.log('[previewWorker] Received message from main thread:', event.data);
     const {
       url,
       idToken,
@@ -42,10 +41,6 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
     } = event.data;
 
     try {
-      console.log('[previewWorker] About to call generatePreview function');
-      console.log('[previewWorker] generatePreview function type:', typeof generatePreview);
-      console.log('[previewWorker] generatePreview function name:', generatePreview.name);
-
       const result = await generatePreview(
         url,
         idToken,
@@ -60,14 +55,6 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
         audio,
       );
 
-      console.log('[previewWorker] generatePreview returned result:', {
-        hasPreview: !!result?.preview,
-        hasStoryboard: !!result?.preview?.storyboard,
-        storyboardLength: result?.preview?.storyboard?.length || 0
-      });
-
-      console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
-
       // If there's video data with ArrayBuffer, we need to transfer it properly
       const transferList: Transferable[] = [];
       if (result?.preview?.video?.buffer instanceof ArrayBuffer) {
@@ -76,7 +63,6 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
 
       // Handle storyboard clips' video buffers
       if (result?.preview?.storyboard && result.preview.storyboard.length > 0) {
-        console.log('[previewWorker] Processing storyboard clips for transfer');
         result.preview.storyboard.forEach((clip: any) => {
           if (clip.preview?.video?.buffer instanceof ArrayBuffer) {
             transferList.push(clip.preview.video.buffer);
@@ -91,7 +77,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
 
       self.postMessage({ success: true, result, tempId }, transferList);
     } catch (error) {
-      console.error('[previewWorker] Error during preview generation for tempId:', tempId, error);
+      console.error('Error during preview generation for tempId:', tempId, error);
       self.postMessage({ success: false, error: (error as Error).message, tempId });
     }
   });

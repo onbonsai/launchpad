@@ -97,8 +97,6 @@ const generatePreviewImpl = async (
     startTime: number;
   },
 ): Promise<GeneratePreviewResponse | undefined> => {
-  console.log('[studio.worker] generatePreview called - should process storyboard clips');
-
   try {
     // Step 1: Make the initial request to create the preview task
     const formData = new FormData();
@@ -157,7 +155,6 @@ const generatePreviewImpl = async (
 
       switch (statusData.status) {
         case 'completed':
-          console.log('[studio.worker] Task completed, about to process result');
           return await processCompletedTask(statusData.result);
         case 'failed':
           throw new Error(statusData.error || 'Task failed');
@@ -173,11 +170,6 @@ const generatePreviewImpl = async (
 
     // Helper function to process the completed task result
     const processCompletedTask = async (data: any): Promise<GeneratePreviewResponse> => {
-      console.log('[studio.worker] processCompletedTask called with data:', {
-        hasVideo: !!data.preview?.video,
-        hasStoryboard: !!data.preview?.storyboard,
-        storyboardLength: data.preview?.storyboard?.length || 0
-      });
 
       if (data.preview?.video) {
         const videoData = new Uint8Array(data.preview.video.buffer);
@@ -207,16 +199,13 @@ const generatePreviewImpl = async (
         // Handle storyboard clips' video buffers
         let processedStoryboard;
         if (data.preview.storyboard && data.preview.storyboard.length > 0) {
-          console.log('[studio.worker] Processing storyboard clips (main video case):', data.preview.storyboard.length);
           processedStoryboard = await Promise.all(
             data.preview.storyboard.map(async (clip: any, index: number) => {
-              console.log(`[studio.worker] Clip ${index} has video buffer:`, !!clip.preview?.video?.buffer);
               if (clip.preview?.video?.buffer) {
                 try {
                   const clipVideoData = new Uint8Array(clip.preview.video.buffer);
                   const clipVideoBlob = new Blob([clipVideoData], { type: clip.preview.video.mimeType });
                   const clipVideoBuffer = await clipVideoBlob.arrayBuffer();
-                  console.log(`[studio.worker] Clip ${index} processed successfully:`, clipVideoBuffer.byteLength);
 
                   return {
                     ...clip,
@@ -276,17 +265,14 @@ const generatePreviewImpl = async (
       // Handle storyboard clips for non-video main previews
       let processedStoryboard = data.preview?.storyboard;
       if (data.preview?.storyboard && data.preview.storyboard.length > 0) {
-        console.log('[studio.worker] Processing storyboard clips (non-video case):', data.preview.storyboard.length);
         try {
           processedStoryboard = await Promise.all(
             data.preview.storyboard.map(async (clip: any, index: number) => {
-              console.log(`[studio.worker] Clip ${index} has video buffer:`, !!clip.preview?.video?.buffer);
               if (clip.preview?.video?.buffer) {
                 try {
                   const clipVideoData = new Uint8Array(clip.preview.video.buffer);
                   const clipVideoBlob = new Blob([clipVideoData], { type: clip.preview.video.mimeType });
                   const clipVideoBuffer = await clipVideoBlob.arrayBuffer();
-                  console.log(`[studio.worker] Clip ${index} processed successfully:`, clipVideoBuffer.byteLength);
 
                   return {
                     ...clip,

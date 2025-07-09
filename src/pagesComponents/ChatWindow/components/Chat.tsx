@@ -333,11 +333,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       );
       setStoryboardClips(initialClips);
     } else if (media?.template === 'video' && templateData) {
-      const videoData = (templateData as any).video || 
+      const videoData = (templateData as any).video ||
         ((post.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
-      const imageData = (templateData as any).image || 
-        (templateData as any).imagePreview || 
-        (post.metadata as any)?.video?.cover || 
+      const imageData = (templateData as any).image ||
+        (templateData as any).imagePreview ||
+        (post.metadata as any)?.video?.cover ||
         null;
       const videoUrl = videoData?.url || videoData;
       const duration = videoUrl ? await getVideoDuration(videoUrl).catch(() => 6) : 6;
@@ -552,7 +552,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // --- End Worker Management ---
 
   const handlePostButtonClick = useCallback((preview: Preview) => {
-    console.log('handlePostButtonClick called with preview:', { hasVideo: !!preview?.video, hasImage: !!preview?.image, agentId: preview?.agentId });
     setPostingPreview(preview);
     setIsPosting(true);
     if (preview.text) {
@@ -592,7 +591,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       attachments: message?.attachments,
     };
     setStreamEntries((prev) => [...prev, streamEntry]);
-    
+
     // Ensure thinking state is cleared when we get a response
     setIsThinking(false);
     setCurrentAction(undefined);
