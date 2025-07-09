@@ -4,6 +4,151 @@
 const CACHE_NAME = 'bonsai-cache-v1';
 const OFFLINE_URL = '/offline';
 
+// Pending generations tracking
+const pendingGenerations = new Map();
+const POLL_INTERVAL = 10000; // 10 seconds
+
+// Function to poll for task status
+async function pollTaskStatus(generation) {
+  const { id, apiUrl, roomId, expectedAgentId, idToken } = generation;
+  
+  try {
+    console.log(`[SW] Polling status for task ${id}`);
+    
+    // First, try to get the task status
+    const statusResponse = await fetch(`${apiUrl}/task/${id}/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+      },
+    });
+    
+    if (statusResponse.ok) {
+      const statusData = await statusResponse.json();
+      console.log(`[SW] Task ${id} status:`, statusData.status);
+      
+      if (statusData.status === 'completed') {
+        // Task completed, notify all clients
+        const clients = await self.clients.matchAll({ type: 'window' });
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'RELOAD_MESSAGES',
+            roomId: roomId,
+            generationId: id,
+          });
+        });
+        
+        // Show notification if we have permission
+        if (Notification.permission === 'granted') {
+          self.registration.showNotification('Preview Generated!', {
+            body: 'Your preview is ready. Click to view.',
+            icon: '/logo.png',
+            badge: '/favicon.png',
+            data: {
+              url: generation.postUrl || '/',
+              roomId: roomId,
+              generationId: id,
+            },
+          });
+        }
+        
+        // Remove from pending
+        pendingGenerations.delete(id);
+        return true;
+      } else if (statusData.status === 'failed') {
+        console.error(`[SW] Task ${id} failed:`, statusData.error);
+        pendingGenerations.delete(id);
+        return false;
+      }
+    }
+    
+    // If task status endpoint doesn't work or task is still processing,
+    // try checking messages endpoint as fallback
+    if (roomId && expectedAgentId && idToken) {
+      const messagesResponse = await fetch(`${apiUrl}/previews/${roomId}/messages?count=5`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer: ${idToken}`
+        },
+      });
+      
+      if (messagesResponse.ok) {
+        const data = await messagesResponse.json();
+        const messages = data.messages || [];
+        
+        // Check if our expected preview is in the messages
+        const foundPreview = messages.find(msg => 
+          msg.userId === 'agent' && 
+          msg.content?.preview?.agentId === expectedAgentId
+        );
+        
+        if (foundPreview) {
+          console.log(`[SW] Found completed preview for ${id} via messages endpoint`);
+          
+          // Notify all clients
+          const clients = await self.clients.matchAll({ type: 'window' });
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'RELOAD_MESSAGES',
+              roomId: roomId,
+              generationId: id,
+            });
+          });
+          
+          // Show notification
+          if (Notification.permission === 'granted') {
+            self.registration.showNotification('Preview Generated!', {
+              body: 'Your preview is ready. Click to view.',
+              icon: '/logo.png',
+              badge: '/favicon.png',
+              data: {
+                url: generation.postUrl || '/',
+                roomId: roomId,
+                generationId: id,
+              },
+            });
+          }
+          
+          pendingGenerations.delete(id);
+          return true;
+        }
+      }
+    }
+    
+    // Still processing, continue polling
+    return null;
+  } catch (error) {
+    console.error(`[SW] Error polling task ${id}:`, error);
+    // Don't remove from pending on network errors, keep trying
+    return null;
+  }
+}
+
+// Start polling for all pending generations
+async function pollAllPendingGenerations() {
+  if (pendingGenerations.size === 0) return;
+  
+  console.log(`[SW] Polling ${pendingGenerations.size} pending generations`);
+  
+  for (const [id, generation] of pendingGenerations) {
+    // Skip if too old (>1 hour)
+    if (Date.now() - generation.timestamp > 3600000) {
+      console.log(`[SW] Removing old generation ${id}`);
+      pendingGenerations.delete(id);
+      continue;
+    }
+    
+    await pollTaskStatus(generation);
+  }
+  
+  // Schedule next poll if we still have pending generations
+  if (pendingGenerations.size > 0) {
+    setTimeout(pollAllPendingGenerations, POLL_INTERVAL);
+  }
+}
+
 // Install event - cache offline page
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
@@ -189,8 +334,8 @@ self.addEventListener("notificationclick", function (event) {
 
       // If no existing window, open a new one
       if (clients.openWindow) {
-        const finalUrl = roomId ? `${url}?roomId=${roomId}` : url;
-        return clients.openWindow(finalUrl);
+        // const finalUrl = roomId ? `${url}?roomId=${roomId}` : url;
+        return clients.openWindow(url);
       }
     }),
   );
@@ -201,5 +346,34 @@ self.addEventListener("message", function (event) {
   if (event.data && event.data.type === "SHOW_NOTIFICATION") {
     const { title, options } = event.data;
     self.registration.showNotification(title, options);
+  } else if (event.data && event.data.type === "REGISTER_PENDING_GENERATION") {
+    // Register a new pending generation to track
+    const generation = event.data.generation;
+    console.log('[SW] Registering pending generation:', generation);
+    pendingGenerations.set(generation.id, generation);
+    
+    // Start polling if not already running
+    if (pendingGenerations.size === 1) {
+      setTimeout(pollAllPendingGenerations, POLL_INTERVAL);
+    }
+  } else if (event.data && event.data.type === "REMOVE_PENDING_GENERATION") {
+    // Remove a pending generation
+    const generationId = event.data.generationId;
+    console.log('[SW] Removing pending generation:', generationId);
+    pendingGenerations.delete(generationId);
+  } else if (event.data && event.data.type === "GET_PENDING_GENERATIONS") {
+    // Return pending generations for a specific room
+    const roomId = event.data.roomId;
+    console.log('[SW] Getting pending generations for room:', roomId);
+    
+    const roomGenerations = Array.from(pendingGenerations.values())
+      .filter(gen => !roomId || gen.roomId === roomId);
+    
+    // Reply using the provided MessagePort
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({
+        pendingGenerations: roomGenerations
+      });
+    }
   }
 });

@@ -10,9 +10,10 @@ interface StoryboardTimelineProps {
   setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
   audioStartTime: number;
   setAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
+  isRemixAudio?: boolean;
 }
 
-const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips, audio, setAudio, audioStartTime, setAudioStartTime }) => {
+const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips, audio, setAudio, audioStartTime, setAudioStartTime, isRemixAudio = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = () => {
@@ -90,6 +91,7 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
         setAudio={setAudio}
         storyboardAudioStartTime={audioStartTime}
         setStoryboardAudioStartTime={setAudioStartTime}
+        isRemixAudio={isRemixAudio}
       />
     </>
   );

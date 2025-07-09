@@ -16,6 +16,7 @@ interface StoryboardModalProps {
   setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
   storyboardAudioStartTime: number;
   setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
+  isRemixAudio?: boolean;
 }
 
 const StoryboardModal: React.FC<StoryboardModalProps> = ({ 
@@ -26,7 +27,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   audio, 
   setAudio, 
   storyboardAudioStartTime,
-  setStoryboardAudioStartTime
+  setStoryboardAudioStartTime,
+  isRemixAudio = false
 }) => {
   const [selectedClip, setSelectedClip] = useState<StoryboardClip | null>(null);
   const [isEditingAudio, setIsEditingAudio] = useState(false);
@@ -596,38 +598,42 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
           {/* Audio Section */}
           <div className="mt-4">
             <h3 className="text-lg font-semibold text-white mb-3">Background Audio</h3>
-            {isEditingAudio ? (
-              <>
-                <AudioUploader
-                  file={audio}
-                  setFile={setAudio}
-                  startTime={storyboardAudioStartTime}
-                  setStartTime={setStoryboardAudioStartTime}
-                  audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
-                  compact
-                />
-                {audio && storyboardDuration > 0 && (
-                  <div className="flex justify-end mt-2">
-                    <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
+            {audio ? (
+              isRemixAudio && typeof audio === 'string' && audio.startsWith('http') ? (
+                <div className="text-secondary/70 bg-zinc-700 rounded-lg p-4 text-sm">The original audio clip will be used.</div>
+              ) : isEditingAudio ? (
+                <>
+                  <AudioUploader
+                    file={audio}
+                    setFile={setAudio}
+                    startTime={storyboardAudioStartTime}
+                    setStartTime={setStoryboardAudioStartTime}
+                    audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
+                    compact
+                  />
+                  {audio && storyboardDuration > 0 && (
+                    <div className="flex justify-end mt-2">
+                      <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
+                  <div className="flex items-center gap-6">
+                    <MusicNoteIcon className="w-5 h-5 text-white" />
+                    <span className="text-white text-sm">
+                      {typeof audio === 'string' ? 'audio.mp3' : audio.name}
+                    </span>
+                    <span className="text-white/60 text-sm">
+                      ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
+                    </span>
                   </div>
-                )}
-              </>
-            ) : audio ? (
-              <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
-                <div className="flex items-center gap-6">
-                  <MusicNoteIcon className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm">
-                    {typeof audio === 'string' ? 'audio.mp3' : audio.name}
-                  </span>
-                  <span className="text-white/60 text-sm">
-                    ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
+                    <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
-                  <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
-                </div>
-              </div>
+              )
             ) : (
               // Show uploader if no audio
               <AudioUploader

@@ -105,10 +105,10 @@ export const getPostsCollectedBy = async (authorId: string, cursor?: Cursor | nu
 export const useGetPostsByAuthor = (enabled: boolean, authorId?: string, getCollected: boolean = false, _getPostData = false) => {
   return useInfiniteQuery({
     queryKey: ["get-posts-by-author", authorId, getCollected],
-    queryFn: async ({ pageParam = null }) => {
+    queryFn: async ({ pageParam = null }: { pageParam: string | null }) => {
       const result = !getCollected
-        ? await getPostsByAuthor(authorId!, pageParam)
-        : await getPostsCollectedBy(authorId!, pageParam);
+        ? await getPostsByAuthor(authorId!, pageParam as Cursor | null)
+        : await getPostsCollectedBy(authorId!, pageParam as Cursor | null);
 
       if (result.isErr()) {
         console.log(result.error);
@@ -140,7 +140,7 @@ interface GetExplorePostsProps {
 export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["explore-posts", accountAddress],
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();
@@ -178,7 +178,7 @@ export const useGetExplorePosts = ({ isLoadingAuthenticatedProfile, accountAddre
 export const useGetTimeline = ({ isLoadingAuthenticatedProfile, accountAddress, enabled }: GetExplorePostsProps) => {
   return useInfiniteQuery({
     queryKey: ["timeline", accountAddress],
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();

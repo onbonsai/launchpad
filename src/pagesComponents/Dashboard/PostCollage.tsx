@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
-import { Publication, Theme } from "@madfi/widgets-react";
+import { Theme } from "@madfi/widgets-react";
 import { Post, TimelineItem } from "@lens-protocol/client";
 import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
@@ -27,6 +27,12 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 import { Button } from "@src/components/Button";
+import dynamic from "next/dynamic";
+
+const Publication = dynamic(
+  () => import('@madfi/widgets-react').then(mod => mod.Publication),
+  { ssr: false }
+);
 
 interface PostItemProps {
   post: any;

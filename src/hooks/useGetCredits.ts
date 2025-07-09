@@ -22,7 +22,8 @@ export const fetchCredits = async (address: string): Promise<CreditBalance> => {
   const isMiniApp = await sdk.isInMiniApp(); // bonus credits for mini app users
   const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}`);
   if (!response.ok) throw new Error("Failed to fetch credits");
-  return response.json();
+  const data = await response.json();
+  return data;
 };
 
 export const useGetCredits = (address: string, isConnected: boolean) => {

@@ -10,7 +10,6 @@ import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
-import useIsMounted from "@src/hooks/useIsMounted";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
@@ -56,13 +55,11 @@ const StudioCreatePage: NextPage = () => {
   const { isMiniApp } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
-  const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
   const [openTab, setOpenTab] = useState<number>(1);
   const [currentPreview, setCurrentPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -103,8 +100,6 @@ const StudioCreatePage: NextPage = () => {
   // Function to check for completed generations
   const checkForCompletedGenerations = async () => {
     if (!roomId || !template?.apiUrl) return;
-
-    console.log('[create.tsx] Checking for completed generations...');
 
     try {
       const sessionClient = await resumeSession(true);
@@ -203,8 +198,6 @@ const StudioCreatePage: NextPage = () => {
   useEffect(() => {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'RELOAD_MESSAGES') {
-        console.log('[create.tsx] Received reload message from service worker', event.data);
-
         // If roomId matches or no specific roomId, reload messages
         if (!event.data.roomId || event.data.roomId === roomId) {
           checkForCompletedGenerations();
@@ -217,7 +210,6 @@ const StudioCreatePage: NextPage = () => {
   }, [roomId, template?.apiUrl, localPreviews, currentPreview]);
 
   useEffect(() => {
-    console.log('[create.tsx] Initializing preview worker...');
     workerRef.current = new Worker(new URL('../../src/services/preview.worker.ts', import.meta.url));
     workerRef.current.onmessage = async (event: MessageEvent) => {
       const { success, error, tempId } = event.data;
@@ -247,7 +239,6 @@ const StudioCreatePage: NextPage = () => {
           body: "Click to view it on Bonsai",
           icon: '/logo.png'
         });
-        console.log(`[create.tsx] Worker successfully generated preview for tempId: ${tempId}`, result);
 
         const previewWithMetadata = {
           ...result.preview,
@@ -309,7 +300,6 @@ const StudioCreatePage: NextPage = () => {
     };
 
     return () => {
-      console.log('[create.tsx] Terminating preview worker.');
       workerRef.current?.terminate();
     }
   }, []);
@@ -352,7 +342,6 @@ const StudioCreatePage: NextPage = () => {
     subscribeToPush();
 
     setOptimisticCreditBalance((prev) => (prev !== undefined ? prev - credits : undefined));
-    console.log(`[create.tsx] Adding pending preview with tempId: ${tempId}`);
     setLocalPreviews(prev => [...prev, {
       tempId,
       isAgent: true,
@@ -382,7 +371,6 @@ const StudioCreatePage: NextPage = () => {
       }).catch(console.error);
     }
 
-    console.log(`[create.tsx] Posting message to worker for tempId: ${tempId}`);
     workerRef.current?.postMessage({
       url: template.apiUrl,
       idToken,
@@ -683,7 +671,7 @@ const StudioCreatePage: NextPage = () => {
         canvas.height = videoElement.videoHeight;
 
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
-        videoElement.currentTime = videoElement.duration * 0.9;
+        videoElement.currentTime = videoElement.duration * 0.99;
       };
 
       videoElement.onseeked = () => {
@@ -737,7 +725,6 @@ const StudioCreatePage: NextPage = () => {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
           try {
-            console.log(`targetChainId: ${targetChainId}`)
             await switchChain(walletClient, { id: targetChainId });
             // HACK: require lens chain for the whole thing
             setIsCreating(false);
@@ -917,9 +904,8 @@ const StudioCreatePage: NextPage = () => {
     toastId = toast.loading("Creating your post...", { id: toastId });
     let postId, uri;
     let video;
+    let image, imageUri, type;
     try {
-      let image, imageUri, type;
-
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
         video = { url: videoUri, type };
@@ -1097,6 +1083,7 @@ const StudioCreatePage: NextPage = () => {
             endTime: clip.endTime,
             templateData: {
               video: clip.preview.video,
+              image: clip.preview.image,
               ...clip.templateData,
             },
           })),

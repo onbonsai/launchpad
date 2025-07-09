@@ -6,6 +6,7 @@ import { formatDistanceToNowStrict } from 'date-fns'
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
 import { MADFI_BOUNTIES_URL, SITE_URL } from "@src/constants/constants";
 import { MetadataAttribute } from "@lens-protocol/metadata";
+import { Template } from "@src/services/madfi/studio";
 
 const bucketToLinkKey = {
   seo: "jvxdv5ynbbikx455wrdynvc7tyhq",
@@ -614,4 +615,13 @@ export const urlBase64ToUint8Array = (base64String: string) => {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+};
+
+export const mapTemplateNameToTemplate = (templateName: string, registeredTemplates: Template[]) => {
+  return registeredTemplates?.find((t: Template) => {
+    return t.name === templateName ||
+      (templateName === "video_dot_fun" && t.name === "video") ||
+      (templateName === "adventure_time" && t.name === "story") ||
+      (templateName === "image" && t.name === "image");
+  });
 };
