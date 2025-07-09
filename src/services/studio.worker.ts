@@ -97,6 +97,7 @@ const generatePreviewImpl = async (
     startTime: number;
   },
 ): Promise<GeneratePreviewResponse | undefined> => {
+  console.log('[studio.worker] generatePreview called - should process storyboard clips');
 
   try {
     // Step 1: Make the initial request to create the preview task
@@ -156,6 +157,7 @@ const generatePreviewImpl = async (
 
       switch (statusData.status) {
         case 'completed':
+          console.log('[studio.worker] Task completed, about to process result');
           return await processCompletedTask(statusData.result);
         case 'failed':
           throw new Error(statusData.error || 'Task failed');
@@ -171,6 +173,12 @@ const generatePreviewImpl = async (
 
     // Helper function to process the completed task result
     const processCompletedTask = async (data: any): Promise<GeneratePreviewResponse> => {
+      console.log('[studio.worker] processCompletedTask called with data:', {
+        hasVideo: !!data.preview?.video,
+        hasStoryboard: !!data.preview?.storyboard,
+        storyboardLength: data.preview?.storyboard?.length || 0
+      });
+
       if (data.preview?.video) {
         const videoData = new Uint8Array(data.preview.video.buffer);
         const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
