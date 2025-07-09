@@ -374,7 +374,8 @@ export default function ChatInput({
                       <button
                         type="button"
                         onClick={() => setShowRemixForm(true)}
-                        className="whitespace-nowrap rounded-lg bg-brand-highlight px-2 py-1 text-start text-black/80 text-[14px] tracking-[-0.02em] leading-5"
+                        className={`whitespace-nowrap rounded-lg ${isGeneratingPreview ? ' bg-dark-grey text-white/40' : 'bg-brand-highlight text-black/80'} px-2 py-1 text-start text-[14px] tracking-[-0.02em] leading-5`}
+                        disabled={isGeneratingPreview}
                       >
                         Remix this post
                       </button>
