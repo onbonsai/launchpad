@@ -223,7 +223,6 @@ const CreatePostForm = ({
   }, [template.estimatedCost, templateData.enableVideo]);
 
   const _generatePreview = async () => {
-    console.log('[CreatePostForm] _generatePreview called.');
     // Collapse advanced options when generating
     setIsDrawerExpanded(false);
     setIsSubmitting(true);

@@ -582,7 +582,7 @@ export const composeStoryboard = async (
         id: clip.id,
         startTime: clip.startTime,
         endTime: clip.endTime,
-        videoUrl: clip.preview?.video?.url,
+        videoUrl: (clip.preview?.video?.url && !clip.preview.video.url.startsWith('blob:')) ? clip.preview.video.url : undefined,
       })),
       audioStartTime,
       audio: audioData

@@ -53,16 +53,6 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   // Reset trim controls when clip changes
   useEffect(() => {
     if (selectedClip) {
-      console.log('[StoryboardModal] Selected clip changed:', {
-        id: selectedClip.id,
-        hasVideo: !!selectedClip.preview.video,
-        hasVideoUrl: !!selectedClip.preview.video?.url,
-        hasVideoBlob: !!selectedClip.preview.video?.blob,
-        videoMimeType: selectedClip.preview.video?.mimeType,
-        startTime: selectedClip.startTime,
-        endTime: selectedClip.endTime
-      });
-
       setStartTime(selectedClip.startTime);
       setEndTime(selectedClip.endTime);
       setCurrentTime(selectedClip.startTime);
@@ -372,17 +362,15 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                   onClick={handleVideoClick}
                   onTimeUpdate={handleVideoTimeUpdate}
                   onPlay={() => {
-                    console.log('[StoryboardModal] Video started playing');
                     setIsPlaying(true);
                     setShowPlayButton(false);
                   }}
                   onPause={() => {
-                    console.log('[StoryboardModal] Video paused');
                     setIsPlaying(false);
                     setShowPlayButton(true);
                   }}
                   onLoadedData={() => {
-                    console.log('[StoryboardModal] Video loaded data successfully');
+                    // Video loaded data successfully
                   }}
                   onError={(e) => {
                     console.error('[StoryboardModal] Video error:', e, {
@@ -393,7 +381,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                     });
                   }}
                   onLoadStart={() => {
-                    console.log('[StoryboardModal] Video load started, hasUrl:', !!selectedClip.preview.video?.url);
+                    // Video load started
                   }}
                 />
 

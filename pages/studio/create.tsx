@@ -217,11 +217,7 @@ const StudioCreatePage: NextPage = () => {
         // Deep clone the result to prevent mutation of shared objects in the state
         const result = cloneDeep(event.data.result);
 
-        console.log('[create.tsx] Worker result received:', {
-          hasMainVideo: !!result.preview?.video?.buffer,
-          hasStoryboard: !!result.preview?.storyboard,
-          storyboardLength: result.preview?.storyboard?.length
-        });
+
 
         if (result.preview?.video?.buffer) {
           const videoBlob = new Blob([result.preview.video.buffer], { type: result.preview.video.mimeType });
@@ -232,32 +228,14 @@ const StudioCreatePage: NextPage = () => {
 
         // Handle storyboard clips' video buffers
         if (result.preview?.storyboard && result.preview.storyboard.length > 0) {
-          console.log('[create.tsx] Processing storyboard clips video buffers');
           result.preview.storyboard = result.preview.storyboard.map((clip: any, index: number) => {
-            console.log(`[create.tsx] Processing clip ${index}:`, {
-              id: clip.id,
-              hasVideoBuffer: !!clip.preview?.video?.buffer,
-              hasVideoMimeType: !!clip.preview?.video?.mimeType,
-              videoBlobSize: clip.preview?.video?.buffer?.byteLength
-            });
-
             if (clip.preview?.video?.buffer) {
               const videoBlob = new Blob([clip.preview.video.buffer], { type: clip.preview.video.mimeType });
               const videoUrl = URL.createObjectURL(videoBlob);
               clip.preview.video.url = videoUrl;
               clip.preview.video.blob = videoBlob;
               delete clip.preview.video.buffer;
-
-              console.log(`[create.tsx] Processed clip ${index} video:`, {
-                id: clip.id,
-                blobSize: videoBlob.size,
-                mimeType: videoBlob.type,
-                hasUrl: !!videoUrl,
-                urlValid: videoUrl.startsWith('blob:')
-              });
-                          } else {
-                console.warn(`[create.tsx] Clip ${index} has no video buffer, hasPreview: ${!!clip.preview}, hasVideoObj: ${!!clip.preview?.video}`);
-              }
+            }
             return clip;
           });
         }
@@ -530,14 +508,7 @@ const StudioCreatePage: NextPage = () => {
   }, [currentPreview]);
 
   const handleSetPreview = (preview: Preview, tempId?: string) => {
-    console.log('[create.tsx] handleSetPreview called:', {
-      hasVideo: !!preview.video,
-      hasImage: !!preview.image,
-      hasStoryboard: !!preview.storyboard,
-      storyboardLength: preview.storyboard?.length,
-      agentId: preview.agentId,
-      tempId: !!tempId
-    });
+
 
     // Prevent duplicate processing of the same preview
     if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) {
@@ -546,7 +517,6 @@ const StudioCreatePage: NextPage = () => {
         (lp.content.preview && lp.content.preview.agentId === preview.agentId)
       );
       if (isExisting) {
-        console.log('[create.tsx] Skipping duplicate preview processing for agentId:', preview.agentId);
         return;
       }
     }
@@ -557,7 +527,6 @@ const StudioCreatePage: NextPage = () => {
         localPreviews.some(lp => lp.agentId === clip.id)
       );
       if (hasStoryboardClipsAlready) {
-        console.log('[create.tsx] Skipping duplicate storyboard processing - clips already exist');
         return;
       }
     }
@@ -569,11 +538,7 @@ const StudioCreatePage: NextPage = () => {
 
             // If preview contains storyboard, populate storyboard state
     if (preview.storyboard && preview.storyboard.length > 0) {
-      console.log('[create.tsx] Storyboard found in preview:', {
-        clipCount: preview.storyboard.length,
-        firstClipHasVideo: !!preview.storyboard[0]?.preview?.video,
-        firstClipId: preview.storyboard[0]?.id
-      });
+
 
       setStoryboardClips(prevClips => {
         // Filter out clips that already exist in the storyboard
@@ -585,42 +550,10 @@ const StudioCreatePage: NextPage = () => {
           return prevClips;
         }
 
-                        console.log('[create.tsx] Processing new storyboard clips:', { count: newClips.length });
 
-        // Debug each clip's video structure
-        newClips.forEach((clip, index) => {
-          console.log(`[create.tsx] Clip ${index}:`, {
-            id: clip.id,
-            hasVideo: !!clip.preview?.video,
-            hasVideoUrl: !!clip.preview?.video?.url,
-            hasVideoBlob: !!clip.preview?.video?.blob,
-            hasVideoBuffer: !!clip.preview?.video?.buffer,
-            duration: clip.duration
-          });
-        });
 
-        // If there are existing clips, calculate the start time for new clips
-        if (prevClips.length > 0) {
-          const lastClip = prevClips[prevClips.length - 1];
-          const newStartTime = lastClip.endTime;
-
-          // Update the new clips' start/end times to continue from where the last clip ended
-          const updatedNewClips = newClips.map((clip, index) => {
-            const previousClipEndTime = index === 0 ? newStartTime : newStartTime + newClips.slice(0, index).reduce((acc, c) => acc + c.duration, 0);
-            return {
-              ...clip,
-              startTime: previousClipEndTime,
-              endTime: previousClipEndTime + clip.duration
-            };
-          });
-
-          console.log('[create.tsx] Updated new clips with timeline:', { count: updatedNewClips.length });
-          return [...prevClips, ...updatedNewClips];
-        } else {
-          // No existing clips, use the new clips as-is
-          console.log('[create.tsx] Using new clips as-is:', { count: newClips.length });
-          return newClips;
-        }
+        // Use clips as-is with their original timing from the server
+        return [...prevClips, ...newClips];
       });
     }
 
@@ -659,12 +592,7 @@ const StudioCreatePage: NextPage = () => {
           const now = new Date().toISOString();
           const storyboardPreviews = [];
 
-                    console.log('[create.tsx] Processing storyboard for tempId case:', {
-            storyboardLength: preview.storyboard.length,
-            hasMainVideo: !!preview.video,
-            hasMainImage: !!preview.image,
-            willOnlyShowClips: true
-          });
+
 
                     preview.storyboard.forEach((clip, index) => {
             const clipTimestamp = new Date(Date.parse(now) + index).toISOString();
@@ -672,19 +600,7 @@ const StudioCreatePage: NextPage = () => {
             // Try to find clip-specific prompt first, then fall back to original prompt
             const clipPrompt = clip.templateData?.sceneDescription || clip.preview.text || "";
 
-            console.log(`[create.tsx] Processing tempId clip ${index}:`, {
-            id: clip.id,
-            hasTemplateData: !!clip.templateData,
-            templateDataKeys: Object.keys(clip.templateData || {}),
-            templateDataValues: clip.templateData ? Object.fromEntries(
-              Object.entries(clip.templateData).map(([key, value]) => [
-                key,
-                typeof value === 'string' ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : value
-              ])
-            ) : {},
-                        clipPrompt: clipPrompt.substring(0, 50) + '...',
-            previewText: clip.preview.text || 'undefined'
-          });
+
 
           // Add template data for the clip
           storyboardPreviews.push({
@@ -717,13 +633,7 @@ const StudioCreatePage: NextPage = () => {
             p.agentId !== preview.agentId && p.agentId !== `templateData-${preview.agentId}`
           );
 
-          console.log('[create.tsx] TempId case - filtering main preview:', {
-            originalCount: updatedPreviews.length,
-            filteredCount: filteredUpdatedPreviews.length,
-            storyboardCount: storyboardPreviews.length,
-            mainAgentId: preview.agentId,
-            filteredOut: updatedPreviews.length - filteredUpdatedPreviews.length
-          });
+
 
           return [...filteredUpdatedPreviews, ...storyboardPreviews];
         }
@@ -743,26 +653,8 @@ const StudioCreatePage: NextPage = () => {
             return prevClips;
           }
 
-          // If there are existing clips, calculate the start time for new clips
-          if (prevClips.length > 0) {
-            const lastClip = prevClips[prevClips.length - 1];
-            const newStartTime = lastClip.endTime;
-
-            // Update the new clips' start/end times to continue from where the last clip ended
-            const updatedNewClips = newClips.map((clip, index) => {
-              const previousClipEndTime = index === 0 ? newStartTime : newStartTime + newClips.slice(0, index).reduce((acc, c) => acc + c.duration, 0);
-              return {
-                ...clip,
-                startTime: previousClipEndTime,
-                endTime: previousClipEndTime + clip.duration
-              };
-            });
-
-            return [...prevClips, ...updatedNewClips];
-          } else {
-            // No existing clips, use the new clips as-is
-            return newClips;
-          }
+          // Use clips as-is with their original timing from the server
+          return [...prevClips, ...newClips];
         });
       }
 
@@ -787,11 +679,7 @@ const StudioCreatePage: NextPage = () => {
 
       // If preview contains storyboard, add individual clips as local previews
       if (preview.storyboard && preview.storyboard.length > 0) {
-        console.log('[create.tsx] Processing storyboard for local previews:', {
-          storyboardLength: preview.storyboard.length,
-          hasMainVideo: !!preview.video,
-          hasMainImage: !!preview.image
-        });
+
 
                 preview.storyboard.forEach((clip, index) => {
           const clipTimestamp = new Date(Date.parse(now) + index).toISOString();
@@ -805,19 +693,7 @@ const StudioCreatePage: NextPage = () => {
                            clip.preview.text ||
                            "";
 
-          console.log(`[create.tsx] Processing clip ${index}:`, {
-            id: clip.id,
-            hasTemplateData: !!clip.templateData,
-            templateDataKeys: Object.keys(clip.templateData || {}),
-            templateDataValues: clip.templateData ? Object.fromEntries(
-              Object.entries(clip.templateData).map(([key, value]) => [
-                key,
-                typeof value === 'string' ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : value
-              ])
-            ) : {},
-            clipPrompt: clipPrompt.substring(0, 50) + '...',
-            previewText: clip.preview.text || 'undefined'
-          });
+
 
           // Add template data for the clip
           newPreviews.push({
@@ -849,12 +725,7 @@ const StudioCreatePage: NextPage = () => {
       // When there's a storyboard, we only show the individual clips
       const shouldAddMainPreview = !preview.storyboard || preview.storyboard.length === 0;
 
-      console.log('[create.tsx] Main preview decision:', {
-        hasStoryboard: !!preview.storyboard,
-        storyboardLength: preview.storyboard?.length || 0,
-        shouldAddMainPreview,
-        reason: shouldAddMainPreview ? 'no storyboard' : 'has storyboard, skipping main preview'
-      });
+
 
       if (shouldAddMainPreview) {
         newPreviews.push(
@@ -888,14 +759,7 @@ const StudioCreatePage: NextPage = () => {
         ? newPreviews.filter(p => p.agentId !== preview.agentId && p.agentId !== `templateData-${preview.agentId}`)
         : newPreviews;
 
-      console.log('[create.tsx] Adding previews to state:', {
-        newPreviewsCount: newPreviews.length,
-        filteredPreviewsCount: filteredPreviews.length,
-        previewTypes: filteredPreviews.map(p => `${p.agentId} (${p.isAgent ? 'agent' : 'user'})`),
-        hasStoryboard: !!preview.storyboard,
-        storyboardLength: preview.storyboard?.length || 0,
-        filteredOut: newPreviews.length - filteredPreviews.length
-      });
+
 
       return [...prev, ...filteredPreviews];
     });
