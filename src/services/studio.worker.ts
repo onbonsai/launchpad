@@ -258,20 +258,15 @@ const generatePreviewImpl = async (
       }
 
       // Handle large base64 images for non-video responses
+      let processedImageData = data.preview?.image;
       if (data.preview?.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
         try {
           const response = await fetch(data.preview.image);
           const imageBuffer = await response.arrayBuffer();
-          return {
-            ...data,
-            preview: {
-              ...data.preview,
-              image: {
-                buffer: imageBuffer,
-                mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
-                isLargeImage: true
-              }
-            }
+          processedImageData = {
+            buffer: imageBuffer,
+            mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
+            isLargeImage: true
           };
         } catch (error) {
           console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
@@ -279,10 +274,11 @@ const generatePreviewImpl = async (
       }
 
       // Handle storyboard clips for non-video main previews
+      let processedStoryboard = data.preview?.storyboard;
       if (data.preview?.storyboard && data.preview.storyboard.length > 0) {
         console.log('[studio.worker] Processing storyboard clips (non-video case):', data.preview.storyboard.length);
         try {
-          const processedStoryboard = await Promise.all(
+          processedStoryboard = await Promise.all(
             data.preview.storyboard.map(async (clip: any, index: number) => {
               console.log(`[studio.worker] Clip ${index} has video buffer:`, !!clip.preview?.video?.buffer);
               if (clip.preview?.video?.buffer) {
@@ -312,20 +308,20 @@ const generatePreviewImpl = async (
               }
             })
           );
-
-          return {
-            ...data,
-            preview: {
-              ...data.preview,
-              storyboard: processedStoryboard
-            }
-          };
         } catch (error) {
           console.error('[studio.worker] Failed to process storyboard clips:', error);
         }
       }
 
-      return data;
+      // Return with both processed image and storyboard data
+      return {
+        ...data,
+        preview: {
+          ...data.preview,
+          ...(processedImageData !== data.preview?.image && { image: processedImageData }),
+          ...(processedStoryboard !== data.preview?.storyboard && { storyboard: processedStoryboard })
+        }
+      };
     };
 
     return await pollStatus();
