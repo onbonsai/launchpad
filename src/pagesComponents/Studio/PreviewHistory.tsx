@@ -14,11 +14,10 @@ import { RefreshIcon } from '@heroicons/react/outline';
 import Spinner from '@src/components/LoadingSpinner/LoadingSpinner';
 import { FilmIcon } from '@heroicons/react/solid';
 import { FastForwardIcon } from '@heroicons/react/solid';
-import type { StoryboardClip } from '@pages/studio/create';
 import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
 import { ANIMATED_HINT_LINES } from '@src/constants/constants';
-import { NFTMetadata } from '@src/services/madfi/studio';
+import { NFTMetadata, type StoryboardClip } from '@src/services/madfi/studio';
 
 export type LocalPreview = {
   agentId?: string;
@@ -220,7 +219,7 @@ export default function PreviewHistory({
       // Get video URL or convert blob to base64
       let videoUrl: string;
       let isBlob = false;
-      
+
       if (preview.video.blob) {
         // Convert blob to base64 data URL
         const reader = new FileReader();
@@ -258,7 +257,7 @@ export default function PreviewHistory({
 
       // Get the processed video as blob
       const blob = await response.blob();
-      
+
       // Download the processed video
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

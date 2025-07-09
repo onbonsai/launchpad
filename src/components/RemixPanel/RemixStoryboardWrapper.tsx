@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from "@src/services/madfi/studio";
 import RemixPanel from './RemixPanel';
 import StoryboardModal from '@src/pagesComponents/Studio/StoryboardModal';
 import { Button } from '@src/components/Button';
 import { Modal } from '@src/components/Modal';
-import { 
-  SwitchHorizontalIcon, 
-  CollectionIcon, 
+import {
+  SwitchHorizontalIcon,
+  CollectionIcon,
   PlayIcon,
   PencilIcon
 } from '@heroicons/react/solid';
@@ -98,7 +98,7 @@ const RemixStoryboardWrapper: React.FC<RemixStoryboardWrapperProps> = ({
             {clips.length} clip{clips.length !== 1 ? 's' : ''}
           </span>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             onClick={handleOpenRemixPanel}
@@ -109,7 +109,7 @@ const RemixStoryboardWrapper: React.FC<RemixStoryboardWrapperProps> = ({
             <SwitchHorizontalIcon className="w-4 h-4" />
             <span>Remix Panel</span>
           </Button>
-          
+
           <Button
             onClick={handleOpenStoryboardModal}
             variant="primary"
@@ -199,7 +199,7 @@ const RemixStoryboardWrapper: React.FC<RemixStoryboardWrapperProps> = ({
                   className="w-full max-h-96 object-contain"
                 />
               </div>
-              
+
               {/* Clip Info */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -215,7 +215,7 @@ const RemixStoryboardWrapper: React.FC<RemixStoryboardWrapperProps> = ({
                   <span className="text-gray-400">Range:</span>
                   <span className="text-white ml-2">
                     {Math.floor(previewingClip.startTime / 60)}:
-                    {Math.floor(previewingClip.startTime % 60).toString().padStart(2, '0')} - 
+                    {Math.floor(previewingClip.startTime % 60).toString().padStart(2, '0')} -
                     {Math.floor(previewingClip.endTime / 60)}:
                     {Math.floor(previewingClip.endTime % 60).toString().padStart(2, '0')}
                   </span>

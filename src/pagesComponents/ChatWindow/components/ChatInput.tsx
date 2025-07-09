@@ -8,7 +8,7 @@ import { Button } from '@src/components/Button';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import RemixForm from './RemixForm';
 import { useTopUpModal } from '@src/context/TopUpContext';
-import { type StoryboardClip } from '@pages/studio/create';
+import { type StoryboardClip } from "@src/services/madfi/studio";
 
 type PremadeChatInputProps = {
   label: string;
@@ -180,30 +180,30 @@ export default function ChatInput({
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
-  
+
   const remixTemplate = useMemo(() => {
     if (!remixMedia || !templates) return undefined;
-    
+
     let template = templates.find((t) => t.name === remixMedia.template);
-    
+
     if (!template) {
-      template = templates.find((t) => 
+      template = templates.find((t) =>
         t.name.toLowerCase() === remixMedia.template?.toLowerCase()
       );
     }
-    
+
     if (!template && remixMedia.templateData && (remixMedia.templateData as any).clips) {
       template = templates.find((t) => t.name.toLowerCase().includes('video'));
     }
-    
+
     if (!template && templates.length > 0) {
       template = templates[0];
       console.warn(`Template "${remixMedia.template}" not found, using fallback: ${template.name}`);
     }
-    
+
     return template;
   }, [remixMedia, templates]);
-  
+
   const { openSwapToGenerateModal } = useTopUpModal();
 
   useEffect(() => {

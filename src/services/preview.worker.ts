@@ -64,6 +64,16 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
         transferList.push(result.preview.video.buffer);
       }
 
+      // Handle storyboard clips' video buffers
+      if (result?.preview?.storyboard && result.preview.storyboard.length > 0) {
+        console.log('[previewWorker] Processing storyboard clips for transfer');
+        result.preview.storyboard.forEach((clip: any) => {
+          if (clip.preview?.video?.buffer instanceof ArrayBuffer) {
+            transferList.push(clip.preview.video.buffer);
+          }
+        });
+      }
+
       // Handle large image ArrayBuffers
       if (result?.preview?.image?.buffer instanceof ArrayBuffer) {
         transferList.push(result.preview.image.buffer);

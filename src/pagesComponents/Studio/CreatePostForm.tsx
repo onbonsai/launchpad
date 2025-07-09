@@ -12,7 +12,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined, ExpandMore, ExpandLess } from "@mui/icons-material";
-import { MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
+import { MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata, type StoryboardClip } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { brandFont } from "@src/fonts/fonts";
@@ -26,7 +26,7 @@ import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
-import type { StoryboardClip } from "@pages/studio/create";
+import { RemixStoryboardWrapper } from '@src/components/RemixPanel';
 import StoryboardTimeline from "./StoryboardTimeline";
 
 type CreatePostProps = {

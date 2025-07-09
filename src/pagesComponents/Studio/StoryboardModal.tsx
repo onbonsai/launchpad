@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { XCircleIcon, ScissorsIcon, MusicNoteIcon, PencilAltIcon } from '@heroicons/react/solid';
 import { PlayIcon, PauseIcon } from '@heroicons/react/outline';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from '@src/services/madfi/studio';
 import { Button } from '@src/components/Button';
 import { Modal } from '@src/components/Modal';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -19,13 +19,13 @@ interface StoryboardModalProps {
   isRemixAudio?: boolean;
 }
 
-const StoryboardModal: React.FC<StoryboardModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  clips, 
-  setClips, 
-  audio, 
-  setAudio, 
+const StoryboardModal: React.FC<StoryboardModalProps> = ({
+  isOpen,
+  onClose,
+  clips,
+  setClips,
+  audio,
+  setAudio,
   storyboardAudioStartTime,
   setStoryboardAudioStartTime,
   isRemixAudio = false
@@ -53,6 +53,16 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   // Reset trim controls when clip changes
   useEffect(() => {
     if (selectedClip) {
+      console.log('[StoryboardModal] Selected clip changed:', {
+        id: selectedClip.id,
+        hasVideo: !!selectedClip.preview.video,
+        hasVideoUrl: !!selectedClip.preview.video?.url,
+        hasVideoBlob: !!selectedClip.preview.video?.blob,
+        videoMimeType: selectedClip.preview.video?.mimeType,
+        startTime: selectedClip.startTime,
+        endTime: selectedClip.endTime
+      });
+
       setStartTime(selectedClip.startTime);
       setEndTime(selectedClip.endTime);
       setCurrentTime(selectedClip.startTime);
@@ -67,14 +77,14 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       if (videoRef.current && isPlaying) {
         const time = videoRef.current.currentTime;
         setCurrentTime(time);
-        
+
         // Auto-pause if we've reached the end time
         if (time >= endTime) {
           videoRef.current.pause();
           return;
         }
       }
-      
+
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(updateTime);
       }
@@ -128,12 +138,12 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const handleTimelineClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current || !selectedClip || isDragging) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
     const time = percentage * selectedClip.duration;
-    
+
     if (videoRef.current) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
@@ -182,14 +192,14 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const handleMove = useCallback((e: MouseEvent | TouchEvent) => {
     if ((!isDragging && !isDraggingPlayhead) || !timelineRef.current || !selectedClip) return;
-    
+
     e.preventDefault();
     const rect = timelineRef.current.getBoundingClientRect();
     const { clientX } = getEventCoordinates(e);
     const mouseX = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, mouseX / rect.width));
     const time = percentage * selectedClip.duration;
-    
+
     if (isDraggingPlayhead) {
       if (videoRef.current) {
         videoRef.current.currentTime = time;
@@ -231,7 +241,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       document.addEventListener('touchmove', handleMove, { passive: false });
       document.addEventListener('touchend', handleEnd);
     }
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleEnd);
@@ -243,7 +253,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const togglePlayPause = (e?: React.MouseEvent) => {
     e?.preventDefault();
     if (!videoRef.current) return;
-    
+
     if (isPlaying) {
       videoRef.current.pause();
     } else {
@@ -274,7 +284,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const handleSaveTrim = () => {
     if (!selectedClip) return;
-    
+
     setClips(clips.map(clip =>
       clip.id === selectedClip.id ? { ...clip, startTime, endTime } : clip
     ));
@@ -284,7 +294,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const onDragEnd = (result: DropResult) => {
     // Re-enable body scroll and text selection
     document.body.style.userSelect = '';
-    
+
     const { destination, source } = result;
     if (!destination) return;
 
@@ -350,7 +360,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
               <h3 className="text-lg font-semibold text-white mb-3">
                 Edit Clip {clips.findIndex(c => c.id === selectedClip.id) + 1}
               </h3>
-              
+
               {/* Video Preview with Play/Pause and Timeline Overlay */}
               <div
                 className="relative mb-4 group"
@@ -362,17 +372,33 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                   onClick={handleVideoClick}
                   onTimeUpdate={handleVideoTimeUpdate}
                   onPlay={() => {
+                    console.log('[StoryboardModal] Video started playing');
                     setIsPlaying(true);
                     setShowPlayButton(false);
                   }}
                   onPause={() => {
+                    console.log('[StoryboardModal] Video paused');
                     setIsPlaying(false);
                     setShowPlayButton(true);
                   }}
+                  onLoadedData={() => {
+                    console.log('[StoryboardModal] Video loaded data successfully');
+                  }}
+                  onError={(e) => {
+                    console.error('[StoryboardModal] Video error:', e, {
+                      error: e.currentTarget.error,
+                      src: e.currentTarget.src,
+                      networkState: e.currentTarget.networkState,
+                      readyState: e.currentTarget.readyState
+                    });
+                  }}
+                  onLoadStart={() => {
+                    console.log('[StoryboardModal] Video load started, hasUrl:', !!selectedClip.preview.video?.url);
+                  }}
                 />
-                
+
                 {/* Play/Pause Overlay Button */}
-                <div 
+                <div
                   className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
                     showPlayButton ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   }`}
@@ -453,10 +479,10 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                     <div className="text-white font-mono text-sm">{formatTime(endTime - startTime)}</div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end">
-                  <Button 
-                    variant="accentBrand" 
+                  <Button
+                    variant="accentBrand"
                     onClick={handleSaveTrim}
                     className="py-2.5 sm:py-2 text-sm"
                   >
@@ -476,7 +502,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
           {/* Clips Timeline */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Clips</h3>
-            <DragDropContext 
+            <DragDropContext
               onDragEnd={onDragEnd}
               onDragStart={() => {
                 // Disable body scroll during drag to prevent positioning issues
@@ -487,8 +513,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                 document.body.style.userSelect = 'none';
               }}
             >
-              <Droppable 
-                droppableId="storyboard" 
+              <Droppable
+                droppableId="storyboard"
                 direction="horizontal"
                 renderClone={(provided, snapshot, rubric) => (
                   <div
@@ -544,8 +570,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                             {...provided.dragHandleProps}
                             onClick={() => handleClipSelect(clip)}
                             className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ${
-                              selectedClip?.id === clip.id 
-                                ? 'ring-2 ring-blue-500 shadow-lg' 
+                              selectedClip?.id === clip.id
+                                ? 'ring-2 ring-blue-500 shadow-lg'
                                 : 'hover:ring-1 hover:ring-blue-300'
                             } ${snapshot.isDragging ? 'opacity-50' : ''}`}
                             style={provided.draggableProps.style}
@@ -587,7 +613,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                 )}
               </Droppable>
             </DragDropContext>
-            
+
             {clips.length === 0 && (
               <div className="text-center py-8 text-gray-400">
                 No clips in storyboard yet
@@ -652,4 +678,4 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   );
 };
 
-export default StoryboardModal; 
+export default StoryboardModal;

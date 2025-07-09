@@ -26,7 +26,7 @@ A wrapper component that integrates the RemixPanel with the existing StoryboardM
 
 ```tsx
 import { RemixStoryboardWrapper } from '@src/components/RemixPanel';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from "@src/services/madfi/studio"
 
 function MyStudioComponent() {
   const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);

@@ -9,7 +9,6 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
-import type { StoryboardClip } from "@pages/studio/create";
 import { generatePreview } from "./../studio.worker";
 
 export const APP_ID = "BONSAI";
@@ -112,7 +111,17 @@ export type Preview = {
     blob: Blob; // This can be used to create an object URL or process the video
     url: string;
   };
+  storyboard?: StoryboardClip[]; // Array of clips for composed videos
 };
+
+export interface StoryboardClip {
+  id: string; // agentId of the preview
+  preview: Preview;
+  startTime: number;
+  endTime: number; // Will be clip duration initially
+  duration: number;
+  templateData?: any;
+}
 
 export type SmartMedia = {
   agentId: string; // uuid

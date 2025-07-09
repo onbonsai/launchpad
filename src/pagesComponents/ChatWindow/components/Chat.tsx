@@ -37,7 +37,7 @@ import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGri
 import { DownloadIcon } from '@heroicons/react/outline';
 import { FastForwardIcon, FilmIcon } from '@heroicons/react/solid';
 import { SparklesIcon } from '@heroicons/react/solid';
-import { type StoryboardClip } from '@pages/studio/create';
+import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
 
 type ChatProps = {
@@ -53,10 +53,10 @@ type ChatProps = {
 };
 
 // Component to display preview messages using Publication
-const PreviewMessage = ({ 
-  preview, 
-  isAgent, 
-  timestamp, 
+const PreviewMessage = ({
+  preview,
+  isAgent,
+  timestamp,
   authenticatedProfile,
   onUseThis,
   isPending = false,
@@ -68,7 +68,7 @@ const PreviewMessage = ({
   onDownload,
   isProcessingVideo = false,
   isPosting = false
-}: { 
+}: {
   preview?: Preview;
   isAgent: boolean;
   timestamp: Date;
@@ -116,7 +116,7 @@ const PreviewMessage = ({
             />
           </div>
         )}
-        
+
         {/* Use Publication for the rest of the content */}
         <div className={hasVideo ? 'pt-0' : ''}>
           <Publication
@@ -152,7 +152,7 @@ const PreviewMessage = ({
             fullVideoHeight={false}
           />
         </div>
-        
+
         {/* Action buttons */}
         {isAgent && (
           <div className="flex justify-end gap-2 p-4 bg-[#141414] -mt-14">
@@ -177,8 +177,8 @@ const PreviewMessage = ({
                 onClick={() => !isInStoryboard && onAddToStoryboard(preview)}
                 disabled={isInStoryboard || storyboardCount >= 10}
                 className={`flex items-center gap-1 rounded-lg px-2 py-1 text-lg transition-colors ${
-                  isInStoryboard || storyboardCount >= 10 
-                    ? ' text-gray-400 cursor-not-allowed' 
+                  isInStoryboard || storyboardCount >= 10
+                    ? ' text-gray-400 cursor-not-allowed'
                     : 'bg-transparent hover:bg-brand-highlight/60 text-white'
                 }`}
                 title={isInStoryboard ? "Already in storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
@@ -275,7 +275,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const [isPosting, setIsPosting] = useState(false);
   const [postingPreview, setPostingPreview] = useState<Preview | undefined>();
   const [imageToExtend, setImageToExtend] = useState<string | null>(null);
-  
+
   const storyboardKey = `storyboard-${post?.slug || 'default'}`;
   const [storyboardClips, setStoryboardClips] = useState<StoryboardClip[]>([]);
   const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
@@ -335,7 +335,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         const initialClips: StoryboardClip[] = await Promise.all(
           templateData.clips.map(async (clip: any, index: number) => {
             const duration = await getVideoDuration(clip.video?.url).catch(() => 6);
-            
+
             const clipPreview: StoryboardClip = {
               id: clip.agentId || `clip-${index}`,
               preview: {
@@ -366,16 +366,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         setStoryboardClips(initialClips);
       } else if (media?.template === 'video' && templateData) {
         // Handle single video posts - create a default storyboard with one clip
-        const videoData = (templateData as any).video || 
+        const videoData = (templateData as any).video ||
           ((post.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
-        const imageData = (templateData as any).image || 
-          (templateData as any).imagePreview || 
-          (post.metadata as any)?.video?.cover || 
+        const imageData = (templateData as any).image ||
+          (templateData as any).imagePreview ||
+          (post.metadata as any)?.video?.cover ||
           null;
-        
+
         const videoUrl = videoData?.url || videoData;
         const duration = videoUrl ? await getVideoDuration(videoUrl).catch(() => 6) : 6;
-        
+
         const singleClip: StoryboardClip = {
           id: media.agentId || 'single-clip',
           preview: {
@@ -433,7 +433,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       localStorage.setItem(storyboardKey, JSON.stringify(storyboardData));
     }
   }, [storyboardClips, storyboardAudio, storyboardAudioStartTime, post?.id, isStoryboardInitialized]);
-  
+
   const router = useRouter();
 
   // --- Worker Management Logic ---
@@ -444,21 +444,21 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   useEffect(() => {
     if (!workerRef.current) {
       const worker = new Worker(new URL('../../../services/preview.worker.ts', import.meta.url));
-      
+
       worker.onmessage = (event) => {
         if (workerMessageHandlerRef.current) {
           workerMessageHandlerRef.current(event);
         }
       };
-      
+
       worker.onerror = (error) => {
         console.error('[Chat] Worker error:', error);
         toast.error('Generation worker encountered an error');
       };
-      
+
       workerRef.current = worker;
     }
-    
+
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate();
@@ -470,7 +470,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   useEffect(() => {
     workerMessageHandlerRef.current = async (event: MessageEvent) => {
       const { success, error, tempId } = event.data;
-      
+
       if (success) {
         const result = cloneDeep(event.data.result);
 
@@ -490,14 +490,14 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           });
           result.preview.image = imageDataUrl;
         }
-        
+
         const previewWithMetadata = {
           ...result.preview,
           agentId: result.agentId,
           roomId: result.roomId,
           agentMessageId: result.agentMessageId,
         };
-        
+
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
           newSet.delete(tempId);
@@ -520,7 +520,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
             }
             return p;
           });
-          
+
           if (!newPreviews.some((p: any) => p.agentId === result.agentId)) {
             newPreviews.push({
               isAgent: true,
@@ -532,20 +532,20 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
               }
             });
           }
-          
+
           return newPreviews;
         });
 
       } else {
         console.error(`[Chat] Worker failed for tempId: ${tempId}`, error);
         toast.error(`Generation failed: ${error}`);
-        
+
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
           newSet.delete(tempId);
           return newSet;
         });
-        
+
         setLocalPreviews(prev => prev.filter((p: any) => p.tempId !== tempId));
       }
     };
@@ -553,7 +553,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // --- End Worker Management ---
 
   const handlePostButtonClick = useCallback((preview: Preview) => {
-    console.log('handlePostButtonClick called with preview:', preview);
+    console.log('handlePostButtonClick called with preview:', { hasVideo: !!preview?.video, hasImage: !!preview?.image, agentId: preview?.agentId });
     setPostingPreview(preview);
     setIsPosting(true);
     if (preview.text) {
@@ -835,7 +835,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       if (!result?.postId) throw new Error("No result from createPost");
 
       toastId = toast.loading("Finalizing...", { id: toastId });
-      
+
       // Process audio helper function (same as in studio create)
       const processAudio = async (audio: any) => {
         if (!audio) return undefined;
@@ -913,12 +913,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       toast.error("You can add a maximum of 10 clips to the storyboard");
       return;
     }
-    
+
     if (storyboardClips.some(c => c.id === preview.agentId)) {
       toast("This clip is already in your storyboard", { icon: 'ℹ️' });
       return;
     }
-    
+
     // Add the new clip to the storyboard
     const newClip: StoryboardClip = {
       id: preview.agentId as string,
@@ -980,11 +980,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       videoElement.crossOrigin = 'anonymous';
       videoElement.muted = true;
-      
+
       videoElement.onloadedmetadata = () => {
         canvas.width = videoElement.videoWidth;
         canvas.height = videoElement.videoHeight;
-        
+
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
         videoElement.currentTime = videoElement.duration * 0.99;
       };
@@ -1019,7 +1019,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // Download functionality
   const downloadVideoWithOutro = async (preview: any, filename: string) => {
     const agentId = preview.agentId || 'unknown';
-    
+
     if (isProcessingVideo?.[agentId]) {
       return;
     }
@@ -1031,7 +1031,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       // Get video URL or convert blob to base64
       let videoUrl: string;
       let isBlob = false;
-      
+
       if (preview.video.blob) {
         // Convert blob to base64 data URL
         const reader = new FileReader();
@@ -1069,7 +1069,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       // Get the processed video as blob
       const blob = await response.blob();
-      
+
       // Download the processed video
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1245,7 +1245,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           </div>
         </div>
       )}
-      
+
       <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2 overscroll-contain">
         {isLoadingMessageHistory ? (
           <div className="flex justify-center my-6">
@@ -1320,11 +1320,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                           );
                         } else if (item.type === 'local') {
                           const preview = item.data;
-                          
+
                           // Determine if this is a user message (no preview) or agent message (has preview or pending)
                           const isUserMessage = !preview.content.preview && !(preview as any).pending;
                           const isAgentMessage = preview.content.preview || (preview as any).pending;
-                          
+
                           if (isUserMessage) {
                             // User messages go on the right side
                             return (
@@ -1335,7 +1335,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                               </div>
                             );
                           }
-                          
+
                           if (isAgentMessage) {
                             // Agent messages go on the left side with extra bottom margin
                             return (
@@ -1360,7 +1360,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                             );
                           }
                         }
-                        
+
                         return null;
                       })}
                     </div>

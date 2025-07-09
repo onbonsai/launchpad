@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PlayIcon, ClipboardCopyIcon } from '@heroicons/react/solid';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from "@src/services/madfi/studio"
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 
@@ -121,7 +121,7 @@ const RemixPanel: React.FC<RemixPanelProps> = ({
                       <div className="text-xs font-medium text-gray-400 mb-1">
                         {field.label}
                       </div>
-                      <div 
+                      <div
                         className={clsx(
                           "text-sm text-white bg-gray-900 rounded-lg p-3 transition-colors",
                           onCopyField && "hover:bg-gray-800 cursor-pointer group relative"

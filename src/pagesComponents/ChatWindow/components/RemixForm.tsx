@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@src/components/Button';
 import CreatePostForm from '@src/pagesComponents/Studio/CreatePostForm';
-import type { SmartMedia, Template, TokenData, Preview } from '@src/services/madfi/studio';
+import type { SmartMedia, Template, StoryboardClip, Preview } from '@src/services/madfi/studio';
 import { getRegisteredClubInfoByAddress } from '@src/services/madfi/moneyClubs';
 import { getPost } from '@src/services/lens/posts';
 import { fetchTokenMetadata } from '@src/utils/tokenMetadata';
-import type { StoryboardClip } from '@pages/studio/create';
 import RemixPanel from '@src/components/RemixPanel/RemixPanel';
 import { Modal } from '@src/components/Modal';
 import toast from 'react-hot-toast';
@@ -19,6 +18,7 @@ import { last } from 'lodash/array';
 import type { NFTMetadata } from '@src/services/madfi/studio';
 import useWebNotifications from '@src/hooks/useWebNotifications';
 import { parseBase64Image } from '@src/utils/utils';
+import { usePWA } from '@src/hooks/usePWA';
 
 
 type RemixFormProps = {
@@ -115,6 +115,7 @@ export default function RemixForm({
 
   const imageUploaderRef = useRef<ImageUploaderRef | null>(null);
   const { subscribeToPush } = useWebNotifications(address);
+  const { isStandalone } = usePWA();
 
   const isStoryboardPost = storyboardClips.length > 0;
 
@@ -231,7 +232,7 @@ export default function RemixForm({
   // Check for pending generations when component mounts
   useEffect(() => {
     const checkPendingGenerations = async () => {
-      if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator)) return;
+      if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator) || !isStandalone) return;
 
       // Wait a bit for localPreviews to be loaded from other sources first
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -359,25 +360,19 @@ export default function RemixForm({
         if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
           const agentId = msg.content.preview.agentId;
 
-          // Check if this was a pending generation (simplified logic like studio create)
-          const isPending = localPreviews.some((p: any) =>
+          // Find the pending preview that corresponds to this agentId
+          const pendingPreview = localPreviews.find((p: any) =>
             p.pending && (p.tempId === agentId || p.agentId === agentId)
           );
 
-          if (isPending) {
-            // Find the taskId that corresponds to this preview in localPreviews
-            const pendingPreview = localPreviews.find((p: any) =>
-              p.pending && (p.tempId === agentId || p.agentId === agentId)
-            );
+          // Only process if we have a pending preview with a taskId that's in our pendingGenerations set
+          if (pendingPreview?.taskId && pendingGenerations.has(pendingPreview.taskId)) {
+            completedGenerations.add(pendingPreview.taskId);
 
-            if (pendingPreview?.taskId) {
-              completedGenerations.add(pendingPreview.taskId);
-            }
-
-            // Update local previews to mark as completed
+                        // Update local previews to mark as completed
             if (setLocalPreviews) {
               setLocalPreviews((prev: typeof localPreviews) => prev.map((p: any) => {
-                if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
+                if (p.taskId === pendingPreview.taskId) {
                   return {
                     ...p,
                     pending: false,
@@ -393,13 +388,13 @@ export default function RemixForm({
               }));
             }
 
-            // Remove from service worker pending list
-            if ('serviceWorker' in navigator) {
+            // Remove from service worker pending list (only for PWA)
+            if ('serviceWorker' in navigator && isStandalone) {
               navigator.serviceWorker.ready.then(registration => {
                 if (registration.active) {
                   registration.active.postMessage({
                     type: 'REMOVE_PENDING_GENERATION',
-                    generationId: pendingPreview?.taskId || agentId
+                    generationId: pendingPreview.taskId
                   });
                 }
               }).catch(console.error);
@@ -453,13 +448,19 @@ export default function RemixForm({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
+
+    // Only listen for service worker messages in PWA mode
+    if (isStandalone && navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
+      if (isStandalone && navigator.serviceWorker) {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+      }
     };
-  }, [pendingGenerations, roomId, template?.apiUrl]);
+  }, [pendingGenerations, roomId, template?.apiUrl, isStandalone]);
 
   const generatePreview = async (
     prompt: string,
@@ -607,8 +608,8 @@ export default function RemixForm({
         }));
       }
 
-      // Register with service worker for background tracking
-      if ('serviceWorker' in navigator) {
+      // Register with service worker for background tracking (only for PWA)
+      if ('serviceWorker' in navigator && isStandalone) {
         navigator.serviceWorker.ready.then(registration => {
           if (registration.active) {
             registration.active.postMessage({
@@ -652,8 +653,8 @@ export default function RemixForm({
         setLocalPreviews(prev => prev.filter((p: any) => p.tempId !== tempId));
       }
 
-      // Remove from service worker pending list
-      if ('serviceWorker' in navigator) {
+      // Remove from service worker pending list (only for PWA)
+      if ('serviceWorker' in navigator && isStandalone) {
         navigator.serviceWorker.ready.then(registration => {
           if (registration.active) {
             registration.active.postMessage({
