@@ -290,7 +290,6 @@ export default ({
         body: JSON.stringify({
           videoUrl,
           filename: `bonsai-video-${Date.now()}.mp4`,
-          aspectRatio,
           isBlob: false
         })
       });

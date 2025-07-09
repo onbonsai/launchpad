@@ -268,9 +268,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { videoUrl, filename = 'video.mp4', aspectRatio, isBlob = false } = req.body;
+  const { videoUrl, filename = 'video.mp4', isBlob = false } = req.body;
 
-  if (!videoUrl || !aspectRatio) {
+  if (!videoUrl) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -309,7 +309,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       outroUrls = OUTRO_URLS;
     }
 
-    // Use the actual video aspect ratio instead of the passed one
     const actualAspectRatio = resolution.width / resolution.height;
     const outroUrl = actualAspectRatio > 1 ? outroUrls.landscape : outroUrls.portrait;
     await downloadFile(outroUrl, outroPath);

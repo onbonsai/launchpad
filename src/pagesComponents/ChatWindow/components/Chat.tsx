@@ -1057,7 +1057,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         body: JSON.stringify({
           videoUrl,
           filename: filename.replace(/\.[^/.]+$/, '.mp4'),
-          aspectRatio: '9:16', // Default aspect ratio
           isBlob
         })
       });
