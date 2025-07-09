@@ -42,6 +42,10 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
     } = event.data;
 
     try {
+      console.log('[previewWorker] About to call generatePreview function');
+      console.log('[previewWorker] generatePreview function type:', typeof generatePreview);
+      console.log('[previewWorker] generatePreview function name:', generatePreview.name);
+
       const result = await generatePreview(
         url,
         idToken,
@@ -55,6 +59,12 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
         roomId,
         audio,
       );
+
+      console.log('[previewWorker] generatePreview returned result:', {
+        hasPreview: !!result?.preview,
+        hasStoryboard: !!result?.preview?.storyboard,
+        storyboardLength: result?.preview?.storyboard?.length || 0
+      });
 
       console.log('[previewWorker] Successfully generated preview. Posting result to main thread for tempId:', tempId);
 
