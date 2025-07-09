@@ -592,7 +592,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       attachments: message?.attachments,
     };
     setStreamEntries((prev) => [...prev, streamEntry]);
-  }, []);
+    
+    // Ensure thinking state is cleared when we get a response
+    setIsThinking(false);
+    setCurrentAction(undefined);
+  }, [setIsThinking, setCurrentAction]);
 
   const { postChat, isLoading, canMessageAgain } = useChat({
     onSuccess: handleSuccess,
@@ -680,20 +684,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   );
 
   useEffect(() => {
-    if (!isLoadingMessageHistory) {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  }, [streamEntries, isLoadingMessageHistory, messageHistory]);
-
-  useEffect(() => {
     if (!isLoadingMessageHistory && messageHistory) {
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [isLoadingMessageHistory, messageHistory]);
+  }, [streamEntries, isLoadingMessageHistory, messageHistory]);
 
   const checkReferralStatus = async (address: string) => {
     try {
