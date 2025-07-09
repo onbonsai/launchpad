@@ -325,8 +325,6 @@ export default function RemixForm({
   const checkForCompletedGenerations = async () => {
     if (!roomId || !template?.apiUrl || pendingGenerations.size === 0) return;
     
-    console.log('[RemixForm] Checking for completed generations...');
-    
     try {
       const sessionClient = await resumeSession(true);
       if (!sessionClient) return;
@@ -440,8 +438,6 @@ export default function RemixForm({
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'RELOAD_MESSAGES') {
-        console.log('[RemixForm] Received reload message from service worker', event.data);
-        
         // If roomId matches or no specific roomId, reload messages
         if (!event.data.roomId || event.data.roomId === roomId) {
           // Always check for completed generations when we get a reload message
@@ -584,8 +580,6 @@ export default function RemixForm({
         throw new Error("No taskId received from server");
       }
 
-      console.log(`[RemixForm] Task created with ID: ${taskId}`);
-
       // Update pending generations with actual taskId
       if (setPendingGenerations) {
         setPendingGenerations(prev => {
@@ -678,8 +672,36 @@ export default function RemixForm({
       if (templateData.prompt && !templateData.clips) {
         setPrompt(templateData.prompt);
       }
+
+      // If this is a single video post (no existing storyboard clips), create a default storyboard with one clip
+      if (storyboardClips.length === 0 && !templateData.clips && currentPreview && setStoryboardClips) {
+        const createDefaultClip = async () => {
+          let duration = 6; // Default duration
+          
+          // Try to get actual video duration if video exists
+          if (currentPreview.video?.url) {
+            try {
+              duration = await getVideoDuration(currentPreview.video.url);
+            } catch (error) {
+              console.warn('Could not get video duration, using default:', error);
+            }
+          }
+          
+          const defaultClip: StoryboardClip = {
+            id: currentPreview.agentId || generateSeededUUID(`${address}-${Date.now()}`),
+            preview: currentPreview,
+            startTime: 0,
+            endTime: duration,
+            duration: duration,
+            templateData: templateData
+          };
+          setStoryboardClips([defaultClip]);
+        };
+        
+        createDefaultClip();
+      }
     }
-  }, [remixMedia.templateData]);
+  }, [remixMedia.templateData, currentPreview, storyboardClips.length, address, setStoryboardClips]);
 
   const handleSetPreview = (preview: Preview) => {
     if (setCurrentPreview) {

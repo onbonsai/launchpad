@@ -328,9 +328,10 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         }
       }
 
-      // 2. If nothing in localStorage, initialize from the original post media if it's a storyboard
+      // 2. If nothing in localStorage, initialize from the original post media
       const templateData = media?.templateData as any;
       if (templateData?.clips && Array.isArray(templateData.clips)) {
+        // Handle storyboard posts with multiple clips
         const initialClips: StoryboardClip[] = await Promise.all(
           templateData.clips.map(async (clip: any, index: number) => {
             const duration = await getVideoDuration(clip.video?.url).catch(() => 6);
@@ -363,6 +364,45 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           })
         );
         setStoryboardClips(initialClips);
+      } else if (media?.template === 'video' && templateData) {
+        // Handle single video posts - create a default storyboard with one clip
+        const videoData = (templateData as any).video || 
+          ((post.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
+        const imageData = (templateData as any).image || 
+          (templateData as any).imagePreview || 
+          (post.metadata as any)?.video?.cover || 
+          null;
+        
+        const videoUrl = videoData?.url || videoData;
+        const duration = videoUrl ? await getVideoDuration(videoUrl).catch(() => 6) : 6;
+        
+        const singleClip: StoryboardClip = {
+          id: media.agentId || 'single-clip',
+          preview: {
+            video: videoData,
+            image: imageData,
+            imagePreview: imageData,
+            text: templateData.sceneDescription || templateData.prompt || '',
+            agentId: media.agentId || 'single-clip',
+            templateName: media.template,
+            templateData: {
+              prompt: templateData.prompt || '',
+              sceneDescription: templateData.sceneDescription || '',
+              elevenLabsVoiceId: templateData.elevenLabsVoiceId,
+              narration: templateData.narration,
+              stylePreset: templateData.stylePreset,
+              subjectReference: templateData.subjectReference,
+              aspectRatio: templateData.aspectRatio || '9:16',
+              subTemplateId: templateData.subTemplateId,
+              enableMaxMode: templateData.enableMaxMode,
+              ...templateData
+            },
+          },
+          startTime: 0,
+          endTime: duration,
+          duration: duration,
+        };
+        setStoryboardClips([singleClip]);
       }
       if (templateData?.audioData) {
         setStoryboardAudio(templateData.audioData);
