@@ -557,7 +557,8 @@ export default function RemixForm({
           aspectRatio: aspectRatio || last(storyboardClips)?.templateData?.aspectRatio || "9:16",
           nft,
           // Only include audioStartTime if audio is explicitly provided by user
-          ...(audio && { audioStartTime: audio.startTime })
+          ...(audio && { audioStartTime: audio.startTime }),
+          subTemplateId: undefined,
         },
         prompt,
       }));
