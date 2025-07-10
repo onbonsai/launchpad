@@ -182,12 +182,13 @@ const CreatePostForm = ({
     };
   }, [template.templateData.form]);
 
-  // Lock aspect ratio to horizontal when subject reference is present or MAX Mode is enabled
+  // Lock aspect ratio to horizontal when subject reference is present, MAX Mode is enabled, or Veo models are selected
   useEffect(() => {
-    if ((templateData.subjectReference || templateData.enableMaxMode) && selectedAspectRatio !== "16:9") {
+    const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+    if ((templateData.subjectReference || templateData.enableMaxMode || isVeoModelSelected) && selectedAspectRatio !== "16:9") {
       setSelectedAspectRatio("16:9");
     }
-  }, [templateData.subjectReference, templateData.enableMaxMode, selectedAspectRatio, setSelectedAspectRatio]);
+  }, [templateData.subjectReference, templateData.enableMaxMode, templateData.forceVideoModel, selectedAspectRatio, setSelectedAspectRatio]);
 
   const isValid = () => {
     try {
@@ -507,6 +508,7 @@ const CreatePostForm = ({
     template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
     template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
     !!postImage?.length, // Add aspect ratio options when image uploader is shown
+    !!shape.forceVideoModel, // Add video model selection when available
     ...availableFields
   ].filter(Boolean).length;
 
@@ -639,6 +641,11 @@ const CreatePostForm = ({
       }
     }
 
+    // Also check for forceVideoModel specifically
+    if (shape.forceVideoModel && templateData.forceVideoModel) {
+      return true;
+    }
+
     return false;
   };
 
@@ -657,7 +664,13 @@ const CreatePostForm = ({
     }
 
     // User has enough credits, toggle MAX mode
-    setTemplateData({ ...templateData, enableMaxMode: !templateData.enableMaxMode });
+    const newMaxModeValue = !templateData.enableMaxMode;
+    setTemplateData({ ...templateData, enableMaxMode: newMaxModeValue });
+
+    // Reset aspect ratio to vertical when disabling MAX mode if no other constraints
+    if (!newMaxModeValue && !templateData.subjectReference && !templateData.forceVideoModel?.startsWith('veo-3.0') && !postImage?.length) {
+      setSelectedAspectRatio("9:16");
+    }
   };
 
   return (
@@ -884,36 +897,49 @@ const CreatePostForm = ({
                       {[
                         { ratio: "9:16" as const, label: "Vertical" },
                         { ratio: "16:9" as const, label: "Horizontal" }
-                      ].map(({ ratio, label }) => (
-                        <button
-                          key={ratio}
-                          type="button"
-                          onClick={() => !postImage?.length && !templateData.subjectReference && !templateData.enableMaxMode && setSelectedAspectRatio(ratio)}
-                          disabled={!!postImage?.length || !!templateData.subjectReference || !!templateData.enableMaxMode}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                            selectedAspectRatio === ratio
-                              ? "border-brand-highlight bg-brand-highlight/10"
-                              : "border-dark-grey hover:border-brand-highlight bg-card-light"
-                          } ${(postImage?.length || templateData.subjectReference || templateData.enableMaxMode) ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
-                        >
-                          <div
-                            className={`border border-current rounded-sm ${
-                              ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
-                            }`}
-                          />
-                          <span className="text-sm text-white/90">{label}</span>
-                        </button>
-                      ))}
+                      ].map(({ ratio, label }) => {
+                        const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                        const isDisabled = !!postImage?.length || !!templateData.subjectReference || !!templateData.enableMaxMode || isVeoModelSelected;
+                        return (
+                          <button
+                            key={ratio}
+                            type="button"
+                            onClick={() => !isDisabled && setSelectedAspectRatio(ratio)}
+                            disabled={isDisabled}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                              selectedAspectRatio === ratio
+                                ? "border-brand-highlight bg-brand-highlight/10"
+                                : "border-dark-grey hover:border-brand-highlight bg-card-light"
+                            } ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
+                          >
+                            <div
+                              className={`border border-current rounded-sm ${
+                                ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
+                              }`}
+                            />
+                            <span className="text-sm text-white/90">{label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     {postImage?.length ? (
                       <p className="text-xs text-secondary/70">
                         Aspect ratio is locked to the selection made during image cropping. Remove the image to change it.
                       </p>
-                    ) : templateData.subjectReference || templateData.enableMaxMode ? (
-                      <p className="text-xs text-secondary/70">
-                        Aspect ratio is locked to horizontal when using {templateData.subjectReference && templateData.enableMaxMode ? 'a subject reference image or MAX Mode' : templateData.subjectReference ? 'a subject reference image' : 'MAX Mode'}
-                      </p>
-                    ) : null}
+                    ) : (() => {
+                        const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                        const conditions = [
+                          templateData.subjectReference && 'a subject reference image',
+                          templateData.enableMaxMode && 'MAX Mode',
+                          isVeoModelSelected && 'Veo models'
+                        ].filter(Boolean);
+
+                        return conditions.length > 0 ? (
+                          <p className="text-xs text-secondary/70">
+                            Aspect ratio is locked to horizontal when using {conditions.join(' or ')}
+                          </p>
+                        ) : null;
+                      })()}
                   </div>
                 )}
               </div>
@@ -1050,7 +1076,70 @@ const DynamicForm = ({
     if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
     if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
     if (key === 'enableMaxMode') return true; // Skip enableMaxMode as it's rendered above the prompt
+    if (key === 'forceVideoModel') return true; // Skip forceVideoModel as it's rendered with custom UI
     return false;
+  };
+
+  // Helper function to render video model options
+  const renderVideoModelOption = (modelValue: string, modelLabel: string) => {
+    const isSelected = templateData.forceVideoModel === modelValue;
+
+    const handleModelToggle = () => {
+      if (isSelected) {
+        updateField('forceVideoModel', undefined);
+        // Reset aspect ratio to vertical when deselecting a Veo model if no other constraints
+        if (modelValue.startsWith('veo-3.0') && !templateData.subjectReference && !templateData.enableMaxMode && !postImage?.length) {
+          setSelectedAspectRatio("9:16");
+        }
+      } else {
+        updateField('forceVideoModel', modelValue);
+      }
+    };
+
+    return (
+      <div
+        key={`video-model-${modelValue}`}
+        className={`relative flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors cursor-pointer ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+        onClick={handleModelToggle}
+        tabIndex={0}
+        role="button"
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleModelToggle();
+          }
+        }}
+        aria-pressed={isSelected}
+      >
+        <div className="flex items-center gap-1 md:gap-2 flex-1 px-4">
+          <span className="text-sm md:text-md text-white/90 truncate">{modelLabel}</span>
+        </div>
+        {isSelected && (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation();
+              updateField('forceVideoModel', undefined);
+              // Reset aspect ratio to vertical when deselecting a Veo model if no other constraints
+              if (modelValue.startsWith('veo-3.0') && !templateData.subjectReference && !templateData.enableMaxMode && !postImage?.length) {
+                setSelectedAspectRatio("9:16");
+              }
+            }}
+            className="absolute top-1 right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+            tabIndex={-1}
+            aria-label="Clear video model selection"
+          >
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -1090,7 +1179,8 @@ const DynamicForm = ({
                            updateField(key, undefined);
                            // Allow aspect ratio selection again when subject reference is removed
                            // Reset to default vertical if no other constraints
-                           if (!postImage?.length && !templateData.enableMaxMode) {
+                           const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                           if (!postImage?.length && !templateData.enableMaxMode && !isVeoModelSelected) {
                              setSelectedAspectRatio("9:16");
                            }
                          }}
@@ -1221,6 +1311,22 @@ const DynamicForm = ({
           </div>
         );
       })}
+
+      {/* Video Model Selection */}
+      {shape.forceVideoModel && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Video Model"
+            fieldDescription="Use a specific video model for generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex flex-wrap gap-1 md:gap-2">
+             {renderVideoModelOption('veo-3.0-generate-preview', 'Veo 3')}
+             {renderVideoModelOption('veo-3.0-fast-generate-preview', 'Veo 3 Fast')}
+             {renderVideoModelOption('MiniMax-Hailuo-02', 'Hailuai')}
+           </div>
+        </div>
+      )}
     </div>
   );
 };
