@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "eslint --fix .",
-    "postinstall": "if [ \"$VERCEL\" = \"1\" ]; then curl -L https://github.com/eugeneware/ffmpeg-static/releases/latest/download/linux-x64 -o /usr/local/bin/ffmpeg && chmod +x /usr/local/bin/ffmpeg; fi"
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
@@ -17,8 +16,6 @@
     "@ensdomains/ensjs": "^4.0.2",
     "@farcaster/frame-sdk": "^0.0.64",
     "@farcaster/frame-wagmi-connector": "^0.0.53",
-    "@ffmpeg/ffmpeg": "^0.12.10",
-    "@ffmpeg/util": "^0.12.1",
     "@headlessui/react": "^1.6.6",
     "@hello-pangea/dnd": "^18.0.1",
     "@heroicons/react": "^1.0.6",
