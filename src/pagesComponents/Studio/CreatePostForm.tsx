@@ -646,6 +646,16 @@ const CreatePostForm = ({
       return true;
     }
 
+    // Check for autoEnhance
+    if (shape.autoEnhance && templateData.autoEnhance) {
+      return true;
+    }
+
+    // Check for duration
+    if (shape.duration && templateData.duration && templateData.duration !== 6) {
+      return true;
+    }
+
     return false;
   };
 
@@ -1077,6 +1087,8 @@ const DynamicForm = ({
     if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
     if (key === 'enableMaxMode') return true; // Skip enableMaxMode as it's rendered above the prompt
     if (key === 'forceVideoModel') return true; // Skip forceVideoModel as it's rendered with custom UI
+    if (key === 'autoEnhance') return true; // Skip autoEnhance as it's rendered with custom UI
+    if (key === 'duration') return true; // Skip duration as it's rendered with custom UI
     return false;
   };
 
@@ -1325,6 +1337,62 @@ const DynamicForm = ({
              {renderVideoModelOption('veo-3.0-fast-generate-preview', 'Veo 3 Fast')}
              {renderVideoModelOption('MiniMax-Hailuo-02', 'Hailuai')}
            </div>
+        </div>
+      )}
+
+      {/* Auto Enhance Toggle */}
+      {shape.autoEnhance && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Auto Enhance"
+            fieldDescription="Automatically enhance your prompt with AI, finetuned for video generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => updateField('autoEnhance', !templateData.autoEnhance)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
+                templateData.autoEnhance ? 'bg-brand-highlight/90' : 'bg-dark-grey'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  templateData.autoEnhance ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Duration Selection (only for Hailuai model) */}
+      {shape.duration && templateData.forceVideoModel === 'MiniMax-Hailuo-02' && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Duration"
+            fieldDescription="Select the duration for video generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex gap-2">
+            {[
+              { value: 6, label: "6 seconds" },
+              { value: 10, label: "10 seconds" }
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => updateField('duration', value)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                  (templateData.duration || 6) === value
+                    ? "border-brand-highlight bg-brand-highlight/10"
+                    : "border-dark-grey hover:border-brand-highlight bg-card-light"
+                } hover:bg-dark-grey/20`}
+              >
+                <span className="text-sm text-white/90">{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

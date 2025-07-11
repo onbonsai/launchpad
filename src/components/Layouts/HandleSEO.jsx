@@ -113,7 +113,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = `${SITE_URL}/post/${postId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
