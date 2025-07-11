@@ -45,13 +45,13 @@ export default async function handler(req: NextRequest) {
       let post = await getPost(postId);
       // @ts-ignore
       // Only use post metadata image if no explicit image was provided
-      if (!explicitImageUrl) {
-        imageUrl = post?.metadata?.image?.item || post?.metadata?.video?.cover || imageUrl;
+      if (!explicitImageUrl && post && 'metadata' in post) {
+        imageUrl = post.metadata?.image?.item || post.metadata?.video?.cover || imageUrl;
       }
       profileImageUrl = post?.author?.metadata?.picture || profileImageUrl;
       handle = post?.author?.username?.localName || handle;
       // @ts-ignore
-      postContent = post?.metadata?.content || "";
+      postContent = (post && 'metadata' in post) ? post.metadata?.content || "" : "";
     } else if (handle) {
       const profile = await getProfileByHandle(handle);
       profileImageUrl = profile?.metadata?.picture || profileImageUrl;
