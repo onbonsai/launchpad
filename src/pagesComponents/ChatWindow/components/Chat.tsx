@@ -1113,7 +1113,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
     } catch (error) {
       console.error('Video processing failed:', error);
-      toast.error('Video processing failed, downloading original video instead');
+      toast.dismiss(`processing-${agentId}`);
       downloadVideoSimple(preview, filename);
     } finally {
       setIsProcessingVideo(prev => ({ ...prev, [agentId]: false }));

@@ -462,7 +462,7 @@ const PublicationContainer = ({
 
     } catch (error) {
       console.error('Video processing failed:', error);
-      toast.error('Video processing failed, downloading original video instead');
+      toast.dismiss(`processing-${agentId}`);
       downloadVideoSimple(videoUrl, filename);
     } finally {
       setIsProcessingVideo(false);

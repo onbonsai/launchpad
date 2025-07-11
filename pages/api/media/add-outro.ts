@@ -23,10 +23,11 @@ const OUTRO_URLS_720 = {
   portrait: 'https://link.storjshare.io/raw/ju5b5ku7xdow7zvfyw3almkohmdq/videos/outro-9x16-720.mp4' // 720 x 1280
 };
 
-const TEMP_DIR = path.join(process.cwd(), 'temp');
+// Use /tmp directory for Vercel serverless environment
+const TEMP_DIR = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'temp');
 
-// Ensure temp directory exists
-if (!fs.existsSync(TEMP_DIR)) {
+// Ensure temp directory exists (only create if not on Vercel, as /tmp already exists)
+if (!process.env.VERCEL && !fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
