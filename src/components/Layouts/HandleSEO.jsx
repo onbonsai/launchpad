@@ -158,7 +158,7 @@ const HandleSEO = ({ pageProps, query }) => {
 
   // Default page
   const description = "Create & monetize evolving media";
-  const ogImageUrl = `${SITE_URL}/api/og-image`;
+  const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent("https://app.onbons.ai/opengraph-image.jpg")}`;
 
   // Consider Signup / Budget flow
   const frameData = { ...frameDataTemplate };

@@ -6,12 +6,11 @@ import { lensClient, storageClient } from "@src/services/lens/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { postId } from "@lens-protocol/client";
 import WordMark from "@src/assets/css/workMark";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
 export const config = {
   runtime: "edge",
 };
 
-const defaultImageUrl = `https://${IS_PRODUCTION ? 'app' : 'testnet'}.onbons.ai/opengraph-image.jpg`;
+const defaultImageUrl = "https://onbons.ai/opengraph-image.png";
 
 const getPost = async (_postId: string) => {
   try {
