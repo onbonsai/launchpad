@@ -7,7 +7,7 @@ import { resumeSession } from '@src/hooks/useLensLogin';
 import toast from 'react-hot-toast';
 import { useEffect, useMemo, useState } from 'react';
 import { SparkIcon } from '../Icons/SparkIcon';
-import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus, SET_FEATURED_ADMINS, setFeatured } from '@src/services/madfi/studio';
+import { requestPostUpdate, requestPostDisable, SmartMedia, SmartMediaStatus, SET_FEATURED_ADMINS, setFeatured, ELIZA_API_URL } from '@src/services/madfi/studio';
 import { CreditBalance, useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount, useBalance, useWalletClient } from 'wagmi';
 import { handleOperationWith } from "@lens-protocol/client/viem";
@@ -280,9 +280,7 @@ export default ({
     let toastId = toast.loading('Downloading video...');
     
     try {
-      const aspectRatio = 1.77;
-      
-      const response = await fetch('/api/media/add-outro', {
+      const response = await fetch(ELIZA_API_URL + '/video/add-outro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

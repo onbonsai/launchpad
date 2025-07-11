@@ -22,7 +22,7 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
-import { SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
+import { ELIZA_API_URL, SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
 import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
@@ -427,7 +427,7 @@ const PublicationContainer = ({
         };
       });
 
-      const response = await fetch('/api/media/add-outro', {
+      const response = await fetch(ELIZA_API_URL + '/video/add-outro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

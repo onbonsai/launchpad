@@ -18,7 +18,7 @@ import { useGetMessages } from '@src/services/madfi/terminal';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { format } from 'date-fns';
 import useRegisteredTemplates from '@src/hooks/useRegisteredTemplates';
-import { Preview, SmartMedia } from '@src/services/madfi/studio';
+import { ELIZA_API_URL, Preview, SmartMedia } from '@src/services/madfi/studio';
 import { useAuthenticatedLensProfile } from '@src/hooks/useLensProfile';
 import { useRouter } from 'next/router';
 import { BigDecimal, blockchainData, Post, SessionClient } from '@lens-protocol/client';
@@ -1078,7 +1078,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         throw new Error('No video URL available');
       }
 
-      const response = await fetch('/api/media/add-outro', {
+      const response = await fetch(ELIZA_API_URL + '/video/add-outro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

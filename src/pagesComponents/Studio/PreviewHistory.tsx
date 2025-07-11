@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import { Publication, Theme } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
-import { Preview, useGetPreviews, Template } from "@src/services/madfi/studio";
+import { Preview, useGetPreviews, Template, ELIZA_API_URL } from "@src/services/madfi/studio";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { GLOBAL_AGENT_ID, Memory } from '@src/services/madfi/terminal';
 import { AnimatedText } from '@src/components/LoadingSpinner/AnimatedText';
@@ -237,7 +237,7 @@ export default function PreviewHistory({
         throw new Error('No video URL available');
       }
 
-      const response = await fetch('/api/media/add-outro', {
+      const response = await fetch(ELIZA_API_URL + '/video/add-outro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
