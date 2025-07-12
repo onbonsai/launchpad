@@ -76,7 +76,7 @@ const StudioCreatePage: NextPage = () => {
   const workerRef = useRef<Worker | undefined>(undefined);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
-  const { subscribeToPush, sendNotification } = useWebNotifications(address);
+  const { subscribeToPush, sendNotification } = useWebNotifications(address, authenticatedProfile?.address);
   const tikTokIntegration = useTikTokIntegration();
   const { isStandalone } = usePWA();
 
@@ -590,7 +590,7 @@ const StudioCreatePage: NextPage = () => {
         // If preview contains storyboard, also add individual clips as local previews
         if (preview.storyboard && preview.storyboard.length > 0) {
           const now = new Date().toISOString();
-          const storyboardPreviews = [];
+          const storyboardPreviews: Preview[] = [];
 
 
 
@@ -675,7 +675,7 @@ const StudioCreatePage: NextPage = () => {
         return prev;
       }
 
-      const newPreviews = [];
+      const newPreviews: Preview[] = [];
 
       // If preview contains storyboard, add individual clips as local previews
       if (preview.storyboard && preview.storyboard.length > 0) {

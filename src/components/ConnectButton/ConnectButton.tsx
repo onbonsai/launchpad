@@ -199,6 +199,12 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         }}>
           Stake
         </MenuItem>
+        <MenuItem onClick={() => {
+          handleClose();
+          router.push(`/profile/${authenticatedProfile?.username?.localName}?settings=true`);
+        }}>
+          Settings
+        </MenuItem>
         <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           setOpenHelpModal?.(true)

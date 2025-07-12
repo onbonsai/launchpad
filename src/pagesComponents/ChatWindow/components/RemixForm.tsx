@@ -19,6 +19,7 @@ import type { NFTMetadata } from '@src/services/madfi/studio';
 import useWebNotifications from '@src/hooks/useWebNotifications';
 import { parseBase64Image } from '@src/utils/utils';
 import { usePWA } from '@src/hooks/usePWA';
+import { useAuthenticatedLensProfile } from '@src/hooks/useLensProfile';
 
 
 type RemixFormProps = {
@@ -114,7 +115,8 @@ export default function RemixForm({
   const [showEditPromptModal, setShowEditPromptModal] = useState(false);
 
   const imageUploaderRef = useRef<ImageUploaderRef | null>(null);
-  const { subscribeToPush } = useWebNotifications(address);
+  const { data: authenticatedProfile } = useAuthenticatedLensProfile();
+  const { subscribeToPush } = useWebNotifications(address, authenticatedProfile?.address);
   const { isStandalone } = usePWA();
 
   const isStoryboardPost = storyboardClips.length > 0;

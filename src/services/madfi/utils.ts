@@ -13,7 +13,12 @@ export const getChain = (chain: string) => {
   }
 };
 
-const PROTOCOL_DEPLOYMENT_TESTNET = {
+interface ProtocolDeployment {
+  base: Record<string, `0x${string}`>;
+  lens: Record<string, `0x${string}`>;
+}
+
+const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
   base: {
     Bonsai: "0x3d2bd0e15829aa5c362a4144fdf4a1112fa29b5c",
     BonsaiNFT: "0xE9d2FA815B95A9d087862a09079549F351DaB9bd",
@@ -39,7 +44,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET = {
   },
 };
 
-const PROTOCOL_DEPLOYMENT_MAINNET = {
+const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
   base: {
     Bonsai: "0x474f4cb764df9da079D94052fED39625c147C12C",
     BonsaiNFT: "0xf060fd6b66B13421c1E514e9f10BedAD52cF241e",
@@ -133,7 +138,7 @@ const TESTNET_THRESHOLDS: ContractThresholds = {
 
 export const CONTRACT_THRESHOLDS = IS_PRODUCTION ? MAINNET_THRESHOLDS : TESTNET_THRESHOLDS;
 
-export const getLaunchpadAddress = (contractType: ContractType, clubId: number | string, chain: string): string => {
+export const getLaunchpadAddress = (contractType: ContractType, clubId: number | string, chain: string): `0x${string}` => {
   const deployment = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET : PROTOCOL_DEPLOYMENT_TESTNET;
 
   const chainKey = chain === "base" ? "base" : "lens";
