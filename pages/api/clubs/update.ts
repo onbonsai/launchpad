@@ -36,14 +36,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(200).end();
     }
 
-    let profileId;
-    let handle;
+    let profileId: any;
+    let handle: any;
     if (strategy === "lens" && identityToken) {
       const { id } = parseJwt(identityToken);
       if (!id) return res.status(403).end();
       profileId = id;
 
-      const profile = await lensClient.profile.fetch({ forProfileId: profileId });
+      const profile = await (lensClient as any).profile.fetch({ forProfileId: profileId });
       handle = profile?.handle?.localName;
     } else {
       handle = _handle;

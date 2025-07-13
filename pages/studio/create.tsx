@@ -590,7 +590,7 @@ const StudioCreatePage: NextPage = () => {
         // If preview contains storyboard, also add individual clips as local previews
         if (preview.storyboard && preview.storyboard.length > 0) {
           const now = new Date().toISOString();
-          const storyboardPreviews: Preview[] = [];
+          const storyboardPreviews: LocalPreview[] = [];
 
 
 
@@ -675,7 +675,7 @@ const StudioCreatePage: NextPage = () => {
         return prev;
       }
 
-      const newPreviews: Preview[] = [];
+      const newPreviews: LocalPreview[] = [];
 
       // If preview contains storyboard, add individual clips as local previews
       if (preview.storyboard && preview.storyboard.length > 0) {
@@ -773,7 +773,7 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
-  const handleAnimateImage = async (preview) => {
+  const handleAnimateImage = async (preview: Preview) => {
     if (!preview?.image || !registeredTemplates) return;
 
     // find a template with "video" in the name (case-insensitive)
@@ -807,7 +807,7 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
-  const handleExtendVideo = async (preview) => {
+  const handleExtendVideo = async (preview: Preview) => {
     if (!preview?.video || !registeredTemplates) return;
 
     // Find a template with "video" in the name (case-insensitive)
@@ -914,8 +914,8 @@ const StudioCreatePage: NextPage = () => {
     setIsCreating(true);
 
     // 1. create token (if not remixing and not importing a token)
-    let tokenAddress;
-    let txHash;
+    let tokenAddress: any;
+    let txHash: any;
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
@@ -1085,7 +1085,7 @@ const StudioCreatePage: NextPage = () => {
     }
 
     const sessionClient = await resumeSession(true);
-    let idToken;
+    let idToken: any;
     if (!sessionClient && !authenticatedProfile) {
       toast.error("Not authenticated");
       return;
@@ -1101,9 +1101,9 @@ const StudioCreatePage: NextPage = () => {
     }
 
     toastId = toast.loading("Creating your post...", { id: toastId });
-    let postId, uri;
-    let video;
-    let image, imageUri, type;
+    let postId: any, uri: any;
+    let video: any;
+    let image: any, imageUri: any, type: any;
     try {
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);

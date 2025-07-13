@@ -5,6 +5,8 @@ import { groupBy, reduce } from "lodash/collection";
 import toast from "react-hot-toast";
 
 import { CONTRACT_THRESHOLDS, IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress, } from "@src/services/madfi/utils";
+
+export { IS_PRODUCTION } from "@src/services/madfi/utils";
 import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
 import PeripheryAbi from "@src/services/madfi/abi/Periphery.json";
@@ -729,7 +731,7 @@ export const getRegisteredClubByTokenAddress = async (tokenAddress: `0x${string}
 export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO, variables: { ids } })
-  return clubs?.map((club) => {
+  return clubs?.map((club: any) => {
     let { name, symbol, uri: image } = club
 
     if (club.tokenInfo && (!club.name || !club.symbol || !club.uri)) {
@@ -742,10 +744,10 @@ export const getRegisteredClubInfo = async (ids: string[], chain = "base") => {
   });
 };
 
-export const getRegisteredClubInfoByAddress = async (tokenAddress, chain = "base") => {
+export const getRegisteredClubInfoByAddress = async (tokenAddress: any, chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: REGISTERED_CLUB_INFO_BY_ADDRESS, variables: { tokenAddress } })
-  const res = clubs?.map((club) => {
+  const res = clubs?.map((club: any) => {
     let { name, symbol, uri: image } = club
 
     if (club.tokenInfo && (!club.name || !club.symbol || !club.uri)) {
@@ -763,7 +765,7 @@ export const getRegisteredClubInfoByAddress = async (tokenAddress, chain = "base
 export const searchClubs = async (query: string, chain = "base") => {
   const client = subgraphClient(chain);
   const { data: { clubs } } = await client.query({ query: SEARCH_CLUBS, variables: { query } })
-  return clubs?.map((club) => {
+  return clubs?.map((club: any) => {
     const { name, symbol, image } = club
 
     return { token: { name, symbol, image }, ...club, chain };
@@ -786,7 +788,7 @@ export const getVolume = async (clubId: string, chain = "base"): Promise<bigint>
     });
 
     if (!trades) hasMore = false;
-    volume += reduce(trades, (sum, trade) => sum + BigInt(trade.txPrice), 0n);
+    volume += reduce(trades, (sum: any, trade: any) => sum + BigInt(trade.txPrice), 0n);
 
     if (trades.length < limit) {
       hasMore = false;
@@ -874,26 +876,26 @@ export const getHoldings = async (account: `0x${string}`, page = 0, chain = "bas
 
   // Batch fetch balances for completed clubs
   const completeTokens = clubChips
-    ?.filter(chips => chips.club.complete && chips.club.tokenAddress)
-    .map(chips => chips.club.tokenAddress);
+    ?.filter((chips: any) => chips.club.complete && chips.club.tokenAddress)
+    .map((chips: any) => chips.club.tokenAddress);
   const tokenBalances = completeTokens?.length
     ? await getTokenBalances(account, completeTokens)
     : [];
-  const balanceMap = new Map(tokenBalances.map(b => [b.address.toLowerCase(), b.balance]));
+  const balanceMap = new Map(tokenBalances.map((b: any) => [b.address.toLowerCase(), b.balance]));
 
-  const holdings = await Promise.all(clubChips?.map(async (chips) => {
+  const holdings = await Promise.all(clubChips?.map(async (chips: any) => {
     const complete = chips.club.complete && chips.club.tokenAddress && chips.club.liquidityReleasedAt;
     const tokenAddress = chips.club.tokenAddress?.toLowerCase();
 
     // Get balance from batch results or fallback to individual fetch
     const amount = complete
       ? formatEther(balanceMap.get(tokenAddress) || 0n)
-      : (chips.club.v2 ? formatEther(BigInt(chips.amount)) : formatUnits(BigInt(chips.amount), 6));
+      : (chips.club?.v2 ? formatEther(BigInt(chips.amount)) : formatUnits(BigInt(chips.amount), 6));
 
     // TODO: enable once birdeye returns v4 token prices
     const balance = false // complete && IS_PRODUCTION
-      ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club.tokenAddress))
-      : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club.currentPrice, chain === "base" ? USDC_DECIMALS : DECIMALS));
+      ? Number.parseFloat(amount) * (await fetchTokenPrice(chips.club?.tokenAddress || "") || 0)
+      : Number.parseFloat(amount) * Number.parseFloat(formatUnits(chips.club?.currentPrice || 0n, chain === "base" ? USDC_DECIMALS : DECIMALS));
 
     return { ...chips, balance, amount, complete, chain };
   }));
@@ -912,7 +914,7 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
 
   // override with erc20 balance of in case of transfers post-graduation
   if (clubChips.length && clubChips[0].club.complete && clubChips[0].club.tokenAddress) {
-    const contracts = holdings.map(data => ({
+    const contracts = holdings.map((data: any) => ({
       address: data.club.tokenAddress,
       abi: VestingERC20Abi,
       functionName: "balanceOf",
@@ -923,7 +925,7 @@ export const getClubHoldings = async (clubId: string, page = 0, chain = "base"):
       contracts
     });
 
-    holdings = holdings.map((data, i) => ({
+    holdings = holdings.map((data: any, i: number) => ({
       ...data,
       amount: balances[i].result
     }));
@@ -968,12 +970,12 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
 
     try {
       // TODO: fetch for other strategies (ie orb_club, farcaster)
-      const publications = await lensClient.publication.fetchAll({
+      const publications = await (lensClient as any).publication.fetchAll({
         where: { publicationIds: clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== "")).map(({ postId }) => postId) }
       });
       const gPublications = groupBy(publications.items || [], "id");
       const groupedClubs = groupBy(clubs || [], "clubId");
-      const responseClubs = _clubs.map((_club) => {
+      const responseClubs = _clubs.map((_club: any) => {
         const marketCap = formatUnits(BigInt(_club.supply) * BigInt(_club.currentPrice), DECIMALS).split(".")[0];
         const club = groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined;
         if (club?.hidden) return; // db forced hide
@@ -999,7 +1001,7 @@ export const getFeaturedClubs = async (chain = "base"): Promise<any[]> => {
             }
           };
         }
-      }).filter((c) => c);
+      }).filter((c: any) => c);
 
       return responseClubs;
     } catch (error) {
@@ -1017,7 +1019,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
   const { data } = await subgraphClient(chain).query({ query, variables: { pageSize: limit, skip } });
 
   if (data?.clubs?.length) {
-    let requestBody;
+    let requestBody: any;
     if (chain === "lens") {
       const tokenAddresses = data?.clubs.map(({ tokenAddress }) => getAddress(tokenAddress))
       requestBody = { tokenAddresses };
@@ -1037,7 +1039,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
       const publications: Post[] = await getPosts(lensTokens.map(({ postId }) => postId)) as unknown[] as Post[];
       const gPublications = groupBy(publications || [], "slug");
       const groupedClubs = groupBy(clubs || [], chain === "base" ? "clubId" : "tokenAddress");
-      const responseClubs = data?.clubs.map((_club) => {
+      const responseClubs = data?.clubs.map((_club: any) => {
         const marketCap = (BigInt(_club.supply) <=  FLAT_THRESHOLD && _club.v2) ? BigInt(_club.liquidity) : formatUnits(BigInt(_club.liquidityReleasedAt ? parseUnits("1000000000", DECIMALS) : _club.supply) * BigInt(_club.currentPrice.toString()), DECIMALS).split(".")[0];
         const club = chain === "base"
           ? (groupedClubs[_club.clubId.toString()] ? groupedClubs[_club.clubId.toString()][0] : undefined)
@@ -1059,7 +1061,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
         } else { // not created on our app
           return { ..._club, handle: publication?.author?.username?.localName || _club.creator, marketCap, token, publication };
         }
-      }).filter((c) => c);
+      }).filter((c: any) => c);
 
       return { clubs: responseClubs, hasMore: data?.clubs?.length == limit }
     } catch (error) {
@@ -1136,7 +1138,7 @@ export const getBuyPrice = async (
 ): Promise<{ buyPrice: bigint; buyPriceAfterFees: bigint }> => {
   const amountWithDecimals = parseUnits(amount, DECIMALS);
   const client = publicClient(chain);
-  let buyPrice
+  let buyPrice: any
   let pricingTier = _pricingTier ? LENS_PRICING_TIERS[_pricingTier] : undefined
   try {
     buyPrice = !!supply ?
@@ -1375,11 +1377,11 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
       query: GET_CREATOR_NFTS,
       variables: { trader: account }
     });
-    const _creatorNFTList = creatorNFTs?.map(nft => nft.club.clubId) || [];
+    const _creatorNFTList = creatorNFTs?.map((nft: any) => nft.club.clubId) || [];
 
     // Filter clubs based on CONTRACT_THRESHOLDS
     const threshold = CONTRACT_THRESHOLDS[chainName]["BonsaiLaunchpad"];
-    const creatorNFTList = _creatorNFTList.filter(id => Number(id) >= threshold);
+    const creatorNFTList = _creatorNFTList.filter((id: any) => Number(id) >= threshold);
 
     // Prepare multicall contracts array
     let feesEarnedArgs = [account]
@@ -1395,7 +1397,7 @@ export const getFeesEarned = async (account: `0x${string}`, chain?: "base" | "le
         args: feesEarnedArgs,
       },
       // Get fees earned for each club
-      ...creatorNFTList.map(id => ({
+      ...creatorNFTList.map((id: any) => ({
         address: getLaunchpadAddress("BonsaiLaunchpad", id, chainName),
         abi: BonsaiLaunchpadAbi,
         functionName: "clubFeesEarned",
@@ -1506,7 +1508,7 @@ type RegistrationTxParams = {
   pricingTier?: PricingTier;
 };
 export const registerClubTransaction = async (
-  walletClient,
+  walletClient: any,
   params: RegistrationTxParams,
   chain = "base"
 ): Promise<{ clubId?: string, txHash?: string, tokenAddress?: string }> => {
@@ -1605,7 +1607,7 @@ export const approveToken = async (
   token: string,
   amount: bigint,
   walletClient: any,
-  toastId?,
+  toastId?: any,
   approveMessage = "Approving tokens...",
   chain = "base",
   contractAddress = getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
@@ -1659,7 +1661,7 @@ export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[]
   const { data } = await subgraphClient(chain).query({ query: REGISTERED_CLUBS, variables: { skip, pageSize: limit } });
 
   if (data?.clubs?.length) {
-    const clubs = data?.clubs.map((_club) => {
+    const clubs = data?.clubs.map((_club: any) => {
       let { name, symbol, image } = _club
 
       if (_club.tokenInfo && (!_club.name || !_club.symbol || !_club.uri)) {
@@ -1679,8 +1681,8 @@ export const getClubs = async (page = 0, chain = "base"): Promise<{ clubs: any[]
   return { clubs: [], hasMore: false };
 };
 
-export const withdrawFeesEarned = async (walletClient, feesEarned: bigint, clubIds: bigint[], chain = "base") => {
-  let hash;
+export const withdrawFeesEarned = async (walletClient: any, feesEarned: bigint, clubIds: bigint[], chain = "base") => {
+  let hash: any;
   const receipts: any[] = [];
 
   if (feesEarned > 0n) {
