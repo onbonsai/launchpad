@@ -1396,7 +1396,7 @@ const StudioCreatePage: NextPage = () => {
                   <div className="flex flex-col md:flex-row gap-y-8 md:gap-x-8 w-full">
                     {/* Sticky Form Section */}
                     <div className="md:w-1/2 flex-shrink-0">
-                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6">
+                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pr-2">
                         <div className="mb-6">
                           <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                         </div>
