@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const user = await verifyIdToken(token);
     if (!user) return res.status(403).json({ error: "Invalid lens id token" });
 
-    const account = await getProfileByAddress(user.act.sub as `0x${string}`);
+    const account = await getProfileByAddress((user.act as any)?.sub as `0x${string}`);
     if (!account) return res.status(400).json({ error: "Account not found "});
 
     let { txHash, postId, chain, tokenAddress } = req.body;

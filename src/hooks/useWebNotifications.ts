@@ -1,7 +1,7 @@
 import { urlBase64ToUint8Array } from "@src/utils/utils";
 import { useState, useEffect } from "react";
 
-const useWebNotifications = (userAddress?: string) => {
+const useWebNotifications = (userAddress?: string, lensAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
@@ -118,12 +118,24 @@ const useWebNotifications = (userAddress?: string) => {
         },
         body: JSON.stringify({
           subscription,
-          userAddress
+          userAddress,
+          lensAddress
         })
       });
 
       if (!response.ok) {
         throw new Error(`Failed to send subscription: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Show toast notification if bonus tokens were sent
+      if (result.bonusTokensSent) {
+        const toast = (await import('react-hot-toast')).default;
+        toast.success('🎉 Welcome! You received 1000 BONSAI tokens!', {
+          duration: 5000,
+          position: 'top-center',
+        });
       }
 
     } catch (error) {
@@ -173,7 +185,6 @@ const useWebNotifications = (userAddress?: string) => {
     subscribeToPush,
     unsubscribeFromPush,
     sendNotification,
-    isPWAMode: isPWAMode()
   };
 };
 

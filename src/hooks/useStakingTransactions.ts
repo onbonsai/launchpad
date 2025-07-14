@@ -37,7 +37,7 @@ export const useStakingTransactions = () => {
       stakeToastId = toast.loading('Staking BONSAI tokens...');
 
       const hash = await walletClient.writeContract({
-        address: PROTOCOL_DEPLOYMENT.lens.Staking as `0x${string}`,
+        address: PROTOCOL_DEPLOYMENT.lens.Staking,
         abi: stakingAbi,
         functionName: 'stake',
         args: [parsedAmount, BigInt(lockupPeriod), recipient],
@@ -69,7 +69,7 @@ export const useStakingTransactions = () => {
       unstakeToastId = toast.loading('Unstaking BONSAI tokens...');
 
       const hash = await walletClient.writeContract({
-        address: PROTOCOL_DEPLOYMENT.lens.Staking as `0x${string}`,
+        address: PROTOCOL_DEPLOYMENT.lens.Staking,
         abi: stakingAbi,
         functionName: 'unstake',
         args: [BigInt(stakeIndex)],

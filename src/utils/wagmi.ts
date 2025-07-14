@@ -29,10 +29,8 @@ export const config = (isMiniApp?: boolean) => {
       appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai",
       appIcon: "/static/images/logo.png",
     }
-    // @ts-expect-error
-    const defaultConfig = getDefaultConfig(options);
+    const defaultConfig = getDefaultConfig(options as any);
     defaultConfig.ssr = false; // https://bonsai-labs-ek.sentry.io/issues/6677952145/?project=4509125819039744&query=is:unresolved&stream_index=1
-    // @ts-expect-error
     configInstance = createConfig(defaultConfig);
   }
   return configInstance;

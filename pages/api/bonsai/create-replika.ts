@@ -17,7 +17,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!user) return res.status(403).json({ error: "Invalid lens id token" });
 
     const owner = user.sub as `0x${string}`;
-    const account = user.act.sub as `0x${string}`;
+    const account = (user.act as any)?.sub as `0x${string}`;
 
     await collection.insertOne({ account, owner, source, fid });
 

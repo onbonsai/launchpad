@@ -1,7 +1,7 @@
 import { MobileViewSelector } from './MobileViewSelector';
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { GetServerSideProps, NextPage } from "next";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi } from "viem";
 import { last } from "lodash/array";
@@ -29,6 +29,7 @@ import { ProfileContainer } from "@src/components/Profile/ProfileContainer";
 import { Account } from '@lens-protocol/client';
 import { getAccountStats } from '@src/services/lens/getStats';
 import { EditProfileModal } from '@src/components/Profile/EditProfileModal';
+import { useRouter } from 'next/router';
 
 interface CreatorPageProps {
   profile: any;
@@ -63,6 +64,7 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   accountStats,
 }: CreatorPageProps) => {
   const isMounted = useIsMounted();
+  const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isReady: ready } = useSIWE();
@@ -105,6 +107,14 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
     authenticatedProfile?.address || '',
     profile?.address || ''
   );
+
+  // Check for settings query parameter to auto-open edit modal
+  useEffect(() => {
+    const { settings } = router.query;
+    if (!!settings && isProfileAdmin) {
+      setIsEditModalOpen(true);
+    }
+  }, [router.query]);
 
   if (!isMounted) return null;
 

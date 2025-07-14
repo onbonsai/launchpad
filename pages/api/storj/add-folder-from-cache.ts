@@ -45,7 +45,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // Pin the folder to storj
     const response = await _client().post("add?wrap-with-directory&cid-version=1", formData, {
       headers: {
-        "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+        "Content-Type": `multipart/form-data; boundary=${(formData as any)._boundary}`,
       },
       maxContentLength: Infinity,
       maxBodyLength: Infinity,

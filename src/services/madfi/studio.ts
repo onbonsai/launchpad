@@ -99,6 +99,14 @@ export type Template = {
 export type Preview = {
   roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
+  isAgent?: boolean;
+  createdAt?: string;
+  content?: {
+    text?: string;
+    prompt?: string;
+    preview?: Preview;
+    templateData?: any;
+  };
   agentMessageId?: string; // to associate memories with published posts
   text?: string;
   templateName?: string

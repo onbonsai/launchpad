@@ -25,23 +25,23 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       const data = await new Promise((resolve, reject) => {
         const form = new formidable.IncomingForm({ maxFileSize: 500 * 1024 * 1024 });
 
-        form.parse(req, (err, fields, files) => {
+        form.parse(req, (err: any, fields: any, files: any) => {
           if (err) return reject(err);
           resolve({ fields, files });
         });
       });
 
       // Read the image file from the parsed form data
-      const fileData = fs.readFileSync(data.files.file.filepath);
+      const fileData = fs.readFileSync((data as any).files.file.filepath);
 
       // Create a FormData instance for the Axios request
       const formData = new FormData();
-      formData.append("file", fileData, data.files.file.originalFilename);
+      formData.append("file", fileData, (data as any).files.file.originalFilename);
 
       // Perform the Axios request
       const response = await _client().post("add?cid-version=1", formData, {
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+          "Content-Type": `multipart/form-data; boundary=${(formData as any)._boundary}`,
         },
         maxContentLength: Infinity,
         maxBodyLength: Infinity,

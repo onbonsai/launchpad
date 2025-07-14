@@ -57,7 +57,7 @@ const IndexPage: NextPage = () => {
   const { data: featuredData, isLoading: isLoadingFeaturedPosts } = useGetFeaturedPosts(activeTab === PostTabType.EXPLORE);
 
   // Type assertion for data.pages
-  const pages = activeTab === PostTabType.EXPLORE ? exploreData?.pages as TimelinePosts[] || [] : timelineData?.pages as TimelinePosts[] || [];
+  const pages = activeTab === PostTabType.EXPLORE ? (exploreData?.pages as any) as TimelinePosts[] || [] : (timelineData?.pages as any) as TimelinePosts[] || [];
 
   // Update the dependency array to include data instead of pages, putting featured posts first
   const posts = useMemo(() => {
@@ -73,7 +73,7 @@ const IndexPage: NextPage = () => {
   const postData = useMemo(() => ({
     ...(featuredData?.postData || {}),
     ...pages.reduce((acc, page) => ({ ...acc, ...page.postData }), {}),
-    ...(activeTab === PostTabType.COLLECTED ? data?.pages?.reduce((acc: Record<string, any>, page) => ({ ...acc, ...(page as TimelinePosts).postData }), {}) ?? {} : {})
+    ...(activeTab === PostTabType.COLLECTED ? data?.pages?.reduce((acc: Record<string, any>, page) => ({ ...acc, ...(page as any as TimelinePosts).postData }), {}) ?? {} : {})
   }), [activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData, data]);
 
   useScrollRestoration('posts-page-scroll', isMounted && !isLoadingExplorePosts && !isLoadingTimelinePosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
@@ -100,12 +100,12 @@ const IndexPage: NextPage = () => {
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                     posts={activeTab === PostTabType.COLLECTED
-                      ? data?.pages?.flatMap(page => (page as TimelinePosts).posts) ?? []
+                      ? data?.pages?.flatMap(page => (page as any as TimelinePosts).posts) ?? []
                       : activeTab === PostTabType.EXPLORE
                         ? posts as Post[] ?? []
                         : posts as any[]}
                     postData={activeTab === PostTabType.COLLECTED
-                      ? data?.pages?.reduce((acc: Record<string, any>, page) => ({ ...acc, ...(page as TimelinePosts).postData }), {}) ?? {}
+                      ? data?.pages?.reduce((acc: Record<string, any>, page) => ({ ...acc, ...(page as any as TimelinePosts).postData }), {}) ?? {}
                       : postData}
                     setFilteredPosts={setFilteredClubs}
                     filteredPosts={filteredClubs}
