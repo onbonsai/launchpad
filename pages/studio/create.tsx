@@ -782,12 +782,22 @@ const StudioCreatePage: NextPage = () => {
       toast.error("Video template not found");
       return;
     }
+
+    // Preserve current template data before switching templates
+    const previousTemplateData = { ...finalTemplateData };
+    
     handleTemplateSelect(videoTemplate);
+
+    // Restore and merge previous template data with new template
+    setFinalTemplateData(prev => ({ ...previousTemplateData, ...prev }));
 
     // scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Use the ImageUploader ref to open crop modal instead of directly setting postImage
+    // Clear existing images before opening crop modal for replacement
+    setPostImage([]);
+
+    // Use the ImageUploader ref to open crop modal for proper aspect ratio cropping
     if (imageUploaderRef.current) {
       try {
         await imageUploaderRef.current.openCropModal(preview.image, `bonsai-${preview.agentId || 'preview'}.png`);
@@ -797,13 +807,13 @@ const StudioCreatePage: NextPage = () => {
         // Fallback to the old behavior if crop modal fails
         const imageFile = parseBase64Image(preview.image);
         setPostImage([imageFile]);
-        toast.success("Switched to video template with your image!");
+        toast.success("Image added to video template!");
       }
     } else {
       // Fallback to the old behavior if ref is not available
       const imageFile = parseBase64Image(preview.image);
       setPostImage([imageFile]);
-      toast.success("Switched to video template with your image!");
+      toast.success("Image added to video template!");
     }
   };
 
@@ -821,10 +831,19 @@ const StudioCreatePage: NextPage = () => {
       // Extract last frame from video
       const lastFrame = await extractLastFrameFromVideo(preview.video);
 
+      // Preserve current template data before switching templates
+      const previousTemplateData = { ...finalTemplateData };
+      
       handleTemplateSelect(videoTemplate);
+
+      // Restore and merge previous template data with new template
+      setFinalTemplateData(prev => ({ ...previousTemplateData, ...prev }));
 
       // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Clear existing images before opening crop modal for replacement
+      setPostImage([]);
 
       // Use the ImageUploader ref to open crop modal with the extracted frame
       if (imageUploaderRef.current) {
@@ -836,13 +855,13 @@ const StudioCreatePage: NextPage = () => {
           // Fallback to the old behavior if crop modal fails
           const imageFile = parseBase64Image(lastFrame);
           setPostImage([imageFile]);
-          toast.success("Switched to video template with last frame!");
+          toast.success("Last frame extracted and added to video template!");
         }
       } else {
         // Fallback to the old behavior if ref is not available
         const imageFile = parseBase64Image(lastFrame);
         setPostImage([imageFile]);
-        toast.success("Switched to video template with last frame!");
+        toast.success("Last frame extracted and added to video template!");
       }
     } catch (error) {
       console.error('Failed to extract last frame:', error);

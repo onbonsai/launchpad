@@ -30,7 +30,7 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
 
   return (
     <>
-      <div className="w-full rounded-lg mt-4">
+      <div className="w-full rounded-lg mt-4 max-w-[600px] [&_*::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <h3 className="text-md text-white mb-2">Storyboard</h3>
 
         {/* Clickable preview that opens the modal */}

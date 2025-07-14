@@ -456,10 +456,14 @@ export default function PreviewHistory({
             );
           }
 
-          // Safely get the previous message and template data
-          const previousMessage = index > 0 ? sortedMessages[index - 1] : null;
-          const templateData = previousMessage?.content?.templateData
-            ? JSON.parse(previousMessage.content.templateData as string)
+          // Find the template data message that corresponds to this preview
+          const templateDataMessage = sortedMessages.find(msg => 
+            !msg.isAgent && 
+            msg.agentId === `templateData-${message.agentId}` && 
+            msg.content?.templateData
+          );
+          const templateData = templateDataMessage?.content?.templateData
+            ? JSON.parse(templateDataMessage.content.templateData as string)
             : {};
 
           // Prioritize preview text over prompt for display

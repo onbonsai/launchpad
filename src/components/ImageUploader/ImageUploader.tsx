@@ -505,7 +505,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
           ))}
         </div>
       ) : (files && files.length > 0) ? (
-        <div className={clsx(
+        <div data-testid="dropzone" className={clsx(
           "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest relative w-fit",
           compact ? "p-1 bg-transparent" : "bg-card-light"
         )}>
