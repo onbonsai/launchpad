@@ -10,7 +10,6 @@ import CreatePostForm from "@pagesComponents/Studio/CreatePostForm";
 import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Subtitle } from "@src/styles/text";
 import { Tabs } from "@pagesComponents/Studio/Tabs";
-import useIsMounted from "@src/hooks/useIsMounted";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { CreateTokenForm } from "@pagesComponents/Studio/CreateTokenForm";
@@ -28,7 +27,7 @@ import axios from "axios";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
-import type { NFTMetadata, TokenData } from "@src/services/madfi/studio";
+import type { NFTMetadata, TokenData, StoryboardClip } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/frame-sdk';
 import { SITE_URL } from "@src/constants/constants";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
@@ -39,28 +38,20 @@ import useWebNotifications from "@src/hooks/useWebNotifications";
 import { cloneDeep } from "lodash/lang";
 import { last } from "lodash/array";
 import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
-
-export interface StoryboardClip {
-  id: string; // agentId of the preview
-  preview: Preview;
-  startTime: number;
-  endTime: number; // Will be clip duration initially
-  duration: number;
-  templateData?: any;
-}
+import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
+import { storageClient } from "@src/services/lens/client";
+import { usePWA } from '@src/hooks/usePWA';
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
   const { isMiniApp } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
-  const isMounted = useIsMounted();
   const { data: walletClient } = useWalletClient();
   const [openTab, setOpenTab] = useState<number>(1);
   const [currentPreview, setCurrentPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
   const [finalTokenData, setFinalTokenData] = useState<TokenData>();
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -85,7 +76,9 @@ const StudioCreatePage: NextPage = () => {
   const workerRef = useRef<Worker | undefined>(undefined);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const [optimisticCreditBalance, setOptimisticCreditBalance] = useState<number | undefined>();
-  const { subscribeToPush, sendNotification } = useWebNotifications(address);
+  const { subscribeToPush, sendNotification } = useWebNotifications(address, authenticatedProfile?.address);
+  const tikTokIntegration = useTikTokIntegration();
+  const { isStandalone } = usePWA();
 
   // Track pending generations to check when tab becomes visible
   const [pendingGenerations, setPendingGenerations] = useState<Set<string>>(new Set());
@@ -100,18 +93,16 @@ const StudioCreatePage: NextPage = () => {
   // Function to check for completed generations
   const checkForCompletedGenerations = async () => {
     if (!roomId || !template?.apiUrl) return;
-    
-    console.log('[create.tsx] Checking for completed generations...');
-    
+
     try {
       const sessionClient = await resumeSession(true);
       if (!sessionClient) return;
 
       const creds = await sessionClient.getCredentials();
       if (creds.isErr() || !creds.value) return;
-      
+
       const idToken = creds.value.idToken;
-      
+
       // Fetch recent messages
       const queryParams = new URLSearchParams({
         count: '5',
@@ -124,27 +115,27 @@ const StudioCreatePage: NextPage = () => {
           'Authorization': `Bearer: ${idToken}`
         },
       });
-      
+
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const messages = data.messages || [];
-      
+
       // Check if any pending generations have completed
       const completedGenerations = new Set<string>();
-      
+
       for (const msg of messages) {
         if (msg.userId === 'agent' && msg.content?.preview?.agentId) {
           const agentId = msg.content.preview.agentId;
-          
+
           // Check if this was a pending generation
-          const isPending = localPreviews.some(lp => 
+          const isPending = localPreviews.some(lp =>
             lp.pending && (lp.tempId === agentId || lp.agentId === agentId)
           );
-          
+
           if (isPending) {
             completedGenerations.add(agentId);
-            
+
             // Update local previews to mark as completed
             setLocalPreviews(prev => prev.map(p => {
               if (p.pending && (p.tempId === agentId || p.agentId === agentId)) {
@@ -161,7 +152,7 @@ const StudioCreatePage: NextPage = () => {
               }
               return p;
             }));
-            
+
             // Set as current preview if none is selected
             if (!currentPreview || currentPreview.agentId !== agentId) {
               setCurrentPreview(msg.content.preview);
@@ -169,7 +160,7 @@ const StudioCreatePage: NextPage = () => {
           }
         }
       }
-      
+
       // Remove completed generations from pending set
       if (completedGenerations.size > 0) {
         setPendingGenerations(prev => {
@@ -178,7 +169,7 @@ const StudioCreatePage: NextPage = () => {
           return newSet;
         });
       }
-      
+
     } catch (error) {
       console.error('[create.tsx] Error checking for completed generations:', error);
     }
@@ -196,12 +187,10 @@ const StudioCreatePage: NextPage = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [pendingGenerations, roomId, template?.apiUrl, localPreviews, currentPreview]);
 
-  // Listen for messages from service worker
+  // Listen for messages from service worker (only for PWA)
   useEffect(() => {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'RELOAD_MESSAGES') {
-        console.log('[create.tsx] Received reload message from service worker', event.data);
-        
         // If roomId matches or no specific roomId, reload messages
         if (!event.data.roomId || event.data.roomId === roomId) {
           checkForCompletedGenerations();
@@ -209,12 +198,18 @@ const StudioCreatePage: NextPage = () => {
       }
     };
 
-    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
-    return () => navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
-  }, [roomId, template?.apiUrl, localPreviews, currentPreview]);
+    if (isStandalone && navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
+
+    return () => {
+      if (isStandalone && navigator.serviceWorker) {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+      }
+    };
+  }, [roomId, template?.apiUrl, localPreviews, currentPreview, isStandalone]);
 
   useEffect(() => {
-    console.log('[create.tsx] Initializing preview worker...');
     workerRef.current = new Worker(new URL('../../src/services/preview.worker.ts', import.meta.url));
     workerRef.current.onmessage = async (event: MessageEvent) => {
       const { success, error, tempId } = event.data;
@@ -222,11 +217,27 @@ const StudioCreatePage: NextPage = () => {
         // Deep clone the result to prevent mutation of shared objects in the state
         const result = cloneDeep(event.data.result);
 
+
+
         if (result.preview?.video?.buffer) {
           const videoBlob = new Blob([result.preview.video.buffer], { type: result.preview.video.mimeType });
           result.preview.video.url = URL.createObjectURL(videoBlob);
           result.preview.video.blob = videoBlob;
           delete result.preview.video.buffer;
+        }
+
+        // Handle storyboard clips' video buffers
+        if (result.preview?.storyboard && result.preview.storyboard.length > 0) {
+          result.preview.storyboard = result.preview.storyboard.map((clip: any, index: number) => {
+            if (clip.preview?.video?.buffer) {
+              const videoBlob = new Blob([clip.preview.video.buffer], { type: clip.preview.video.mimeType });
+              const videoUrl = URL.createObjectURL(videoBlob);
+              clip.preview.video.url = videoUrl;
+              clip.preview.video.blob = videoBlob;
+              delete clip.preview.video.buffer;
+            }
+            return clip;
+          });
         }
 
         // Handle large image ArrayBuffers
@@ -239,12 +250,11 @@ const StudioCreatePage: NextPage = () => {
           });
           result.preview.image = imageDataUrl;
         }
-        
+
         sendNotification("Your generation is ready", {
           body: "Click to view it on Bonsai",
           icon: '/logo.png'
         });
-        console.log(`[create.tsx] Worker successfully generated preview for tempId: ${tempId}`, result);
 
         const previewWithMetadata = {
           ...result.preview,
@@ -254,7 +264,7 @@ const StudioCreatePage: NextPage = () => {
         };
 
         handleSetPreview(previewWithMetadata, tempId);
-        
+
         // Remove from pending generations
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
@@ -262,8 +272,8 @@ const StudioCreatePage: NextPage = () => {
           return newSet;
         });
 
-        // Remove from service worker pending list
-        if ('serviceWorker' in navigator) {
+        // Remove from service worker pending list (only for PWA)
+        if ('serviceWorker' in navigator && isStandalone) {
           navigator.serviceWorker.ready.then(registration => {
             if (registration.active) {
               registration.active.postMessage({
@@ -277,7 +287,7 @@ const StudioCreatePage: NextPage = () => {
         console.error(`[create.tsx] Worker failed for tempId: ${tempId}`, error);
         toast.error(`Generation failed: ${error}`);
         setLocalPreviews(prev => prev.filter(p => p.tempId !== tempId));
-        
+
         // Remove from pending generations
         setPendingGenerations(prev => {
           const newSet = new Set(prev);
@@ -285,8 +295,8 @@ const StudioCreatePage: NextPage = () => {
           return newSet;
         });
 
-        // Remove from service worker pending list
-        if ('serviceWorker' in navigator) {
+        // Remove from service worker pending list (only for PWA)
+        if ('serviceWorker' in navigator && isStandalone) {
           navigator.serviceWorker.ready.then(registration => {
             if (registration.active) {
               registration.active.postMessage({
@@ -298,15 +308,14 @@ const StudioCreatePage: NextPage = () => {
         }
       }
     };
-    
+
     // Handle worker errors
     workerRef.current.onerror = (error) => {
       console.error('[create.tsx] Worker error:', error);
       toast.error('Generation worker encountered an error');
     };
-    
+
     return () => {
-      console.log('[create.tsx] Terminating preview worker.');
       workerRef.current?.terminate();
     }
   }, []);
@@ -349,7 +358,6 @@ const StudioCreatePage: NextPage = () => {
     subscribeToPush();
 
     setOptimisticCreditBalance((prev) => (prev !== undefined ? prev - credits : undefined));
-    console.log(`[create.tsx] Adding pending preview with tempId: ${tempId}`);
     setLocalPreviews(prev => [...prev, {
       tempId,
       isAgent: true,
@@ -361,8 +369,8 @@ const StudioCreatePage: NextPage = () => {
     // Track this generation as pending
     setPendingGenerations(prev => new Set(prev).add(tempId));
 
-    // Register with service worker for background checking
-    if ('serviceWorker' in navigator) {
+    // Register with service worker for background checking (only for PWA)
+    if ('serviceWorker' in navigator && isStandalone) {
       navigator.serviceWorker.ready.then(registration => {
         if (registration.active) {
           registration.active.postMessage({
@@ -379,7 +387,6 @@ const StudioCreatePage: NextPage = () => {
       }).catch(console.error);
     }
 
-    console.log(`[create.tsx] Posting message to worker for tempId: ${tempId}`);
     workerRef.current?.postMessage({
       url: template.apiUrl,
       idToken,
@@ -423,6 +430,33 @@ const StudioCreatePage: NextPage = () => {
       console.error('Error checking referral status:', error);
       return null;
     }
+  };
+
+  const postToTikTok = async (videoUrl: string, title: string, description?: string) => {
+    if (!address || !tikTokIntegration.isConnected) {
+      throw new Error('User not connected or TikTok integration not available');
+    }
+
+    const response = await fetch('/api/integrations/tiktok/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userAddress: address,
+        videoUrl,
+        title,
+        description
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to post to TikTok');
+    }
+
+    return data.result;
   };
 
   // set the default form data to use the remixed version
@@ -474,12 +508,27 @@ const StudioCreatePage: NextPage = () => {
   }, [currentPreview]);
 
   const handleSetPreview = (preview: Preview, tempId?: string) => {
+
+
+    // Prevent duplicate processing of the same preview
     if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) {
       const isExisting = localPreviews.some(lp =>
         lp.agentId === preview.agentId ||
         (lp.content.preview && lp.content.preview.agentId === preview.agentId)
       );
-      if (isExisting) return;
+      if (isExisting) {
+        return;
+      }
+    }
+
+    // Prevent duplicate storyboard processing - if this agentId already exists in localPreviews
+    if (preview.storyboard && preview.storyboard.length > 0) {
+      const hasStoryboardClipsAlready = preview.storyboard.some(clip =>
+        localPreviews.some(lp => lp.agentId === clip.id)
+      );
+      if (hasStoryboardClipsAlready) {
+        return;
+      }
     }
 
     setCurrentPreview(preview);
@@ -487,23 +536,128 @@ const StudioCreatePage: NextPage = () => {
       setRoomId(preview.roomId);
     }
 
-    if (tempId) {
-      setLocalPreviews(prev => prev.map(p => {
-        if (p.tempId === tempId) {
-          return {
-            ...p,
-            pending: false,
-            agentId: preview.agentId,
-            agentMessageId: preview.agentMessageId,
-            content: {
-              ...p.content,
-              preview: cloneDeep(preview), // Deep copy to avoid shared references
-              text: preview.text,
-            }
-          };
+            // If preview contains storyboard, populate storyboard state
+    if (preview.storyboard && preview.storyboard.length > 0) {
+
+
+      setStoryboardClips(prevClips => {
+        // Filter out clips that already exist in the storyboard
+        const existingClipIds = new Set(prevClips.map(clip => clip.id));
+        const newClips = preview.storyboard!.filter(clip => !existingClipIds.has(clip.id));
+
+        if (newClips.length === 0) {
+          // No new clips to add
+          return prevClips;
         }
-        return p;
-      }));
+
+
+
+        // Use clips as-is with their original timing from the server
+        return [...prevClips, ...newClips];
+      });
+    }
+
+    // If preview contains storyboard audio, populate storyboard audio state
+    if (preview.templateData && preview.templateData.storyboard) {
+      const storyboardData = preview.templateData.storyboard;
+      if (storyboardData.audioData) {
+        setStoryboardAudio(storyboardData.audioData);
+      }
+      if (storyboardData.audioStartTime !== undefined) {
+        setStoryboardAudioStartTime(storyboardData.audioStartTime);
+      }
+    }
+
+        if (tempId) {
+      setLocalPreviews(prev => {
+        const updatedPreviews = prev.map(p => {
+          if (p.tempId === tempId) {
+            return {
+              ...p,
+              pending: false,
+              agentId: preview.agentId,
+              agentMessageId: preview.agentMessageId,
+              content: {
+                ...p.content,
+                preview: cloneDeep(preview), // Deep copy to avoid shared references
+                text: preview.text,
+              }
+            };
+          }
+          return p;
+        });
+
+        // If preview contains storyboard, also add individual clips as local previews
+        if (preview.storyboard && preview.storyboard.length > 0) {
+          const now = new Date().toISOString();
+          const storyboardPreviews: LocalPreview[] = [];
+
+
+
+                    preview.storyboard.forEach((clip, index) => {
+            const clipTimestamp = new Date(Date.parse(now) + index).toISOString();
+
+            // Try to find clip-specific prompt first, then fall back to original prompt
+            const clipPrompt = clip.templateData?.sceneDescription || clip.preview.text || "";
+
+
+
+          // Add template data for the clip
+          storyboardPreviews.push({
+            agentId: `templateData-${clip.id}`,
+            isAgent: false,
+            createdAt: clipTimestamp,
+            content: {
+              templateData: JSON.stringify(clip.templateData || {}),
+              text: clipPrompt,
+              prompt: clipPrompt
+            }
+          });
+
+          // Add the clip preview
+          storyboardPreviews.push({
+            agentId: clip.id,
+            isAgent: true,
+            createdAt: new Date(Date.parse(clipTimestamp) + 1).toISOString(),
+            content: {
+              preview: cloneDeep(clip.preview),
+              text: clip.preview.text,
+              prompt: clipPrompt
+            }
+          });
+          });
+
+          // Only return storyboard previews, don't add main preview for storyboard compositions
+          // Failsafe: Filter out any preview with the main agentId
+          const filteredUpdatedPreviews = updatedPreviews.filter(p =>
+            p.agentId !== preview.agentId && p.agentId !== `templateData-${preview.agentId}`
+          );
+
+
+
+          return [...filteredUpdatedPreviews, ...storyboardPreviews];
+        }
+
+        return updatedPreviews;
+      });
+
+            // Also handle storyboard state update for tempId case
+      if (preview.storyboard && preview.storyboard.length > 0) {
+        setStoryboardClips(prevClips => {
+          // Filter out clips that already exist in the storyboard
+          const existingClipIds = new Set(prevClips.map(clip => clip.id));
+          const newClips = preview.storyboard!.filter(clip => !existingClipIds.has(clip.id));
+
+          if (newClips.length === 0) {
+            // No new clips to add
+            return prevClips;
+          }
+
+          // Use clips as-is with their original timing from the server
+          return [...prevClips, ...newClips];
+        });
+      }
+
       return;
     }
 
@@ -521,30 +675,93 @@ const StudioCreatePage: NextPage = () => {
         return prev;
       }
 
-      return [...prev,
-        // First add the template data message
-        {
-          agentId: `templateData-${preview.agentId}`,
-          isAgent: false,
-          createdAt: now,
-          content: {
-            templateData: JSON.stringify(preview.templateData || {}),
-            text: prompt || "",
-            prompt: prompt
+      const newPreviews: LocalPreview[] = [];
+
+      // If preview contains storyboard, add individual clips as local previews
+      if (preview.storyboard && preview.storyboard.length > 0) {
+
+
+                preview.storyboard.forEach((clip, index) => {
+          const clipTimestamp = new Date(Date.parse(now) + index).toISOString();
+
+          // Try to find clip-specific prompt first, then fall back to original prompt
+          const clipPrompt = clip.templateData?.clipPrompt ||
+                           clip.templateData?.scene ||
+                           clip.templateData?.description ||
+                           clip.templateData?.prompt ||
+                           clip.templateData?.text ||
+                           clip.preview.text ||
+                           "";
+
+
+
+          // Add template data for the clip
+          newPreviews.push({
+            agentId: `templateData-${clip.id}`,
+            isAgent: false,
+            createdAt: clipTimestamp,
+            content: {
+              templateData: JSON.stringify(clip.templateData || {}),
+              text: clipPrompt,
+              prompt: clipPrompt
+            }
+          });
+
+          // Add the clip preview
+          newPreviews.push({
+            agentId: clip.id,
+            isAgent: true,
+            createdAt: new Date(Date.parse(clipTimestamp) + 1).toISOString(),
+            content: {
+              preview: cloneDeep(clip.preview),
+              text: clip.preview.text,
+              prompt: clipPrompt
+            }
+          });
+        });
+      }
+
+            // Only add the main preview if there's no storyboard at all
+      // When there's a storyboard, we only show the individual clips
+      const shouldAddMainPreview = !preview.storyboard || preview.storyboard.length === 0;
+
+
+
+      if (shouldAddMainPreview) {
+        newPreviews.push(
+          // First add the template data message
+          {
+            agentId: `templateData-${preview.agentId}`,
+            isAgent: false,
+            createdAt: new Date(Date.parse(now) + (preview.storyboard ? preview.storyboard.length * 2 : 0)).toISOString(),
+            content: {
+              templateData: JSON.stringify(preview.templateData || {}),
+              text: prompt || "",
+              prompt: prompt
+            }
+          },
+          // Then add the preview message
+          {
+            agentId: preview.agentId,
+            isAgent: true,
+            createdAt: new Date(Date.parse(now) + (preview.storyboard ? preview.storyboard.length * 2 : 0) + 1).toISOString(),
+            content: {
+              preview: cloneDeep(preview), // Deep copy to avoid shared references
+              text: preview.text,
+              prompt: prompt
+            }
           }
-        },
-        // Then add the preview message
-        {
-          agentId: preview.agentId,
-          isAgent: true,
-          createdAt: new Date(Date.parse(now) + 1).toISOString(), // ensure it comes after the template data
-          content: {
-            preview: cloneDeep(preview), // Deep copy to avoid shared references
-            text: preview.text,
-            prompt: prompt
-          }
-        }
-      ]
+        );
+      }
+
+            // Failsafe: If there's a storyboard, filter out any preview with the main agentId
+      const filteredPreviews = preview.storyboard && preview.storyboard.length > 0
+        ? newPreviews.filter(p => p.agentId !== preview.agentId && p.agentId !== `templateData-${preview.agentId}`)
+        : newPreviews;
+
+
+
+      return [...prev, ...filteredPreviews];
     });
   };
 
@@ -556,7 +773,7 @@ const StudioCreatePage: NextPage = () => {
     }
   };
 
-  const handleAnimateImage = async (preview) => {
+  const handleAnimateImage = async (preview: Preview) => {
     if (!preview?.image || !registeredTemplates) return;
 
     // find a template with "video" in the name (case-insensitive)
@@ -565,12 +782,22 @@ const StudioCreatePage: NextPage = () => {
       toast.error("Video template not found");
       return;
     }
+
+    // Preserve current template data before switching templates
+    const previousTemplateData = { ...finalTemplateData };
+    
     handleTemplateSelect(videoTemplate);
+
+    // Restore and merge previous template data with new template
+    setFinalTemplateData(prev => ({ ...previousTemplateData, ...prev }));
 
     // scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Use the ImageUploader ref to open crop modal instead of directly setting postImage
+    // Clear existing images before opening crop modal for replacement
+    setPostImage([]);
+
+    // Use the ImageUploader ref to open crop modal for proper aspect ratio cropping
     if (imageUploaderRef.current) {
       try {
         await imageUploaderRef.current.openCropModal(preview.image, `bonsai-${preview.agentId || 'preview'}.png`);
@@ -580,17 +807,17 @@ const StudioCreatePage: NextPage = () => {
         // Fallback to the old behavior if crop modal fails
         const imageFile = parseBase64Image(preview.image);
         setPostImage([imageFile]);
-        toast.success("Switched to video template with your image!");
+        toast.success("Image added to video template!");
       }
     } else {
       // Fallback to the old behavior if ref is not available
       const imageFile = parseBase64Image(preview.image);
       setPostImage([imageFile]);
-      toast.success("Switched to video template with your image!");
+      toast.success("Image added to video template!");
     }
   };
 
-  const handleExtendVideo = async (preview) => {
+  const handleExtendVideo = async (preview: Preview) => {
     if (!preview?.video || !registeredTemplates) return;
 
     // Find a template with "video" in the name (case-insensitive)
@@ -603,11 +830,20 @@ const StudioCreatePage: NextPage = () => {
     try {
       // Extract last frame from video
       const lastFrame = await extractLastFrameFromVideo(preview.video);
+
+      // Preserve current template data before switching templates
+      const previousTemplateData = { ...finalTemplateData };
       
       handleTemplateSelect(videoTemplate);
-      
+
+      // Restore and merge previous template data with new template
+      setFinalTemplateData(prev => ({ ...previousTemplateData, ...prev }));
+
       // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Clear existing images before opening crop modal for replacement
+      setPostImage([]);
 
       // Use the ImageUploader ref to open crop modal with the extracted frame
       if (imageUploaderRef.current) {
@@ -619,13 +855,13 @@ const StudioCreatePage: NextPage = () => {
           // Fallback to the old behavior if crop modal fails
           const imageFile = parseBase64Image(lastFrame);
           setPostImage([imageFile]);
-          toast.success("Switched to video template with last frame!");
+          toast.success("Last frame extracted and added to video template!");
         }
       } else {
         // Fallback to the old behavior if ref is not available
         const imageFile = parseBase64Image(lastFrame);
         setPostImage([imageFile]);
-        toast.success("Switched to video template with last frame!");
+        toast.success("Last frame extracted and added to video template!");
       }
     } catch (error) {
       console.error('Failed to extract last frame:', error);
@@ -647,13 +883,13 @@ const StudioCreatePage: NextPage = () => {
 
       videoElement.crossOrigin = 'anonymous';
       videoElement.muted = true;
-      
+
       videoElement.onloadedmetadata = () => {
         canvas.width = videoElement.videoWidth;
         canvas.height = videoElement.videoHeight;
-        
+
         // Set time to near the end (90% of duration to avoid potential issues at the very end)
-        videoElement.currentTime = videoElement.duration * 0.9;
+        videoElement.currentTime = videoElement.duration * 0.99;
       };
 
       videoElement.onseeked = () => {
@@ -697,8 +933,8 @@ const StudioCreatePage: NextPage = () => {
     setIsCreating(true);
 
     // 1. create token (if not remixing and not importing a token)
-    let tokenAddress;
-    let txHash;
+    let tokenAddress: any;
+    let txHash: any;
     let _finalTokenData = finalTokenData;
     if (!!savedTokenAddress) {
       tokenAddress = savedTokenAddress;
@@ -707,7 +943,6 @@ const StudioCreatePage: NextPage = () => {
         const targetChainId = NETWORK_CHAIN_IDS[finalTokenData.selectedNetwork];
         if (chain?.id !== targetChainId && walletClient) {
           try {
-            console.log(`targetChainId: ${targetChainId}`)
             await switchChain(walletClient, { id: targetChainId });
             // HACK: require lens chain for the whole thing
             setIsCreating(false);
@@ -869,7 +1104,7 @@ const StudioCreatePage: NextPage = () => {
     }
 
     const sessionClient = await resumeSession(true);
-    let idToken;
+    let idToken: any;
     if (!sessionClient && !authenticatedProfile) {
       toast.error("Not authenticated");
       return;
@@ -885,11 +1120,10 @@ const StudioCreatePage: NextPage = () => {
     }
 
     toastId = toast.loading("Creating your post...", { id: toastId });
-    let postId, uri;
-    let video;
+    let postId: any, uri: any;
+    let video: any;
+    let image: any, imageUri: any, type: any;
     try {
-      let image, imageUri, type;
-
       if (currentPreview?.video && !currentPreview.video.url?.startsWith("https://")) {
         const { uri: videoUri, type } = await uploadVideo(currentPreview.video.blob, currentPreview.video.mimeType, template?.acl);
         video = { url: videoUri, type };
@@ -1067,6 +1301,7 @@ const StudioCreatePage: NextPage = () => {
             endTime: clip.endTime,
             templateData: {
               video: clip.preview.video,
+              image: clip.preview.image,
               ...clip.templateData,
             },
           })),
@@ -1078,6 +1313,41 @@ const StudioCreatePage: NextPage = () => {
 
       if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
 
+      // Post to TikTok if user has integration connected and this is a video
+      const hasVideoToPost = currentPreview?.video || video;
+      const willPostToTikTok = tikTokIntegration.isConnected && hasVideoToPost;
+
+      if (willPostToTikTok) {
+        let videoUrlForTikTok = video?.url || (typeof currentPreview?.video === 'string' ? currentPreview.video : currentPreview?.video?.url);
+        if (videoUrlForTikTok.startsWith("lens://")) {
+          videoUrlForTikTok = await storageClient.resolve(videoUrlForTikTok);
+        }
+
+        if (videoUrlForTikTok) {
+          const tikTokTitle = postContent || currentPreview?.text || template.displayName;
+          const tikTokDescription = `${tikTokTitle}\n\nCreated with @createonbonsai`;
+
+          // Post to TikTok synchronously
+          toastId = toast.loading("Posting to TikTok...", { id: toastId });
+          try {
+            const tikTokResult = await postToTikTok(videoUrlForTikTok, tikTokTitle, tikTokDescription);
+
+            if (tikTokResult.sandboxMode) {
+              toast.success("Posted to Lens & saved as TikTok draft! Check your TikTok app to publish.", { duration: 8000, id: toastId });
+            } else {
+              toast.success(`Posted to Lens & TikTok successfully! @${tikTokResult.username}`, { duration: 8000, id: toastId });
+            }
+          } catch (error) {
+            console.error('TikTok posting failed:', error);
+            toast.success("Posted to Lens successfully! TikTok posting failed.", { duration: 5000, id: toastId });
+          }
+        } else {
+          toast.success("Done! Going to post...", { duration: 5000, id: toastId });
+        }
+      } else {
+        toast.success("Done! Going to post...", { duration: 5000, id: toastId });
+      }
+
       if (await sdk.isInMiniApp()) {
         await sdk.actions.composeCast({
           text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
@@ -1085,7 +1355,6 @@ const StudioCreatePage: NextPage = () => {
         });
       }
 
-      toast.success("Done! Going to post...", { duration: 5000, id: toastId });
       setTimeout(() => router.push(`/post/${postId}`), 2000);
     } catch (error) {
       console.log(error);
@@ -1127,7 +1396,7 @@ const StudioCreatePage: NextPage = () => {
                   <div className="flex flex-col md:flex-row gap-y-8 md:gap-x-8 w-full">
                     {/* Sticky Form Section */}
                     <div className="md:w-1/2 flex-shrink-0">
-                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6">
+                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pr-2">
                         <div className="mb-6">
                           <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                         </div>

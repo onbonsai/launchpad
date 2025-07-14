@@ -551,6 +551,19 @@ header .bonsaiLogo {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 .shining-border {
   position: relative;
 }
@@ -603,3 +616,5 @@ header .bonsaiLogo {
   z-index: 9999 !important;
   transform-origin: top left !important;
 }
+
+/* View transitions CSS removed - using native Web API instead */

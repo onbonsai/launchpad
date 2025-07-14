@@ -120,7 +120,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                   <SafeImage
                     src={club.token.image}
                     alt={club.token.name}
-                    className="object-cover rounded-lg"
+                    className="object-cover rounded-lg aspect-square"
                     width={48}
                     height={48}
                   />

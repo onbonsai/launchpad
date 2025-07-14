@@ -7,6 +7,7 @@ const nextConfig = {
       config.resolve.fallback = {
         fs: false,
         module: false,
+        path: false,
       };
     }
 
@@ -49,8 +50,6 @@ const nextConfig = {
       '@emotion/css',
       '@emotion/styled',
       '@apollo/client',
-      '@decent.xyz/box-common',
-      '@decent.xyz/the-box',
       '@ensdomains/ensjs',
       '@farcaster/frame-sdk',
       '@farcaster/frame-wagmi-connector',
@@ -180,6 +179,16 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
+      // Allow external images and resources for main pages
+      {
+        source: '/((?!api/).*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; img-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; media-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: ws:; worker-src 'self' blob:;",
           },
         ],
       },

@@ -5,11 +5,10 @@ import ImageAttachment from "../svg/ImageAttachment";
 import toast from 'react-hot-toast';
 import { PROMOTE_TOKEN_COST } from '../constants';
 import { Button } from '@src/components/Button';
-import { TemplateSuggestions } from './TemplateSuggestions';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import RemixForm from './RemixForm';
-import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import { useTopUpModal } from '@src/context/TopUpContext';
+import { type StoryboardClip } from "@src/services/madfi/studio";
 
 type PremadeChatInputProps = {
   label: string;
@@ -24,7 +23,7 @@ function PremadeChatInput({ label, setUserInput, input, disabled, setRequirement
     <button
       type="button"
       onClick={(e) => {
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
         setUserInput(input);
         if (setRequirement) setRequirement();
       }}
@@ -109,21 +108,35 @@ export type ChatInputProps = {
     isAgent: boolean;
     createdAt: string;
     content: {
+      text?: string;
       preview?: Preview;
       templateData?: string;
     };
   }>;
-  setLocalPreviews?: (previews: Array<{
+  setLocalPreviews?: React.Dispatch<React.SetStateAction<Array<{
     isAgent: boolean;
     createdAt: string;
     content: {
+      text?: string;
       preview?: Preview;
       templateData?: string;
     };
-  }>) => void;
+  }>>>;
   isPosting?: boolean;
   onPost?: (text: string) => Promise<void>;
   isRemixing?: boolean;
+  worker?: Worker;
+  pendingGenerations?: Set<string>;
+  setPendingGenerations?: React.Dispatch<React.SetStateAction<Set<string>>>;
+  postId?: string;
+  storyboardClips?: StoryboardClip[];
+  storyboardAudio?: File | string | null;
+  storyboardAudioStartTime?: number;
+  setStoryboardClips?: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
+  setStoryboardAudio?: React.Dispatch<React.SetStateAction<File | string | null>>;
+  setStoryboardAudioStartTime?: React.Dispatch<React.SetStateAction<number>>;
+  imageToExtend?: string | null;
+  setImageToExtend?: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const DEFAULT_PLACEHOLDER = "Ask anything";
@@ -132,7 +145,6 @@ export default function ChatInput({
   handleSubmit,
   userInput,
   setUserInput,
-  handleKeyPress,
   disabled = false,
   attachment,
   setAttachment,
@@ -150,17 +162,50 @@ export default function ChatInput({
   isPosting = false,
   onPost,
   isRemixing = false,
+  worker,
+  pendingGenerations,
+  setPendingGenerations,
+  postId,
+  storyboardClips = [],
+  storyboardAudio,
+  storyboardAudioStartTime,
+  setStoryboardClips,
+  setStoryboardAudio,
+  setStoryboardAudioStartTime,
+  imageToExtend,
+  setImageToExtend,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
-  const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
   const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
-  const remixTemplate = remixMedia ? templates?.find((t) => t.name === remixMedia?.template) : undefined;
+
+  const remixTemplate = useMemo(() => {
+    if (!remixMedia || !templates) return undefined;
+
+    let template = templates.find((t) => t.name === remixMedia.template);
+
+    if (!template) {
+      template = templates.find((t) =>
+        t.name.toLowerCase() === remixMedia.template?.toLowerCase()
+      );
+    }
+
+    if (!template && remixMedia.templateData && (remixMedia.templateData as any).clips) {
+      template = templates.find((t) => t.name.toLowerCase().includes('video'));
+    }
+
+    if (!template && templates.length > 0) {
+      template = templates[0];
+      console.warn(`Template "${remixMedia.template}" not found, using fallback: ${template.name}`);
+    }
+
+    return template;
+  }, [remixMedia, templates]);
+
   const { openSwapToGenerateModal } = useTopUpModal();
 
-  // Focus input on mount
   useEffect(() => {
     if (textareaRef.current && !showRemixForm && !isGeneratingPreview) {
       textareaRef.current.focus();
@@ -168,17 +213,16 @@ export default function ChatInput({
   }, [showRemixForm, isGeneratingPreview]);
 
   useEffect(() => {
-    if (isRemixing) {
+    if (isRemixing && remixMedia) {
       setShowRemixForm(true);
     }
-  }, [isRemixing]);
+  }, [isRemixing, remixMedia]);
 
-  const handleTemplateSelect = useCallback((selection: { name: string; inputText: string; description?: string }) => {
-    setUserInput(selection.inputText);
-    setDynamicPlaceholder(selection.description || placeholder || DEFAULT_PLACEHOLDER);
-    setSelectedTemplateName(selection.name);
-    textareaRef.current?.focus();
-  }, [setUserInput, placeholder]);
+  useEffect(() => {
+    if (imageToExtend) {
+      setShowRemixForm(true);
+    }
+  }, [imageToExtend]);
 
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -204,6 +248,17 @@ export default function ChatInput({
     await onPost(userInput.trim());
   }, [userInput, onPost]);
 
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (isPosting) {
+        handlePost(e as any);
+      } else {
+        handleSubmit(e as any);
+      }
+    }
+  }, [handleSubmit, handlePost, isPosting]);
+
   useEffect(() => {
     if (userInput && textareaRef.current && document.activeElement !== textareaRef.current) {
       textareaRef.current.focus();
@@ -225,12 +280,15 @@ export default function ChatInput({
 
   return (
     <>
-      {showRemixForm && remixMedia && remixTemplate && !isGeneratingPreview && (
+      {showRemixForm && remixMedia && (
         <RemixForm
-          template={remixTemplate}
+          template={remixTemplate as Template}
           remixMedia={remixMedia}
           onClose={() => {
             setShowRemixForm(false);
+            if (setImageToExtend) {
+              setImageToExtend(null);
+            }
           }}
           currentPreview={currentPreview}
           setCurrentPreview={setCurrentPreview}
@@ -239,6 +297,17 @@ export default function ChatInput({
           setLocalPreviews={setLocalPreviews}
           isGeneratingPreview={isGeneratingPreview}
           setIsGeneratingPreview={setIsGeneratingPreview}
+          worker={worker}
+          pendingGenerations={pendingGenerations}
+          setPendingGenerations={setPendingGenerations}
+          postId={postId}
+          storyboardClips={storyboardClips}
+          storyboardAudio={storyboardAudio}
+          storyboardAudioStartTime={storyboardAudioStartTime}
+          setStoryboardClips={setStoryboardClips}
+          setStoryboardAudio={setStoryboardAudio}
+          setStoryboardAudioStartTime={setStoryboardAudioStartTime}
+          extendedImage={imageToExtend}
         />
       )}
       <form
@@ -247,16 +316,7 @@ export default function ChatInput({
       >
         <div className="flex flex-col w-full">
           <div className="relative flex flex-col w-full px-[10px]">
-            {isGeneratingPreview && (
-              <div className="mt-4 mb-4 flex justify-center">
-                <div className="w-full w-[250px] p-4">
-                  <div className="flex flex-col items-center gap-4">
-                    <AnimatedBonsaiGrid />
-                  </div>
-                </div>
-              </div>
-            )}
-            {!showRemixForm && !isGeneratingPreview && (
+            {!showRemixForm && (
               <div className="relative">
                 {disabled && placeholder === "Insufficient credits" ?
                   <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
@@ -265,15 +325,14 @@ export default function ChatInput({
                   })}>
                     Swap to continue
                   </Button> :
-                  <input
+                  <textarea
                     ref={textareaRef}
-                    type="text"
                     value={userInput}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
                     className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
                     placeholder={dynamicPlaceholder}
-                    disabled={disabled || isGeneratingPreview}
+                    disabled={disabled}
                   />
                 }
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
@@ -309,13 +368,14 @@ export default function ChatInput({
             )}
             <div className='flex flex-row justify-between mt-2'>
               <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
-                {!userInput && showSuggestions && !isGeneratingPreview && !showRemixForm && !isPosting && (
+                {!userInput && showSuggestions && !showRemixForm && !isPosting && (
                   <>
                     {remixMedia && remixTemplate && (
                       <button
                         type="button"
                         onClick={() => setShowRemixForm(true)}
-                        className="whitespace-nowrap rounded-lg bg-brand-highlight px-2 py-1 text-start text-black/80 text-[14px] tracking-[-0.02em] leading-5"
+                        className={`whitespace-nowrap rounded-lg ${isGeneratingPreview ? ' bg-dark-grey text-white/40' : 'bg-brand-highlight text-black/80'} px-2 py-1 text-start text-[14px] tracking-[-0.02em] leading-5`}
+                        disabled={isGeneratingPreview}
                       >
                         Remix this post
                       </button>

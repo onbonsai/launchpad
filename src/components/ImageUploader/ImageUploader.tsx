@@ -66,22 +66,27 @@ const centerAspectCrop = (
   let cropWidth = mediaWidth;
   let cropHeight = mediaHeight;
 
+  // Determine which dimension to constrain based on aspect ratio
   if (cropWidth / cropHeight > aspect) {
+    // Image is wider than desired aspect ratio, constrain width
     cropWidth = cropHeight * aspect;
   } else {
+    // Image is taller than desired aspect ratio, constrain height
     cropHeight = cropWidth / aspect;
   }
 
+  // Center the crop area
   const x = (mediaWidth - cropWidth) / 2;
   const y = (mediaHeight - cropHeight) / 2;
 
-  return {
+  const result = {
     unit: '%' as const,
     width: (cropWidth / mediaWidth) * 100,
     height: (cropHeight / mediaHeight) * 100,
     x: (x / mediaWidth) * 100,
     y: (y / mediaHeight) * 100,
   };
+  return result;
 };
 
 export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
@@ -130,9 +135,9 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         if (imageUrl.startsWith('data:')) {
           const response = await fetch(imageUrl);
           const blob = await response.blob();
-          
-          const file = new File([blob], fileName, { 
-            type: blob.type || 'image/png' 
+
+          const file = new File([blob], fileName, {
+            type: blob.type || 'image/png'
           });
 
           fileWithPreview = Object.assign(file, {
@@ -141,16 +146,16 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         } else {
           // For regular URLs, try to fetch with CORS
           try {
-            const response = await fetch(imageUrl, { 
+            const response = await fetch(imageUrl, {
               mode: 'cors',
               headers: {
                 'Accept': 'image/*'
               }
             });
             const blob = await response.blob();
-            
-            const file = new File([blob], fileName, { 
-              type: blob.type || 'image/png' 
+
+            const file = new File([blob], fileName, {
+              type: blob.type || 'image/png'
             });
 
             // Create an object URL for the blob to avoid CORS issues
@@ -162,10 +167,10 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
           } catch (corsError) {
             // If CORS fails, try to use the original URL but this might still cause issues
             console.warn('CORS fetch failed, using original URL:', corsError);
-            
+
             // Create a dummy file for the interface
             const file = new File([], fileName, { type: 'image/png' });
-            
+
             fileWithPreview = Object.assign(file, {
               preview: imageUrl
             }) as FileWithPreview;
@@ -173,7 +178,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         }
 
         setCropFile(fileWithPreview);
-        
+
         // Set the anchor element to the dropzone element
         const dropzoneElement = document.querySelector('[data-testid="dropzone"]');
         if (dropzoneElement) {
@@ -190,7 +195,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
           y: 10,
         };
         setCrop(defaultCrop);
-        
+
       } catch (error) {
         console.error('Failed to open crop modal:', error);
         toast.error('Failed to load image for cropping');
@@ -206,9 +211,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
     const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
     const ratio = ASPECT_RATIOS[selectedRatio];
     const aspect = ratio.width / ratio.height;
-
     const newCrop = centerAspectCrop(width, height, aspect);
-    console.log('Setting crop on image load:', newCrop); // Debug log
     setCrop(newCrop);
     setZoom(1);
   };
@@ -236,7 +239,6 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         x: 10,
         y: 10,
       };
-      console.log('Setting default crop for cropFile:', defaultCrop); // Debug log
       setCrop(defaultCrop);
     }
   }, [cropFile, crop]);
@@ -309,53 +311,105 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
     setFiles(files.filter((f) => f !== file));
   };
 
-  const onCropComplete = async () => {
-    if (!cropFile || !imgRef.current || !crop) return;
+    const onCropComplete = async () => {
+    if (!cropFile || !crop || !imgRef.current) return;
 
     setIsCropping(true);
 
-    const canvas = document.createElement('canvas');
+    try {
+      // Create a new image element to load the original image data
+      const sourceImage = new Image();
+      sourceImage.crossOrigin = 'anonymous';
 
-    // Use the original image dimensions for the canvas
-    const pixelCrop = {
-      x: (crop.x * imgRef.current.naturalWidth) / 100,
-      y: (crop.y * imgRef.current.naturalHeight) / 100,
-      width: (crop.width * imgRef.current.naturalWidth) / 100,
-      height: (crop.height * imgRef.current.naturalHeight) / 100
-    };
+      // Load the original image data
+      await new Promise<void>((resolve, reject) => {
+        sourceImage.onload = () => resolve();
+        sourceImage.onerror = () => reject(new Error('Failed to load source image'));
+        sourceImage.src = cropFile.preview;
+      });
 
-    // Set canvas dimensions to match the crop size
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-    const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        toast.error('Failed to create canvas context');
+        setIsCropping(false);
+        return;
+      }
 
-    if (!ctx) {
-      toast.error('Failed to crop image');
-      setIsCropping(false);
-      return;
-    }
+      // Get the displayed image dimensions from the crop component
+      const displayedImg = imgRef.current;
+      if (!displayedImg) {
+        toast.error('Display image reference not found');
+        setIsCropping(false);
+        return;
+      }
 
-    // Set the rendering quality
-    ctx.imageSmoothingQuality = 'high';
-    ctx.imageSmoothingEnabled = true;
+      // Calculate scale factors between displayed and original image
+      const scaleX = sourceImage.naturalWidth / displayedImg.clientWidth;
+      const scaleY = sourceImage.naturalHeight / displayedImg.clientHeight;
 
-    // Draw the cropped portion of the image
-    ctx.drawImage(
-      imgRef.current,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+      // Handle both pixel and percentage-based crop coordinates
+      const pixelCrop = crop.unit === 'px' ? {
+        // For pixel coordinates, scale them to match the original image size
+        x: Math.round(crop.x * scaleX),
+        y: Math.round(crop.y * scaleY),
+        width: Math.round(crop.width * scaleX),
+        height: Math.round(crop.height * scaleY)
+      } : {
+        // For percentage coordinates, apply directly to original image
+        x: Math.round((crop.x * sourceImage.naturalWidth) / 100),
+        y: Math.round((crop.y * sourceImage.naturalHeight) / 100),
+        width: Math.round((crop.width * sourceImage.naturalWidth) / 100),
+        height: Math.round((crop.height * sourceImage.naturalHeight) / 100)
+      };
 
-    canvas.toBlob(async (blob) => {
+      // Validate crop dimensions
+      if (pixelCrop.width <= 0 || pixelCrop.height <= 0) {
+        toast.error('Invalid crop dimensions');
+        console.error('Invalid crop dimensions:', pixelCrop);
+        setIsCropping(false);
+        return;
+      }
+
+      // Ensure crop doesn't exceed image bounds
+      const clampedCrop = {
+        x: Math.max(0, Math.min(pixelCrop.x, sourceImage.naturalWidth - pixelCrop.width)),
+        y: Math.max(0, Math.min(pixelCrop.y, sourceImage.naturalHeight - pixelCrop.height)),
+        width: Math.min(pixelCrop.width, sourceImage.naturalWidth),
+        height: Math.min(pixelCrop.height, sourceImage.naturalHeight)
+      };
+
+      // Set canvas dimensions to match the crop size
+      canvas.width = clampedCrop.width;
+      canvas.height = clampedCrop.height;
+
+      // Set the rendering quality
+      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingEnabled = true;
+
+      // Draw the cropped portion of the image
+      ctx.drawImage(
+        sourceImage,
+        clampedCrop.x,
+        clampedCrop.y,
+        clampedCrop.width,
+        clampedCrop.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, cropFile.type, 0.95); // Use original file type with 95% quality
+      });
+
       if (!blob) {
-        toast.error('Failed to crop image');
+        toast.error('Failed to create cropped image');
         setIsCropping(false);
         return;
       }
@@ -386,12 +440,12 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         });
 
         setFiles([...files, processedFile]);
-        
+
         // Clean up the crop file's object URL
         if (cropFile.preview && cropFile.preview.startsWith('blob:')) {
           URL.revokeObjectURL(cropFile.preview);
         }
-        
+
         setCropFile(null);
         setCropperAnchorEl(null);
         setCrop(undefined);
@@ -402,7 +456,11 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
         toast.error(`Error compressing ${croppedFile.name}`);
         setIsCropping(false);
       }
-    }, cropFile.type, 1.0);
+    } catch (error) {
+      console.error("Cropping error:", error);
+      toast.error('Failed to crop image');
+      setIsCropping(false);
+    }
   };
 
   const handleClose = () => {
@@ -410,7 +468,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
     if (cropFile?.preview && cropFile.preview.startsWith('blob:')) {
       URL.revokeObjectURL(cropFile.preview);
     }
-    
+
     setCropFile(null);
     setCropperAnchorEl(null);
     setCrop(undefined);
@@ -447,7 +505,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
           ))}
         </div>
       ) : (files && files.length > 0) ? (
-        <div className={clsx(
+        <div data-testid="dropzone" className={clsx(
           "flex flex-col items-start rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest relative w-fit",
           compact ? "p-1 bg-transparent" : "bg-card-light"
         )}>
@@ -475,7 +533,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : defaultImage ? (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}
@@ -509,7 +567,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/": ["*"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}
@@ -519,7 +577,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
                 {...getRootProps()}
                 className={clsx(
                   "flex flex-col items-center rounded-2xl justify-center border-2 border-spacing-5 border-dashed rounded-xs transition-all cursor-pointer p-2 border-card-lightest w-fit min-w-16",
-                  files.length ? "shadow-xl" : "",
+                  files?.length ? "shadow-xl" : "",
                   compact ? "p-1 bg-transparent" : "bg-card-light"
                 )}
               >

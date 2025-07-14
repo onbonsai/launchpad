@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useHotkeys } from "react-hotkeys-hook";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
-import { ChangeEvent, Fragment, useState } from "react";
+import { ChangeEvent, Fragment, useState, useEffect, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/router";
 import { brandFont } from "@src/fonts/fonts";
@@ -22,23 +22,87 @@ import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 export const SearchClubs = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [persistentQuery, setPersistentQuery] = useState(""); // Keep query even when modal closes
   const [debouncedQuery] = useDebounce(query, 500);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { push } = useRouter();
   const { data: clubSearchResults, isLoading } = useSearchClubs(debouncedQuery);
   const { data: profileSearchResults, isLoading: isLoadingProfiles } = useSearchProfiles(debouncedQuery);
   const { data: postSearchResults, isLoading: isLoadingPosts } = useSearchPosts(debouncedQuery);
   const isAlmostMobile = useIsAlmostMobile();
 
+  // Detect virtual keyboard on mobile
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleResize = () => {
+      if (isOpen && isAlmostMobile) {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.clientHeight;
+        const heightDifference = documentHeight - windowHeight;
+        
+        // If height difference is significant, virtual keyboard is likely open
+        if (heightDifference > 150) {
+          setKeyboardHeight(heightDifference);
+        } else {
+          setKeyboardHeight(0);
+        }
+      }
+    };
+
+    const handleVisualViewportChange = () => {
+      if (window.visualViewport && isOpen && isAlmostMobile) {
+        const heightDifference = window.innerHeight - window.visualViewport.height;
+        setKeyboardHeight(heightDifference);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleVisualViewportChange);
+      }
+    };
+  }, [isOpen, isAlmostMobile]);
+
+  // Restore query when modal opens
+  useEffect(() => {
+    if (isOpen && persistentQuery) {
+      setQuery(persistentQuery);
+    }
+  }, [isOpen, persistentQuery]);
+
   function closeModal() {
+    setPersistentQuery(query); // Save current query
     setIsOpen(false);
+    setKeyboardHeight(0);
+    
+    // On mobile, blur any focused input to dismiss keyboard
+    if (isAlmostMobile && inputRef.current) {
+      inputRef.current.blur();
+    }
   }
 
   function openModal() {
     setIsOpen(true);
+    // Restore previous query if exists
+    if (persistentQuery) {
+      setQuery(persistentQuery);
+    }
   }
 
   function handleSelectItem(item) {
+    setPersistentQuery(""); // Clear saved query when selecting
+    setQuery("");
     setIsOpen(false);
+    setKeyboardHeight(0);
+    
     if (item.type === "profile") {
       push(`/profile/${item.username.localName}`);
       return;
@@ -57,7 +121,15 @@ export const SearchClubs = () => {
 
   function handleSelected(event: ChangeEvent<HTMLInputElement>) {
     setQuery(event.target.value);
+    setPersistentQuery(event.target.value); // Update persistent query as user types
   }
+
+  // Clear search function for escape key or close button
+  function clearSearch() {
+    setQuery("");
+    setPersistentQuery("");
+  }
+
   // meta is the ⌘ key on mac and ctrl on windows/linux
   // @see: https://react-hotkeys-hook.vercel.app/docs/documentation/useHotkeys/basic-usage#modifiers--special-keys
   useHotkeys('meta+k, ctrl+k', (event) => {
@@ -67,6 +139,45 @@ export const SearchClubs = () => {
     enableOnFormTags: true,
     preventDefault: true
   });
+
+  // Handle escape key to close modal without clearing query
+  useHotkeys('escape', () => {
+    if (isOpen) {
+      closeModal();
+    }
+  }, {
+    enableOnFormTags: true,
+    enabled: isOpen
+  });
+
+  // Calculate modal position based on keyboard state
+  const getModalPosition = () => {
+    if (!isAlmostMobile) {
+      return "mt-20"; // Default desktop positioning
+    }
+    
+    if (keyboardHeight > 0) {
+      // Keyboard is open - position modal higher
+      return "mt-4";
+    }
+    
+    // Mobile without keyboard
+    return "mt-16";
+  };
+
+  const getModalMaxHeight = () => {
+    if (!isAlmostMobile) {
+      return "max-h-[650px]";
+    }
+    
+    if (keyboardHeight > 0) {
+      // Adjust height when keyboard is open
+      const availableHeight = window.innerHeight - keyboardHeight - 100; // 100px buffer
+      return `max-h-[${Math.max(300, availableHeight)}px]`;
+    }
+    
+    return "max-h-[70vh]";
+  };
 
   return (
     <>
@@ -110,7 +221,7 @@ export const SearchClubs = () => {
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-fit justify-center mt-20 p-4 text-center">
+            <div className={clsx("flex min-h-fit justify-center p-4 text-center", getModalPosition())}>
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -122,28 +233,48 @@ export const SearchClubs = () => {
               >
                 <Dialog.Panel
                   className={clsx(
-                    "w-full max-w-md transform rounded-2xl bg-black min-w-[50%] text-left align-middle shadow-md transition-all",
+                    "w-full max-w-md transform rounded-2xl bg-black text-left align-middle shadow-md transition-all",
+                    isAlmostMobile ? "min-w-[90%] max-w-[90%]" : "min-w-[50%]",
                     brandFont.className,
                   )}
+                  style={{
+                    marginBottom: isAlmostMobile && keyboardHeight > 0 ? `${keyboardHeight}px` : '0'
+                  }}
                 >
                   <Combobox onChange={handleSelectItem}>
                     <div className="relative py-2">
                       <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-transparent text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                         <Combobox.Input
+                          ref={inputRef}
                           className="w-full border-none py-2 pl-6 pr-10 text-sm leading-5 text-secondary bg-transparent focus:ring-0"
-                          displayValue={(profile) => profile?.name ?? ""}
+                          displayValue={(profile) => profile?.name ?? query}
                           placeholder="Type to search across tokens, profiles, and posts"
                           onChange={handleSelected}
+                          value={query}
+                          autoFocus={!isAlmostMobile} // Avoid auto-focus on mobile to prevent zoom
                         />
+                        {/* Clear button for mobile */}
+                        {query && isAlmostMobile && (
+                          <button
+                            onClick={clearSearch}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full bg-secondary/20 hover:bg-secondary/30 transition-colors"
+                          >
+                            <svg className="w-4 h-4 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                       <Transition
                         as={Fragment}
                         leave="transition ease-in duration-100"
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
-                        afterLeave={() => setQuery("")}
+                        afterLeave={() => {
+                          // Don't clear query on modal close anymore
+                        }}
                       >
-                        <Combobox.Options className="mt-1 max-h-[650px] w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <Combobox.Options className={clsx("mt-1 w-full overflow-auto rounded-md bg-black py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm", getModalMaxHeight())}>
                           {(isLoading || isLoadingProfiles || isLoadingPosts) && (
                             <div className="flex justify-center">
                               <Spinner customClasses="h-6 w-6" color="#5be39d" />

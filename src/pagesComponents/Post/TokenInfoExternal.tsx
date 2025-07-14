@@ -160,7 +160,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
                 <SafeImage
                   src={logo}
                   alt={tokenMetadata?.name || "Token"}
-                  className="object-cover rounded-lg"
+                  className="object-cover rounded-lg aspect-square"
                   width={48}
                   height={48}
                 />

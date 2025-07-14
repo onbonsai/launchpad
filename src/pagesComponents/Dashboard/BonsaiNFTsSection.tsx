@@ -3,18 +3,16 @@ import HoldingsHeader from './HoldingsHeader'
 import { formatUnits } from 'viem';
 import { DECIMALS } from '@src/services/madfi/moneyClubs';
 import { SmallSubtitle, Subtitle } from '@src/styles/text';
-import { Button } from '@src/components/Button';
 import BonsaiNFT from './BonsaiNFT';
 
 const amountRequiredForNFT = 100000;
 interface BonsaiNFTsSectionProps {
   nfts?: any[];
   bonsaiAmount?: bigint;
-  onBuyBonsai: () => void;
 }
 
 const BonsaiNFTsSection = React.memo((props: BonsaiNFTsSectionProps) => {
-  const { nfts, bonsaiAmount, onBuyBonsai } = props;
+  const { nfts, bonsaiAmount } = props;
   const [amountUntilNFT, setAmountUntilNFT] = useState<number>(0);
   useMemo(() => {
     if (bonsaiAmount) {
@@ -34,19 +32,10 @@ const BonsaiNFTsSection = React.memo((props: BonsaiNFTsSectionProps) => {
             <BonsaiNFT tree={tree} index={index} key={`bonsai-nft-${index}`} tokenId={tree.tokenId} />
           ))}
         </div>
-        : <div className='flex flex-col  border-spacing-3 border mt-3 border-dashed border-card-lightest justify-center items-start px-3 w-full h-[82px] bg-white/5 rounded-2xl'>
+        : <div className='flex flex-col  border-spacing-3 border mt-3 border-dashed border-card-lightest justify-center items-center px-3 w-full h-[82px] bg-white/5 rounded-2xl'>
           <Subtitle>
             {amountUntilNFT.toLocaleString()} $BONSAI to enjoy 0% trading fees
           </Subtitle>
-          <Button
-            className="mt-3 max-h-[24px]"
-            size="xs"
-            onClick={onBuyBonsai}
-          >
-            <p className='leading-[1]'>
-              Buy $BONSAI
-            </p>
-          </Button>
         </div>}
       <SmallSubtitle>
         100K $BONSAI = 1 BONSAI NFT

@@ -12,7 +12,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { Tune as TuneIcon } from "@mui/icons-material";
 import { Subtitle } from "@src/styles/text";
 import { InfoOutlined, ExpandMore, ExpandLess } from "@mui/icons-material";
-import { MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata } from "@src/services/madfi/studio";
+import { MediaRequirement, Preview, Template, ELEVENLABS_VOICES, type NFTMetadata, type StoryboardClip } from "@src/services/madfi/studio";
 import { useVeniceImageOptions, imageModelDescriptions } from "@src/hooks/useVeniceImageOptions";
 import SelectDropdown from "@src/components/Select/SelectDropdown";
 import { brandFont } from "@src/fonts/fonts";
@@ -26,7 +26,7 @@ import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
-import type { StoryboardClip } from "@pages/studio/create";
+import { RemixStoryboardWrapper } from '@src/components/RemixPanel';
 import StoryboardTimeline from "./StoryboardTimeline";
 
 type CreatePostProps = {
@@ -75,6 +75,7 @@ type CreatePostProps = {
   creditBalance?: number;
   refetchCredits: () => void;
   imageUploaderRef: React.RefObject<ImageUploaderRef | null>;
+  onCompositionSuccess?: (preview: Preview) => void;
 };
 
 function getBaseZodType(field: any) {
@@ -136,6 +137,7 @@ const CreatePostForm = ({
   creditBalance,
   refetchCredits,
   imageUploaderRef,
+  onCompositionSuccess,
 }: CreatePostProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
@@ -151,6 +153,8 @@ const CreatePostForm = ({
   const textareaRef = useAutoGrow(prompt || '');
   const previousPromptRef = useRef<string | undefined>(prompt);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showMaxModeTooltip, setShowMaxModeTooltip] = useState(false);
+  const maxModeTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -158,12 +162,33 @@ const CreatePostForm = ({
     }
   }, [finalTemplateData]);
 
-  // Lock aspect ratio to horizontal when subject reference is present
+  // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds
   useEffect(() => {
-    if (templateData.subjectReference && selectedAspectRatio !== "16:9") {
+    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+    const showTooltipTimer = setTimeout(() => {
+      if (shape.enableMaxMode) {
+        setShowMaxModeTooltip(true);
+        maxModeTooltipTimeoutRef.current = setTimeout(() => {
+          setShowMaxModeTooltip(false);
+        }, 5000);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(showTooltipTimer);
+      if (maxModeTooltipTimeoutRef.current) {
+        clearTimeout(maxModeTooltipTimeoutRef.current);
+      }
+    };
+  }, [template.templateData.form]);
+
+  // Lock aspect ratio to horizontal when subject reference is present, MAX Mode is enabled, or Veo models are selected
+  useEffect(() => {
+    const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+    if ((templateData.subjectReference || templateData.enableMaxMode || isVeoModelSelected) && selectedAspectRatio !== "16:9") {
       setSelectedAspectRatio("16:9");
     }
-  }, [templateData.subjectReference, selectedAspectRatio, setSelectedAspectRatio]);
+  }, [templateData.subjectReference, templateData.enableMaxMode, templateData.forceVideoModel, selectedAspectRatio, setSelectedAspectRatio]);
 
   const isValid = () => {
     try {
@@ -199,7 +224,6 @@ const CreatePostForm = ({
   }, [template.estimatedCost, templateData.enableVideo]);
 
   const _generatePreview = async () => {
-    console.log('[CreatePostForm] _generatePreview called.');
     // Collapse advanced options when generating
     setIsDrawerExpanded(false);
     setIsSubmitting(true);
@@ -441,17 +465,25 @@ const CreatePostForm = ({
 
       if (!preview) throw new Error("No preview");
 
-      setPreview({
+      const composedPreview = {
         ...preview,
-        text: preview.text || postContent,
+        text: preview.text || postContent || "",
         agentId,
         roomId: newRoomId,
         templateData,
         templateName: template.name,
-      });
+      };
 
-      toast.success("Done", { id: toastId, duration: 2000 });
-      next(templateData); // Move to the next step
+      if (onCompositionSuccess) {
+        // Call the callback to add to local previews in chat
+        onCompositionSuccess(composedPreview);
+        toast.success("Composed video added to chat! You can now use it to create your post.", { id: toastId, duration: 5000 });
+      } else {
+        setPreview(composedPreview);
+        // Fallback for non-chat usage (studio)
+        toast.success("Done", { id: toastId, duration: 2000 });
+        next(templateData); // Move to the next step
+      }
     } catch (error) {
       console.error("Error composing storyboard:", error);
       toast.error("Failed to compose storyboard", { id: toastId });
@@ -476,12 +508,13 @@ const CreatePostForm = ({
     template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
     template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
     !!postImage?.length, // Add aspect ratio options when image uploader is shown
+    !!shape.forceVideoModel, // Add video model selection when available
     ...availableFields
   ].filter(Boolean).length;
 
   // Get subtemplates from the selected template
   const subTemplates = template?.templateData?.subTemplates || [];
-  const hasSubTemplates = subTemplates.length > 0;
+  const hasSubTemplates = subTemplates.length > 0 && !remixMediaTemplateData;
 
   const handleSubTemplateSelect = (subTemplate: any) => {
     if (onSubTemplateChange) {
@@ -489,35 +522,66 @@ const CreatePostForm = ({
     }
   };
 
-  const renderCompactSubTemplateOption = (subTemplate: any, index: number) => {
+  const renderCompactSubTemplateOption = (subTemplate: any) => {
     const isSelected = selectedSubTemplate?.id === subTemplate.id;
-
     return (
-      <button
-        key={`subtemplate-${index}`}
-        type="button"
-        onClick={() => handleSubTemplateSelect(subTemplate)}
-        className={`flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors ${
+      <div
+        key={`subtemplate-${subTemplate.id}`}
+        className={`relative flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors cursor-pointer ${
           isSelected
             ? "border-brand-highlight bg-brand-highlight/10"
             : "border-dark-grey hover:border-brand-highlight bg-card-light"
         }`}
+        onClick={() =>
+          isSelected
+            ? handleSubTemplateSelect(undefined)
+            : handleSubTemplateSelect(subTemplate)
+        }
+        tabIndex={0}
+        role="button"
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            isSelected
+              ? handleSubTemplateSelect(undefined)
+              : handleSubTemplateSelect(subTemplate);
+          }
+        }}
+        aria-pressed={isSelected}
       >
-        <div className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0">
-          {subTemplate.previewImage ? (
-            <SafeImage
-              src={subTemplate.previewImage}
-              alt={subTemplate.name}
-              className="rounded-full"
-              width={48}
-              height={48}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-sm md:text-base">🎨</div>
-          )}
+        <div className="flex items-center gap-1 md:gap-2 flex-1">
+          <div className="w-8 h-8 md:w-12 md:h-12 flex-shrink-0">
+            {subTemplate.previewImage ? (
+              <SafeImage
+                src={subTemplate.previewImage}
+                alt={subTemplate.name}
+                className="rounded-full"
+                width={48}
+                height={48}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-sm md:text-base">🎨</div>
+            )}
+          </div>
+          <span className="text-sm md:text-md text-white/90 truncate">{subTemplate.name}</span>
         </div>
-        <span className="text-sm md:text-md text-white/90 truncate">{subTemplate.name}</span>
-      </button>
+        {isSelected && (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation();
+              handleSubTemplateSelect(undefined);
+            }}
+            className="absolute top-1 right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+            tabIndex={-1}
+            aria-label="Unselect subtemplate"
+          >
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -556,7 +620,7 @@ const CreatePostForm = ({
   // Function to check if any advanced fields have values
   const hasAdvancedFieldsWithValues = () => {
     if (!template.templateData?.form?.shape) return false;
-    
+
     const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
     const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
 
@@ -577,7 +641,46 @@ const CreatePostForm = ({
       }
     }
 
+    // Also check for forceVideoModel specifically
+    if (shape.forceVideoModel && templateData.forceVideoModel) {
+      return true;
+    }
+
+    // Check for autoEnhance
+    if (shape.autoEnhance && templateData.autoEnhance) {
+      return true;
+    }
+
+    // Check for duration
+    if (shape.duration && templateData.duration && templateData.duration !== 6) {
+      return true;
+    }
+
     return false;
+  };
+
+  const handleMaxModeToggle = () => {
+    const hasEnoughCredits = (creditBalance || 0) >= 3000;
+
+    if (!hasEnoughCredits) {
+      // Show custom top up modal
+      openTopUpModal(
+        "api-credits",
+        undefined,
+        "Unlock MAX Mode",
+        "MAX Mode enables video generation with Veo 3. You need at least 3,000 credits."
+      );
+      return;
+    }
+
+    // User has enough credits, toggle MAX mode
+    const newMaxModeValue = !templateData.enableMaxMode;
+    setTemplateData({ ...templateData, enableMaxMode: newMaxModeValue });
+
+    // Reset aspect ratio to vertical when disabling MAX mode if no other constraints
+    if (!newMaxModeValue && !templateData.subjectReference && !templateData.forceVideoModel?.startsWith('veo-3.0') && !postImage?.length) {
+      setSelectedAspectRatio("9:16");
+    }
   };
 
   return (
@@ -597,6 +700,7 @@ const CreatePostForm = ({
             setAudio={setStoryboardAudio}
             audioStartTime={storyboardAudioStartTime}
             setAudioStartTime={setStoryboardAudioStartTime}
+            isRemixAudio={!!remixMediaTemplateData?.audioData && typeof storyboardAudio === 'string' && storyboardAudio.startsWith('http')}
           />
         )}
 
@@ -605,8 +709,8 @@ const CreatePostForm = ({
           <div className="space-y-2">
             <FieldLabel label="Template" classNames="!text-brand-highlight" />
             <div className="flex flex-wrap gap-1 md:gap-2">
-              {renderDefaultSubTemplateOption()}
-              {subTemplates.map((subTemplate: any, idx: number) => renderCompactSubTemplateOption(subTemplate, idx))}
+              {/* {renderDefaultSubTemplateOption()} */}
+              {subTemplates.map((subTemplate: any) => renderCompactSubTemplateOption(subTemplate))}
             </div>
           </div>
         )}
@@ -618,13 +722,14 @@ const CreatePostForm = ({
             <div className="flex items-center gap-2">
               <FieldLabel
                 label="MAX Mode"
-                fieldDescription={shape.enableMaxMode.description?.replace(/\[placeholder: (.*?)\]/, '') || 'Enable maximum generation quality'}
-                tooltipDirection={tooltipDirection || "left"}
+                fieldDescription="Enable MAX Mode for Veo 3 generation with multiple scenes"
+                tooltipDirection={tooltipDirection || "top"}
                 classNames="!text-brand-highlight !text-sm"
+                open={showMaxModeTooltip}
               />
               <button
                 type="button"
-                onClick={() => setTemplateData({ ...templateData, enableMaxMode: !templateData.enableMaxMode })}
+                onClick={handleMaxModeToggle}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
                   templateData.enableMaxMode ? 'bg-brand-highlight/90' : 'bg-dark-grey'
                 }`}
@@ -802,36 +907,49 @@ const CreatePostForm = ({
                       {[
                         { ratio: "9:16" as const, label: "Vertical" },
                         { ratio: "16:9" as const, label: "Horizontal" }
-                      ].map(({ ratio, label }) => (
-                        <button
-                          key={ratio}
-                          type="button"
-                          onClick={() => !postImage?.length && !templateData.subjectReference && setSelectedAspectRatio(ratio)}
-                          disabled={!!postImage?.length || !!templateData.subjectReference}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                            selectedAspectRatio === ratio
-                              ? "border-brand-highlight bg-brand-highlight/10"
-                              : "border-dark-grey hover:border-brand-highlight bg-card-light"
-                          } ${(postImage?.length || templateData.subjectReference) ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
-                        >
-                          <div
-                            className={`border border-current rounded-sm ${
-                              ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
-                            }`}
-                          />
-                          <span className="text-sm text-white/90">{label}</span>
-                        </button>
-                      ))}
+                      ].map(({ ratio, label }) => {
+                        const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                        const isDisabled = !!postImage?.length || !!templateData.subjectReference || !!templateData.enableMaxMode || isVeoModelSelected;
+                        return (
+                          <button
+                            key={ratio}
+                            type="button"
+                            onClick={() => !isDisabled && setSelectedAspectRatio(ratio)}
+                            disabled={isDisabled}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                              selectedAspectRatio === ratio
+                                ? "border-brand-highlight bg-brand-highlight/10"
+                                : "border-dark-grey hover:border-brand-highlight bg-card-light"
+                            } ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-dark-grey/20"}`}
+                          >
+                            <div
+                              className={`border border-current rounded-sm ${
+                                ratio === "9:16" ? "w-[10px] h-[18px]" : "w-[18px] h-[10px]"
+                              }`}
+                            />
+                            <span className="text-sm text-white/90">{label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     {postImage?.length ? (
                       <p className="text-xs text-secondary/70">
                         Aspect ratio is locked to the selection made during image cropping. Remove the image to change it.
                       </p>
-                    ) : templateData.subjectReference ? (
-                      <p className="text-xs text-secondary/70">
-                        Aspect ratio is locked to horizontal when using a subject reference image
-                      </p>
-                    ) : null}
+                    ) : (() => {
+                        const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                        const conditions = [
+                          templateData.subjectReference && 'a subject reference image',
+                          templateData.enableMaxMode && 'MAX Mode',
+                          isVeoModelSelected && 'Veo models'
+                        ].filter(Boolean);
+
+                        return conditions.length > 0 ? (
+                          <p className="text-xs text-secondary/70">
+                            Aspect ratio is locked to horizontal when using {conditions.join(' or ')}
+                          </p>
+                        ) : null;
+                      })()}
                   </div>
                 )}
               </div>
@@ -856,8 +974,8 @@ const CreatePostForm = ({
           size='md'
           disabled={isGeneratingPreview || isComposing || (storyboardClips?.length === 0 && !preview && (!isValid() || template.options.allowPreview))}
           onClick={storyboardClips?.length > 0 ? handleCompose : handleNext}
-          variant={!template.options.allowPreview || !!preview || storyboardClips?.length > 0 ? "accentBrand" : "dark-grey"}
-          className="w-full hover:bg-bullish"
+          variant={!template.options.allowPreview || !!preview ? "accentBrand" : "primary"}
+          className="w-full"
         >
           {isComposing ? 'Composing...' : 'Next'}
         </Button>
@@ -968,7 +1086,72 @@ const DynamicForm = ({
     if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
     if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
     if (key === 'enableMaxMode') return true; // Skip enableMaxMode as it's rendered above the prompt
+    if (key === 'forceVideoModel') return true; // Skip forceVideoModel as it's rendered with custom UI
+    if (key === 'autoEnhance') return true; // Skip autoEnhance as it's rendered with custom UI
+    if (key === 'duration') return true; // Skip duration as it's rendered with custom UI
     return false;
+  };
+
+  // Helper function to render video model options
+  const renderVideoModelOption = (modelValue: string, modelLabel: string) => {
+    const isSelected = templateData.forceVideoModel === modelValue;
+
+    const handleModelToggle = () => {
+      if (isSelected) {
+        updateField('forceVideoModel', undefined);
+        // Reset aspect ratio to vertical when deselecting a Veo model if no other constraints
+        if (modelValue.startsWith('veo-3.0') && !templateData.subjectReference && !templateData.enableMaxMode && !postImage?.length) {
+          setSelectedAspectRatio("9:16");
+        }
+      } else {
+        updateField('forceVideoModel', modelValue);
+      }
+    };
+
+    return (
+      <div
+        key={`video-model-${modelValue}`}
+        className={`relative flex items-center gap-1 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg border transition-colors cursor-pointer ${
+          isSelected
+            ? "border-brand-highlight bg-brand-highlight/10"
+            : "border-dark-grey hover:border-brand-highlight bg-card-light"
+        }`}
+        onClick={handleModelToggle}
+        tabIndex={0}
+        role="button"
+        onKeyDown={e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleModelToggle();
+          }
+        }}
+        aria-pressed={isSelected}
+      >
+        <div className="flex items-center gap-1 md:gap-2 flex-1 px-4">
+          <span className="text-sm md:text-md text-white/90 truncate">{modelLabel}</span>
+        </div>
+        {isSelected && (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation();
+              updateField('forceVideoModel', undefined);
+              // Reset aspect ratio to vertical when deselecting a Veo model if no other constraints
+              if (modelValue.startsWith('veo-3.0') && !templateData.subjectReference && !templateData.enableMaxMode && !postImage?.length) {
+                setSelectedAspectRatio("9:16");
+              }
+            }}
+            className="absolute top-1 right-1 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+            tabIndex={-1}
+            aria-label="Clear video model selection"
+          >
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -1008,7 +1191,8 @@ const DynamicForm = ({
                            updateField(key, undefined);
                            // Allow aspect ratio selection again when subject reference is removed
                            // Reset to default vertical if no other constraints
-                           if (!postImage?.length) {
+                           const isVeoModelSelected = templateData.forceVideoModel?.startsWith('veo-3.0');
+                           if (!postImage?.length && !templateData.enableMaxMode && !isVeoModelSelected) {
                              setSelectedAspectRatio("9:16");
                            }
                          }}
@@ -1139,6 +1323,78 @@ const DynamicForm = ({
           </div>
         );
       })}
+
+      {/* Video Model Selection */}
+      {shape.forceVideoModel && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Video Model"
+            fieldDescription="Use a specific video model for generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex flex-wrap gap-1 md:gap-2">
+             {renderVideoModelOption('veo-3.0-generate-preview', 'Veo 3')}
+             {renderVideoModelOption('veo-3.0-fast-generate-preview', 'Veo 3 Fast')}
+             {renderVideoModelOption('MiniMax-Hailuo-02', 'Hailuai')}
+           </div>
+        </div>
+      )}
+
+      {/* Auto Enhance Toggle */}
+      {shape.autoEnhance && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Auto Enhance"
+            fieldDescription="Automatically enhance your prompt with AI, finetuned for video generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => updateField('autoEnhance', !templateData.autoEnhance)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
+                templateData.autoEnhance ? 'bg-brand-highlight/90' : 'bg-dark-grey'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  templateData.autoEnhance ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Duration Selection (only for Hailuai model) */}
+      {shape.duration && templateData.forceVideoModel === 'MiniMax-Hailuo-02' && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Duration"
+            fieldDescription="Select the duration for video generation"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex gap-2">
+            {[
+              { value: 6, label: "6 seconds" },
+              { value: 10, label: "10 seconds" }
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => updateField('duration', value)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                  (templateData.duration || 6) === value
+                    ? "border-brand-highlight bg-brand-highlight/10"
+                    : "border-dark-grey hover:border-brand-highlight bg-card-light"
+                } hover:bg-dark-grey/20`}
+              >
+                <span className="text-sm text-white/90">{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1148,15 +1404,16 @@ interface FieldLabelProps {
   fieldDescription?: string;
   tooltipDirection?: "top" | "bottom" | "right" | "left";
   classNames?: string;
+  open?: boolean;
 }
-const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames }: FieldLabelProps) => (
+const FieldLabel = ({ label, fieldDescription, tooltipDirection, classNames, open }: FieldLabelProps) => (
   <div className="flex items-center gap-1">
     <Subtitle className={`text-white/70 ${classNames || ""}`}>
       {label}
     </Subtitle>
     {fieldDescription && (
       <div className="text-sm inline-block mt-1">
-        <Tooltip message={fieldDescription} direction={tooltipDirection}>
+        <Tooltip message={fieldDescription} direction={tooltipDirection} open={open}>
           <InfoOutlined
             className="max-w-4 max-h-4 inline-block text-white/40"
           />

@@ -21,7 +21,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   } else {
     // Get all profiles owned by the address
     const profiles = await getProfilesOwned(address as `0x${string}`);
-    console.log("profiles", profiles?.length || 0);
 
     if (!profiles || profiles.length === 0) {
       res.status(404).json({ error: "No profiles found for this address" });
@@ -58,7 +57,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     allPosts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
     res.status(200).json({ posts: allPosts });
   } catch (error) {
     console.log(error);

@@ -22,7 +22,7 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } = useGetNotifications(authenticatedProfileId);
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
-  const notifs = useMemo(() => data?.pages.flatMap(page => page.notifications) || [], [isLoading]);
+  const notifs = useMemo(() => data?.pages.flatMap(page => page.notifications) || [], [data]);
   const [showTooltip, setShowTooltip] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -240,7 +240,7 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
                 Nothing here.
               </div>
             )}
-            {groupedNotifications.map((notification, index) => (
+            {groupedNotifications.map((notification: any, index) => (
               <NotificationItem
                 key={notification.id}
                 type={notification.__typename}

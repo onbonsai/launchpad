@@ -62,7 +62,7 @@ export const MADFI_BANNER_IMAGE_SMALL =
   "https://link.storjshare.io/raw/jvnvg6pove7qyyfbyo5hqggdis6a/misc%2Fmadfi-banner.jpeg";
 export const MADFI_BOUNTIES_URL = IS_PRODUCTION ? "https://madfi.xyz/bounties" : "https://testnet.madfi.xyz/bounties";
 export const MADFI_SITE_URL = IS_PRODUCTION ? "https://madfi.xyz" : "https://testnet.madfi.xyz";
-export const SITE_URL = IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || (IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai");
 export const MADFI_POST_URL = IS_PRODUCTION ? "https://madfi.xyz/post" : "https://testnet.madfi.xyz/post";
 export const MADFI_WALLET_ADDRESS = "0x7F0408bc8Dfe90C09072D8ccF3a1C544737BcDB6";
 export const MADFI_GENESIS_COLLECTION_ID = "1";
@@ -109,11 +109,12 @@ export const BICONOMY_BUNDLER_URL_BLAST = IS_PRODUCTION
 export const ANIMATED_HINT_LINES = [
   "Click the spark icon to enhance your prompt with AI suggestions.",
   "Click a generation to auto-fill the prompt and template - edit and regenerate instantly.",
-  "Need more credits? Stake tokens from the sidebar or buy a pack with GHO.",
+  "Need more credits? You can purchase them or stake tokens on the Studio sidebar.",
   "Use advanced template options for more control over your output.",
-  "Video generations take longer. Enable notifications to get alerted when they’re ready.",
+  "Video generations take longer. Enable notifications to get alerted when they're ready.",
   "Use Storyboard to stitch multiple generations into a longer, immersive video.",
   "View your past creations anytime - just click 'Load previous generations'.",
   "Looking for ideas? Check the Feed to see what others are making.",
-  "Remix any post to start from the original prompt and template."
+  "Remix any post to start from the original prompt and template.",
+  "Enable MAX Mode for Veo 3 generation with multiple scenes"
 ];

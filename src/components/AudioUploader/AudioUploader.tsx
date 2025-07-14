@@ -80,17 +80,24 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
         typeof RegionsPlugin.create
       >;
 
-      wavesurfer.current.load(file.preview || file.url);
+      // Use loadBlob for File objects to avoid CSP issues with blob URLs
+      if (file instanceof File) {
+        wavesurfer.current.loadBlob(file);
+      } else {
+        wavesurfer.current.load(file.preview || file.url);
+      }
       wavesurfer.current.on("ready", () => {
         const newDuration = wavesurfer.current!.getDuration();
         setDuration(newDuration);
-        setStartTime(0);
+        
+        // Use the existing startTime prop instead of always resetting to 0
+        const currentStartTime = Math.min(startTime, Math.max(0, newDuration - clipLength));
 
         if (clipLength > 0) {
           regionsPlugin.current!.addRegion({
             id: "clip-region",
-            start: 0,
-            end: Math.min(clipLength, newDuration),
+            start: currentStartTime,
+            end: Math.min(currentStartTime + clipLength, newDuration),
             color: "rgba(255,255,255,0.3)",
             drag: true,
             resize: false,
@@ -149,7 +156,7 @@ export const AudioUploader: FC<AudioUploaderProps> = ({
 
   const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
     onDrop,
-    accept: { "audio/": ["*"] },
+    accept: { "audio/mp3": [".mp3"], "audio/mpeg": [".mpeg"], "audio/wav": [".wav"], "audio/ogg": [".ogg"] },
     maxFiles: 1,
     maxSize: MAX_SIZE,
     noClick: true,

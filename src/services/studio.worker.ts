@@ -170,6 +170,7 @@ const generatePreviewImpl = async (
 
     // Helper function to process the completed task result
     const processCompletedTask = async (data: any): Promise<GeneratePreviewResponse> => {
+
       if (data.preview?.video) {
         const videoData = new Uint8Array(data.preview.video.buffer);
         const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
@@ -195,6 +196,39 @@ const generatePreviewImpl = async (
           imageData = data.preview.image;
         }
 
+        // Handle storyboard clips' video buffers
+        let processedStoryboard;
+        if (data.preview.storyboard && data.preview.storyboard.length > 0) {
+          processedStoryboard = await Promise.all(
+            data.preview.storyboard.map(async (clip: any, index: number) => {
+              if (clip.preview?.video?.buffer) {
+                try {
+                  const clipVideoData = new Uint8Array(clip.preview.video.buffer);
+                  const clipVideoBlob = new Blob([clipVideoData], { type: clip.preview.video.mimeType });
+                  const clipVideoBuffer = await clipVideoBlob.arrayBuffer();
+
+                  return {
+                    ...clip,
+                    preview: {
+                      ...clip.preview,
+                      video: {
+                        mimeType: clip.preview.video.mimeType,
+                        size: clipVideoBlob.size,
+                        buffer: clipVideoBuffer,
+                      }
+                    }
+                  };
+                } catch (error) {
+                  console.error(`[studio.worker] Failed to process storyboard clip ${index} video:`, error);
+                  return clip; // Return original clip if processing fails
+                }
+              } else {
+                return clip;
+              }
+            })
+          );
+        }
+
         return {
           preview: {
             video: {
@@ -203,6 +237,7 @@ const generatePreviewImpl = async (
               buffer: videoBuffer,
             },
             ...(imageData && { image: imageData }),
+            ...(processedStoryboard && { storyboard: processedStoryboard }),
             text: data.preview.text,
           },
           agentId: data.agentId,
@@ -212,27 +247,67 @@ const generatePreviewImpl = async (
       }
 
       // Handle large base64 images for non-video responses
+      let processedImageData = data.preview?.image;
       if (data.preview?.image && typeof data.preview.image === 'string' && data.preview.image.length > 100000) { // >100KB
         try {
           const response = await fetch(data.preview.image);
           const imageBuffer = await response.arrayBuffer();
-          return {
-            ...data,
-            preview: {
-              ...data.preview,
-              image: {
-                buffer: imageBuffer,
-                mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
-                isLargeImage: true
-              }
-            }
+          processedImageData = {
+            buffer: imageBuffer,
+            mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
+            isLargeImage: true
           };
         } catch (error) {
           console.warn('[studio.worker] Failed to convert large image to buffer, keeping as base64:', error);
         }
       }
 
-      return data;
+      // Handle storyboard clips for non-video main previews
+      let processedStoryboard = data.preview?.storyboard;
+      if (data.preview?.storyboard && data.preview.storyboard.length > 0) {
+        try {
+          processedStoryboard = await Promise.all(
+            data.preview.storyboard.map(async (clip: any, index: number) => {
+              if (clip.preview?.video?.buffer) {
+                try {
+                  const clipVideoData = new Uint8Array(clip.preview.video.buffer);
+                  const clipVideoBlob = new Blob([clipVideoData], { type: clip.preview.video.mimeType });
+                  const clipVideoBuffer = await clipVideoBlob.arrayBuffer();
+
+                  return {
+                    ...clip,
+                    preview: {
+                      ...clip.preview,
+                      video: {
+                        mimeType: clip.preview.video.mimeType,
+                        size: clipVideoBlob.size,
+                        buffer: clipVideoBuffer,
+                      }
+                    }
+                  };
+                } catch (error) {
+                  console.error(`[studio.worker] Failed to process storyboard clip ${index} video:`, error);
+                  return clip;
+                }
+              } else {
+                return clip;
+              }
+            })
+          );
+        } catch (error) {
+          console.error('[studio.worker] Failed to process storyboard clips:', error);
+        }
+      }
+
+      // Return with both processed image and storyboard data
+      return {
+        ...data,
+        preview: {
+          ...data.preview,
+          ...(processedImageData !== data.preview?.image && { image: processedImageData }),
+          ...(processedStoryboard !== data.preview?.storyboard && { storyboard: processedStoryboard })
+        }
+      };
     };
 
     return await pollStatus();

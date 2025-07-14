@@ -33,7 +33,8 @@ const getPost = async (_postId: string) => {
 export default async function handler(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    let imageUrl = searchParams.get("image") || defaultImageUrl;
+    const explicitImageUrl = searchParams.get("image");
+    let imageUrl = explicitImageUrl || defaultImageUrl;
     let profileImageUrl = searchParams.get("profileImage") || "";
     let handle = searchParams.get("handle") || "";
     const postId = searchParams.get("postId") || "";
@@ -42,15 +43,21 @@ export default async function handler(req: NextRequest) {
     if (postId) {
       let post = await getPost(postId);
       // @ts-ignore
-      imageUrl = post?.metadata?.image?.item || imageUrl;
+      // Only use post metadata image if no explicit image was provided
+      if (!explicitImageUrl && post && 'metadata' in post) {
+        imageUrl = post.metadata?.image?.item || post.metadata?.video?.cover || imageUrl;
+      }
       profileImageUrl = post?.author?.metadata?.picture || profileImageUrl;
       handle = post?.author?.username?.localName || handle;
       // @ts-ignore
-      postContent = post?.metadata?.content || "";
+      postContent = (post && 'metadata' in post) ? post.metadata?.content || "" : "";
     } else if (handle) {
       const profile = await getProfileByHandle(handle);
       profileImageUrl = profile?.metadata?.picture || profileImageUrl;
-      imageUrl = profile?.metadata?.coverPicture || imageUrl;
+      // Only use profile cover image if no explicit image was provided
+      if (!explicitImageUrl) {
+        imageUrl = profile?.metadata?.coverPicture || imageUrl;
+      }
     }
 
     if (imageUrl.startsWith("ipfs")) {

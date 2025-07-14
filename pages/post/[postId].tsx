@@ -76,7 +76,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
   const { connectedAccounts, isConnected: isPresenceConnected } = usePostPresence({
     postId: rootPostId || postId as string,
-    account: authenticatedProfile
+    account: authenticatedProfile || null
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
 
@@ -169,13 +169,13 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const { highScoreComments, lowScoreComments } = useMemo(() => {
     const allComments = (freshComments || comments || []);
     return {
-      highScoreComments: allComments.filter(comment => (comment.author.score || 0) >= COMMENT_SCORE_THRESHOLD),
-      lowScoreComments: allComments.filter(comment => (comment.author.score || 0) < COMMENT_SCORE_THRESHOLD)
+      highScoreComments: allComments.filter((comment: any) => (comment.author.score || 0) >= COMMENT_SCORE_THRESHOLD),
+      lowScoreComments: allComments.filter((comment: any) => (comment.author.score || 0) < COMMENT_SCORE_THRESHOLD)
     };
   }, [freshComments, comments]);
 
   const sortedHighScoreComments = useMemo(() => {
-    return highScoreComments.sort((a, b) => {
+    return highScoreComments.sort((a: any, b: any) => {
       // Sort by upvoteReactions descending
       if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
         return b.stats.upvoteReactions - a.stats.upvoteReactions;
@@ -186,7 +186,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   }, [highScoreComments]);
 
   const sortedLowScoreComments = useMemo(() => {
-    return lowScoreComments.sort((a, b) => {
+    return lowScoreComments.sort((a: any, b: any) => {
       // Sort by upvoteReactions descending
       if (b.stats.upvoteReactions !== a.stats.upvoteReactions) {
         return b.stats.upvoteReactions - a.stats.upvoteReactions;
@@ -242,7 +242,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const enoughActivity = useMemo(() => {
     if (!sortedHighScoreComments?.length || !media?.updatedAt) return false;
 
-    return sortedHighScoreComments.some(comment => {
+    return sortedHighScoreComments.some((comment: any) => {
       const commentTimestamp = Math.floor(new Date(comment.timestamp).getTime() / 1000);
       return commentTimestamp > media.updatedAt;
     });
@@ -717,8 +717,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const postId = context.query.postId!.toString();
-  let post;
-  let quotes;
+  let post: any;
+  let quotes: any;
   try {
     [post, quotes] = await Promise.all([
       getPost(postId),
@@ -734,7 +734,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const attributes = !post.root ? post.metadata.attributes : post.root.metadata.attributes;
     const slug = !post.root ? post.slug : post.root.slug;
 
-    if (attributes?.some(attr => attr.key === 'template')) {
+    if (attributes?.some((attr: any) => attr.key === 'template')) {
       media = await resolveSmartMedia(attributes, slug, true);
     }
   } catch {

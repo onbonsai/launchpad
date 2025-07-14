@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { StoryboardClip } from '@pages/studio/create';
+import { StoryboardClip } from '@src/services/madfi/studio';
 import { Button } from '@src/components/Button';
 
 interface TrimModalProps {
@@ -32,7 +32,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
       if (videoRef.current && isPlaying) {
         const time = videoRef.current.currentTime;
         setCurrentTime(time);
-        
+
         // Auto-pause if we've reached the end time
         if (time >= endTime) {
           videoRef.current.pause();
@@ -40,7 +40,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
           return;
         }
       }
-      
+
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(updateTime);
       }
@@ -75,12 +75,12 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
 
   const handleTimelineClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current || !clip) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
     const time = percentage * clip.duration;
-    
+
     if (videoRef.current) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
@@ -101,14 +101,14 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
 
   const handleMove = useCallback((e: MouseEvent | TouchEvent) => {
     if (!isDragging || !timelineRef.current || !clip) return;
-    
+
     e.preventDefault();
     const rect = timelineRef.current.getBoundingClientRect();
     const { clientX } = getEventCoordinates(e);
     const mouseX = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, mouseX / rect.width));
     const time = percentage * clip.duration;
-    
+
     if (isDragging === 'start') {
       const newStartTime = Math.max(0, Math.min(time, endTime - 0.1));
       setStartTime(newStartTime);
@@ -134,7 +134,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
       document.addEventListener('touchmove', handleMove, { passive: false });
       document.addEventListener('touchend', handleEnd);
     }
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleEnd);
@@ -146,7 +146,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
   const togglePlayPause = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!videoRef.current) return;
-    
+
     if (isPlaying) {
       videoRef.current.pause();
       setIsPlaying(false);
@@ -166,7 +166,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
   const playTrimmedSection = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!videoRef.current) return;
-    
+
     videoRef.current.currentTime = startTime;
     setCurrentTime(startTime);
     videoRef.current.play();
@@ -188,7 +188,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-800 rounded-xl p-4 sm:p-6 w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Trim Clip</h2>
-        
+
         <div className="relative mb-4 sm:mb-6">
           <video
             ref={videoRef}
@@ -216,13 +216,13 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
                   width: `${endPercentage - startPercentage}%`
                 }}
               />
-              
+
               {/* Current time indicator */}
               <div
                 className="absolute top-0 w-1 sm:w-0.5 h-full bg-white z-20"
                 style={{ left: `${currentPercentage}%` }}
               />
-              
+
               {/* Start handle */}
               <div
                 className="absolute top-1/2 -translate-y-1/2 w-6 h-10 sm:w-5 sm:h-8 bg-blue-500 rounded cursor-ew-resize z-10 hover:bg-blue-400 transition-colors touch-manipulation"
@@ -230,7 +230,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
                 onMouseDown={handleHandleMouseDown('start')}
                 onTouchStart={handleHandleTouchStart('start')}
               />
-              
+
               {/* End handle */}
               <div
                 className="absolute top-1/2 -translate-y-1/2 w-6 h-10 sm:w-5 sm:h-8 bg-blue-500 rounded cursor-ew-resize z-10 hover:bg-blue-400 transition-colors touch-manipulation"
@@ -239,7 +239,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
                 onTouchStart={handleHandleTouchStart('end')}
               />
             </div>
-            
+
             <div className="flex justify-between text-xs sm:text-sm text-gray-400 mt-2">
               <span>0:00</span>
               <span>{formatTime(clip.duration)}</span>
@@ -262,7 +262,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
                 <div className="text-white font-mono text-sm">{formatTime(endTime - startTime)}</div>
               </div>
             </div>
-            
+
             <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={playTrimmedSection}
@@ -281,15 +281,15 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
         </div>
 
         <div className="flex flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 justify-end">
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={onClose}
             className="py-3 sm:py-2 text-base sm:text-sm"
           >
             Cancel
           </Button>
-          <Button 
-            variant="accentBrand" 
+          <Button
+            variant="accentBrand"
             onClick={handleSave}
             className="py-3 sm:py-2 text-base sm:text-sm"
           >
@@ -301,4 +301,4 @@ const TrimModal: React.FC<TrimModalProps> = ({ clip, onClose, onSave }) => {
   );
 };
 
-export default TrimModal; 
+export default TrimModal;

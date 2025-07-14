@@ -1,5 +1,7 @@
 import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
+import { shareBonsai } from "@src/utils/webShare";
+import { ShareIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState, useRef } from "react";
@@ -34,7 +36,7 @@ const headerLinks = [
   },
   {
     label: "Studio",
-    href: "/studio",
+    href: "/studio/create",
     requiresAuth: true,
   },
   {

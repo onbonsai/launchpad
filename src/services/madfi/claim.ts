@@ -73,7 +73,7 @@ export const claimTokensWithProof = async (
   try {
     const client = publicClient("lens");
     const hash = await walletClient.writeContract({
-      address: PROTOCOL_DEPLOYMENT.lens.AccountTokenClaim as `0x${string}`,
+      address: PROTOCOL_DEPLOYMENT.lens.AccountTokenClaim,
       abi: AccountTokenClaimAbi,
       functionName: "claimTokensWithProof",
       args: [proof, accountAddress, claimScoreBps],

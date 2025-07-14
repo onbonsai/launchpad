@@ -4,7 +4,6 @@ import "@styles/globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import NextNProgress from "nextjs-progressbar";
 import { ToastBar, Toaster } from "react-hot-toast";
-import { BoxThemeProvider } from "@decent.xyz/the-box";
 import { ThirdwebProvider } from "thirdweb/react";
 import Script from "next/script";
 import { useState, useEffect } from "react";
@@ -20,24 +19,9 @@ import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
-const boxTheme = {
-  mainBgColor: "#141414",
-  mainTextColor: "#ffffff",
-  tokenSwapCardBgColor: "#1B1B1B",
-  buyBtnBgColor: "#e42101",
-  buyBtnTextColor: "#ffffff",
-  switchBtnBgColor: "#3A3842",
-  tokenDialogHoverColor: "#444444",
-  boxSubtleColor1: "#999999",
-  borderColor: "transparent",
-  borderRadius: "0",
-  loadShineColor1: "#121212",
-  loadShineColor2: "#333333",
-};
-
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
 
   const router = useRouter();
 
@@ -60,6 +44,17 @@ export default function MyApp(props: AppProps) {
   useEffect(() => {
     const load = async () => {
       await sdk.actions.ready(); // hide splash
+
+      // Prompt to add mini app when ?install
+      if (!!router.query.install) {
+        if (!context?.client.added) {
+          try {
+            await sdk.actions.addMiniApp();
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }
     };
     if (sdk && !isSDKLoaded) {
       setIsSDKLoaded(true);
@@ -78,20 +73,10 @@ export default function MyApp(props: AppProps) {
       calendarCSS.rel = 'stylesheet';
       calendarCSS.href = '/styles/calendar-override.css';
       calendarCSS.media = 'print';
-      calendarCSS.onload = function() { 
-        (this as HTMLLinkElement).media = 'all'; 
+      calendarCSS.onload = function() {
+        (this as HTMLLinkElement).media = 'all';
       };
       document.head.appendChild(calendarCSS);
-
-      // Load The Box CSS asynchronously
-      const boxCSS = document.createElement('link');
-      boxCSS.rel = 'stylesheet';
-      boxCSS.href = '/node_modules/@decent.xyz/the-box/dist/index.css';
-      boxCSS.media = 'print';
-      boxCSS.onload = function() { 
-        (this as HTMLLinkElement).media = 'all'; 
-      };
-      document.head.appendChild(boxCSS);
     };
 
     // Load after initial paint using requestIdleCallback or fallback
@@ -108,7 +93,7 @@ export default function MyApp(props: AppProps) {
 
     const handlePageHide = (event: PageTransitionEvent) => {
       console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
-      
+
       // Don't prevent bfcache if user is navigating away
       // The individual socket hooks will handle their own cleanup
     };
@@ -178,44 +163,43 @@ export default function MyApp(props: AppProps) {
 
         <HandleSEO pageProps={pageProps} query={router.query} />
         <Web3Provider>
-          <ThirdwebProvider>
-            <ThemeProvider>
-              <ClubsProvider>
-                <TopUpModalProvider>
-                  <Toaster
-                    position="bottom-right"
-                    toastOptions={{
-                      style: {
-                        backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                        color: "white",
-                        fontFamily: brandFont.style.fontFamily,
-                        zIndex: 9999, // max z-index, everything should be below this
-                      },
-                    }}
-                  >
-                    {(t) => (
-                      <ToastBar toast={t}>
-                        {({ icon, message }) => (
-                          <>
-                            {icon}
-                            {message}
-                          </>
-                        )}
-                      </ToastBar>
-                    )}
-                  </Toaster>
-                  <NextNProgress color="#4D7F79" height={2} />
-                  <AppLayout>
-                    <BoxThemeProvider theme={boxTheme}>
+            <ThirdwebProvider>
+              <ThemeProvider>
+                <ClubsProvider>
+                  <TopUpModalProvider>
+                    <Toaster
+                      position="bottom-right"
+                      toastOptions={{
+                        style: {
+                          backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                          color: "white",
+                          fontFamily: brandFont.style.fontFamily,
+                          zIndex: 9999, // max z-index, everything should be below this
+                        },
+                      }}
+                    >
+                      {(t) => (
+                        <ToastBar toast={t}>
+                          {({ icon, message }) => (
+                            <>
+                              {icon}
+                              {message}
+                            </>
+                          )}
+                        </ToastBar>
+                      )}
+                    </Toaster>
+                    <NextNProgress color="#4D7F79" height={2} />
+                    <AppLayout>
                       <Component {...pageProps} />
-                    </BoxThemeProvider>
-                  </AppLayout>
-                  <Analytics />
-                </TopUpModalProvider>
-              </ClubsProvider>
-            </ThemeProvider>
-          </ThirdwebProvider>
-        </Web3Provider>
+                    </AppLayout>
+                    <Analytics />
+                  </TopUpModalProvider>
+                </ClubsProvider>
+              </ThemeProvider>
+            </ThirdwebProvider>
+          </Web3Provider>
+                          {/* Removed ViewTransitions closing tag */}
       </>
     )
   );

@@ -249,7 +249,7 @@ export const uploadVideo = async (
     try {
       const videoId = `bonsai_video_${Date.now()}`;
       const storjUrl = await cacheVideoToStorj(videoBlob, videoId);
-      
+
       return {
         uri: uri(storjUrl),
         type: mimeType

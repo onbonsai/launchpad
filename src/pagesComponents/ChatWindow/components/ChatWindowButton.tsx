@@ -112,7 +112,7 @@ export default function ChatWindowButton({
             )}
           >
             {/* Chat Header */}
-            <div className="flex items-center justify-between pr-4 pb-5 pl-4 border-b border-zinc-700/50">
+            <div className="flex items-center justify-between pr-4 pb-3 pl-4 border-b border-zinc-700/50">
               <div className="flex items-center space-x-4">
                 <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
                   <Image

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Tooltip as MuiTooltip, TooltipProps } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -31,13 +31,17 @@ export const Tooltip = ({
   direction = "right",
   classNames,
   disabled = false,
+  open,
 }: {
   message: string;
   children: ReactNode;
   direction?: "right" | "top" | "left" | "bottom";
   classNames?: string;
   disabled?: boolean;
+  open?: boolean;
 }) => {
+  const [hoverOpen, setHoverOpen] = useState(false);
+
   if (disabled) return <>{children}</>;
 
   // Map direction props to MUI placement
@@ -55,12 +59,18 @@ export const Tooltip = ({
     }
   };
 
+  // Combine programmatic open state with hover state
+  const isOpen = open || hoverOpen;
+
   return (
     <StyledTooltip
       title={message}
       placement={getPlacement(direction)}
       arrow
       className={classNames}
+      open={isOpen}
+      onOpen={() => setHoverOpen(true)}
+      onClose={() => setHoverOpen(false)}
     >
       <span className="inline-flex">
         {children}

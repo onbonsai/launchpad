@@ -113,7 +113,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = `${SITE_URL}/post/${postId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
@@ -157,8 +157,8 @@ const HandleSEO = ({ pageProps, query }) => {
   }
 
   // Default page
-  const description = "Create autonomous, agentic content on Lens";
-  const ogImageUrl = `${SITE_URL}/api/og-image`;
+  const description = "Create & monetize evolving media";
+  const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent("https://app.onbons.ai/opengraph-image.jpg")}`;
 
   // Consider Signup / Budget flow
   const frameData = { ...frameDataTemplate };

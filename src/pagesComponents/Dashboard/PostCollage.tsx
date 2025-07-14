@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { orderBy } from "lodash/collection";
-import { get } from "lodash/object";
 import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
-import { Publication, Theme } from "@madfi/widgets-react";
+import { Theme } from "@madfi/widgets-react";
 import { Post, TimelineItem } from "@lens-protocol/client";
 import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
 import { useRouter } from "next/router";
+import { haptics } from "@src/utils/haptics";
+import { sharePost, isWebShareSupported } from "@src/utils/webShare";
 import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
@@ -27,6 +27,12 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 import { Button } from "@src/components/Button";
+import dynamic from "next/dynamic";
+
+const Publication = dynamic(
+  () => import('@madfi/widgets-react').then(mod => mod.Publication),
+  { ssr: false }
+);
 
 interface PostItemProps {
   post: any;
@@ -309,9 +315,18 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
     return [...featuredPosts, ...nonFeaturedPosts];
   }, [filterBy, filteredPosts, processedPosts, showCompleted, categoryFilter, activeTab]);
 
-  const onShareButtonClick = (postSlug: string) => {
-    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${postSlug}`);
-    toast.success("Copied", { position: "bottom-center", duration: 2000 });
+  const onShareButtonClick = async (postSlug: string) => {
+    const success = await sharePost(postSlug, {
+      title: 'Check out this post on Bonsai',
+      text: 'Discover amazing content and trade tokens on Bonsai',
+      url: `${BONSAI_POST_URL}/${postSlug}`
+    });
+    
+    // Haptic feedback is handled in the webShare utility
+    if (!success && !isWebShareSupported()) {
+      // Fallback already handled in webShare utility
+      console.log('Share completed via fallback');
+    }
   };
 
   const SortIcon = () => (

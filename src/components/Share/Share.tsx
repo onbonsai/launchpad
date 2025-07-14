@@ -1,8 +1,23 @@
 import Image from "next/image";
+import { ShareIcon, ClipboardCopyIcon } from "@heroicons/react/outline";
 
-import { IS_PRODUCTION } from "@src/constants/constants";
+import { WebShareManager, copyLink } from "@src/utils/webShare";
+
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 const Share = ({ text, url }: { text: string; url: string }) => {
+  const shareNative = async () => {
+    await WebShareManager.share({
+      title: text,
+      text: text,
+      url: url
+    });
+  };
+
+  const handleCopyLink = async () => {
+    await copyLink(url, 'Link copied!');
+  };
+
   const shareToX = () => {
     const ctaLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURI(url)}`;
     window.open(ctaLink, "_blank");
@@ -21,6 +36,24 @@ const Share = ({ text, url }: { text: string; url: string }) => {
       <p className="mb-2">Share to socials</p>
       <div className="flex items-center justify-center">
         <div className="flex justify-center space-x-6 mt-4">
+          <button 
+            onClick={shareNative}
+            className="flex flex-col items-center hover:opacity-80 transition-opacity"
+            title="Share"
+          >
+            <div className="w-[46px] h-[46px] bg-blue-500 rounded-full flex items-center justify-center">
+              <ShareIcon className="w-6 h-6 text-white" />
+            </div>
+          </button>
+          <button 
+            onClick={handleCopyLink}
+            className="flex flex-col items-center hover:opacity-80 transition-opacity"
+            title="Copy Link"
+          >
+            <div className="w-[46px] h-[46px] bg-gray-600 rounded-full flex items-center justify-center">
+              <ClipboardCopyIcon className="w-6 h-6 text-white" />
+            </div>
+          </button>
           <button onClick={() => shareToLens()}>
             <Image
               height={46}

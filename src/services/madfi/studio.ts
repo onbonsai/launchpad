@@ -9,7 +9,6 @@ import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
-import type { StoryboardClip } from "@pages/studio/create";
 import { generatePreview } from "./../studio.worker";
 
 export const APP_ID = "BONSAI";
@@ -100,6 +99,14 @@ export type Template = {
 export type Preview = {
   roomId?: string;
   agentId?: string; // HACK: should be present but optional if a preview is set client-side
+  isAgent?: boolean;
+  createdAt?: string;
+  content?: {
+    text?: string;
+    prompt?: string;
+    preview?: Preview;
+    templateData?: any;
+  };
   agentMessageId?: string; // to associate memories with published posts
   text?: string;
   templateName?: string
@@ -112,7 +119,17 @@ export type Preview = {
     blob: Blob; // This can be used to create an object URL or process the video
     url: string;
   };
+  storyboard?: StoryboardClip[]; // Array of clips for composed videos
 };
+
+export interface StoryboardClip {
+  id: string; // agentId of the preview
+  preview: Preview;
+  startTime: number;
+  endTime: number; // Will be clip duration initially
+  duration: number;
+  templateData?: any;
+}
 
 export type SmartMedia = {
   agentId: string; // uuid
@@ -556,21 +573,27 @@ export const composeStoryboard = async (
   url: string,
   idToken: string,
   clips: StoryboardClip[],
-  audio: File | { url: string, name: string } | null,
+  audio: File | { url: string, name: string } | string | null,
   audioStartTime: number,
   roomId?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     const formData = new FormData();
+    let audioData: any = audio;
+    if (typeof audio === 'string' && audio.startsWith('http')) {
+      audioData = { url: audio };
+    }
+
     formData.append('data', JSON.stringify({
       roomId,
       storyboard: clips.map(clip => ({
         id: clip.id,
         startTime: clip.startTime,
         endTime: clip.endTime,
+        videoUrl: (clip.preview?.video?.url && !clip.preview.video.url.startsWith('blob:')) ? clip.preview.video.url : undefined,
       })),
       audioStartTime,
-      audio
+      audio: audioData
     }));
 
     if (audio && audio instanceof File) {

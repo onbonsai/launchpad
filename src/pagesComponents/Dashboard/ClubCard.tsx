@@ -94,8 +94,8 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             alt={club.token.name || "club image"}
             sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
-            width={48}
-            height={48}
+            width={64}
+            height={64}
           />
           <div className="flex flex-col ml-2">
             <p className="text-secondary text-2xl leading-7 font-semibold overflow-hidden overflow-ellipsis">

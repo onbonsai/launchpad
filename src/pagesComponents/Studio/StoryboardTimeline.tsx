@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MusicNoteIcon, PencilIcon } from '@heroicons/react/solid';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from "@src/services/madfi/studio";
 import StoryboardModal from './StoryboardModal';
 
 interface StoryboardTimelineProps {
@@ -10,9 +10,10 @@ interface StoryboardTimelineProps {
   setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
   audioStartTime: number;
   setAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
+  isRemixAudio?: boolean;
 }
 
-const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips, audio, setAudio, audioStartTime, setAudioStartTime }) => {
+const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips, audio, setAudio, audioStartTime, setAudioStartTime, isRemixAudio = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = () => {
@@ -29,9 +30,9 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
 
   return (
     <>
-      <div className="w-full rounded-lg mt-4">
+      <div className="w-full rounded-lg mt-4 max-w-[600px] [&_*::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <h3 className="text-md text-white mb-2">Storyboard</h3>
-        
+
         {/* Clickable preview that opens the modal */}
         <div
           onClick={openModal}
@@ -39,25 +40,27 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
         >
           {/* Clips Preview Row */}
           <div className="flex space-x-2 overflow-x-auto pb-2">
-            {clips.map((clip, index) => (
-              <div
-                key={clip.id}
-                className="relative flex-shrink-0 w-24 h-16 bg-dark-grey rounded-lg overflow-hidden"
-              >
-                <img
-                  src={clip.preview.imagePreview || clip.preview.image}
-                  alt={`Clip ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
-                  <span className="text-white text-xs font-mono bg-black/60 px-1 py-0.5 rounded">
-                    {index + 1}
-                  </span>
+            {clips.map((clip, index) => {
+              return (
+                <div
+                  key={clip.id}
+                  className="relative flex-shrink-0 w-24 h-16 bg-dark-grey rounded-lg overflow-hidden"
+                >
+                  <img
+                    src={clip.preview.imagePreview || clip.preview.image}
+                    alt={`Clip ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-1">
+                    <span className="text-white text-xs font-mono bg-black/60 px-1 py-0.5 rounded">
+                      {index + 1}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          
+
           {/* Audio indicator */}
           {audio && (
             <div className="mt-2 flex items-center gap-2 text-sm text-white/70">
@@ -67,7 +70,7 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
               </span>
             </div>
           )}
-          
+
           {/* Edit indicator */}
           <div className="mt-2 flex items-center justify-between">
             <span className="text-sm text-white/70">
@@ -80,7 +83,7 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
           </div>
         </div>
       </div>
-      
+
       <StoryboardModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -90,9 +93,10 @@ const StoryboardTimeline: React.FC<StoryboardTimelineProps> = ({ clips, setClips
         setAudio={setAudio}
         storyboardAudioStartTime={audioStartTime}
         setStoryboardAudioStartTime={setAudioStartTime}
+        isRemixAudio={isRemixAudio}
       />
     </>
   );
 };
 
-export default StoryboardTimeline; 
+export default StoryboardTimeline;

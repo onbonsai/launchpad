@@ -51,8 +51,8 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
   const [hasCollected, setHasCollected] = useState<boolean>(post.operations?.hasSimpleCollected || false);
   const collectButtonRef = useRef<HTMLButtonElement>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-  const category = post.metadata.attributes?.find(({ key }) => key === "templateCategory");
-  const mediaUrl = post.metadata.attributes?.find(({ key }) => key === "apiUrl");
+  const category = (post.metadata as any)?.attributes?.find(({ key }: any) => key === "templateCategory");
+  const mediaUrl = (post.metadata as any)?.attributes?.find(({ key }: any) => key === "apiUrl");
   const isCreator = post.author.address === authenticatedProfile?.address;
   const { openTopUpModal } = useTopUpModal();
 
@@ -211,6 +211,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
             postSlug={post.slug}
             isCreator={isCreator}
             mediaUrl={mediaUrl?.value}
+            onRequestGeneration={() => {}}
           />
         </div>
       </div>

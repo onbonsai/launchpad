@@ -33,6 +33,7 @@ import CurrencyInput from "./CurrencyInput";
 import { ArrowDownIcon, ExternalLinkIcon } from "@heroicons/react/outline";
 import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
+import { haptics } from "@src/utils/haptics";
 import { localizeNumber } from "@src/constants/utils";
 import { ACTION_HUB_ADDRESS, getChain, IS_PRODUCTION, lens, LENS_BONSAI_DEFAULT_FEED, LENS_GLOBAL_FEED, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
@@ -205,7 +206,8 @@ export const BuySellWidget = ({
       setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(buyAmount!, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                haptics.trade();
 
       if (!!useRemixReferral) {
         closeModal();
@@ -249,7 +251,8 @@ export const BuySellWidget = ({
       setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Sold ${sellAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                      toast.success(`Sold ${sellAmount} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                haptics.trade();
     } catch (error) {
       console.log(error);
       toast.error("Failed to sell", { id: toastId });
@@ -358,7 +361,8 @@ export const BuySellWidget = ({
       setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                      toast.success(`Bought ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                haptics.trade();
 
       if (!!useRemixReferral || club.tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
         closeModal();
@@ -430,7 +434,8 @@ export const BuySellWidget = ({
       setTimeout(refreshTradingInfo, 5000);
       // setTimeout(refetchClubPrice, 5000); // don't refetch price
 
-      toast.success(`Sold ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                      toast.success(`Sold ${kFormatter(parseFloat(formatUnits(_buyAmount, DECIMALS)))} $${club.token.symbol}`, { duration: 10000, id: toastId });
+                haptics.trade();
 
       closeModal();
       return;

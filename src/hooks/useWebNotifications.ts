@@ -1,7 +1,7 @@
 import { urlBase64ToUint8Array } from "@src/utils/utils";
 import { useState, useEffect } from "react";
 
-const useWebNotifications = (userAddress?: string) => {
+const useWebNotifications = (userAddress?: string, lensAddress?: string) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
@@ -14,14 +14,12 @@ const useWebNotifications = (userAddress?: string) => {
   };
 
   useEffect(() => {
-    console.log("[useWebNotifications] isPWAMode:", isPWAMode());
     
     // Check if notifications and service workers are supported
     if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
       setIsSupported(true);
       registerServiceWorker();
     } else {
-      console.log("[useWebNotifications] Push notifications not supported in this browser");
       setIsSupported(false);
     }
 
@@ -34,19 +32,16 @@ const useWebNotifications = (userAddress?: string) => {
   // Following the Next.js guide pattern
   const registerServiceWorker = async () => {
     try {
-      console.log('🔍 [PWA] Registering service worker...');
       
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none',
       });
       
-      console.log('✅ [PWA] Service worker registered successfully:', registration);
       
       // Get existing subscription
       const sub = await registration.pushManager.getSubscription();
       setSubscription(sub);
-      console.log("[useWebNotifications] Existing subscription:", sub);
       
     } catch (error) {
       console.error('❌ [PWA] Service worker registration failed:', error);
@@ -55,7 +50,6 @@ const useWebNotifications = (userAddress?: string) => {
 
   const subscribeToPush = async () => {
     if (!isSupported) {
-      console.log("[useWebNotifications] Push notifications not supported");
       return false;
     }
 
@@ -68,20 +62,17 @@ const useWebNotifications = (userAddress?: string) => {
       }
 
       if (newPermission !== "granted") {
-        console.log("[useWebNotifications] Permission denied");
         return false;
       }
 
       // Only subscribe to push notifications if we're in PWA mode
       if (isPWAMode()) {
         if (!userAddress) {
-          console.log("[useWebNotifications] No user address provided for PWA subscription");
           return false;
         }
 
         // Check if already subscribed
         if (subscription) {
-          console.log("[useWebNotifications] Already subscribed to push notifications");
           return true;
         }
 
@@ -93,7 +84,6 @@ const useWebNotifications = (userAddress?: string) => {
         });
         
         setSubscription(newSubscription);
-        console.log("[useWebNotifications] New subscription:", newSubscription);
 
         // Send subscription to server
         await sendSubscriptionToServer(newSubscription);
@@ -128,7 +118,8 @@ const useWebNotifications = (userAddress?: string) => {
         },
         body: JSON.stringify({
           subscription,
-          userAddress
+          userAddress,
+          lensAddress
         })
       });
 
@@ -136,7 +127,17 @@ const useWebNotifications = (userAddress?: string) => {
         throw new Error(`Failed to send subscription: ${response.status}`);
       }
 
-      console.log("[useWebNotifications] Subscription sent to server successfully");
+      const result = await response.json();
+      
+      // Show toast notification if bonus tokens were sent
+      if (result.bonusTokensSent) {
+        const toast = (await import('react-hot-toast')).default;
+        toast.success('🎉 Welcome! You received 1000 BONSAI tokens!', {
+          duration: 5000,
+          position: 'top-center',
+        });
+      }
+
     } catch (error) {
       console.error("[useWebNotifications] Error sending subscription to server:", error);
     }
@@ -147,7 +148,6 @@ const useWebNotifications = (userAddress?: string) => {
       await subscription?.unsubscribe();
       setSubscription(null);
       
-      console.log("[useWebNotifications] Unsubscribed from push notifications");
     } catch (error) {
       console.error("[useWebNotifications] Error unsubscribing:", error);
     }
@@ -159,12 +159,10 @@ const useWebNotifications = (userAddress?: string) => {
       if (isPWAMode()) {
         // In PWA mode, don't send client-side notifications
         // Rely on server-side push notifications instead
-        console.log("[useWebNotifications] PWA mode - notifications handled by server push");
         return;
       }
 
       // In browser mode, send client-side notifications
-      console.log("[useWebNotifications] Browser mode - sending client-side notification");
       const notification = new Notification(title, {
         ...options,
         icon: options?.icon || "/logo.png",
@@ -187,7 +185,6 @@ const useWebNotifications = (userAddress?: string) => {
     subscribeToPush,
     unsubscribeFromPush,
     sendNotification,
-    isPWAMode: isPWAMode()
   };
 };
 

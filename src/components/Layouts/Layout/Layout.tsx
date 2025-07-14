@@ -61,7 +61,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
           </main>
           <Footer />
         </div>
-        {/* <PWAInstallPrompt /> */}
+        <PWAInstallPrompt />
       </div>
     </ChatSidebarContext.Provider>
   );

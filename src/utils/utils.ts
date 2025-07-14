@@ -6,6 +6,7 @@ import { formatDistanceToNowStrict } from 'date-fns'
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
 import { MADFI_BOUNTIES_URL, SITE_URL } from "@src/constants/constants";
 import { MetadataAttribute } from "@lens-protocol/metadata";
+import { ELIZA_API_URL, Template } from "@src/services/madfi/studio";
 
 const bucketToLinkKey = {
   seo: "jvxdv5ynbbikx455wrdynvc7tyhq",
@@ -571,29 +572,25 @@ export const cacheImageToStorj = async (imageData: string | Blob, id: string, bu
 };
 
 export const cacheVideoToStorj = async (videoData: string | Blob, id: string, bucket: string = 'videos') => {
-  let base64Data: string;
+  let videoBlob: Blob;
 
   if (videoData instanceof Blob) {
-    // Convert Blob to base64
-    const arrayBuffer = await videoData.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const mimeType = videoData.type;
-    base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    videoBlob = videoData;
   } else {
-    // If it's already a base64 string, use it as is
-    base64Data = videoData;
+    // Convert base64 string to Blob
+    const response = await fetch(videoData);
+    videoBlob = await response.blob();
   }
 
-  const response = await fetch('/api/storj/cache-video', {
+  // Use FormData to send the video file directly
+  const formData = new FormData();
+  formData.append('video', videoBlob);
+  formData.append('id', id);
+  formData.append('bucket', bucket);
+
+  const response = await fetch(`${ELIZA_API_URL}/storj/cache-video`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      videoData: base64Data,
-      id,
-      bucket
-    })
+    body: formData // No need to set Content-Type, browser will set it with boundary
   });
   const result = await response.json();
   if (!result.success) {
@@ -614,4 +611,13 @@ export const urlBase64ToUint8Array = (base64String: string) => {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+};
+
+export const mapTemplateNameToTemplate = (templateName: string, registeredTemplates: Template[]) => {
+  return registeredTemplates?.find((t: Template) => {
+    return t.name === templateName ||
+      (templateName === "video_dot_fun" && t.name === "video") ||
+      (templateName === "adventure_time" && t.name === "story") ||
+      (templateName === "image" && t.name === "image");
+  });
 };

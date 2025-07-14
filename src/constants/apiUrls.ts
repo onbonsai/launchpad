@@ -26,19 +26,4 @@ const STAGING_URLS = {
   storjGateway: "https://www.storj-ipfs.com",
 };
 
-const DEV_URLS = {
-  openSea: "https://testnets.opensea.io",
-  ipfsDefaultHost: "https://ipfs.io/ipfs",
-  pinataGateway: "https://onbonsai.mypinata.cloud/ipfs",
-  lensGateway: "https://lens.infura-ipfs.io/ipfs",
-  rpc: "http://127.0.0.1:8545",
-  ethExplorer: "",
-  lensAPI: "https://api-mumbai.lens.xyz",
-  lensAPIv2: "https://api-v2-mumbai.lens.dev",
-  // @TODO: replace with mumbai
-  madfiSubgraph: "http://localhost:8000/subgraphs/name/imthatcarlos/madfi-subgraph",
-  madfiSubgraphBase: "https://api.studio.thegraph.com/query/102483/bonsai-launchpad-base-sepolia/version/latest",
-  storjGateway: "https://www.storj-ipfs.com",
-};
-
 export const apiUrls = IS_PRODUCTION ? PRODUCTION_URLS : STAGING_URLS;

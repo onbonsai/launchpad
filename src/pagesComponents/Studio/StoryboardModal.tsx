@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { XCircleIcon, ScissorsIcon, MusicNoteIcon, PencilAltIcon } from '@heroicons/react/solid';
 import { PlayIcon, PauseIcon } from '@heroicons/react/outline';
-import type { StoryboardClip } from '@pages/studio/create';
+import type { StoryboardClip } from '@src/services/madfi/studio';
 import { Button } from '@src/components/Button';
 import { Modal } from '@src/components/Modal';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -12,21 +12,23 @@ interface StoryboardModalProps {
   onClose: () => void;
   clips: StoryboardClip[];
   setClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
-  audio: File | string | null;
-  setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
+  audio: File | string | { url?: string; preview?: string; name?: string } | null;
+  setAudio: React.Dispatch<React.SetStateAction<File | string | { url?: string; preview?: string; name?: string } | null>>;
   storyboardAudioStartTime: number;
   setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
+  isRemixAudio?: boolean;
 }
 
-const StoryboardModal: React.FC<StoryboardModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  clips, 
-  setClips, 
-  audio, 
-  setAudio, 
+const StoryboardModal: React.FC<StoryboardModalProps> = ({
+  isOpen,
+  onClose,
+  clips,
+  setClips,
+  audio,
+  setAudio,
   storyboardAudioStartTime,
-  setStoryboardAudioStartTime
+  setStoryboardAudioStartTime,
+  isRemixAudio = false
 }) => {
   const [selectedClip, setSelectedClip] = useState<StoryboardClip | null>(null);
   const [isEditingAudio, setIsEditingAudio] = useState(false);
@@ -37,7 +39,9 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
+  const [audioLoaded, setAudioLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const wasPlayingBeforeScrubRef = useRef(false);
@@ -45,6 +49,9 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   useEffect(() => {
     if (!audio) {
       setIsEditingAudio(false);
+      setAudioLoaded(false);
+    } else {
+      setAudioLoaded(false);
     }
   }, [audio, isOpen]);
 
@@ -56,23 +63,46 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       setCurrentTime(selectedClip.startTime);
       setIsPlaying(false);
       setShowPlayButton(true);
+      
+      // Pause audio when switching clips
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     }
   }, [selectedClip]);
 
   // High-precision time tracking with requestAnimationFrame
   useEffect(() => {
     const updateTime = () => {
-      if (videoRef.current && isPlaying) {
+      if (videoRef.current && isPlaying && selectedClip) {
         const time = videoRef.current.currentTime;
         setCurrentTime(time);
-        
+
+        // Sync audio with video
+        if (audioRef.current && audio && audioLoaded) {
+          const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+          const audioCurrentTime = audioStartTime + (time - selectedClip.startTime);
+          
+          // Only sync if there's a significant difference to avoid constant adjustments
+          if (Math.abs(audioRef.current.currentTime - audioCurrentTime) > 0.1) {
+            try {
+              audioRef.current.currentTime = audioCurrentTime;
+            } catch (error) {
+              console.error('[StoryboardModal] Audio sync error:', error);
+            }
+          }
+        }
+
         // Auto-pause if we've reached the end time
         if (time >= endTime) {
           videoRef.current.pause();
+          if (audioRef.current && audio) {
+            audioRef.current.pause();
+          }
           return;
         }
       }
-      
+
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(updateTime);
       }
@@ -89,13 +119,17 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, endTime]);
+  }, [isPlaying, endTime, selectedClip, audio]);
 
   // Cleanup animation frame on modal close
   useEffect(() => {
     if (!isOpen && animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       setIsPlaying(false);
+      // Also pause audio when modal closes
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     }
   }, [isOpen]);
 
@@ -126,17 +160,28 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const handleTimelineClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current || !selectedClip || isDragging) return;
-    
+
     const rect = timelineRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
     const time = percentage * selectedClip.duration;
-    
+
     if (videoRef.current) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
+      
+      // Sync audio to the new position
+      if (audioRef.current && audio && audioLoaded) {
+        const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+        const audioCurrentTime = audioStartTime + (time - selectedClip.startTime);
+        try {
+          audioRef.current.currentTime = audioCurrentTime;
+        } catch (error) {
+          console.error('[StoryboardModal] Audio seek error:', error);
+        }
+      }
     }
-  }, [selectedClip, isDragging]);
+  }, [selectedClip, isDragging, audio]);
 
   const handleHandleMouseDown = useCallback((handle: 'start' | 'end') => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -144,6 +189,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
     setIsDragging(handle);
   }, [isPlaying]);
@@ -154,6 +200,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
     setIsDragging(handle);
   }, [isPlaying]);
@@ -165,6 +212,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
   }, [isPlaying]);
 
@@ -175,22 +223,34 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
   }, [isPlaying]);
 
   const handleMove = useCallback((e: MouseEvent | TouchEvent) => {
     if ((!isDragging && !isDraggingPlayhead) || !timelineRef.current || !selectedClip) return;
-    
+
     e.preventDefault();
     const rect = timelineRef.current.getBoundingClientRect();
     const { clientX } = getEventCoordinates(e);
     const mouseX = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, mouseX / rect.width));
     const time = percentage * selectedClip.duration;
-    
+
     if (isDraggingPlayhead) {
       if (videoRef.current) {
         videoRef.current.currentTime = time;
+        
+        // Sync audio to the new position
+        if (audioRef.current && audio && audioLoaded) {
+          const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+          const audioCurrentTime = audioStartTime + (time - selectedClip.startTime);
+          try {
+            audioRef.current.currentTime = audioCurrentTime;
+          } catch (error) {
+            console.error('[StoryboardModal] Audio seek error:', error);
+          }
+        }
       }
       setCurrentTime(time);
       return;
@@ -202,6 +262,17 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       if (videoRef.current) {
         videoRef.current.currentTime = newStartTime;
         setCurrentTime(newStartTime);
+        
+        // Sync audio to the new position
+        if (audioRef.current && audio && audioLoaded) {
+          const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+          const audioCurrentTime = audioStartTime + (newStartTime - selectedClip.startTime);
+          try {
+            audioRef.current.currentTime = audioCurrentTime;
+          } catch (error) {
+            console.error('[StoryboardModal] Audio seek error:', error);
+          }
+        }
       }
     } else if (isDragging === 'end') {
       const newEndTime = Math.min(selectedClip.duration, Math.max(time, startTime + 0.1));
@@ -214,13 +285,27 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       if (videoRef.current) {
         videoRef.current.currentTime = startTime;
         videoRef.current.play();
+        
+        // Also resume background audio if it exists
+        if (audioRef.current && audio && selectedClip) {
+          const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+          const audioCurrentTime = audioStartTime + (startTime - selectedClip.startTime);
+          playAudioSafely(audioRef.current, audioCurrentTime);
+        }
       }
     } else if (isDraggingPlayhead && wasPlayingBeforeScrubRef.current && videoRef.current) {
       videoRef.current.play();
+      
+      // Also resume background audio if it exists
+      if (audioRef.current && audio && selectedClip) {
+        const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+        const audioCurrentTime = audioStartTime + (videoRef.current.currentTime - selectedClip.startTime);
+        playAudioSafely(audioRef.current, audioCurrentTime);
+      }
     }
     setIsDragging(null);
     setIsDraggingPlayhead(false);
-  }, [isDragging, isDraggingPlayhead, startTime]);
+  }, [isDragging, isDraggingPlayhead, startTime, selectedClip, audio]);
 
   useEffect(() => {
     if (isDragging || isDraggingPlayhead) {
@@ -229,7 +314,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       document.addEventListener('touchmove', handleMove, { passive: false });
       document.addEventListener('touchend', handleEnd);
     }
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleEnd);
@@ -240,16 +325,28 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const togglePlayPause = (e?: React.MouseEvent) => {
     e?.preventDefault();
-    if (!videoRef.current) return;
-    
+    if (!videoRef.current || !selectedClip) return;
+
     if (isPlaying) {
       videoRef.current.pause();
+      // Also pause audio if it exists
+      if (audioRef.current && audio) {
+        audioRef.current.pause();
+      }
     } else {
       // Always start from the trim start time when playing
       if (videoRef.current.currentTime < startTime || videoRef.current.currentTime >= endTime) {
         videoRef.current.currentTime = startTime;
         setCurrentTime(startTime);
       }
+      
+      // Start audio at the correct time for this clip
+      if (audioRef.current && audio) {
+        const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+        const audioCurrentTime = audioStartTime + (videoRef.current.currentTime - selectedClip.startTime);
+        playAudioSafely(audioRef.current, audioCurrentTime);
+      }
+      
       videoRef.current.play();
     }
   };
@@ -272,7 +369,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const handleSaveTrim = () => {
     if (!selectedClip) return;
-    
+
     setClips(clips.map(clip =>
       clip.id === selectedClip.id ? { ...clip, startTime, endTime } : clip
     ));
@@ -282,7 +379,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const onDragEnd = (result: DropResult) => {
     // Re-enable body scroll and text selection
     document.body.style.userSelect = '';
-    
+
     const { destination, source } = result;
     if (!destination) return;
 
@@ -328,6 +425,78 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
   const storyboardDuration = clips.reduce((total, clip) => total + (clip.endTime - clip.startTime), 0);
 
+  // Memoize audio URL to prevent constant reloading
+  const audioSrc = useMemo(() => {
+    if (!audio) return null;
+    if (typeof audio === 'string') return audio;
+    if (audio instanceof File) return URL.createObjectURL(audio);
+    // Handle library audio objects that have url property
+    if (audio.url) return audio.url;
+    if (audio.preview) return audio.preview;
+    return null;
+  }, [audio]);
+
+  // Cleanup blob URLs when component unmounts or audio changes
+  useEffect(() => {
+    return () => {
+      if (audioSrc && audioSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(audioSrc);
+      }
+    };
+  }, [audioSrc]);
+
+  // Calculate audio start time for the selected clip
+  const getAudioStartTimeForClip = (clipId: string) => {
+    const clipIndex = clips.findIndex(c => c.id === clipId);
+    if (clipIndex === -1) return 0;
+    
+    // Sum duration of all clips before this one
+    const previousClipsDuration = clips.slice(0, clipIndex).reduce((total, clip) => total + (clip.endTime - clip.startTime), 0);
+    
+    // Add the storyboard audio start time
+    return storyboardAudioStartTime + previousClipsDuration;
+  };
+
+  // Helper function to safely play audio
+  const playAudioSafely = async (audioElement: HTMLAudioElement, targetTime: number) => {
+    if (!audioLoaded) {
+      console.log('[StoryboardModal] Audio not loaded yet, skipping playback');
+      return;
+    }
+    
+    try {
+      // Ensure audio element is ready
+      if (audioElement.readyState < 2) {
+        console.log('[StoryboardModal] Audio not ready, waiting for canplay event');
+        await new Promise((resolve) => {
+          const handleCanPlay = () => {
+            audioElement.removeEventListener('canplay', handleCanPlay);
+            resolve(true);
+          };
+          audioElement.addEventListener('canplay', handleCanPlay);
+          // Timeout after 2 seconds
+          setTimeout(() => {
+            audioElement.removeEventListener('canplay', handleCanPlay);
+            resolve(false);
+          }, 2000);
+        });
+      }
+      
+      audioElement.currentTime = targetTime;
+      const playPromise = audioElement.play();
+      
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log('[StoryboardModal] Background audio playing at', targetTime);
+      }
+    } catch (error) {
+      // Ignore play interruption errors
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('[StoryboardModal] Audio play error:', error);
+      }
+    }
+  };
+
   return (
     <Modal
       open={isOpen}
@@ -348,7 +517,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
               <h3 className="text-lg font-semibold text-white mb-3">
                 Edit Clip {clips.findIndex(c => c.id === selectedClip.id) + 1}
               </h3>
-              
+
               {/* Video Preview with Play/Pause and Timeline Overlay */}
               <div
                 className="relative mb-4 group"
@@ -367,10 +536,46 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                     setIsPlaying(false);
                     setShowPlayButton(true);
                   }}
+                  onLoadedData={() => {
+                    // Video loaded data successfully
+                  }}
+                  onError={(e) => {
+                    console.error('[StoryboardModal] Video error:', e, {
+                      error: e.currentTarget.error,
+                      src: e.currentTarget.src,
+                      networkState: e.currentTarget.networkState,
+                      readyState: e.currentTarget.readyState
+                    });
+                  }}
+                  onLoadStart={() => {
+                    // Video load started
+                  }}
                 />
-                
+
+                {/* Hidden audio element for background audio playback */}
+                {audio && audioSrc && (
+                  <audio
+                    ref={audioRef}
+                    src={audioSrc}
+                    preload="auto"
+                    onLoadedData={() => {
+                      setAudioLoaded(true);
+                    }}
+                    onCanPlay={() => {
+                      setAudioLoaded(true);
+                    }}
+                    onError={(e) => {
+                      console.error('[StoryboardModal] Audio error:', e);
+                      setAudioLoaded(false);
+                    }}
+                    onLoadStart={() => {
+                      setAudioLoaded(false);
+                    }}
+                  />
+                )}
+
                 {/* Play/Pause Overlay Button */}
-                <div 
+                <div
                   className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
                     showPlayButton ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   }`}
@@ -431,6 +636,30 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                         onTouchStart={handleHandleTouchStart('end')}
                       />
                     </div>
+
+                    {/* Background Audio Timeline */}
+                    {audio && (
+                      <div className="mt-2">
+                        <div className="h-4 bg-zinc-800/50 rounded-md relative">
+                          {/* Audio segment for this clip */}
+                          <div
+                            className="absolute top-0 h-full bg-green-500/60 rounded-md border border-green-400/50"
+                            style={{
+                              left: `${startPercentage}%`,
+                              width: `${endPercentage - startPercentage}%`
+                            }}
+                          />
+                          
+                          {/* Audio timeline labels */}
+                          <div className="absolute -bottom-5 left-0 text-xs text-green-400/80">
+                            {formatTime(storyboardAudioStartTime + clips.slice(0, clips.findIndex(c => c.id === selectedClip.id)).reduce((total, clip) => total + (clip.endTime - clip.startTime), 0), false)}
+                          </div>
+                          <div className="absolute -bottom-5 right-0 text-xs text-green-400/80">
+                            {formatTime(storyboardAudioStartTime + clips.slice(0, clips.findIndex(c => c.id === selectedClip.id) + 1).reduce((total, clip) => total + (clip.endTime - clip.startTime), 0), false)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -451,10 +680,10 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                     <div className="text-white font-mono text-sm">{formatTime(endTime - startTime)}</div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end">
-                  <Button 
-                    variant="accentBrand" 
+                  <Button
+                    variant="accentBrand"
                     onClick={handleSaveTrim}
                     className="py-2.5 sm:py-2 text-sm"
                   >
@@ -474,7 +703,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
           {/* Clips Timeline */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Clips</h3>
-            <DragDropContext 
+            <DragDropContext
               onDragEnd={onDragEnd}
               onDragStart={() => {
                 // Disable body scroll during drag to prevent positioning issues
@@ -485,8 +714,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                 document.body.style.userSelect = 'none';
               }}
             >
-              <Droppable 
-                droppableId="storyboard" 
+              <Droppable
+                droppableId="storyboard"
                 direction="horizontal"
                 renderClone={(provided, snapshot, rubric) => (
                   <div
@@ -542,8 +771,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                             {...provided.dragHandleProps}
                             onClick={() => handleClipSelect(clip)}
                             className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ${
-                              selectedClip?.id === clip.id 
-                                ? 'ring-2 ring-blue-500 shadow-lg' 
+                              selectedClip?.id === clip.id
+                                ? 'ring-2 ring-blue-500 shadow-lg'
                                 : 'hover:ring-1 hover:ring-blue-300'
                             } ${snapshot.isDragging ? 'opacity-50' : ''}`}
                             style={provided.draggableProps.style}
@@ -585,7 +814,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                 )}
               </Droppable>
             </DragDropContext>
-            
+
             {clips.length === 0 && (
               <div className="text-center py-8 text-gray-400">
                 No clips in storyboard yet
@@ -596,38 +825,42 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
           {/* Audio Section */}
           <div className="mt-4">
             <h3 className="text-lg font-semibold text-white mb-3">Background Audio</h3>
-            {isEditingAudio ? (
-              <>
-                <AudioUploader
-                  file={audio}
-                  setFile={setAudio}
-                  startTime={storyboardAudioStartTime}
-                  setStartTime={setStoryboardAudioStartTime}
-                  audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
-                  compact
-                />
-                {audio && storyboardDuration > 0 && (
-                  <div className="flex justify-end mt-2">
-                    <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
+            {audio ? (
+              isRemixAudio && typeof audio === 'string' && audio.startsWith('http') ? (
+                <div className="text-secondary/70 bg-zinc-700 rounded-lg p-4 text-sm">The original audio clip will be used.</div>
+              ) : isEditingAudio ? (
+                <>
+                  <AudioUploader
+                    file={audio}
+                    setFile={setAudio}
+                    startTime={storyboardAudioStartTime}
+                    setStartTime={setStoryboardAudioStartTime}
+                    audioDuration={storyboardDuration > 0 ? storyboardDuration : undefined}
+                    compact
+                  />
+                  {audio && storyboardDuration > 0 && (
+                    <div className="flex justify-end mt-2">
+                      <Button variant="primary" size="sm" onClick={() => setIsEditingAudio(false)}>Confirm</Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
+                  <div className="flex items-center gap-6">
+                    <MusicNoteIcon className="w-5 h-5 text-white" />
+                    <span className="text-white text-sm">
+                      {typeof audio === 'string' ? 'audio.mp3' : (audio instanceof File ? audio.name : audio.name || 'audio.mp3')}
+                    </span>
+                    <span className="text-white/60 text-sm">
+                      ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
+                    </span>
                   </div>
-                )}
-              </>
-            ) : audio ? (
-              <div className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg">
-                <div className="flex items-center gap-6">
-                  <MusicNoteIcon className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm">
-                    {typeof audio === 'string' ? 'audio.mp3' : audio.name}
-                  </span>
-                  <span className="text-white/60 text-sm">
-                    ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
+                    <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setIsEditingAudio(true)} className="text-white/70 hover:text-white"><PencilAltIcon className="w-5 h-5" /></button>
-                  <button onClick={() => setAudio(null)} className="text-white/70 hover:text-white"><XCircleIcon className="w-5 h-5" /></button>
-                </div>
-              </div>
+              )
             ) : (
               // Show uploader if no audio
               <AudioUploader
@@ -646,4 +879,4 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   );
 };
 
-export default StoryboardModal; 
+export default StoryboardModal;

@@ -28,7 +28,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       const data: any = await new Promise((resolve, reject) => {
         const form = new formidable.IncomingForm({ maxFileSize: 500 * 1024 * 1024 });
 
-        form.parse(req, (err, fields, files) => {
+        form.parse(req, (err: any, fields: any, files: any) => {
           if (err) return reject(err);
           resolve({ fields, files });
         });
@@ -72,7 +72,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       // Perform the Axios request
       const response = await _client().post("add?wrap-with-directory&cid-version=1", formData, {
         headers: {
-          "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+          "Content-Type": `multipart/form-data; boundary=${(formData as any)._boundary}`,
         },
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
