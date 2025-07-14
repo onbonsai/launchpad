@@ -12,8 +12,8 @@ const ProfilePics: React.FC<{ profiles?: any[] }> = ({ profiles }) => {
           className="inline-block h-10 w-10 rounded-full ring-2 ring-dark-grey"
           src={p.metadata?.picture}
           alt="/sage.webp"
-          height={32}
-          width={32}
+          height={40}
+          width={40}
           // quality={75}
           unoptimized
         />

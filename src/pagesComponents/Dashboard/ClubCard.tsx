@@ -75,7 +75,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
           <SafeImage
             src={club.token.image}
             alt={club.token.name || "club image"}
-            sizes="10vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="w-full h-full object-cover"
             fill
           />
@@ -92,7 +92,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
           <SafeImage
             src={club.token.image}
             alt={club.token.name || "club image"}
-            sizes="1vw"
+            sizes="48px"
             className="w-[48px] h-[48px] object-cover rounded-lg"
             width={64}
             height={64}

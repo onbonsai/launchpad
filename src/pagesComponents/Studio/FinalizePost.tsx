@@ -281,7 +281,6 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
           <img
             src={token.tokenImage[0].preview}
             alt={"token image"}
-            sizes="10vw"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent"></div>
@@ -297,7 +296,6 @@ const TokenPreviewCard = ({ authenticatedProfile, token }) => {
           <img
             src={token.tokenImage[0].preview}
             alt={"token image"}
-            sizes="1vw"
             className="w-[48px] h-[48px] object-cover rounded-lg"
           />
           <div className="flex flex-col ml-2">
