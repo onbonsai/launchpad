@@ -572,29 +572,25 @@ export const cacheImageToStorj = async (imageData: string | Blob, id: string, bu
 };
 
 export const cacheVideoToStorj = async (videoData: string | Blob, id: string, bucket: string = 'videos') => {
-  let base64Data: string;
+  let videoBlob: Blob;
 
   if (videoData instanceof Blob) {
-    // Convert Blob to base64
-    const arrayBuffer = await videoData.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const mimeType = videoData.type;
-    base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    videoBlob = videoData;
   } else {
-    // If it's already a base64 string, use it as is
-    base64Data = videoData;
+    // Convert base64 string to Blob
+    const response = await fetch(videoData);
+    videoBlob = await response.blob();
   }
+
+  // Use FormData to send the video file directly
+  const formData = new FormData();
+  formData.append('video', videoBlob);
+  formData.append('id', id);
+  formData.append('bucket', bucket);
 
   const response = await fetch('/api/storj/cache-video', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      videoData: base64Data,
-      id,
-      bucket
-    })
+    body: formData // No need to set Content-Type, browser will set it with boundary
   });
   const result = await response.json();
   if (!result.success) {
