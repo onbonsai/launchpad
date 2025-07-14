@@ -18,7 +18,7 @@ import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
 import { Header2 } from "@src/styles/text";
 import { Balance } from "./Balance";
-import { ClaimBonsai } from "./ClaimBonsai";
+// import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
 import { useModal } from "connectkit";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
@@ -219,7 +219,7 @@ export const Header = () => {
                 <div className="hidden sm:flex items-center gap-2 mr-2">
                   <Balance />
                   <ClaimFeesEarned />
-                  <ClaimBonsai />
+                  {/* <ClaimBonsai /> */}
                 </div>
               )}
 
@@ -260,7 +260,7 @@ export const Header = () => {
               </div>
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
-              <ClaimBonsai openMobileMenu />
+              {/* <ClaimBonsai openMobileMenu /> */}
               <Link
                 href={routesApp.stake}
                 className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"

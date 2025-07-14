@@ -33,6 +33,7 @@ import { useGetPosts } from "@src/services/lens/posts";
 import Image from "next/image";
 import { Tooltip } from "@src/components/Tooltip";
 import { InfoOutlined } from "@mui/icons-material";
+import { claimStakingRewardsWithProof, useGetStakingRewards } from "@src/services/madfi/claim";
 
 const fetchTwapPrice = async (): Promise<number> => {
   try {
@@ -78,6 +79,12 @@ const TokenPage: NextPage = () => {
 
   const { data: stakingData, isLoading: isLoadingStaking, refetch: refetchStakingData } = useStakingData(address);
 
+  // Fetch staking rewards data
+  const { data: stakingRewards, isLoading: isLoadingRewards, refetch: refetchStakingRewards } = useGetStakingRewards(
+    walletClient,
+    address as `0x${string}`
+  );
+
   // Fetch 30-day TWAP price
   const { data: twapPrice, isLoading: isLoadingTwap } = useQuery({
     queryKey: ["twap-price"],
@@ -93,6 +100,7 @@ const TokenPage: NextPage = () => {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
 
   const [showBuyModal, setShowBuyModal] = useState(false);
 
@@ -174,6 +182,66 @@ const TokenPage: NextPage = () => {
       console.error("Error recording referral:", error);
       throw error;
     }
+  };
+
+  // Claim staking rewards
+  const handleClaimRewards = async () => {
+    let toastId;
+
+    try {
+      if (chain?.id !== LENS_CHAIN_ID && walletClient) {
+        try {
+          await switchChain(walletClient, { id: LENS_CHAIN_ID });
+          return;
+        } catch {
+          toast.error("Please switch networks");
+          return;
+        }
+      }
+
+      if (!stakingRewards?.proof || !stakingRewards?.amount || stakingRewards?.hasClaimed) {
+        toast.error("No rewards to claim");
+        return;
+      }
+
+      setIsClaiming(true);
+      toastId = toast.loading("Claiming rewards...", { id: toastId });
+
+      const success = await claimStakingRewardsWithProof(
+        walletClient,
+        stakingRewards.proof.split("."),
+        stakingRewards.amount
+      );
+
+      if (!success) throw new Error("Claim transaction failed");
+
+      toast.success(`Claimed ${formatEther(stakingRewards.amount)} $BONSAI`, { duration: 10000, id: toastId });
+      refetchStakingRewards();
+      refetchBonsaiBalance();
+
+      return true;
+    } catch (error) {
+      console.error("Claim error:", error);
+      toast.error("Failed to claim rewards", { id: toastId });
+      return false;
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
+    // Claim and immediately restake
+  const handleClaimAndRestake = async () => {
+    // Store the claimed amount before calling handleClaimRewards
+    const claimedAmount = stakingRewards?.amount ? formatEther(stakingRewards.amount) : "0";
+
+    const claimSuccess = await handleClaimRewards();
+    if (!claimSuccess) return;
+
+    // Set the amount to stake as the claimed rewards amount
+    setStakeAmount(claimedAmount);
+
+    // Open the stake modal
+    setIsStakeModalOpen(true);
   };
 
   // Calculate estimated future credits whenever staking data or price changes
@@ -482,7 +550,7 @@ const TokenPage: NextPage = () => {
                     <div className="pb-2">
                       <div className="flex items-center gap-1">
                         <h3 className="text-sm font-medium text-brand-highlight">Staking Rewards</h3>
-                        <Tooltip 
+                        <Tooltip
                           message="Rewards are calculated as: (Your Staking Power / Total Staking Power) × 500k $BONSAI. Rewards are distributed every 2 weeks. Staking power increases with longer lockup periods. Mid-epoch stakes are counted proportionally."
                           direction="top"
                         >
@@ -491,42 +559,72 @@ const TokenPage: NextPage = () => {
                       </div>
                     </div>
                     <div>
-                      {isConnected && stakingData?.summary && stakingData?.totalStakingSummary ? (
+                      {isConnected ? (
                         <>
-                          {(() => {
-                            const userStakingPower = parseFloat(formatEther(BigInt(stakingData.summary.totalStakingPower || "0")));
-                            const totalStakingPower = parseFloat(formatEther(BigInt(stakingData.totalStakingSummary.totalStakingPower || "1"))); // Avoid division by zero
-                            const userStakedAmount = parseFloat(formatEther(BigInt(stakingData.summary.totalStaked || "0")));
-                            
-                            // Calculate estimated rewards: (user power / total power) * 500k $BONSAI
-                            const estimatedRewards = totalStakingPower > 0 ? (userStakingPower / totalStakingPower) * 500000 : 0;
-                            
-                            // Calculate APR: rewards every 2 weeks, so 26 periods per year
-                            const annualRewards = estimatedRewards * 26;
-                            const estimatedAPR = userStakedAmount > 0 ? (annualRewards / userStakedAmount) * 100 : 0;
-                            
-                            return (
-                              <>
-                                <div className="text-2xl font-bold text-secondary">
-                                  ~{kFormatter(estimatedRewards.toFixed(0), true)} $BONSAI
-                                </div>
-                                <p className="text-xs text-secondary/60">
-                                  {estimatedAPR.toFixed(1)}% APR
-                                </p>
-                                <p className="text-xs text-secondary/40 mt-1">
-                                  Every 2 weeks
-                                </p>
-                              </>
-                            );
-                          })()}
+                          {stakingRewards?.amount && !stakingRewards?.hasClaimed ? (
+                            <>
+                              <div className="text-2xl font-bold text-secondary">
+                                {kFormatter(parseFloat(formatEther(stakingRewards.amount).split(".")[0]), true)} $BONSAI
+                              </div>
+                              <p className="text-xs text-secondary/60">
+                                Available to claim
+                              </p>
+                              <p className="text-xs text-secondary/40 mt-1">
+                                Every 2 weeks
+                              </p>
+                            </>
+                          ) : stakingData?.summary && stakingData?.totalStakingSummary ? (
+                            <>
+                              {(() => {
+                                const userStakingPower = parseFloat(formatEther(BigInt(stakingData.summary.totalStakingPower || "0")));
+                                const totalStakingPower = parseFloat(formatEther(BigInt(stakingData.totalStakingSummary.totalStakingPower || "1"))); // Avoid division by zero
+                                const userStakedAmount = parseFloat(formatEther(BigInt(stakingData.summary.totalStaked || "0")));
+
+                                // Calculate estimated rewards: (user power / total power) * 500k $BONSAI
+                                const estimatedRewards = totalStakingPower > 0 ? (userStakingPower / totalStakingPower) * 500000 : 0;
+                                // Subtract 10% to underpromise, overdeliver
+                                const finalEstimatedRewards = estimatedRewards * 0.9;
+
+                                // Calculate APR: rewards every 2 weeks, so 26 periods per year
+                                const annualRewards = estimatedRewards * 26;
+                                const estimatedAPR = userStakedAmount > 0 ? (annualRewards / userStakedAmount) * 100 : 0;
+
+                                return (
+                                  <>
+                                    <div className="text-2xl font-bold text-secondary">
+                                      ~{kFormatter(finalEstimatedRewards.toFixed(0), true)} $BONSAI
+                                    </div>
+                                    <p className="text-xs text-secondary/60">
+                                      {estimatedAPR.toFixed(1)}% APR
+                                    </p>
+                                    <p className="text-xs text-secondary/40 mt-1">
+                                      Every 2 weeks
+                                    </p>
+                                  </>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-2xl font-bold text-secondary">
+                                0 $BONSAI
+                              </div>
+                              <p className="text-xs text-secondary/60">
+                                0% APR
+                              </p>
+                              <p className="text-xs text-secondary/40 mt-1">
+                                Every 2 weeks
+                              </p>
+                            </>
+                          )}
                         </>
                       ) : (
                         <>
                           <div className="text-2xl font-bold text-secondary">
-                            {isConnected ? "0 $BONSAI" : "Connect Wallet"}
+                            Connect Wallet
                           </div>
                           <p className="text-xs text-secondary/60">
-                            {isConnected ? "0% APR" : "--% APR"}
+                            --% APR
                           </p>
                           <p className="text-xs text-secondary/40 mt-1">
                             Every 2 weeks
@@ -534,11 +632,35 @@ const TokenPage: NextPage = () => {
                         </>
                       )}
                       <div className="mt-4 flex flex-wrap justify-end gap-2">
-                        <Button variant="accent" size="sm" disabled>
-                          Claim
+                        <Button
+                          variant="accent"
+                          size="sm"
+                          onClick={handleClaimRewards}
+                          disabled={!isConnected || isClaiming || !stakingRewards?.amount || stakingRewards?.hasClaimed}
+                        >
+                          {isClaiming ? (
+                            <div className="flex items-center gap-2">
+                              <Spinner customClasses="h-4 w-4" color="#ffffff" />
+                              <span>Claiming...</span>
+                            </div>
+                          ) : (
+                            "Claim"
+                          )}
                         </Button>
-                        <Button variant="accent" size="sm" disabled>
-                          Claim & Restake
+                        <Button
+                          variant="accentBrand"
+                          size="sm"
+                          onClick={handleClaimAndRestake}
+                          disabled={!isConnected || isClaiming || !stakingRewards?.amount || stakingRewards?.hasClaimed}
+                        >
+                          {isClaiming ? (
+                            <div className="flex items-center gap-2">
+                              <Spinner customClasses="h-4 w-4" color="#ffffff" />
+                              <span>Claiming...</span>
+                            </div>
+                          ) : (
+                            "Claim & Restake"
+                          )}
                         </Button>
                       </div>
                     </div>

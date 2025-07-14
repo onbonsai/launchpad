@@ -41,6 +41,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
     BonsaiLaunchpadFix: "0xAFcE1C785dD1c33F215B7aB5B2C23aF1Ed7cB7b9",
     CreatorNFTFix: "0xc860899A6006d0be1e86E534242E4F1542e501A1",
     PeripheryFix: "0xf3CD5925F22A08A54652e9d44CB804bC59498a54",
+    StakingRewards: "0x652fA04CfaD90c06DF785c6eD3A404176b1b4dd1",
   },
 };
 
@@ -67,6 +68,7 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
     CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
     PeripheryFix: "0xAFcE1C785dD1c33F215B7aB5B2C23aF1Ed7cB7b9",
+    StakingRewards: "0x652fA04CfaD90c06DF785c6eD3A404176b1b4dd1"
   },
 };
 

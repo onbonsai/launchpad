@@ -156,6 +156,14 @@ export const getClientWithBonsaiClaim = async (__client?: any) => {
   return { collection, database };
 };
 
+export const getClientWithStakingRewards = async (__client?: any) => {
+  // @ts-ignore
+  const { database } = await connectToDatabase("moonshot");
+  const collection = database.collection("staking-rewards");
+
+  return { collection, database };
+};
+
 export const getClientWithMedia = async (__client?: any) => {
   // @ts-ignore
   const { database } = await connectToDatabase("client-bonsai");
