@@ -12,8 +12,8 @@ interface StoryboardModalProps {
   onClose: () => void;
   clips: StoryboardClip[];
   setClips: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
-  audio: File | string | null;
-  setAudio: React.Dispatch<React.SetStateAction<File | string | null>>;
+  audio: File | string | { url?: string; preview?: string; name?: string } | null;
+  setAudio: React.Dispatch<React.SetStateAction<File | string | { url?: string; preview?: string; name?: string } | null>>;
   storyboardAudioStartTime: number;
   setStoryboardAudioStartTime: React.Dispatch<React.SetStateAction<number>>;
   isRemixAudio?: boolean;
@@ -189,6 +189,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
     setIsDragging(handle);
   }, [isPlaying]);
@@ -199,6 +200,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
     setIsDragging(handle);
   }, [isPlaying]);
@@ -210,6 +212,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
   }, [isPlaying]);
 
@@ -220,6 +223,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     wasPlayingBeforeScrubRef.current = isPlaying;
     if (isPlaying) {
       videoRef.current?.pause();
+      audioRef.current?.pause();
     }
   }, [isPlaying]);
 
@@ -281,13 +285,27 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       if (videoRef.current) {
         videoRef.current.currentTime = startTime;
         videoRef.current.play();
+        
+        // Also resume background audio if it exists
+        if (audioRef.current && audio && selectedClip) {
+          const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+          const audioCurrentTime = audioStartTime + (startTime - selectedClip.startTime);
+          playAudioSafely(audioRef.current, audioCurrentTime);
+        }
       }
     } else if (isDraggingPlayhead && wasPlayingBeforeScrubRef.current && videoRef.current) {
       videoRef.current.play();
+      
+      // Also resume background audio if it exists
+      if (audioRef.current && audio && selectedClip) {
+        const audioStartTime = getAudioStartTimeForClip(selectedClip.id);
+        const audioCurrentTime = audioStartTime + (videoRef.current.currentTime - selectedClip.startTime);
+        playAudioSafely(audioRef.current, audioCurrentTime);
+      }
     }
     setIsDragging(null);
     setIsDraggingPlayhead(false);
-  }, [isDragging, isDraggingPlayhead, startTime]);
+  }, [isDragging, isDraggingPlayhead, startTime, selectedClip, audio]);
 
   useEffect(() => {
     if (isDragging || isDraggingPlayhead) {
@@ -410,7 +428,12 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   // Memoize audio URL to prevent constant reloading
   const audioSrc = useMemo(() => {
     if (!audio) return null;
-    return typeof audio === 'string' ? audio : URL.createObjectURL(audio);
+    if (typeof audio === 'string') return audio;
+    if (audio instanceof File) return URL.createObjectURL(audio);
+    // Handle library audio objects that have url property
+    if (audio.url) return audio.url;
+    if (audio.preview) return audio.preview;
+    return null;
   }, [audio]);
 
   // Cleanup blob URLs when component unmounts or audio changes
@@ -437,12 +460,35 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   // Helper function to safely play audio
   const playAudioSafely = async (audioElement: HTMLAudioElement, targetTime: number) => {
     if (!audioLoaded) {
+      console.log('[StoryboardModal] Audio not loaded yet, skipping playback');
       return;
     }
     
     try {
+      // Ensure audio element is ready
+      if (audioElement.readyState < 2) {
+        console.log('[StoryboardModal] Audio not ready, waiting for canplay event');
+        await new Promise((resolve) => {
+          const handleCanPlay = () => {
+            audioElement.removeEventListener('canplay', handleCanPlay);
+            resolve(true);
+          };
+          audioElement.addEventListener('canplay', handleCanPlay);
+          // Timeout after 2 seconds
+          setTimeout(() => {
+            audioElement.removeEventListener('canplay', handleCanPlay);
+            resolve(false);
+          }, 2000);
+        });
+      }
+      
       audioElement.currentTime = targetTime;
-      await audioElement.play();
+      const playPromise = audioElement.play();
+      
+      if (playPromise !== undefined) {
+        await playPromise;
+        console.log('[StoryboardModal] Background audio playing at', targetTime);
+      }
     } catch (error) {
       // Ignore play interruption errors
       if (error instanceof Error && error.name !== 'AbortError') {
@@ -803,7 +849,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                   <div className="flex items-center gap-6">
                     <MusicNoteIcon className="w-5 h-5 text-white" />
                     <span className="text-white text-sm">
-                      {typeof audio === 'string' ? 'audio.mp3' : audio.name}
+                      {typeof audio === 'string' ? 'audio.mp3' : (audio instanceof File ? audio.name : audio.name || 'audio.mp3')}
                     </span>
                     <span className="text-white/60 text-sm">
                       ({formatTime(storyboardAudioStartTime, false)} - {formatTime(storyboardAudioStartTime + storyboardDuration, false)})
