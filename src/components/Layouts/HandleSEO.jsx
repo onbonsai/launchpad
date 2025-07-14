@@ -62,14 +62,11 @@ const generateMetaTags = (title, description, url, imageUrl, type = "website", i
       <meta property="og:site_name" content="Bonsai" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@onbonsai" />
-      <meta name="twitter:creator" content="@onbonsai" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
       <meta name="twitter:image:alt" content={imageAlt} />
       <meta name="twitter:player" content={url} />
-      <meta name="twitter:player:width" content="360" />
-      <meta name="twitter:player:height" content="560" />
       <meta name="theme-color" content="#141414" />
       <link rel="canonical" href={url} />
       <link rel="llms" href={`${SITE_URL}/llms.txt`} />
@@ -158,7 +155,6 @@ const HandleSEO = ({ pageProps, query }) => {
 
   // Default page
   const description = "Create & monetize evolving media";
-  const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent("https://app.onbons.ai/opengraph-image.jpg")}`;
 
   // Consider Signup / Budget flow
   const frameData = { ...frameDataTemplate };
@@ -171,7 +167,7 @@ const HandleSEO = ({ pageProps, query }) => {
   return (
     <Head>
       <meta name="viewport" content="initial-scale=1, width=device-width" />
-      {generateMetaTags("Bonsai", description, SITE_URL, ogImageUrl)}
+      {generateMetaTags("Bonsai", description, SITE_URL, "https://app.onbons.ai/opengraph-image.jpg")}
       <meta name="fc:frame" content={JSON.stringify(frameData)} />
     </Head>
   );
