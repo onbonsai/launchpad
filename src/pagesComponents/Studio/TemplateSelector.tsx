@@ -154,13 +154,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           </div>
         </div>
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-          {template?.estimatedCost && (
+          {/* {template?.estimatedCost && (
             <div className="flex items-center text-sm text-brand-highlight border border-dark-grey rounded-lg px-1.5 py-0.5 w-fit bg-background">
               <CashIcon className="h-3 w-3 mr-1" />
               {template.estimatedCost.toFixed(1)}
               {template.templateData.form.shape.enableVideo ? ` - ${(template.estimatedCost + 26).toFixed(1)}` : ''}
             </div>
-          )}
+          )} */}
           {!isLoadingCredits && estimatedGenerations !== undefined && (
             <button
               className="text-sm text-black px-2 py-0.5 rounded-lg bg-brand-highlight hover:bg-brand-highlight/90 transition-colors"

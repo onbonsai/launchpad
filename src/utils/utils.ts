@@ -6,7 +6,7 @@ import { formatDistanceToNowStrict } from 'date-fns'
 import { getRecentPosts } from "@src/services/lens/getRecentPosts";
 import { MADFI_BOUNTIES_URL, SITE_URL } from "@src/constants/constants";
 import { MetadataAttribute } from "@lens-protocol/metadata";
-import { Template } from "@src/services/madfi/studio";
+import { ELIZA_API_URL, Template } from "@src/services/madfi/studio";
 
 const bucketToLinkKey = {
   seo: "jvxdv5ynbbikx455wrdynvc7tyhq",
@@ -588,7 +588,7 @@ export const cacheVideoToStorj = async (videoData: string | Blob, id: string, bu
   formData.append('id', id);
   formData.append('bucket', bucket);
 
-  const response = await fetch('/api/storj/cache-video', {
+  const response = await fetch(`${ELIZA_API_URL}/storj/cache-video`, {
     method: 'POST',
     body: formData // No need to set Content-Type, browser will set it with boundary
   });
