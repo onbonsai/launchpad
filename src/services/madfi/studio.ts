@@ -192,12 +192,13 @@ export const enhancePrompt = async (
   idToken: string,
   template: Template,
   prompt: string,
+  templateData?: any,
 ): Promise<string | undefined> => {
   try {
     const response = await fetch(`${url}/post/enhance-prompt`, {
       method: "POST",
       headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, template: template.name }),
+      body: JSON.stringify({ prompt, template: template.name, templateData }),
     });
 
     if (!response.ok) {
