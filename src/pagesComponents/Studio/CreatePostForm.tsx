@@ -384,7 +384,7 @@ const CreatePostForm = ({
     let toastId = toast.loading("Enhancing your prompt...");
 
     try {
-      const enhanced = await enhancePrompt(template.apiUrl, idToken, template, prompt, finalTemplateData);
+      const enhanced = await enhancePrompt(template.apiUrl, idToken, template, prompt, templateData);
       if (!enhanced) throw new Error("No enhanced prompt returned");
 
       // Start animation
