@@ -612,13 +612,13 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       setStreamEntries(prev => prev.filter(entry => {
         // Keep all non-temporary entries
         if (!entry.isTemporary) return true;
-        
+
         // Check if this temporary message now exists in messageHistory
-        const existsInHistory = messageHistory.some(msg => 
-          msg.content.source === "bonsai-terminal" && 
+        const existsInHistory = messageHistory.some(msg =>
+          msg.content.source === "bonsai-terminal" &&
           msg.content.text === entry.content.split('\n')[0]
         );
-        
+
         // Keep temporary messages that aren't in history yet
         return !existsInHistory;
       }));
@@ -670,7 +670,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       // Store the user input before clearing it
       const messageContent = userInput.trim() + (imageURL ? `\n${imageURL}` : '');
       const originalUserInput = userInput.trim();
-      
+
       setUserInput('');
       setAttachment(undefined);
       setRequireBonsaiPayment(undefined);
@@ -682,7 +682,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         content: messageContent,
         isTemporary: true, // Mark it as temporary
       };
-      
+
       setStreamEntries((prev) => [...prev, tempUserMessage]);
 
       // Call postChat but don't rely on its onSuccess callback since it might be unreliable
@@ -998,6 +998,18 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // Helper function to extract the last frame from a video
   const extractLastFrameFromVideo = (video: any): Promise<string> => {
     return new Promise((resolve, reject) => {
+      // Check if we actually have video data
+      if (!video) {
+        reject(new Error('No video data provided'));
+        return;
+      }
+
+      // If the video is already an image (data URL), return it directly
+      if (typeof video === 'string' && video.startsWith('data:image/')) {
+        resolve(video);
+        return;
+      }
+
       const videoElement = document.createElement('video');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -1028,19 +1040,29 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         }
       };
 
-      videoElement.onerror = () => {
-        reject(new Error('Failed to load video'));
+      videoElement.onerror = (e) => {
+        reject(new Error(`Failed to load video: ${e}`));
       };
 
       // Handle different video source types
-      if (typeof video === 'string') {
-        videoElement.src = video;
-      } else if (video.url) {
-        videoElement.src = video.url;
-      } else if (video.blob) {
-        videoElement.src = URL.createObjectURL(video.blob);
-      } else {
-        reject(new Error('Invalid video source'));
+      try {
+        if (typeof video === 'string') {
+          // Check if it's a data URL for an image - this should not happen for video
+          if (video.startsWith('data:image/')) {
+            resolve(video);
+            return;
+          }
+          videoElement.src = video;
+        } else if (video.url) {
+          videoElement.src = video.url;
+        } else if (video.blob) {
+          videoElement.src = URL.createObjectURL(video.blob);
+        } else {
+          reject(new Error('Invalid video source'));
+          return;
+        }
+      } catch (error) {
+        reject(new Error(`Failed to set video source: ${error}`));
       }
     });
   };
@@ -1213,7 +1235,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
     // Track user message IDs from backend to filter out temporary ones
     const backendUserMessageContents = new Set<string>();
-    
+
     // Add message history
     if (messageHistory && messageHistory.length > 0) {
       messageHistory.forEach((message) => {
@@ -1221,7 +1243,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         if (message.content.source === "bonsai-terminal") {
           backendUserMessageContents.add(message.content.text);
         }
-        
+
         messages.push({
           type: 'message',
           timestamp: new Date(message.createdAt as number),
@@ -1237,7 +1259,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       if (entry.type === 'user' && entry.isTemporary && backendUserMessageContents.has(entry.content)) {
         return;
       }
-      
+
       // Add all agent messages and temporary user messages not yet in backend
       if (entry.type === 'agent' || (entry.type === 'user' && entry.isTemporary)) {
         messages.push({

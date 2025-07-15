@@ -785,7 +785,7 @@ const StudioCreatePage: NextPage = () => {
 
     // Preserve current template data before switching templates
     const previousTemplateData = { ...finalTemplateData };
-    
+
     handleTemplateSelect(videoTemplate);
 
     // Restore and merge previous template data with new template
@@ -833,7 +833,7 @@ const StudioCreatePage: NextPage = () => {
 
       // Preserve current template data before switching templates
       const previousTemplateData = { ...finalTemplateData };
-      
+
       handleTemplateSelect(videoTemplate);
 
       // Restore and merge previous template data with new template
@@ -872,6 +872,18 @@ const StudioCreatePage: NextPage = () => {
   // Helper function to extract the last frame from a video
   const extractLastFrameFromVideo = (video: any): Promise<string> => {
     return new Promise((resolve, reject) => {
+      // Check if we actually have video data
+      if (!video) {
+        reject(new Error('No video data provided'));
+        return;
+      }
+
+      // If the video is already an image (data URL), return it directly
+      if (typeof video === 'string' && video.startsWith('data:image/')) {
+        resolve(video);
+        return;
+      }
+
       const videoElement = document.createElement('video');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -902,19 +914,29 @@ const StudioCreatePage: NextPage = () => {
         }
       };
 
-      videoElement.onerror = () => {
-        reject(new Error('Failed to load video'));
+      videoElement.onerror = (e) => {
+        reject(new Error(`Failed to load video: ${e}`));
       };
 
       // Handle different video source types
-      if (typeof video === 'string') {
-        videoElement.src = video;
-      } else if (video.url) {
-        videoElement.src = video.url;
-      } else if (video.blob) {
-        videoElement.src = URL.createObjectURL(video.blob);
-      } else {
-        reject(new Error('Invalid video source'));
+      try {
+        if (typeof video === 'string') {
+          // Check if it's a data URL for an image - this should not happen for video
+          if (video.startsWith('data:image/')) {
+            resolve(video);
+            return;
+          }
+          videoElement.src = video;
+        } else if (video.url) {
+          videoElement.src = video.url;
+        } else if (video.blob) {
+          videoElement.src = URL.createObjectURL(video.blob);
+        } else {
+          reject(new Error('Invalid video source'));
+          return;
+        }
+      } catch (error) {
+        reject(new Error(`Failed to set video source: ${error}`));
       }
     });
   };
