@@ -51,12 +51,14 @@ export type Preview = {
   text?: string;
   templateName?: string
   image?: any;
+  imageUrl?: string;
   imagePreview?: string;
   templateData?: any;
   video?: {
     mimeType: string;
     size: number;
     buffer: ArrayBuffer;
+    url?: string;
   };
 };
 
@@ -236,6 +238,8 @@ const generatePreviewImpl = async (
               size: videoBlob.size,
               buffer: videoBuffer,
             },
+            videoUrl: data.preview.video.url,
+            imageUrl: data.preview.imageUrl,
             ...(imageData && { image: imageData }),
             ...(processedStoryboard && { storyboard: processedStoryboard }),
             text: data.preview.text,
@@ -282,6 +286,7 @@ const generatePreviewImpl = async (
                         mimeType: clip.preview.video.mimeType,
                         size: clipVideoBlob.size,
                         buffer: clipVideoBuffer,
+                        url: clip.preview.video.url,
                       }
                     }
                   };

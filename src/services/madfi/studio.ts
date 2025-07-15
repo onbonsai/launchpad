@@ -112,6 +112,8 @@ export type Preview = {
   templateName?: string
   image?: any;
   imagePreview?: string;
+  imageUrl?: string;
+  videoUrl?: string;
   templateData?: any;
   video?: {
     mimeType: string;

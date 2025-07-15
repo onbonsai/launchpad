@@ -217,8 +217,6 @@ const StudioCreatePage: NextPage = () => {
         // Deep clone the result to prevent mutation of shared objects in the state
         const result = cloneDeep(event.data.result);
 
-
-
         if (result.preview?.video?.buffer) {
           const videoBlob = new Blob([result.preview.video.buffer], { type: result.preview.video.mimeType });
           result.preview.video.url = URL.createObjectURL(videoBlob);
@@ -1322,8 +1320,9 @@ const StudioCreatePage: NextPage = () => {
             startTime: clip.startTime,
             endTime: clip.endTime,
             templateData: {
-              video: clip.preview.video,
-              image: clip.preview.image,
+              video: { url: clip.preview.video?.url?.startsWith("https://") ? clip.preview.video.url : clip.preview.videoUrl },
+              image: clip.preview.image?.startsWith("https://") ? clip.preview.image : clip.preview.imageUrl,
+              prompt: clip.preview.text,
               ...clip.templateData,
             },
           })),
