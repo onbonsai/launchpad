@@ -318,7 +318,7 @@ const TokenPage: NextPage = () => {
     }
   };
 
-  const handleUnstake = async (stakeIndex: number) => {
+  const handleUnstake = async (stakeIndex: bigint) => {
     try {
       if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
@@ -844,7 +844,7 @@ const TokenPage: NextPage = () => {
                     <h3 className="text-sm font-medium text-brand-highlight mb-4">Active Stakes</h3>
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                       {/* Existing stakes */}
-                      {activeStakes.map((stake, index) => (
+                      {activeStakes.map(stake => (
                         <div key={stake.id} className="flex items-center justify-between p-4 bg-card-light rounded-lg">
                           <div>
                             <div className="text-lg font-semibold">{formatStakingAmount(stake.amount)} $BONSAI</div>
@@ -866,7 +866,7 @@ const TokenPage: NextPage = () => {
                               variant="dark-grey"
                               size="sm"
                               className="hover:bg-bullish"
-                              onClick={() => handleUnstake(index)}
+                              onClick={() => handleUnstake(BigInt(stake.stakeIndex))}
                               disabled={Date.now() < Number(stake.unlockTime) * 1000}
                             >
                               Unstake

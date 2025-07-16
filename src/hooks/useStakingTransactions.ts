@@ -57,7 +57,7 @@ export const useStakingTransactions = () => {
     }
   };
 
-  const unstake = async (walletClient, stakeIndex: number) => {
+  const unstake = async (walletClient, stakeIndex: bigint) => {
     if (!walletClient) {
       toast.error('Please connect your wallet');
       return;
