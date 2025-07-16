@@ -23,7 +23,7 @@ const HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
 const MAX_DISMISSALS = 2;
 
 const PWAInstallPrompt: React.FC = () => {
-  const [deferredPrompisMiniAppt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isStandalone } = usePWA();
   const isMobile = useIsMobile();
