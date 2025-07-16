@@ -163,24 +163,24 @@ const CreatePostForm = ({
   }, [finalTemplateData]);
 
   // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds
-  useEffect(() => {
-    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
-    const showTooltipTimer = setTimeout(() => {
-      if (shape.enableMaxMode) {
-        setShowMaxModeTooltip(true);
-        maxModeTooltipTimeoutRef.current = setTimeout(() => {
-          setShowMaxModeTooltip(false);
-        }, 5000);
-      }
-    }, 5000);
+  // useEffect(() => {
+  //   const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+  //   const showTooltipTimer = setTimeout(() => {
+  //     if (shape.enableMaxMode) {
+  //       setShowMaxModeTooltip(true);
+  //       maxModeTooltipTimeoutRef.current = setTimeout(() => {
+  //         setShowMaxModeTooltip(false);
+  //       }, 5000);
+  //     }
+  //   }, 5000);
 
-    return () => {
-      clearTimeout(showTooltipTimer);
-      if (maxModeTooltipTimeoutRef.current) {
-        clearTimeout(maxModeTooltipTimeoutRef.current);
-      }
-    };
-  }, [template.templateData.form]);
+  //   return () => {
+  //     clearTimeout(showTooltipTimer);
+  //     if (maxModeTooltipTimeoutRef.current) {
+  //       clearTimeout(maxModeTooltipTimeoutRef.current);
+  //     }
+  //   };
+  // }, [template.templateData.form]);
 
   // Lock aspect ratio to horizontal when subject reference is present, MAX Mode is enabled, or Veo models are selected
   useEffect(() => {
