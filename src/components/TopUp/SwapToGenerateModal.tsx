@@ -227,7 +227,7 @@ export const SwapToGenerateModal = ({
                 key: PARAM__AMOUNT_OUT_MINIMUM,
                 value: encodeAbiParameters(
                   [{ type: "uint256" }],
-                  [0n],
+                  [club && !club.complete ? 105n * requiredWgho / 100n : 0n],
                 ),
               },
               { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
