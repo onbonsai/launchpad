@@ -53,6 +53,7 @@ interface SwapToGenerateModalProps {
   };
   postId: string;
   creditsNeeded: number;
+  refetchCredits: () => void;
   onSuccess: () => void;
 }
 
@@ -65,6 +66,7 @@ export const SwapToGenerateModal = ({
   token,
   postId,
   creditsNeeded,
+  refetchCredits,
   onSuccess,
 }: SwapToGenerateModalProps) => {
   const { address, isConnected, chain } = useAccount();
@@ -214,7 +216,7 @@ export const SwapToGenerateModal = ({
             PROTOCOL_DEPLOYMENT.lens.RewardSwap,
             // if output is Bonsai, use the global feed, since its a specific post
             token.address == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
-            postId ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
+            postId && token.address != PROTOCOL_DEPLOYMENT.lens.Bonsai ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
             [
               { key: PARAM__PATH, value: encodeAbiParameters([{ type: "bytes" }], [calculatePath(token.address)]) },
               {
@@ -225,7 +227,7 @@ export const SwapToGenerateModal = ({
                 key: PARAM__AMOUNT_OUT_MINIMUM,
                 value: encodeAbiParameters(
                   [{ type: "uint256" }],
-                  [club.complete ? 0n : parseUnits(selectedAmount.toString(), DECIMALS)],
+                  [0n],
                 ),
               },
               { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
@@ -292,6 +294,8 @@ export const SwapToGenerateModal = ({
       if (response.status !== 200) {
         throw new Error("Failed to update credits");
       }
+
+      refetchCredits();
     } catch (error) {
       console.error("Error updating credits:", error);
       toast.error("Failed to update credits", { id: toastId });

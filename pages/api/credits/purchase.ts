@@ -56,24 +56,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid sender address" });
     }
 
-    // Calculate credits based on the amount paid with dynamic pricing
-    const decimals = chain === "base" ? USDC_DECIMALS : 18;
-    const amountPaid = Number(formatUnits(value, decimals));
+    // Calculate credits - use provided price if available, otherwise use dynamic pricing
+    let credits;
     
-    // Dynamic pricing: 
-    // - Less than $35: 1.5 cents per credit
-    // - $35 or greater: 1.25 cents per credit
-    // Then subtract 1 cent from the total price
-    const adjustedAmount = amountPaid + 0.01; // Add back the 1 cent that was subtracted
-    
-    let creditsPerDollar;
-    if (adjustedAmount < 35) {
-      creditsPerDollar = 100 / 1.5; // 1.5 cents per credit = 66.67 credits per dollar
+    if (price && typeof price === "number" && price > 0) {
+      // Use the provided price override (credits per dollar)
+      const decimals = chain === "base" ? USDC_DECIMALS : 18;
+      const amountPaid = Number(formatUnits(value, decimals));
+      credits = Math.floor(amountPaid * price);
     } else {
-      creditsPerDollar = 100 / 1.25; // 1.25 cents per credit = 80 credits per dollar
+      // Calculate credits based on the amount paid with dynamic pricing
+      const decimals = chain === "base" ? USDC_DECIMALS : 18;
+      const amountPaid = Number(formatUnits(value, decimals));
+      
+      // Dynamic pricing: 
+      // - Less than $35: 1.5 cents per credit
+      // - $35 or greater: 1.25 cents per credit
+      // Then subtract 1 cent from the total price
+      const adjustedAmount = amountPaid + 0.01; // Add back the 1 cent that was subtracted
+      
+      let creditsPerDollar;
+      if (adjustedAmount < 35) {
+        creditsPerDollar = 100 / 1.5; // 1.5 cents per credit = 66.67 credits per dollar
+      } else {
+        creditsPerDollar = 100 / 1.25; // 1.25 cents per credit = 80 credits per dollar
+      }
+      
+      credits = Math.floor(adjustedAmount * creditsPerDollar);
     }
-    
-    const credits = Math.floor(adjustedAmount * creditsPerDollar);
 
     if (!credits || credits <= 0) {
       return res.status(400).json({ error: "Invalid transfer amount" });

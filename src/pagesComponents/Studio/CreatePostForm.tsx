@@ -246,7 +246,8 @@ const CreatePostForm = ({
         openSwapToGenerateModal({
           token: _token,
           postId: remixPostId,
-          creditsNeeded: creditsNeeded,
+          creditsNeeded: Math.ceil(creditsNeeded) + 1,
+          refetchCredits,
           onSuccess: () => {
             _generatePreview();
           }
