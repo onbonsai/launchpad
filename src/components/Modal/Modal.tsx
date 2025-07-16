@@ -20,9 +20,10 @@ interface ModalProps {
     leaveTo: string;
   };
   disableAnimation?: boolean;
+  disableSwipeToClose?: boolean;
 }
 
-export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelClassnames, static: isStatic, transitionProps, disableAnimation = false }) => {
+export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelClassnames, static: isStatic, transitionProps, disableAnimation = false, disableSwipeToClose = false }) => {
   const isMobile = useIsMobile();
   const panelRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
@@ -41,7 +42,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
   }, [open]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isMobile) return;
+    if (!isMobile || disableSwipeToClose) return;
     
     const touch = e.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
@@ -50,7 +51,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile || !touchStart) return;
+    if (!isMobile || !touchStart || disableSwipeToClose) return;
 
     const touch = e.touches[0];
     const currentTouchMove = { x: touch.clientX, y: touch.clientY };
@@ -70,7 +71,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
   };
 
   const handleTouchEnd = () => {
-    if (!isMobile || !touchStart || !touchMove) {
+    if (!isMobile || !touchStart || !touchMove || disableSwipeToClose) {
       setTouchStart(null);
       setTouchMove(null);
       setIsDragging(false);
@@ -141,17 +142,17 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
                 className={`backdrop-blur-[40px] bg-card relative text-left shadow-xl w-full max-h-[90vh] md:max-h-none md:my-8 md:max-w-lg md:min-w-[512px] overflow-auto h-auto md:p-4
                   ${isMobile ? 'rounded-t-2xl pb-6' : 'rounded-lg'} ${panelClassnames}`
                 }
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                style={isDragging ? {
+                onTouchStart={disableSwipeToClose ? undefined : handleTouchStart}
+                onTouchMove={disableSwipeToClose ? undefined : handleTouchMove}
+                onTouchEnd={disableSwipeToClose ? undefined : handleTouchEnd}
+                style={isDragging && !disableSwipeToClose ? {
                   transform: getTransform(),
                   opacity: getOpacity(),
                   transition: 'none'
                 } : {}}
               >
                 {/* Swipe indicator for mobile */}
-                {isMobile && (
+                {isMobile && !disableSwipeToClose && (
                   <div className="flex justify-center pt-2 pb-2">
                     <div className="w-10 h-1 bg-gray-300 rounded-full" />
                   </div>

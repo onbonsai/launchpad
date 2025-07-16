@@ -6,6 +6,7 @@ import { Button } from '@src/components/Button';
 import { Modal } from '@src/components/Modal';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { AudioUploader } from '@src/components/AudioUploader/AudioUploader';
+import useIsMobile from '@src/hooks/useIsMobile';
 
 interface StoryboardModalProps {
   isOpen: boolean;
@@ -45,6 +46,12 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const timelineRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const wasPlayingBeforeScrubRef = useRef(false);
+  const isMobile = useIsMobile();
+  
+  // Press and hold drag functionality (mobile only)
+  const [isDragModeActive, setIsDragModeActive] = useState(false);
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [pressedClipId, setPressedClipId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!audio) {
@@ -138,8 +145,17 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
     if (!isOpen) {
       // Reset body styles in case modal was closed during drag
       document.body.style.userSelect = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      // Reset drag mode
+      setIsDragModeActive(false);
+      setPressedClipId(null);
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        setPressTimer(null);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, pressTimer]);
 
   const formatTime = (time: number, showMilliseconds = true) => {
     const minutes = Math.floor(time / 60);
@@ -379,6 +395,12 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   const onDragEnd = (result: DropResult) => {
     // Re-enable body scroll and text selection
     document.body.style.userSelect = '';
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+
+    // Reset drag mode
+    setIsDragModeActive(false);
+    setPressedClipId(null);
 
     const { destination, source } = result;
     if (!destination) return;
@@ -391,11 +413,63 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
   };
 
   const handleClipSelect = (clip: StoryboardClip) => {
+    // Don't allow selection if we're in drag mode
+    if (isDragModeActive) return;
+    
     if (selectedClip?.id === clip.id) {
       setSelectedClip(null); // Deselect if clicking the same clip
     } else {
       setSelectedClip(clip);
     }
+  };
+
+  // Press and hold handlers for drag activation (mobile only)
+  const handlePressStart = (clipId: string, e: React.TouchEvent | React.MouseEvent) => {
+    // Only activate on mobile
+    if (!isMobile) return;
+    
+    // Clear any existing timer
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+    }
+
+    setPressedClipId(clipId);
+    
+    // Start timer for long press (600ms)
+    const timer = setTimeout(() => {
+      setIsDragModeActive(true);
+      // Provide haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      // Disable body scroll when drag mode activates
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    }, 600);
+    
+    setPressTimer(timer);
+  };
+
+  const handlePressEnd = () => {
+    // Clear the timer if press ends before long press threshold
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
+    
+    // If drag mode was never activated, reset pressed clip
+    if (!isDragModeActive) {
+      setPressedClipId(null);
+    }
+  };
+
+  const handlePressCancel = () => {
+    // Cancel the long press (e.g., if user moves finger too much)
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
+    setPressedClipId(null);
   };
 
   const renderTimelineTicks = (duration: number) => {
@@ -503,6 +577,7 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
       onClose={onClose}
       setOpen={(open: boolean) => !open && onClose()}
       panelClassnames="!max-w-6xl !min-w-0 w-full"
+      disableSwipeToClose={true}
     >
       <div className="p-6">
         {/* Header */}
@@ -595,7 +670,8 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                   <div className="relative">
                     <div
                       ref={timelineRef}
-                      className="h-8 bg-zinc-700/50 rounded-lg relative cursor-pointer touch-pan-x"
+                      className="h-8 bg-zinc-700/50 rounded-lg relative cursor-pointer"
+                      style={{ touchAction: 'pan-x' }}
                       onClick={handleTimelineClick}
                     >
                       {/* Ticks */}
@@ -613,7 +689,11 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                       {/* Current time indicator handle */}
                       <div
                         className="absolute top-1/2 -translate-y-1/2 w-4 h-[calc(100%+8px)] cursor-ew-resize z-30 group"
-                        style={{ left: `${currentPercentage}%`, transform: 'translateX(-50%) translateY(-50%)' }}
+                        style={{ 
+                          left: `${currentPercentage}%`, 
+                          transform: 'translateX(-50%) translateY(-50%)',
+                          touchAction: 'none'
+                        }}
                         onMouseDown={handlePlayheadMouseDown}
                         onTouchStart={handlePlayheadTouchStart}
                       >
@@ -622,16 +702,24 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
 
                       {/* Start handle */}
                       <div
-                        className="absolute top-1/2 -translate-y-1/2 w-4 h-full bg-blue-500 rounded-l-md cursor-ew-resize z-20 hover:bg-blue-400 transition-colors touch-manipulation"
-                        style={{ left: `${startPercentage}%`, transform: 'translateY(-50%)' }}
+                        className="absolute top-1/2 -translate-y-1/2 w-4 h-full bg-blue-500 rounded-l-md cursor-ew-resize z-20 hover:bg-blue-400 transition-colors"
+                        style={{ 
+                          left: `${startPercentage}%`, 
+                          transform: 'translateY(-50%)',
+                          touchAction: 'none'
+                        }}
                         onMouseDown={handleHandleMouseDown('start')}
                         onTouchStart={handleHandleTouchStart('start')}
                       />
 
                       {/* End handle */}
                       <div
-                        className="absolute top-1/2 -translate-y-1/2 w-4 h-full bg-blue-500 rounded-r-md cursor-ew-resize z-20 hover:bg-blue-400 transition-colors touch-manipulation"
-                        style={{ left: `${endPercentage}%`, transform: 'translateX(-100%) translateY(-50%)' }}
+                        className="absolute top-1/2 -translate-y-1/2 w-4 h-full bg-blue-500 rounded-r-md cursor-ew-resize z-20 hover:bg-blue-400 transition-colors"
+                        style={{ 
+                          left: `${endPercentage}%`, 
+                          transform: 'translateX(-100%) translateY(-50%)',
+                          touchAction: 'none'
+                        }}
                         onMouseDown={handleHandleMouseDown('end')}
                         onTouchStart={handleHandleTouchStart('end')}
                       />
@@ -703,10 +791,33 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
           {/* Clips Timeline */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Clips</h3>
+            {/* Mobile instruction */}
+            <div className="text-xs text-gray-400 mb-3 md:hidden">
+              Scroll horizontally to see more clips • Press and hold a clip to drag and reorder
+            </div>
+
+            {/* Drag mode active indicator (mobile only) */}
+            {isMobile && isDragModeActive && (
+              <div className="bg-yellow-400 text-black text-sm font-semibold px-4 py-2 rounded-lg mb-4 flex items-center justify-between">
+                <span>🚀 Drag Mode Active - Release to exit</span>
+                <button 
+                  onClick={() => {
+                    setIsDragModeActive(false);
+                    setPressedClipId(null);
+                    document.body.style.overflow = '';
+                    document.body.style.touchAction = '';
+                  }}
+                  className="bg-black/20 hover:bg-black/30 px-2 py-1 rounded text-xs"
+                >
+                  Exit
+                </button>
+              </div>
+            )}
+
             <DragDropContext
               onDragEnd={onDragEnd}
               onDragStart={() => {
-                // Disable body scroll during drag to prevent positioning issues
+                // Additional body scroll prevention during actual drag
                 document.body.style.userSelect = 'none';
               }}
               onDragUpdate={() => {
@@ -757,55 +868,93 @@ const StoryboardModal: React.FC<StoryboardModalProps> = ({
                 )}
               >
                 {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="flex space-x-3 overflow-x-auto pb-3 pt-1 pl-1"
-                  >
-                    {clips.map((clip, index) => (
-                      <Draggable key={clip.id} draggableId={clip.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            onClick={() => handleClipSelect(clip)}
-                            className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all ${
-                              selectedClip?.id === clip.id
-                                ? 'ring-2 ring-blue-500 shadow-lg'
-                                : 'hover:ring-1 hover:ring-blue-300'
-                            } ${snapshot.isDragging ? 'opacity-50' : ''}`}
-                            style={provided.draggableProps.style}
-                          >
-                            <img
-                              src={clip.preview.imagePreview || clip.preview.image}
-                              alt={`Clip ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-2">
-                              <div className="flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeClip(clip.id);
-                                  }}
-                                  className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                  title="Remove clip"
-                                >
-                                  <XCircleIcon className="w-5 h-5" />
-                                </button>
-                              </div>
-                              <div className="flex justify-between items-end">
-                                <span className="text-white text-xs font-mono bg-black/60 px-1.5 py-0.5 rounded">
-                                  {index + 1}
-                                </span>
-                                {selectedClip?.id === clip.id && (
-                                  <ScissorsIcon className="w-4 h-4 text-blue-400" />
+                                      <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="flex space-x-3 overflow-x-auto pb-3 pt-1 pl-1"
+                      style={{ 
+                        touchAction: isMobile && isDragModeActive ? 'none' : 'pan-x',
+                        WebkitOverflowScrolling: 'touch'
+                      }}
+                    >
+                      {clips.map((clip, index) => (
+                        <Draggable 
+                          key={clip.id} 
+                          draggableId={clip.id} 
+                          index={index}
+                          isDragDisabled={isMobile ? !isDragModeActive : false}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...(isMobile ? (isDragModeActive ? provided.dragHandleProps : {}) : provided.dragHandleProps)}
+                              onClick={() => handleClipSelect(clip)}
+                              onMouseDown={(e) => handlePressStart(clip.id, e)}
+                              onMouseUp={handlePressEnd}
+                              onMouseLeave={handlePressCancel}
+                              onTouchStart={(e) => handlePressStart(clip.id, e)}
+                              onTouchEnd={handlePressEnd}
+                              onTouchMove={handlePressCancel}
+                              className={`relative flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden group cursor-pointer transition-all select-none ${
+                                selectedClip?.id === clip.id
+                                  ? 'ring-2 ring-blue-500 shadow-lg'
+                                  : 'hover:ring-1 hover:ring-blue-300'
+                              } ${snapshot.isDragging ? 'opacity-50' : ''} ${
+                                isMobile && pressedClipId === clip.id ? 'scale-95' : ''
+                              } ${isMobile && isDragModeActive && pressedClipId === clip.id ? 'ring-2 ring-yellow-400 shadow-lg' : ''}`}
+                              style={{
+                                ...provided.draggableProps.style,
+                                transition: snapshot.isDragging ? 'none' : 'all 0.2s ease',
+                              }}
+                                                          >
+                                <img
+                                  src={clip.preview.imagePreview || clip.preview.image}
+                                  alt={`Clip ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                
+                                {/* Press and hold indicator (mobile only) */}
+                                {isMobile && pressedClipId === clip.id && !isDragModeActive && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                                    <div className="flex flex-col items-center space-y-2">
+                                      <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                                      <span className="text-white text-xs font-medium">Hold to drag</span>
+                                    </div>
+                                  </div>
                                 )}
+                                
+                                {/* Drag mode indicator (mobile only) */}
+                                {isMobile && isDragModeActive && pressedClipId === clip.id && (
+                                  <div className="absolute top-2 left-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">
+                                    DRAG MODE
+                                  </div>
+                                )}
+
+                                <div className="absolute inset-0 bg-black/50 flex flex-col justify-between p-2">
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeClip(clip.id);
+                                      }}
+                                      className="text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Remove clip"
+                                    >
+                                      <XCircleIcon className="w-5 h-5" />
+                                    </button>
+                                  </div>
+                                  <div className="flex justify-between items-end">
+                                    <span className="text-white text-xs font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                                      {index + 1}
+                                    </span>
+                                    {selectedClip?.id === clip.id && (
+                                      <ScissorsIcon className="w-4 h-4 text-blue-400" />
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
                         )}
                       </Draggable>
                     ))}
