@@ -1,7 +1,6 @@
 import { MongoClient, Db } from "mongodb";
 import { formatEther } from "viem";
 import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client/core";
-import fetch from "cross-fetch";
 import { NextApiRequest, NextApiResponse } from "next";
 
 // Configuration from cron job
@@ -50,7 +49,7 @@ const STAKING_SUMMARY_QUERY = gql`
 
 function createSubgraphClient() {
   return new ApolloClient({
-    link: new HttpLink({ uri: SUBGRAPH_URL, fetch }),
+    link: new HttpLink({ uri: SUBGRAPH_URL }),
     cache: new InMemoryCache(),
     defaultOptions: {
       query: {
