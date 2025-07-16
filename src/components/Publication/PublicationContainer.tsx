@@ -689,7 +689,7 @@ const PublicationContainer = ({
       {/* Web share button for PWA */}
       {isStandalone && (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${isCreator ? 'right-[6.5rem]' : 'right-14'}` : `bottom-3 ${isCreator ? 'right-[6rem]' : 'right-12'}`}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${isCreator ? 'right-[6.5rem]' : 'right-14'}` : `bottom-3 ${isCreator ? 'right-[5.3rem]' : 'right-12'}`}`}
           onClick={(e) => {
             e.stopPropagation();
             handleWebShare();
