@@ -36,6 +36,9 @@ import { ChatIcon } from "@heroicons/react/outline";
 import useIsMobile from "@src/hooks/useIsMobile";
 import clsx from "clsx";
 import { Tooltip } from "@src/components/Tooltip";
+import { usePWA } from "@src/hooks/usePWA";
+import { sharePost } from "@src/utils/webShare";
+import { ShareIcon } from "@heroicons/react/outline";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -122,6 +125,7 @@ const PublicationContainer = ({
   const router = useRouter();
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
+  const { isStandalone } = usePWA();
   const referralAddress = router.query.ref as `0x${string}`;
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -503,6 +507,20 @@ const PublicationContainer = ({
     }
   };
 
+  // Web share function for PWA
+  const handleWebShare = async () => {
+    try {
+      const postTitle = publication?.metadata?.content?.slice(0, 50) + (publication?.metadata?.content?.length > 50 ? '...' : '') || 'Check out this post on Bonsai';
+      
+      await sharePost(_publicationId, {
+        title: postTitle,
+        text: 'Check out this amazing content on Bonsai',
+      });
+    } catch (error) {
+      console.error('Web share failed:', error);
+    }
+  };
+
   let PublicationType = HorizontalPublication;
   if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
     PublicationType = Publication;
@@ -668,8 +686,25 @@ const PublicationContainer = ({
         </div>
       )}
 
+      {/* Web share button for PWA */}
+      {isStandalone && (
+        <div
+          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${isCreator ? 'right-[6.5rem]' : 'right-14'}` : `bottom-3 ${isCreator ? 'right-[6rem]' : 'right-12'}`}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleWebShare();
+          }}
+        >
+          <div
+            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[4px] scale-77'}`}
+          >
+            <ShareIcon className={`text-white ${sideBySideMode ? 'w-6 h-6' : 'w-4 h-4'}`} />
+          </div>
+        </div>
+      )}
+
       {/* Download button for video content (only for creator) */}
-      {!!publication?.metadata?.video?.item && isAuthenticated && true ? (
+      {!!publication?.metadata?.video?.item && isAuthenticated && isCreator ? (
         <div
           className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-14' : 'bottom-3 right-12'}`}
           onClick={(e) => {
