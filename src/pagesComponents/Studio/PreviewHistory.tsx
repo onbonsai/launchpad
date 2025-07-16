@@ -268,7 +268,7 @@ export default function PreviewHistory({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success('Video downloaded!', { id: `processing-${agentId}` });
+      toast.success('Video downloaded!', { id: `processing-${agentId}`, duration: 3000 });
 
     } catch (error) {
       console.error('Video processing failed:', error);

@@ -312,7 +312,7 @@ export default ({
       setShowDropdown(false);
     } catch (error) {
       console.error('Video download failed:', error);
-      toast.error('Video download failed', { id: toastId });
+      toast.error('Video download failed', { id: toastId, duration: 3000 });
     } finally {
       setIsDownloadingVideo(false);
     }
