@@ -24,7 +24,7 @@
     "@lens-protocol/client": "0.0.0-canary-20250611103544",
     "@lens-protocol/metadata": "2.1.0",
     "@madfi/lens-oa-client": "^0.3.0",
-    "@madfi/widgets-react": "^3.2.21",
+    "@madfi/widgets-react": "^3.2.22",
     "@mui/icons-material": "^5.8.0",
     "@mui/material": "^5.13.5",
     "@mui/styles": "^5.14.0",
