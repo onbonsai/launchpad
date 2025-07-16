@@ -285,7 +285,15 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       }
     } catch (error) {
       console.error("Error creating profile:", error);
-      toast.error(`Failed to create profile`, { duration: 5000 });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Handle specific error cases
+      if (errorMessage.toLowerCase().includes('username already taken') ||
+          errorMessage.toLowerCase().includes('already taken')) {
+        toast.error(`Username already taken. Please try a different username.`, { duration: 5000 });
+      } else {
+        toast.error(`Failed to create profile: ${errorMessage}`, { duration: 5000 });
+      }
     } finally {
       setIsCreatingProfile(false);
     }
@@ -362,7 +370,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       setSelectedHandle('');
       setDisplayName('');
       setProfilePicture([]);
-      
+
       if (isStandalone) {
         setCreationStep("notifications");
       } else {
@@ -370,7 +378,15 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       }
     } catch (error) {
       console.error("Error creating profile:", error);
-      toast.error(`Failed to create profile: ${error instanceof Error ? error.message : 'Unknown error'}`, { duration: 5000 });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Handle specific error cases
+      if (errorMessage.toLowerCase().includes('username already taken') ||
+          errorMessage.toLowerCase().includes('already taken')) {
+        toast.error(`Username already taken. Please try a different username.`, { duration: 5000 });
+      } else {
+        toast.error(`Failed to create profile: ${errorMessage}`, { duration: 5000 });
+      }
     } finally {
       setIsCreatingProfile(false);
     }
@@ -644,13 +660,13 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
               </svg>
             </div>
-            
+
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold mb-2">🎉 Welcome Gift Awaiting!</h3>
               <p className="text-gray-300 text-sm mb-4">
                 Enable notifications to receive updates about your content and claim your <span className="text-[#5be39d] font-semibold">1000 BONSAI tokens</span> welcome bonus!
               </p>
-              
+
               <div className="bg-black/50 rounded-lg p-4 text-left">
                 <h4 className="font-semibold mb-2">You'll be notified about:</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
@@ -679,7 +695,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 '🎁 Enable Notifications & Claim Gift'
               )}
             </Button>
-            
+
             <Button
               className="w-full px-3 py-2 text-sm"
               onClick={handleCloseModal}
@@ -954,7 +970,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
                 ))}
               </div>
             )}
-            
+
             {profiles && profiles.length > 0 && (
               <div className="flex justify-between items-end mt-4 text-sm gap-x-4 pb-6">
                 <div></div>
