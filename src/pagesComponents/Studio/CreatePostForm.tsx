@@ -155,6 +155,7 @@ const CreatePostForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMaxModeTooltip, setShowMaxModeTooltip] = useState(false);
   const maxModeTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasShownMaxModeTooltip = useRef(false);
 
   useEffect(() => {
     if (finalTemplateData) {
@@ -162,25 +163,28 @@ const CreatePostForm = ({
     }
   }, [finalTemplateData]);
 
-  // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds
-  // useEffect(() => {
-  //   const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
-  //   const showTooltipTimer = setTimeout(() => {
-  //     if (shape.enableMaxMode) {
-  //       setShowMaxModeTooltip(true);
-  //       maxModeTooltipTimeoutRef.current = setTimeout(() => {
-  //         setShowMaxModeTooltip(false);
-  //       }, 5000);
-  //     }
-  //   }, 5000);
+  // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds (only once)
+  useEffect(() => {
+    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
+    
+    // Only show tooltip if it hasn't been shown before and MAX mode is available
+    if (shape.enableMaxMode && !hasShownMaxModeTooltip.current) {
+      const showTooltipTimer = setTimeout(() => {
+        setShowMaxModeTooltip(true);
+        hasShownMaxModeTooltip.current = true; // Mark as shown
+        maxModeTooltipTimeoutRef.current = setTimeout(() => {
+          setShowMaxModeTooltip(false);
+        }, 5000);
+      }, 5000);
 
-  //   return () => {
-  //     clearTimeout(showTooltipTimer);
-  //     if (maxModeTooltipTimeoutRef.current) {
-  //       clearTimeout(maxModeTooltipTimeoutRef.current);
-  //     }
-  //   };
-  // }, [template.templateData.form]);
+      return () => {
+        clearTimeout(showTooltipTimer);
+        if (maxModeTooltipTimeoutRef.current) {
+          clearTimeout(maxModeTooltipTimeoutRef.current);
+        }
+      };
+    }
+  }, [template.templateData.form]);
 
   // Lock aspect ratio to horizontal when subject reference is present, MAX Mode is enabled, or Veo models are selected
   useEffect(() => {
