@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePWA } from '@src/hooks/usePWA';
 import useIsMobile from '@src/hooks/useIsMobile';
 import { Button } from '@src/components/Button';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -22,10 +23,11 @@ const HOURS_24_IN_MS = 24 * 60 * 60 * 1000;
 const MAX_DISMISSALS = 2;
 
 const PWAInstallPrompt: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompisMiniAppt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isStandalone } = usePWA();
   const isMobile = useIsMobile();
+  const { isMiniApp } = useIsMiniApp();
 
   // Check if prompt should be shown based on dismissal history
   const shouldShowPrompt = (): boolean => {
@@ -34,16 +36,16 @@ const PWAInstallPrompt: React.FC = () => {
       if (!stored) return true;
 
       const data: PWADismissalData = JSON.parse(stored);
-      
+
       // If dismissed 2 or more times, hide permanently
       if (data.count >= MAX_DISMISSALS) return false;
-      
+
       // If dismissed once, check if 24 hours have passed
       if (data.count === 1) {
         const timeSinceLastDismissal = Date.now() - data.lastDismissed;
         return timeSinceLastDismissal >= HOURS_24_IN_MS;
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error checking PWA dismissal data:', error);
@@ -77,7 +79,7 @@ const PWAInstallPrompt: React.FC = () => {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
       }, 1000);
-      
+
       return () => {
         window.removeEventListener('beforeinstallprompt', handler);
         clearTimeout(timer);
@@ -93,14 +95,14 @@ const PWAInstallPrompt: React.FC = () => {
     try {
       const stored = localStorage.getItem(PWA_DISMISSAL_KEY);
       let data: PWADismissalData = { count: 0, lastDismissed: 0 };
-      
+
       if (stored) {
         data = JSON.parse(stored);
       }
-      
+
       data.count += 1;
       data.lastDismissed = Date.now();
-      
+
       localStorage.setItem(PWA_DISMISSAL_KEY, JSON.stringify(data));
     } catch (error) {
       console.error('Error storing PWA dismissal data:', error);
@@ -113,7 +115,7 @@ const PWAInstallPrompt: React.FC = () => {
     setDeferredPrompt(null);
   };
 
-  if (!showInstallPrompt || !isMobile || isStandalone) return null;
+  if (!showInstallPrompt || !isMobile || isStandalone || isMiniApp) return null;
 
   // Handler for Install button (Android/Chrome)
   const handleInstallClick = async () => {
@@ -216,4 +218,4 @@ const PWAInstallPrompt: React.FC = () => {
   );
 };
 
-export default PWAInstallPrompt; 
+export default PWAInstallPrompt;
