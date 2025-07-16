@@ -1,4 +1,4 @@
-import { useMemo, useState, ReactNode, useRef, useEffect, useContext } from "react";
+import { useMemo, useState, ReactNode, useRef, useEffect, useContext, useCallback } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
@@ -168,10 +168,10 @@ const PublicationContainer = ({
     },
   });
 
-  // Move this function before the useMemo
-  const getPublicationDataPotentiallyEncrypted = (publication: PostFragmentPotentiallyDecrypted): any => {
+  // Move this function before the useMemo and memoize it
+  const getPublicationDataStable = useCallback((publication: PostFragmentPotentiallyDecrypted): any => {
     if (!publication.metadata?.encryptedWith || publication.isDecrypted) {
-      return JSON.parse(JSON.stringify(publication));
+      return publication; // Return original object to maintain reference stability
     }
 
     return {
@@ -185,27 +185,33 @@ const PublicationContainer = ({
         encryptedWith: publication.metadata.encryptedWith
       }
     };
-  };
+  }, []);
 
   // Add video loading state
   const [isVideoLoading, setIsVideoLoading] = useState(false);
 
-  // Optimize video data
+  // Optimize publication data with stable reference
   const optimizedPublicationData = useMemo(() => {
     if (!publication) return undefined;
 
-    const data = getPublicationDataPotentiallyEncrypted(publication);
+    const data = getPublicationDataStable(publication);
 
-    // Only include video data if it's in view
+    // Only modify if we need to remove video data
     if (data.metadata?.video && !isVideoLoading) {
-      data.metadata.video = {
-        ...data.metadata.video,
-        item: undefined // Don't load video data initially
+      return {
+        ...data,
+        metadata: {
+          ...data.metadata,
+          video: {
+            ...data.metadata.video,
+            item: undefined // Don't load video data initially
+          }
+        }
       };
     }
 
     return data;
-  }, [publication, isVideoLoading]);
+  }, [publication?.id, publication?.isDecrypted, isVideoLoading, getPublicationDataStable]);
 
   // Handle video loading
   useEffect(() => {
@@ -218,6 +224,28 @@ const PublicationContainer = ({
       return () => clearTimeout(timer);
     }
   }, [publication?.metadata?.video]);
+
+  // Memoize operations object to prevent re-renders
+  const stableOperations = useMemo(() => ({
+    ...publication?.operations || {},
+    hasUpvoted: publication?.operations?.hasUpvoted || hasUpvoted,
+    hasMirrored: publication?.operations?.hasMirrored || hasMirrored,
+    hasCollected: publication?.operations?.hasSimpleCollected || hasCollected,
+    canComment: media?.agentId ? hasCollected : undefined,
+  }), [
+    publication?.operations?.hasUpvoted,
+    publication?.operations?.hasMirrored, 
+    publication?.operations?.hasSimpleCollected,
+    hasUpvoted,
+    hasMirrored,
+    hasCollected,
+    media?.agentId
+  ]);
+
+  // Memoize stable key for the Publication component
+  const publicationKey = useMemo(() => {
+    return publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined;
+  }, [publication?.id, publication?.isDecrypted]);
 
   // Add effect to handle pulse animation when comment is submitted
   useEffect(() => {
@@ -233,26 +261,26 @@ const PublicationContainer = ({
 
   const _publicationId = publication?.slug || publicationId!;
 
-  const onShareButtonClick = (e: React.MouseEvent) => {
+  const onShareButtonClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     navigator.clipboard.writeText(`${BONSAI_POST_URL}/${_publicationId}`);
 
     toast("Link copied", { position: "bottom-center", icon: "🔗", duration: 2000 });
-  };
+  }, [_publicationId]);
 
-  const goToPublicationPage = (e: React.MouseEvent) => {
+  const goToPublicationPage = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     router.replace(`/post/${_publicationId}`, undefined, { shallow: false });
-  };
+  }, [router, _publicationId]);
 
-  const goToCreatorPage = (e: React.MouseEvent, username?: string) => {
+  const goToCreatorPage = useCallback((e: React.MouseEvent, username?: string) => {
     e.preventDefault();
     e.stopPropagation();
     router.replace(`/profile/${username}`, undefined, { shallow: false });
-  };
+  }, [router]);
 
   const onLikeButtonClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -266,10 +294,14 @@ const PublicationContainer = ({
     toast.success("Liked", { duration: 3000 });
   };
 
-  const handleCommentButton = (e, actionModuleHandler?) => {
+  const handleCommentButton = useCallback((e, actionModuleHandler?) => {
     if (shouldGoToPublicationPage) return goToPublicationPage(e);
     if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author.username.localName);
-  };
+  }, [shouldGoToPublicationPage, goToPublicationPage, onCommentButtonClick, media, hasCollected, publication?.id, publication?.author.username.localName]);
+
+  const handleProfileClick = useCallback((e) => {
+    goToCreatorPage(e, publication?.author.username.localName);
+  }, [goToCreatorPage, publication?.author.username.localName]);
 
   const onMirrorButtonClick = async (e: React.MouseEvent, actionModuleHandler?) => {
     e.preventDefault();
@@ -548,7 +580,7 @@ const PublicationContainer = ({
       `}</style>
       {isMounted && (
         <PublicationType
-          key={publication?.isDecrypted ? `pub-${publication.id}-decrypted` : undefined}
+          key={publicationKey}
           publicationId={publication?.id ? publication!.id : publicationId}
           publicationData={optimizedPublicationData}
           theme={Theme.dark}
@@ -556,19 +588,13 @@ const PublicationContainer = ({
           authenticatedProfile={authenticatedProfile || undefined}
           walletClient={walletClient || undefined}
           onClick={shouldGoToPublicationPage ? (e) => goToPublicationPage(e) : undefined}
-          onProfileClick={!shouldGoToPublicationPage ? (e) => goToCreatorPage(e, publication?.author.username.localName) : undefined}
+          onProfileClick={!shouldGoToPublicationPage ? handleProfileClick : undefined}
           onShareButtonClick={(e) => onShareButtonClick(e)}
           onCommentButtonClick={handleCommentButton}
           onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}
           onMirrorButtonClick={!hasMirrored ? onMirrorButtonClick : undefined}
           // @ts-ignore
-          operations={{
-            ...publication?.operations || {},
-            hasUpvoted: publication?.operations?.hasUpvoted || hasUpvoted,
-            hasMirrored: publication?.operations?.hasMirrored || hasMirrored,
-            hasCollected: publication?.operations?.hasSimpleCollected || hasCollected,
-            canComment: media?.agentId ? hasCollected : undefined,
-          }}
+          operations={stableOperations}
           useToast={toast}
           rpcURLs={ChainRpcs}
           appDomainWhitelistedGasless={true}

@@ -413,11 +413,13 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   // Create the publication data with merged metadata when viewing a version
   const getPublicationData = useMemo(() => {
     if (currentVersionIndex === null) {
-      return showRootPublication ? publication.root : publication;
+      return showRootPublication ? publication?.root : publication;
     }
 
     // Merge the current publication with the version's metadata
-    const basePublication = showRootPublication ? publication.root : publication;
+    const basePublication = showRootPublication ? publication?.root : publication;
+    if (!basePublication || !currentVersionMetadata) return basePublication;
+    
     return {
       ...basePublication,
       metadata: {
@@ -428,7 +430,17 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       // Add a key to force re-render when version changes
       key: `version-${currentVersionIndex}`
     };
-  }, [currentVersionIndex, currentVersionMetadata, publication, showRootPublication]);
+  }, [
+    currentVersionIndex, 
+    currentVersionMetadata?.content,
+    currentVersionMetadata?.image,
+    currentVersionMetadata?.video,
+    publication?.id, 
+    publication?.root?.id,
+    showRootPublication,
+    publication?.metadata?.__typename,
+    publication?.root?.metadata?.__typename
+  ]);
 
   if (!isMounted) return null;
 

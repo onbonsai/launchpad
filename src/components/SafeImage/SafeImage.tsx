@@ -1,6 +1,6 @@
 import { remapStorjToPinata } from '@src/utils/pinata'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface SafeImageProps {
   src: string
@@ -66,6 +66,15 @@ export function SafeImage({ src, alt, width, height, className, sizes, fill, uno
   const [useFallback, setUseFallback] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(src)
   const [hasTriedPinata, setHasTriedPinata] = useState(false)
+
+  // Reset state when src prop changes to prevent flickering
+  useEffect(() => {
+    if (src !== currentSrc) {
+      setCurrentSrc(src)
+      setUseFallback(false)
+      setHasTriedPinata(false)
+    }
+  }, [src, currentSrc])
 
   // Check if we should use fallback immediately
   const shouldUseFallback = useFallback || !isDomainAllowed(currentSrc)

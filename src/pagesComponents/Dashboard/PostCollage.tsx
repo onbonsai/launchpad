@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
@@ -52,7 +52,7 @@ interface PostItemProps {
   router: any;
 }
 
-const PostItem = ({
+const PostItem = React.memo(({
   post,
   timelineItem,
   isMobile,
@@ -79,6 +79,51 @@ const PostItem = ({
       onVisibilityChange(post.slug, postInView);
     }
   }, [postInView, post.slug, onVisibilityChange, isMobile]);
+
+  // Memoize the publication data to prevent re-creation on every render
+  const memoizedPublicationData = useMemo(() => ({
+    author: post.author,
+    timestamp: post.timestamp,
+    metadata: {
+      __typename: post.metadata?.image
+        ? "ImageMetadata"
+        : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
+      content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
+      image: post.metadata?.image
+        ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
+        : undefined,
+      video: post.metadata?.video
+        ? { item: post.metadata.video.item }
+        : undefined
+    }
+  }), [
+    post.author?.id, 
+    post.author?.username?.localName, 
+    post.author?.metadata?.picture,
+    post.timestamp,
+    post.metadata?.__typename,
+    post.metadata?.content,
+    post.metadata?.image,
+    post.metadata?.video
+  ]);
+
+  // Memoize the playVideo prop to prevent unnecessary re-renders
+  const playVideo = useMemo(() => {
+    return (isMobile && postInView) ||
+           (!isMobile && hoveredPostSlug === post.slug) ||
+           activeDropdown === post.slug;
+  }, [isMobile, postInView, hoveredPostSlug, post.slug, activeDropdown]);
+
+  // Memoize the onClick handler to prevent re-creation
+  const handleCardClick = useCallback(() => {
+    localStorage.setItem('tempPostData', JSON.stringify(post));
+    router.push({ pathname: `/post/${post.slug}` });
+  }, [post, router]);
+
+  // Memoize the share handler
+  const handleShare = useCallback(() => {
+    onShareButtonClick(post.slug);
+  }, [onShareButtonClick, post.slug]);
 
   return (
     <div
@@ -112,22 +157,7 @@ const PostItem = ({
         )}></div>
         <Publication
           key={`preview-${post.slug}`}
-          publicationData={{
-            author: post.author,
-            timestamp: post.timestamp,
-            metadata: {
-              __typename: post.metadata?.image
-                ? "ImageMetadata"
-                : (post.metadata?.video ? "VideoMetadata" : "TextOnlyMetadata"),
-              content: getPostContentSubstring(post.metadata?.content ?? '', post.metadata.__typename === "TextOnlyMetadata" ? 235 : 130),
-              image: post.metadata?.image
-                ? { item: typeof post.metadata.image === 'string' ? post.metadata.image : post.metadata.image.item }
-                : undefined,
-              video: post.metadata?.video
-                ? { item: post.metadata.video.item }
-                : undefined
-            }
-          }}
+          publicationData={memoizedPublicationData}
           theme={Theme.dark}
           followButtonDisabled={true}
           environment={LENS_ENVIRONMENT}
@@ -148,11 +178,7 @@ const PostItem = ({
           shareIconOverride={true}
           profileMaxWidth={'120px'}
           fullVideoHeight
-          playVideo={
-            (isMobile && postInView) ||
-            (!isMobile && hoveredPostSlug === post.slug) ||
-            activeDropdown === post.slug
-          }
+          playVideo={playVideo}
           hideVideoControls
         />
         <div className={clsx(
@@ -165,11 +191,8 @@ const PostItem = ({
             bonsaiBalance={bonsaiBalance}
             post={post}
             postData={postData}
-            onShare={() => onShareButtonClick(post.slug)}
-            onClick={() => {
-              localStorage.setItem('tempPostData', JSON.stringify(post));
-              router.push({ pathname: `/post/${post.slug}` });
-            }}
+            onShare={handleShare}
+            onClick={handleCardClick}
             className={clsx(
               "opacity-0 transition-all duration-300 ease-in-out z-30",
               !isMobile && "group-hover:opacity-100",
@@ -190,7 +213,9 @@ const PostItem = ({
       )}
     </div>
   );
-};
+});
+
+PostItem.displayName = 'PostItem';
 
 export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, isLoadingForYou, isLoadingExplore, isLoadingCollected }) => {
   const { data: walletClient } = useWalletClient();
@@ -283,6 +308,21 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
     }
   }, []);
 
+  // Memoize the onShareButtonClick to prevent re-renders
+  const memoizedOnShareButtonClick = useCallback(async (postSlug: string) => {
+    const success = await sharePost(postSlug, {
+      title: 'Check out this post on Bonsai',
+      text: 'Discover amazing content and trade tokens on Bonsai',
+      url: `${BONSAI_POST_URL}/${postSlug}`
+    });
+    
+    // Haptic feedback is handled in the webShare utility
+    if (!success && !isWebShareSupported()) {
+      // Fallback already handled in webShare utility
+      console.log('Share completed via fallback');
+    }
+  }, []);
+
   const sortedPosts = useMemo(() => {
     if (activeTab === PostTabType.FOR_YOU) return processedPosts; // no sorting on for you
     const _posts = filterBy ? filteredPosts : processedPosts;
@@ -315,19 +355,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
     return [...featuredPosts, ...nonFeaturedPosts];
   }, [filterBy, filteredPosts, processedPosts, showCompleted, categoryFilter, activeTab]);
 
-  const onShareButtonClick = async (postSlug: string) => {
-    const success = await sharePost(postSlug, {
-      title: 'Check out this post on Bonsai',
-      text: 'Discover amazing content and trade tokens on Bonsai',
-      url: `${BONSAI_POST_URL}/${postSlug}`
-    });
-    
-    // Haptic feedback is handled in the webShare utility
-    if (!success && !isWebShareSupported()) {
-      // Fallback already handled in webShare utility
-      console.log('Share completed via fallback');
-    }
-  };
+
 
   const SortIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -469,7 +497,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                     authenticatedProfile={authenticatedProfile}
                     bonsaiBalance={bonsaiBalance}
                     postData={postData[post.__typename === "TimelineItem" ? post.primary.slug : post.slug]}
-                    onShareButtonClick={onShareButtonClick}
+                    onShareButtonClick={memoizedOnShareButtonClick}
                     router={router}
                   />
                 ))}
