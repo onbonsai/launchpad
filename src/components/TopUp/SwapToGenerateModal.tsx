@@ -17,6 +17,7 @@ import {
   getRegisteredClubByTokenAddress,
   buyChips,
   getBuyAmount,
+  publicClient,
 } from "@src/services/madfi/moneyClubs";
 import { base } from "viem/chains";
 import { switchChain } from "viem/actions";
@@ -42,6 +43,8 @@ import {
 import { sdk } from "@farcaster/frame-sdk";
 import { getPostId } from "@src/services/lens/getStats";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
+import { base as baseChain } from "viem/chains";
+import { maxUint256, concat, numberToHex, size } from "viem";
 
 interface SwapToGenerateModalProps {
   open: boolean;
@@ -91,7 +94,7 @@ export const SwapToGenerateModal = ({
     token: USDC_CONTRACT_ADDRESS,
     chainId: getChain("base").id,
     query: {
-      enabled: isConnected && isMiniApp,
+      enabled: isConnected && token.chain === "base",
     },
   });
 
@@ -100,7 +103,7 @@ export const SwapToGenerateModal = ({
     address,
     chainId: LENS_CHAIN_ID,
     query: {
-      enabled: isConnected && !isMiniApp,
+      enabled: isConnected && token.chain === "lens",
     },
   });
 
@@ -110,7 +113,7 @@ export const SwapToGenerateModal = ({
     token: WGHO_CONTRACT_ADDRESS,
     chainId: LENS_CHAIN_ID,
     query: {
-      enabled: isConnected && !isMiniApp,
+      enabled: isConnected && token.chain === "lens",
     },
   });
 
@@ -134,11 +137,11 @@ export const SwapToGenerateModal = ({
 
   const hasSufficientFunds = useMemo(() => {
     if (!selectedAmount) return false;
-    if (isMiniApp) {
+    if (token.chain === "base") {
       return (usdcBalance?.value || 0n) >= parseUnits(totalCost.toString(), USDC_DECIMALS);
     }
     return totalGhoBalance >= parseUnits(totalCost.toString(), 18);
-  }, [selectedAmount, totalCost, usdcBalance, totalGhoBalance, isMiniApp]);
+  }, [selectedAmount, totalCost, usdcBalance, totalGhoBalance, token.chain]);
 
   const handleSwap = async () => {
     if (!walletClient || !address || !selectedAmount) {
@@ -146,7 +149,7 @@ export const SwapToGenerateModal = ({
       return;
     }
 
-    if (isMiniApp || token.chain === "base") {
+    if (token.chain === "base") {
       if (chain?.id !== base.id) {
         try {
           await switchChain(walletClient, { id: base.id });
@@ -264,7 +267,71 @@ export const SwapToGenerateModal = ({
               sellAmount: parseUnits(selectedAmount.toString(), USDC_DECIMALS).toString(),
             });
           } else {
-            toast.error("Swapping on Base is not supported on desktop, continuing to purchase credits");
+            // Execute Matcha swap on desktop
+            toastId = toast.loading("Preparing swap...");
+            const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
+            const sellAmount = sellAmountBigInt.toString();
+            
+            // Get quote from Matcha
+            const quoteResponse = await axios.post('/api/matcha/quote', {
+              chainId: baseChain.id,
+              sellToken: USDC_CONTRACT_ADDRESS,
+              buyToken: token.address,
+              sellAmount,
+              taker: address,
+            });
+            
+            const quote = quoteResponse.data;
+            
+            // Check if we need to approve based on the quote response
+            const currentAllowance = BigInt(quote?.issues?.allowance?.actual || "0");
+            const needsApproval = currentAllowance < sellAmountBigInt || !quote?.issues?.allowance;
+            
+            if (needsApproval && quote?.issues?.allowance?.spender) {
+              toast.loading("Approving USDC...", { id: toastId });
+              const approveTx = await walletClient.writeContract({
+                address: USDC_CONTRACT_ADDRESS,
+                abi: erc20Abi,
+                functionName: 'approve',
+                args: [quote.issues.allowance.spender as `0x${string}`, maxUint256],
+                chain: baseChain,
+              });
+              await publicClient('base').waitForTransactionReceipt({ hash: approveTx });
+            }
+            
+            // Sign Permit2 if needed
+            if (quote.permit2?.eip712) {
+              toast.loading("Please sign the permit...", { id: toastId });
+              // @ts-ignore
+              const signature = await walletClient.signTypedData(quote.permit2.eip712);
+              
+              // Append signature length and signature data as per 0x docs
+              // Format: <sig len><sig data> where sig len is 32-byte unsigned big-endian integer
+              const signatureLengthInHex = numberToHex(size(signature), {
+                signed: false,
+                size: 32,
+              });
+              
+              // Concatenate: original data + signature length + signature
+              quote.transaction.data = concat([
+                quote.transaction.data as `0x${string}`,
+                signatureLengthInHex,
+                signature
+              ]);
+            }
+            
+            // Execute the swap
+            toast.loading("Swapping...", { id: toastId });
+            const hash = await walletClient.sendTransaction({
+              to: quote.transaction.to,
+              data: quote.transaction.data,
+              value: BigInt(quote.transaction.value || 0),
+              gas: BigInt(quote.transaction.gas),
+              chain: baseChain,
+            });
+            
+            await publicClient('base').waitForTransactionReceipt({ hash });
+            toast.success("Swap completed!", { id: toastId });
           }
         }
 
@@ -279,7 +346,7 @@ export const SwapToGenerateModal = ({
       }
     } catch (error) {
       console.error("Error processing swap:", error);
-      toast.error("Failed to complete transaction", { id: toastId });
+      toast.error("Failed to complete transaction", { id: toastId, duration: 50000 });
       return;
     }
 
@@ -298,7 +365,7 @@ export const SwapToGenerateModal = ({
       refetchCredits();
     } catch (error) {
       console.error("Error updating credits:", error);
-      toast.error("Failed to update credits", { id: toastId });
+      toast.error("Failed to update credits", { id: toastId, duration: 50000 });
       return;
     }
 
@@ -324,9 +391,9 @@ export const SwapToGenerateModal = ({
 
       <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-400">Your {isMiniApp ? "USDC" : "GHO"} balance</span>
+          <span className="text-sm text-gray-400">Your {token.chain === "base" ? "USDC" : "GHO"} balance</span>
           <span className="text-sm font-semibold">
-            {isMiniApp ? `${formattedUsdcBalance} USDC` : `${formattedGhoBalance} GHO`}
+            {token.chain === "base" ? `${formattedUsdcBalance} USDC` : `${formattedGhoBalance} GHO`}
           </span>
         </div>
       </div>
@@ -377,10 +444,10 @@ export const SwapToGenerateModal = ({
       >
         {!selectedAmount
           ? "Select amount"
-          : chain?.id !== (isMiniApp ? base.id : LENS_CHAIN_ID)
-          ? `Switch to ${isMiniApp ? "Base" : "Lens"}`
+          : chain?.id !== (token.chain === "base" ? base.id : LENS_CHAIN_ID)
+          ? `Switch to ${token.chain === "base" ? "Base" : "Lens"}`
           : !hasSufficientFunds
-          ? `Insufficient ${isMiniApp ? "USDC" : "GHO"}`
+          ? `Insufficient ${token.chain === "base" ? "USDC" : "GHO"}`
           : `Swap $${totalCost.toFixed(2)}`}
       </Button>
       <Button
@@ -399,7 +466,7 @@ export const SwapToGenerateModal = ({
         onClose={() => {
           setBuyUSDCModalOpen(false);
         }}
-        chain={isMiniApp ? "base" : "lens"}
+        chain={token.chain === "base" ? "base" : "lens"}
       />
     </div>
   );

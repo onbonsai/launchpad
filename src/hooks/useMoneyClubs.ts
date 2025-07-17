@@ -328,7 +328,8 @@ type TradingInfoResponse = {
     [key: string]: string;
   };
 };
-export const useGetTradingInfo = (clubId?: number, chain = "base") => {
+
+export const useGetTradingInfo = (clubId?: number | string, chain = "base") => {
   return useQuery({
     queryKey: ["trading-info", clubId],
     queryFn: async () => {
@@ -336,7 +337,7 @@ export const useGetTradingInfo = (clubId?: number, chain = "base") => {
         .then(response => response.json());
       return data;
     },
-    enabled: !!clubId && clubId !== 0,
+    enabled: !!clubId && clubId !== 0 && clubId !== "0",
     staleTime: 60000,
     gcTime: 60000 * 5,
   });

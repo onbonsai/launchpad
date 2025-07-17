@@ -80,11 +80,6 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
         buyToken: `eip155:${chainId}/erc20:${token.address}`,
         sellAmount: token.chain === "lens" ? "10000000000000000000" : "10000000",
       });
-    } else if (token.chain === "base") {
-      window.open(
-        `https://matcha.xyz/tokens/base/${token.address}?sellChain=8453&sellAddress=${USDC_CONTRACT_ADDRESS}`,
-        "_blank",
-      );
     } else {
       setShowBuyModal(true);
     }

@@ -43,6 +43,7 @@ import { PARAM__AMOUNT_IN } from "@src/services/lens/rewardSwap";
 import { PARAM__PATH } from "@src/services/lens/rewardSwap";
 import useQuoter from "@src/services/uniswap/useQuote";
 import { getPostId } from "@src/services/lens/getStats";
+import { MatchaSwapWidget } from "@src/components/Matcha/MatchaSwapWidget";
 
 export const BuySellWidget = ({
   refetchClubBalance,
@@ -474,6 +475,23 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
         {openTab === 1 && (
           <div className="w-full divide-y divide-dark-grey">
             {showConfetti && <ConfettiExplosion zIndex={99999 + 1} className="ml-40" />}
+            {/* Use MatchaSwapWidget for external Base tokens */}
+            {club.chain === "base" && club.complete && club.tokenAddress && (
+              <MatchaSwapWidget
+                tokenAddress={club.tokenAddress}
+                tokenSymbol={club.token.symbol}
+                tokenImage={club.token.image || "/unknown-logo.jpg"}
+                tokenDecimals={DECIMALS}
+                isBuying={true}
+                defaultAmount={defaultBuyAmount}
+                onSuccess={() => {
+                  refetchClubBalance();
+                  if (closeModal) closeModal();
+                }}
+              />
+            )}
+            {/* Use regular flow for non-complete tokens or lens tokens */}
+            {!(club.chain === "base" && club.complete) && (
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
@@ -584,11 +602,28 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 )}
               </div>
             </div>
+            )}
           </div>
         )}
         {/* Sell */}
         {openTab === 2 && (
           <div className="w-full space-y-8 divide-y divide-dark-grey">
+            {/* Use MatchaSwapWidget for external Base tokens */}
+            {club.chain === "base" && club.complete && club.tokenAddress && (
+              <MatchaSwapWidget
+                tokenAddress={club.tokenAddress}
+                tokenSymbol={club.token.symbol}
+                tokenImage={club.token.image || "/unknown-logo.jpg"}
+                tokenDecimals={DECIMALS}
+                isBuying={false}
+                onSuccess={() => {
+                  refetchClubBalance();
+                  if (closeModal) closeModal();
+                }}
+              />
+            )}
+            {/* Use regular flow for non-complete tokens or lens tokens */}
+            {!(club.chain === "base" && club.complete) && (
             <div className="space-y-8">
               <div className="gap-y-6 gap-x-4">
                 <div className="flex flex-col">
@@ -662,6 +697,7 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                 </Button>
               </div>
             </div>
+            )}
           </div>
         )}
 

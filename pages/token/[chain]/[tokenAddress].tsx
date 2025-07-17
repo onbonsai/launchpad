@@ -405,7 +405,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                           />
                         </div>
                       }
-                      <p>{`${hookInfo[club.hook].name}: ${hookInfo[club.hook].label}`}</p>
+                      <p className='mt-6'>{`${hookInfo[club.hook].name}: ${hookInfo[club.hook].label}`}</p>
                       <div className='mt-6 text-center'>
                         {club.liquidityReleasedAt && vestingData && (
                           <div className='justify-center items-center'>
