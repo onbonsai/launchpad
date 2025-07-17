@@ -41,6 +41,10 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
       const isFarcasterMiniApp = await sdk.isInMiniApp();
       const isCoinbaseMiniApp = coinbaseContext?.clientFid === 309857;
 
+      console.log(`isFarcasterMiniApp: ${isFarcasterMiniApp}`);
+      console.log(`isCoinbaseMiniApp: ${isCoinbaseMiniApp}`);
+      console.log(`coinbaseContext?.clientFid`, coinbaseContext?.clientFid)
+
       if (isFarcasterMiniApp) {
         setIsMiniApp(true);
         setMiniAppType('farcaster');
@@ -54,7 +58,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
     };
 
     checkMiniApp();
-  }, [isFrameReady, coinbaseContext]);
+  }, [sdk, isFrameReady, coinbaseContext]);
 
   return {
     isMiniApp,
