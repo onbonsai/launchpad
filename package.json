@@ -1,6 +1,6 @@
 {
   "name": "launchpad",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
+    "@coinbase/onchainkit": "^0.38.17",
     "@emotion/css": "^11.13.5",
     "@emotion/styled": "^11.13.0",
     "@ensdomains/ensjs": "^4.0.2",

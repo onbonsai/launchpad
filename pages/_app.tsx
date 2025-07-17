@@ -9,6 +9,8 @@ import Script from "next/script";
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useRouter } from "next/router.js";
+// @ts-expect-error moduleResolution: nodenext
+import { MiniKitProvider, useMiniKit, useAddFrame } from '@coinbase/onchainkit/minikit';
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -18,10 +20,47 @@ import { brandFont, openSans, sourceCodePro } from "@src/fonts/fonts";
 import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { base } from "viem/chains";
 
-export default function MyApp(props: AppProps) {
+// Wrapper component that handles Coinbase mini app flow exclusively
+function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
+  const { isCoinbaseMiniApp, context } = useIsMiniApp();
+  const { isFrameReady, setFrameReady } = useMiniKit();
+  const addFrame = useAddFrame();
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleCoinbaseFlow = async () => {
+      if (isCoinbaseMiniApp && !isFrameReady) {
+        setFrameReady(); // hide splash
+
+        // Prompt to add mini app when ?install
+        if (!!router.query.install) {
+          if (!context?.client.added) {
+            try {
+              await addFrame();
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        }
+      }
+    };
+
+    handleCoinbaseFlow();
+  }, [isCoinbaseMiniApp, isFrameReady, router.query.install, context?.client.added, addFrame, setFrameReady]);
+
+  // For Coinbase mini apps, only render when ready
+  if (isCoinbaseMiniApp && !isFrameReady) {
+    return null; // Show loading state
+  }
+
+  return <>{children}</>;
+}
+
+function AppContent(props: AppProps) {
   const { Component, pageProps } = props;
-  const { isMiniApp, context } = useIsMiniApp();
+  const { isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp, context } = useIsMiniApp();
 
   const router = useRouter();
 
@@ -43,24 +82,31 @@ export default function MyApp(props: AppProps) {
 
   useEffect(() => {
     const load = async () => {
-      await sdk.actions.ready(); // hide splash
+      // Only run Farcaster SDK logic if it's a Farcaster mini app
+      if (isFarcasterMiniApp) {
+        await sdk.actions.ready(); // hide splash
 
-      // Prompt to add mini app when ?install
-      if (!!router.query.install) {
-        if (!context?.client.added) {
-          try {
-            await sdk.actions.addMiniApp();
-          } catch (error) {
-            console.log(error);
+        // Prompt to add mini app when ?install
+        if (!!router.query.install) {
+          if (!context?.client.added) {
+            try {
+              await sdk.actions.addMiniApp();
+            } catch (error) {
+              console.log(error);
+            }
           }
         }
       }
     };
-    if (sdk && !isSDKLoaded) {
-      setIsSDKLoaded(true);
+
+    if (isFarcasterMiniApp && !isSDKLoaded) {
       load();
+      setIsSDKLoaded(true);
+    } else if (!isMiniApp && !isSDKLoaded) {
+      // Handle regular web app (not a mini app)
+      setIsSDKLoaded(true);
     }
-  }, [isSDKLoaded]);
+  }, [isFarcasterMiniApp, isSDKLoaded, router.query.install, context?.client.added]);
 
   // Load non-critical CSS after initial render
   useEffect(() => {
@@ -128,7 +174,11 @@ export default function MyApp(props: AppProps) {
   }, []);
 
   return (
-    (!isMiniApp || (isMiniApp && isSDKLoaded)) && (
+    // Render the app when:
+    // 1. Not a mini app (regular web)
+    // 2. Farcaster mini app and SDK is loaded
+    // 3. Coinbase mini app is handled by CoinbaseMiniAppWrapper
+    (!isMiniApp || (isFarcasterMiniApp && isSDKLoaded)) && (
       <>
         <style jsx global>{`
           :root {
@@ -163,44 +213,56 @@ export default function MyApp(props: AppProps) {
 
         <HandleSEO pageProps={pageProps} query={router.query} />
         <Web3Provider>
-            <ThirdwebProvider>
-              <ThemeProvider>
-                <ClubsProvider>
-                  <TopUpModalProvider>
-                    <Toaster
-                      position="bottom-right"
-                      toastOptions={{
-                        style: {
-                          backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
-                          color: "white",
-                          fontFamily: brandFont.style.fontFamily,
-                          zIndex: 9999, // max z-index, everything should be below this
-                        },
-                      }}
-                    >
-                      {(t) => (
-                        <ToastBar toast={t}>
-                          {({ icon, message }) => (
-                            <>
-                              {icon}
-                              {message}
-                            </>
-                          )}
-                        </ToastBar>
-                      )}
-                    </Toaster>
-                    <NextNProgress color="#4D7F79" height={2} />
-                    <AppLayout>
-                      <Component {...pageProps} />
-                    </AppLayout>
-                    <Analytics />
-                  </TopUpModalProvider>
-                </ClubsProvider>
-              </ThemeProvider>
-            </ThirdwebProvider>
-          </Web3Provider>
-                          {/* Removed ViewTransitions closing tag */}
+          <ThirdwebProvider>
+            <ThemeProvider>
+              <ClubsProvider>
+                <TopUpModalProvider>
+                  <Toaster
+                    position="bottom-right"
+                    toastOptions={{
+                      style: {
+                        backgroundColor: "#1A1B1F", // rainbowTheme.colors.modalBackground,
+                        color: "white",
+                        fontFamily: brandFont.style.fontFamily,
+                        zIndex: 9999, // max z-index, everything should be below this
+                      },
+                    }}
+                  >
+                    {(t) => (
+                      <ToastBar toast={t}>
+                        {({ icon, message }) => (
+                          <>
+                            {icon}
+                            {message}
+                          </>
+                        )}
+                      </ToastBar>
+                    )}
+                  </Toaster>
+                  <NextNProgress color="#4D7F79" height={2} />
+                  <AppLayout>
+                    <Component {...pageProps} />
+                  </AppLayout>
+                  <Analytics />
+                </TopUpModalProvider>
+              </ClubsProvider>
+            </ThemeProvider>
+          </ThirdwebProvider>
+        </Web3Provider>
       </>
     )
+  );
+}
+
+export default function MyApp(props: AppProps) {
+  return (
+    <MiniKitProvider
+      apiKey={process.env.NEXT_PUBLIC_CDP_CLIENT_API_KEY}
+      chain={base}
+    >
+      <CoinbaseMiniAppWrapper>
+        <AppContent {...props} />
+      </CoinbaseMiniAppWrapper>
+    </MiniKitProvider>
   );
 }
