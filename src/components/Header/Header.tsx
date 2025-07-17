@@ -53,6 +53,14 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const { isConnected } = useAccount();
   const { isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const {
+    fullRefetch,
+  } = useLensSignIn(walletClient);
+
+  const hasHandledBudgetModal = useRef(false);
+  const hasHandledInitialModal = useRef(false);
+
   const { setOpen } = useModal({
     onConnect: () => {
       if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false) {
@@ -63,13 +71,12 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     },
     onDisconnect: () => {
       console.log("onDisconnect");
+      // Reset the modal flags when user disconnects
+      hasHandledInitialModal.current = false;
+      hasHandledBudgetModal.current = false;
       lensLogout().then(fullRefetch)
     }
   });
-
-  const {
-    fullRefetch,
-  } = useLensSignIn(walletClient);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
@@ -83,16 +90,16 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     }
   };
 
-  const hasHandledBudgetModal = useRef(false);
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (isMiniApp && !isConnected) {
+      if (isMiniApp && !isConnected && !hasHandledInitialModal.current) {
         setOpen(true);
+        hasHandledInitialModal.current = true;
         return;
       }
-      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current))) {
+      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
         setOpenSignInModal(true);
+        hasHandledInitialModal.current = true;
         if (query.modal === "budget") {
           hasHandledBudgetModal.current = true;
         }

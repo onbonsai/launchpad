@@ -3,8 +3,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   let accountAssociation;
   let homeUrl;
-  let iconUrl;
-  let splashImageUrl;
   if (process.env.NEXT_PUBLIC_LAUNCHPAD_CHAIN_ID === "84532") {
     accountAssociation = {
       "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
@@ -12,8 +10,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       "signature": "MHhiMjlkYzA4ZmQ1OGYzOTI3NjY2MzEzMjY1ZGJmMTg2YmJiOGM5ZmM2ZmZmYWVmYjUyOTgyN2VjM2JmYmE2NGZlNWI1NDcyNWFkNTFkNThkY2Y5NzkwMjlmYThmZGVjZjI2MmQ4NDBiN2U5NWFhNTI4MWEzYWE2NmZlZTk2YzIwMDFj"
     };
     homeUrl = "https://testnet.onbons.ai"
-    splashImageUrl = "https://testnet.onbons.ai/splash.jpg";
-    iconUrl = "https://app.onbons.ai/logo-spaced.png";
   } else {
     accountAssociation = {
       "header": "eyJmaWQiOjg2NDY3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEMzYjQ4ZkY1NmQ3QzY0YUZhMUYzMzQ1NDcwNEY1YTczMkM3NDgwNWQifQ",
@@ -21,8 +17,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       "signature": "MHg2ZWM3MzEyODg2NTc4YWI1YjRhYjlkMjFjMzQ2M2E3NmYxOTFlMjg5YjFlMjBjMjE0YzlkZjVmZDFjMGY4MDI3NTQ0NjViOTA5MGRiMWZjZmYzMTM1OTdjMGY3MzgxYmRlODY5ZmFkYTEzY2UxODhhZGJhMTYyMjAzNTI3YmFiYzFj"
     }
     homeUrl = "https://app.onbons.ai";
-    splashImageUrl = "https://app.onbons.ai/splash.jpg";
-    iconUrl = "https://testnet.onbons.ai/logo-spaced.png";
   }
 
   const config = {
@@ -30,20 +24,27 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     "frame": {
       "version": "1",
       "name": "Bonsai",
-      iconUrl,
+      "subtitle": "Create & monetize AI media",
+      "description": "Create, remix, and trade viral ai media. When others remix your media, they must swap into your content coin to generate.",
+      "screenshotUrls": [],
+      "primaryCategory": "entertainment",
+      "iconUrl": "https://app.onbons.ai/logo-spaced.png",
       homeUrl,
       "buttonTitle": "Remix AI media",
-      splashImageUrl,
+      "heroImageUrl": "https://app.onbons.ai/frame-hero.jpg",
+      "splashImageUrl": "https://app.onbons.ai/splash.jpg",
       "splashBackgroundColor": "#000000",
       "webhookUrl": "https://api.neynar.com/f/app/8d476d5a-532d-4865-aedb-416481cf00c7/event",
-      "primaryCategory": "social",
       "tags": [
         "remix",
-        "smart-media",
+        "genai",
         "ai",
-        "generative-ai",
+        "slop",
         "generative"
-      ]
+      ],
+      "ogTitle": "Bonsai - Remix AI Media",
+      "ogDescription": "Create, remix, and trade viral ai media",
+      "ogImageUrl": "https://app.onbons.ai/frame-hero.jpg"
     }
   }
 
