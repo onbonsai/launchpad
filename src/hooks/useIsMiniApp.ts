@@ -41,10 +41,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
       const isFarcasterMiniApp = await sdk.isInMiniApp();
       const isCoinbaseMiniApp = coinbaseContext?.clientFid === 309857;
 
-      console.log(`isFarcasterMiniApp: ${isFarcasterMiniApp}`);
-      console.log(`isCoinbaseMiniApp: ${isCoinbaseMiniApp}`);
-      console.log(`coinbaseContext?.clientFid`, coinbaseContext?.clientFid)
-
       if (isFarcasterMiniApp) {
         setIsMiniApp(true);
         setMiniAppType('farcaster');
@@ -54,6 +50,14 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
         setIsMiniApp(true);
         setMiniAppType('coinbase');
         setContext(coinbaseContext as FarcasterContext);
+      } else {
+        // final option
+        const context = await sdk.context;
+        if (context?.client.clientFid === 309857) {
+          setIsMiniApp(true);
+          setMiniAppType('coinbase');
+          setContext(coinbaseContext as FarcasterContext);
+        }
       }
     };
 
