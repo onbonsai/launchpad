@@ -96,12 +96,14 @@ function AppContent(props: AppProps) {
             }
           }
         }
+
+        // Only set loaded to true after sdk.actions.ready() completes
+        setIsSDKLoaded(true);
       }
     };
 
     if (isFarcasterMiniApp && !isSDKLoaded) {
       load();
-      setIsSDKLoaded(true);
     } else if (!isMiniApp && !isSDKLoaded) {
       // Handle regular web app (not a mini app)
       setIsSDKLoaded(true);
