@@ -12,10 +12,8 @@ import useLensSignIn from "@src/hooks/useLensSignIn";
 import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
 import { brandFont } from "@src/fonts/fonts";
-import useGetProfiles from "@src/hooks/useGetProfiles";
 import { getProfileImage } from "@src/services/lens/utils";
 import Image from "next/image";
-import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
   '& .MuiPaper-root': {
@@ -53,10 +51,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const { profiles } = useGetProfiles(address);
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
-  const { isMiniApp } = useIsMiniApp();
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -154,7 +150,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         disabled={signingIn}
         size="md"
       >
-        Login {isMiniApp ? '' : 'with Lens'}
+        Login
       </Button>
     )
   }
