@@ -898,8 +898,7 @@ const StudioCreatePage: NextPage = () => {
         canvas.width = videoElement.videoWidth;
         canvas.height = videoElement.videoHeight;
 
-        // Set time to near the end (90% of duration to avoid potential issues at the very end)
-        videoElement.currentTime = videoElement.duration * 0.99;
+        videoElement.currentTime = videoElement.duration;
       };
 
       videoElement.onseeked = () => {
