@@ -2,12 +2,13 @@
 
 This application now integrates with Matcha's 0x Swap API to enable token swapping directly within the app for tokens on Base chain.
 
-## Environment Variable
+## Environment Variables
 
-Add the following environment variable to your `.env` file:
+Add the following environment variables to your `.env` file:
 
 ```
 MATCHA_API_KEY=your_matcha_api_key_here
+ADMIN_WALLET=0x21aF1185734D213D45C6236146fb81E2b0E8b821  # Optional, defaults to this address
 ```
 
 You can obtain an API key from https://0x.org/docs/0x-swap-api/introduction
@@ -30,6 +31,7 @@ The Matcha integration is used in three places:
 ## Implementation Details
 
 The integration follows the Permit2 flow:
+
 1. Get price quote (via `/api/matcha/price`)
    - Check `issues.allowance.actual` to see current allowance
    - Get `issues.allowance.spender` (the Permit2 contract address)
@@ -39,4 +41,18 @@ The integration follows the Permit2 flow:
 4. Sign Permit2 message (if `permit2.eip712` exists in quote)
    - Sign the EIP-712 data
    - Append signature length (32-byte big-endian) and signature to transaction data
-5. Execute transaction with the modified transaction data 
+5. Execute transaction with the modified transaction data
+
+## Monetization
+
+The integration includes a 0.1% affiliate fee on all swaps:
+
+- Fee recipient: Admin wallet (configurable via `ADMIN_WALLET` env var)
+- Fee amount: 10 basis points (0.1%)
+- Fee token: Collected in the sell token
+
+This is implemented by adding the following parameters to both price and quote requests:
+
+- `swapFeeRecipient`: The wallet address that receives the fee
+- `swapFeeBps`: Fee amount in basis points (10 = 0.1%)
+- `swapFeeToken`: Which token to collect the fee in (sell token)

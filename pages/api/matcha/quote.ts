@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
+import { ADMIN_WALLET } from "@src/services/madfi/moneyClubs";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -27,6 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       buyToken,
       sellAmount,
       taker,
+      swapFeeRecipient: ADMIN_WALLET,
+      swapFeeBps: "10", // 0.1% = 10 basis points
+      swapFeeToken: sellToken, // Collect fee in sell token
     });
 
     const response = await axios.get(`${baseUrl}?${params}`, {
