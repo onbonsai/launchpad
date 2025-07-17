@@ -80,10 +80,16 @@ function AppContent(props: AppProps) {
 
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
 
+  // Reset SDK loaded state when mini app type changes
+  useEffect(() => {
+    setIsSDKLoaded(false);
+  }, [isFarcasterMiniApp, isMiniApp]);
+
   useEffect(() => {
     const load = async () => {
       // Only run Farcaster SDK logic if it's a Farcaster mini app
       if (isFarcasterMiniApp) {
+        console.log('🚀 Calling sdk.actions.ready() for Farcaster mini app');
         await sdk.actions.ready(); // hide splash
 
         // Prompt to add mini app when ?install
@@ -98,17 +104,20 @@ function AppContent(props: AppProps) {
         }
 
         // Only set loaded to true after sdk.actions.ready() completes
+        console.log('✅ Farcaster SDK ready');
         setIsSDKLoaded(true);
       }
     };
 
     if (isFarcasterMiniApp && !isSDKLoaded) {
+      console.log('🔄 Loading Farcaster SDK...');
       load();
     } else if (!isMiniApp && !isSDKLoaded) {
       // Handle regular web app (not a mini app)
+      console.log('🌐 Regular web app - no SDK needed');
       setIsSDKLoaded(true);
     }
-  }, [isFarcasterMiniApp, isSDKLoaded, router.query.install, context?.client.added]);
+  }, [isFarcasterMiniApp, isMiniApp, isSDKLoaded, router.query.install, context?.client.added]);
 
   // Load non-critical CSS after initial render
   useEffect(() => {
