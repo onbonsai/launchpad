@@ -63,7 +63,8 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
 
   const { setOpen } = useModal({
     onConnect: () => {
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false) {
+      // Don't auto-trigger Lens login for miniapp users
+      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
         setTimeout(() => {
           setOpenSignInModal(true);
         }, 500);
@@ -158,7 +159,16 @@ export const Header = () => {
   const isAlmostMobile = useIsAlmostMobile();
   const isMobile = useIsMobile();
   const { isConnected } = useAccount();
-  const { setOpen } = useModal();
+  const { setOpen } = useModal({
+    onConnect: () => {
+      // Don't auto-trigger Lens login for miniapp users
+      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
+        setTimeout(() => {
+          setOpenSignInModal(true);
+        }, 500);
+      }
+    },
+  });
   const { isMiniApp } = useIsMiniApp();
 
   if (!isMounted) return null;
