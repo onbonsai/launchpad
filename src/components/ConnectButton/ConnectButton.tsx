@@ -13,6 +13,7 @@ import { logout as lensLogout } from "@src/hooks/useLensLogin";
 import { useRouter } from "next/router";
 import { brandFont } from "@src/fonts/fonts";
 import { getProfileImage } from "@src/services/lens/utils";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import Image from "next/image";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
@@ -53,6 +54,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { disconnect } = useDisconnect();
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
+  const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const { setOpen } = useModal({
     onConnect: () => {
       if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
@@ -86,18 +88,24 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const identity = useMemo(() => {
     if (authenticatedProfile)
       return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name
+    if (isMiniApp && farcasterContext?.user) {
+      return farcasterContext.user.displayName || farcasterContext.user.username;
+    }
     if (!loadingENS && ensName) return ensName;
 
     return transformTextToWithDots(address);
-  }, [authenticatedProfile, loadingENS, address]);
+  }, [authenticatedProfile, loadingENS, address, isMiniApp, farcasterContext]);
 
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
       return getProfileImage(authenticatedProfile)
     }
+    if (isMiniApp && farcasterContext?.user?.pfpUrl) {
+      return farcasterContext.user.pfpUrl;
+    }
     // TODO: Default image
     return null;
-  }, [authenticatedProfile, loadingENS, address]);
+  }, [authenticatedProfile, loadingENS, address, isMiniApp, farcasterContext]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -195,12 +203,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         }}>
           Stake
         </MenuItem>
-        <MenuItem onClick={() => {
-          handleClose();
-          router.push(`/profile/${authenticatedProfile?.username?.localName}?settings=true`);
-        }}>
-          Settings
-        </MenuItem>
+        {authenticatedProfile?.username?.localName && (
+          <MenuItem onClick={() => {
+            handleClose();
+            router.push(`/profile/${authenticatedProfile?.username?.localName}?settings=true`);
+          }}>
+            Settings
+          </MenuItem>
+        )}
         <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           setOpenHelpModal?.(true)

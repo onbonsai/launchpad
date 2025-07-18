@@ -18,6 +18,23 @@ interface FarcasterContext {
     clientFid: number;
     added: boolean;
   };
+  location?: {
+    type: "cast_share";
+    cast: {
+      author: {
+        fid: number;
+        username: string;
+        displayName: string;
+        pfpUrl: string;
+      };
+      hash: string;
+      timestamp: number;
+      mentions: any[];
+      text: string;
+      embeds: string[];
+      channelKey: string;
+    };
+  };
 }
 
 type MiniAppType = 'farcaster' | 'coinbase' | null;

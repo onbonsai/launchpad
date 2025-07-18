@@ -52,7 +52,13 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isApprovingBudget, setIsApprovingBudget] = useState(false);
-  const [creationStep, setCreationStep] = useState('create'); // 'create' | 'budget' | 'notifications'
+  const [creationStep, setCreationStep] = useState(() => {
+    // Initialize with budget step if withBudget is true for miniapp users
+    if (isMiniApp && withBudget) {
+      return 'budget';
+    }
+    return 'create';
+  }); // 'create' | 'budget' | 'notifications'
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDisplayName, setEditedDisplayName] = useState('');
@@ -79,10 +85,18 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (modal) {
-      if (modal === "budget" && !isAuthenticated) setCreationStep("create");
-      else setCreationStep(modal);
+      if (modal === "budget" && !isAuthenticated) {
+        // For miniapp users with budget, skip to budget step directly
+        if (isMiniApp && withBudget) {
+          setCreationStep("budget");
+        } else {
+          setCreationStep("create");
+        }
+      } else {
+        setCreationStep(modal);
+      }
     }
-  }, [modal, isAuthenticated]);
+  }, [modal, isAuthenticated, isMiniApp, withBudget]);
 
   // Initialize edited values when context changes
   useEffect(() => {

@@ -44,7 +44,7 @@ import { usePWA } from '@src/hooks/usePWA';
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -942,6 +942,130 @@ const StudioCreatePage: NextPage = () => {
     setSelectedSubTemplate(subTemplate);
   };
 
+  const onCast = async (collectAmount: number) => {
+    let toastId: string | undefined;
+    if (!template) {
+      toast.error("No template data found");
+      return;
+    }
+
+    if (!currentPreview) {
+      toast.error("No preview available to cast");
+      return;
+    }
+
+    setIsCreating(true);
+    toastId = toast.loading("Creating your cast...", { id: toastId });
+
+    try {
+      // Process audio helper function
+      const processAudio = async (audio: any) => {
+        if (!audio) return undefined;
+        if (typeof audio === 'string') return { data: audio };
+        if ('url'in audio && audio.url) return { name: audio.name, data: audio.url };
+        if (audio instanceof File) {
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(audio);
+          });
+          return { name: audio.name, data };
+        }
+        return audio;
+      };
+
+      // Create smart media without postId (for miniapp users)
+      toastId = toast.loading("Finalizing...", { id: toastId });
+      const result = await createSmartMedia(template.apiUrl, undefined, JSON.stringify({
+        roomId,
+        agentId: currentPreview?.agentId,
+        agentMessageId: currentPreview?.agentMessageId,
+        // No postId for miniapp users
+        parentCast: context?.location?.cast?.hash,
+        creatorFid: context?.user?.fid,
+        token: finalTokenData ? {
+          chain: finalTokenData.selectedNetwork,
+          address: finalTokenData.tokenAddress,
+          metadata: {
+            name: finalTokenData.tokenName,
+            symbol: finalTokenData.tokenSymbol,
+            image: finalTokenData.tokenImage?.length ? finalTokenData.tokenImage[0].preview : null
+          }
+        } : undefined,
+        params: {
+          templateName: template.name,
+          category: template.category,
+          templateData: {
+            ...finalTemplateData,
+            audioData: await processAudio((finalTemplateData as any)?.audioData),
+          },
+        },
+        storyboard: storyboardClips.length > 0 ? {
+          clips: storyboardClips.map(clip => ({
+            id: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+            templateData: {
+              video: { url: clip.preview.video?.url?.startsWith("https://") ? clip.preview.video.url : clip.preview.videoUrl },
+              image: clip.preview.image?.startsWith("https://") ? clip.preview.image : clip.preview.imageUrl,
+              prompt: clip.preview.text,
+              ...clip.templateData,
+            },
+          })),
+          audioData: await processAudio(storyboardAudio),
+          audioStartTime: storyboardAudioStartTime,
+          roomId: roomId as string
+        } : undefined
+      }));
+
+      if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      // Handle composeCast for miniapp users
+      toastId = toast.loading("Creating cast...", { id: toastId });
+
+      // Prepare cast content
+      const imageUrl = currentPreview?.imageUrl;
+      const videoUrl = currentPreview?.video?.url;
+
+      // Create embeds array
+      const embeds: string[] = [];
+      if (imageUrl) embeds.push(imageUrl);
+      if (videoUrl) embeds.push(videoUrl);
+
+      embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId}`);
+
+      await sdk.actions.composeCast({
+        text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
+        embeds,
+        parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
+        close: true
+      });
+
+      toast.success("Cast created successfully!", { duration: 5000, id: toastId });
+
+      // Reset form state
+      setIsCreating(false);
+      setCurrentPreview(undefined);
+      setPostContent("");
+      setFinalTemplateData({});
+      setStoryboardClips([]);
+      setStoryboardAudio(null);
+      setStoryboardAudioStartTime(0);
+
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to create cast", { id: toastId, duration: 5000 });
+      } else {
+        Sentry.captureException(error);
+        toast.error("Failed to create cast", { id: toastId });
+      }
+      setIsCreating(false);
+      return;
+    }
+  };
+
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -1481,6 +1605,7 @@ const StudioCreatePage: NextPage = () => {
                             authenticatedProfile={authenticatedProfile}
                             finalTokenData={finalTokenData}
                             onCreate={onCreate}
+                            onCast={onCast}
                             back={() => {
                               setOpenTab(addToken ? 2 : 1);
                               window.scrollTo({ top: 0, behavior: 'smooth' });

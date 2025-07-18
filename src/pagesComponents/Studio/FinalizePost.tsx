@@ -44,6 +44,7 @@ type FinalizePostProps = {
   authenticatedProfile: any;
   finalTokenData: any;
   onCreate: (collectAmount: number) => void;
+  onCast?: (collectAmount: number) => void;
   back: () => void;
   isCreating: boolean;
   addToken: boolean;
@@ -66,6 +67,7 @@ export const FinalizePost = ({
   authenticatedProfile,
   finalTokenData,
   onCreate,
+  onCast,
   back,
   isCreating,
   addToken,
@@ -257,8 +259,23 @@ export const FinalizePost = ({
           </div>
         </div>
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
-          <Button size='md' disabled={!collectAmount || isCreating} onClick={() => onCreate(collectAmount || 0)} variant="accentBrand" className="w-full hover:bg-bullish">
-            {`${LENS_CHAIN_ID !== chain?.id && !isMiniApp ? 'Switch to Lens Chain' : 'Post'}`}
+          <Button
+            size='md'
+            disabled={!collectAmount || isCreating}
+            onClick={() => {
+              if (isMiniApp && onCast) {
+                onCast(collectAmount || 0);
+              } else {
+                onCreate(collectAmount || 0);
+              }
+            }}
+            variant="accentBrand"
+            className="w-full hover:bg-bullish"
+          >
+            {isMiniApp
+              ? 'Cast'
+              : `${LENS_CHAIN_ID !== chain?.id && !isMiniApp ? 'Switch to Lens Chain' : 'Post'}`
+            }
           </Button>
           <Button size='md' disabled={isCreating} onClick={back} variant="dark-grey" className="w-full hover:bg-bullish">
             Back

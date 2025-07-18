@@ -84,7 +84,8 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const isCreateActive = route === '/studio/create';
 
   const handleAuthRequiredClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
+    // For miniapp users, allow them to proceed to create/remix flow
+    if (!isAuthenticated && !isMiniApp) {
       e.preventDefault();
       setOpen(true);
     }
@@ -97,7 +98,9 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
         hasHandledInitialModal.current = true;
         return;
       }
-      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
+      // Remove automatic login modal trigger for miniapp users, except for budget flow
+      // They can now go through the create/remix flow
+      if ((!isMiniApp || query.modal === "budget") && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
         setOpenSignInModal(true);
         hasHandledInitialModal.current = true;
         if (query.modal === "budget") {
@@ -156,11 +159,13 @@ export const Header = () => {
   const isMobile = useIsMobile();
   const { isConnected } = useAccount();
   const { setOpen } = useModal();
+  const { isMiniApp } = useIsMiniApp();
 
   if (!isMounted) return null;
 
   const handleAuthRequiredClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
+    // For miniapp users, allow them to proceed to create/remix flow
+    if (!isAuthenticated && !isMiniApp) {
       e.preventDefault();
       setOpen(true);
     }

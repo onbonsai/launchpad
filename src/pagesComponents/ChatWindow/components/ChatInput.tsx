@@ -9,6 +9,7 @@ import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import RemixForm from './RemixForm';
 import { useTopUpModal } from '@src/context/TopUpContext';
 import { type StoryboardClip } from "@src/services/madfi/studio";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 type PremadeChatInputProps = {
   label: string;
@@ -175,6 +176,7 @@ export default function ChatInput({
   imageToExtend,
   setImageToExtend,
 }: ChatInputProps) {
+  const { isMiniApp } = useIsMiniApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
@@ -347,7 +349,7 @@ export default function ChatInput({
                       size="xs"
                       className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      {isPosting ? "Post" : <SendSvg />}
+                      {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
                     </Button>
                   )}
                   {requireBonsaiPayment && requireBonsaiPayment > 0 && (

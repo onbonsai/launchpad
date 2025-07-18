@@ -39,6 +39,9 @@ import { FastForwardIcon, FilmIcon } from '@heroicons/react/solid';
 import { SparklesIcon } from '@heroicons/react/solid';
 import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { SITE_URL } from "@src/constants/constants";
+import { sdk } from '@farcaster/frame-sdk';
 
 type ChatProps = {
   agentId: string;
@@ -248,6 +251,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
+  const { isMiniApp, context } = useIsMiniApp();
   const { data: messageData, isLoading: isLoadingMessageHistory, error } = useGetMessages(agentId, conversationId);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const { messages: messageHistory, canMessage } = messageData || {};
@@ -735,8 +739,126 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     }
   };
 
+  const handleCast = useCallback(async (text: string) => {
+    if (!postingPreview) return;
+
+    let toastId: string | undefined;
+    try {
+      const template = media ? mapTemplateNameToTemplate(media?.template, registeredTemplates || []) : undefined;
+      if (!template) throw new Error("template not found");
+
+      setIsPosting(true);
+      toastId = toast.loading("Creating your cast...", { id: toastId });
+
+      // Process audio helper function
+      const processAudio = async (audio: any) => {
+        if (!audio) return undefined;
+        if (typeof audio === 'string') return { data: audio };
+        if ('url'in audio && audio.url) return { name: audio.name, data: audio.url };
+        if (audio instanceof File) {
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(audio);
+          });
+          return { name: audio.name, data };
+        }
+        return audio;
+      };
+
+      // Create smart media without postId (for miniapp users)
+      toastId = toast.loading("Finalizing...", { id: toastId });
+      const result = await createSmartMedia(template.apiUrl, undefined, JSON.stringify({
+        roomId: conversationId,
+        agentId: postingPreview.agentId,
+        agentMessageId: postingPreview.agentMessageId,
+        // No postId for miniapp users
+        parentCast: context?.location?.cast?.hash,
+        creatorFid: context?.user?.fid,
+        token: media?.token,
+        params: {
+          templateName: template.name,
+          category: template.category,
+          templateData: postingPreview.templateData,
+        },
+        storyboard: storyboardClips.length > 0 ? {
+          clips: storyboardClips.map(clip => ({
+            id: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+            templateData: {
+              video: { url: clip.preview.video?.url?.startsWith("https://") ? clip.preview.video.url : clip.preview.videoUrl },
+              image: clip.preview.image?.startsWith("https://") ? clip.preview.image : clip.preview.imageUrl,
+              prompt: clip.preview.text,
+              ...clip.templateData,
+            },
+          })),
+          audioData: await processAudio(storyboardAudio),
+          audioStartTime: storyboardAudioStartTime,
+          roomId: conversationId as string
+        } : undefined
+      }));
+
+      if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      // Handle composeCast for miniapp users
+      toastId = toast.loading("Creating cast...", { id: toastId });
+
+      // Prepare cast content
+      const imageUrl = postingPreview.imageUrl || postingPreview.image;
+      const videoUrl = postingPreview.video?.url;
+
+      // Create embeds array
+      const embeds: string[] = [];
+      if (imageUrl) embeds.push(imageUrl);
+      if (videoUrl) embeds.push(videoUrl);
+
+      // Add the media page URL
+      if (postingPreview.agentMessageId) {
+        embeds.push(`${SITE_URL}/media/${postingPreview.agentMessageId}`);
+      }
+
+      await sdk.actions.composeCast({
+        text: `${text ? text.substring(0, 200) + (text.length > 200 ? '...' : '') : postingPreview.text || template.displayName}\n\nvia @onbonsai.eth`,
+        embeds,
+        parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
+        close: true
+      });
+
+      toast.success("Cast created successfully!", { duration: 5000, id: toastId });
+
+      // Delete the storyboard from localStorage
+      localStorage.removeItem(storyboardKey);
+
+      // Reset state
+      setIsPosting(false);
+      setPostingPreview(undefined);
+      setUserInput('');
+
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to create cast", { id: toastId, duration: 5000 });
+      } else {
+        Sentry.captureException(error);
+        toast.error("Failed to create cast", { id: toastId });
+      }
+      setIsPosting(false);
+    }
+  }, [postingPreview, conversationId, context, sdk, media, registeredTemplates, storyboardClips, storyboardAudio, storyboardAudioStartTime, storyboardKey]);
+
   const handlePost = useCallback(async (text: string) => {
     if (!postingPreview) return;
+
+    // Use cast flow for miniapp users
+    if (isMiniApp && sdk) {
+      return handleCast(text);
+    }
 
     let toastId;
     try {
@@ -934,7 +1056,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [postingPreview, authenticatedProfile, walletClient, conversationId, address, media, post, registeredTemplates, remixVersionQuery]);
+  }, [postingPreview, authenticatedProfile, walletClient, conversationId, address, media, post, registeredTemplates, remixVersionQuery, isMiniApp, sdk, handleCast]);
 
   // Handler for adding to storyboard
   const handleAddToStoryboard = useCallback((preview: Preview) => {

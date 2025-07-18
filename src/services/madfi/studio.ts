@@ -156,6 +156,7 @@ export type SmartMedia = {
   status?: SmartMediaStatus;
   estimatedCost?: number; // estimated credits per generation
   featured?: boolean; // whether the post should be featured
+  parentCast?: string;
 };
 
 export type NFTMetadata = {
