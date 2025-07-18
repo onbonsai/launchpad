@@ -29,6 +29,7 @@ const _client = () =>
 
 const getStorjPublicUrl = (bucket: string, key: string): string => {
   const keys = {
+    "profile-images": "jw7w2pma3bcucea2om7qsvkyx5qa",
     "publication-history-media": "jw5fzwqqirjuu6i2aambbebh4uza",
     "publication-history-metadata": "jw3iog3dy7frukpkum5xo6tklyxq",
     previews: "jwrsmshtwuktk3mv4r242qejirrq",
