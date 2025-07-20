@@ -44,7 +44,7 @@ export const useGetPosts = (publicationIds: string[]) => {
   return useQuery({
     queryKey: ["get-posts", publicationIds],
     queryFn: () => getPosts(publicationIds),
-    enabled: !!publicationIds,
+    enabled: !!publicationIds && publicationIds.length > 0,
   });
 };
 

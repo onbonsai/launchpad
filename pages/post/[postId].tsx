@@ -777,7 +777,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       image,
       rootPostId: post.root?.slug || postId,
       content: post?.metadata?.content,
-      handle: post?.author.username.localName || post.metadata.name,
+      handle: post?.author?.username?.localName || post.metadata.name,
       postId,
       quotes: quotes || [],
     },
