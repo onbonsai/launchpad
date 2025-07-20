@@ -2,12 +2,11 @@ import { MongoClient, Db } from "mongodb";
 import { formatEther } from "viem";
 import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client/core";
 import { NextApiRequest, NextApiResponse } from "next";
-import { MAX_STAKING_CREDITS } from "@src/services/madfi/stakingCalculator";
+import { FREE_TIER_CREDITS, MAX_STAKING_CREDITS } from "@src/services/madfi/stakingCalculator";
 
 // Configuration from cron job
 const SUBGRAPH_URL = `https://gateway.thegraph.com/api/${process.env.SUBGRAPH_API_KEY}/subgraphs/id/EHPwY2LhhhaxiCindhLuUVJRF4teH9BnzFRfVULsf8px`;
 const MONGO_URI = process.env.MONGO_URI || "";
-const FREE_TIER_CREDITS = 10;
 const TIER1_RATE = 0.5; // Credits per dollar for first $20
 const TIER1_MAX = 20; // First $20 staked
 const TIER2_RATE = 0.25; // Credits per dollar for $21-$100

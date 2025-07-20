@@ -84,8 +84,6 @@ export const PLATFORM_FLATLAY = "flatlay";
 export const ACCEPTED_PLATFORMS = [PLATFORM_FLATLAY];
 export const platforms = ["lens", "twitter", "insta", "tiktok", "deso", "farcaster"];
 
-export const FREE_CREDITS = 50000;
-
 export const FOLLOWER_ELIGIBILITY_OPTIONS = [0, 100, 500, 1000, 10000];
 
 export const SPACES_API_URL = process.env.SPACES_API_URL || "https://live.madfi.xyz/api";
