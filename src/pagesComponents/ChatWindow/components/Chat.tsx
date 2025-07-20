@@ -32,7 +32,15 @@ import { encodeAbi } from '@src/utils/viem';
 import { cloneDeep } from "lodash/lang";
 import { Publication, Theme } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  shareContainerStyleOverride,
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  textContainerStyleOverrides,
+  previewProfileContainerStyleOverride,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import { DownloadIcon } from '@heroicons/react/outline';
 import { FastForwardIcon, FilmIcon } from '@heroicons/react/solid';

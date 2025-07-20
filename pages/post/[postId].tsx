@@ -17,7 +17,16 @@ import useIsMounted from "@src/hooks/useIsMounted";
 import { useGetComments } from "@src/hooks/useGetComments";
 import useGetPublicationWithComments from "@src/hooks/useGetPublicationWithComments";
 import { getPost, getQuotes } from "@src/services/lens/posts";
-import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, publicationContainerStyleOverride, shareContainerStyleOverride, commentPublicationProfilePictureStyle, commentTextContainerStyleOverrides, commentReactionsContainerStyleOverride, commentProfileNameStyleOverride, commentDateStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  textContainerStyleOverrides,
+  publicationContainerStyleOverride,
+  shareContainerStyleOverride,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
@@ -768,7 +777,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       image,
       rootPostId: post.root?.slug || postId,
       content: post?.metadata?.content,
-      handle: post?.author.username.localName,
+      handle: post?.author.username.localName || post.metadata.name,
       postId,
       quotes: quotes || [],
     },
