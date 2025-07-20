@@ -80,6 +80,7 @@ const PostItem = React.memo(({
   // Double-tap like functionality
   const lastTapRef = useRef<number>(0);
   const [showLikeHeart, setShowLikeHeart] = useState(false);
+  const isDoubleTapping = useRef(false);
 
   useEffect(() => {
     if (isMobile) {
@@ -133,6 +134,12 @@ const PostItem = React.memo(({
       // Double tap detected
       e.preventDefault();
       e.stopPropagation();
+      isDoubleTapping.current = true;
+      
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        isDoubleTapping.current = false;
+      }, 500);
       
       try {
         await sendLike(post.slug);
@@ -158,6 +165,9 @@ const PostItem = React.memo(({
 
   // Memoize the onClick handler to prevent re-creation
   const handleCardClick = useCallback(() => {
+    // Don't navigate if we're in the middle of a double-tap
+    if (isDoubleTapping.current) return;
+    
     localStorage.setItem('tempPostData', JSON.stringify(post));
     router.push({ pathname: `/post/${post.slug}` });
   }, [post, router]);
