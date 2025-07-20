@@ -12,7 +12,15 @@ import { sharePost, isWebShareSupported } from "@src/utils/webShare";
 import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, postCollageTextContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  shareContainerStyleOverride,
+  postCollageTextContainerStyleOverrides,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
 import { BONSAI_POST_URL } from "@src/constants/constants";
 import toast from "react-hot-toast";
@@ -568,7 +576,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                     postData={postData[post.__typename === "TimelineItem" ? post.primary.slug : post.slug]}
                     onShareButtonClick={memoizedOnShareButtonClick}
                     router={router}
-                    isAuthenticated={isAuthenticated}
+                    isAuthenticated={isAuthenticated || false}
                   />
                 ))}
               </Masonry>
