@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { brandFont } from "@src/fonts/fonts";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { useAccount } from "wagmi";
+import { MAX_STAKING_CREDITS } from "@src/services/madfi/stakingCalculator";
 
 interface StakeModalProps {
   onStake: (amount: string, lockupPeriod: number) => Promise<boolean>;
@@ -153,7 +154,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
                       <div>$21-$100 = 0.25× credits</div>
                       <div>$101+ = 0.1× credits</div>
                     </div>
-                    <div className="mt-2 text-secondary/60">Maximum staking credits: 200 (+ 10 free tier credits)</div>
+                    <div className="mt-2 text-secondary/60">Maximum staking credits: {MAX_STAKING_CREDITS} (+ 10 free tier credits)</div>
                   </div>
                 </div>
               </div>
