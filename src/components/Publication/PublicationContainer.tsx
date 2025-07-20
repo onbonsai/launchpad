@@ -305,12 +305,12 @@ const PublicationContainer = ({
 
   const handleCommentButton = useCallback((e, actionModuleHandler?) => {
     if (shouldGoToPublicationPage) return goToPublicationPage(e);
-    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author.username.localName);
-  }, [shouldGoToPublicationPage, goToPublicationPage, onCommentButtonClick, media, hasCollected, publication?.id, publication?.author.username.localName]);
+    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author?.username?.localName);
+  }, [shouldGoToPublicationPage, goToPublicationPage, onCommentButtonClick, media, hasCollected, publication?.id, publication?.author?.username?.localName]);
 
   const handleProfileClick = useCallback((e) => {
-    goToCreatorPage(e, publication?.author.username.localName);
-  }, [goToCreatorPage, publication?.author.username.localName]);
+    goToCreatorPage(e, publication?.author?.username?.localName);
+  }, [goToCreatorPage, publication?.author?.username?.localName]);
 
   const onMirrorButtonClick = async (e: React.MouseEvent, actionModuleHandler?) => {
     e.preventDefault();
