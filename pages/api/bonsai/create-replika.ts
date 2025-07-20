@@ -4,13 +4,20 @@ import { getClientWithMedia } from "@src/services/mongo/client";
 import verifyIdToken from "@src/services/lens/verifyIdToken";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { source, fid } = req.body;
+  const { source, fid, address } = req.body;
   const authorization = req.headers.authorization;
-  if (!authorization) return res.status(401).json({ error: "Missing authorization header" });
-  const token = authorization.split(" ")[1];
-
   const { database } = await getClientWithMedia();
   const collection = database.collection("replikas");
+
+  // when a lens account was not created
+  if (!authorization) {
+    try {
+      await collection.insertOne({ owner: address, source, fid });
+    } catch {} // unique: true
+    return res.status(200).end();
+  }
+
+  const token = authorization.split(" ")[1];
 
   try {
     const user = await verifyIdToken(token);

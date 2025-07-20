@@ -433,6 +433,16 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       console.log(`hash: ${hash}`)
       await client.waitForTransactionReceipt({ hash });
 
+      // create a dummy replika record so we can know which address to handle payments
+      await fetch('/api/bonsai/create-replika', {
+        method: 'POST',
+        headers: {
+          // 'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ source: "farcaster", fid: context?.user.fid, address })
+      });
+
       handleCloseModal();
 
       // Prompt to add mini app
