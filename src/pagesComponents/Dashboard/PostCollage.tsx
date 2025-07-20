@@ -28,6 +28,7 @@ import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 import { Button } from "@src/components/Button";
 import dynamic from "next/dynamic";
+import { sendLike } from "@src/services/lens/getReactions";
 
 const Publication = dynamic(
   () => import('@madfi/widgets-react').then(mod => mod.Publication),
@@ -50,6 +51,7 @@ interface PostItemProps {
   postData: any;
   onShareButtonClick: (slug: string) => void;
   router: any;
+  isAuthenticated: boolean;
 }
 
 const PostItem = React.memo(({
@@ -67,12 +69,17 @@ const PostItem = React.memo(({
   bonsaiBalance,
   postData,
   onShareButtonClick,
-  router
+  router,
+  isAuthenticated
 }: PostItemProps) => {
   const { ref: postRef, inView: postInView } = useInView({
     threshold: 0.5,
     triggerOnce: false,
   });
+
+  // Double-tap like functionality
+  const lastTapRef = useRef<number>(0);
+  const [showLikeHeart, setShowLikeHeart] = useState(false);
 
   useEffect(() => {
     if (isMobile) {
@@ -114,6 +121,41 @@ const PostItem = React.memo(({
            activeDropdown === post.slug;
   }, [isMobile, postInView, hoveredPostSlug, post.slug, activeDropdown]);
 
+  // Handle double-tap to like
+  const handleTouchStart = useCallback(async (e: React.TouchEvent) => {
+    if (!isAuthenticated) return;
+    
+    const now = new Date().getTime();
+    const timeDelta = now - lastTapRef.current;
+    const DOUBLE_TAP_DELAY = 300; // milliseconds
+    
+    if (timeDelta < DOUBLE_TAP_DELAY && timeDelta > 0) {
+      // Double tap detected
+      e.preventDefault();
+      e.stopPropagation();
+      
+      try {
+        await sendLike(post.slug);
+        
+        // Show heart animation
+        setShowLikeHeart(true);
+        setTimeout(() => setShowLikeHeart(false), 1000);
+        
+        // Haptic feedback
+        if (isMobile) {
+          haptics.light();
+        }
+        
+        toast.success("Liked!", { duration: 1500 });
+      } catch (error) {
+        console.error('Error liking post:', error);
+        toast.error("Failed to like post");
+      }
+    }
+    
+    lastTapRef.current = now;
+  }, [isAuthenticated, post.slug, isMobile]);
+
   // Memoize the onClick handler to prevent re-creation
   const handleCardClick = useCallback(() => {
     localStorage.setItem('tempPostData', JSON.stringify(post));
@@ -133,6 +175,7 @@ const PostItem = React.memo(({
       transition-all duration-300 ease-out transform-gpu`}
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
+      onTouchStart={isMobile ? handleTouchStart : undefined}
     >
       {(timelineItem || postData?.presence) && (
         <TimelineItemInteractions
@@ -210,6 +253,22 @@ const PostItem = React.memo(({
           comments={timelineItem.comments}
           position="bottom"
         />
+      )}
+      
+      {/* Double-tap like heart animation */}
+      {showLikeHeart && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div className="animate-ping">
+            <div className="bg-red-500 rounded-full p-4 opacity-90 animate-pulse">
+              <svg
+                className="w-12 h-12 text-white fill-current"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -499,6 +558,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                     postData={postData[post.__typename === "TimelineItem" ? post.primary.slug : post.slug]}
                     onShareButtonClick={memoizedOnShareButtonClick}
                     router={router}
+                    isAuthenticated={isAuthenticated}
                   />
                 ))}
               </Masonry>
