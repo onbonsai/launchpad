@@ -43,6 +43,8 @@ import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
 import { storageClient } from "@src/services/lens/client";
 import { usePWA } from '@src/hooks/usePWA';
 
+type Embeds = [] | [string] | [string, string] | undefined;
+
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
   const { isMiniApp, context } = useIsMiniApp();
@@ -501,8 +503,6 @@ const StudioCreatePage: NextPage = () => {
   }, [currentPreview]);
 
   const handleSetPreview = (preview: Preview, tempId?: string) => {
-
-
     // Prevent duplicate processing of the same preview
     if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) {
       const isExisting = localPreviews.some(lp =>
@@ -977,6 +977,43 @@ const StudioCreatePage: NextPage = () => {
         toast.error("Failed to authenticate", { duration: 5000, id: toastId });
         return;
       }
+      // Determine token address and data for base chain
+      let tokenAddress: string | undefined;
+      let tokenData: any;
+      
+      if (savedTokenAddress) {
+        // Use saved token address from token creation
+        tokenAddress = savedTokenAddress;
+        tokenData = {
+          chain: finalTokenData?.selectedNetwork || "base",
+          address: tokenAddress,
+          metadata: finalTokenData ? {
+            name: finalTokenData.tokenName,
+            symbol: finalTokenData.tokenSymbol,
+            image: finalTokenData.tokenImage?.length ? finalTokenData.tokenImage[0].preview : null
+          } : undefined
+        };
+      } else if (remixMedia?.token?.address) {
+        // Use token from remix
+        tokenAddress = remixMedia.token.address;
+        tokenData = {
+          chain: remixMedia.token.chain || "base",
+          address: tokenAddress,
+          // Metadata should already be in remixMedia
+        };
+      } else {
+        // Default to Bonsai on base
+        tokenData = {
+          chain: "base",
+          address: PROTOCOL_DEPLOYMENT.base.Bonsai,
+          metadata: {
+            name: "Bonsai",
+            symbol: "BONSAI",
+            image: "https://app.onbons.ai/logo-spaced.png"
+          }
+        };
+      }
+
       const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
@@ -984,15 +1021,7 @@ const StudioCreatePage: NextPage = () => {
         // No postId for miniapp users
         parentCast: context?.location?.cast?.hash,
         creatorFid: context?.user?.fid,
-        token: finalTokenData ? {
-          chain: finalTokenData.selectedNetwork,
-          address: finalTokenData.tokenAddress,
-          metadata: {
-            name: finalTokenData.tokenName,
-            symbol: finalTokenData.tokenSymbol,
-            image: finalTokenData.tokenImage?.length ? finalTokenData.tokenImage[0].preview : null
-          }
-        } : undefined,
+        token: tokenData,
         params: {
           templateName: template.name,
           category: template.category,
@@ -1030,14 +1059,14 @@ const StudioCreatePage: NextPage = () => {
 
       // Create embeds array
       const embeds: string[] = [];
-      if (imageUrl) embeds.push(imageUrl);
       if (videoUrl) embeds.push(videoUrl);
+      else if (imageUrl) embeds.push(imageUrl);
 
       embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId}`);
 
       await sdk.actions.composeCast({
         text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
-        embeds,
+        embeds: embeds as Embeds,
         parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
         close: true
       });
