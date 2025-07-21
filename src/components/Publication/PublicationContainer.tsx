@@ -75,6 +75,7 @@ type PublicationContainerProps = {
   isPresenceConnected?: boolean; // are we connected to the websocket
   connectedAccounts?: any; // connected accounts on the websocket
   version?: number;
+  showDownload?: boolean;
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -130,6 +131,7 @@ const PublicationContainer = ({
   isPresenceConnected,
   connectedAccounts,
   version,
+  showDownload,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const isMounted = useIsMounted();
@@ -243,7 +245,7 @@ const PublicationContainer = ({
     canComment: media?.agentId ? hasCollected : undefined,
   }), [
     publication?.operations?.hasUpvoted,
-    publication?.operations?.hasMirrored, 
+    publication?.operations?.hasMirrored,
     publication?.operations?.hasSimpleCollected,
     hasUpvoted,
     hasMirrored,
@@ -552,7 +554,7 @@ const PublicationContainer = ({
   const handleWebShare = async () => {
     try {
       const postTitle = publication?.metadata?.content?.slice(0, 50) + (publication?.metadata?.content?.length > 50 ? '...' : '') || 'Check out this post on Bonsai';
-      
+
       await sharePost(_publicationId, {
         title: postTitle,
         text: 'Check out this amazing content on Bonsai',
@@ -739,9 +741,9 @@ const PublicationContainer = ({
       )}
 
       {/* Download button for video content (only for creator) */}
-      {!!publication?.metadata?.video?.item && isAuthenticated && isCreator ? (
+      {!!publication?.metadata?.video?.item && (showDownload || (isAuthenticated && isCreator)) ? (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-14' : 'bottom-3 right-12'}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${showDownload ? 'right-2' : 'right-14'}` : `bottom-3 ${showDownload ? 'right-3' : 'right-12'}`}`}
           onClick={(e) => {
             e.stopPropagation();
             downloadMedia();
