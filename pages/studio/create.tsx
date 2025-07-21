@@ -344,7 +344,6 @@ const StudioCreatePage: NextPage = () => {
     if (!authResult.success) {
       return;
     }
-    const idToken = authResult.token;
 
     const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
@@ -973,7 +972,12 @@ const StudioCreatePage: NextPage = () => {
 
       // Create smart media without postId (for miniapp users)
       toastId = toast.loading("Finalizing...", { id: toastId });
-      const result = await createSmartMedia(template.apiUrl, undefined, JSON.stringify({
+      const authResult = await getAuthToken({ isMiniApp, address });
+      if (!authResult.success) {
+        toast.error("Failed to authenticate", { duration: 5000, id: toastId });
+        return;
+      }
+      const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
         agentMessageId: currentPreview?.agentMessageId,

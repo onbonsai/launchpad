@@ -50,6 +50,7 @@ import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
+import { getAuthToken } from "@src/utils/auth";
 
 type ChatProps = {
   agentId: string;
@@ -777,7 +778,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       // Create smart media without postId (for miniapp users)
       toastId = toast.loading("Finalizing...", { id: toastId });
-      const result = await createSmartMedia(template.apiUrl, undefined, JSON.stringify({
+      const authResult = await getAuthToken({ isMiniApp, address });
+      if (!authResult.success) {
+        toast.error("Failed to authenticate", { duration: 5000, id: toastId });
+        return;
+      }
+      const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
         roomId: conversationId,
         agentId: postingPreview.agentId,
         agentMessageId: postingPreview.agentMessageId,
