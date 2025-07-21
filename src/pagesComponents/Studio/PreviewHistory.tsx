@@ -98,7 +98,7 @@ export default function PreviewHistory({
   onExtendVideo,
 }: PreviewHistoryProps) {
   const { address } = useAccount();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
@@ -113,6 +113,32 @@ export default function PreviewHistory({
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   const isGeneratingPreview = useMemo(() => localPreviews.some(p => p.pending), [localPreviews]);
+
+  // Create author object that handles both Lens profile and Farcaster miniapp context
+  const publicationAuthor = useMemo(() => {
+    if (authenticatedProfile) {
+      return authenticatedProfile;
+    }
+
+    if (isMiniApp && farcasterContext?.user) {
+      // Create a mock profile object for Farcaster users
+      return {
+        username: {
+          localName: farcasterContext.user.username
+        },
+        metadata: {
+          name: farcasterContext.user.displayName || farcasterContext.user.username,
+          picture: farcasterContext.user.pfpUrl
+        },
+        // Add other required fields with fallbacks
+        id: `farcaster:${farcasterContext.user.fid}`,
+        address: address || '',
+        __typename: 'Profile' as const
+      };
+    }
+
+    return authenticatedProfile;
+  }, [authenticatedProfile, isMiniApp, farcasterContext, address]);
 
   // Check if there are any messages available to load
   const hasMessagesToLoad = messages?.pages?.some(page =>
@@ -370,7 +396,7 @@ export default function PreviewHistory({
           <Publication
             key={`preview-finalize-${postContent?.length || 0}-${currentPreview?.agentId || 'none'}`}
             publicationData={{
-              author: authenticatedProfile,
+              author: publicationAuthor,
               timestamp: Date.now(),
               metadata: {
                 __typename: currentPreview?.video
@@ -660,7 +686,7 @@ export default function PreviewHistory({
                 <Publication
                   key={`preview-${message.id}`}
                   publicationData={{
-                    author: authenticatedProfile,
+                    author: publicationAuthor,
                     timestamp: message.createdAt,
                     metadata: {
                       __typename: preview?.video
