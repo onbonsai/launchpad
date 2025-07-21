@@ -63,8 +63,6 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
         : generateUUID();
   }, [isMounted, isLoading, authenticatedProfile, media]);
 
-  console.log(creatorProfile)
-
     // Create a publication-like object from the preview for the Publication component
   const publicationData = useMemo(() => {
     if (!preview || !creatorProfile) return null;
