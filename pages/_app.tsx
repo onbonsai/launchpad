@@ -222,6 +222,8 @@ function AppContent(props: AppProps) {
           `}
         </Script>
 
+        {isMiniApp && <link rel="preconnect" href="https://auth.farcaster.xyz" />}
+
         <HandleSEO pageProps={pageProps} query={router.query} />
         <Web3Provider>
           <ThirdwebProvider>

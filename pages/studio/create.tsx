@@ -29,6 +29,7 @@ import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
 import type { NFTMetadata, TokenData, StoryboardClip } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/miniapp-sdk';
+import { getAuthToken } from "@src/utils/auth";
 import { SITE_URL } from "@src/constants/constants";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
@@ -339,17 +340,12 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) {
-      toast.error("Please log in to generate previews.");
+    const authResult = await getAuthToken({ isMiniApp });
+    if (!authResult.success) {
       return;
     }
-    const creds = await sessionClient.getCredentials();
-    if (creds.isErr() || !creds.value) {
-      toast.error("Authentication failed.");
-      return;
-    }
-    const idToken = creds.value.idToken;
+    const idToken = authResult.token;
+
     const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
     // Request notification permission and subscribe to push notifications when first generation is fired
@@ -387,7 +383,7 @@ const StudioCreatePage: NextPage = () => {
 
     workerRef.current?.postMessage({
       url: template.apiUrl,
-      idToken,
+      authHeaders: authResult.headers,
       category: template.category,
       templateName: template.name,
       templateData: templateData,

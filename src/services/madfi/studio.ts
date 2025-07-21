@@ -6,6 +6,7 @@ import { useQuery, UseQueryResult, useInfiniteQuery } from "@tanstack/react-quer
 import { getSmartMediaUrl } from "@src/utils/utils";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { getAuthHeaders } from "@src/utils/auth";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
@@ -192,7 +193,7 @@ interface GeneratePreviewResponse {
 
 export const enhancePrompt = async (
   url: string,
-  idToken: string,
+  authHeaders: Record<string, string>,
   template: Template,
   prompt: string,
   templateData?: any,
@@ -200,7 +201,7 @@ export const enhancePrompt = async (
   try {
     const response = await fetch(`${url}/post/enhance-prompt`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${idToken}`, "Content-Type": "application/json" },
+      headers: { ...authHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, template: template.name, templateData }),
     });
 
@@ -223,13 +224,13 @@ export const enhancePrompt = async (
   }
 };
 
-export const createSmartMedia = async (url: string, idToken: string, body: string): Promise<any | undefined> => {
+export const createSmartMedia = async (url: string, authHeaders: Record<string, string>, body: string): Promise<any | undefined> => {
   try {
     const response = await fetch(`${url}/post/create`, {
       method: "POST",
       headers: {
+        ...authHeaders,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body,
     });
@@ -353,13 +354,13 @@ export const useResolveSmartMedia = (
   });
 };
 
-export const requestPostUpdate = async (url: string, postSlug: string, idToken: string): Promise<boolean> => {
+export const requestPostUpdate = async (url: string, postSlug: string, authHeaders: Record<string, string>): Promise<boolean> => {
   try {
     const response = await fetch(`${url}/post/${postSlug}/update`, {
       method: "POST",
       headers: {
+        ...authHeaders,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ forceUpdate: true })
     });
@@ -381,13 +382,13 @@ export const requestPostUpdate = async (url: string, postSlug: string, idToken: 
   }
 };
 
-export const requestPostDisable = async (url: string, postSlug: string, idToken: string): Promise<boolean> => {
+export const requestPostDisable = async (url: string, postSlug: string, authHeaders: Record<string, string>): Promise<boolean> => {
   try {
     const response = await fetch(`${url}/post/${postSlug}/disable`, {
       method: "POST",
       headers: {
+        ...authHeaders,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
     });
 
@@ -439,12 +440,12 @@ export const useGetFeaturedPosts = (enabled = true) => {
   });
 };
 
-export const setFeatured = async (idToken: string, postId: string, featured?: boolean): Promise<boolean> => {
+export const setFeatured = async (authHeaders: Record<string, string>, postId: string, featured?: boolean): Promise<boolean> => {
   try {
     const response = await fetch("/api/media/set-featured", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${idToken}`,
+        ...authHeaders,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ postId, featured }),
@@ -459,12 +460,12 @@ export const setFeatured = async (idToken: string, postId: string, featured?: bo
   }
 };
 
-export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true) => {
+export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true, isMiniApp = false) => {
   return useInfiniteQuery({
-    queryKey: ["previews", roomId],
+    queryKey: ["previews", roomId, isMiniApp],
     queryFn: async ({ pageParam }) => {
-      const idToken = await _getIdToken();
-      if (!idToken) return { messages: [] };
+      const headers = await getAuthHeaders({ isMiniApp, requireAuth: false });
+      if (!Object.keys(headers).length) return { messages: [] };
 
       const DEFAULT_COUNT = 10; // 5 user messages, 5 agent messages
       // Use pageParam as the timestamp start, or no start param for first page
@@ -474,10 +475,7 @@ export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean =
       });
 
       const response = await fetch(`${url}/previews/${roomId}/messages?${queryParams}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer: ${idToken}`
-        },
+        headers,
       });
       if (!response.ok) {
         console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
@@ -559,23 +557,33 @@ export const fetchSmartMedia = async (post: Post, resolve?: boolean): Promise<Sm
   }
 }
 
-const _getIdToken = async (): Promise<string | undefined> => {
-  const sessionClient = await resumeSession(true);
-
-  if (!sessionClient) {
-    return;
-  } else {
-    const creds = await (sessionClient as SessionClient).getCredentials();
-
-    if (creds.isOk()) {
-      return creds.value?.idToken;
+const _getIdToken = async (isMiniApp = false): Promise<string | undefined> => {
+  try {
+    if (isMiniApp) {
+      // Farcaster miniapp flow
+      const { sdk } = await import("@farcaster/miniapp-sdk");
+      const { token } = await sdk.quickAuth.getToken();
+      return token;
+    } else {
+      // Lens authentication flow
+      const sessionClient = await resumeSession(true);
+      if (!sessionClient) {
+        return;
+      }
+      const creds = await (sessionClient as SessionClient).getCredentials();
+      if (creds.isOk()) {
+        return creds.value?.idToken;
+      }
     }
+  } catch (error) {
+    console.error('Error getting authentication token:', error);
+    return undefined;
   }
 }
 
 export const composeStoryboard = async (
   url: string,
-  idToken: string,
+  authHeaders: Record<string, string>,
   clips: StoryboardClip[],
   audio: File | { url: string, name: string } | string | null,
   audioStartTime: number,
@@ -606,7 +614,7 @@ export const composeStoryboard = async (
 
     const response = await fetch(`${url}/storyboard/compose`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${idToken}` },
+      headers: authHeaders,
       body: formData,
       signal: AbortSignal.timeout(300000) // 5 minutes for composition
     });
