@@ -85,13 +85,9 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (modal) {
-      if (modal === "budget" && !isAuthenticated) {
-        // For miniapp users with budget, skip to budget step directly
-        if (isMiniApp && withBudget) {
-          setCreationStep("budget");
-        } else {
-          setCreationStep("create");
-        }
+      if (modal === "budget") {
+        // Always show budget step when modal === "budget"
+        setCreationStep("budget");
       } else {
         setCreationStep(modal);
       }
