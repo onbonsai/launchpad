@@ -5,7 +5,7 @@ import { switchChain } from 'viem/actions';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { useRouter } from 'next/router';
-import { sdk } from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 import { Layout } from '@src/components/Layouts/Layout';
 import { Button } from '@src/components/Button';

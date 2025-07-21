@@ -71,11 +71,12 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       }
     },
     onDisconnect: () => {
-      console.log("onDisconnect");
       // Reset the modal flags when user disconnects
       hasHandledInitialModal.current = false;
       hasHandledBudgetModal.current = false;
-      lensLogout().then(fullRefetch)
+      if (!isMiniApp) {
+        lensLogout().then(fullRefetch)
+      }
     }
   });
 
@@ -93,14 +94,15 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
+    // If miniapp and not budget modal, skip the whole thing
+    if (isMiniApp && query.modal !== "budget") return;
+
     const timer = setTimeout(() => {
       if (isMiniApp && !isConnected && !hasHandledInitialModal.current) {
         setOpen(true);
         hasHandledInitialModal.current = true;
         return;
       }
-      // Remove automatic login modal trigger for miniapp users, except for budget flow
-      // They can now go through the create/remix flow
       if ((!isMiniApp || query.modal === "budget") && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
         setOpenSignInModal(true);
         hasHandledInitialModal.current = true;

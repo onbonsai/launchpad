@@ -49,7 +49,7 @@ import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SITE_URL } from "@src/constants/constants";
-import { sdk } from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 type ChatProps = {
   agentId: string;

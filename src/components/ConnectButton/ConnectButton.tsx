@@ -100,6 +100,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     if (authenticatedProfile) {
       return getProfileImage(authenticatedProfile)
     }
+    console.log(`isMiniApp: ${isMiniApp}`)
+    console.log(`farcasterContext?.user: ${farcasterContext?.user}`)
     if (isMiniApp && farcasterContext?.user?.pfpUrl) {
       return farcasterContext.user.pfpUrl;
     }
@@ -192,12 +194,12 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
               Info
             </MenuItem>
             <hr className="border-white/10 " />
-            <MenuItem onClick={() => {
+            {/* <MenuItem onClick={() => {
               disconnect();
               handleClose();
             }}>
               Log out
-            </MenuItem>
+            </MenuItem> */}
           </Menu>
         </>
       );
