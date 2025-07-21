@@ -255,12 +255,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       props: {
         handle: creatorProfile.username,
         profileImage: creatorProfile.pfpUrl,
-        content: preview.text,
+        content: preview.text || "",
         pageName: "singlePublication",
         media: omit(data, 'preview', 'creatorFid'),
         creatorProfile,
         uuid,
-        image: preview.imageUrl,
+        image: preview.image,
         preview,
       },
     };
