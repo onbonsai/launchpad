@@ -507,11 +507,11 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
     );
   }
 
-  // Mini App Profile Creation Flow
-  if (isMiniApp && (!profiles?.length || creationStep === "budget")) {
+  // Mini App Profile Creation Flow - only show if explicitly requesting budget flow
+  if (isMiniApp && creationStep === "budget") {
     return (
       <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
-        {creationStep === 'create' && (
+        {/* {creationStep === 'create' && (
           <>
             <h2 className="text-3xl text-center font-bold">Continue with a Replika</h2>
             <p className="text-center text-gray-400 mt-2">
@@ -611,7 +611,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
               </Button>
             </div>
           </>
-        )}
+        )} */}
 
         {creationStep === 'budget' && (
           <>

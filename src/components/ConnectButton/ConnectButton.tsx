@@ -150,6 +150,59 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   // }
 
   if (!isAuthenticated && setOpenSignInModal) {
+    // For miniapp users, show their Farcaster profile instead of Login button
+    if (isMiniApp && farcasterContext?.user) {
+      return (
+        <>
+          <div
+            className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-lg min-w-fit justify-end overflow-hidden`}
+            onClick={handleClick}
+            style={{ maxWidth: 'calc(100vw - 20px)' }}
+          >
+            <span className="flex items-center shrink min-w-0">
+              {profilePicture && <Image src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
+              <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
+                {identity}
+              </span>
+              <span className="bg-card rounded-full h-[13px] w-[13px] mr-[12px] flex items-center justify-center pointer-events-none">
+                <svg width="6" height="5" viewBox="0 0 6 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0.5 1L3 3.5L5.5 1" stroke="white" strokeWidth="1.2" />
+                </svg>
+              </span>
+            </span>
+          </div>
+          <Menu
+            anchorEl={anchorEl}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={open}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={() => {
+              handleClose();
+              router.push("/studio/stake");
+            }}>
+              Stake
+            </MenuItem>
+            <hr className="border-white/10 " />
+            <MenuItem onClick={() => {
+              setOpenHelpModal?.(true)
+              handleClose();
+            }}>
+              Info
+            </MenuItem>
+            <hr className="border-white/10 " />
+            <MenuItem onClick={() => {
+              disconnect();
+              handleClose();
+            }}>
+              Log out
+            </MenuItem>
+          </Menu>
+        </>
+      );
+    }
+
     return (
       <Button
         variant="accent"
