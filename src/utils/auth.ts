@@ -41,7 +41,7 @@ export async function getAuthToken(options: AuthOptions = {}): Promise<AuthResul
         headers: {
           'Content-Type': 'application/json',
           'x-farcaster-session': token,
-          'x-farcaster-address': options.address as string,
+          'x-farcaster-address': (options.address as string).toLowerCase(),
         },
         success: true
       };
