@@ -150,7 +150,11 @@ export const FinalizePost = ({
                 placeholder="Update the content to see the changes"
                 value={localPostContent}
                 onChange={(e) => setLocalPostContent(e.target.value)}
-                className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none`}
+                className={`${sharedInputClasses} w-full min-h-[40px] p-4 resize-none ${
+                !(currentPreview?.content?.text || postContent) && template?.options?.requireContent
+                  ? '!border-brand-highlight'
+                  : ''
+              }`}
               />
             </div>
           </div>
@@ -261,7 +265,7 @@ export const FinalizePost = ({
         <div className="pt-8 flex flex-col gap-2 justify-center items-center">
           <Button
             size='md'
-            disabled={!collectAmount || isCreating}
+            disabled={!collectAmount || isCreating || (!(currentPreview?.content?.text || postContent) && template?.options?.requireContent)}
             onClick={() => {
               if (isMiniApp && onCast) {
                 onCast(collectAmount || 0);
