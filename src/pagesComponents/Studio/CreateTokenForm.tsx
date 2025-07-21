@@ -29,6 +29,7 @@ import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -77,6 +78,8 @@ const LENS_PRICING_TIERS = {
   }
 };
 
+const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border border-dark-grey focus:border-dark-grey focus:ring-dark-grey sm:text-sm';
+
 const DisclosurePanelWithTransition = ({ children }) => {
   return (
     <Transition
@@ -91,13 +94,14 @@ const DisclosurePanelWithTransition = ({ children }) => {
 
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next, postImage, setSavedTokenAddress, savedTokenAddress }) => {
   const { address } = useAccount();
+  const { isMiniApp } = useIsMiniApp();
   const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
   const [rewardPoolPercentage, setRewardPoolPercentage] = useState<number>(finalTokenData?.rewardPoolPercentage || 0);
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
   const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
-  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
+  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || (isMiniApp ? "base" : "lens"));
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const [manualTokenAddress, setManualTokenAddress] = useState<string>("");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
@@ -142,7 +146,12 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
     args: [address as `0x${string}`]
   });
 
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address as `0x${string}`, selectedNetwork, pricingTier);
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(
+    initialSupply || 0,
+    address as `0x${string}`,
+    selectedNetwork,
+    pricingTier,
+  );
 
   const buyPriceFormatted = useMemo(() => (
     roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
@@ -150,11 +159,11 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
 
   const networkOptions = useMemo(() => [{
     // label: "Networks",
-    options: NETWORK_OPTIONS.map(option => ({
+    options: (isMiniApp ? [...NETWORK_OPTIONS].reverse() : NETWORK_OPTIONS).map(option => ({
       value: option.value,
       label: option.label
     }))
-  }], []);
+  }], [isMiniApp]);
 
   const notEnoughFunds = useMemo(() => {
     const requiredAmount = totalRegistrationFee || 0n;
@@ -198,8 +207,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
 
     fn();
   };
-
-  const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
 
   if (isLoadingExistingTokens) {
     return (
@@ -256,7 +263,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                       tokenName: "",
                       tokenSymbol: "",
                       tokenImage: [],
-                      selectedNetwork: "lens",
+                      selectedNetwork: isMiniApp ? "base" : "lens",
                       pricingTier: "SMALL",
                     });
                   }
@@ -302,9 +309,9 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-y-5 gap-x-8">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-y-5 gap-x-8">
           {useExistingToken ? (
-            <div className="sm:col-span-2 flex flex-col">
+            <div className="sm:col-span-4 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
 
                 {/* Manual Token Address Input */}
@@ -431,7 +438,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
           ) : (
             <>
               {/* Network Selector */}
-              <div className="sm:col-span-2 flex flex-col">
+              <div className="sm:col-span-4 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <Subtitle className="text-white/70">Network</Subtitle>
@@ -444,7 +451,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                       </Tooltip>
                     </div>
                   </div>
-                  <div className="relative">
+                  <div className="relative max-w-[150px]">
                     <SelectDropdown
                       options={networkOptions}
                       value={
@@ -465,8 +472,6 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   </div>
                 </div>
               </div>
-
-              <div className="sm:col-span-4 flex flex-col"></div>
 
               <div className="sm:col-span-2 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
@@ -503,7 +508,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 </div>
               </div>
 
-              <div className="sm:col-span-2 flex flex-col">
+              <div className="sm:col-span-4 flex flex-col">
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center">
                     <Subtitle className="text-white/70 mb-2">Token image</Subtitle>
@@ -516,7 +521,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
 
               {/* Uniswap v4 Hook - Only show for Base network */}
               {selectedNetwork === "base" ? (
-                <div className="sm:col-span-6 flex flex-col">
+                <div className="sm:col-span-4 flex flex-col">
                   <div className="flex flex-col justify-between gap-2">
                     <div className="flex items-center gap-1">
                       <Subtitle className="text-white/70">Uniswap v4 Hook</Subtitle>
@@ -564,7 +569,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                   </div>
                 </div>
               ) : (
-                <div className="sm:col-span-6 flex flex-col">
+                <div className="sm:col-span-4 flex flex-col">
                   <Disclosure>
                     {({ open }) => (
                       <>
@@ -624,7 +629,7 @@ export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next,
                 </div>
               )}
 
-              <div className="sm:col-span-6 flex flex-col">
+              <div className="sm:col-span-4 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex justify-between">
                     <div className="flex items-center gap-1">

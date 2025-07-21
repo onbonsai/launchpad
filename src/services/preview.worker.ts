@@ -6,7 +6,7 @@ declare const self: DedicatedWorkerGlobalScope;
 
 interface WorkerData {
     url: string;
-    idToken: string;
+    authHeaders: Record<string, string>;
     category: TemplateCategory;
     templateName: string;
     templateData: any;
@@ -27,7 +27,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
   self.addEventListener('message', async (event: MessageEvent<WorkerData>) => {
     const {
       url,
-      idToken,
+      authHeaders,
       category,
       templateName,
       templateData,
@@ -43,7 +43,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
     try {
       const result = await generatePreview(
         url,
-        idToken,
+        authHeaders,
         category,
         templateName,
         templateData,

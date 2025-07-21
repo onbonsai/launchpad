@@ -9,7 +9,7 @@ import { erc20Abi, formatUnits, parseUnits, createWalletClient, http } from "vie
 import toast from "react-hot-toast";
 import { switchChain } from "viem/actions";
 import { account } from "@lens-protocol/metadata";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { createAccountWithUsername, fetchAccount, canCreateUsername } from "@lens-protocol/client/actions";
 import { evmAddress, never } from "@lens-protocol/client";
 import { lensClient, storageClient } from "@src/services/lens/client";
@@ -52,7 +52,13 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   const { isMiniApp, context } = useIsMiniApp();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isApprovingBudget, setIsApprovingBudget] = useState(false);
-  const [creationStep, setCreationStep] = useState('create'); // 'create' | 'budget' | 'notifications'
+  const [creationStep, setCreationStep] = useState(() => {
+    // Initialize with budget step if withBudget is true for miniapp users
+    if (isMiniApp && withBudget) {
+      return 'budget';
+    }
+    return 'create';
+  }); // 'create' | 'budget' | 'notifications'
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [isEditing, setIsEditing] = useState(false);
   const [editedDisplayName, setEditedDisplayName] = useState('');
@@ -79,10 +85,14 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (modal) {
-      if (modal === "budget" && !isAuthenticated) setCreationStep("create");
-      else setCreationStep(modal);
+      if (modal === "budget") {
+        // Always show budget step when modal === "budget"
+        setCreationStep("budget");
+      } else {
+        setCreationStep(modal);
+      }
     }
-  }, [modal, isAuthenticated]);
+  }, [modal, isAuthenticated, isMiniApp, withBudget]);
 
   // Initialize edited values when context changes
   useEffect(() => {
@@ -419,6 +429,16 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       console.log(`hash: ${hash}`)
       await client.waitForTransactionReceipt({ hash });
 
+      // create a dummy replika record so we can know which address to handle payments
+      await fetch('/api/bonsai/create-replika', {
+        method: 'POST',
+        headers: {
+          // 'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ source: "farcaster", fid: context?.user.fid, address })
+      });
+
       handleCloseModal();
 
       // Prompt to add mini app
@@ -483,11 +503,11 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
     );
   }
 
-  // Mini App Profile Creation Flow
-  if (isMiniApp && (!profiles?.length || creationStep === "budget")) {
+  // Mini App Profile Creation Flow - only show if explicitly requesting budget flow
+  if (isMiniApp && creationStep === "budget") {
     return (
       <div className={clsx("flex flex-col w-full mt-6 px-4", brandFont.className)}>
-        {creationStep === 'create' && (
+        {/* {creationStep === 'create' && (
           <>
             <h2 className="text-3xl text-center font-bold">Continue with a Replika</h2>
             <p className="text-center text-gray-400 mt-2">
@@ -587,7 +607,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
               </Button>
             </div>
           </>
-        )}
+        )} */}
 
         {creationStep === 'budget' && (
           <>

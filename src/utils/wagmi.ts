@@ -1,7 +1,7 @@
 import { http, createConfig } from "wagmi";
 import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
 import { getDefaultConfig } from "connectkit";
-import { farcasterFrame as miniAppConnector } from '@farcaster/frame-wagmi-connector'
+import { farcasterFrame as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 import { ChainRpcs } from "@src/constants/chains";
 import { lens, lensTestnet } from "@src/services/madfi/utils";

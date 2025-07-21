@@ -428,7 +428,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     // Merge the current publication with the version's metadata
     const basePublication = showRootPublication ? publication?.root : publication;
     if (!basePublication || !currentVersionMetadata) return basePublication;
-    
+
     return {
       ...basePublication,
       metadata: {
@@ -440,11 +440,11 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       key: `version-${currentVersionIndex}`
     };
   }, [
-    currentVersionIndex, 
+    currentVersionIndex,
     currentVersionMetadata?.content,
     currentVersionMetadata?.image,
     currentVersionMetadata?.video,
-    publication?.id, 
+    publication?.id,
     publication?.root?.id,
     showRootPublication,
     publication?.metadata?.__typename,

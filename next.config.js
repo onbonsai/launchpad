@@ -31,7 +31,7 @@ const nextConfig = {
   // },
   // Compress responses
   compress: true,
-  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk", "@madfi/widgets-react"],
+  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/miniapp-sdk", "@madfi/widgets-react"],
   async rewrites() {
     return [
       {
@@ -51,8 +51,8 @@ const nextConfig = {
       '@emotion/styled',
       '@apollo/client',
       '@ensdomains/ensjs',
-      '@farcaster/frame-sdk',
-      '@farcaster/frame-wagmi-connector',
+      '@farcaster/miniapp-sdk',
+      '@farcaster/miniapp-wagmi-connector',
       '@lens-chain/sdk',
       '@lens-chain/storage-client',
       '@lens-protocol/client',
@@ -182,16 +182,16 @@ const nextConfig = {
           },
         ],
       },
-      // Allow external images and resources for main pages
-      {
-        source: '/((?!api/).*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; img-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; media-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://p.typekit.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://p.typekit.net; font-src 'self' https://use.typekit.net https://fonts.gstatic.com; frame-src 'self' https://app.family.co; connect-src 'self' data: https: wss: ws:; worker-src 'self' blob:;",
-          },
-        ],
-      },
+      // // Allow external images and resources for main pages
+      // {
+      //   source: '/((?!api/).*)',
+      //   headers: [
+      //     {
+      //       key: 'Content-Security-Policy',
+      //       value: "default-src 'self'; img-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://i.imgur.com https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; media-src 'self' data: blob: https://*.arweave.net https://api.grove.storage https://media.firefly.land https://lh3.googleusercontent.com https://img.seadn.io https://*.infura.io https://ipfs.io https://*.mypinata.cloud https://placeimg.com https://*.imagekit.io https://www.storj-ipfs.com https://link.storjshare.io https://lens.infura-ipfs.io https://*.storjshare.io https://pbs.twimg.com https://cdn.stamp.fyi https://oaidalleapiprodscus.blob.core.windows.net https://*.amazonaws.com https://gw.ipfs-lens.dev https://nft-cdn.alchemy.com https://ipfs.4everland.io https://*.imagedelivery.net https://wrpcd.net https://raw.seadn.io https://pink-splendid-urial-219.mypinata.cloud https://storage.googleapis.com https://app.onbons.ai https://onbonsai.mypinata.cloud https://token-media.defined.fi https://picsum.photos https://*.lens.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://p.typekit.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://p.typekit.net; font-src 'self' https://use.typekit.net https://fonts.gstatic.com; frame-src 'self' https://app.family.co; connect-src 'self' data: https: wss: ws:; worker-src 'self' blob:;",
+      //     },
+      //   ],
+      // },
     ];
   },
   images: {

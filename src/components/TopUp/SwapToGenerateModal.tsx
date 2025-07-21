@@ -40,7 +40,7 @@ import {
   PARAM__PATH,
   PARAM__REFERRALS,
 } from "@src/services/lens/rewardSwap";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { getPostId } from "@src/services/lens/getStats";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { base as baseChain } from "viem/chains";
@@ -271,7 +271,7 @@ export const SwapToGenerateModal = ({
             toastId = toast.loading("Preparing swap...");
             const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
             const sellAmount = sellAmountBigInt.toString();
-            
+
             // Get quote from Matcha
             const quoteResponse = await axios.post('/api/matcha/quote', {
               chainId: baseChain.id,
@@ -280,13 +280,13 @@ export const SwapToGenerateModal = ({
               sellAmount,
               taker: address,
             });
-            
+
             const quote = quoteResponse.data;
-            
+
             // Check if we need to approve based on the quote response
             const currentAllowance = BigInt(quote?.issues?.allowance?.actual || "0");
             const needsApproval = currentAllowance < sellAmountBigInt || !quote?.issues?.allowance;
-            
+
             if (needsApproval && quote?.issues?.allowance?.spender) {
               toast.loading("Approving USDC...", { id: toastId });
               const approveTx = await walletClient.writeContract({
@@ -298,20 +298,20 @@ export const SwapToGenerateModal = ({
               });
               await publicClient('base').waitForTransactionReceipt({ hash: approveTx });
             }
-            
+
             // Sign Permit2 if needed
             if (quote.permit2?.eip712) {
               toast.loading("Please sign the permit...", { id: toastId });
               // @ts-ignore
               const signature = await walletClient.signTypedData(quote.permit2.eip712);
-              
+
               // Append signature length and signature data as per 0x docs
               // Format: <sig len><sig data> where sig len is 32-byte unsigned big-endian integer
               const signatureLengthInHex = numberToHex(size(signature), {
                 signed: false,
                 size: 32,
               });
-              
+
               // Concatenate: original data + signature length + signature
               quote.transaction.data = concat([
                 quote.transaction.data as `0x${string}`,
@@ -319,7 +319,7 @@ export const SwapToGenerateModal = ({
                 signature
               ]);
             }
-            
+
             // Execute the swap
             toast.loading("Swapping...", { id: toastId });
             const hash = await walletClient.sendTransaction({
@@ -329,7 +329,7 @@ export const SwapToGenerateModal = ({
               gas: BigInt(quote.transaction.gas),
               chain: baseChain,
             });
-            
+
             await publicClient('base').waitForTransactionReceipt({ hash });
             toast.success("Swap completed!", { id: toastId });
           }

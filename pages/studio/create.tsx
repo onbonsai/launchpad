@@ -28,7 +28,8 @@ import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
 import type { NFTMetadata, TokenData, StoryboardClip } from "@src/services/madfi/studio";
-import { sdk } from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
+import { getAuthToken } from "@src/utils/auth";
 import { SITE_URL } from "@src/constants/constants";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
@@ -42,9 +43,11 @@ import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
 import { storageClient } from "@src/services/lens/client";
 import { usePWA } from '@src/hooks/usePWA';
 
+type Embeds = [] | [string] | [string, string] | undefined;
+
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -258,7 +261,7 @@ const StudioCreatePage: NextPage = () => {
           ...result.preview,
           agentId: result.agentId,
           roomId: result.roomId,
-          agentMessageId: result.agentMessageId,
+          agentMessageId: result.agentMessageId || result.agentId,
         };
 
         handleSetPreview(previewWithMetadata, tempId);
@@ -339,17 +342,11 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) {
-      toast.error("Please log in to generate previews.");
+    const authResult = await getAuthToken({ isMiniApp, address });
+    if (!authResult.success) {
       return;
     }
-    const creds = await sessionClient.getCredentials();
-    if (creds.isErr() || !creds.value) {
-      toast.error("Authentication failed.");
-      return;
-    }
-    const idToken = creds.value.idToken;
+
     const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
     // Request notification permission and subscribe to push notifications when first generation is fired
@@ -387,7 +384,7 @@ const StudioCreatePage: NextPage = () => {
 
     workerRef.current?.postMessage({
       url: template.apiUrl,
-      idToken,
+      authHeaders: authResult.headers,
       category: template.category,
       templateName: template.name,
       templateData: templateData,
@@ -506,8 +503,6 @@ const StudioCreatePage: NextPage = () => {
   }, [currentPreview]);
 
   const handleSetPreview = (preview: Preview, tempId?: string) => {
-
-
     // Prevent duplicate processing of the same preview
     if (preview.agentId && preview.agentId === currentPreview?.agentId && !tempId) {
       const isExisting = localPreviews.some(lp =>
@@ -574,7 +569,7 @@ const StudioCreatePage: NextPage = () => {
               ...p,
               pending: false,
               agentId: preview.agentId,
-              agentMessageId: preview.agentMessageId,
+              agentMessageId: preview.agentMessageId || preview.agentId,
               content: {
                 ...p.content,
                 preview: cloneDeep(preview), // Deep copy to avoid shared references
@@ -942,6 +937,164 @@ const StudioCreatePage: NextPage = () => {
     setSelectedSubTemplate(subTemplate);
   };
 
+  const onCast = async (collectAmount: number) => {
+    let toastId: string | undefined;
+    if (!template) {
+      toast.error("No template data found");
+      return;
+    }
+
+    if (!currentPreview) {
+      toast.error("No preview available to cast");
+      return;
+    }
+
+    setIsCreating(true);
+    toastId = toast.loading("Creating your cast...", { id: toastId });
+
+    try {
+      // Process audio helper function
+      const processAudio = async (audio: any) => {
+        if (!audio) return undefined;
+        if (typeof audio === 'string') return { data: audio };
+        if ('url'in audio && audio.url) return { name: audio.name, data: audio.url };
+        if (audio instanceof File) {
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(audio);
+          });
+          return { name: audio.name, data };
+        }
+        return audio;
+      };
+
+      // Create smart media without postId (for miniapp users)
+      toastId = toast.loading("Finalizing...", { id: toastId });
+      const authResult = await getAuthToken({ isMiniApp, address });
+      if (!authResult.success) {
+        toast.error("Failed to authenticate", { duration: 5000, id: toastId });
+        return;
+      }
+      // Determine token address and data for base chain
+      let tokenAddress: string | undefined;
+      let tokenData: any;
+
+      if (savedTokenAddress) {
+        // Use saved token address from token creation
+        tokenAddress = savedTokenAddress;
+        tokenData = {
+          chain: finalTokenData?.selectedNetwork || "base",
+          address: tokenAddress,
+          metadata: finalTokenData ? {
+            name: finalTokenData.tokenName,
+            symbol: finalTokenData.tokenSymbol,
+            image: finalTokenData.tokenImage?.length ? finalTokenData.tokenImage[0].preview : null
+          } : undefined
+        };
+      } else if (remixMedia?.token?.address) {
+        // Use token from remix
+        tokenAddress = remixMedia.token.address;
+        tokenData = {
+          chain: remixMedia.token.chain || "base",
+          address: tokenAddress,
+          // Metadata should already be in remixMedia
+        };
+      } else {
+        // Default to Bonsai on base
+        tokenData = {
+          chain: "base",
+          address: PROTOCOL_DEPLOYMENT.base.Bonsai,
+          metadata: {
+            name: "Bonsai",
+            symbol: "BONSAI",
+            image: "https://app.onbons.ai/logo-spaced.png"
+          }
+        };
+      }
+
+      const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
+        roomId,
+        agentId: currentPreview?.agentId,
+        agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,
+        // No postId for miniapp users
+        parentCast: context?.location?.cast?.hash,
+        creatorFid: context?.user?.fid,
+        token: tokenData,
+        params: {
+          templateName: template.name,
+          category: template.category,
+          templateData: {
+            ...finalTemplateData,
+            audioData: await processAudio((finalTemplateData as any)?.audioData),
+          },
+        },
+        storyboard: storyboardClips.length > 0 ? {
+          clips: storyboardClips.map(clip => ({
+            id: clip.id,
+            startTime: clip.startTime,
+            endTime: clip.endTime,
+            templateData: {
+              video: { url: clip.preview.video?.url?.startsWith("https://") ? clip.preview.video.url : clip.preview.videoUrl },
+              image: clip.preview.image?.startsWith("https://") ? clip.preview.image : clip.preview.imageUrl,
+              prompt: clip.preview.text,
+              ...clip.templateData,
+            },
+          })),
+          audioData: await processAudio(storyboardAudio),
+          audioStartTime: storyboardAudioStartTime,
+          roomId: roomId as string
+        } : undefined
+      }));
+
+      if (!result) throw new Error(`failed to send request to ${template.apiUrl}/post/create`);
+
+      // Handle composeCast for miniapp users
+      toastId = toast.loading("Creating cast...", { id: toastId });
+
+      // Prepare cast content
+      const imageUrl = currentPreview?.imageUrl;
+      const videoUrl = currentPreview?.video?.url;
+
+      // Create embeds array
+      const embeds: string[] = [];
+      if (videoUrl) embeds.push(videoUrl);
+      else if (imageUrl) embeds.push(imageUrl);
+
+      embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId || currentPreview?.agentId}`);
+
+      await sdk.actions.composeCast({
+        text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
+        embeds: embeds as Embeds,
+        parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
+        close: true
+      });
+
+      toast.success("Cast created successfully!", { duration: 5000, id: toastId });
+
+      // Reset form state
+      setIsCreating(false);
+      setCurrentPreview(undefined);
+      setPostContent("");
+      setFinalTemplateData({});
+      setStoryboardClips([]);
+      setStoryboardAudio(null);
+      setStoryboardAudioStartTime(0);
+
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error && error.message === "not enough credits") {
+        toast.error("Not enough credits to create cast", { id: toastId, duration: 5000 });
+      } else {
+        Sentry.captureException(error);
+        toast.error("Failed to create cast", { id: toastId });
+      }
+      setIsCreating(false);
+      return;
+    }
+  };
+
   const onCreate = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -1292,7 +1445,7 @@ const StudioCreatePage: NextPage = () => {
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
-        agentMessageId: currentPreview?.agentMessageId,
+        agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,
         postId,
         uri,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
@@ -1416,7 +1569,7 @@ const StudioCreatePage: NextPage = () => {
                   <div className="flex flex-col md:flex-row gap-y-8 md:gap-x-8 w-full">
                     {/* Sticky Form Section */}
                     <div className="md:w-1/2 flex-shrink-0">
-                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pr-2">
+                      <div className="md:sticky md:top-6 md:z-10 bg-background pb-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pr-2 pl-1">
                         <div className="mb-6">
                           <Tabs openTab={openTab} setOpenTab={setOpenTab} addToken={addToken} />
                         </div>
@@ -1481,6 +1634,7 @@ const StudioCreatePage: NextPage = () => {
                             authenticatedProfile={authenticatedProfile}
                             finalTokenData={finalTokenData}
                             onCreate={onCreate}
+                            onCast={onCast}
                             back={() => {
                               setOpenTab(addToken ? 2 : 1);
                               window.scrollTo({ top: 0, behavior: 'smooth' });

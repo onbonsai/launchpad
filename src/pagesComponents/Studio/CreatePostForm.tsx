@@ -5,6 +5,7 @@ import imageCompression from "browser-image-compression";
 import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
 import { enhancePrompt, composeStoryboard } from "@src/services/madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
+import { getAuthToken } from "@src/utils/auth";
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import { ImageUploader, ImageUploaderRef } from "@src/components/ImageUploader/ImageUploader";
@@ -22,6 +23,7 @@ import type { AlchemyNFTMetadata } from "@src/hooks/useGetWhitelistedNFTs";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import { useAccount } from "wagmi";
 import { useTopUpModal } from "@src/context/TopUpContext";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { AudioUploader } from "@src/components/AudioUploader/AudioUploader";
 import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { SparklesIcon } from "@heroicons/react/outline";
@@ -142,6 +144,7 @@ const CreatePostForm = ({
   const { address, isConnected, chain } = useAccount();
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const { openTopUpModal, openSwapToGenerateModal } = useTopUpModal();
+  const { isMiniApp } = useIsMiniApp();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("9:16");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
@@ -166,7 +169,7 @@ const CreatePostForm = ({
   // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds (only once)
   useEffect(() => {
     const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
-    
+
     // Only show tooltip if it hasn't been shown before and MAX mode is available
     if (shape.enableMaxMode && !hasShownMaxModeTooltip.current) {
       const showTooltipTimer = setTimeout(() => {
@@ -373,23 +376,17 @@ const CreatePostForm = ({
       return;
     }
 
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) return;
-
-    const creds = await sessionClient.getCredentials();
-    let idToken;
-    if (creds.isOk()) {
-      idToken = creds.value?.idToken;
-    } else {
-      toast.error("Must be logged in");
+    const authResult = await getAuthToken({ isMiniApp, address });
+    if (!authResult.success) {
       return;
     }
+    const idToken = authResult.token;
 
     setIsEnhancing(true);
     let toastId = toast.loading("Enhancing your prompt...");
 
     try {
-      const enhanced = await enhancePrompt(template.apiUrl, idToken, template, prompt, templateData);
+      const enhanced = await enhancePrompt(template.apiUrl, authResult.headers, template, prompt, templateData);
       if (!enhanced) throw new Error("No enhanced prompt returned");
 
       // Start animation
@@ -440,17 +437,11 @@ const CreatePostForm = ({
   }
 
   const handleCompose = async () => {
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) return;
-
-    const creds = await sessionClient.getCredentials();
-    let idToken;
-    if (creds.isOk()) {
-      idToken = creds.value?.idToken;
-    } else {
-      toast.error("Must be logged in");
+    const authResult = await getAuthToken({ isMiniApp, address });
+    if (!authResult.success) {
       return;
     }
+    const idToken = authResult.token;
 
     setIsComposing(true);
     let toastId = toast.loading("Composing video... this might take a minute.");
@@ -458,7 +449,7 @@ const CreatePostForm = ({
     try {
       const res = await composeStoryboard(
         template.apiUrl,
-        idToken,
+        authResult.headers,
         storyboardClips,
         storyboardAudio as any,
         storyboardAudioStartTime || 0,

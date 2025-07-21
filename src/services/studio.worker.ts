@@ -1,4 +1,4 @@
-import { URI } from "@lens-protocol/metadata";
+import { omit } from "lodash/object";
 import { z } from "zod";
 
 export enum TemplateCategory {
@@ -85,7 +85,7 @@ interface GeneratePreviewResponse {
 // Only define the function if we're in a browser environment
 const generatePreviewImpl = async (
   url: string,
-  idToken: string,
+  authHeaders: Record<string, string>,
   category: TemplateCategory,
   templateName: string,
   templateData: any,
@@ -119,14 +119,14 @@ const generatePreviewImpl = async (
 
     const response = await fetch(`${url}/post/create-preview`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${idToken}` },
+      headers: omit(authHeaders, 'Content-Type'),
       body: formData,
       signal: AbortSignal.timeout(600000) // 10 minutes instead of default ~15s
     });
 
     if (!response.ok) {
       if (response.status === 403) {
-        const errorText = await response.text();
+        const errorText = (await response.json())?.error;
         if (errorText.includes("not enough credits")) {
           throw new Error("not enough credits");
         }
@@ -146,7 +146,7 @@ const generatePreviewImpl = async (
     const pollStatus = async (): Promise<GeneratePreviewResponse> => {
       const statusResponse = await fetch(`${url}/task/${taskId}/status`, {
         method: "GET",
-        headers: { Authorization: `Bearer ${idToken}` },
+        headers: authHeaders,
       });
 
       if (!statusResponse.ok) {

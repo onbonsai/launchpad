@@ -63,18 +63,20 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
 
   const { setOpen } = useModal({
     onConnect: () => {
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false) {
+      // Don't auto-trigger Lens login for miniapp users
+      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
         setTimeout(() => {
           setOpenSignInModal(true);
         }, 500);
       }
     },
     onDisconnect: () => {
-      console.log("onDisconnect");
       // Reset the modal flags when user disconnects
       hasHandledInitialModal.current = false;
       hasHandledBudgetModal.current = false;
-      lensLogout().then(fullRefetch)
+      if (!isMiniApp) {
+        lensLogout().then(fullRefetch)
+      }
     }
   });
 
@@ -84,20 +86,24 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const isCreateActive = route === '/studio/create';
 
   const handleAuthRequiredClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
+    // For miniapp users, allow them to proceed to create/remix flow
+    if (!isAuthenticated && !isMiniApp) {
       e.preventDefault();
       setOpen(true);
     }
   };
 
   useEffect(() => {
+    // If miniapp and not budget modal, skip the whole thing
+    if (isMiniApp && query.modal !== "budget") return;
+
     const timer = setTimeout(() => {
       if (isMiniApp && !isConnected && !hasHandledInitialModal.current) {
         setOpen(true);
         hasHandledInitialModal.current = true;
         return;
       }
-      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
+      if ((!isMiniApp || query.modal === "budget") && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
         setOpenSignInModal(true);
         hasHandledInitialModal.current = true;
         if (query.modal === "budget") {
@@ -155,12 +161,23 @@ export const Header = () => {
   const isAlmostMobile = useIsAlmostMobile();
   const isMobile = useIsMobile();
   const { isConnected } = useAccount();
-  const { setOpen } = useModal();
+  const { setOpen } = useModal({
+    onConnect: () => {
+      // Don't auto-trigger Lens login for miniapp users
+      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
+        setTimeout(() => {
+          setOpenSignInModal(true);
+        }, 500);
+      }
+    },
+  });
+  const { isMiniApp } = useIsMiniApp();
 
   if (!isMounted) return null;
 
   const handleAuthRequiredClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
+    // For miniapp users, allow them to proceed to create/remix flow
+    if (!isAuthenticated && !isMiniApp) {
       e.preventDefault();
       setOpen(true);
     }

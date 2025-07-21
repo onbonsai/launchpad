@@ -27,6 +27,8 @@ import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
 import { ANIMATED_HINT_LINES } from '@src/constants/constants';
 import { NFTMetadata, type StoryboardClip } from '@src/services/madfi/studio';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
+import { useAccount } from 'wagmi';
 
 export type LocalPreview = {
   agentId?: string;
@@ -95,6 +97,8 @@ export default function PreviewHistory({
   onAnimateImage,
   onExtendVideo,
 }: PreviewHistoryProps) {
+  const { address } = useAccount();
+  const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
@@ -102,13 +106,39 @@ export default function PreviewHistory({
   const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
   const videoRefs = useRef<Record<string, HTMLVideoElement>>({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
+  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages, isMiniApp, address);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const selectedPublicationRef = useRef<HTMLDivElement>(null);
   const generatingRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   const isGeneratingPreview = useMemo(() => localPreviews.some(p => p.pending), [localPreviews]);
+
+  // Create author object that handles both Lens profile and Farcaster miniapp context
+  const publicationAuthor = useMemo(() => {
+    if (authenticatedProfile) {
+      return authenticatedProfile;
+    }
+
+    if (isMiniApp && farcasterContext?.user) {
+      // Create a mock profile object for Farcaster users
+      return {
+        username: {
+          localName: farcasterContext.user.username
+        },
+        metadata: {
+          name: farcasterContext.user.displayName || farcasterContext.user.username,
+          picture: farcasterContext.user.pfpUrl
+        },
+        // Add other required fields with fallbacks
+        id: `farcaster:${farcasterContext.user.fid}`,
+        address: address || '',
+        __typename: 'Profile' as const
+      };
+    }
+
+    return authenticatedProfile;
+  }, [authenticatedProfile, isMiniApp, farcasterContext, address]);
 
   // Check if there are any messages available to load
   const hasMessagesToLoad = messages?.pages?.some(page =>
@@ -366,7 +396,7 @@ export default function PreviewHistory({
           <Publication
             key={`preview-finalize-${postContent?.length || 0}-${currentPreview?.agentId || 'none'}`}
             publicationData={{
-              author: authenticatedProfile,
+              author: publicationAuthor,
               timestamp: Date.now(),
               metadata: {
                 __typename: currentPreview?.video
@@ -466,9 +496,9 @@ export default function PreviewHistory({
           }
 
           // Find the template data message that corresponds to this preview
-          const templateDataMessage = sortedMessages.find(msg => 
-            !msg.isAgent && 
-            msg.agentId === `templateData-${message.agentId}` && 
+          const templateDataMessage = sortedMessages.find(msg =>
+            !msg.isAgent &&
+            msg.agentId === `templateData-${message.agentId}` &&
             msg.content?.templateData
           );
           const templateData = templateDataMessage?.content?.templateData
@@ -656,7 +686,7 @@ export default function PreviewHistory({
                 <Publication
                   key={`preview-${message.id}`}
                   publicationData={{
-                    author: authenticatedProfile,
+                    author: publicationAuthor,
                     timestamp: message.createdAt,
                     metadata: {
                       __typename: preview?.video

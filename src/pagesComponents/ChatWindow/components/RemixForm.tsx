@@ -14,13 +14,15 @@ import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount } from 'wagmi';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import { generateSeededUUID } from '@pagesComponents/ChatWindow/utils';
+import { getAuthToken } from '@src/utils/auth';
 import { last } from 'lodash/array';
 import type { NFTMetadata } from '@src/services/madfi/studio';
 import useWebNotifications from '@src/hooks/useWebNotifications';
 import { parseBase64Image } from '@src/utils/utils';
 import { usePWA } from '@src/hooks/usePWA';
 import { useAuthenticatedLensProfile } from '@src/hooks/useLensProfile';
-
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
+import { omit } from "lodash/object";
 
 type RemixFormProps = {
   template?: Template;
@@ -94,6 +96,7 @@ export default function RemixForm({
   extendedImage,
 }: RemixFormProps) {
   const { address, isConnected } = useAccount();
+  const { isMiniApp } = useIsMiniApp();
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
   const [prompt, setPrompt] = useState<string>("");
   const [postContent, setPostContent] = useState<string>("");
@@ -158,13 +161,8 @@ export default function RemixForm({
       if (!roomId || !template?.apiUrl) return;
 
       try {
-        const sessionClient = await resumeSession(true);
-        if (!sessionClient) return;
-
-        const creds = await sessionClient.getCredentials();
-        if (creds.isErr() || !creds.value) return;
-
-        const idToken = creds.value.idToken;
+        const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
+        if (!authResult.success) return;
 
         // Fetch recent messages from the room
         const queryParams = new URLSearchParams({
@@ -173,10 +171,7 @@ export default function RemixForm({
         });
 
         const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer: ${idToken}`
-          },
+          headers: authResult.headers,
         });
 
         if (!response.ok) return;
@@ -329,13 +324,8 @@ export default function RemixForm({
     if (!roomId || !template?.apiUrl || pendingGenerations.size === 0) return;
 
     try {
-      const sessionClient = await resumeSession(true);
-      if (!sessionClient) return;
-
-      const creds = await sessionClient.getCredentials();
-      if (creds.isErr() || !creds.value) return;
-
-      const idToken = creds.value.idToken;
+      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
+      if (!authResult.success) return;
 
       // Fetch recent messages
       const queryParams = new URLSearchParams({
@@ -344,10 +334,7 @@ export default function RemixForm({
       });
 
       const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer: ${idToken}`
-        },
+        headers: authResult.headers,
       });
 
       if (!response.ok) return;
@@ -496,17 +483,11 @@ export default function RemixForm({
       }
     }
 
-    const sessionClient = await resumeSession(true);
-    if (!sessionClient) {
-      toast.error("Please log in to generate previews.");
+    const authResult = await getAuthToken({ isMiniApp, address });
+    if (!authResult.success) {
       return;
     }
-    const creds = await sessionClient.getCredentials();
-    if (creds.isErr() || !creds.value) {
-      toast.error("Authentication failed.");
-      return;
-    }
-    const idToken = creds.value.idToken;
+    const idToken = authResult.token;
     const tempId = clipId || generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
     // Request notification permission and subscribe to push notifications
@@ -570,13 +551,13 @@ export default function RemixForm({
 
       const response = await fetch(`${template.apiUrl}/post/create-preview`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${idToken}` },
+        headers: omit(authResult.headers, 'Content-Type'),
         body: formData,
       });
 
       if (!response.ok) {
         if (response.status === 403) {
-          const errorText = await response.text();
+          const errorText = (await response.json())?.error;
           if (errorText.includes("not enough credits")) {
             throw new Error("not enough credits");
           }
