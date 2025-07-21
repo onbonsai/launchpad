@@ -52,8 +52,11 @@ export default async function handler(req: NextRequest) {
       // @ts-ignore
       postContent = (post && 'metadata' in post) ? post.metadata?.content || "" : "";
     } else if (handle) {
-      const profile = await getProfileByHandle(handle);
-      profileImageUrl = profile?.metadata?.picture || profileImageUrl;
+      let profile;
+      if (!profileImageUrl) {
+        profile = await getProfileByHandle(handle);
+        profileImageUrl = profile?.metadata?.picture || profileImageUrl;
+      }
       // Only use profile cover image if no explicit image was provided
       if (!explicitImageUrl) {
         imageUrl = profile?.metadata?.coverPicture || imageUrl;

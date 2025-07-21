@@ -231,7 +231,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const _data = await response.json();
     const data = _data ? _data[0] : {};
-    const { preview, creatorFid } = data;
+    const { preview, creatorFid }: { preview: Preview, creatorFid: number } = data;
 
     if (!preview || !creatorFid) {
       return { notFound: true };
@@ -253,9 +253,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     return {
       props: {
+        handle: creatorProfile.username,
+        profileImage: creatorProfile.pfpUrl,
+        content: preview.text,
+        pageName: "singlePublication",
         media: omit(data, 'preview', 'creatorFid'),
         creatorProfile,
         uuid,
+        image: preview.imageUrl,
         preview,
       },
     };

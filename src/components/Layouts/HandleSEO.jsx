@@ -105,12 +105,12 @@ const HandleSEO = ({ pageProps, query }) => {
 
   // Single publication page
   if (pageName === "singlePublication") {
-    const { handle, content, image, postId } = pageProps;
+    const { handle, content, image, postId, uuid, profileImage } = pageProps;
     const title = `Post by ${trimText(`@${handle}`, 45)}`;
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
-    const postUrl = `${SITE_URL}/post/${postId}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}`;
+    const postUrl = postId ? `${SITE_URL}/post/${postId}` : `${SITE_URL}/media/${uuid}`;
+    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}${profileImage ? `&profileImage=${encodeURIComponent(profileImage)}` : ''}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
