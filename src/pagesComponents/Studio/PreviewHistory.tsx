@@ -27,6 +27,8 @@ import { toast } from 'react-hot-toast';
 import { SparklesIcon } from '@heroicons/react/solid';
 import { ANIMATED_HINT_LINES } from '@src/constants/constants';
 import { NFTMetadata, type StoryboardClip } from '@src/services/madfi/studio';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
+import { useAccount } from 'wagmi';
 
 export type LocalPreview = {
   agentId?: string;
@@ -95,6 +97,8 @@ export default function PreviewHistory({
   onAnimateImage,
   onExtendVideo,
 }: PreviewHistoryProps) {
+  const { address } = useAccount();
+  const { isMiniApp } = useIsMiniApp();
   const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
@@ -102,7 +106,7 @@ export default function PreviewHistory({
   const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
   const videoRefs = useRef<Record<string, HTMLVideoElement>>({});
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages);
+  const { data: messages, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useGetPreviews(templateUrl, roomId, shouldFetchMessages, isMiniApp, address);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const selectedPublicationRef = useRef<HTMLDivElement>(null);
   const generatingRef = useRef<HTMLDivElement>(null);
@@ -466,9 +470,9 @@ export default function PreviewHistory({
           }
 
           // Find the template data message that corresponds to this preview
-          const templateDataMessage = sortedMessages.find(msg => 
-            !msg.isAgent && 
-            msg.agentId === `templateData-${message.agentId}` && 
+          const templateDataMessage = sortedMessages.find(msg =>
+            !msg.isAgent &&
+            msg.agentId === `templateData-${message.agentId}` &&
             msg.content?.templateData
           );
           const templateData = templateDataMessage?.content?.templateData

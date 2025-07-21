@@ -376,7 +376,7 @@ const CreatePostForm = ({
       return;
     }
 
-    const authResult = await getAuthToken({ isMiniApp });
+    const authResult = await getAuthToken({ isMiniApp, address });
     if (!authResult.success) {
       return;
     }
@@ -437,7 +437,7 @@ const CreatePostForm = ({
   }
 
   const handleCompose = async () => {
-    const authResult = await getAuthToken({ isMiniApp });
+    const authResult = await getAuthToken({ isMiniApp, address });
     if (!authResult.success) {
       return;
     }

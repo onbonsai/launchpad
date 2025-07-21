@@ -340,7 +340,7 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    const authResult = await getAuthToken({ isMiniApp });
+    const authResult = await getAuthToken({ isMiniApp, address });
     if (!authResult.success) {
       return;
     }

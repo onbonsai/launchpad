@@ -161,7 +161,7 @@ export default function RemixForm({
       if (!roomId || !template?.apiUrl) return;
 
       try {
-        const authResult = await getAuthToken({ isMiniApp, requireAuth: false });
+        const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
         if (!authResult.success) return;
 
         // Fetch recent messages from the room
@@ -324,7 +324,7 @@ export default function RemixForm({
     if (!roomId || !template?.apiUrl || pendingGenerations.size === 0) return;
 
     try {
-      const authResult = await getAuthToken({ isMiniApp, requireAuth: false });
+      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
       if (!authResult.success) return;
 
       // Fetch recent messages
@@ -483,7 +483,7 @@ export default function RemixForm({
       }
     }
 
-    const authResult = await getAuthToken({ isMiniApp });
+    const authResult = await getAuthToken({ isMiniApp, address });
     if (!authResult.success) {
       return;
     }
@@ -557,7 +557,7 @@ export default function RemixForm({
 
       if (!response.ok) {
         if (response.status === 403) {
-          const errorText = await response.text();
+          const errorText = (await response.json())?.error;
           if (errorText.includes("not enough credits")) {
             throw new Error("not enough credits");
           }

@@ -12,6 +12,7 @@ export interface AuthResult {
 export interface AuthOptions {
   isMiniApp?: boolean;
   requireAuth?: boolean;
+  address?: `0x${string}`;
 }
 
 /**
@@ -39,7 +40,8 @@ export async function getAuthToken(options: AuthOptions = {}): Promise<AuthResul
         token,
         headers: {
           'Content-Type': 'application/json',
-          'x-farcaster-session': token
+          'x-farcaster-session': token,
+          'x-farcaster-address': options.address as string,
         },
         success: true
       };

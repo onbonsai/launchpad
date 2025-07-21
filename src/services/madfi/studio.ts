@@ -460,11 +460,11 @@ export const setFeatured = async (authHeaders: Record<string, string>, postId: s
   }
 };
 
-export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true, isMiniApp = false) => {
+export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true, isMiniApp = false, address?: `0x${string}`) => {
   return useInfiniteQuery({
     queryKey: ["previews", roomId, isMiniApp],
     queryFn: async ({ pageParam }) => {
-      const headers = await getAuthHeaders({ isMiniApp, requireAuth: false });
+      const headers = await getAuthHeaders({ isMiniApp, requireAuth: false, address });
       if (!Object.keys(headers).length) return { messages: [] };
 
       const DEFAULT_COUNT = 10; // 5 user messages, 5 agent messages
