@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 import { erc20Abi } from "viem";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import WalletButton from "@src/components/Creators/WalletButton";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from "@src/components/Icons/CoinPile";

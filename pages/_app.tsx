@@ -7,7 +7,7 @@ import { ToastBar, Toaster } from "react-hot-toast";
 import { ThirdwebProvider } from "thirdweb/react";
 import Script from "next/script";
 import { useState, useEffect } from "react";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/router.js";
 // @ts-expect-error moduleResolution: nodenext
 import { MiniKitProvider, useMiniKit, useAddFrame } from '@coinbase/onchainkit/minikit';

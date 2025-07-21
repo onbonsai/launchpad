@@ -31,7 +31,7 @@ const nextConfig = {
   // },
   // Compress responses
   compress: true,
-  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/frame-sdk", "@madfi/widgets-react"],
+  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/miniapp-sdk", "@madfi/widgets-react"],
   async rewrites() {
     return [
       {

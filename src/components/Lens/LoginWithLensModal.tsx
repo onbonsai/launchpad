@@ -9,7 +9,7 @@ import { erc20Abi, formatUnits, parseUnits, createWalletClient, http } from "vie
 import toast from "react-hot-toast";
 import { switchChain } from "viem/actions";
 import { account } from "@lens-protocol/metadata";
-import { sdk } from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { createAccountWithUsername, fetchAccount, canCreateUsername } from "@lens-protocol/client/actions";
 import { evmAddress, never } from "@lens-protocol/client";
 import { lensClient, storageClient } from "@src/services/lens/client";
