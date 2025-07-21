@@ -29,6 +29,7 @@ import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 type NetworkOption = {
   value: 'base' | 'lens';
@@ -91,13 +92,14 @@ const DisclosurePanelWithTransition = ({ children }) => {
 
 export const CreateTokenForm = ({ finalTokenData, setFinalTokenData, back, next, postImage, setSavedTokenAddress, savedTokenAddress }) => {
   const { address } = useAccount();
+  const { isMiniApp } = useIsMiniApp();
   const [initialSupply, setInitialSupply] = useState<number>(finalTokenData?.initialSupply);
   const [rewardPoolPercentage, setRewardPoolPercentage] = useState<number>(finalTokenData?.rewardPoolPercentage || 0);
   const [uniHook, setUniHook] = useState<string>(finalTokenData?.uniHook || "BONSAI_NFT_ZERO_FEES_HOOK");
   const [tokenName, setTokenName] = useState<string>(finalTokenData?.tokenName || "");
   const [tokenSymbol, setTokenSymbol] = useState<string>(finalTokenData?.tokenSymbol || "");
   const [tokenImage, setTokenImage] = useState<any[]>(finalTokenData?.tokenImage?.length > 0 ? finalTokenData?.tokenImage : (postImage?.length > 0 ? postImage : []));
-  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || "lens");
+  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">(finalTokenData?.selectedNetwork || (isMiniApp ? "base" : "lens"));
   const [pricingTier, setPricingTier] = useState<string>(finalTokenData?.pricingTier || "SMALL");
   const [manualTokenAddress, setManualTokenAddress] = useState<string>("");
   const stableDecimals = selectedNetwork === "lens" ? 18 : 6;
