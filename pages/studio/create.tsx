@@ -261,7 +261,7 @@ const StudioCreatePage: NextPage = () => {
           ...result.preview,
           agentId: result.agentId,
           roomId: result.roomId,
-          agentMessageId: result.agentMessageId,
+          agentMessageId: result.agentMessageId || result.agentId,
         };
 
         handleSetPreview(previewWithMetadata, tempId);
@@ -569,7 +569,7 @@ const StudioCreatePage: NextPage = () => {
               ...p,
               pending: false,
               agentId: preview.agentId,
-              agentMessageId: preview.agentMessageId,
+              agentMessageId: preview.agentMessageId || preview.agentId,
               content: {
                 ...p.content,
                 preview: cloneDeep(preview), // Deep copy to avoid shared references
@@ -1017,7 +1017,7 @@ const StudioCreatePage: NextPage = () => {
       const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
-        agentMessageId: currentPreview?.agentMessageId,
+        agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,
         // No postId for miniapp users
         parentCast: context?.location?.cast?.hash,
         creatorFid: context?.user?.fid,
@@ -1062,7 +1062,7 @@ const StudioCreatePage: NextPage = () => {
       if (videoUrl) embeds.push(videoUrl);
       else if (imageUrl) embeds.push(imageUrl);
 
-      embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId}`);
+      embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId || currentPreview?.agentId}`);
 
       await sdk.actions.composeCast({
         text: `${currentPreview?.text ? currentPreview.text.substring(0, 200) + '...' : postContent || template?.displayName}\n\nvia @onbonsai.eth`,
@@ -1445,7 +1445,7 @@ const StudioCreatePage: NextPage = () => {
       const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
-        agentMessageId: currentPreview?.agentMessageId,
+        agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,
         postId,
         uri,
         token: (addToken || remixMedia?.agentId || tokenAddress) && _finalTokenData ? {
