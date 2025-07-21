@@ -12,7 +12,15 @@ import { sharePost, isWebShareSupported } from "@src/utils/webShare";
 import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, shareContainerStyleOverride, postCollageTextContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  shareContainerStyleOverride,
+  postCollageTextContainerStyleOverrides,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
 import { BONSAI_POST_URL } from "@src/constants/constants";
 import toast from "react-hot-toast";
@@ -28,6 +36,7 @@ import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 import { Button } from "@src/components/Button";
 import dynamic from "next/dynamic";
+import { sendLike } from "@src/services/lens/getReactions";
 
 const Publication = dynamic(
   () => import('@madfi/widgets-react').then(mod => mod.Publication),
@@ -50,6 +59,7 @@ interface PostItemProps {
   postData: any;
   onShareButtonClick: (slug: string) => void;
   router: any;
+  isAuthenticated: boolean;
 }
 
 const PostItem = React.memo(({
@@ -67,18 +77,34 @@ const PostItem = React.memo(({
   bonsaiBalance,
   postData,
   onShareButtonClick,
-  router
+  router,
+  isAuthenticated
 }: PostItemProps) => {
   const { ref: postRef, inView: postInView } = useInView({
     threshold: 0.5,
     triggerOnce: false,
   });
 
+  // Double-tap like functionality
+  const lastTapRef = useRef<number>(0);
+  const [showLikeHeart, setShowLikeHeart] = useState(false);
+  const isDoubleTapping = useRef(false);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (isMobile) {
       onVisibilityChange(post.slug, postInView);
     }
   }, [postInView, post.slug, onVisibilityChange, isMobile]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Memoize the publication data to prevent re-creation on every render
   const memoizedPublicationData = useMemo(() => ({
@@ -114,8 +140,74 @@ const PostItem = React.memo(({
            activeDropdown === post.slug;
   }, [isMobile, postInView, hoveredPostSlug, post.slug, activeDropdown]);
 
+  // Handle touch start for double-tap detection
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const now = new Date().getTime();
+    const timeDelta = now - lastTapRef.current;
+    const DOUBLE_TAP_DELAY = 300; // milliseconds
+    
+    // Clear any existing timeout
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
+    }
+    
+    if (timeDelta < DOUBLE_TAP_DELAY && timeDelta > 0) {
+      // Double tap detected
+      e.preventDefault();
+      e.stopPropagation();
+      isDoubleTapping.current = true;
+      
+      // Handle the double tap
+      if (!isAuthenticated) {
+        toast.error("Please sign in to like posts");
+        setTimeout(() => {
+          isDoubleTapping.current = false;
+        }, 300);
+        return;
+      }
+      
+      (async () => {
+        try {
+          await sendLike(post.slug);
+          
+          // Show heart animation
+          setShowLikeHeart(true);
+          setTimeout(() => setShowLikeHeart(false), 1000);
+          
+          // Haptic feedback
+          if (isMobile) {
+            haptics.light();
+          }
+          
+          toast.success("Liked!", { duration: 1500 });
+        } catch (error) {
+          console.error('Error liking post:', error);
+          toast.error("Failed to like post");
+        }
+      })();
+      
+      // Reset double tap state after a delay
+      setTimeout(() => {
+        isDoubleTapping.current = false;
+      }, 500);
+    } else {
+      // Single tap - set timeout to allow navigation if no second tap
+      tapTimeoutRef.current = setTimeout(() => {
+        if (!isDoubleTapping.current) {
+          // This was a single tap, navigation will proceed normally
+        }
+      }, DOUBLE_TAP_DELAY);
+    }
+    
+    lastTapRef.current = now;
+  }, [isAuthenticated, post.slug, isMobile]);
+
   // Memoize the onClick handler to prevent re-creation
   const handleCardClick = useCallback(() => {
+    // Don't navigate if we're in the middle of a double-tap
+    if (isDoubleTapping.current) return;
+    
     localStorage.setItem('tempPostData', JSON.stringify(post));
     router.push({ pathname: `/post/${post.slug}` });
   }, [post, router]);
@@ -133,6 +225,14 @@ const PostItem = React.memo(({
       transition-all duration-300 ease-out transform-gpu`}
       onMouseEnter={() => !isMobile && setHoveredPostSlug(post.slug)}
       onMouseLeave={() => !isMobile && setHoveredPostSlug(null)}
+      onTouchStart={isMobile ? handleTouchStart : undefined}
+      onClick={isMobile ? (e) => {
+        // Prevent click if double-tap is in progress
+        if (isDoubleTapping.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      } : undefined}
     >
       {(timelineItem || postData?.presence) && (
         <TimelineItemInteractions
@@ -155,32 +255,36 @@ const PostItem = React.memo(({
           "group-hover:opacity-100 transition-opacity duration-300 rounded-[24px] -z-10 blur-xl",
           postData?.remixContest && "!opacity-100"
         )}></div>
-        <Publication
-          key={`preview-${post.slug}`}
-          publicationData={memoizedPublicationData}
-          theme={Theme.dark}
-          followButtonDisabled={true}
-          environment={LENS_ENVIRONMENT}
-          profilePictureStyleOverride={publicationProfilePictureStyle}
-          containerBorderRadius={'24px'}
-          containerPadding={'12px'}
-          profilePadding={'0 0 0 0'}
-          textContainerStyleOverride={postCollageTextContainerStyleOverrides}
-          backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-          mediaImageStyleOverride={mediaImageStyleOverride}
-          imageContainerStyleOverride={imageContainerStyleOverride}
-          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-          reactionContainerStyleOverride={reactionContainerStyleOverride}
-          shareContainerStyleOverride={shareContainerStyleOverride}
-          markdownStyleBottomMargin={'0'}
-          heartIconOverride={true}
-          messageIconOverride={true}
-          shareIconOverride={true}
-          profileMaxWidth={'120px'}
-          fullVideoHeight
-          playVideo={playVideo}
-          hideVideoControls
-        />
+        <div
+          style={{ pointerEvents: isMobile && isDoubleTapping.current ? 'none' : 'auto' }}
+        >
+          <Publication
+            key={`preview-${post.slug}`}
+            publicationData={memoizedPublicationData}
+            theme={Theme.dark}
+            followButtonDisabled={true}
+            environment={LENS_ENVIRONMENT}
+            profilePictureStyleOverride={publicationProfilePictureStyle}
+            containerBorderRadius={'24px'}
+            containerPadding={'12px'}
+            profilePadding={'0 0 0 0'}
+            textContainerStyleOverride={postCollageTextContainerStyleOverrides}
+            backgroundColorOverride={'rgba(255,255,255, 0.08)'}
+            mediaImageStyleOverride={mediaImageStyleOverride}
+            imageContainerStyleOverride={imageContainerStyleOverride}
+            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
+            reactionContainerStyleOverride={reactionContainerStyleOverride}
+            shareContainerStyleOverride={shareContainerStyleOverride}
+            markdownStyleBottomMargin={'0'}
+            heartIconOverride={true}
+            messageIconOverride={true}
+            shareIconOverride={true}
+            profileMaxWidth={'120px'}
+            fullVideoHeight
+            playVideo={playVideo}
+            hideVideoControls
+          />
+        </div>
         <div className={clsx(
           "opacity-0 transition-opacity duration-200 z-30",
           !isMobile && "group-hover:opacity-100",
@@ -192,7 +296,12 @@ const PostItem = React.memo(({
             post={post}
             postData={postData}
             onShare={handleShare}
-            onClick={handleCardClick}
+            onClick={isMobile ? () => {
+              // Check double-tap state before navigating
+              if (!isDoubleTapping.current) {
+                handleCardClick();
+              }
+            } : handleCardClick}
             className={clsx(
               "opacity-0 transition-all duration-300 ease-in-out z-30",
               !isMobile && "group-hover:opacity-100",
@@ -210,6 +319,22 @@ const PostItem = React.memo(({
           comments={timelineItem.comments}
           position="bottom"
         />
+      )}
+      
+      {/* Double-tap like heart animation */}
+      {showLikeHeart && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div className="animate-ping">
+            <div className="bg-red-500 rounded-full p-4 opacity-90 animate-pulse">
+              <svg
+                className="w-12 h-12 text-white fill-current"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -499,6 +624,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                     postData={postData[post.__typename === "TimelineItem" ? post.primary.slug : post.slug]}
                     onShareButtonClick={memoizedOnShareButtonClick}
                     router={router}
+                    isAuthenticated={isAuthenticated || false}
                   />
                 ))}
               </Masonry>

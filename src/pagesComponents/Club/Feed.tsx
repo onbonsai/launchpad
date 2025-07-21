@@ -23,7 +23,16 @@ import PublicationContainer, {
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
 import clsx from "clsx";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationContainerStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  shareContainerStyleOverride,
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationContainerStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  textContainerStyleOverrides,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { getProfileImage } from "@src/services/lens/utils";

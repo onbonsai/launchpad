@@ -1,7 +1,16 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { Publication, Theme } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, previewProfileContainerStyleOverride } from "@src/components/Publication/PublicationStyleOverrides";
+import {
+  shareContainerStyleOverride,
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  textContainerStyleOverrides,
+  previewProfileContainerStyleOverride,
+} from "@src/components/Publication/PublicationStyleOverrides";
 import { Preview, useGetPreviews, Template, ELIZA_API_URL } from "@src/services/madfi/studio";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { GLOBAL_AGENT_ID, Memory } from '@src/services/madfi/terminal';

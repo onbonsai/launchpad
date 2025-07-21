@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getClientWithApiCredits } from "@src/services/mongo/client";
-
-const FREE_TIER_CREDIT_ALLOCATION = 10;
+import { FREE_TIER_CREDITS } from "@src/services/madfi/stakingCalculator";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -29,22 +28,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await collection.insertOne({
         address: normalizedAddress,
-        totalCredits: FREE_TIER_CREDIT_ALLOCATION,
-        freeCredits: FREE_TIER_CREDIT_ALLOCATION,
+        totalCredits: FREE_TIER_CREDITS,
+        freeCredits: FREE_TIER_CREDITS,
         stakingCredits: 0,
         creditsUsed: 0,
-        creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
+        creditsRemaining: FREE_TIER_CREDITS,
         lastResetTime: now,
         creditsPurchased: isMiniApp ? 100 : 0,
         postUpdates: [],
       });
 
       return res.status(200).json({
-        totalCredits: FREE_TIER_CREDIT_ALLOCATION,
-        freeCredits: FREE_TIER_CREDIT_ALLOCATION,
+        totalCredits: FREE_TIER_CREDITS,
+        freeCredits: FREE_TIER_CREDITS,
         stakingCredits: 0,
         creditsUsed: 0,
-        creditsRemaining: FREE_TIER_CREDIT_ALLOCATION,
+        creditsRemaining: FREE_TIER_CREDITS,
         lastResetTime: now.toISOString(),
         creditsPurchased: isMiniApp ? 100 : 0,
         postUpdates: [],
@@ -56,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       totalCredits: userCredits.totalCredits,
-      freeCredits: userCredits.freeCredits || FREE_TIER_CREDIT_ALLOCATION,
+      freeCredits: userCredits.freeCredits || FREE_TIER_CREDITS,
       stakingCredits: userCredits.stakingCredits || 0,
       creditsUsed: userCredits.creditsUsed || 0,
       creditsRemaining: creditsRemaining,

@@ -17,7 +17,16 @@ import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { ChainRpcs } from "@src/constants/chains";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
-import { shareContainerStyleOverride, imageContainerStyleOverride, mediaImageStyleOverride, publicationProfilePictureStyle, reactionContainerStyleOverride, reactionsContainerStyleOverride, textContainerStyleOverrides, actButtonContainerStyleOverride } from "./PublicationStyleOverrides";
+import {
+  shareContainerStyleOverride,
+  imageContainerStyleOverride,
+  mediaImageStyleOverride,
+  publicationProfilePictureStyle,
+  reactionContainerStyleOverride,
+  reactionsContainerStyleOverride,
+  textContainerStyleOverrides,
+  actButtonContainerStyleOverride,
+} from "./PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
@@ -296,12 +305,12 @@ const PublicationContainer = ({
 
   const handleCommentButton = useCallback((e, actionModuleHandler?) => {
     if (shouldGoToPublicationPage) return goToPublicationPage(e);
-    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author.username.localName);
-  }, [shouldGoToPublicationPage, goToPublicationPage, onCommentButtonClick, media, hasCollected, publication?.id, publication?.author.username.localName]);
+    if (onCommentButtonClick && (!media || hasCollected)) onCommentButtonClick(e, publication?.id, publication?.author?.username?.localName);
+  }, [shouldGoToPublicationPage, goToPublicationPage, onCommentButtonClick, media, hasCollected, publication?.id, publication?.author?.username?.localName]);
 
   const handleProfileClick = useCallback((e) => {
-    goToCreatorPage(e, publication?.author.username.localName);
-  }, [goToCreatorPage, publication?.author.username.localName]);
+    goToCreatorPage(e, publication?.author?.username?.localName);
+  }, [goToCreatorPage, publication?.author?.username?.localName]);
 
   const onMirrorButtonClick = async (e: React.MouseEvent, actionModuleHandler?) => {
     e.preventDefault();
