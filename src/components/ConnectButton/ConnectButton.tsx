@@ -57,15 +57,14 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const { setOpen } = useModal({
     onConnect: () => {
-      if (autoLensLogin && setOpenSignInModal && isAuthenticated === false) {
+      if (autoLensLogin && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
         setTimeout(() => {
           setOpenSignInModal(true);
         }, 500);
       }
     },
     onDisconnect: () => {
-      console.log("onDisconnect");
-      lensLogout().then(fullRefetch)
+      if (isAuthenticated) lensLogout().then(fullRefetch)
     }
   });
   // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
@@ -89,7 +88,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     if (authenticatedProfile)
       return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name
     if (isMiniApp && farcasterContext?.user) {
-      return farcasterContext.user.displayName || farcasterContext.user.username;
+      return `@${farcasterContext.user.username}`;
     }
     if (!loadingENS && ensName) return ensName;
 
@@ -100,14 +99,11 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     if (authenticatedProfile) {
       return getProfileImage(authenticatedProfile)
     }
-    console.log(`isMiniApp: ${isMiniApp}`)
-    console.log(`farcasterContext?.user: ${farcasterContext?.user}`)
     if (isMiniApp && farcasterContext?.user?.pfpUrl) {
       return farcasterContext.user.pfpUrl;
     }
-    // TODO: Default image
-    return null;
-  }, [authenticatedProfile, loadingENS, address, isMiniApp, farcasterContext]);
+    return "";
+  }, [authenticatedProfile, address, isMiniApp, farcasterContext]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -162,7 +158,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
             style={{ maxWidth: 'calc(100vw - 20px)' }}
           >
             <span className="flex items-center shrink min-w-0">
-              {profilePicture && <Image src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
+              {profilePicture && <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
               <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
                 {identity}
               </span>
