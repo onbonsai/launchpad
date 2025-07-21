@@ -133,7 +133,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
   }, [publicationWithComments]);
   const { data: media } = useResolveSmartMedia(publicationAttributes, postId);
 
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
 
   const vestingProgress = useVestingProgress(
     vestingData?.availableBalance || 0n,
@@ -381,7 +381,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       {
                         club.chain === "base"  ?
                           <Button variant="accentBrand" className="text-white my-4" onClick={async (e) => {
-                            if (isMiniApp) {
+                            if (isMiniApp && isFarcasterMiniApp) {
                               e.preventDefault();
                               const chainId = club.chain === "lens" ? "232" : "8453";
                               await sdk.actions.swapToken({

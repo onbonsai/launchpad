@@ -41,7 +41,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
   const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata | null>(null);
   const _DECIMALS = token.chain === "lens" ? DECIMALS : USDC_DECIMALS;
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
 
   // Fetch token metadata
   useEffect(() => {
@@ -73,7 +73,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   });
 
   const buyOnClick = async () => {
-    if (isMiniApp) {
+    if (isMiniApp && isFarcasterMiniApp) {
       const chainId = getChain("base").id;
       await sdk.actions.swapToken({
         sellToken: `eip155:${chainId}/native`,

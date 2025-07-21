@@ -17,6 +17,7 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import useIsMobile from '@src/hooks/useIsMobile';
 import { SafeImage } from '@src/components/SafeImage/SafeImage';
 import CoinPile from '@src/components/Icons/CoinPile';
+import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
 
 const BuySellModal = dynamic(() => import('@pagesComponents/Club/BuySellModal'), { ssr: false });
 
@@ -26,6 +27,7 @@ enum PriceChangePeriod {
 
 export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club: Club, media?: SmartMedia, remixPostId?: string, postId?: string }) => {
   const isMobile = useIsMobile();
+  const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
   const { address, isConnected } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -53,7 +55,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
   const ActionCard: React.FC<{ onClick: (e: any) => void }> = ({ onClick }) => {
     const handleClick = async (e: any) => {
       if (club.chain === "base" && club.complete) {
-        if (await sdk.isInMiniApp()) {
+        if (isMiniApp && isFarcasterMiniApp) {
           e.preventDefault();
           await sdk.actions.swapToken({
             sellToken: `eip155:8453/native`,
