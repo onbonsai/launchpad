@@ -2,6 +2,8 @@ import { useCallback, useState, useRef, useEffect } from "react";
 import { io, type Socket } from "socket.io-client";
 import { TERMINAL_API_URL, sendMessage } from "@src/services/madfi/terminal";
 import { AgentMessage } from "../types";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useAccount } from "wagmi";
 
 type UseChatResponse = {
   messages?: AgentMessage[];
@@ -33,6 +35,8 @@ export default function useChat({
   setIsThinking,
   setCurrentAction,
 }: UseChatProps): UseChatResponse {
+  const { address } = useAccount();
+  const { isMiniApp } = useIsMiniApp();
   const [isLoading, setIsLoading] = useState(false);
   const [canMessageAgain, setCanMessageAgain] = useState(true);
   const socket = useRef<Socket | null>(null);
@@ -82,7 +86,7 @@ export default function useChat({
 
       try {
         const { messages, canMessageAgain: _canMessageAgain } =
-          (await sendMessage({ agentId, input, payload, imageURL, conversationId })) || {};
+          (await sendMessage({ agentId, input, payload, imageURL, conversationId, isMiniApp, address })) || {};
         if (!messages?.length) throw new Error("no response");
         const { action, text, attachments } = messages[0];
         setCanMessageAgain(!!_canMessageAgain);

@@ -41,7 +41,7 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   });
 };
 
-export const useGetMessages = (address, postId?: string, roomId?: string, isMiniApp?: boolean, ): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
+export const useGetMessages = (address, postId?: string, roomId?: string, isMiniApp?: boolean): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
@@ -74,23 +74,26 @@ interface SendMessageProps {
   conversationId?: string
   payload: any
   imageURL?: string
+  isMiniApp?: boolean
+  address?: `0x${string}`
 }
 export const sendMessage = async ({
   agentId,
   input,
   conversationId,
   payload,
-  imageURL
+  imageURL,
+  isMiniApp,
+  address
 }: SendMessageProps): Promise<{ messages: MessageResponse[], canMessageAgain: boolean } | undefined> => {
-  const idToken = await _getIdToken();
-  if (!idToken) return;
+  const authResult = await getAuthToken({ isMiniApp, address });
+  if (!authResult.success) {
+    return;
+  }
 
   const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer: ${idToken}`
-    },
+    headers: authResult.headers,
     body: JSON.stringify({
       text: input,
       roomId: conversationId,
