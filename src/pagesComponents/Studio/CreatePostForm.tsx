@@ -30,6 +30,7 @@ import { SparklesIcon } from "@heroicons/react/outline";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import { RemixStoryboardWrapper } from '@src/components/RemixPanel';
 import StoryboardTimeline from "./StoryboardTimeline";
+import { omit } from "lodash/object";
 
 type CreatePostProps = {
   template: Template;
@@ -441,7 +442,6 @@ const CreatePostForm = ({
     if (!authResult.success) {
       return;
     }
-    const idToken = authResult.token;
 
     setIsComposing(true);
     let toastId = toast.loading("Composing video... this might take a minute.");
@@ -449,7 +449,7 @@ const CreatePostForm = ({
     try {
       const res = await composeStoryboard(
         template.apiUrl,
-        authResult.headers,
+        omit(authResult.headers, 'Content-Type'),
         storyboardClips,
         storyboardAudio as any,
         storyboardAudioStartTime || 0,
