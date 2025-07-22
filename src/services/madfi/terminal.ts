@@ -35,31 +35,42 @@ export const getAgentInfo = async (agentId: string): Promise<AgentInfo | undefin
 };
 
 export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Error> => {
-  return useQuery({
+  return useQuery<AgentInfo, Error>({
     queryKey: ["agent-info", agentId || GLOBAL_AGENT_ID],
-    queryFn: () => getAgentInfo(agentId || GLOBAL_AGENT_ID),
+    queryFn: async () => {
+      const data = await getAgentInfo(agentId || GLOBAL_AGENT_ID);
+      if (!data) {
+        throw new Error("Agent info not found");
+      }
+      return data;
+    },
   });
 };
 
-export const useGetMessages = (address, postId?: string, roomId?: string, isMiniApp?: boolean, ): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
+export const useGetMessages = (
+  address,
+  postId?: string,
+  roomId?: string,
+  isMiniApp?: boolean,
+): UseQueryResult<{ messages: Memory[]; canMessage: boolean }, Error> => {
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
       const authResult = await getAuthToken({ isMiniApp, address });
       if (!authResult.success) {
-        return [];
+        return { messages: [], canMessage: false };
       }
 
-      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ''}`, {
+      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ""}`, {
         headers: authResult.headers,
       });
       if (!response.ok) {
         console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
-        return [];
+        return { messages: [], canMessage: false };
       }
       return await response.json();
     },
-    enabled: !!postId
+    enabled: !!postId,
   });
 };
 

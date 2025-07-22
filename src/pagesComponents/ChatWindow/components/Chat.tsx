@@ -18,7 +18,7 @@ import { useGetMessages } from '@src/services/madfi/terminal';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { format } from 'date-fns';
 import useRegisteredTemplates from '@src/hooks/useRegisteredTemplates';
-import { ELIZA_API_URL, Preview, SmartMedia } from '@src/services/madfi/studio';
+import { ELIZA_API_URL, Embeds, Preview, SmartMedia } from '@src/services/madfi/studio';
 import { useAuthenticatedLensProfile } from '@src/hooks/useLensProfile';
 import { useRouter } from 'next/router';
 import { BigDecimal, blockchainData, Post, SessionClient } from '@lens-protocol/client';
@@ -835,7 +835,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       await sdk.actions.composeCast({
         text: `${text ? text.substring(0, 200) + (text.length > 200 ? '...' : '') : postingPreview.text || template.displayName}\n\nvia @onbonsai.eth`,
-        embeds,
+        embeds: embeds as Embeds,
         parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
         close: true
       });
@@ -1632,7 +1632,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           </button>
           <div className="ring-2 ring-brand-highlight rounded-2xl">
             <PreviewMessage
-            preview={postingPreview}
+              preview={postingPreview}
               isAgent={true}
               timestamp={new Date()}
               authenticatedProfile={authenticatedProfile}

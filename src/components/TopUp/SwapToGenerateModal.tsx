@@ -45,6 +45,7 @@ import { getPostId } from "@src/services/lens/getStats";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { base as baseChain } from "viem/chains";
 import { maxUint256, concat, numberToHex, size } from "viem";
+import { useGetCredits } from "@src/hooks/useGetCredits";
 
 interface SwapToGenerateModalProps {
   open: boolean;
@@ -56,7 +57,7 @@ interface SwapToGenerateModalProps {
   };
   postId: string;
   creditsNeeded: number;
-  refetchCredits: () => void;
+  refetchCredits?: () => void;
   onSuccess: () => void;
 }
 
@@ -78,6 +79,7 @@ export const SwapToGenerateModal = ({
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
+  const { refetch: _refetchCredits } = useGetCredits(address as string, isConnected);
 
   // Load remembered selection
   useEffect(() => {
@@ -219,7 +221,9 @@ export const SwapToGenerateModal = ({
             PROTOCOL_DEPLOYMENT.lens.RewardSwap,
             // if output is Bonsai, use the global feed, since its a specific post
             token.address == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
-            postId && token.address != PROTOCOL_DEPLOYMENT.lens.Bonsai ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
+            postId && token.address != PROTOCOL_DEPLOYMENT.lens.Bonsai
+              ? await getPostId(postId)
+              : SWAP_TO_BONSAI_POST_ID,
             [
               { key: PARAM__PATH, value: encodeAbiParameters([{ type: "bytes" }], [calculatePath(token.address)]) },
               {
@@ -230,7 +234,7 @@ export const SwapToGenerateModal = ({
                 key: PARAM__AMOUNT_OUT_MINIMUM,
                 value: encodeAbiParameters(
                   [{ type: "uint256" }],
-                  [club && !club.complete ? 105n * requiredWgho / 100n : 0n],
+                  [club && !club.complete ? (105n * requiredWgho) / 100n : 0n],
                 ),
               },
               { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
@@ -273,7 +277,7 @@ export const SwapToGenerateModal = ({
             const sellAmount = sellAmountBigInt.toString();
 
             // Get quote from Matcha
-            const quoteResponse = await axios.post('/api/matcha/quote', {
+            const quoteResponse = await axios.post("/api/matcha/quote", {
               chainId: baseChain.id,
               sellToken: USDC_CONTRACT_ADDRESS,
               buyToken: token.address,
@@ -292,11 +296,11 @@ export const SwapToGenerateModal = ({
               const approveTx = await walletClient.writeContract({
                 address: USDC_CONTRACT_ADDRESS,
                 abi: erc20Abi,
-                functionName: 'approve',
+                functionName: "approve",
                 args: [quote.issues.allowance.spender as `0x${string}`, maxUint256],
                 chain: baseChain,
               });
-              await publicClient('base').waitForTransactionReceipt({ hash: approveTx });
+              await publicClient("base").waitForTransactionReceipt({ hash: approveTx });
             }
 
             // Sign Permit2 if needed
@@ -316,7 +320,7 @@ export const SwapToGenerateModal = ({
               quote.transaction.data = concat([
                 quote.transaction.data as `0x${string}`,
                 signatureLengthInHex,
-                signature
+                signature,
               ]);
             }
 
@@ -330,7 +334,7 @@ export const SwapToGenerateModal = ({
               chain: baseChain,
             });
 
-            await publicClient('base').waitForTransactionReceipt({ hash });
+            await publicClient("base").waitForTransactionReceipt({ hash });
             toast.success("Swap completed!", { id: toastId });
           }
         }
@@ -362,7 +366,8 @@ export const SwapToGenerateModal = ({
         throw new Error("Failed to update credits");
       }
 
-      refetchCredits();
+      if (refetchCredits) refetchCredits();
+      else _refetchCredits?.();
     } catch (error) {
       console.error("Error updating credits:", error);
       toast.error("Failed to update credits", { id: toastId, duration: 50000 });

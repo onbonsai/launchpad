@@ -27,7 +27,7 @@ import axios from "axios";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
-import type { NFTMetadata, TokenData, StoryboardClip } from "@src/services/madfi/studio";
+import type { NFTMetadata, TokenData, StoryboardClip, Embeds } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { getAuthToken } from "@src/utils/auth";
 import { SITE_URL } from "@src/constants/constants";
@@ -42,8 +42,6 @@ import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
 import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
 import { storageClient } from "@src/services/lens/client";
 import { usePWA } from '@src/hooks/usePWA';
-
-type Embeds = [] | [string] | [string, string] | undefined;
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();

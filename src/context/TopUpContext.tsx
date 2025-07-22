@@ -47,8 +47,8 @@ interface SwapToGenerateConfig {
   }
   postId?: string;
   creditsNeeded: number;
-  refetchCredits: () => void;
-  onSuccess: () => void;
+  refetchCredits?: () => void;
+  onSuccess?: () => void;
 }
 
 interface TopUpModalContextType {
@@ -122,7 +122,7 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
             creditsNeeded={swapConfig.creditsNeeded}
             refetchCredits={swapConfig.refetchCredits}
             onSuccess={() => {
-              swapConfig.onSuccess();
+              swapConfig.onSuccess?.();
               closeTopUpModal();
             }}
           />

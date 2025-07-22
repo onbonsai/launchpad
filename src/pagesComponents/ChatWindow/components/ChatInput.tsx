@@ -322,7 +322,7 @@ export default function ChatInput({
               <div className="relative">
                 {disabled && placeholder === "Insufficient credits" ?
                   <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
-                    creditsNeeded: 10,
+                    creditsNeeded: 0.1,
                     onSuccess: () => null,
                   })}>
                     Swap to continue

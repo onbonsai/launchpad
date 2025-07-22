@@ -970,9 +970,9 @@ export default function RemixForm({
             storyboardAudioStartTime={storyboardAudioStartTime || 0}
             setStoryboardAudioStartTime={setStoryboardAudioStartTime || (() => {})}
             creditBalance={creditBalance?.creditsRemaining}
-              refetchCredits={refetchCredits}
+            refetchCredits={refetchCredits}
             imageUploaderRef={imageUploaderRef}
-              generatePreview={generatePreview}
+            generatePreview={generatePreview}
             onCompositionSuccess={handleCompositionSuccess}
             />
 
