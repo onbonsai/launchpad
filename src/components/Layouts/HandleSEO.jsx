@@ -35,7 +35,7 @@ const createFrameData = (imageUrl, buttonTitle, actionName, actionUrl) => {
       title: buttonTitle,
       action: {
         ...frameDataTemplate.button.action,
-        name: actionName,
+        name: actionName.substring(0, 32),
         // USE THE CURRENT URL: https://github.com/farcasterxyz/miniapps/discussions/189
         // url: actionUrl,
       },
@@ -115,7 +115,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const frameData = createFrameData(
       absoluteImageUrl,
       "Remix",
-      `Smart Media by @${handle}`,
+      `Post by @${handle}`,
       postUrl
     );
 
