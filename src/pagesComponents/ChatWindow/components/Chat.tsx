@@ -48,6 +48,7 @@ import { SparklesIcon } from '@heroicons/react/solid';
 import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import useIsMobile from "@src/hooks/useIsMobile";
 import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { getAuthToken } from "@src/utils/auth";
@@ -96,11 +97,13 @@ const PreviewMessage = ({
   isProcessingVideo?: boolean;
   isPosting?: boolean;
 }) => {
+  const { isMiniApp } = useIsMiniApp();
+  const isMobile = useIsMobile();
   if (isPending) {
     return (
       <div className={`${isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
         <div className="relative group">
-          <AnimatedBonsaiGrid />
+          <AnimatedBonsaiGrid reduceMotion={isMobile || isMiniApp} />
         </div>
       </div>
     );
