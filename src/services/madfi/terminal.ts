@@ -56,7 +56,7 @@ export const useGetMessages = (
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
-      const authResult = await getAuthToken({ isMiniApp, address });
+      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
       if (!authResult.success) {
         return { messages: [], canMessage: false };
       }
