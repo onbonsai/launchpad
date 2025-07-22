@@ -1321,7 +1321,7 @@ const DynamicForm = ({
       })}
 
       {/* Video Model Selection */}
-      {shape.forceVideoModel && (
+      {shape.forceVideoModel && !postImage && !templateData.subjectReference && (
         <div className="space-y-2">
           <FieldLabel
             label="Video Model"
