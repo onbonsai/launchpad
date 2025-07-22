@@ -96,7 +96,7 @@ export default function RemixForm({
   extendedImage,
 }: RemixFormProps) {
   const { address, isConnected } = useAccount();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, isLoading: isMiniAppLoading } = useIsMiniApp();
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
   const [prompt, setPrompt] = useState<string>("");
   const [postContent, setPostContent] = useState<string>("");
@@ -158,7 +158,7 @@ export default function RemixForm({
   // Load existing previews from room when component mounts
   useEffect(() => {
     const loadExistingPreviews = async () => {
-      if (!roomId || !template?.apiUrl) return;
+      if (!roomId || !template?.apiUrl || isMiniAppLoading) return;
 
       try {
         const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
@@ -224,12 +224,12 @@ export default function RemixForm({
     };
 
     loadExistingPreviews();
-  }, []); // Only run once on mount
+  }, [roomId, template?.apiUrl, isMiniAppLoading, isMiniApp, address]); // Re-run when dependencies change
 
   // Check for pending generations when component mounts
   useEffect(() => {
     const checkPendingGenerations = async () => {
-      if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator) || !isStandalone) return;
+      if (!roomId || !template?.apiUrl || !('serviceWorker' in navigator) || !isStandalone || isMiniAppLoading) return;
 
       // Wait a bit for localPreviews to be loaded from other sources first
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -317,11 +317,11 @@ export default function RemixForm({
     };
 
     checkPendingGenerations();
-  }, []); // Only run once on mount
+  }, [roomId, template?.apiUrl, isStandalone, isMiniAppLoading]); // Re-run when dependencies change
 
   // Check for completed generations when tab becomes visible
   const checkForCompletedGenerations = async () => {
-    if (!roomId || !template?.apiUrl || pendingGenerations.size === 0) return;
+    if (!roomId || !template?.apiUrl || pendingGenerations.size === 0 || isMiniAppLoading) return;
 
     try {
       const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
