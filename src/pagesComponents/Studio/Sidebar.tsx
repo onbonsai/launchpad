@@ -1,5 +1,3 @@
-"use client"
-
 import { Header2 } from "@src/styles/text"
 import Link from "next/link"
 import clsx from "clsx"

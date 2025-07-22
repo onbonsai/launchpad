@@ -191,6 +191,8 @@ interface GeneratePreviewResponse {
   roomId: string;
 }
 
+export type Embeds = [] | [string] | [string, string] | undefined;
+
 export const enhancePrompt = async (
   url: string,
   authHeaders: Record<string, string>,

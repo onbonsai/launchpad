@@ -1,5 +1,3 @@
-"use client"
-
 import { useRef, useEffect, useState } from "react"
 import clsx from "clsx";
 import { brandFont } from "@src/fonts/fonts";

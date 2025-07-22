@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState, useContext } from "react";
 import { Button } from "@src/components/Button";
 import clsx from "clsx";
