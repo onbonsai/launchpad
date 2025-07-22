@@ -261,7 +261,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, context } = useIsMiniApp();
-  const { data: messageData, isLoading: isLoadingMessageHistory, error } = useGetMessages(agentId, conversationId);
+  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const { messages: messageHistory, canMessage } = messageData || {};
   const [userInput, setUserInput] = useState('');

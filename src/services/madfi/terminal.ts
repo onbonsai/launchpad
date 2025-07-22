@@ -3,6 +3,7 @@ import { getProfileByHandle } from "../lens/getProfiles";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
+import { getAuthToken } from "@src/utils/auth";
 
 export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL ||
   (IS_PRODUCTION ? "https://eliza-terminal.onbons.ai" : "https://eliza-staging-terminal.onbons.ai");
@@ -40,18 +41,17 @@ export const useGetAgentInfo = (agentId?: string): UseQueryResult<AgentInfo, Err
   });
 };
 
-export const useGetMessages = (postId?: string, roomId?: string): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
+export const useGetMessages = (address, postId?: string, roomId?: string, isMiniApp?: boolean, ): UseQueryResult<{ messages: Memory[], canMessage: boolean } , Error> => {
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
-      const idToken = await _getIdToken();
-      if (!idToken) return [];
+      const authResult = await getAuthToken({ isMiniApp, address });
+      if (!authResult.success) {
+        return [];
+      }
 
       const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ''}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer: ${idToken}`
-        },
+        headers: authResult.headers,
       });
       if (!response.ok) {
         console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
