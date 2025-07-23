@@ -213,15 +213,17 @@ export default function AnimatedBonsaiGrid({
 
         @keyframes bonsaiPulseReduced {
           0%, 100% {
-            opacity: 0.7;
+            opacity: 0.4;
+            transform: scale(0.95);
           }
           50% {
-            opacity: 0.9;
+            opacity: 1;
+            transform: scale(1);
           }
         }
 
         .bonsai-dot-reduced {
-          animation: bonsaiPulseReduced 4s infinite ease-in-out;
+          animation: bonsaiPulseReduced 3s infinite ease-in-out;
         }
 
         .bonsai-dot-full {

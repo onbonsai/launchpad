@@ -49,9 +49,10 @@ import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import useIsMobile from "@src/hooks/useIsMobile";
-import { SITE_URL } from "@src/constants/constants";
+import { ANIMATED_HINT_LINES, SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { getAuthToken } from "@src/utils/auth";
+import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 
 type ChatProps = {
   agentId: string;
@@ -66,11 +67,11 @@ type ChatProps = {
 };
 
 // Component to display preview messages using Publication
-const PreviewMessage = ({
+  const PreviewMessage = ({
   preview,
   isAgent,
   timestamp,
-  authenticatedProfile,
+  publicationAuthor,
   onUseThis,
   isPending = false,
   onAddToStoryboard,
@@ -85,7 +86,7 @@ const PreviewMessage = ({
   preview?: Preview;
   isAgent: boolean;
   timestamp: Date;
-  authenticatedProfile: any;
+  publicationAuthor: any;
   onUseThis?: (preview: Preview) => void;
   isPending?: boolean;
   onAddToStoryboard?: (preview: Preview) => void;
@@ -105,10 +106,11 @@ const PreviewMessage = ({
         <div className="relative group">
           <AnimatedBonsaiGrid
             width="100%"
-            height={200}
+            height={250}
             gridSize={30}
             reduceMotion={isMobile || isMiniApp}
           />
+          <AnimatedText lines={ANIMATED_HINT_LINES} className="md:w-[400px] w-full md:text-lg" />
         </div>
       </div>
     );
@@ -141,7 +143,7 @@ const PreviewMessage = ({
         <div className={hasVideo ? 'pt-0' : ''}>
           <Publication
             publicationData={{
-              author: authenticatedProfile,
+              author: publicationAuthor,
               timestamp: timestamp.getTime(),
               metadata: {
                 __typename: preview.text ? "TextOnlyMetadata" : (preview.image && !hasVideo ? "ImageMetadata" : "TextOnlyMetadata"),
@@ -270,6 +272,32 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, context } = useIsMiniApp();
   const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
+
+  // Create author object that handles both Lens profile and Farcaster miniapp context
+  const publicationAuthor = useMemo(() => {
+    if (authenticatedProfile) {
+      return authenticatedProfile;
+    }
+
+    if (isMiniApp && context?.user) {
+      // Create a mock profile object for Farcaster users
+      return {
+        username: {
+          localName: context.user.username
+        },
+        metadata: {
+          name: context.user.displayName || context.user.username,
+          picture: context.user.pfpUrl
+        },
+        // Add other required fields with fallbacks
+        id: `farcaster:${context.user.fid}`,
+        address: address || '',
+        __typename: 'Profile' as const
+      };
+    }
+
+    return authenticatedProfile;
+  }, [authenticatedProfile, isMiniApp, context, address]);
   const { data: registeredTemplates } = useRegisteredTemplates();
   const { messages: messageHistory, canMessage } = messageData || {};
   const [userInput, setUserInput] = useState('');
@@ -1525,7 +1553,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                     }}
                                     isAgent={message.content.source !== "bonsai-terminal"}
                                     timestamp={item.timestamp}
-                                    authenticatedProfile={authenticatedProfile}
+                                    publicationAuthor={publicationAuthor}
                                     onUseThis={handlePostButtonClick}
                                     onAddToStoryboard={handleAddToStoryboard}
                                     isInStoryboard={storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
@@ -1586,7 +1614,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                   preview={preview.content.preview}
                                   isAgent={true} // Force to true for agent messages
                                   timestamp={item.timestamp}
-                                  authenticatedProfile={authenticatedProfile}
+                                  publicationAuthor={publicationAuthor}
                                   onUseThis={preview.content.preview ? handlePostButtonClick : undefined}
                                   isPending={(preview as any).pending}
                                   onAddToStoryboard={preview.content.preview ? handleAddToStoryboard : undefined}
@@ -1643,7 +1671,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
               preview={postingPreview}
               isAgent={true}
               timestamp={new Date()}
-              authenticatedProfile={authenticatedProfile}
+              publicationAuthor={publicationAuthor}
               onAnimateImage={handleAnimateImage}
               onExtendVideo={handleExtendVideo}
               onDownload={handleDownload}
