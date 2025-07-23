@@ -530,7 +530,11 @@ export default function PreviewHistory({
             }
           }
 
-          const isComposition = !((message.content.preview as any)?.videoUrl);
+          // Safely check for videoUrl and video.url properties
+          const previewContent = message.content.preview as { videoUrl?: string; video?: { url?: string } } | undefined;
+          const isComposition =
+            !(previewContent?.videoUrl?.startsWith("https://link.storjshare")) &&
+            !(previewContent?.video?.url?.startsWith("https://link.storjshare"));
 
           const isAddButtonDisabled = isClipInStoryboard || storyboardClips.length >= 10 || isAspectRatioMismatch;
           const addButtonTitle = isAspectRatioMismatch
