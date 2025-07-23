@@ -1023,7 +1023,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       const smartMediaResult = await createSmartMedia(
         template.apiUrl,
-        idToken,
+        { "Authorization": `Bearer ${idToken}` },
         JSON.stringify({
           roomId: conversationId,
           agentId: postingPreview.agentId,

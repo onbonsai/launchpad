@@ -1440,7 +1440,7 @@ const StudioCreatePage: NextPage = () => {
         return audio;
       };
 
-      const result = await createSmartMedia(template.apiUrl, idToken, JSON.stringify({
+      const result = await createSmartMedia(template.apiUrl, { "Authorization": `Bearer ${idToken}` }, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
         agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,
