@@ -647,6 +647,10 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     setCurrentAction
   });
 
+  console.log(`canMessageAgain`, canMessageAgain)
+  console.log(`canMessage`, canMessage)
+  console.log(`isLoadingMessageHistory`, isLoadingMessageHistory)
+
   // Clean up temporary messages when they appear in messageHistory
   useEffect(() => {
     if (messageHistory && messageHistory.length > 0) {
@@ -1678,12 +1682,14 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         handleKeyPress={handleKeyPress}
         handleSubmit={handleSubmit}
         setUserInput={setUserInput}
-        disabled={isLoading || !isConnected || (!canMessage && !isLoadingMessageHistory) || !canMessageAgain}
+        // disabled={isLoading || !isConnected || (!canMessage && !isLoadingMessageHistory) || !canMessageAgain}
+        disabled={isLoading || !isConnected}
         attachment={attachment}
         setAttachment={setAttachment}
         requireBonsaiPayment={requireBonsaiPayment}
         setRequireBonsaiPayment={setRequireBonsaiPayment}
-        showSuggestions={canMessage && canMessageAgain}
+        // showSuggestions={canMessage && canMessageAgain}
+        showSuggestions={!isPosting}
         placeholder={
           isPosting
             ? "Write your post content here"
