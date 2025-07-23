@@ -81,13 +81,15 @@ export default function useChat({
 
   const postChat = useCallback(
     async (input: string, payload?: any, imageURL?: string) => {
-      setIsLoading(true);
-      setIsThinking(true);
-
       try {
         const { messages, canMessageAgain: _canMessageAgain } =
-          (await sendMessage({ agentId, input, payload, imageURL, conversationId, isMiniApp, address })) || {};
-        if (!messages?.length) throw new Error("no response");
+          (await sendMessage({ agentId, input, payload, imageURL, conversationId, isMiniApp, address, onSend: () => {
+            setIsLoading(true);
+            setIsThinking(true);
+          } })) || {};
+
+          if (!messages?.length) throw new Error("no response");
+
         const { action, text, attachments } = messages[0];
         setCanMessageAgain(!!_canMessageAgain);
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useDebounce } from "use-debounce";
 import { Button } from '@src/components/Button';
 import CreatePostForm from '@src/pagesComponents/Studio/CreatePostForm';
 import type { SmartMedia, Template, StoryboardClip, Preview } from '@src/services/madfi/studio';
@@ -101,6 +102,23 @@ export default function RemixForm({
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
   const [prompt, setPrompt] = useState<string>("");
   const [postContent, setPostContent] = useState<string>("");
+
+  // Local state for the prompt content before sending (similar to FinalizePost)
+  const [localPrompt, setLocalPrompt] = useState(prompt);
+  const [debouncedPrompt] = useDebounce(localPrompt, 500);
+
+  // Update local prompt when prompt prop changes
+  useEffect(() => {
+    setLocalPrompt(prompt);
+  }, [prompt]);
+
+  // Effect to handle debounced prompt updates
+  useEffect(() => {
+    if (debouncedPrompt !== prompt) {
+      setPrompt(debouncedPrompt);
+    }
+  }, [debouncedPrompt, prompt, setPrompt]);
+
   const [postImage, setPostImage] = useState<any>(undefined);
   const [postAudio, setPostAudio] = useState<File | null | string>(null);
   const [audioStartTime, setAudioStartTime] = useState<number>(0);
@@ -1068,8 +1086,8 @@ export default function RemixForm({
             next={handleNext}
             postContent={postContent}
             setPostContent={setPostContent}
-            prompt={prompt}
-            setPrompt={setPrompt}
+            prompt={localPrompt}
+            setPrompt={setLocalPrompt}
             postImage={postImage}
             setPostImage={setPostImage}
             isGeneratingPreview={isGeneratingPreview}

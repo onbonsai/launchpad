@@ -87,6 +87,7 @@ interface SendMessageProps {
   imageURL?: string
   isMiniApp?: boolean
   address?: `0x${string}`
+  onSend?: () => void
 }
 export const sendMessage = async ({
   agentId,
@@ -95,30 +96,53 @@ export const sendMessage = async ({
   payload,
   imageURL,
   isMiniApp,
-  address
+  address,
+  onSend
 }: SendMessageProps): Promise<{ messages: MessageResponse[], canMessageAgain: boolean } | undefined> => {
   const authResult = await getAuthToken({ isMiniApp, address, isWrite: true });
   if (!authResult.success) {
     return;
   }
 
-  const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
-    method: 'POST',
-    headers: authResult.headers,
-    body: JSON.stringify({
-      text: input,
-      roomId: conversationId,
-      payload,
-      imageURL
-    }),
-  });
+  // callback to set loading state
+  if (onSend) onSend();
 
-  if (!response.ok) {
-    console.log(`ERROR terminal:: sendMessage: ${ response.status } - ${ response.statusText }`);
-    return;
+  // Create AbortController for 60-second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds
+
+  try {
+    const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
+      method: 'POST',
+      headers: authResult.headers,
+      body: JSON.stringify({
+        text: input,
+        roomId: conversationId,
+        payload,
+        imageURL
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.log(`ERROR terminal:: sendMessage: ${response.status} - ${response.statusText}`);
+      return;
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error.name === 'AbortError') {
+      console.log('ERROR terminal:: sendMessage: Request timed out after 60 seconds');
+      throw new Error('Request timed out. The server took too long to respond.');
+    }
+
+    console.log('ERROR terminal:: sendMessage:', error);
+    throw error;
   }
-
-  return await response.json();
 }
 
 export interface PostPresenceResponse {

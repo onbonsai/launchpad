@@ -169,79 +169,88 @@ type ChatProps = {
 
         {/* Action buttons */}
         {isAgent && (
-          <div className="flex justify-end gap-2 p-4 bg-[#141414] -mt-14">
-            {/* Animate image button - only for images */}
-            {hasImage && !hasVideo && onAnimateImage && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAnimateImage(preview);
-                }}
-                className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-lg backdrop-blur-sm hover:bg-brand-highlight/60 transition-colors"
-                title="Animate this image"
-              >
-                <SparklesIcon className="w-4 h-4 text-white" />
-                Use in video
-              </button>
-            )}
+          <div className="flex flex-col gap-2 p-4 bg-[#141414] -mt-14">
+            {/* Secondary action buttons row */}
+            <div className="flex justify-end gap-2">
+              {/* Animate image button - only for images */}
+              {hasImage && !hasVideo && onAnimateImage && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAnimateImage(preview);
+                  }}
+                  className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-sm md:text-base backdrop-blur-sm hover:bg-brand-highlight/60 transition-colors"
+                  title="Animate this image"
+                >
+                  <SparklesIcon className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline">Use in video</span>
+                  <span className="sm:hidden">Video</span>
+                </button>
+              )}
 
-            {/* Add to Storyboard button - only for videos */}
-            {canAddToStoryboard && (
-              <button
-                onClick={() => !isInStoryboard && onAddToStoryboard(preview)}
-                disabled={isInStoryboard || storyboardCount >= 10}
-                className={`flex items-center gap-1 rounded-lg px-2 py-1 text-lg transition-colors ${
-                  isInStoryboard || storyboardCount >= 10
-                    ? ' text-gray-400 cursor-not-allowed'
-                    : 'bg-transparent hover:bg-brand-highlight/60 text-white'
-                }`}
-                title={isInStoryboard ? "Already in storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
-              >
-                <FilmIcon className={`w-5 h-5 ${isInStoryboard || storyboardCount >= 10 ? 'text-gray-400' : 'text-white'}`} />
-                {isInStoryboard ? "In storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
-              </button>
-            )}
+              {/* Add to Storyboard button - only for videos */}
+              {canAddToStoryboard && (
+                <button
+                  onClick={() => !isInStoryboard && onAddToStoryboard(preview)}
+                  disabled={isInStoryboard || storyboardCount >= 10}
+                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm md:text-base transition-colors ${
+                    isInStoryboard || storyboardCount >= 10
+                      ? ' text-gray-400 cursor-not-allowed'
+                      : 'bg-transparent hover:bg-brand-highlight/60 text-white'
+                  }`}
+                  title={isInStoryboard ? "Already in storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
+                >
+                  <FilmIcon className={`w-4 h-4 ${isInStoryboard || storyboardCount >= 10 ? 'text-gray-400' : 'text-white'}`} />
+                  <span className="hidden sm:inline">
+                    {isInStoryboard ? "In storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
+                  </span>
+                  <span className="sm:hidden">
+                    {isInStoryboard ? "Added" : storyboardCount >= 10 ? "Full" : "Add"}
+                  </span>
+                </button>
+              )}
 
-            {/* Extend Video button - only for videos */}
-            {hasVideo && onExtendVideo && !isPosting && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onExtendVideo(preview);
-                }}
-                className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-lg hover:bg-brand-highlight/60 transition-colors"
-                title="Extend this video"
-              >
-                <FastForwardIcon className="w-5 h-5 text-white" />
-                Extend
-              </button>
-            )}
+              {/* Extend Video button - only for videos */}
+              {hasVideo && onExtendVideo && !isPosting && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExtendVideo(preview);
+                  }}
+                  className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-sm md:text-base hover:bg-brand-highlight/60 transition-colors"
+                  title="Extend this video"
+                >
+                  <FastForwardIcon className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline">Extend</span>
+                </button>
+              )}
 
-            {/* Download button - only show if there's media to download */}
-            {(hasImage || hasVideo) && onDownload && !isPosting && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDownload(preview);
-                }}
-                disabled={hasVideo && isProcessingVideo}
-                className={`relative bg-transparent hover:bg-brand-highlight/60 rounded-lg px-2 py-1 text-lg transition-colors ${hasVideo && isProcessingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={`Download media${hasVideo ? ' (with branding)' : ''}`}
-              >
-                <DownloadIcon className="w-5 h-5 text-white" />
-                {hasVideo && isProcessingVideo && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Spinner customClasses="h-4 w-4" color="#ffffff" />
-                  </div>
-                )}
-              </button>
-            )}
+              {/* Download button - only show if there's media to download */}
+              {(hasImage || hasVideo) && onDownload && !isPosting && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownload(preview);
+                  }}
+                  disabled={hasVideo && isProcessingVideo}
+                  className={`relative bg-transparent hover:bg-brand-highlight/60 rounded-lg px-2 py-1 text-sm md:text-base transition-colors ${hasVideo && isProcessingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title={`Download media${hasVideo ? ' (with branding)' : ''}`}
+                >
+                  <DownloadIcon className="w-4 h-4 text-white" />
+                  {hasVideo && isProcessingVideo && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Spinner customClasses="h-4 w-4" color="#ffffff" />
+                    </div>
+                  )}
+                </button>
+              )}
+            </div>
 
-            {/* Use this button */}
+            {/* Primary action button row - full width */}
             {onUseThis && !isPosting && (
               <button
                 onClick={() => onUseThis(preview)}
-                className="flex items-center gap-1 bg-brand-highlight rounded-lg px-2 py-1 hover:bg-brand-highlight/80 transition-colors text-black font-medium"
+                className="w-full flex items-center justify-center gap-2 bg-brand-highlight rounded-lg px-4 py-2 hover:bg-brand-highlight/80 transition-colors text-black font-medium text-sm md:text-base"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
