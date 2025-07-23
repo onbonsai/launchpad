@@ -48,6 +48,7 @@ import { Tooltip } from "@src/components/Tooltip";
 import { usePWA } from "@src/hooks/usePWA";
 import { sharePost } from "@src/utils/webShare";
 import { ShareIcon } from "@heroicons/react/outline";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -134,6 +135,7 @@ const PublicationContainer = ({
   showDownload,
 }: PublicationContainerProps) => {
   const router = useRouter();
+  const {isMiniApp} = useIsMiniApp();
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
   const { isStandalone } = usePWA();
@@ -648,7 +650,7 @@ const PublicationContainer = ({
         isMobile ? "top-4 right-4" : "top-4 right-4"
       )}>
         <div className="flex">
-          {!isMobile && media?.agentId && (
+          {!isMobile && media?.agentId && isConnected && (isMiniApp || isAuthenticated) && (
             <>
               <div
                 className="min-w-[88px] flex items-center justify-center border border-card-light py-2.5 px-5 bg-card-light cursor-pointer hover:bg-white hover:text-black transition-colors duration-200 rounded-xl"

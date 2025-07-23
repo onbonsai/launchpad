@@ -320,16 +320,19 @@ export default function ChatInput({
           <div className="relative flex flex-col w-full px-[10px]">
             {!showRemixForm && (
               <div className="relative">
+                {/* disable regular chat for now */}
+                {isPosting && (
+                  <textarea
+                    ref={textareaRef}
+                    value={userInput}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
+                    placeholder={dynamicPlaceholder}
+                    disabled={disabled}
+                  />
+                )}
                 {/* Showing text area for everyone since chat won't bankrupt us */}
-                <textarea
-                  ref={textareaRef}
-                  value={userInput}
-                  onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
-                  className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
-                  placeholder={dynamicPlaceholder}
-                  disabled={disabled}
-                />
                 {/* {disabled && placeholder === "Insufficient credits" ?
                   <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
                     creditsNeeded: 0.1,
@@ -380,7 +383,8 @@ export default function ChatInput({
             )}
             <div className='flex flex-row justify-between mt-2'>
               <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
-                {!userInput && showSuggestions && !showRemixForm && !isPosting && (
+                {/* TODO: remove the isGeneratingPReview check once we show the other options */}
+                {!userInput && showSuggestions && !showRemixForm && !isPosting && !isGeneratingPreview && (
                   <>
                     {remixMedia && remixTemplate && (
                       <button
@@ -392,7 +396,7 @@ export default function ChatInput({
                         Remix this post
                       </button>
                     )}
-                    {!isMiniApp && (
+                    {/* {!isMiniApp && (
                       <>
                         <PremadeChatInput
                           setUserInput={disabled ? () => { } : setUserInput}
@@ -413,7 +417,7 @@ export default function ChatInput({
                           disabled={disabled}
                         />
                       </>
-                    )}
+                    )} */}
                   </>
                 )}
               </div>

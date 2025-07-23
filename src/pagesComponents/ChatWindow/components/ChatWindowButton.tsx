@@ -112,7 +112,7 @@ export default function ChatWindowButton({
             {/* Chat Header */}
             <div className="flex items-center justify-between pr-4 pb-3 pl-4 border-b border-zinc-700/50">
               <div className="flex items-center space-x-4">
-                <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                {/* <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
                   <Image
                     src={agentInfo.account?.metadata?.picture || "/default.png"}
                     alt="Agent avatar"
@@ -120,11 +120,11 @@ export default function ChatWindowButton({
                     width={40}
                     height={40}
                   />
-                </div>
+                </div> */}
                 <div className="flex flex-col">
                   <h3 className="font-medium text-white">
                     {/* Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`} */}
-                    Create with Sloppr
+                    Remixing Media
                   </h3>
                   {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
                 </div>
