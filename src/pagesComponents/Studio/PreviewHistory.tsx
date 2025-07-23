@@ -530,7 +530,7 @@ export default function PreviewHistory({
             }
           }
 
-          const isComposition = !!(preview?.video && !preview?.image);
+          const isComposition = !((message.content.preview as any)?.videoUrl);
 
           const isAddButtonDisabled = isClipInStoryboard || storyboardClips.length >= 10 || isAspectRatioMismatch;
           const addButtonTitle = isAspectRatioMismatch
