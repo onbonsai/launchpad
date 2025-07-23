@@ -103,7 +103,12 @@ const PreviewMessage = ({
     return (
       <div className={`${isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
         <div className="relative group">
-          <AnimatedBonsaiGrid reduceMotion={isMobile || isMiniApp} />
+          <AnimatedBonsaiGrid
+            width="100%"
+            height={200}
+            gridSize={30}
+            reduceMotion={isMobile || isMiniApp}
+          />
         </div>
       </div>
     );

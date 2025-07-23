@@ -169,7 +169,7 @@ export default function AnimatedBonsaiGrid({
       newDots.push({
         x,
         y,
-        baseOpacity: shouldReduceMotion ? 0.9 : 0.8, // Higher base opacity for reduced motion
+        baseOpacity: 0.8,
         color: colors.bonsai,
         isBonsai: true,
         animationDelay: shouldReduceMotion ? 0 : (index * 0.1) % 4,
@@ -189,34 +189,7 @@ export default function AnimatedBonsaiGrid({
     return (height - renderedShapeHeight) / 2
   }, [height, shapeHeight, scaleFactor])
 
-  if (shouldReduceMotion) {
-    // Static version for reduced motion/mobile
-    return (
-      <div
-        className={`relative ${className}`}
-        style={{
-          width: typeof width === "string" ? width : `${width}px`,
-          height: typeof height === "string" ? height : `${height}px`,
-        }}
-      >
-        {dots.map((dot, index) => (
-          <div
-            key={index}
-            className="absolute rounded-full"
-            style={{
-              left: `${dot.x * scaleFactor}px`,
-              top: `${dot.y * scaleFactor + verticalPadding}px`,
-              width: `${dot.size}px`,
-              height: `${dot.size}px`,
-              backgroundColor: dot.color,
-              opacity: dot.baseOpacity,
-              zIndex: 10,
-            }}
-          />
-        ))}
-      </div>
-    )
-  }
+
 
   return (
     <div
@@ -238,9 +211,27 @@ export default function AnimatedBonsaiGrid({
           }
         }
 
+        @keyframes bonsaiPulseReduced {
+          0%, 100% {
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 0.9;
+          }
+        }
+
+        .bonsai-dot-reduced {
+          animation: bonsaiPulseReduced 4s infinite ease-in-out;
+        }
+
+        .bonsai-dot-full {
+          animation: bonsaiPulse 3s infinite ease-in-out;
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .bonsai-dot {
-            animation: none !important;
+          .bonsai-dot-full {
+            animation: bonsaiPulseReduced 4s infinite ease-in-out !important;
+            animation-delay: 0s !important;
           }
         }
       `}</style>
@@ -248,7 +239,7 @@ export default function AnimatedBonsaiGrid({
       {dots.map((dot, index) => (
         <div
           key={index}
-          className="absolute rounded-full bonsai-dot"
+          className={`absolute rounded-full ${shouldReduceMotion ? 'bonsai-dot-reduced' : 'bonsai-dot-full'}`}
           style={{
             left: `${dot.x * scaleFactor}px`,
             top: `${dot.y * scaleFactor + verticalPadding}px`,
@@ -256,7 +247,7 @@ export default function AnimatedBonsaiGrid({
             height: `${dot.size}px`,
             backgroundColor: dot.color,
             opacity: dot.baseOpacity,
-            animation: `bonsaiPulse 3s infinite ease-in-out ${dot.animationDelay}s`,
+            animationDelay: shouldReduceMotion ? '0s' : `${dot.animationDelay}s`,
             zIndex: 10,
           }}
         />

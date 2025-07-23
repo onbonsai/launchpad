@@ -124,6 +124,130 @@ export default function RemixForm({
 
   const isStoryboardPost = storyboardClips.length > 0;
 
+  // Function to poll task status for non-PWA scenarios
+  const pollTaskStatus = async (taskId: string, tempId: string, apiUrl: string, authHeaders: Record<string, string>) => {
+    try {
+      const statusResponse = await fetch(`${apiUrl}/task/${taskId}/status`, {
+        method: "GET",
+        headers: authHeaders,
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Status check failed: ${statusResponse.statusText}`);
+      }
+
+      const statusData = await statusResponse.json();
+
+      switch (statusData.status) {
+        case 'completed':
+          await processCompletedTask(statusData.result, tempId, taskId);
+          break;
+        case 'failed':
+          handleTaskFailure(taskId, tempId, statusData.error || 'Task failed');
+          break;
+        case 'processing':
+        case 'queued':
+          // Wait 10 seconds before polling again
+          setTimeout(() => pollTaskStatus(taskId, tempId, apiUrl, authHeaders), 10000);
+          break;
+        default:
+          handleTaskFailure(taskId, tempId, `Unknown task status: ${statusData.status}`);
+          break;
+      }
+    } catch (error) {
+      console.error('[RemixForm] Error polling task status:', error);
+      // Retry after 10 seconds on network errors
+      setTimeout(() => pollTaskStatus(taskId, tempId, apiUrl, authHeaders), 10000);
+    }
+  };
+
+  // Helper function to process completed task result
+  const processCompletedTask = async (data: any, tempId: string, taskId: string) => {
+    try {
+      const agentId = data.agentId;
+
+      // Process video if present
+      if (data.preview?.video) {
+        const videoData = new Uint8Array(data.preview.video.buffer);
+        const videoBlob = new Blob([videoData], { type: data.preview.video.mimeType });
+        data.preview.video.url = URL.createObjectURL(videoBlob);
+        data.preview.video.blob = videoBlob;
+        delete data.preview.video.buffer;
+      }
+
+      // Process large images if present
+      if (data.preview?.image?.buffer && data.preview?.image?.isLargeImage) {
+        const imageBlob = new Blob([data.preview.image.buffer], { type: data.preview.image.mimeType });
+        const imageDataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(imageBlob);
+        });
+        data.preview.image = imageDataUrl;
+      }
+
+      // Update local previews to mark as completed
+      if (setLocalPreviews) {
+        setLocalPreviews((prev: typeof localPreviews) => prev.map((p: any) => {
+          if (p.taskId === taskId || p.tempId === tempId) {
+            return {
+              ...p,
+              pending: false,
+              agentId: agentId,
+              content: {
+                ...p.content,
+                preview: data.preview,
+                text: data.preview.text,
+              }
+            };
+          }
+          return p;
+        }));
+      }
+
+      // Remove from pending generations
+      if (setPendingGenerations) {
+        setPendingGenerations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(taskId);
+          newSet.delete(tempId);
+          return newSet;
+        });
+      }
+
+      // Set as current preview
+      if (setCurrentPreview) {
+        setCurrentPreview(data.preview);
+      }
+
+      toast.success("Preview generation completed!");
+    } catch (error) {
+      console.error('[RemixForm] Error processing completed task:', error);
+      handleTaskFailure(taskId, tempId, 'Failed to process completed task');
+    }
+  };
+
+  // Helper function to handle task failures
+  const handleTaskFailure = (taskId: string, tempId: string, errorMessage: string) => {
+    console.error('[RemixForm] Task failed:', errorMessage);
+    toast.error(`Generation failed: ${errorMessage}`);
+
+    // Remove from pending generations
+    if (setPendingGenerations) {
+      setPendingGenerations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        newSet.delete(tempId);
+        return newSet;
+      });
+    }
+
+    // Remove from local previews
+    if (setLocalPreviews) {
+      setLocalPreviews(prev => prev.filter((p: any) => p.taskId !== taskId && p.tempId !== tempId));
+    }
+  };
+
   useEffect(() => {
     if (extendedImage) {
       const imageFile = parseBase64Image(extendedImage);
@@ -611,6 +735,9 @@ export default function RemixForm({
             });
           }
         }).catch(console.error);
+      } else {
+        // For non-PWA scenarios (like miniapps), start polling the task status directly
+        pollTaskStatus(taskId, tempId, template.apiUrl, authResult.headers);
       }
 
     } catch (error: any) {
