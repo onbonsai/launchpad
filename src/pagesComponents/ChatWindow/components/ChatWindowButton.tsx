@@ -3,11 +3,11 @@ import { Button } from "@src/components/Button";
 import clsx from "clsx";
 import { AgentInfo } from "@src/services/madfi/terminal";
 import { useAccount } from "wagmi";
-import Image from "next/image";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import { SwapCalls } from "@mui/icons-material";
 import { usePWA } from "@src/hooks/usePWA";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 interface ChatWindowButtonProps {
   children: React.ReactElement<{ isRemixing?: boolean }>;
@@ -43,6 +43,7 @@ export default function ChatWindowButton({
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
   const { isStandalone } = usePWA();
+  const { isMiniApp } = useIsMiniApp();
   const { isRemixing: contextIsRemixing, setIsRemixing } = useContext(ChatSidebarContext);
   const [isRemixingState, setIsRemixingState] = useState(isRemixing || contextIsRemixing);
 
@@ -164,7 +165,7 @@ export default function ChatWindowButton({
         <div
           className={clsx(
             "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto",
-            isStandalone ? "bottom-[calc(3.5rem+1.5rem)]" : "bottom-[3.5rem]"
+            isStandalone || isMiniApp ? "bottom-[calc(3.5rem+1.5rem)]" : "bottom-[3.5rem]"
           )}
         >
           <div className="flex justify-between items-center px-4 py-3">

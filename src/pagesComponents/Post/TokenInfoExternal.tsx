@@ -2,8 +2,6 @@ import clsx from "clsx";
 import { formatUnits } from "viem";
 import { ReactNode, useState, useEffect } from "react";
 import { Subtitle, BodySemiBold, Header2 } from "@src/styles/text";
-import { DECIMALS, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
-import { Button } from "@src/components/Button";
 import { useAccount, useReadContract } from "wagmi";
 import { capitalizeFirstLetter, kFormatter } from "@src/utils/utils";
 import { brandFont } from "@src/fonts/fonts";
@@ -12,8 +10,6 @@ import dynamic from "next/dynamic";
 import { erc20Abi } from "viem";
 import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import WalletButton from "@src/components/Creators/WalletButton";
-import { sdk } from "@farcaster/miniapp-sdk";
-import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from "@src/components/Icons/CoinPile";
 import { getChain } from "@src/services/madfi/utils";
@@ -40,8 +36,6 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   const [usdcBuyAmount, setUsdcBuyAmount] = useState<string>("");
   const [usdcAmountNeeded, setUsdcAmountNeeded] = useState<number>(0);
   const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata | null>(null);
-  const _DECIMALS = token.chain === "lens" ? DECIMALS : USDC_DECIMALS;
-  const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
 
   // Fetch token metadata
   useEffect(() => {
@@ -73,16 +67,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   });
 
   const buyOnClick = async () => {
-    if (isMiniApp && isFarcasterMiniApp) {
-      const chainId = getChain("base").id;
-      await sdk.actions.swapToken({
-        sellToken: `eip155:${chainId}/native`,
-        buyToken: `eip155:${chainId}/erc20:${token.address}`,
-        sellAmount: token.chain === "lens" ? "10000000000000000000" : "10000000",
-      });
-    } else {
-      setShowBuyModal(true);
-    }
+    setShowBuyModal(true);
   };
 
   const InfoCard: React.FC<{
@@ -133,15 +118,13 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
 
   if (!tokenMetadata) return null;
 
-  const logo = tokenMetadata?.logo || "/unknown-logo.jpg";
-
   return (
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
           <SafeImage
-            src={logo}
-            alt={tokenMetadata?.name || "Token"}
+            src={tokenMetadata.logo}
+            alt={tokenMetadata.name}
             className="w-full h-full object-cover"
             fill
           />
@@ -153,8 +136,8 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
             <div className="w-full">
               <div className="flex items-center gap-x-4 w-full">
                 <SafeImage
-                  src={logo}
-                  alt={tokenMetadata?.name || "Token"}
+                  src={tokenMetadata.logo}
+                  alt={tokenMetadata.name}
                   className="object-cover rounded-lg aspect-square"
                   width={48}
                   height={48}
