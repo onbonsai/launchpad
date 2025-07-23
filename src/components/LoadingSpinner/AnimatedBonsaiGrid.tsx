@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react"
-import useIsMobile from "@src/hooks/useIsMobile"
 
 // Define types for the component props
 export interface AnimatedBonsaiGridProps {
@@ -16,28 +15,13 @@ export interface AnimatedBonsaiGridProps {
   }
   backgroundDensity?: number
   className?: string
-  reduceMotion?: boolean
 }
 
 // Define the shape type
 type Point = { x: number; y: number }
 
-// Simplified bonsai tree shape coordinates (fewer points for better performance)
-const getBonsaiShape = (simplified: boolean = false): Point[] => {
-  if (simplified) {
-    // Ultra-simplified version for mobile
-    return [
-      // Trunk
-      { x: 20, y: 20 }, { x: 20, y: 25 }, { x: 20, y: 30 },
-      // Top crown
-      { x: 15, y: 12 }, { x: 20, y: 10 }, { x: 25, y: 12 },
-      // Side branches
-      { x: 15, y: 18 }, { x: 25, y: 18 },
-      // Base
-      { x: 18, y: 30 }, { x: 22, y: 30 }
-    ]
-  }
-
+// Bonsai tree shape coordinates
+const getBonsaiShape = (): Point[] => {
   // Create the bonsai tree shape
   const shape: Point[] = []
 
@@ -116,31 +100,10 @@ export default function AnimatedBonsaiGrid({
   },
   backgroundDensity = 0.15,
   className = "",
-  reduceMotion = false,
 }: AnimatedBonsaiGridProps) {
-  const isMobile = useIsMobile()
-  const [dots, setDots] = useState<
-    {
-      x: number
-      y: number
-      baseOpacity: number
-      color: string
-      isBonsai: boolean
-      animationDelay: number
-      size: number
-    }[]
-  >([])
-
-  // Check for user's motion preference
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  }, [])
-
-  const shouldReduceMotion = reduceMotion || prefersReducedMotion || isMobile
 
   const { shiftedShape, shapeHeight } = useMemo(() => {
-    const shape = getBonsaiShape(isMobile) // Use simplified shape on mobile
+    const shape = getBonsaiShape()
     if (shape.length === 0) {
       return { shiftedShape: [], shapeHeight: 0 }
     }
@@ -150,10 +113,10 @@ export default function AnimatedBonsaiGrid({
     const height = maxY - minY
     const shifted = shape.map(p => ({ x: p.x, y: p.y - minY }))
     return { shiftedShape: shifted, shapeHeight: height }
-  }, [isMobile])
+  }, [])
 
-  // Generate the dot pattern
-  useEffect(() => {
+  // Generate the dot pattern - memoized for performance
+  const dots = useMemo(() => {
     const newDots: {
       x: number
       y: number
@@ -165,6 +128,9 @@ export default function AnimatedBonsaiGrid({
     }[] = []
 
     // Add bonsai shape dots
+    // More delays: increase the delay step and the max delay
+    const delayStep = 0.5 // was 0.1
+    const maxDelay = 8 // was 4
     shiftedShape.forEach(({ x, y }, index) => {
       newDots.push({
         x,
@@ -172,24 +138,25 @@ export default function AnimatedBonsaiGrid({
         baseOpacity: 0.8,
         color: colors.bonsai,
         isBonsai: true,
-        animationDelay: shouldReduceMotion ? 0 : (index * 0.1) % 4,
+        animationDelay: (index * delayStep) % maxDelay,
         size: dotSizes.bonsai,
       })
     })
 
-    setDots(newDots)
-  }, [colors.bonsai, dotSizes.bonsai, shiftedShape, shouldReduceMotion])
+    return newDots
+  }, [colors.bonsai, dotSizes.bonsai, shiftedShape])
 
-  // Calculate the scale factor based on the width and gridSize
-  const scaleFactor = typeof width === "number" ? width / gridSize : 12
+  // Calculate the scale factor based on the width and gridSize - memoized for performance
+  const scaleFactor = useMemo(() =>
+    typeof width === "number" ? width / gridSize : 12,
+    [width, gridSize]
+  )
 
   const verticalPadding = useMemo(() => {
     if (typeof height !== "number") return 0
     const renderedShapeHeight = shapeHeight * scaleFactor
     return (height - renderedShapeHeight) / 2
   }, [height, shapeHeight, scaleFactor])
-
-
 
   return (
     <div
@@ -201,47 +168,38 @@ export default function AnimatedBonsaiGrid({
     >
       <style jsx>{`
         @keyframes bonsaiPulse {
-          0%, 100% {
-            opacity: 0.8;
+          0% {
+            opacity: 0.9;
             transform: scale(1);
+            background-color: #2D5A3D;
           }
-          50% {
+          25% {
             opacity: 1;
             transform: scale(1.05);
-          }
-        }
-
-        @keyframes bonsaiPulseReduced {
-          0%, 100% {
-            opacity: 0.4;
-            transform: scale(0.95);
+            background-color: #4AE582;
           }
           50% {
-            opacity: 1;
+            opacity: 0.8;
             transform: scale(1);
+            background-color: #1A4A32;
           }
-        }
-
-        .bonsai-dot-reduced {
-          animation: bonsaiPulseReduced 3s infinite ease-in-out;
-        }
-
-        .bonsai-dot-full {
-          animation: bonsaiPulse 3s infinite ease-in-out;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .bonsai-dot-full {
-            animation: bonsaiPulseReduced 4s infinite ease-in-out !important;
-            animation-delay: 0s !important;
+          75% {
+            opacity: 1;
+            transform: scale(1.03);
+            background-color: #7FFF9F;
+          }
+          100% {
+            opacity: 0.9;
+            transform: scale(1);
+            background-color: #2D5A3D;
           }
         }
       `}</style>
 
       {dots.map((dot, index) => (
         <div
-          key={index}
-          className={`absolute rounded-full ${shouldReduceMotion ? 'bonsai-dot-reduced' : 'bonsai-dot-full'}`}
+          key={`${dot.x}-${dot.y}-${index}`}
+          className="absolute rounded-full"
           style={{
             left: `${dot.x * scaleFactor}px`,
             top: `${dot.y * scaleFactor + verticalPadding}px`,
@@ -249,8 +207,9 @@ export default function AnimatedBonsaiGrid({
             height: `${dot.size}px`,
             backgroundColor: dot.color,
             opacity: dot.baseOpacity,
-            animationDelay: shouldReduceMotion ? '0s' : `${dot.animationDelay}s`,
+            animation: `bonsaiPulse 4s infinite ease-in-out ${dot.animationDelay}s`,
             zIndex: 10,
+            willChange: 'transform, opacity',
           }}
         />
       ))}

@@ -15,7 +15,6 @@ import { Preview, useGetPreviews, Template, ELIZA_API_URL } from "@src/services/
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { GLOBAL_AGENT_ID, Memory } from '@src/services/madfi/terminal';
 import { AnimatedText } from '@src/components/LoadingSpinner/AnimatedText';
-import useIsMounted from "@src/hooks/useIsMounted";
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import useRegisteredTemplates from "@src/hooks/useRegisteredTemplates";
 import { DownloadIcon } from '@heroicons/react/outline';
@@ -99,7 +98,6 @@ export default function PreviewHistory({
 }: PreviewHistoryProps) {
   const { address } = useAccount();
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
-  const isMounted = useIsMounted();
   const [shouldFetchMessages, setShouldFetchMessages] = useState(true); // Always fetch to check if messages exist
   const [shouldShowMessages, setShouldShowMessages] = useState(false); // Control whether to display messages
   const [videoAspectRatios, setVideoAspectRatios] = useState<Record<string, number>>({});

@@ -320,7 +320,17 @@ export default function ChatInput({
           <div className="relative flex flex-col w-full px-[10px]">
             {!showRemixForm && (
               <div className="relative">
-                {disabled && placeholder === "Insufficient credits" ?
+                {/* Showing text area for everyone since chat won't bankrupt us */}
+                <textarea
+                  ref={textareaRef}
+                  value={userInput}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
+                  placeholder={dynamicPlaceholder}
+                  disabled={disabled}
+                />
+                {/* {disabled && placeholder === "Insufficient credits" ?
                   <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
                     creditsNeeded: 0.1,
                     onSuccess: () => null,
@@ -336,7 +346,7 @@ export default function ChatInput({
                     placeholder={dynamicPlaceholder}
                     disabled={disabled}
                   />
-                }
+                } */}
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
                   {requireAttachment && (
                     <AttachmentButton attachment={attachment} setAttachment={setAttachment} />

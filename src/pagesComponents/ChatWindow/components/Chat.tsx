@@ -48,11 +48,9 @@ import { SparklesIcon } from '@heroicons/react/solid';
 import { type StoryboardClip } from "@src/services/madfi/studio";
 import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
-import useIsMobile from "@src/hooks/useIsMobile";
-import { ANIMATED_HINT_LINES, SITE_URL } from "@src/constants/constants";
+import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { getAuthToken } from "@src/utils/auth";
-import { AnimatedText } from "@src/components/LoadingSpinner/AnimatedText";
 
 type ChatProps = {
   agentId: string;
@@ -98,20 +96,14 @@ type ChatProps = {
   isProcessingVideo?: boolean;
   isPosting?: boolean;
 }) => {
-  const { isMiniApp } = useIsMiniApp();
-  const isMobile = useIsMobile();
   if (isPending) {
     return (
       <div className={`${isAgent ? 'max-w-[80%]' : 'ml-auto max-w-[80%]'}`}>
-        <div className="relative group">
-          <AnimatedBonsaiGrid
-            width="100%"
-            height={250}
-            gridSize={30}
-            reduceMotion={isMobile || isMiniApp}
-          />
-          <AnimatedText lines={ANIMATED_HINT_LINES} className="md:w-[400px] w-full md:text-lg" />
-        </div>
+        <AnimatedBonsaiGrid
+          width="100%"
+          height={250}
+          gridSize={30}
+        />
       </div>
     );
   }
@@ -1481,7 +1473,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
       {/* Storyboard indicator - always show when remixing */}
-      {isRemixing ? (
+      {isRemixing && !!storyboardClips.length ? (
         <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
           <div className="flex items-center gap-2">
             <FilmIcon className="w-4 h-4" />

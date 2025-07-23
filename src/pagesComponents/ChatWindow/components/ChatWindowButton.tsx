@@ -123,7 +123,8 @@ export default function ChatWindowButton({
                 </div>
                 <div className="flex flex-col">
                   <h3 className="font-medium text-white">
-                    Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`}
+                    {/* Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`} */}
+                    Create with Sloppr
                   </h3>
                   {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
                 </div>
