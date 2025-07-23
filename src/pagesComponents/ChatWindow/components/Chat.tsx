@@ -1678,7 +1678,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         handleKeyPress={handleKeyPress}
         handleSubmit={handleSubmit}
         setUserInput={setUserInput}
-        disabled={isLoading || !isConnected || !canMessage || !canMessageAgain}
+        disabled={isLoading || !isConnected || (!canMessage && !isLoadingMessageHistory) || !canMessageAgain}
         attachment={attachment}
         setAttachment={setAttachment}
         requireBonsaiPayment={requireBonsaiPayment}
@@ -1687,10 +1687,15 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         placeholder={
           isPosting
             ? "Write your post content here"
-            : !(canMessageAgain && canMessage)
-            ? "Insufficient credits"
             : undefined
         }
+        // placeholder={
+        //   isPosting
+        //     ? "Write your post content here"
+        //     : !(canMessageAgain && canMessage)
+        //     ? "Insufficient credits"
+        //     : undefined
+        // }
         templates={registeredTemplates}
         remixMedia={media}
         roomId={conversationId}
