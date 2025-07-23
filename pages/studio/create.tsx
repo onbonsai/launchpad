@@ -29,7 +29,7 @@ import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import PreviewHistory, { LocalPreview } from "@pagesComponents/Studio/PreviewHistory";
 import type { NFTMetadata, TokenData, StoryboardClip, Embeds } from "@src/services/madfi/studio";
 import { sdk } from '@farcaster/miniapp-sdk';
-import { getAuthToken } from "@src/utils/auth";
+import { useAuth } from "@src/hooks/useAuth";
 import { SITE_URL } from "@src/constants/constants";
 import TemplateSelector from "@pagesComponents/Studio/TemplateSelector";
 import { generateSeededUUID } from "@pagesComponents/ChatWindow/utils";
@@ -49,6 +49,7 @@ const StudioCreatePage: NextPage = () => {
   const { remix: remixPostId, remixSource: encodedRemixSource, remixVersion: remixVersionQuery } = router.query;
   const { chain, address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { getAuthHeaders } = useAuth();
   const [openTab, setOpenTab] = useState<number>(1);
   const [currentPreview, setCurrentPreview] = useState<Preview | undefined>();
   const [finalTemplateData, setFinalTemplateData] = useState({});
@@ -340,10 +341,7 @@ const StudioCreatePage: NextPage = () => {
       return;
     }
 
-    const authResult = await getAuthToken({ isMiniApp, address });
-    if (!authResult.success) {
-      return;
-    }
+    const authHeaders = await getAuthHeaders({ isWrite: true });
 
     const tempId = generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
@@ -382,7 +380,7 @@ const StudioCreatePage: NextPage = () => {
 
     workerRef.current?.postMessage({
       url: template.apiUrl,
-      authHeaders: authResult.headers,
+      authHeaders: authHeaders,
       category: template.category,
       templateName: template.name,
       templateData: templateData,
@@ -970,11 +968,7 @@ const StudioCreatePage: NextPage = () => {
 
       // Create smart media without postId (for miniapp users)
       toastId = toast.loading("Finalizing...", { id: toastId });
-      const authResult = await getAuthToken({ isMiniApp, address });
-      if (!authResult.success) {
-        toast.error("Failed to authenticate", { duration: 5000, id: toastId });
-        return;
-      }
+      const authHeaders = await getAuthHeaders({ isWrite: true });
       // Determine token address and data for base chain
       let tokenAddress: string | undefined;
       let tokenData: any;
@@ -1012,7 +1006,7 @@ const StudioCreatePage: NextPage = () => {
         };
       }
 
-      const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
+      const result = await createSmartMedia(template.apiUrl, authHeaders, JSON.stringify({
         roomId,
         agentId: currentPreview?.agentId,
         agentMessageId: currentPreview?.agentMessageId || currentPreview?.agentId,

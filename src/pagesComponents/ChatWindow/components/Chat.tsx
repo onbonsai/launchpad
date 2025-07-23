@@ -50,7 +50,7 @@ import { mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
-import { getAuthToken } from "@src/utils/auth";
+import { useAuth } from "@src/hooks/useAuth";
 
 type ChatProps = {
   agentId: string;
@@ -263,6 +263,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
+  const { getAuthHeaders } = useAuth();
   const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
 
   // Create author object that handles both Lens profile and Farcaster miniapp context
@@ -817,12 +818,8 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         return;
       }
 
-      const authResult = await getAuthToken({ isMiniApp, address });
-      if (!authResult.success) {
-        toast.error("Failed to authenticate", { duration: 5000, id: toastId });
-        return;
-      }
-      const result = await createSmartMedia(template.apiUrl, authResult.headers, JSON.stringify({
+      const authHeaders = await getAuthHeaders({ isWrite: true });
+      const result = await createSmartMedia(template.apiUrl, authHeaders, JSON.stringify({
         roomId: conversationId,
         agentId: postingPreview.agentId,
         agentMessageId: postingPreview.agentMessageId,

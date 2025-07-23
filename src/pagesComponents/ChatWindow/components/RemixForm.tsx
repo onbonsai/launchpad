@@ -14,7 +14,7 @@ import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount } from 'wagmi';
 import { resumeSession } from '@src/hooks/useLensLogin';
 import { generateSeededUUID } from '@pagesComponents/ChatWindow/utils';
-import { getAuthToken } from '@src/utils/auth';
+import { useAuth } from '@src/hooks/useAuth';
 import { last } from 'lodash/array';
 import type { NFTMetadata } from '@src/services/madfi/studio';
 import useWebNotifications from '@src/hooks/useWebNotifications';
@@ -97,6 +97,7 @@ export default function RemixForm({
 }: RemixFormProps) {
   const { address, isConnected } = useAccount();
   const { isMiniApp, isLoading: isMiniAppLoading } = useIsMiniApp();
+  const { getAuthHeaders } = useAuth();
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
   const [prompt, setPrompt] = useState<string>("");
   const [postContent, setPostContent] = useState<string>("");
@@ -285,8 +286,7 @@ export default function RemixForm({
       if (!roomId || !template?.apiUrl || isMiniAppLoading) return;
 
       try {
-        const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
-        if (!authResult.success) return;
+        const authHeaders = await getAuthHeaders({ isWrite: false, requireAuth: false });
 
         // Fetch recent messages from the room
         const queryParams = new URLSearchParams({
@@ -295,7 +295,7 @@ export default function RemixForm({
         });
 
         const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
-          headers: authResult.headers,
+          headers: authHeaders,
         });
 
         if (!response.ok) return;
@@ -448,8 +448,7 @@ export default function RemixForm({
     if (!roomId || !template?.apiUrl || pendingGenerations.size === 0 || isMiniAppLoading) return;
 
     try {
-      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
-      if (!authResult.success) return;
+      const authHeaders = await getAuthHeaders({ isWrite: false, requireAuth: false });
 
       // Fetch recent messages
       const queryParams = new URLSearchParams({
@@ -458,7 +457,7 @@ export default function RemixForm({
       });
 
       const response = await fetch(`${template.apiUrl}/previews/${roomId}/messages?${queryParams}`, {
-        headers: authResult.headers,
+        headers: authHeaders,
       });
 
       if (!response.ok) return;
@@ -607,11 +606,9 @@ export default function RemixForm({
       }
     }
 
-    const authResult = await getAuthToken({ isMiniApp, address });
-    if (!authResult.success) {
-      return;
-    }
-    const idToken = authResult.token;
+    const authHeaders = await getAuthHeaders({ isWrite: true });
+    // For backward compatibility, extract token from headers if needed
+    const idToken = authHeaders['Authorization']?.replace('Bearer ', '') || authHeaders['x-farcaster-session'] || '';
     const tempId = clipId || generateSeededUUID(`${address}-${Date.now() / 1000}`);
 
     // Request notification permission and subscribe to push notifications
@@ -675,7 +672,7 @@ export default function RemixForm({
 
       const response = await fetch(`${template.apiUrl}/post/create-preview`, {
         method: "POST",
-        headers: omit(authResult.headers, 'Content-Type'),
+        headers: omit(authHeaders, 'Content-Type'),
         body: formData,
       });
 
@@ -737,7 +734,7 @@ export default function RemixForm({
         }).catch(console.error);
       } else {
         // For non-PWA scenarios (like miniapps), start polling the task status directly
-        pollTaskStatus(taskId, tempId, template.apiUrl, authResult.headers);
+        pollTaskStatus(taskId, tempId, template.apiUrl, authHeaders);
       }
 
     } catch (error: any) {

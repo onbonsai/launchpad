@@ -13,35 +13,50 @@ export interface AuthOptions {
   isMiniApp?: boolean;
   requireAuth?: boolean;
   address?: `0x${string}`;
+  isWrite?: boolean; // New option to distinguish between GET and write operations
 }
 
 /**
+ * @deprecated Use the useAuth hook instead for better state management
  * Centralized authentication utility that handles both Lens and Farcaster miniapp flows
  * @param options - Authentication options
  * @returns Promise<AuthResult> - Contains token, headers, and success status
  */
 export async function getAuthToken(options: AuthOptions = {}): Promise<AuthResult> {
-  const { isMiniApp = false, requireAuth = true } = options;
+  const { isMiniApp = false, requireAuth = true, isWrite = true } = options;
 
   try {
     if (isMiniApp) {
-      // Farcaster miniapp flow
+      const baseHeaders = {
+        'Content-Type': 'application/json',
+        'x-farcaster-address': (options.address as string)?.toLowerCase() || '',
+      };
+
+      // For GET operations, we don't need the auth token
+      if (!isWrite) {
+        return {
+          token: '',
+          headers: baseHeaders,
+          success: true
+        };
+      }
+
+      // For write operations, get the actual token
       const { token } = await sdk.quickAuth.getToken();
 
       if (!token) {
-        const error = "Failed to get Farcaster authentication token";
+        const error = "Please complete the Farcaster login";
         if (requireAuth) {
           toast.error(error);
         }
-        return { token: '', headers: {}, success: false, error };
+        return { token: '', headers: baseHeaders, success: false, error };
       }
 
       return {
         token,
         headers: {
-          'Content-Type': 'application/json',
+          ...baseHeaders,
           'x-farcaster-session': token,
-          'x-farcaster-address': (options.address as string).toLowerCase(),
         },
         success: true
       };
@@ -88,6 +103,7 @@ export async function getAuthToken(options: AuthOptions = {}): Promise<AuthResul
 }
 
 /**
+ * @deprecated Use the useAuth hook instead for better state management
  * Helper function to get auth headers for fetch requests
  * @param options - Authentication options
  * @returns Promise<Record<string, string>> - Headers object ready for fetch
@@ -98,6 +114,7 @@ export async function getAuthHeaders(options: AuthOptions = {}): Promise<Record<
 }
 
 /**
+ * @deprecated Use the useAuth hook instead for better state management
  * Helper function that throws if authentication fails (for backwards compatibility)
  * @param options - Authentication options
  * @returns Promise<string> - The authentication token

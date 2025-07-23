@@ -56,7 +56,7 @@ export const useGetMessages = (
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
-      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address });
+      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address, isWrite: false });
       if (!authResult.success) {
         return { messages: [], canMessage: false };
       }
@@ -97,7 +97,7 @@ export const sendMessage = async ({
   isMiniApp,
   address
 }: SendMessageProps): Promise<{ messages: MessageResponse[], canMessageAgain: boolean } | undefined> => {
-  const authResult = await getAuthToken({ isMiniApp, address });
+  const authResult = await getAuthToken({ isMiniApp, address, isWrite: true });
   if (!authResult.success) {
     return;
   }

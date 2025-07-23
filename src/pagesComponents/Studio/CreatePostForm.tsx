@@ -5,7 +5,7 @@ import imageCompression from "browser-image-compression";
 import { AutoFixHigh as MagicWandIcon } from "@mui/icons-material";
 import { enhancePrompt, composeStoryboard } from "@src/services/madfi/studio";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { getAuthToken } from "@src/utils/auth";
+import { useAuth } from "@src/hooks/useAuth";
 import { Tooltip } from "@src/components/Tooltip";
 import { Button } from "@src/components/Button";
 import { ImageUploader, ImageUploaderRef } from "@src/components/ImageUploader/ImageUploader";
@@ -146,6 +146,7 @@ const CreatePostForm = ({
   const { data: veniceImageOptions, isLoading: isLoadingVeniceImageOptions } = useVeniceImageOptions();
   const { openTopUpModal, openSwapToGenerateModal } = useTopUpModal();
   const { isMiniApp } = useIsMiniApp();
+  const { getAuthHeaders } = useAuth();
   const [templateData, setTemplateData] = useState(finalTemplateData || {});
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>("9:16");
   const [selectedNFT, setSelectedNFT] = useState<AlchemyNFTMetadata | undefined>();
@@ -377,17 +378,15 @@ const CreatePostForm = ({
       return;
     }
 
-    const authResult = await getAuthToken({ isMiniApp, address });
-    if (!authResult.success) {
-      return;
-    }
-    const idToken = authResult.token;
+    const authHeaders = await getAuthHeaders({ isWrite: true });
+    // For backward compatibility, extract token from headers if needed
+    const idToken = authHeaders['Authorization']?.replace('Bearer ', '') || authHeaders['x-farcaster-session'] || '';
 
     setIsEnhancing(true);
     let toastId = toast.loading("Enhancing your prompt...");
 
     try {
-      const enhanced = await enhancePrompt(template.apiUrl, authResult.headers, template, prompt, templateData);
+      const enhanced = await enhancePrompt(template.apiUrl, authHeaders, template, prompt, templateData);
       if (!enhanced) throw new Error("No enhanced prompt returned");
 
       // Start animation
@@ -438,10 +437,7 @@ const CreatePostForm = ({
   }
 
   const handleCompose = async () => {
-    const authResult = await getAuthToken({ isMiniApp, address });
-    if (!authResult.success) {
-      return;
-    }
+    const authHeaders = await getAuthHeaders({ isWrite: true });
 
     setIsComposing(true);
     let toastId = toast.loading("Composing video... this might take a minute.");
@@ -449,7 +445,7 @@ const CreatePostForm = ({
     try {
       const res = await composeStoryboard(
         template.apiUrl,
-        omit(authResult.headers, 'Content-Type'),
+        omit(authHeaders, 'Content-Type'),
         storyboardClips,
         storyboardAudio as any,
         storyboardAudioStartTime || 0,
