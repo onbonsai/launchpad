@@ -392,24 +392,28 @@ export default function ChatInput({
                         Remix this post
                       </button>
                     )}
-                    <PremadeChatInput
-                      setUserInput={disabled ? () => { } : setUserInput}
-                      label="About"
-                      input="What is this post about?"
-                      disabled={disabled}
-                    />
-                    <PremadeChatInput
-                      setUserInput={disabled ? () => { } : setUserInput}
-                      label="Commentary"
-                      input="What is the sentiment in the comments?"
-                      disabled={disabled}
-                    />
-                    <PremadeChatInput
-                      setUserInput={disabled ? () => { } : setUserInput}
-                      label="Author"
-                      input="Who made this post?"
-                      disabled={disabled}
-                    />
+                    {!isMiniApp && (
+                      <>
+                        <PremadeChatInput
+                          setUserInput={disabled ? () => { } : setUserInput}
+                          label="About"
+                          input="What is this post about?"
+                          disabled={disabled}
+                        />
+                        <PremadeChatInput
+                          setUserInput={disabled ? () => { } : setUserInput}
+                          label="Commentary"
+                          input="What is the sentiment in the comments?"
+                          disabled={disabled}
+                        />
+                        <PremadeChatInput
+                          setUserInput={disabled ? () => { } : setUserInput}
+                          label="Author"
+                          input="Who made this post?"
+                          disabled={disabled}
+                        />
+                      </>
+                    )}
                   </>
                 )}
               </div>
