@@ -350,35 +350,38 @@ export default function ChatInput({
                     disabled={disabled}
                   />
                 } */}
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
-                  {requireAttachment && (
-                    <AttachmentButton attachment={attachment} setAttachment={setAttachment} />
-                  )}
-                  {!requireBonsaiPayment && (
-                    <Button
-                      type="submit"
-                      disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
-                      variant="accentBrand"
-                      size="xs"
-                      className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
-                    </Button>
-                  )}
-                  {requireBonsaiPayment && requireBonsaiPayment > 0 && (
-                    <button
-                      type="submit"
-                      disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview}
-                      className={`rounded-[10px] p-2 transition-colors flex flex-row ${/[a-zA-Z]/.test(userInput) && !disabled && validAttachment && !isGeneratingPreview
-                        ? 'bg-[#D00A59] text-white hover:bg-opacity-80'
-                        : 'cursor-not-allowed bg-[#ffffff] text-zinc-950 opacity-50'
-                        }`}
-                    >
-                      <PaySvg />
-                      <span className="ml-2">Pay {requireBonsaiPayment} $BONSAI</span>
-                    </button>
-                  )}
-                </div>
+                {/* TODO: remove the isGeneratingPReview check once we show the other options */}
+                {!isGeneratingPreview && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
+                    {requireAttachment && (
+                      <AttachmentButton attachment={attachment} setAttachment={setAttachment} />
+                    )}
+                    {!requireBonsaiPayment && (
+                      <Button
+                        type="submit"
+                        disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
+                        variant="accentBrand"
+                        size="xs"
+                        className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
+                      </Button>
+                    )}
+                    {requireBonsaiPayment && requireBonsaiPayment > 0 && (
+                      <button
+                        type="submit"
+                        disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview}
+                        className={`rounded-[10px] p-2 transition-colors flex flex-row ${/[a-zA-Z]/.test(userInput) && !disabled && validAttachment && !isGeneratingPreview
+                          ? 'bg-[#D00A59] text-white hover:bg-opacity-80'
+                          : 'cursor-not-allowed bg-[#ffffff] text-zinc-950 opacity-50'
+                          }`}
+                      >
+                        <PaySvg />
+                        <span className="ml-2">Pay {requireBonsaiPayment} $BONSAI</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             <div className='flex flex-row justify-between mt-2'>

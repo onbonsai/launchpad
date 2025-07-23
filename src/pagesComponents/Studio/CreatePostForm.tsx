@@ -715,7 +715,7 @@ const CreatePostForm = ({
               <FieldLabel
                 label="MAX Mode"
                 fieldDescription="Enable MAX Mode for Veo 3 generation with multiple scenes"
-                tooltipDirection={tooltipDirection || "top"}
+                tooltipDirection={isMiniApp ? "top" : (tooltipDirection || "top")}
                 classNames="!text-brand-highlight !text-sm"
                 open={showMaxModeTooltip}
               />
