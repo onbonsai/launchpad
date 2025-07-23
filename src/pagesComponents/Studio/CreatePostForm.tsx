@@ -757,7 +757,7 @@ const CreatePostForm = ({
                   <button
                     type="button"
                     onClick={_enhancePrompt}
-                    disabled={isEnhancing || isAnimating || !prompt}
+                    disabled={isEnhancing || isAnimating || !prompt || (creditBalance || 0) < 0.25}
                     className="p-2 text-secondary/70 transition-colors disabled:opacity-50 enabled:hover:text-brand-highlight"
                   >
                     <SparklesIcon className="h-4 w-4" />
