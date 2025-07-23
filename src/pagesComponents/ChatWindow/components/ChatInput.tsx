@@ -354,10 +354,10 @@ export default function ChatInput({
                   {!requireBonsaiPayment && (
                     <Button
                       type="submit"
-                      disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview}
+                      disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
                       variant="accentBrand"
                       size="xs"
-                      className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
                     </Button>

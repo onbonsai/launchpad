@@ -262,7 +262,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { isMiniApp, context } = useIsMiniApp();
+  const { isMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
   const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
 
   // Create author object that handles both Lens profile and Farcaster miniapp context
@@ -810,6 +810,13 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       // Create smart media without postId (for miniapp users)
       toastId = toast.loading("Finalizing...", { id: toastId });
+
+      // Wait for miniapp detection to complete
+      if (isMiniAppLoading) {
+        toast.error("Miniapp detection in progress, please try again", { duration: 5000, id: toastId });
+        return;
+      }
+
       const authResult = await getAuthToken({ isMiniApp, address });
       if (!authResult.success) {
         toast.error("Failed to authenticate", { duration: 5000, id: toastId });
@@ -896,7 +903,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       }
       setIsPosting(false);
     }
-  }, [postingPreview, conversationId, context, sdk, media, registeredTemplates, storyboardClips, storyboardAudio, storyboardAudioStartTime, storyboardKey]);
+  }, [postingPreview, conversationId, context, sdk, media, registeredTemplates, storyboardClips, storyboardAudio, storyboardAudioStartTime, storyboardKey, isMiniApp, isMiniAppLoading, address]);
 
   const handlePost = useCallback(async (text: string) => {
     if (!postingPreview) return;
@@ -1102,7 +1109,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [postingPreview, authenticatedProfile, walletClient, conversationId, address, media, post, registeredTemplates, remixVersionQuery, isMiniApp, sdk, handleCast]);
+  }, [postingPreview, authenticatedProfile, walletClient, conversationId, address, media, post, registeredTemplates, remixVersionQuery, isMiniApp, isMiniAppLoading, sdk, handleCast]);
 
   // Handler for adding to storyboard
   const handleAddToStoryboard = useCallback((preview: Preview) => {

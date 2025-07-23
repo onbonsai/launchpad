@@ -36,7 +36,7 @@ export default function useChat({
   setCurrentAction,
 }: UseChatProps): UseChatResponse {
   const { address } = useAccount();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, isLoading: isMiniAppLoading } = useIsMiniApp();
   const [isLoading, setIsLoading] = useState(false);
   const [canMessageAgain, setCanMessageAgain] = useState(true);
   const socket = useRef<Socket | null>(null);
@@ -115,8 +115,8 @@ export default function useChat({
         setIsLoading(false);
       }
     },
-    [conversationId, onSuccess, agentId, userId, setIsThinking, setCurrentAction],
+    [conversationId, onSuccess, agentId, userId, setIsThinking, setCurrentAction, isMiniApp, isMiniAppLoading, address],
   );
 
-  return { postChat, isLoading, canMessageAgain };
+  return { postChat, isLoading: isLoading || isMiniAppLoading, canMessageAgain };
 }
