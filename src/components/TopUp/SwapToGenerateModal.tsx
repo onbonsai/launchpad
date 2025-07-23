@@ -78,7 +78,7 @@ export const SwapToGenerateModal = ({
   const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
-  const { isMiniApp, isFarcasterMiniApp } = useIsMiniApp();
+  const { isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp } = useIsMiniApp();
   const { refetch: _refetchCredits } = useGetCredits(address as string, isConnected);
 
   // Load remembered selection
@@ -264,7 +264,7 @@ export const SwapToGenerateModal = ({
           toastId = toast.loading("Buying", { id: toastId });
           await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
         } else {
-          if (isMiniApp && isFarcasterMiniApp) {
+          if (isMiniApp && isFarcasterMiniApp && !isCoinbaseMiniApp) { // explicit check just in case
             await sdk.actions.swapToken({
               sellToken: `eip155:8453/erc20:${USDC_CONTRACT_ADDRESS}`,
               buyToken: `eip155:8453/erc20:${token.address}`,
