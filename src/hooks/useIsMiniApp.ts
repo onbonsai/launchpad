@@ -52,6 +52,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
   const [isLoading, setIsLoading] = useState(true);
   const [miniAppType, setMiniAppType] = useState<MiniAppType>(null);
   const [context, setContext] = useState<FarcasterContext>();
+  const [hasRunCheck, setHasRunCheck] = useState(false);
   // using the coinbase hook since the fc one is not consistently reliable
   const { isFrameReady, context: coinbaseContext } = useMiniKit();
 
@@ -79,12 +80,23 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
     }
   });
 
+  // Memoize coinbase context values to prevent infinite re-renders
+  const coinbaseContextClientFid = coinbaseContext?.client?.clientFid;
+  const coinbaseContextExists = !!coinbaseContext;
+
   useEffect(() => {
+    // Only run check once or when critical values actually change
+    if (hasRunCheck && miniAppType !== null) {
+      console.log('🔍 [useIsMiniApp] Skipping check - already determined mini app type:', miniAppType);
+      return;
+    }
+
     const checkMiniApp = async () => {
       console.log('🔍 [useIsMiniApp] Starting checkMiniApp with:', {
+        hasRunCheck,
         isFrameReady,
-        coinbaseContextExists: !!coinbaseContext,
-        coinbaseContextClientFid: coinbaseContext?.client?.clientFid
+        coinbaseContextExists,
+        coinbaseContextClientFid
       });
 
       Sentry.addBreadcrumb({
@@ -92,9 +104,10 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
         category: 'miniapp',
         level: 'info',
         data: {
+          hasRunCheck,
           isFrameReady,
-          coinbaseContextExists: !!coinbaseContext,
-          coinbaseContextClientFid: coinbaseContext?.client?.clientFid,
+          coinbaseContextExists,
+          coinbaseContextClientFid,
           timestamp: Date.now()
         }
       });
@@ -114,10 +127,10 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           displayName: context?.user?.displayName
         });
 
-        const isCoinbaseMiniApp = context?.client.clientFid === 309857 || coinbaseContext?.client?.clientFid === 309857;
+        const isCoinbaseMiniApp = context?.client.clientFid === 309857 || coinbaseContextClientFid === 309857;
         console.log('🔍 [useIsMiniApp] isCoinbaseMiniApp calculation:', {
           contextClientFid: context?.client.clientFid,
-          coinbaseContextClientFid: coinbaseContext?.client?.clientFid,
+          coinbaseContextClientFid,
           isCoinbaseMiniApp
         });
 
@@ -129,7 +142,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
             isFarcasterMiniApp,
             isCoinbaseMiniApp,
             contextClientFid: context?.client.clientFid,
-            coinbaseContextClientFid: coinbaseContext?.client?.clientFid,
+            coinbaseContextClientFid,
             timestamp: Date.now()
           }
         });
@@ -139,6 +152,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           setMiniAppType("coinbase");
           setContext(context as FarcasterContext);
           setIsMiniApp(true);
+          setHasRunCheck(true); // Mark as completed
 
           Sentry.addBreadcrumb({
             message: 'useIsMiniApp detected Coinbase mini app',
@@ -155,6 +169,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           setMiniAppType("farcaster");
           setContext(context as FarcasterContext);
           setIsMiniApp(true);
+          setHasRunCheck(true); // Mark as completed
 
           Sentry.addBreadcrumb({
             message: 'useIsMiniApp detected Farcaster mini app',
@@ -168,6 +183,8 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           });
         } else {
           console.log('🔍 [useIsMiniApp] No mini app detected');
+          setHasRunCheck(true); // Mark as completed even if no mini app
+
           Sentry.addBreadcrumb({
             message: 'useIsMiniApp no mini app detected',
             category: 'miniapp',
@@ -175,13 +192,15 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
             data: {
               isFarcasterMiniApp,
               contextClientFid: context?.client.clientFid,
-              coinbaseContextClientFid: coinbaseContext?.client?.clientFid,
+              coinbaseContextClientFid,
               timestamp: Date.now()
             }
           });
         }
       } catch (error) {
         console.error('🚨 [useIsMiniApp] Error checking mini app status:', error);
+        setHasRunCheck(true); // Mark as completed even on error to prevent infinite retries
+
         Sentry.addBreadcrumb({
           message: 'useIsMiniApp error during detection',
           category: 'miniapp',
@@ -211,7 +230,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
     };
 
     checkMiniApp();
-  }, [sdk, isFrameReady, coinbaseContext]);
+  }, [hasRunCheck, miniAppType, coinbaseContextClientFid, coinbaseContextExists]);
 
   const result = {
     isMiniApp,

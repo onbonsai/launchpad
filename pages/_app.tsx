@@ -40,6 +40,30 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   const [hasRenderedContent, setHasRenderedContent] = useState(false);
   const [lastIsCoinbaseMiniApp, setLastIsCoinbaseMiniApp] = useState<boolean | null>(null);
 
+  // Simple timeout to prevent infinite waiting
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasRenderedContent) {
+        console.log('🚨 [CoinbaseMiniAppWrapper] 2-second timeout - forcing render to prevent stuck state');
+        setForceRender(true);
+        setHasRenderedContent(true);
+
+        if (!hasTriggeredDebug) {
+          setHasTriggeredDebug(true);
+          captureDebugException('timeout-forced-render-after-2s', {
+            isCoinbaseMiniApp,
+            isFrameReady,
+            isMiniAppLoading,
+            hasRenderedContent,
+            waitingTime: 2000
+          });
+        }
+      }
+    }, 2000); // 2 second timeout
+
+    return () => clearTimeout(timer);
+  }, []); // Only run once on mount
+
   // Track render state changes for flicker detection
   const currentRenderState = `${isCoinbaseMiniApp}-${isFrameReady}-${isMiniAppLoading}-${forceRender}-${hasRenderedContent}`;
 
@@ -289,12 +313,14 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
     handleInstallFlow();
   }, [isCoinbaseMiniApp, router.query.install, context?.client.added, addFrame]);
 
-  // For Coinbase mini apps, only render when ready OR after timeout OR if we've already shown content
-  if (isCoinbaseMiniApp && !isFrameReady && !forceRender && !hasRenderedContent) {
-    console.log('🔍 [CoinbaseMiniAppWrapper] Returning null - Coinbase mini app not ready yet (first time)');
+  // Simple render decision: Only return null if it's a Coinbase mini app, not ready, not forced, and we haven't rendered content yet
+  const shouldReturnNull = isCoinbaseMiniApp && !isFrameReady && !forceRender && !hasRenderedContent;
+
+  if (shouldReturnNull) {
+    console.log('🔍 [CoinbaseMiniAppWrapper] Returning null - waiting for Coinbase mini app to be ready');
 
     Sentry.addBreadcrumb({
-      message: 'CoinbaseMiniAppWrapper returning null - not ready (first time)',
+      message: 'CoinbaseMiniAppWrapper returning null - waiting for ready',
       category: 'miniapp',
       level: 'info',
       data: {
@@ -302,42 +328,44 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
         isFrameReady,
         forceRender,
         hasRenderedContent,
+        shouldReturnNull,
         timestamp: Date.now()
       }
     });
 
-    return null; // Show loading state
+    return null;
   }
 
-  // Prevent regression to black screen if we've already shown content
-  if (isCoinbaseMiniApp && !isFrameReady && !forceRender && hasRenderedContent) {
-    console.log('🚨 [CoinbaseMiniAppWrapper] Preventing regression to black screen - continuing to render');
+  // Log why we're rendering (for debugging)
+  if (isCoinbaseMiniApp && !isFrameReady) {
+    const reason = forceRender ? 'force-render-timeout' : hasRenderedContent ? 'prevent-regression' : 'unknown';
+    console.log(`🔍 [CoinbaseMiniAppWrapper] Rendering despite frame not ready (reason: ${reason})`);
 
-    if (!hasTriggeredDebug) {
+    if (reason === 'prevent-regression' && !hasTriggeredDebug) {
       setHasTriggeredDebug(true);
       captureDebugException('prevented-regression-to-black-screen', {
         isCoinbaseMiniApp,
         isFrameReady,
         forceRender,
         hasRenderedContent,
+        reason,
         waitingTime: waitingStartTime ? Date.now() - waitingStartTime : null
       });
     }
 
     Sentry.addBreadcrumb({
-      message: 'CoinbaseMiniAppWrapper preventing regression to black screen',
+      message: `CoinbaseMiniAppWrapper rendering despite not ready: ${reason}`,
       category: 'miniapp',
-      level: 'warning',
+      level: reason === 'prevent-regression' ? 'warning' : 'info',
       data: {
         isCoinbaseMiniApp,
         isFrameReady,
         forceRender,
         hasRenderedContent,
+        reason,
         timestamp: Date.now()
       }
     });
-
-    // Continue rendering to prevent black screen
   }
 
   // Log when we're force-rendering due to timeout
