@@ -56,7 +56,7 @@ const fetchTokenImageFromCodex = async (tokenAddress: string, network: "lens" | 
       liquidity: 0,
     });
 
-    const result = data.filterTokens?.results?.[0];
+    const result = (data as any).filterTokens?.results?.[0];
     return result?.token?.info?.imageSmallUrl || null;
   } catch (error) {
     console.error("Error fetching token image from Codex:", error);
@@ -71,6 +71,7 @@ export const fetchTokenMetadata = async (tokenAddress: string, network: "lens" |
       symbol: "BONSAI",
       logo: "https://app.onbons.ai/logo-spaced.png",
       decimals: 18,
+      network,
     };
   }
   try {

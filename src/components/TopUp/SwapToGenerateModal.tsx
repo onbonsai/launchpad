@@ -78,7 +78,6 @@ export const SwapToGenerateModal = ({
   const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
-  const { isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp } = useIsMiniApp();
   const { refetch: _refetchCredits } = useGetCredits(address as string, isConnected);
 
   // Load remembered selection
@@ -264,93 +263,85 @@ export const SwapToGenerateModal = ({
           toastId = toast.loading("Buying", { id: toastId });
           await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
         } else {
-          if (isMiniApp && isFarcasterMiniApp && !isCoinbaseMiniApp) { // explicit check just in case
-            await sdk.actions.swapToken({
-              sellToken: `eip155:8453/erc20:${USDC_CONTRACT_ADDRESS}`,
-              buyToken: `eip155:8453/erc20:${token.address}`,
-              sellAmount: parseUnits(selectedAmount.toString(), USDC_DECIMALS).toString(),
-            });
-          } else {
-            // Execute Matcha swap on desktop
-            toastId = toast.loading("Preparing swap...");
-            const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
-            const sellAmount = sellAmountBigInt.toString();
+          // Execute Matcha swap
+          toastId = toast.loading("Preparing swap...");
+          const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
+          const sellAmount = sellAmountBigInt.toString();
 
-            // Get quote from Matcha
-            const quoteResponse = await axios.post("/api/matcha/quote", {
-              chainId: baseChain.id,
-              sellToken: USDC_CONTRACT_ADDRESS,
-              buyToken: token.address,
-              sellAmount,
-              taker: address,
-            });
+          // Get quote from Matcha
+          const quoteResponse = await axios.post("/api/matcha/quote", {
+            chainId: baseChain.id,
+            sellToken: USDC_CONTRACT_ADDRESS,
+            buyToken: token.address,
+            sellAmount,
+            taker: address,
+          });
 
-            const quote = quoteResponse.data;
+          const quote = quoteResponse.data;
 
-            // Check if we need to approve based on the quote response
-            const currentAllowance = BigInt(quote?.issues?.allowance?.actual || "0");
-            const needsApproval = currentAllowance < sellAmountBigInt || !quote?.issues?.allowance;
-
-            if (needsApproval && quote?.issues?.allowance?.spender) {
-              toast.loading("Approving USDC...", { id: toastId });
-              const approveTx = await walletClient.writeContract({
-                address: USDC_CONTRACT_ADDRESS,
-                abi: erc20Abi,
-                functionName: "approve",
-                args: [quote.issues.allowance.spender as `0x${string}`, maxUint256],
-                chain: baseChain,
-              });
-              await publicClient("base").waitForTransactionReceipt({ hash: approveTx });
-            }
-
-            // Sign Permit2 if needed
-            if (quote.permit2?.eip712) {
-              toast.loading("Please sign the permit...", { id: toastId });
-              // @ts-ignore
-              const signature = await walletClient.signTypedData(quote.permit2.eip712);
-
-              // Append signature length and signature data as per 0x docs
-              // Format: <sig len><sig data> where sig len is 32-byte unsigned big-endian integer
-              const signatureLengthInHex = numberToHex(size(signature), {
-                signed: false,
-                size: 32,
-              });
-
-              // Concatenate: original data + signature length + signature
-              quote.transaction.data = concat([
-                quote.transaction.data as `0x${string}`,
-                signatureLengthInHex,
-                signature,
-              ]);
-            }
-
-            // Execute the swap
-            toast.loading("Swapping...", { id: toastId });
-            const hash = await walletClient.sendTransaction({
-              to: quote.transaction.to,
-              data: quote.transaction.data,
-              value: BigInt(quote.transaction.value || 0),
-              gas: BigInt(quote.transaction.gas),
+          // Check if we need to approve based on the quote response
+          const currentAllowance = BigInt(quote?.issues?.allowance?.actual || "0");
+          const needsApproval = currentAllowance < sellAmountBigInt || !quote?.issues?.allowance;
+          if (needsApproval && quote?.issues?.allowance?.spender) {
+            toast.loading("Approving USDC...", { id: toastId });
+            const approveTx = await walletClient.writeContract({
+              address: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "approve",
+              args: [quote.issues.allowance.spender as `0x${string}`, maxUint256],
               chain: baseChain,
             });
-
-            await publicClient("base").waitForTransactionReceipt({ hash });
-            toast.success("Swap completed!", { id: toastId });
+            await publicClient("base").waitForTransactionReceipt({ hash: approveTx });
           }
-        }
 
-        // then pay for the credits
-        const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
-        transferTx = await walletClient.writeContract({
-          address: USDC_CONTRACT_ADDRESS,
-          abi: erc20Abi,
-          functionName: "transfer",
-          args: [ADMIN_WALLET, creditsAmount],
-        });
+          // Sign Permit2 if needed
+          if (quote.permit2?.eip712) {
+            toast.loading("Please sign the permit...", { id: toastId });
+            // @ts-ignore
+            const signature = await walletClient.signTypedData(quote.permit2.eip712);
+
+            // Append signature length and signature data as per 0x docs
+            // Format: <sig len><sig data> where sig len is 32-byte unsigned big-endian integer
+            const signatureLengthInHex = numberToHex(size(signature), {
+              signed: false,
+              size: 32,
+            });
+
+            // Concatenate: original data + signature length + signature
+            quote.transaction.data = concat([
+              quote.transaction.data as `0x${string}`,
+              signatureLengthInHex,
+              signature,
+            ]);
+          }
+
+          // Execute the swap
+          toast.loading("Swapping...", { id: toastId });
+          const hash = await walletClient.sendTransaction({
+            to: quote.transaction.to,
+            data: quote.transaction.data,
+            value: BigInt(quote.transaction.value || 0),
+            gas: BigInt(quote.transaction.gas),
+            chain: baseChain,
+          });
+
+          await publicClient("base").waitForTransactionReceipt({ hash });
+          toast.success("Swap completed!", { id: toastId });
+        }
       }
+
+      // then pay for the credits
+      const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
+      transferTx = await walletClient.writeContract({
+        address: USDC_CONTRACT_ADDRESS,
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [ADMIN_WALLET, creditsAmount],
+      });
     } catch (error) {
       console.error("Error processing swap:", error);
-      toast.error("Failed to complete transaction", { id: toastId, duration: 50000 });
+      toast.dismiss(toastId);
+      toast.error("Failed to complete transaction", { id: toastId });
       return;
     }
 
@@ -370,7 +361,7 @@ export const SwapToGenerateModal = ({
       else _refetchCredits?.();
     } catch (error) {
       console.error("Error updating credits:", error);
-      toast.error("Failed to update credits", { id: toastId, duration: 50000 });
+      toast.error("Failed to update credits", { id: toastId });
       return;
     }
 

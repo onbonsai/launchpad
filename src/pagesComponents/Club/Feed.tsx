@@ -1,12 +1,8 @@
 import { useRouter } from "next/router";
-import {
-  Publications,
-  Theme,
-} from "@madfi/widgets-react";
+import { Publications } from "@madfi/widgets-react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
-import Image from "next/image";
 
 import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -280,7 +276,6 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
           <div className="w-full max-w-[500px]">
             <Publications
               publications={sortedComments}
-              theme={Theme.dark}
               environment={LENS_ENVIRONMENT}
               authenticatedProfile={authenticatedProfile}
               hideCommentButton={true}

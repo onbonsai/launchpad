@@ -120,7 +120,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   return (
     <div className={clsx(
       "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
-      isStandalone ? "pb-6" : "pb-1"
+      isStandalone || isMiniApp ? "pb-6" : "pb-1"
     )}>
       <div className="flex justify-between items-center h-14 px-6">
         <Link href="/" className="flex flex-col items-center">

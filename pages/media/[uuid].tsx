@@ -1,7 +1,6 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import dynamic from 'next/dynamic';
-import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useMemo, useState, useContext } from "react";
 import Link from "next/link";

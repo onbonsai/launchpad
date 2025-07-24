@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-// @ts-expect-error moduleResolution: nodenext
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
 
 interface FarcasterContext {
@@ -60,25 +59,17 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
       try {
         setIsLoading(true);
         const isFarcasterMiniApp = await sdk.isInMiniApp();
-        const isCoinbaseMiniApp = coinbaseContext?.clientFid === 309857;
+        const context = await sdk.context;
+        const isCoinbaseMiniApp = context?.client.clientFid === 309857 || coinbaseContext?.client?.clientFid === 309857;
 
-        if (isFarcasterMiniApp) {
+        if (isCoinbaseMiniApp) {
+          setMiniAppType("coinbase");
+          setContext(context as FarcasterContext);
           setIsMiniApp(true);
-          setMiniAppType('farcaster');
-          const farcasterContext = await sdk.context;
-          setContext(farcasterContext as FarcasterContext);
-        } else if (isCoinbaseMiniApp) {
+        } else if (isFarcasterMiniApp) {
+          setMiniAppType("farcaster");
+          setContext(context as FarcasterContext);
           setIsMiniApp(true);
-          setMiniAppType('coinbase');
-          setContext(coinbaseContext as FarcasterContext);
-        } else {
-          // final option
-          const context = await sdk.context;
-          if (context?.client.clientFid === 309857) {
-            setIsMiniApp(true);
-            setMiniAppType('coinbase');
-            setContext(coinbaseContext as FarcasterContext);
-          }
         }
       } catch (error) {
         console.warn('Error checking mini app status:', error);

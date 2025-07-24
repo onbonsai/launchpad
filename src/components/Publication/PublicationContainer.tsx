@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "viem/actions";
 import dynamic from 'next/dynamic';
-import { Theme } from "@madfi/widgets-react";
 import { erc20Abi } from "viem";
 import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
 import { DownloadIcon } from '@heroicons/react/outline';
@@ -596,7 +595,6 @@ const PublicationContainer = ({
           key={publicationKey}
           publicationId={publication?.id ? publication!.id : publicationId}
           publicationData={optimizedPublicationData}
-          theme={Theme.dark}
           environment={LENS_ENVIRONMENT}
           authenticatedProfile={authenticatedProfile || undefined}
           walletClient={walletClient || undefined}
