@@ -58,10 +58,10 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
 
   const conversationId = useMemo(() => {
     if (isMounted && !isLoading)
-      return media.agentId && address
-        ? generateSeededUUID(`${media.agentId}-${address}`)
+      return (context?.user?.fid || address)
+        ? generateSeededUUID(`${uuid}-${context?.user?.fid || address}`)
         : generateUUID();
-  }, [isMounted, isLoading, authenticatedProfile, media]);
+  }, [isMounted, isLoading, authenticatedProfile, media, context]);
 
     // Create a publication-like object from the preview for the Publication component
   const publicationData = useMemo(() => {

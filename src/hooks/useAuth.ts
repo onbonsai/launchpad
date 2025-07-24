@@ -21,7 +21,7 @@ export interface AuthOptions {
 export function useAuth() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const { address } = useAccount();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
 
   /**
    * Get authentication headers
@@ -36,7 +36,7 @@ export function useAuth() {
       if (isMiniApp) {
         const baseHeaders: AuthHeaders = {
           'Content-Type': 'application/json',
-          'x-farcaster-address': (address as string)?.toLowerCase() || '',
+          'x-farcaster-fid': context?.user?.fid?.toString() || '',
         };
 
         // For GET operations, we don't need the auth token

@@ -4,6 +4,7 @@ import { TERMINAL_API_URL, sendMessage } from "@src/services/madfi/terminal";
 import { AgentMessage } from "../types";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { useAccount } from "wagmi";
+import { useAuth } from "@src/hooks/useAuth";
 
 type UseChatResponse = {
   messages?: AgentMessage[];
@@ -37,6 +38,7 @@ export default function useChat({
 }: UseChatProps): UseChatResponse {
   const { address } = useAccount();
   const { isMiniApp, isLoading: isMiniAppLoading } = useIsMiniApp();
+  const { getAuthHeaders } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [canMessageAgain, setCanMessageAgain] = useState(true);
   const socket = useRef<Socket | null>(null);
@@ -82,8 +84,9 @@ export default function useChat({
   const postChat = useCallback(
     async (input: string, payload?: any, imageURL?: string) => {
       try {
+        const authHeaders = await getAuthHeaders({ isWrite: true });
         const { messages, canMessageAgain: _canMessageAgain } =
-          (await sendMessage({ agentId, input, payload, imageURL, conversationId, isMiniApp, address, onSend: () => {
+          (await sendMessage({ agentId, input, payload, imageURL, conversationId, authHeaders, onSend: () => {
             setIsLoading(true);
             setIsThinking(true);
           } })) || {};
@@ -117,7 +120,7 @@ export default function useChat({
         setIsLoading(false);
       }
     },
-    [conversationId, onSuccess, agentId, userId, setIsThinking, setCurrentAction, isMiniApp, isMiniAppLoading, address],
+    [conversationId, onSuccess, agentId, userId, setIsThinking, setCurrentAction, getAuthHeaders],
   );
 
   return { postChat, isLoading: isLoading || isMiniAppLoading, canMessageAgain };

@@ -6,7 +6,7 @@ import { useQuery, UseQueryResult, useInfiniteQuery } from "@tanstack/react-quer
 import { getSmartMediaUrl } from "@src/utils/utils";
 import { getPostData, getPosts } from "../lens/posts";
 import { resumeSession } from "@src/hooks/useLensLogin";
-import { getAuthHeaders } from "@src/utils/auth";
+import { useAuth } from "@src/hooks/useAuth";
 import { IS_PRODUCTION } from "./utils";
 import { Memory } from "./terminal";
 import type { PricingTier } from "@src/services/madfi/moneyClubs";
@@ -463,10 +463,12 @@ export const setFeatured = async (authHeaders: Record<string, string>, postId: s
 };
 
 export const useGetPreviews = (url?: string, roomId?: string, enabled: boolean = true, isMiniApp = false, address?: `0x${string}`) => {
+  const { getAuthHeaders } = useAuth();
+
   return useInfiniteQuery({
     queryKey: ["previews", roomId, isMiniApp],
     queryFn: async ({ pageParam }) => {
-      const headers = await getAuthHeaders({ isMiniApp, requireAuth: false, address });
+      const headers = await getAuthHeaders({ isWrite: false, requireAuth: false });
       if (!Object.keys(headers).length) return { messages: [] };
 
       const DEFAULT_COUNT = 10; // 5 user messages, 5 agent messages

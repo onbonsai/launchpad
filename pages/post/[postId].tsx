@@ -48,6 +48,7 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -88,6 +89,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     account: authenticatedProfile || null
   });
   const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
+  const { context } = useIsMiniApp();
 
   // TODO: fix this
   // Load version from URL query parameter when page loads
@@ -235,10 +237,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   const conversationId = useMemo(() => {
     if (isMounted && !isLoadingPage)
-      return media?.postId
-        ? generateSeededUUID(`${media.postId}-${authenticatedProfile?.address || address}`)
+      return media?.postId && (authenticatedProfile?.address || context?.user?.fid || address)
+        ? generateSeededUUID(`${media.postId}-${authenticatedProfile?.address || context?.user?.fid || address}`)
         : generateUUID();
-  }, [isMounted, isLoadingPage, authenticatedProfile, address, media]);
+  }, [isMounted, isLoadingPage, authenticatedProfile, address, media, context]);
 
   const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
