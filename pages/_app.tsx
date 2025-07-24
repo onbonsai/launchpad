@@ -11,6 +11,7 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/router.js";
 // @ts-expect-error moduleResolution: nodenext
 import { MiniKitProvider, useMiniKit, useAddFrame } from '@coinbase/onchainkit/minikit';
+import * as Sentry from "@sentry/nextjs";
 
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
@@ -21,52 +22,90 @@ import { Web3Provider } from "@src/components/Web3Provider/Web3Provider";
 import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { base } from "viem/chains";
+import { ErrorBoundary } from "@src/components/ErrorBoundary";
 
-// Wrapper component that handles Coinbase mini app flow exclusively
+// Simplified wrapper that always renders and handles mini app as enhancement
 function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   const { isCoinbaseMiniApp, context } = useIsMiniApp();
-  const { isFrameReady, setFrameReady } = useMiniKit();
+  const { setFrameReady } = useMiniKit();
   const addFrame = useAddFrame();
   const router = useRouter();
 
-  useEffect(() => {
-    const handleCoinbaseFlow = async () => {
-      if (isCoinbaseMiniApp && !isFrameReady) {
-        setFrameReady(); // hide splash
+  console.log('🔍 [CoinbaseMiniAppWrapper] Rendering (always renders now):', {
+    isCoinbaseMiniApp,
+    contextExists: !!context
+  });
 
-        // Prompt to add mini app when ?install
-        if (!!router.query.install) {
-          if (!context?.client.added) {
-            try {
-              await addFrame();
-            } catch (error) {
-              console.log(error);
-            }
-          }
+  // Handle setFrameReady as a side effect, not a render blocker
+  useEffect(() => {
+    if (isCoinbaseMiniApp) {
+      console.log('🔍 [CoinbaseMiniAppWrapper] Calling setFrameReady() for Coinbase mini app');
+
+      try {
+        setFrameReady();
+        console.log('✅ [CoinbaseMiniAppWrapper] setFrameReady() called successfully');
+      } catch (error) {
+        console.error('🚨 [CoinbaseMiniAppWrapper] Error calling setFrameReady():', error);
+        // Don't crash the app, just log the error
+      }
+    }
+  }, [isCoinbaseMiniApp, setFrameReady]);
+
+  // Handle installation flow as a side effect
+  useEffect(() => {
+    const handleInstall = async () => {
+      if (isCoinbaseMiniApp && !!router.query.install && context && !context.client.added) {
+        console.log('🔍 [CoinbaseMiniAppWrapper] Handling install flow');
+        try {
+          await addFrame();
+          console.log('✅ [CoinbaseMiniAppWrapper] addFrame() completed successfully');
+        } catch (error) {
+          console.error('🚨 [CoinbaseMiniAppWrapper] Error calling addFrame():', error);
+          // Don't crash the app, just log the error
         }
       }
     };
 
-    handleCoinbaseFlow();
-  }, [isCoinbaseMiniApp, isFrameReady, router.query.install, context?.client.added, addFrame, setFrameReady]);
+    handleInstall();
+  }, [isCoinbaseMiniApp, router.query.install, context?.client.added, addFrame, context]);
 
-  // For Coinbase mini apps, only render when ready
-  if (isCoinbaseMiniApp && !isFrameReady) {
-    return null; // Show loading state
-  }
-
+  // Always render - no more black screens!
   return <>{children}</>;
 }
 
 function AppContent(props: AppProps) {
   const { Component, pageProps } = props;
-  const { isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp, context } = useIsMiniApp();
+  const { isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
 
   const router = useRouter();
 
   const isPostRoute = router.pathname.startsWith("/post");
 
   const AppLayout = isPostRoute ? Layout : Layout;
+
+  console.log('🔍 [AppContent] Render with state:', {
+    isMiniApp,
+    isFarcasterMiniApp,
+    isCoinbaseMiniApp,
+    isMiniAppLoading,
+    contextExists: !!context,
+    pathname: router.pathname
+  });
+
+  Sentry.addBreadcrumb({
+    message: 'AppContent render',
+    category: 'miniapp',
+    level: 'info',
+    data: {
+      isMiniApp,
+      isFarcasterMiniApp,
+      isCoinbaseMiniApp,
+      isMiniAppLoading,
+      contextExists: !!context,
+      pathname: router.pathname,
+      timestamp: Date.now()
+    }
+  });
 
   if (typeof window !== "undefined") {
     window.addEventListener(
@@ -80,8 +119,76 @@ function AppContent(props: AppProps) {
 
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
 
+  // Auto-detection for AppContent issues
+  const [sdkLoadStartTime, setSdkLoadStartTime] = useState<number | null>(null);
+  const [appContentRenderCount, setAppContentRenderCount] = useState(0);
+  const [hasAppContentTriggeredDebug, setHasAppContentTriggeredDebug] = useState(false);
+
+  // Track renders for this component
+  useEffect(() => {
+    setAppContentRenderCount(prev => prev + 1);
+  }, [isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp, isSDKLoaded, isMiniAppLoading]);
+
+  // Track SDK loading time for Farcaster
+  useEffect(() => {
+    if (isFarcasterMiniApp && !isSDKLoaded) {
+      if (!sdkLoadStartTime) {
+        setSdkLoadStartTime(Date.now());
+        console.log('🔍 [AppContent] Started SDK loading at:', new Date().toISOString());
+      }
+
+      // Check if SDK loading has taken too long (more than 10 seconds)
+      if (sdkLoadStartTime && (Date.now() - sdkLoadStartTime) > 10000 && !hasAppContentTriggeredDebug) {
+        setHasAppContentTriggeredDebug(true);
+        captureDebugException('farcaster-sdk-loading-timeout', {
+          waitingTime: Date.now() - sdkLoadStartTime,
+          isFarcasterMiniApp,
+          isSDKLoaded,
+          isMiniAppLoading,
+          contextExists: !!context
+        });
+      }
+    } else if (isFarcasterMiniApp && isSDKLoaded && sdkLoadStartTime) {
+      const loadTime = Date.now() - sdkLoadStartTime;
+      console.log(`🔍 [AppContent] SDK loaded after ${loadTime}ms`);
+      setSdkLoadStartTime(null);
+    }
+  }, [isFarcasterMiniApp, isSDKLoaded, sdkLoadStartTime, hasAppContentTriggeredDebug, context, isMiniAppLoading]);
+
+  // Detect if component is stuck in loading state
+  useEffect(() => {
+    if (isMiniAppLoading && appContentRenderCount > 20 && !hasAppContentTriggeredDebug) {
+      setHasAppContentTriggeredDebug(true);
+      captureDebugException('stuck-in-loading-state', {
+        renderCount: appContentRenderCount,
+        isMiniApp,
+        isFarcasterMiniApp,
+        isCoinbaseMiniApp,
+        isSDKLoaded,
+        isMiniAppLoading,
+        contextExists: !!context
+      });
+    }
+  }, [isMiniAppLoading, appContentRenderCount, hasAppContentTriggeredDebug, isMiniApp, isFarcasterMiniApp, isCoinbaseMiniApp, isSDKLoaded, context]);
+
   // Reset SDK loaded state when mini app type changes
   useEffect(() => {
+    console.log('🔍 [AppContent] Resetting isSDKLoaded to false due to mini app type change:', {
+      isFarcasterMiniApp,
+      isMiniApp
+    });
+
+    Sentry.addBreadcrumb({
+      message: 'AppContent SDK loaded state reset',
+      category: 'miniapp',
+      level: 'info',
+      data: {
+        isFarcasterMiniApp,
+        isMiniApp,
+        timestamp: Date.now()
+      }
+    });
+
     setIsSDKLoaded(false);
   }, [isFarcasterMiniApp, isMiniApp]);
 
@@ -89,33 +196,146 @@ function AppContent(props: AppProps) {
     const load = async () => {
       // Only run Farcaster SDK logic if it's a Farcaster mini app
       if (isFarcasterMiniApp) {
-        console.log('🚀 Calling sdk.actions.ready() for Farcaster mini app');
-        await sdk.actions.ready(); // hide splash
+        console.log('🚀 [AppContent] Calling sdk.actions.ready() for Farcaster mini app');
 
-        // Prompt to add mini app when ?install
-        if (!!router.query.install) {
-          if (!context?.client.added) {
-            try {
-              await sdk.actions.addMiniApp();
-            } catch (error) {
-              console.log(error);
+        Sentry.addBreadcrumb({
+          message: 'AppContent calling Farcaster sdk.actions.ready',
+          category: 'miniapp',
+          level: 'info',
+          data: { timestamp: Date.now() }
+        });
+
+        try {
+          await sdk.actions.ready(); // hide splash
+
+          console.log('✅ [AppContent] Farcaster sdk.actions.ready() completed');
+
+          Sentry.addBreadcrumb({
+            message: 'AppContent Farcaster sdk.actions.ready completed',
+            category: 'miniapp',
+            level: 'info',
+            data: { timestamp: Date.now() }
+          });
+
+          // Prompt to add mini app when ?install
+          if (!!router.query.install) {
+            if (!context?.client.added) {
+              try {
+                console.log('🔍 [AppContent] Calling sdk.actions.addMiniApp() for install');
+
+                Sentry.addBreadcrumb({
+                  message: 'AppContent calling Farcaster addMiniApp',
+                  category: 'miniapp',
+                  level: 'info',
+                  data: { timestamp: Date.now() }
+                });
+
+                await sdk.actions.addMiniApp();
+
+                console.log('✅ [AppContent] sdk.actions.addMiniApp() completed');
+
+                Sentry.addBreadcrumb({
+                  message: 'AppContent Farcaster addMiniApp completed',
+                  category: 'miniapp',
+                  level: 'info',
+                  data: { timestamp: Date.now() }
+                });
+              } catch (error) {
+                console.error('🚨 [AppContent] Error calling addMiniApp():', error);
+
+                Sentry.addBreadcrumb({
+                  message: 'AppContent Farcaster addMiniApp error',
+                  category: 'miniapp',
+                  level: 'error',
+                  data: {
+                    error: error?.toString(),
+                    timestamp: Date.now()
+                  }
+                });
+
+                Sentry.captureException(error, {
+                  tags: { component: 'AppContent' }
+                });
+              }
             }
           }
-        }
 
-        // Only set loaded to true after sdk.actions.ready() completes
-        console.log('✅ Farcaster SDK ready');
-        setIsSDKLoaded(true);
+          // Only set loaded to true after sdk.actions.ready() completes
+          console.log('✅ [AppContent] Farcaster SDK ready, setting isSDKLoaded to true');
+          setIsSDKLoaded(true);
+
+          Sentry.addBreadcrumb({
+            message: 'AppContent Farcaster SDK fully loaded',
+            category: 'miniapp',
+            level: 'info',
+            data: { timestamp: Date.now() }
+          });
+        } catch (error) {
+          console.error('🚨 [AppContent] Error during Farcaster SDK loading:', error);
+
+          // Auto-capture debug exception for SDK loading failures
+          if (!hasAppContentTriggeredDebug) {
+            setHasAppContentTriggeredDebug(true);
+            captureDebugException('farcaster-sdk-loading-failed', {
+              error: error?.toString(),
+              isFarcasterMiniApp,
+              isSDKLoaded,
+              isMiniAppLoading,
+              contextExists: !!context,
+              loadTime: sdkLoadStartTime ? Date.now() - sdkLoadStartTime : 'unknown'
+            });
+          }
+
+          Sentry.addBreadcrumb({
+            message: 'AppContent Farcaster SDK loading error',
+            category: 'miniapp',
+            level: 'error',
+            data: {
+              error: error?.toString(),
+              timestamp: Date.now()
+            }
+          });
+
+          Sentry.captureException(error, {
+            tags: { component: 'AppContent' }
+          });
+        }
       }
     };
 
     if (isFarcasterMiniApp && !isSDKLoaded) {
-      console.log('🔄 Loading Farcaster SDK...');
+      console.log('🔄 [AppContent] Loading Farcaster SDK...');
+
+      Sentry.addBreadcrumb({
+        message: 'AppContent starting Farcaster SDK load',
+        category: 'miniapp',
+        level: 'info',
+        data: {
+          isFarcasterMiniApp,
+          isSDKLoaded,
+          timestamp: Date.now()
+        }
+      });
+
       load();
     } else if (!isMiniApp && !isSDKLoaded) {
       // Handle regular web app (not a mini app)
-      console.log('🌐 Regular web app - no SDK needed');
+      console.log('🌐 [AppContent] Regular web app - no SDK needed, setting isSDKLoaded to true');
+
+      Sentry.addBreadcrumb({
+        message: 'AppContent regular web app - no SDK needed',
+        category: 'miniapp',
+        level: 'info',
+        data: { timestamp: Date.now() }
+      });
+
       setIsSDKLoaded(true);
+    } else {
+      console.log('🔍 [AppContent] SDK loading skipped:', {
+        isFarcasterMiniApp,
+        isMiniApp,
+        isSDKLoaded
+      });
     }
   }, [isFarcasterMiniApp, isMiniApp, isSDKLoaded, router.query.install, context?.client.added]);
 
@@ -144,9 +364,27 @@ function AppContent(props: AppProps) {
     }
   }, []);
 
-  // bfcache optimization - ensure page can be cached
+  // Always render - no more complex shouldRender logic
+  console.log('🔍 [AppContent] Always rendering now - no complex logic');
+
+  // Simple bfcache support
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    let visibilityChangeCount = 0;
+    let lastVisibilityState = document.visibilityState;
+
+    const handleVisibilityChange = () => {
+      const currentState = document.visibilityState;
+      visibilityChangeCount++;
+
+      console.log(`🔍 [AppContent] Visibility changed to ${currentState} (change #${visibilityChangeCount})`);
+
+      // Simple visibility logging
+      console.log(`🔍 [AppContent] Visibility: ${currentState}`);
+
+      lastVisibilityState = currentState;
+    };
 
     const handlePageHide = (event: PageTransitionEvent) => {
       console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
@@ -171,25 +409,24 @@ function AppContent(props: AppProps) {
       console.log('▶️ [BFCACHE] Page resumed');
     };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('freeze', handleFreeze);
     window.addEventListener('resume', handleResume);
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('freeze', handleFreeze);
       window.removeEventListener('resume', handleResume);
     };
-  }, []);
+    }, []);
+
+  console.log('🔍 [AppContent] Always rendering app content now');
 
   return (
-    // Render the app when:
-    // 1. Not a mini app (regular web)
-    // 2. Farcaster mini app and SDK is loaded
-    // 3. Coinbase mini app is handled by CoinbaseMiniAppWrapper
-    (!isMiniApp || (isFarcasterMiniApp && isSDKLoaded)) && (
       <>
         <style jsx global>{`
           :root {
@@ -263,19 +500,82 @@ function AppContent(props: AppProps) {
           </ThirdwebProvider>
         </Web3Provider>
       </>
-    )
-  );
+    );
+}
+
+// Automatic debug exception capture
+const captureDebugException = (reason: string, additionalData: any = {}) => {
+  console.log(`🚨 [AUTO-DEBUG] Capturing exception: ${reason}`);
+
+  Sentry.addBreadcrumb({
+    message: `Automatic debug exception capture: ${reason}`,
+    category: 'debug',
+    level: 'error',
+    data: {
+      reason,
+      timestamp: Date.now(),
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+      viewport: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown',
+      pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 'unknown',
+      online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
+      ...additionalData
+    }
+  });
+
+  Sentry.captureException(new Error(`Auto-detected issue: ${reason}`), {
+    tags: {
+      component: 'auto-debug',
+      issue: 'coinbase-miniapp-race-condition',
+      reason: reason.replace(/\s+/g, '-').toLowerCase()
+    }
+  });
+
+  console.log('🚨 [AUTO-DEBUG] Exception captured! Check Sentry for breadcrumbs.');
+};
+
+// Manual debug helpers (still available for development)
+if (typeof window !== 'undefined') {
+  (window as any).captureDebugException = () => captureDebugException('manual-trigger');
+
+  (window as any).showDebugState = () => {
+    console.log('🔍 [DEBUG] Current mini app state:', {
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      pixelRatio: window.devicePixelRatio,
+      online: navigator.onLine
+    });
+  };
+
+  console.log('🔧 [DEBUG] Auto-debug system loaded!');
 }
 
 export default function MyApp(props: AppProps) {
+  console.log('🔍 [MyApp] Root component render');
+
+  Sentry.addBreadcrumb({
+    message: 'MyApp root component render',
+    category: 'app',
+    level: 'info',
+    data: { timestamp: Date.now() }
+  });
+
   return (
-    <MiniKitProvider
-      apiKey={process.env.NEXT_PUBLIC_CDP_CLIENT_API_KEY}
-      chain={base}
-    >
-      <CoinbaseMiniAppWrapper>
-        <AppContent {...props} />
-      </CoinbaseMiniAppWrapper>
-    </MiniKitProvider>
+    <ErrorBoundary componentName="MyApp-Root">
+      <MiniKitProvider
+        apiKey={process.env.NEXT_PUBLIC_CDP_CLIENT_API_KEY}
+        chain={base}
+      >
+        <ErrorBoundary componentName="CoinbaseMiniAppWrapper">
+          <CoinbaseMiniAppWrapper>
+            <ErrorBoundary componentName="AppContent">
+              <AppContent {...props} />
+            </ErrorBoundary>
+          </CoinbaseMiniAppWrapper>
+        </ErrorBoundary>
+      </MiniKitProvider>
+    </ErrorBoundary>
   );
 }
