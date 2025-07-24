@@ -127,7 +127,7 @@ const generatePreviewImpl = async (
     if (!response.ok) {
       if (response.status === 403) {
         const errorText = (await response.json())?.error;
-        if (errorText.includes("not enough credits")) {
+        if (errorText?.toLowerCase().includes("not enough credits")) {
           throw new Error("not enough credits");
         }
       }
