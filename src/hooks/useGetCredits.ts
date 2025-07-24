@@ -1,5 +1,6 @@
 import sdk from "@farcaster/miniapp-sdk";
 import { useQuery } from "@tanstack/react-query";
+import { useIsMiniApp } from "./useIsMiniApp";
 
 type PostUpdate = {
   postId: string;
@@ -20,17 +21,19 @@ export type CreditBalance = {
 
 export const fetchCredits = async (address: string): Promise<CreditBalance> => {
   const isMiniApp = await sdk.isInMiniApp(); // bonus credits for mini app users
-  const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}`);
+  const context = await sdk.context;
+  const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}&fid=${context?.user?.fid}`);
   if (!response.ok) throw new Error("Failed to fetch credits");
   const data = await response.json();
   return data;
 };
 
 export const useGetCredits = (address: string, isConnected: boolean) => {
+  const { isLoading: isMiniAppLoading } = useIsMiniApp();
   return useQuery({
     queryKey: ["credits", address],
     queryFn: () => fetchCredits(address as string),
-    enabled: !!address && isConnected,
+    enabled: !!address && isConnected && !isMiniAppLoading,
     refetchInterval: 60000, // Refetch every minute
   });
 };

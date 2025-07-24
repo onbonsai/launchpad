@@ -33,11 +33,13 @@ export function useAuth() {
     const { isWrite = false, requireAuth = true } = options;
 
     try {
+      console.log(`getAuthHeaders:: isMiniApp:: ${isMiniApp}`);
       if (isMiniApp) {
         const baseHeaders: AuthHeaders = {
           'Content-Type': 'application/json',
-          'x-farcaster-fid': context?.user?.fid?.toString() || '',
+          'x-farcaster-fid': context?.user?.fid?.toString() || address as string,
         };
+        console.log(`getAuthHeaders:: baseHeaders:: ${JSON.stringify(baseHeaders,null,2)}`);
 
         // For GET operations, we don't need the auth token
         if (!isWrite) {

@@ -657,10 +657,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     setCurrentAction
   });
 
-  console.log(`canMessageAgain`, canMessageAgain)
-  console.log(`canMessage`, canMessage)
-  console.log(`isLoadingMessageHistory`, isLoadingMessageHistory)
-
   // Clean up temporary messages when they appear in messageHistory
   useEffect(() => {
     if (messageHistory && messageHistory.length > 0) {

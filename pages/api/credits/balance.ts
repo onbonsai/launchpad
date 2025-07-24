@@ -10,24 +10,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const address = req.query.address as string;
     const isMiniApp = req.query.isMiniApp === "true";
+    const fid = req.query.fid;
     if (!address) {
       return res.status(400).json({ error: "Wallet address is required" });
     }
 
     // Normalize the address to lowercase for consistency
     const normalizedAddress = address.toLowerCase();
+    const normalizedFid = fid?.toString();
 
     const { collection } = await getClientWithApiCredits();
 
     // Get user credits or create if doesn't exist
-    const userCredits = await collection.findOne({ address: normalizedAddress });
+    const userCredits = isMiniApp && !!fid
+      ? await collection.findOne({ fid: normalizedFid })
+      : await collection.findOne({ address: normalizedAddress });
 
     if (!userCredits) {
       // New user - create with initial allocation
       const now = new Date();
 
       await collection.insertOne({
-        address: normalizedAddress,
+        fid: fid ? normalizedFid : undefined,
+        address: fid ? normalizedFid: normalizedAddress, // using fid to be able to query in eliza
+        normalizedAddress, // for backwards compat
         totalCredits: FREE_TIER_CREDITS,
         freeCredits: FREE_TIER_CREDITS,
         stakingCredits: 0,
