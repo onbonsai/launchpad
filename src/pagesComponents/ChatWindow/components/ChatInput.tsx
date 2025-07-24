@@ -371,8 +371,8 @@ export default function ChatInput({
           <div className="flex flex-col w-full">
             <div className="relative flex flex-col w-full px-[10px]">
               <div className="relative">
-                {/* disable regular chat for now */}
-                {isPosting && (
+                {/* Show textarea for posting and remixing */}
+                {(isPosting || isRemixing) && (
                   <textarea
                     ref={textareaRef}
                     value={userInput}
@@ -380,7 +380,7 @@ export default function ChatInput({
                     onKeyPress={handleKeyPress}
                     className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
                     placeholder={dynamicPlaceholder}
-                    disabled={disabled}
+                    disabled={disabled || isGeneratingRemix}
                   />
                 )}
                 
