@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
-// @ts-expect-error moduleResolution: nodenext
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
 
 interface FarcasterContext {
@@ -60,7 +59,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
       try {
         setIsLoading(true);
         const isFarcasterMiniApp = await sdk.isInMiniApp();
-        const isCoinbaseMiniApp = coinbaseContext?.clientFid === 309857;
+        const isCoinbaseMiniApp = coinbaseContext?.client?.clientFid === 309857;
 
         if (isFarcasterMiniApp) {
           setIsMiniApp(true);
