@@ -54,23 +54,27 @@ let detectionCache: {
 export const useIsMiniApp = (): UseIsMiniAppResult => {
   const { context: coinbaseContext } = useMiniKit();
 
-  // If we've already detected, return cached result immediately
-  if (detectionCache?.hasDetected) {
-    console.log('🔍 [useIsMiniApp] Returning cached result:', detectionCache.result);
-    return detectionCache.result;
-  }
+  // Always initialize state - never return early to avoid hook rule violations
+  const [result, setResult] = useState<UseIsMiniAppResult>(() => {
+    // Initialize with cached result if available
+    if (detectionCache?.hasDetected) {
+      console.log('🔍 [useIsMiniApp] Initializing with cached result');
+      return detectionCache.result;
+    }
 
-  const [result, setResult] = useState<UseIsMiniAppResult>({
-    isMiniApp: false,
-    isFarcasterMiniApp: false,
-    isCoinbaseMiniApp: false,
-    isLoading: true,
-    context: undefined
+    return {
+      isMiniApp: false,
+      isFarcasterMiniApp: false,
+      isCoinbaseMiniApp: false,
+      isLoading: true,
+      context: undefined
+    };
   });
 
   useEffect(() => {
-    // If already detected globally, don't run again
+    // If already detected globally, don't run detection
     if (detectionCache?.hasDetected) {
+      console.log('🔍 [useIsMiniApp] Using cached result, skipping detection');
       setResult(detectionCache.result);
       return;
     }
