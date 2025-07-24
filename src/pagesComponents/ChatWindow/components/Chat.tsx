@@ -169,7 +169,7 @@ type ChatProps = {
 
         {/* Action buttons */}
         {isAgent && (
-          <div className="flex flex-col gap-3 p-4 bg-[#141414] -mt-4">
+          <div className="flex flex-col gap-3 p-4 bg-[#141414] -mt-6">
             {/* Secondary action buttons row */}
             <div className="flex justify-end gap-2">
               {/* Animate image button - only for images */}
@@ -273,7 +273,25 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
   const { getAuthHeaders } = useAuth();
-  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
+
+  // Track if we've loaded messages to prevent refetching duplicates
+  const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
+  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp, !hasLoadedMessages);
+
+  // Mark messages as loaded when we get data for the first time
+  useEffect(() => {
+    if (messageData?.messages && messageData.messages.length > 0 && !hasLoadedMessages) {
+      messageData.messages.forEach((msg, i) => {
+        console.log(`Message ${i}: ID=${msg.id}, source=${msg.content?.source}, hasPreview=${!!msg.content?.preview}`);
+      });
+      setHasLoadedMessages(true);
+    }
+  }, [messageData, hasLoadedMessages]);
+
+  // Reset hasLoadedMessages when conversation or agent changes
+  useEffect(() => {
+    setHasLoadedMessages(false);
+  }, [conversationId, agentId]);
 
   // Create author object that handles both Lens profile and Farcaster miniapp context
   const publicationAuthor = useMemo(() => {
@@ -1541,7 +1559,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                           // For message type, deduplicate based on actual message ID
                           if (item.type === 'message') {
                             const messageId = item.data.id;
-                            return array.findIndex(m => m.type === 'message' && m.data.id === messageId) === index;
+                            const firstIndex = array.findIndex(m => m.type === 'message' && m.data.id === messageId);
+                            // Add debug logging for duplicates
+                            if (firstIndex !== index) {
+                              console.log(`Filtering duplicate message ID: ${messageId}, source: ${item.data.content?.source}`);
+                            }
+                            return firstIndex === index;
                           }
                           // Keep all other types as they have different deduplication logic
                           return true;

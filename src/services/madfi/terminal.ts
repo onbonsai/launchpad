@@ -51,7 +51,8 @@ export const useGetMessages = (
   address,
   postId?: string,
   roomId?: string,
-  isMiniApp?: boolean
+  isMiniApp?: boolean,
+  shouldFetch: boolean = true
 ): UseQueryResult<{ messages: Memory[]; canMessage: boolean }, Error> => {
   const { getAuthHeaders } = useAuth();
 
@@ -74,7 +75,7 @@ export const useGetMessages = (
         return { messages: [], canMessage: false };
       }
     },
-    enabled: !!postId,
+    enabled: !!postId && shouldFetch,
   });
 };
 
