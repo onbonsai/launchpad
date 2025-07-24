@@ -164,7 +164,7 @@ const nextConfig = {
           },
         ],
       },
-      // Service Worker headers - CSP in report-only mode for development
+      // Service Worker headers - Allow everything
       {
         source: '/sw.js',
         headers: [
@@ -175,20 +175,6 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'no-cache, no-store, must-revalidate',
-          },
-          {
-            key: 'Content-Security-Policy-Report-Only',
-            value: "default-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; report-uri /api/csp-report",
-          },
-        ],
-      },
-      // CSP Report-Only mode for main pages - monitors all violations without blocking
-      {
-        source: '/((?!api/).*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy-Report-Only',
-            value: "default-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'self'; connect-src 'self' data: https: wss: ws:; worker-src 'self' blob:; report-uri /api/csp-report",
           },
         ],
       },
