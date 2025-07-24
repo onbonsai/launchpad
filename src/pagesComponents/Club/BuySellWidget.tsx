@@ -658,41 +658,17 @@ ${SITE_URL}/token/${club.chain}/${club.tokenAddress}?ref=${address}`,
                         disabled
                         chain={club.chain}
                       />
-                      {/* <div className="relative">
-                        <input
-                          type="number"
-                          step="1"
-                          placeholder="0.0"
-                          value={sellAmount}
-                          className="block w-full rounded-md text-secondary placeholder:text-secondary/70 border-dark-grey bg-transparent pr-12 shadow-sm focus:border-dark-grey focus:ring-dark-grey sm:text-sm"
-                          onChange={(e) => setSellAmount(e.target.value)}
-                        />
-                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary text-xs">{clubBalance ? roundedToFixed(parseFloat(formatUnits(clubBalance, DECIMALS)), 2) : 0.0}{" "}{club.token.symbol}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        {[10, 25, 50, 100].map((percent) => (
-                          <Button
-                            key={percent}
-                            size="sm"
-                            onClick={() => setSellAmount(clubBalance ? formatUnits((clubBalance * BigInt(percent)) / BigInt(100), DECIMALS) : '0')}
-                          >
-                            {percent}%
-                          </Button>
-                        ))}
-                      </div>
                       <span
                         className={`absolute right-3 top-full mt-2 text-xs ${sellAmountError ? 'text-brand-highlight/90' : 'text-secondary/70'}`}
                       >
                         You will receive:{" $"}{sellPriceFormatted}
-                      </span> */}
+                      </span>
                     </div>
-
-
                   </div>
                 </div>
               </div>
               <div className="pt-4 w-full flex justify-center items-center">
-                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || (club.supply && sellAmount ? (parseUnits(sellAmount, DECIMALS) >= BigInt(club.supply)) : false)} onClick={club.complete ? sellRewardSwap : sellChips} variant="accentBrand">
+                <Button className="w-full hover:bg-bullish" disabled={!isConnected || isSelling || !sellAmount || isLoadingSellPrice || !sellPriceAfterFees || (club.supply && sellAmount ? (parseUnits(sellAmount, DECIMALS) > BigInt(club.supply)) : false)} onClick={club.complete ? sellRewardSwap : sellChips} variant="accentBrand">
                   Sell ${club.token.symbol}
                 </Button>
               </div>

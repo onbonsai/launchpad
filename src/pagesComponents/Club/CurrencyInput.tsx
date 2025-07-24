@@ -130,9 +130,14 @@ const CurrencyInput = (props: CurrencyInputProps) => {
           </span>
         </div>
         {showMax && tokenBalance && tokenBalance > 0 && (
-          <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
-            <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
-          </div>
+          <>
+            <div onClick={() => onPriceSet(formatUnits((tokenBalance * BigInt(50)) / BigInt(100), symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
+              <Subtitle className='text-white tracking-[-0.02em]'>50%</Subtitle>
+            </div>
+            <div onClick={() => onPriceSet(formatUnits(tokenBalance, symbol === "USDC" ? USDC_DECIMALS : DECIMALS))} className='rounded-lg border-card border bg-card-light py-1 px-[6px] mr-3 cursor-pointer'>
+              <Subtitle className='text-white tracking-[-0.02em]'>MAX</Subtitle>
+            </div>
+          </>
         )}
         {!showMax && trailingAmount && (
           <BodySemiBold className={clsx('mr-3', isError ? '!text-bearish/90' : 'text-white/60')}>
