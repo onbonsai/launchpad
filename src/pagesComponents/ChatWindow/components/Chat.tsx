@@ -166,65 +166,11 @@ type ChatProps = {
           />
         </div>
 
-        {/* Action buttons */}
+                {/* Action buttons */}
         {isAgent && (
           <div className="flex flex-col gap-3 p-4 bg-[#141414] -mt-6">
-            {/* Secondary action buttons row */}
+            {/* Download button - only show if there's media to download */}
             <div className="flex justify-end gap-2">
-              {/* Animate image button - only for images */}
-              {hasImage && !hasVideo && onAnimateImage && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAnimateImage(preview);
-                  }}
-                  className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-sm md:text-base backdrop-blur-sm hover:bg-brand-highlight/60 transition-colors"
-                  title="Animate this image"
-                >
-                  <SparklesIcon className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline">Use in video</span>
-                  <span className="sm:hidden">Video</span>
-                </button>
-              )}
-
-              {/* Add to Storyboard button - only for videos */}
-              {canAddToStoryboard && (
-                <button
-                  onClick={() => !isInStoryboard && onAddToStoryboard(preview)}
-                  disabled={isInStoryboard || storyboardCount >= 10}
-                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm md:text-base transition-colors ${
-                    isInStoryboard || storyboardCount >= 10
-                      ? ' text-gray-400 cursor-not-allowed'
-                      : 'bg-transparent hover:bg-brand-highlight/60 text-white'
-                  }`}
-                  title={isInStoryboard ? "Already in storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
-                >
-                  <FilmIcon className={`w-4 h-4 ${isInStoryboard || storyboardCount >= 10 ? 'text-gray-400' : 'text-white'}`} />
-                  <span className="hidden sm:inline">
-                    {isInStoryboard ? "In storyboard" : storyboardCount >= 10 ? "Storyboard full" : "Add to storyboard"}
-                  </span>
-                  <span className="sm:hidden">
-                    {isInStoryboard ? "Added" : storyboardCount >= 10 ? "Full" : "Add"}
-                  </span>
-                </button>
-              )}
-
-              {/* Extend Video button - only for videos */}
-              {hasVideo && onExtendVideo && !isPosting && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onExtendVideo(preview);
-                  }}
-                  className="flex items-center bg-transparent gap-1 rounded-lg px-2 py-1 text-sm md:text-base hover:bg-brand-highlight/60 transition-colors"
-                  title="Extend this video"
-                >
-                  <FastForwardIcon className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline">Extend</span>
-                </button>
-              )}
-
-              {/* Download button - only show if there's media to download */}
               {(hasImage || hasVideo) && onDownload && !isPosting && (
                 <button
                   onClick={(e) => {
@@ -1161,40 +1107,11 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     toast.success("Added to storyboard!");
   }, [storyboardClips]);
 
-  // Handler for animating image (extending video)
+  // Handler for animating image (extending video) - removed since remix is simplified
   const handleAnimateImage = useCallback(async (preview: Preview) => {
-    if (!registeredTemplates) {
-      toast.error("Templates not loaded yet.");
-      return;
-    }
-    // find a template with "video" in the name (case-insensitive)
-    const videoTemplate = registeredTemplates.find(t => t.name.toLowerCase().includes('video'));
-    if (!videoTemplate) {
-      toast.error("Video template not found");
-      return;
-    }
-
-    try {
-      let imageToUse: string | undefined;
-      // For extend video, we need to extract the last frame
-      if (preview.video) {
-        imageToUse = await extractLastFrameFromVideo(preview.video);
-        toast.success("Last frame extracted! Opening remix form...", { duration: 3000 });
-      } else if (preview.image) { // This is for "Animate image"
-        imageToUse = preview.image;
-        toast.success("Image ready for animation! Opening remix form...", { duration: 3000 });
-      }
-
-      if (imageToUse) {
-        setImageToExtend(imageToUse);
-      } else {
-        toast.error("No image found to extend or animate.");
-      }
-    } catch (error) {
-      console.error('Failed to process image/video:', error);
-      toast.error("Failed to process media for animation");
-    }
-  }, [registeredTemplates, setImageToExtend]);
+    // This functionality is now removed as per the simplified remix design
+    toast("Use the remix button to remix this post", { icon: 'ℹ️' });
+  }, []);
 
   // Helper function to extract the last frame from a video
   const extractLastFrameFromVideo = (video: any): Promise<string> => {
@@ -1509,40 +1426,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
   return (
     <div className={clsx("relative flex h-full w-full flex-col", className)}>
-      {/* Storyboard indicator - always show when remixing */}
-      {isRemixing && !!storyboardClips.length ? (
+      {/* Storyboard indicator - hide in remix mode */}
+      {!isRemixing && storyboardClips.length > 0 && (
         <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
           <div className="flex items-center gap-2">
             <FilmIcon className="w-4 h-4" />
             <span className="text-xs text-white">
               Storyboard: {storyboardClips.length} clip{storyboardClips.length !== 1 ? 's' : ''}
             </span>
-            {/* Reset button, small and subtle */}
-            <button
-              onClick={handleResetStoryboard}
-              className="ml-3 text-xs px-2 py-1 rounded bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border border-zinc-600 transition-colors"
-              style={{ fontSize: '11px', lineHeight: '1.1' }}
-              type="button"
-            >
-              Reset
-            </button>
           </div>
-          {/* If no clips, show 'Nothing added yet' */}
-          {storyboardClips.length === 0 && (
-            <span className="text-xs text-zinc-400 ml-4">Nothing added yet</span>
-          )}
         </div>
-      ) : (
-        storyboardClips.length > 0 && (
-          <div className="bg-brand-highlight/10 border-b border-brand-highlight/20 px-4 py-2 flex items-center justify-between mb-4 -mt-2">
-            <div className="flex items-center gap-2">
-              <FilmIcon className="w-4 h-4" />
-              <span className="text-xs text-white">
-                Storyboard: {storyboardClips.length} clip{storyboardClips.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        )
       )}
 
       <div className="relative flex grow flex-col overflow-y-auto pr-2 pl-2 pb-2 overscroll-contain">
@@ -1552,7 +1445,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           </div>
         ) : (
           <>
-            {!isPosting && (
+            {!isPosting && !isRemixing && (
               <>
                 {allMessages.length > 0 && (
                   <div className="mb-2">
@@ -1598,15 +1491,15 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                     isAgent={message.content.source !== "bonsai-terminal"}
                                     timestamp={item.timestamp}
                                     publicationAuthor={publicationAuthor}
-                                    onUseThis={handlePostButtonClick}
-                                    onAddToStoryboard={handleAddToStoryboard}
-                                    isInStoryboard={storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
-                                    storyboardCount={storyboardClips.length}
-                                    onAnimateImage={handleAnimateImage}
-                                    onExtendVideo={handleExtendVideo}
-                                    onDownload={handleDownload}
-                                    isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
-                                    isPosting={isPosting}
+                                                                      onUseThis={!isRemixing ? handlePostButtonClick : undefined}
+                                  onAddToStoryboard={!isRemixing ? handleAddToStoryboard : undefined}
+                                  isInStoryboard={!isRemixing && storyboardClips.some(c => c.id === (message.content.preview as Preview).agentId)}
+                                  storyboardCount={storyboardClips.length}
+                                  onAnimateImage={!isRemixing ? handleAnimateImage : undefined}
+                                  onExtendVideo={!isRemixing ? handleExtendVideo : undefined}
+                                  onDownload={!isRemixing ? handleDownload : undefined}
+                                  isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
+                                  isPosting={isPosting}
                                   />
                                 </div>
                               ) : (
@@ -1659,16 +1552,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                   isAgent={true} // Force to true for agent messages
                                   timestamp={item.timestamp}
                                   publicationAuthor={publicationAuthor}
-                                  onUseThis={preview.content.preview ? handlePostButtonClick : undefined}
-                                  isPending={(preview as any).pending}
-                                  onAddToStoryboard={preview.content.preview ? handleAddToStoryboard : undefined}
-                                  isInStoryboard={preview.content.preview ? storyboardClips.some(c => c.id === preview.content.preview?.agentId) : false}
-                                  storyboardCount={storyboardClips.length}
-                                  onAnimateImage={handleAnimateImage}
-                                  onExtendVideo={handleExtendVideo}
-                                  onDownload={handleDownload}
-                                  isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
-                                  isPosting={isPosting}
+                                                                  onUseThis={preview.content.preview && !isRemixing ? handlePostButtonClick : undefined}
+                                isPending={(preview as any).pending}
+                                onAddToStoryboard={preview.content.preview && !isRemixing ? handleAddToStoryboard : undefined}
+                                isInStoryboard={preview.content.preview && !isRemixing ? storyboardClips.some(c => c.id === preview.content.preview?.agentId) : false}
+                                storyboardCount={storyboardClips.length}
+                                onAnimateImage={!isRemixing ? handleAnimateImage : undefined}
+                                onExtendVideo={!isRemixing ? handleExtendVideo : undefined}
+                                onDownload={!isRemixing ? handleDownload : undefined}
+                                isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
+                                isPosting={isPosting}
                                 />
                               </div>
                             );

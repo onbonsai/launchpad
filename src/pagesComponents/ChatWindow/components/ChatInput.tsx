@@ -6,10 +6,13 @@ import toast from 'react-hot-toast';
 import { PROMOTE_TOKEN_COST } from '../constants';
 import { Button } from '@src/components/Button';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
-import RemixForm from './RemixForm';
 import { useTopUpModal } from '@src/context/TopUpContext';
 import { type StoryboardClip } from "@src/services/madfi/studio";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useGetCredits } from '@src/hooks/useGetCredits';
+import { useAccount } from 'wagmi';
+import { useAuth } from '@src/hooks/useAuth';
+import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 type PremadeChatInputProps = {
   label: string;
@@ -177,11 +180,16 @@ export default function ChatInput({
   setImageToExtend,
 }: ChatInputProps) {
   const { isMiniApp } = useIsMiniApp();
+  const { address, isConnected } = useAccount();
+  const { getAuthHeaders } = useAuth();
+  const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [requireAttachment, setRequireAttachment] = useState(false);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState(placeholder || DEFAULT_PLACEHOLDER);
-  const [showRemixForm, setShowRemixForm] = useState(isRemixing);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [frameSelection, setFrameSelection] = useState<'start' | 'end'>('start');
+  const [animateImage, setAnimateImage] = useState(false);
+  const [isGeneratingRemix, setIsGeneratingRemix] = useState(false);
 
   const remixTemplate = useMemo(() => {
     if (!remixMedia || !templates) return undefined;
@@ -207,24 +215,32 @@ export default function ChatInput({
   }, [remixMedia, templates]);
 
   const { openSwapToGenerateModal } = useTopUpModal();
+  
+  // Check if the media is a video
+  const isVideo = remixMedia?.templateData && 
+    (remixMedia.template === 'video' || 
+     !!(remixMedia.templateData as any).video ||
+     !!(remixMedia.templateData as any).clips);
+
+  // Check if the media is an image
+  const isImage = !isVideo;
+
+  // Calculate credits needed for remix
+  const remixCreditsNeeded = animateImage ? (remixTemplate?.estimatedCost || 10) + 50 : (remixTemplate?.estimatedCost || 10);
+  const hasEnoughCredits = (creditBalance?.creditsRemaining || 0) >= remixCreditsNeeded;
 
   useEffect(() => {
-    if (textareaRef.current && !showRemixForm && !isGeneratingPreview) {
+    if (textareaRef.current && !isGeneratingPreview) {
       textareaRef.current.focus();
     }
-  }, [showRemixForm, isGeneratingPreview]);
+  }, [isGeneratingPreview]);
 
+  // Remove imageToExtend logic since we no longer support extending videos
   useEffect(() => {
-    if (isRemixing && remixMedia) {
-      setShowRemixForm(true);
+    if (imageToExtend && setImageToExtend) {
+      setImageToExtend(null);
     }
-  }, [isRemixing, remixMedia]);
-
-  useEffect(() => {
-    if (imageToExtend) {
-      setShowRemixForm(true);
-    }
-  }, [imageToExtend]);
+  }, [imageToExtend, setImageToExtend]);
 
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -250,16 +266,78 @@ export default function ChatInput({
     await onPost(userInput.trim());
   }, [userInput, onPost]);
 
+  const generateRemix = useCallback(async () => {
+    if (!remixTemplate || !userInput.trim()) return;
+
+    if (!hasEnoughCredits) {
+      openSwapToGenerateModal({
+        creditsNeeded: remixCreditsNeeded,
+        onSuccess: () => {
+          refetchCredits();
+          generateRemix();
+        },
+      });
+      return;
+    }
+
+    setIsGeneratingRemix(true);
+
+    try {
+      const authHeaders = await getAuthHeaders({ isWrite: true });
+      
+      // Call the new remix endpoint
+      const response = await fetch('/api/media/remix', {
+        method: 'POST',
+        headers: {
+          ...authHeaders,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: remixMedia?.postId,
+          prompt: userInput.trim(),
+          frameSelection: isVideo ? frameSelection : undefined,
+          animateImage: isImage ? animateImage : false,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate remix');
+      }
+
+      const result = await response.json();
+      
+      // Set the preview in the parent component
+      if (result.preview && setCurrentPreview) {
+        setCurrentPreview(result.preview);
+        setUserInput(''); // Clear the input
+        toast.success("Remix generated! Click 'Use this' to create your post.");
+      }
+
+      refetchCredits();
+       
+    } catch (error: any) {
+      console.error('Error generating remix:', error);
+      toast.error(error.message || "Failed to generate remix");
+    } finally {
+      setIsGeneratingRemix(false);
+    }
+  }, [remixTemplate, userInput, hasEnoughCredits, remixCreditsNeeded, openSwapToGenerateModal, 
+      refetchCredits, getAuthHeaders, remixMedia, isVideo, frameSelection, isImage, animateImage, 
+      setCurrentPreview, setUserInput]);
+
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (isPosting) {
         handlePost(e as any);
+      } else if (isRemixing) {
+        generateRemix();
       } else {
         handleSubmit(e as any);
       }
     }
-  }, [handleSubmit, handlePost, isPosting]);
+  }, [handleSubmit, handlePost, isPosting, isRemixing, generateRemix]);
 
   useEffect(() => {
     if (userInput && textareaRef.current && document.activeElement !== textareaRef.current) {
@@ -271,54 +349,27 @@ export default function ChatInput({
 
   useEffect(() => {
     if (!userInput) {
-      setDynamicPlaceholder(placeholder || DEFAULT_PLACEHOLDER);
+      if (isRemixing) {
+        setDynamicPlaceholder("Describe how you want to remix this...");
+      } else {
+        setDynamicPlaceholder(placeholder || DEFAULT_PLACEHOLDER);
+      }
     }
-  }, [placeholder]);
+  }, [placeholder, isRemixing]);
 
   const validAttachment = useMemo(() => {
     if (requireAttachment) return !!attachment;
     return true;
   }, [requireAttachment, attachment]);
 
-  return (
+    return (
     <>
-      {showRemixForm && remixMedia && (
-        <RemixForm
-          template={remixTemplate as Template}
-          remixMedia={remixMedia}
-          onClose={() => {
-            setShowRemixForm(false);
-            if (setImageToExtend) {
-              setImageToExtend(null);
-            }
-          }}
-          currentPreview={currentPreview}
-          setCurrentPreview={setCurrentPreview}
-          roomId={roomId}
-          localPreviews={localPreviews}
-          setLocalPreviews={setLocalPreviews}
-          isGeneratingPreview={isGeneratingPreview}
-          setIsGeneratingPreview={setIsGeneratingPreview}
-          worker={worker}
-          pendingGenerations={pendingGenerations}
-          setPendingGenerations={setPendingGenerations}
-          postId={postId}
-          storyboardClips={storyboardClips}
-          storyboardAudio={storyboardAudio}
-          storyboardAudioStartTime={storyboardAudioStartTime}
-          setStoryboardClips={setStoryboardClips}
-          setStoryboardAudio={setStoryboardAudio}
-          setStoryboardAudioStartTime={setStoryboardAudioStartTime}
-          extendedImage={imageToExtend}
-        />
-      )}
-      <form
-        onSubmit={isPosting ? handlePost : handleSubmit}
-        className="mt-auto flex w-full flex-col pb-4 md:mt-0 items-center"
-      >
-        <div className="flex flex-col w-full">
-          <div className="relative flex flex-col w-full px-[10px]">
-            {!showRemixForm && (
+        <form
+          onSubmit={isPosting ? handlePost : handleSubmit}
+          className="mt-auto flex w-full flex-col pb-4 md:mt-0 items-center"
+        >
+          <div className="flex flex-col w-full">
+            <div className="relative flex flex-col w-full px-[10px]">
               <div className="relative">
                 {/* disable regular chat for now */}
                 {isPosting && (
@@ -332,24 +383,7 @@ export default function ChatInput({
                     disabled={disabled}
                   />
                 )}
-                {/* Showing text area for everyone since chat won't bankrupt us */}
-                {/* {disabled && placeholder === "Insufficient credits" ?
-                  <Button variant="accentBrand" size="sm" className='mb-2' onClick={() => openSwapToGenerateModal({
-                    creditsNeeded: 0.1,
-                    onSuccess: () => null,
-                  })}>
-                    Swap to continue
-                  </Button> :
-                  <textarea
-                    ref={textareaRef}
-                    value={userInput}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
-                    placeholder={dynamicPlaceholder}
-                    disabled={disabled}
-                  />
-                } */}
+                
                 {/* TODO: remove the isGeneratingPReview check once we show the other options */}
                 {!isGeneratingPreview && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
@@ -357,15 +391,54 @@ export default function ChatInput({
                       <AttachmentButton attachment={attachment} setAttachment={setAttachment} />
                     )}
                     {!requireBonsaiPayment && (
-                      <Button
-                        type="submit"
-                        disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
-                        variant="accentBrand"
-                        size="xs"
-                        className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
-                      </Button>
+                      <>
+                        {isRemixing ? (
+                          hasEnoughCredits ? (
+                            <Button
+                              type="button"
+                              onClick={generateRemix}
+                              disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
+                              variant="accentBrand"
+                              size="xs"
+                              className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} min-w-[120px]`}
+                            >
+                              {isGeneratingRemix ? (
+                                <div className="flex items-center gap-2">
+                                  <Spinner customClasses="h-4 w-4" color="#000000" />
+                                  <span>Generating...</span>
+                                </div>
+                              ) : (
+                                `Generate (${remixCreditsNeeded})`
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              onClick={() => openSwapToGenerateModal({
+                                creditsNeeded: remixCreditsNeeded,
+                                onSuccess: () => {
+                                  refetchCredits();
+                                  generateRemix();
+                                },
+                              })}
+                              variant="accentBrand"
+                              size="xs"
+                            >
+                              Swap to Generate
+                            </Button>
+                          )
+                        ) : (
+                          <Button
+                            type="submit"
+                            disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
+                            variant="accentBrand"
+                            size="xs"
+                            className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
+                          </Button>
+                        )}
+                      </>
                     )}
                     {requireBonsaiPayment && requireBonsaiPayment > 0 && (
                       <button
@@ -383,51 +456,90 @@ export default function ChatInput({
                   </div>
                 )}
               </div>
-            )}
-            <div className='flex flex-row justify-between mt-2'>
-              <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
-                {/* TODO: remove the isGeneratingPReview check once we show the other options */}
-                {!userInput && showSuggestions && !showRemixForm && !isPosting && !isGeneratingPreview && (
-                  <>
-                    {remixMedia && remixTemplate && (
-                      <button
-                        type="button"
-                        onClick={() => setShowRemixForm(true)}
-                        className={`whitespace-nowrap rounded-lg ${isGeneratingPreview ? ' bg-dark-grey text-white/40' : 'bg-brand-highlight text-black/80'} px-2 py-1 text-start text-[14px] tracking-[-0.02em] leading-5`}
-                        disabled={isGeneratingPreview}
-                      >
-                        Remix this post
-                      </button>
-                    )}
-                    {/* {!isMiniApp && (
-                      <>
-                        <PremadeChatInput
-                          setUserInput={disabled ? () => { } : setUserInput}
-                          label="About"
-                          input="What is this post about?"
-                          disabled={disabled}
-                        />
-                        <PremadeChatInput
-                          setUserInput={disabled ? () => { } : setUserInput}
-                          label="Commentary"
-                          input="What is the sentiment in the comments?"
-                          disabled={disabled}
-                        />
-                        <PremadeChatInput
-                          setUserInput={disabled ? () => { } : setUserInput}
-                          label="Author"
-                          input="Who made this post?"
-                          disabled={disabled}
-                        />
-                      </>
-                    )} */}
-                  </>
-                )}
+              <div className='flex flex-row justify-between mt-2'>
+                <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
+                  {/* Remix controls */}
+                  {isRemixing && (
+                    <>
+                      {/* Frame Selection for Videos */}
+                      {isVideo && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFrameSelection('start')}
+                            className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
+                              frameSelection === 'start'
+                                ? 'bg-brand-highlight text-black'
+                                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                          >
+                            Start Frame
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFrameSelection('end')}
+                            className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
+                              frameSelection === 'end'
+                                ? 'bg-brand-highlight text-black'
+                                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                          >
+                            End Frame
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Animate Checkbox for Images */}
+                      {isImage && (
+                        <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1">
+                          <input
+                            id="animate-checkbox"
+                            type="checkbox"
+                            checked={animateImage}
+                            onChange={(e) => setAnimateImage(e.target.checked)}
+                            className="w-4 h-4 text-brand-highlight bg-gray-900 border-gray-600 rounded focus:ring-brand-highlight focus:ring-2"
+                            disabled={isGeneratingRemix}
+                          />
+                          <label htmlFor="animate-checkbox" className="text-[14px] font-medium text-gray-300">
+                            Animate ({animateImage ? '+50 credits' : 'video'})
+                          </label>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* Regular suggestions when not remixing */}
+                  {!userInput && showSuggestions && !isPosting && !isGeneratingPreview && !isRemixing && (
+                    <>
+                      {/* {!isMiniApp && (
+                        <>
+                          <PremadeChatInput
+                            setUserInput={disabled ? () => { } : setUserInput}
+                            label="About"
+                            input="What is this post about?"
+                            disabled={disabled}
+                          />
+                          <PremadeChatInput
+                            setUserInput={disabled ? () => { } : setUserInput}
+                            label="Commentary"
+                            input="What is the sentiment in the comments?"
+                            disabled={disabled}
+                          />
+                          <PremadeChatInput
+                            setUserInput={disabled ? () => { } : setUserInput}
+                            label="Author"
+                            input="Who made this post?"
+                            disabled={disabled}
+                          />
+                        </>
+                      )} */}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
     </>
   );
 }
