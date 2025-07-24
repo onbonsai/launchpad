@@ -21,7 +21,7 @@ export interface AuthOptions {
 export function useAuth() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const { address } = useAccount();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
 
   /**
    * Get authentication headers
@@ -33,11 +33,13 @@ export function useAuth() {
     const { isWrite = false, requireAuth = true } = options;
 
     try {
+      console.log(`getAuthHeaders:: isMiniApp:: ${isMiniApp}`);
       if (isMiniApp) {
         const baseHeaders: AuthHeaders = {
           'Content-Type': 'application/json',
-          'x-farcaster-address': (address as string)?.toLowerCase() || '',
+          'x-farcaster-fid': context?.user?.fid?.toString() || address as string,
         };
+        console.log(`getAuthHeaders:: baseHeaders:: ${JSON.stringify(baseHeaders,null,2)}`);
 
         // For GET operations, we don't need the auth token
         if (!isWrite) {

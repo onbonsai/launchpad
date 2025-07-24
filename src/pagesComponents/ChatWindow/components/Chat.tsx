@@ -168,7 +168,7 @@ type ChatProps = {
 
         {/* Action buttons */}
         {isAgent && (
-          <div className="flex flex-col gap-2 p-4 bg-[#141414] -mt-14">
+          <div className="flex flex-col gap-3 p-4 bg-[#141414] -mt-6">
             {/* Secondary action buttons row */}
             <div className="flex justify-end gap-2">
               {/* Animate image button - only for images */}
@@ -251,10 +251,10 @@ type ChatProps = {
                 onClick={() => onUseThis(preview)}
                 className="w-full flex items-center justify-center gap-2 bg-brand-highlight rounded-lg px-4 py-2 hover:bg-brand-highlight/80 transition-colors text-black font-medium text-sm md:text-base"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+                </svg> */}
                 Use this
               </button>
             )}
@@ -271,7 +271,25 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, isCoinbaseMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
   const { getAuthHeaders } = useAuth();
-  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
+
+  // Track if we've loaded messages to prevent refetching duplicates
+  const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
+  const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp, !hasLoadedMessages);
+
+  // Mark messages as loaded when we get data for the first time
+  useEffect(() => {
+    if (messageData?.messages && messageData.messages.length > 0 && !hasLoadedMessages) {
+      messageData.messages.forEach((msg, i) => {
+        console.log(`Message ${i}: ID=${msg.id}, source=${msg.content?.source}, hasPreview=${!!msg.content?.preview}`);
+      });
+      setHasLoadedMessages(true);
+    }
+  }, [messageData, hasLoadedMessages]);
+
+  // Reset hasLoadedMessages when conversation or agent changes
+  useEffect(() => {
+    setHasLoadedMessages(false);
+  }, [conversationId, agentId]);
 
   // Create author object that handles both Lens profile and Farcaster miniapp context
   const publicationAuthor = useMemo(() => {
@@ -656,10 +674,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     setIsThinking,
     setCurrentAction
   });
-
-  console.log(`canMessageAgain`, canMessageAgain)
-  console.log(`canMessage`, canMessage)
-  console.log(`isLoadingMessageHistory`, isLoadingMessageHistory)
 
   // Clean up temporary messages when they appear in messageHistory
   useEffect(() => {
@@ -1410,7 +1424,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     handleAnimateImage(preview);
   }, [handleAnimateImage]);
 
-    // Combine and sort all messages chronologically
+        // Combine and sort all messages chronologically
   const allMessages = useMemo(() => {
     const messages: Array<{
       type: 'message' | 'stream' | 'local';
@@ -1546,7 +1560,22 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                       Conversation ({allMessages.length} messages)
                     </div>
                     <div className="space-y-4">
-                      {allMessages.map((item, index) => {
+                      {allMessages
+                        .filter((item, index, array) => {
+                          // For message type, deduplicate based on actual message ID
+                          if (item.type === 'message') {
+                            const messageId = item.data.id;
+                            const firstIndex = array.findIndex(m => m.type === 'message' && m.data.id === messageId);
+                            // Add debug logging for duplicates
+                            if (firstIndex !== index) {
+                              console.log(`Filtering duplicate message ID: ${messageId}, source: ${item.data.content?.source}`);
+                            }
+                            return firstIndex === index;
+                          }
+                          // Keep all other types as they have different deduplication logic
+                          return true;
+                        })
+                        .map((item, index) => {
                         if (item.type === 'message') {
                           const message = item.data;
                           return (

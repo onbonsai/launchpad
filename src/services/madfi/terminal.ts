@@ -3,7 +3,7 @@ import { getProfileByHandle } from "../lens/getProfiles";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { IS_PRODUCTION } from "./utils";
-import { getAuthToken } from "@src/utils/auth";
+import { useAuth } from "@src/hooks/useAuth";
 
 export const TERMINAL_API_URL = process.env.NEXT_PUBLIC_ELIZA_TERMINAL_API_URL ||
   (IS_PRODUCTION ? "https://eliza-terminal.onbons.ai" : "https://eliza-staging-terminal.onbons.ai");
@@ -51,26 +51,31 @@ export const useGetMessages = (
   address,
   postId?: string,
   roomId?: string,
-  isMiniApp?: boolean
+  isMiniApp?: boolean,
+  shouldFetch: boolean = true
 ): UseQueryResult<{ messages: Memory[]; canMessage: boolean }, Error> => {
+  const { getAuthHeaders } = useAuth();
+
   return useQuery({
     queryKey: ["agent-messages", postId, roomId],
     queryFn: async () => {
-      const authResult = await getAuthToken({ isMiniApp, requireAuth: false, address, isWrite: false });
-      if (!authResult.success) {
-        return { messages: [], canMessage: false };
-      }
+      try {
+        const authHeaders = await getAuthHeaders({ isWrite: false, requireAuth: false });
 
-      const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ""}`, {
-        headers: authResult.headers,
-      });
-      if (!response.ok) {
-        console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
+        const response = await fetch(`${TERMINAL_API_URL}/post/${postId}/messages${roomId ? `?roomId=${roomId}` : ""}`, {
+          headers: authHeaders,
+        });
+        if (!response.ok) {
+          console.log(`ERROR terminal:: useGetMessages: ${response.status} - ${response.statusText}`);
+          return { messages: [], canMessage: false };
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching messages:', error);
         return { messages: [], canMessage: false };
       }
-      return await response.json();
     },
-    enabled: !!postId,
+    enabled: !!postId && shouldFetch,
   });
 };
 
@@ -85,8 +90,7 @@ interface SendMessageProps {
   conversationId?: string
   payload: any
   imageURL?: string
-  isMiniApp?: boolean
-  address?: `0x${string}`
+  authHeaders: Record<string, string>
   onSend?: () => void
 }
 export const sendMessage = async ({
@@ -95,15 +99,9 @@ export const sendMessage = async ({
   conversationId,
   payload,
   imageURL,
-  isMiniApp,
-  address,
+  authHeaders,
   onSend
 }: SendMessageProps): Promise<{ messages: MessageResponse[], canMessageAgain: boolean } | undefined> => {
-  const authResult = await getAuthToken({ isMiniApp, address, isWrite: true });
-  if (!authResult.success) {
-    return;
-  }
-
   // callback to set loading state
   if (onSend) onSend();
 
@@ -114,7 +112,7 @@ export const sendMessage = async ({
   try {
     const response = await fetch(`${TERMINAL_API_URL}/post/${agentId}/message`, {
       method: 'POST',
-      headers: authResult.headers,
+      headers: authHeaders,
       body: JSON.stringify({
         text: input,
         roomId: conversationId,
@@ -132,10 +130,10 @@ export const sendMessage = async ({
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     clearTimeout(timeoutId);
 
-    if (error.name === 'AbortError') {
+    if (error?.name === 'AbortError') {
       console.log('ERROR terminal:: sendMessage: Request timed out after 60 seconds');
       throw new Error('Request timed out. The server took too long to respond.');
     }
