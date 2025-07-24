@@ -36,9 +36,10 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   const [renderCount, setRenderCount] = useState(0);
   const [lastRenderState, setLastRenderState] = useState('');
   const [hasTriggeredDebug, setHasTriggeredDebug] = useState(false);
+  const [forceRender, setForceRender] = useState(false);
 
   // Track render state changes for flicker detection
-  const currentRenderState = `${isCoinbaseMiniApp}-${isFrameReady}-${isMiniAppLoading}`;
+  const currentRenderState = `${isCoinbaseMiniApp}-${isFrameReady}-${isMiniAppLoading}-${forceRender}`;
 
   useEffect(() => {
     setRenderCount(prev => prev + 1);
@@ -56,11 +57,13 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
           lastState: lastRenderState,
           isCoinbaseMiniApp,
           isFrameReady,
-          isMiniAppLoading
+          isMiniAppLoading,
+          forceRender,
+          waitingTime: waitingStartTime ? Date.now() - waitingStartTime : null
         });
       }
     }
-  }, [currentRenderState, lastRenderState, renderCount, hasTriggeredDebug, isCoinbaseMiniApp, isFrameReady, isMiniAppLoading]);
+  }, [currentRenderState, lastRenderState, renderCount, hasTriggeredDebug, isCoinbaseMiniApp, isFrameReady, isMiniAppLoading, forceRender]);
 
   // Track how long we're waiting for frame to be ready
   useEffect(() => {
@@ -70,32 +73,47 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
         console.log('🔍 [CoinbaseMiniAppWrapper] Started waiting for frame ready at:', new Date().toISOString());
       }
 
-      // Check if we've been waiting too long (more than 5 seconds)
-      if (waitingStartTime && (Date.now() - waitingStartTime) > 5000 && !hasTriggeredDebug) {
-        setHasTriggeredDebug(true);
-        captureDebugException('coinbase-frame-ready-timeout', {
-          waitingTime: Date.now() - waitingStartTime,
-          isCoinbaseMiniApp,
-          isFrameReady,
-          isMiniAppLoading,
-          contextExists: !!context,
-          installQuery: !!router.query.install
-        });
+      // Check if we've been waiting too long (more than 3 seconds)
+      if (waitingStartTime && (Date.now() - waitingStartTime) > 3000) {
+        if (!hasTriggeredDebug) {
+          setHasTriggeredDebug(true);
+          captureDebugException('coinbase-frame-ready-timeout-forcing-render', {
+            waitingTime: Date.now() - waitingStartTime,
+            isCoinbaseMiniApp,
+            isFrameReady,
+            isMiniAppLoading,
+            contextExists: !!context,
+            installQuery: !!router.query.install
+          });
+        }
+
+        // Force render after timeout to prevent infinite black screen
+        if (!forceRender) {
+          console.log('🚨 [CoinbaseMiniAppWrapper] Timeout reached, forcing render to prevent black screen');
+          setForceRender(true);
+        }
       }
     } else if (isCoinbaseMiniApp && isFrameReady && waitingStartTime) {
       const waitTime = Date.now() - waitingStartTime;
       console.log(`🔍 [CoinbaseMiniAppWrapper] Frame became ready after ${waitTime}ms`);
       setWaitingStartTime(null);
+      // Clear force render since frame is now ready
+      if (forceRender) {
+        console.log('🔍 [CoinbaseMiniAppWrapper] Clearing forceRender since frame is now ready');
+        setForceRender(false);
+      }
     }
-  }, [isCoinbaseMiniApp, isFrameReady, waitingStartTime, hasTriggeredDebug, context, router.query.install, isMiniAppLoading]);
+  }, [isCoinbaseMiniApp, isFrameReady, waitingStartTime, hasTriggeredDebug, context, router.query.install, isMiniAppLoading, forceRender]);
 
   console.log('🔍 [CoinbaseMiniAppWrapper] Render with state:', {
     isCoinbaseMiniApp,
     isFrameReady,
     isMiniAppLoading,
+    forceRender,
     contextExists: !!context,
     contextClientAdded: context?.client.added,
-    installQuery: !!router.query.install
+    installQuery: !!router.query.install,
+    waitingTime: waitingStartTime ? Date.now() - waitingStartTime : null
   });
 
   Sentry.addBreadcrumb({
@@ -106,118 +124,122 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
       isCoinbaseMiniApp,
       isFrameReady,
       isMiniAppLoading,
+      forceRender,
       contextExists: !!context,
       contextClientAdded: context?.client.added,
       installQuery: !!router.query.install,
+      waitingTime: waitingStartTime ? Date.now() - waitingStartTime : null,
       timestamp: Date.now()
     }
   });
 
+    // Separate effect to call setFrameReady immediately when we detect Coinbase mini app
   useEffect(() => {
-    const handleCoinbaseFlow = async () => {
-      console.log('🔍 [CoinbaseMiniAppWrapper] handleCoinbaseFlow called with:', {
-        isCoinbaseMiniApp,
-        isFrameReady,
-        installQuery: !!router.query.install,
-        contextClientAdded: context?.client.added
-      });
+    if (isCoinbaseMiniApp && !isFrameReady) {
+      console.log('🔍 [CoinbaseMiniAppWrapper] Detected Coinbase mini app, calling setFrameReady() immediately');
 
       Sentry.addBreadcrumb({
-        message: 'CoinbaseMiniAppWrapper handleCoinbaseFlow started',
+        message: 'CoinbaseMiniAppWrapper calling setFrameReady immediately on detection',
         category: 'miniapp',
         level: 'info',
         data: {
           isCoinbaseMiniApp,
           isFrameReady,
-          installQuery: !!router.query.install,
-          contextClientAdded: context?.client.added,
           timestamp: Date.now()
         }
       });
 
-              if (isCoinbaseMiniApp && !isFrameReady) {
-          console.log('🔍 [CoinbaseMiniAppWrapper] Calling setFrameReady() to hide splash');
+      try {
+        setFrameReady(); // hide splash immediately
+        console.log('🔍 [CoinbaseMiniAppWrapper] setFrameReady() called successfully');
+
+        Sentry.addBreadcrumb({
+          message: 'CoinbaseMiniAppWrapper setFrameReady success',
+          category: 'miniapp',
+          level: 'info',
+          data: { timestamp: Date.now() }
+        });
+      } catch (error) {
+        console.error('🚨 [CoinbaseMiniAppWrapper] Error calling setFrameReady():', error);
+
+        if (!hasTriggeredDebug) {
+          setHasTriggeredDebug(true);
+          captureDebugException('setFrameReady-call-failed', {
+            error: error?.toString(),
+            isCoinbaseMiniApp,
+            isFrameReady,
+            contextExists: !!context
+          });
+        }
+
+        Sentry.captureException(error, {
+          tags: { component: 'CoinbaseMiniAppWrapper', action: 'setFrameReady' }
+        });
+      }
+    }
+  }, [isCoinbaseMiniApp, isFrameReady, setFrameReady, hasTriggeredDebug, context]);
+
+  // Separate effect for handling installation flow
+  useEffect(() => {
+    const handleInstallFlow = async () => {
+      if (isCoinbaseMiniApp && !!router.query.install && context && !context.client.added) {
+        console.log('🔍 [CoinbaseMiniAppWrapper] Handling install flow');
+
+        Sentry.addBreadcrumb({
+          message: 'CoinbaseMiniAppWrapper handling install flow',
+          category: 'miniapp',
+          level: 'info',
+          data: {
+            contextClientAdded: context.client.added,
+            timestamp: Date.now()
+          }
+        });
+
+        try {
+          console.log('🔍 [CoinbaseMiniAppWrapper] Calling addFrame() for install');
 
           Sentry.addBreadcrumb({
-            message: 'CoinbaseMiniAppWrapper calling setFrameReady',
+            message: 'CoinbaseMiniAppWrapper calling addFrame',
             category: 'miniapp',
             level: 'info',
             data: { timestamp: Date.now() }
           });
 
-          try {
-            setFrameReady(); // hide splash
-            console.log('🔍 [CoinbaseMiniAppWrapper] setFrameReady() called successfully');
-          } catch (error) {
-            console.error('🚨 [CoinbaseMiniAppWrapper] Error calling setFrameReady():', error);
+          await addFrame();
 
-            if (!hasTriggeredDebug) {
-              setHasTriggeredDebug(true);
-              captureDebugException('setFrameReady-call-failed', {
-                error: error?.toString(),
-                isCoinbaseMiniApp,
-                isFrameReady,
-                contextExists: !!context
-              });
+          console.log('🔍 [CoinbaseMiniAppWrapper] addFrame() completed successfully');
+
+          Sentry.addBreadcrumb({
+            message: 'CoinbaseMiniAppWrapper addFrame completed',
+            category: 'miniapp',
+            level: 'info',
+            data: { timestamp: Date.now() }
+          });
+        } catch (error) {
+          console.error('🚨 [CoinbaseMiniAppWrapper] Error calling addFrame():', error);
+
+          Sentry.addBreadcrumb({
+            message: 'CoinbaseMiniAppWrapper addFrame error',
+            category: 'miniapp',
+            level: 'error',
+            data: {
+              error: error?.toString(),
+              timestamp: Date.now()
             }
+          });
 
-            Sentry.captureException(error, {
-              tags: { component: 'CoinbaseMiniAppWrapper', action: 'setFrameReady' }
-            });
-          }
-
-        // Prompt to add mini app when ?install
-        if (!!router.query.install) {
-          if (!context?.client.added) {
-            try {
-              console.log('🔍 [CoinbaseMiniAppWrapper] Calling addFrame() for install');
-
-              Sentry.addBreadcrumb({
-                message: 'CoinbaseMiniAppWrapper calling addFrame',
-                category: 'miniapp',
-                level: 'info',
-                data: { timestamp: Date.now() }
-              });
-
-              await addFrame();
-
-              console.log('🔍 [CoinbaseMiniAppWrapper] addFrame() completed successfully');
-
-              Sentry.addBreadcrumb({
-                message: 'CoinbaseMiniAppWrapper addFrame completed',
-                category: 'miniapp',
-                level: 'info',
-                data: { timestamp: Date.now() }
-              });
-            } catch (error) {
-              console.error('🚨 [CoinbaseMiniAppWrapper] Error calling addFrame():', error);
-
-              Sentry.addBreadcrumb({
-                message: 'CoinbaseMiniAppWrapper addFrame error',
-                category: 'miniapp',
-                level: 'error',
-                data: {
-                  error: error?.toString(),
-                  timestamp: Date.now()
-                }
-              });
-
-              Sentry.captureException(error, {
-                tags: { component: 'CoinbaseMiniAppWrapper' }
-              });
-            }
-          } else {
-            console.log('🔍 [CoinbaseMiniAppWrapper] Client already added, skipping addFrame()');
-          }
+          Sentry.captureException(error, {
+            tags: { component: 'CoinbaseMiniAppWrapper', action: 'addFrame' }
+          });
         }
       }
     };
 
-    handleCoinbaseFlow();
-  }, [isCoinbaseMiniApp, isFrameReady, router.query.install, context?.client.added, addFrame, setFrameReady]);
+    handleInstallFlow();
+  }, [isCoinbaseMiniApp, router.query.install, context?.client.added, addFrame]);
 
-  // For Coinbase mini apps, only render when ready
-  if (isCoinbaseMiniApp && !isFrameReady) {
+  // For Coinbase mini apps, only render when ready OR after timeout
+  if (isCoinbaseMiniApp && !isFrameReady && !forceRender) {
     console.log('🔍 [CoinbaseMiniAppWrapper] Returning null - Coinbase mini app not ready yet');
 
     Sentry.addBreadcrumb({
@@ -227,11 +249,30 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
       data: {
         isCoinbaseMiniApp,
         isFrameReady,
+        forceRender,
         timestamp: Date.now()
       }
     });
 
     return null; // Show loading state
+  }
+
+  // Log when we're force-rendering due to timeout
+  if (isCoinbaseMiniApp && !isFrameReady && forceRender) {
+    console.log('🚨 [CoinbaseMiniAppWrapper] Force-rendering due to timeout - frame not ready but proceeding');
+
+    Sentry.addBreadcrumb({
+      message: 'CoinbaseMiniAppWrapper force-rendering due to timeout',
+      category: 'miniapp',
+      level: 'warning',
+      data: {
+        isCoinbaseMiniApp,
+        isFrameReady,
+        forceRender,
+        waitingTime: waitingStartTime ? Date.now() - waitingStartTime : 'unknown',
+        timestamp: Date.now()
+      }
+    });
   }
 
   console.log('🔍 [CoinbaseMiniAppWrapper] Rendering children');
