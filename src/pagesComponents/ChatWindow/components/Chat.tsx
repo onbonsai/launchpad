@@ -169,7 +169,7 @@ type ChatProps = {
 
         {/* Action buttons */}
         {isAgent && (
-          <div className="flex flex-col gap-3 p-4 bg-[#141414]">
+          <div className="flex flex-col gap-3 p-4 bg-[#141414] -mt-4">
             {/* Secondary action buttons row */}
             <div className="flex justify-end gap-2">
               {/* Animate image button - only for images */}
@@ -1400,7 +1400,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
     handleAnimateImage(preview);
   }, [handleAnimateImage]);
 
-    // Combine and sort all messages chronologically
+        // Combine and sort all messages chronologically
   const allMessages = useMemo(() => {
     const messages: Array<{
       type: 'message' | 'stream' | 'local';
@@ -1409,21 +1409,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       id: string;
     }> = [];
 
-    // Track message IDs to prevent duplicates
-    const seenMessageIds = new Set<string>();
-
     // Track user message IDs from backend to filter out temporary ones
     const backendUserMessageContents = new Set<string>();
 
-    // Add message history with deduplication
+    // Add message history
     if (messageHistory && messageHistory.length > 0) {
       messageHistory.forEach((message) => {
-        // Skip duplicate messages based on their actual ID
-        if (seenMessageIds.has(message.id)) {
-          return;
-        }
-        seenMessageIds.add(message.id);
-
         // Track user messages from backend
         if (message.content.source === "bonsai-terminal") {
           backendUserMessageContents.add(message.content.text);
@@ -1545,7 +1536,17 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                       Conversation ({allMessages.length} messages)
                     </div>
                     <div className="space-y-4">
-                      {allMessages.map((item, index) => {
+                      {allMessages
+                        .filter((item, index, array) => {
+                          // For message type, deduplicate based on actual message ID
+                          if (item.type === 'message') {
+                            const messageId = item.data.id;
+                            return array.findIndex(m => m.type === 'message' && m.data.id === messageId) === index;
+                          }
+                          // Keep all other types as they have different deduplication logic
+                          return true;
+                        })
+                        .map((item, index) => {
                         if (item.type === 'message') {
                           const message = item.data;
                           return (
