@@ -1,7 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { parseEther } from "viem";
-import useIsMounted from "@src/hooks/useIsMounted";
 import clsx from 'clsx';
 import { useAccount, useWalletClient } from 'wagmi';
 import toast from 'react-hot-toast';
@@ -51,6 +50,7 @@ import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { useAuth } from "@src/hooks/useAuth";
+import { useComposeCast } from '@coinbase/onchainkit/minikit';
 
 type ChatProps = {
   agentId: string;
@@ -266,11 +266,10 @@ type ChatProps = {
 };
 
 export default function Chat({ className, agentId, agentWallet, media, conversationId, post, remixVersionQuery, isRemixing }: ChatProps) {
-  const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { isMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
+  const { isMiniApp, isCoinbaseMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
   const { getAuthHeaders } = useAuth();
   const { data: messageData, isLoading: isLoadingMessageHistory } = useGetMessages(address, agentId, conversationId, isMiniApp);
 
@@ -332,6 +331,8 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
   const [isStoryboardInitialized, setIsStoryboardInitialized] = useState(false);
   const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
+
+  const { composeCast } = useComposeCast();
 
   // Helper to get video duration, needed for initializing from original post
   const getVideoDuration = (videoUrl: string): Promise<number> => {
@@ -877,12 +878,18 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
         embeds.push(`${SITE_URL}/media/${postingPreview.agentMessageId}`);
       }
 
-      await sdk.actions.composeCast({
+      const castData: any = {
         text: `${text ? text.substring(0, 200) + (text.length > 200 ? '...' : '') : postingPreview.text || template.displayName}\n\nvia @onbonsai.eth`,
         embeds: embeds as Embeds,
         parent: context?.location?.cast?.hash ? { type: "cast", hash: context?.location?.cast?.hash } : undefined,
         close: true
-      });
+      }
+
+      if (isCoinbaseMiniApp) {
+        await composeCast(castData);
+      } else {
+        await sdk.actions.composeCast(castData);
+      }
 
       toast.success("Cast created successfully!", { duration: 5000, id: toastId });
 
