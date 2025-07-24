@@ -487,10 +487,10 @@ const StudioCreatePage: NextPage = () => {
       setRoomId(
         typeof router.query.roomId === 'string'
           ? router.query.roomId
-          : generateSeededUUID(`studio-${address.toLowerCase()}`)
+          : generateSeededUUID(`studio-${context?.user?.fid || address.toLowerCase()}`)
       );
     }
-  }, [isConnected, address, router.query.roomId]);
+  }, [isConnected, address, router.query.roomId, context]);
 
   useEffect(() => {
     if (currentPreview && !localPreviews.some(p => p.agentId === currentPreview.agentId || p.content.preview?.agentId === currentPreview.agentId)) {
