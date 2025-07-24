@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { useInView } from "react-intersection-observer";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import DropDown from "@src/components/Icons/DropDown";
-import { Theme } from "@madfi/widgets-react";
 import { Post, TimelineItem } from "@lens-protocol/client";
 import { omit } from "lodash/object";
 import Masonry from "react-masonry-css";
@@ -261,7 +260,6 @@ const PostItem = React.memo(({
           <Publication
             key={`preview-${post.slug}`}
             publicationData={memoizedPublicationData}
-            theme={Theme.dark}
             followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
             profilePictureStyleOverride={publicationProfilePictureStyle}

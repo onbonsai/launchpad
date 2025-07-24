@@ -30,7 +30,7 @@ import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 import axios from 'axios';
 import { encodeAbi } from '@src/utils/viem';
 import { cloneDeep } from "lodash/lang";
-import { Publication, Theme } from "@madfi/widgets-react";
+import { Publication } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import {
   shareContainerStyleOverride,
@@ -145,7 +145,6 @@ type ChatProps = {
                   : undefined
               }
             }}
-            theme={Theme.dark}
             followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
             profileContainerStyleOverride={previewProfileContainerStyleOverride}

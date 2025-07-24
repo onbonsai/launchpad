@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
-import { Publication, Theme } from "@madfi/widgets-react";
+import { Publication } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import {
   shareContainerStyleOverride,
@@ -414,7 +414,6 @@ export default function PreviewHistory({
                   : undefined
               }
             }}
-            theme={Theme.dark}
             followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
             profilePictureStyleOverride={publicationProfilePictureStyle}
@@ -706,7 +705,6 @@ export default function PreviewHistory({
                         : undefined
                     }
                   }}
-                  theme={Theme.dark}
                   followButtonDisabled={true}
                   environment={LENS_ENVIRONMENT}
                   profileContainerStyleOverride={previewProfileContainerStyleOverride}

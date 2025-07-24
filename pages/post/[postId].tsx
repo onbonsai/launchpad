@@ -1,7 +1,6 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import dynamic from 'next/dynamic';
-import { Theme } from "@madfi/widgets-react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef, useContext } from "react";
@@ -642,7 +641,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                           <>
                             <Publications
                               publications={showRootPublication ? [publication] : sortedHighScoreComments}
-                              theme={Theme.dark}
                               environment={LENS_ENVIRONMENT}
                               authenticatedProfile={authenticatedProfile}
                               hideCommentButton={false}
@@ -687,7 +685,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                     {/* <div className="text-sm text-secondary/50 mb-4 px-4">Low-score comments</div> */}
                                     <Publications
                                       publications={sortedLowScoreComments}
-                                      theme={Theme.dark}
                                       environment={LENS_ENVIRONMENT}
                                       authenticatedProfile={authenticatedProfile}
                                       hideCommentButton={false}
