@@ -541,6 +541,9 @@ function AppContent(props: AppProps) {
     }
   }, []);
 
+  // Determine if we should render the app
+  const shouldRender = !isMiniApp || (isFarcasterMiniApp && isSDKLoaded);
+
   // bfcache optimization - ensure page can be cached + auto-detect visibility issues
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -609,9 +612,6 @@ function AppContent(props: AppProps) {
       window.removeEventListener('resume', handleResume);
     };
   }, [isCoinbaseMiniApp, isFarcasterMiniApp, hasAppContentTriggeredDebug, shouldRender, isSDKLoaded, isMiniAppLoading]);
-
-  // Determine if we should render the app
-  const shouldRender = !isMiniApp || (isFarcasterMiniApp && isSDKLoaded);
 
   // Track shouldRender state changes for flicker detection
   const [lastShouldRender, setLastShouldRender] = useState<boolean | null>(null);
