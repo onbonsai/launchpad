@@ -132,13 +132,6 @@ const PostItem = React.memo(({
     post.metadata?.video
   ]);
 
-  // Memoize the playVideo prop to prevent unnecessary re-renders
-  const playVideo = useMemo(() => {
-    return (isMobile && postInView) ||
-           (!isMobile && hoveredPostSlug === post.slug) ||
-           activeDropdown === post.slug;
-  }, [isMobile, postInView, hoveredPostSlug, post.slug, activeDropdown]);
-
   // Handle touch start for double-tap detection
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const now = new Date().getTime();
@@ -241,7 +234,7 @@ const PostItem = React.memo(({
         />
       )}
       <div className={clsx(
-        "relative transition-transform duration-300 ease-out hover:scale-[1.02]",
+        "relative transition-transform duration-300 ease-out",
         postData?.remixContest && "border-2 border-brand-highlight rounded-[24px] p-[2px]"
       )}>
         {postData?.remixContest && (
@@ -279,7 +272,7 @@ const PostItem = React.memo(({
             shareIconOverride={true}
             profileMaxWidth={'120px'}
             fullVideoHeight
-            playVideo={playVideo}
+            playVideo={postInView}
             hideVideoControls
           />
         </div>

@@ -148,9 +148,8 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
       onClick={handleBackgroundClick}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Dark background overlay */}
       <div
-        className="absolute inset-0 bg-black/50 cursor-pointer rounded-3xl"
+        className="absolute inset-0 cursor-pointer rounded-3xl"
         onClick={handleBackgroundClick}
       />
 
