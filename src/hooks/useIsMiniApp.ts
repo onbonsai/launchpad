@@ -8,7 +8,7 @@ interface FarcasterContext {
     fid: number;
     username: string;
     displayName: string;
-    pfpUrl: string; // doesn't exit in coinbase miniapp
+    pfpUrl: string;
     location: {
       placeId: string;
       description: string;
@@ -37,8 +37,6 @@ interface FarcasterContext {
   };
 }
 
-type MiniAppType = 'farcaster' | 'coinbase' | null;
-
 interface UseIsMiniAppResult {
   isMiniApp: boolean;
   isFarcasterMiniApp: boolean;
@@ -47,200 +45,113 @@ interface UseIsMiniAppResult {
   context?: FarcasterContext;
 }
 
+// Global cache to prevent re-detection
+let detectionCache: {
+  hasDetected: boolean;
+  result: UseIsMiniAppResult;
+} | null = null;
+
 export const useIsMiniApp = (): UseIsMiniAppResult => {
-  const [isMiniApp, setIsMiniApp] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [miniAppType, setMiniAppType] = useState<MiniAppType>(null);
-  const [context, setContext] = useState<FarcasterContext>();
-  const [hasRunCheck, setHasRunCheck] = useState(false);
-  // using the coinbase hook since the fc one is not consistently reliable
-  const { isFrameReady, context: coinbaseContext } = useMiniKit();
+  const { context: coinbaseContext } = useMiniKit();
 
-  // Add debug logging
-  console.log('🔍 [useIsMiniApp] Hook initialized with states:', {
-    isMiniApp,
-    isLoading,
-    miniAppType,
-    isFrameReady,
-    coinbaseContextExists: !!coinbaseContext,
-    coinbaseContextClientFid: coinbaseContext?.client?.clientFid
+  // If we've already detected, return cached result immediately
+  if (detectionCache?.hasDetected) {
+    console.log('🔍 [useIsMiniApp] Returning cached result:', detectionCache.result);
+    return detectionCache.result;
+  }
+
+  const [result, setResult] = useState<UseIsMiniAppResult>({
+    isMiniApp: false,
+    isFarcasterMiniApp: false,
+    isCoinbaseMiniApp: false,
+    isLoading: true,
+    context: undefined
   });
-
-  Sentry.addBreadcrumb({
-    message: 'useIsMiniApp hook initialized',
-    category: 'miniapp',
-    level: 'info',
-    data: {
-      isMiniApp,
-      isLoading,
-      miniAppType,
-      isFrameReady,
-      coinbaseContextExists: !!coinbaseContext,
-      coinbaseContextClientFid: coinbaseContext?.client?.clientFid
-    }
-  });
-
-  // Memoize coinbase context values to prevent infinite re-renders
-  const coinbaseContextClientFid = coinbaseContext?.client?.clientFid;
-  const coinbaseContextExists = !!coinbaseContext;
 
   useEffect(() => {
-    // Only run check once or when critical values actually change
-    if (hasRunCheck && miniAppType !== null) {
-      console.log('🔍 [useIsMiniApp] Skipping check - already determined mini app type:', miniAppType);
+    // If already detected globally, don't run again
+    if (detectionCache?.hasDetected) {
+      setResult(detectionCache.result);
       return;
     }
 
-    const checkMiniApp = async () => {
-      console.log('🔍 [useIsMiniApp] Starting checkMiniApp with:', {
-        hasRunCheck,
-        isFrameReady,
-        coinbaseContextExists,
-        coinbaseContextClientFid
-      });
+    let isMounted = true;
 
-      Sentry.addBreadcrumb({
-        message: 'useIsMiniApp checkMiniApp started',
-        category: 'miniapp',
-        level: 'info',
-        data: {
-          hasRunCheck,
-          isFrameReady,
-          coinbaseContextExists,
-          coinbaseContextClientFid,
-          timestamp: Date.now()
-        }
-      });
+    const detectOnce = async () => {
+      console.log('🔍 [useIsMiniApp] Running ONE-TIME detection');
 
       try {
-        setIsLoading(true);
-        console.log('🔍 [useIsMiniApp] Set isLoading to true');
-
+        // Simple detection logic
         const isFarcasterMiniApp = await sdk.isInMiniApp();
-        console.log('🔍 [useIsMiniApp] sdk.isInMiniApp() result:', isFarcasterMiniApp);
-
         const context = await sdk.context;
-        console.log('🔍 [useIsMiniApp] sdk.context result:', {
-          contextExists: !!context,
-          clientFid: context?.client?.clientFid,
-          username: context?.user?.username,
-          displayName: context?.user?.displayName
-        });
+        const isCoinbaseMiniApp = context?.client.clientFid === 309857 || coinbaseContext?.client?.clientFid === 309857;
 
-        const isCoinbaseMiniApp = context?.client.clientFid === 309857 || coinbaseContextClientFid === 309857;
-        console.log('🔍 [useIsMiniApp] isCoinbaseMiniApp calculation:', {
-          contextClientFid: context?.client.clientFid,
-          coinbaseContextClientFid,
-          isCoinbaseMiniApp
-        });
+        const finalResult: UseIsMiniAppResult = {
+          isMiniApp: isFarcasterMiniApp || isCoinbaseMiniApp,
+          isFarcasterMiniApp,
+          isCoinbaseMiniApp,
+          isLoading: false,
+          context: context as FarcasterContext
+        };
+
+        console.log('🔍 [useIsMiniApp] ONE-TIME detection complete:', finalResult);
+
+        // Cache globally to prevent any re-detection
+        detectionCache = {
+          hasDetected: true,
+          result: finalResult
+        };
+
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setResult(finalResult);
+        }
 
         Sentry.addBreadcrumb({
-          message: 'useIsMiniApp detection results',
+          message: 'useIsMiniApp ONE-TIME detection completed',
           category: 'miniapp',
           level: 'info',
           data: {
             isFarcasterMiniApp,
             isCoinbaseMiniApp,
-            contextClientFid: context?.client.clientFid,
-            coinbaseContextClientFid,
+            cached: true,
             timestamp: Date.now()
           }
         });
 
-        if (isCoinbaseMiniApp) {
-          console.log('🔍 [useIsMiniApp] Detected Coinbase mini app, setting states');
-          setMiniAppType("coinbase");
-          setContext(context as FarcasterContext);
-          setIsMiniApp(true);
-          setHasRunCheck(true); // Mark as completed
-
-          Sentry.addBreadcrumb({
-            message: 'useIsMiniApp detected Coinbase mini app',
-            category: 'miniapp',
-            level: 'info',
-            data: {
-              contextClientFid: context?.client.clientFid,
-              username: context?.user?.username,
-              timestamp: Date.now()
-            }
-          });
-        } else if (isFarcasterMiniApp) {
-          console.log('🔍 [useIsMiniApp] Detected Farcaster mini app, setting states');
-          setMiniAppType("farcaster");
-          setContext(context as FarcasterContext);
-          setIsMiniApp(true);
-          setHasRunCheck(true); // Mark as completed
-
-          Sentry.addBreadcrumb({
-            message: 'useIsMiniApp detected Farcaster mini app',
-            category: 'miniapp',
-            level: 'info',
-            data: {
-              contextClientFid: context?.client.clientFid,
-              username: context?.user?.username,
-              timestamp: Date.now()
-            }
-          });
-        } else {
-          console.log('🔍 [useIsMiniApp] No mini app detected');
-          setHasRunCheck(true); // Mark as completed even if no mini app
-
-          Sentry.addBreadcrumb({
-            message: 'useIsMiniApp no mini app detected',
-            category: 'miniapp',
-            level: 'info',
-            data: {
-              isFarcasterMiniApp,
-              contextClientFid: context?.client.clientFid,
-              coinbaseContextClientFid,
-              timestamp: Date.now()
-            }
-          });
-        }
       } catch (error) {
-        console.error('🚨 [useIsMiniApp] Error checking mini app status:', error);
-        setHasRunCheck(true); // Mark as completed even on error to prevent infinite retries
+        console.error('🚨 [useIsMiniApp] Detection error:', error);
 
-        Sentry.addBreadcrumb({
-          message: 'useIsMiniApp error during detection',
-          category: 'miniapp',
-          level: 'error',
-          data: {
-            error: error?.toString(),
-            timestamp: Date.now()
-          }
-        });
+        const errorResult: UseIsMiniAppResult = {
+          isMiniApp: false,
+          isFarcasterMiniApp: false,
+          isCoinbaseMiniApp: false,
+          isLoading: false,
+          context: undefined
+        };
+
+        // Cache error result too to prevent retries
+        detectionCache = {
+          hasDetected: true,
+          result: errorResult
+        };
+
+        if (isMounted) {
+          setResult(errorResult);
+        }
+
         Sentry.captureException(error, {
           tags: { component: 'useIsMiniApp' }
-        });
-      } finally {
-        setIsLoading(false);
-        console.log('🔍 [useIsMiniApp] Set isLoading to false, checkMiniApp complete');
-
-        Sentry.addBreadcrumb({
-          message: 'useIsMiniApp checkMiniApp completed',
-          category: 'miniapp',
-          level: 'info',
-          data: {
-            isLoading: false,
-            timestamp: Date.now()
-          }
         });
       }
     };
 
-    checkMiniApp();
-  }, [hasRunCheck, miniAppType, coinbaseContextClientFid, coinbaseContextExists]);
+    detectOnce();
 
-  const result = {
-    isMiniApp,
-    isFarcasterMiniApp: miniAppType === 'farcaster',
-    isCoinbaseMiniApp: miniAppType === 'coinbase',
-    isLoading,
-    context
-  };
-
-  console.log('🔍 [useIsMiniApp] Returning result:', result);
+    return () => {
+      isMounted = false;
+    };
+  }, []); // No dependencies = runs only once
 
   return result;
 };
