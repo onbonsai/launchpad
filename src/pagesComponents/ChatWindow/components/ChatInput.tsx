@@ -7,12 +7,100 @@ import { PROMOTE_TOKEN_COST } from '../constants';
 import { Button } from '@src/components/Button';
 import type { SmartMedia, Template, Preview } from '@src/services/madfi/studio';
 import { useTopUpModal } from '@src/context/TopUpContext';
-import { type StoryboardClip } from "@src/services/madfi/studio";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount } from 'wagmi';
 import { useAuth } from '@src/hooks/useAuth';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+
+// Helper function to extract frame from video
+const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!video) {
+      reject(new Error('No video data provided'));
+      return;
+    }
+
+    if (typeof video === 'string' && video.startsWith('data:image/')) {
+      resolve(video);
+      return;
+    }
+
+    const videoElement = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    videoElement.crossOrigin = 'anonymous';
+    videoElement.muted = true;
+
+    if (extractFirstFrame) {
+      // Extract first frame - wait for metadata to ensure dimensions are set
+      videoElement.onloadedmetadata = () => {
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        
+        // Seek to a small offset to ensure we get a proper frame
+        videoElement.currentTime = 0.1;
+      };
+      
+      videoElement.onseeked = () => {
+        try {
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve(dataURL);
+        } catch (error) {
+          reject(error);
+        }
+      };
+    } else {
+      // Extract last frame
+      videoElement.onloadedmetadata = () => {
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        videoElement.currentTime = videoElement.duration;
+      };
+
+      videoElement.onseeked = () => {
+        try {
+          ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve(dataURL);
+        } catch (error) {
+          reject(error);
+        }
+      };
+    }
+
+    videoElement.onerror = (e) => {
+      reject(new Error(`Failed to load video: ${e}`));
+    };
+
+    // Handle different video source types
+    try {
+      if (typeof video === 'string') {
+        if (video.startsWith('data:image/')) {
+          resolve(video);
+          return;
+        }
+        videoElement.src = video;
+      } else if (video.url) {
+        videoElement.src = video.url;
+      } else if (video.blob) {
+        videoElement.src = URL.createObjectURL(video.blob);
+      } else {
+        reject(new Error('Invalid video source'));
+        return;
+      }
+    } catch (error) {
+      reject(new Error(`Failed to set video source: ${error}`));
+    }
+  });
+};
 
 type PremadeChatInputProps = {
   label: string;
@@ -133,12 +221,7 @@ export type ChatInputProps = {
   pendingGenerations?: Set<string>;
   setPendingGenerations?: React.Dispatch<React.SetStateAction<Set<string>>>;
   postId?: string;
-  storyboardClips?: StoryboardClip[];
-  storyboardAudio?: File | string | null;
-  storyboardAudioStartTime?: number;
-  setStoryboardClips?: React.Dispatch<React.SetStateAction<StoryboardClip[]>>;
-  setStoryboardAudio?: React.Dispatch<React.SetStateAction<File | string | null>>;
-  setStoryboardAudioStartTime?: React.Dispatch<React.SetStateAction<number>>;
+  post?: any; // Add post object
   imageToExtend?: string | null;
   setImageToExtend?: React.Dispatch<React.SetStateAction<string | null>>;
 };
@@ -170,12 +253,7 @@ export default function ChatInput({
   pendingGenerations,
   setPendingGenerations,
   postId,
-  storyboardClips = [],
-  storyboardAudio,
-  storyboardAudioStartTime,
-  setStoryboardClips,
-  setStoryboardAudio,
-  setStoryboardAudioStartTime,
+  post,
   imageToExtend,
   setImageToExtend,
 }: ChatInputProps) {
@@ -226,7 +304,7 @@ export default function ChatInput({
   const isImage = !isVideo;
 
   // Calculate credits needed for remix
-  const remixCreditsNeeded = animateImage ? (remixTemplate?.estimatedCost || 10) + 50 : (remixTemplate?.estimatedCost || 10);
+  const remixCreditsNeeded = animateImage ? (remixTemplate?.estimatedCost || 10) + 30 : (remixTemplate?.estimatedCost || 10);
   const hasEnoughCredits = (creditBalance?.creditsRemaining || 0) >= remixCreditsNeeded;
 
   useEffect(() => {
@@ -283,35 +361,146 @@ export default function ChatInput({
     setIsGeneratingRemix(true);
 
     try {
-      const authHeaders = await getAuthHeaders({ isWrite: true });
+      let imageToUse: File | undefined;
       
-      // Call the new remix endpoint
-      const response = await fetch('/api/media/remix', {
-        method: 'POST',
-        headers: {
-          ...authHeaders,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          postId: remixMedia?.postId,
-          prompt: userInput.trim(),
-          frameSelection: isVideo ? frameSelection : undefined,
-          animateImage: isImage ? animateImage : false,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate remix');
+      // Extract frame from video or use existing image
+      if (isVideo) {
+        // Check templateData first, then fall back to post metadata
+        const videoData = (remixMedia?.templateData as any)?.video || 
+          ((post?.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
+        
+        if (videoData) {
+          toast.loading("Extracting frame...", { id: 'extract-frame' });
+          
+          try {
+            const videoUrl = typeof videoData === 'string' ? videoData : videoData.url;
+            const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start');
+            
+            // Convert data URL to File
+            const response = await fetch(frameDataUrl);
+            const blob = await response.blob();
+            imageToUse = new File([blob], 'frame.png', { type: 'image/png' });
+            
+            toast.success(`${frameSelection === 'start' ? 'First' : 'Last'} frame extracted!`, { id: 'extract-frame' });
+          } catch (error) {
+            console.error('Failed to extract frame:', error);
+            toast.error('Failed to extract frame from video', { id: 'extract-frame' });
+            setIsGeneratingRemix(false);
+            return;
+          }
+        }
+      } else if (isImage) {
+        // For images, check templateData first, then fall back to post metadata
+        const imageData = (remixMedia?.templateData as any)?.image || 
+          (post?.metadata as any)?.image?.item;
+        
+        if (imageData) {
+          try {
+            // If it's a URL, fetch and convert to File
+            const imageUrl = typeof imageData === 'string' ? imageData : imageData.url || imageData.item;
+            if (imageUrl) {
+              const response = await fetch(imageUrl);
+              const blob = await response.blob();
+              imageToUse = new File([blob], 'image.png', { type: blob.type });
+            }
+          } catch (error) {
+            console.error('Failed to process image:', error);
+            toast.error('Failed to process image');
+            setIsGeneratingRemix(false);
+            return;
+          }
+        }
       }
 
-      const result = await response.json();
-      
-      // Set the preview in the parent component
-      if (result.preview && setCurrentPreview) {
-        setCurrentPreview(result.preview);
+      if (!imageToUse) {
+        toast.error('No media found to remix');
+        setIsGeneratingRemix(false);
+        return;
+      }
+
+        // Use the existing worker/preview generation logic
+      if (worker && setPendingGenerations) {
+        const tempId = `remix-${Date.now()}`;
+        
+        // Add to pending generations
+        setPendingGenerations(prev => new Set(prev).add(tempId));
+        
+        // Add to local previews as pending
+        if (setLocalPreviews) {
+          const now = new Date().toISOString();
+          setLocalPreviews(prev => [
+            {
+              tempId,
+              isAgent: true,
+              pending: true,
+              createdAt: new Date(Date.parse(now) + 1).toISOString(),
+              content: {
+                text: userInput.trim()
+              }
+            } as any,
+            {
+              isAgent: false,
+              createdAt: now,
+              content: {
+                text: userInput.trim()
+              }
+            },
+            ...prev
+          ]);
+        }
+
+        // Get auth headers for the worker
+        const authHeaders = await getAuthHeaders({ isWrite: true });
+
+        let _templateName = remixTemplate.name;
+        if (animateImage) {
+          // If animate image is true and this is not a story or adventure template, use the video template
+          if (!remixTemplate.name.toLowerCase().includes('story') && !remixTemplate.name.toLowerCase().includes('adventure')) {
+            _templateName = 'video';
+          }
+        }
+
+        console.log('🎨 Remix generation:', {
+          url: remixTemplate.apiUrl || '',
+          category: remixTemplate.category,
+          templateName: _templateName,
+          templateData: {
+            prompt: userInput.trim(),
+            enableVideo: animateImage,
+            aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
+            // DON'T include remixMedia.templateData
+            // ...(remixMedia?.templateData as any || {}),
+          },
+          prompt: userInput.trim(),
+          image: imageToUse ? "imageToUse" : undefined,
+          aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
+          roomId: roomId || `remix-${remixMedia?.postId || 'default'}`,
+        });
+        
+        // Send to worker for processing
+        worker.postMessage({
+          tempId,
+          url: remixTemplate.apiUrl || '',
+          authHeaders,
+          category: remixTemplate.category,
+          templateName: _templateName,
+          templateData: {
+            prompt: userInput.trim(),
+            enableVideo: animateImage,
+            aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
+            // DON'T include remixMedia.templateData
+            // ...(remixMedia?.templateData as any || {}),
+          },
+          prompt: userInput.trim(),
+          image: imageToUse,
+          aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
+          roomId: roomId || `remix-${remixMedia?.postId || 'default'}`,
+        });
+
         setUserInput(''); // Clear the input
-        toast.success("Remix generated! Click 'Use this' to create your post.");
+        toast.success("Generating remix...");
+      } else {
+        toast.error("Preview generation not available");
       }
 
       refetchCredits();
@@ -323,8 +512,8 @@ export default function ChatInput({
       setIsGeneratingRemix(false);
     }
   }, [remixTemplate, userInput, hasEnoughCredits, remixCreditsNeeded, openSwapToGenerateModal, 
-      refetchCredits, getAuthHeaders, remixMedia, isVideo, frameSelection, isImage, animateImage, 
-      setCurrentPreview, setUserInput]);
+      refetchCredits, remixMedia, isVideo, frameSelection, isImage, animateImage, 
+      setCurrentPreview, setUserInput, worker, setPendingGenerations, setLocalPreviews, roomId, post, getAuthHeaders]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -349,13 +538,15 @@ export default function ChatInput({
 
   useEffect(() => {
     if (!userInput) {
-      if (isRemixing) {
+      if (isPosting) {
+        setDynamicPlaceholder("Write your post content here");
+      } else if (isRemixing) {
         setDynamicPlaceholder("Describe how you want to remix this...");
       } else {
         setDynamicPlaceholder(placeholder || DEFAULT_PLACEHOLDER);
       }
     }
-  }, [placeholder, isRemixing]);
+  }, [placeholder, isRemixing, isPosting]);
 
   const validAttachment = useMemo(() => {
     if (requireAttachment) return !!attachment;
@@ -384,50 +575,27 @@ export default function ChatInput({
                   />
                 )}
                 
-                {/* TODO: remove the isGeneratingPReview check once we show the other options */}
+                {/* Action buttons - show Post button when posting, otherwise show appropriate controls */}
                 {!isGeneratingPreview && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
-                    {requireAttachment && (
-                      <AttachmentButton attachment={attachment} setAttachment={setAttachment} />
-                    )}
-                    {!requireBonsaiPayment && (
+                    {/* Post button takes priority when isPosting is true */}
+                    {isPosting ? (
+                      <Button
+                        type="submit"
+                        disabled={!/[a-zA-Z]/.test(userInput) || disabled}
+                        variant="accentBrand"
+                        size="xs"
+                        className={`${!/[a-zA-Z]/.test(userInput) || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {!isMiniApp ? "Post" : "Cast"}
+                      </Button>
+                    ) : !isRemixing ? (
+                      // Regular chat mode buttons
                       <>
-                        {isRemixing ? (
-                          hasEnoughCredits ? (
-                            <Button
-                              type="button"
-                              onClick={generateRemix}
-                              disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
-                              variant="accentBrand"
-                              size="xs"
-                              className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} min-w-[120px]`}
-                            >
-                              {isGeneratingRemix ? (
-                                <div className="flex items-center gap-2">
-                                  <Spinner customClasses="h-4 w-4" color="#000000" />
-                                  <span>Generating...</span>
-                                </div>
-                              ) : (
-                                `Generate (${remixCreditsNeeded})`
-                              )}
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              onClick={() => openSwapToGenerateModal({
-                                creditsNeeded: remixCreditsNeeded,
-                                onSuccess: () => {
-                                  refetchCredits();
-                                  generateRemix();
-                                },
-                              })}
-                              variant="accentBrand"
-                              size="xs"
-                            >
-                              Swap to Generate
-                            </Button>
-                          )
-                        ) : (
+                        {requireAttachment && (
+                          <AttachmentButton attachment={attachment} setAttachment={setAttachment} />
+                        )}
+                        {!requireBonsaiPayment && (
                           <Button
                             type="submit"
                             disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
@@ -435,31 +603,31 @@ export default function ChatInput({
                             size="xs"
                             className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
-                            {isPosting ? (!isMiniApp ? "Post" : "Cast") : <SendSvg />}
+                            <SendSvg />
                           </Button>
                         )}
+                        {requireBonsaiPayment && requireBonsaiPayment > 0 && (
+                          <button
+                            type="submit"
+                            disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview}
+                            className={`rounded-[10px] p-2 transition-colors flex flex-row ${/[a-zA-Z]/.test(userInput) && !disabled && validAttachment && !isGeneratingPreview
+                              ? 'bg-[#D00A59] text-white hover:bg-opacity-80'
+                              : 'cursor-not-allowed bg-[#ffffff] text-zinc-950 opacity-50'
+                              }`}
+                          >
+                            <PaySvg />
+                            <span className="ml-2">Pay {requireBonsaiPayment} $BONSAI</span>
+                          </button>
+                        )}
                       </>
-                    )}
-                    {requireBonsaiPayment && requireBonsaiPayment > 0 && (
-                      <button
-                        type="submit"
-                        disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment || isGeneratingPreview}
-                        className={`rounded-[10px] p-2 transition-colors flex flex-row ${/[a-zA-Z]/.test(userInput) && !disabled && validAttachment && !isGeneratingPreview
-                          ? 'bg-[#D00A59] text-white hover:bg-opacity-80'
-                          : 'cursor-not-allowed bg-[#ffffff] text-zinc-950 opacity-50'
-                          }`}
-                      >
-                        <PaySvg />
-                        <span className="ml-2">Pay {requireBonsaiPayment} $BONSAI</span>
-                      </button>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>
               <div className='flex flex-row justify-between mt-2'>
                 <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
-                  {/* Remix controls */}
-                  {isRemixing && (
+                  {/* Remix controls - only show when remixing and not posting */}
+                  {isRemixing && !isPosting && (
                     <>
                       {/* Frame Selection for Videos */}
                       {isVideo && (
@@ -491,17 +659,17 @@ export default function ChatInput({
 
                       {/* Animate Checkbox for Images */}
                       {isImage && (
-                        <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1">
+                        <div className="flex items-center space-x-2 rounded-lg px-3 py-1">
                           <input
                             id="animate-checkbox"
                             type="checkbox"
                             checked={animateImage}
                             onChange={(e) => setAnimateImage(e.target.checked)}
-                            className="w-4 h-4 text-brand-highlight bg-gray-900 border-gray-600 rounded focus:ring-brand-highlight focus:ring-2"
+                            className="w-4 h-4 text-brand-highlight bg-gray-900 border-gray-600 rounded"
                             disabled={isGeneratingRemix}
                           />
                           <label htmlFor="animate-checkbox" className="text-[14px] font-medium text-gray-300">
-                            Animate ({animateImage ? '+50 credits' : 'video'})
+                            Create Video
                           </label>
                         </div>
                       )}
@@ -536,6 +704,51 @@ export default function ChatInput({
                     </>
                   )}
                 </div>
+                
+                {/* Remix Generate Button - aligned to the right */}
+                {isRemixing && !isPosting && (
+                  <div className='flex items-center gap-2'>
+                    {creditBalance && (
+                      <span className="text-xs text-gray-500">
+                        {creditBalance.creditsRemaining?.toFixed(2)} credits
+                      </span>
+                    )}
+                    {hasEnoughCredits ? (
+                      <Button
+                        type="button"
+                        onClick={generateRemix}
+                        disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
+                        variant="accentBrand"
+                        size="xs"
+                        className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} min-w-[120px]`}
+                      >
+                        {isGeneratingRemix ? (
+                          <div className="flex items-center gap-2">
+                            <Spinner customClasses="h-4 w-4" color="#000000" />
+                            <span>Generating...</span>
+                          </div>
+                        ) : (
+                          `Generate (${remixCreditsNeeded})`
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={() => openSwapToGenerateModal({
+                          creditsNeeded: remixCreditsNeeded,
+                          onSuccess: () => {
+                            refetchCredits();
+                            generateRemix();
+                          },
+                        })}
+                        variant="accentBrand"
+                        size="xs"
+                      >
+                        Swap to Generate
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

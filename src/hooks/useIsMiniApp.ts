@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
 import * as Sentry from "@sentry/nextjs";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 interface FarcasterContext {
   user: {
@@ -58,7 +59,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
   const [result, setResult] = useState<UseIsMiniAppResult>(() => {
     // Initialize with cached result if available
     if (detectionCache?.hasDetected) {
-      console.log('🔍 [useIsMiniApp] Initializing with cached result');
+      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Initializing with cached result');
       return detectionCache.result;
     }
 
@@ -74,7 +75,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
   useEffect(() => {
     // If already detected globally, don't run detection
     if (detectionCache?.hasDetected) {
-      console.log('🔍 [useIsMiniApp] Using cached result, skipping detection');
+      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Using cached result, skipping detection');
       setResult(detectionCache.result);
       return;
     }
@@ -82,7 +83,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
     let isMounted = true;
 
     const detectOnce = async () => {
-      console.log('🔍 [useIsMiniApp] Running ONE-TIME detection');
+      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Running ONE-TIME detection');
 
       try {
         // Simple detection logic
@@ -98,7 +99,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           context: context as FarcasterContext
         };
 
-        console.log('🔍 [useIsMiniApp] ONE-TIME detection complete:', finalResult);
+        if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] ONE-TIME detection complete:', finalResult);
 
         // Cache globally to prevent any re-detection
         detectionCache = {

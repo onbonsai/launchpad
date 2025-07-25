@@ -22,6 +22,7 @@ import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { base } from "viem/chains";
 import { ErrorBoundary } from "@src/components/ErrorBoundary";
+import { IS_PRODUCTION } from "@src/services/madfi/utils.js";
 
 // Simplified wrapper that always renders and handles mini app as enhancement
 function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
@@ -30,7 +31,7 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   const addFrame = useAddFrame();
   const router = useRouter();
 
-  console.log('🔍 [CoinbaseMiniAppWrapper] Rendering (always renders now):', {
+  if (!IS_PRODUCTION) console.log('🔍 [CoinbaseMiniAppWrapper] Rendering (always renders now):', {
     isCoinbaseMiniApp,
     contextExists: !!context
   });
@@ -38,11 +39,11 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   // Handle setFrameReady as a side effect, not a render blocker
   useEffect(() => {
     if (isCoinbaseMiniApp) {
-      console.log('🔍 [CoinbaseMiniAppWrapper] Calling setFrameReady() for Coinbase mini app');
+      if (!IS_PRODUCTION) console.log('🔍 [CoinbaseMiniAppWrapper] Calling setFrameReady() for Coinbase mini app');
 
       try {
         setFrameReady();
-        console.log('✅ [CoinbaseMiniAppWrapper] setFrameReady() called successfully');
+        if (!IS_PRODUCTION) console.log('✅ [CoinbaseMiniAppWrapper] setFrameReady() called successfully');
       } catch (error) {
         console.error('🚨 [CoinbaseMiniAppWrapper] Error calling setFrameReady():', error);
         // Don't crash the app, just log the error
@@ -54,10 +55,10 @@ function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleInstall = async () => {
       if (isCoinbaseMiniApp && !!router.query.install && context && !context.client.added) {
-        console.log('🔍 [CoinbaseMiniAppWrapper] Handling install flow');
+        if (!IS_PRODUCTION) console.log('🔍 [CoinbaseMiniAppWrapper] Handling install flow');
         try {
           await addFrame();
-          console.log('✅ [CoinbaseMiniAppWrapper] addFrame() completed successfully');
+          if (!IS_PRODUCTION) console.log('✅ [CoinbaseMiniAppWrapper] addFrame() completed successfully');
         } catch (error) {
           console.error('🚨 [CoinbaseMiniAppWrapper] Error calling addFrame():', error);
           // Don't crash the app, just log the error
@@ -82,7 +83,7 @@ function AppContent(props: AppProps) {
 
   const AppLayout = isPostRoute ? Layout : Layout;
 
-  console.log('🔍 [AppContent] Render with state:', {
+  if (!IS_PRODUCTION) console.log('🔍 [AppContent] Render with state:', {
     isMiniApp,
     isFarcasterMiniApp,
     isCoinbaseMiniApp,
@@ -133,7 +134,7 @@ function AppContent(props: AppProps) {
     if (isFarcasterMiniApp && !isSDKLoaded) {
       if (!sdkLoadStartTime) {
         setSdkLoadStartTime(Date.now());
-        console.log('🔍 [AppContent] Started SDK loading at:', new Date().toISOString());
+        if (!IS_PRODUCTION) console.log('🔍 [AppContent] Started SDK loading at:', new Date().toISOString());
       }
 
       // Check if SDK loading has taken too long (more than 10 seconds)
@@ -149,7 +150,7 @@ function AppContent(props: AppProps) {
       }
     } else if (isFarcasterMiniApp && isSDKLoaded && sdkLoadStartTime) {
       const loadTime = Date.now() - sdkLoadStartTime;
-      console.log(`🔍 [AppContent] SDK loaded after ${loadTime}ms`);
+      if (!IS_PRODUCTION) console.log(`🔍 [AppContent] SDK loaded after ${loadTime}ms`);
       setSdkLoadStartTime(null);
     }
   }, [isFarcasterMiniApp, isSDKLoaded, sdkLoadStartTime, hasAppContentTriggeredDebug, context, isMiniAppLoading]);
@@ -172,7 +173,7 @@ function AppContent(props: AppProps) {
 
   // Reset SDK loaded state when mini app type changes
   useEffect(() => {
-    console.log('🔍 [AppContent] Resetting isSDKLoaded to false due to mini app type change:', {
+    if (!IS_PRODUCTION) console.log('🔍 [AppContent] Resetting isSDKLoaded to false due to mini app type change:', {
       isFarcasterMiniApp,
       isMiniApp
     });
@@ -195,7 +196,7 @@ function AppContent(props: AppProps) {
     const load = async () => {
       // Only run Farcaster SDK logic if it's a Farcaster mini app
       if (isFarcasterMiniApp) {
-        console.log('🚀 [AppContent] Calling sdk.actions.ready() for Farcaster mini app');
+        if (!IS_PRODUCTION) console.log('🚀 [AppContent] Calling sdk.actions.ready() for Farcaster mini app');
 
         Sentry.addBreadcrumb({
           message: 'AppContent calling Farcaster sdk.actions.ready',
@@ -207,7 +208,7 @@ function AppContent(props: AppProps) {
         try {
           await sdk.actions.ready(); // hide splash
 
-          console.log('✅ [AppContent] Farcaster sdk.actions.ready() completed');
+          if (!IS_PRODUCTION) console.log('✅ [AppContent] Farcaster sdk.actions.ready() completed');
 
           Sentry.addBreadcrumb({
             message: 'AppContent Farcaster sdk.actions.ready completed',
@@ -220,7 +221,7 @@ function AppContent(props: AppProps) {
           if (!!router.query.install) {
             if (!context?.client.added) {
               try {
-                console.log('🔍 [AppContent] Calling sdk.actions.addMiniApp() for install');
+                if (!IS_PRODUCTION) console.log('🔍 [AppContent] Calling sdk.actions.addMiniApp() for install');
 
                 Sentry.addBreadcrumb({
                   message: 'AppContent calling Farcaster addMiniApp',
@@ -231,7 +232,7 @@ function AppContent(props: AppProps) {
 
                 await sdk.actions.addMiniApp();
 
-                console.log('✅ [AppContent] sdk.actions.addMiniApp() completed');
+                if (!IS_PRODUCTION) console.log('✅ [AppContent] sdk.actions.addMiniApp() completed');
 
                 Sentry.addBreadcrumb({
                   message: 'AppContent Farcaster addMiniApp completed',
@@ -260,7 +261,7 @@ function AppContent(props: AppProps) {
           }
 
           // Only set loaded to true after sdk.actions.ready() completes
-          console.log('✅ [AppContent] Farcaster SDK ready, setting isSDKLoaded to true');
+          if (!IS_PRODUCTION) console.log('✅ [AppContent] Farcaster SDK ready, setting isSDKLoaded to true');
           setIsSDKLoaded(true);
 
           Sentry.addBreadcrumb({
@@ -303,7 +304,7 @@ function AppContent(props: AppProps) {
     };
 
     if (isFarcasterMiniApp && !isSDKLoaded) {
-      console.log('🔄 [AppContent] Loading Farcaster SDK...');
+      if (!IS_PRODUCTION) console.log('🔄 [AppContent] Loading Farcaster SDK...');
 
       Sentry.addBreadcrumb({
         message: 'AppContent starting Farcaster SDK load',
@@ -319,7 +320,7 @@ function AppContent(props: AppProps) {
       load();
     } else if (!isMiniApp && !isSDKLoaded) {
       // Handle regular web app (not a mini app)
-      console.log('🌐 [AppContent] Regular web app - no SDK needed, setting isSDKLoaded to true');
+      if (!IS_PRODUCTION) console.log('🌐 [AppContent] Regular web app - no SDK needed, setting isSDKLoaded to true');
 
       Sentry.addBreadcrumb({
         message: 'AppContent regular web app - no SDK needed',
@@ -330,7 +331,7 @@ function AppContent(props: AppProps) {
 
       setIsSDKLoaded(true);
     } else {
-      console.log('🔍 [AppContent] SDK loading skipped:', {
+      if (!IS_PRODUCTION) console.log('🔍 [AppContent] SDK loading skipped:', {
         isFarcasterMiniApp,
         isMiniApp,
         isSDKLoaded
@@ -364,7 +365,7 @@ function AppContent(props: AppProps) {
   }, []);
 
   // Always render - no more complex shouldRender logic
-  console.log('🔍 [AppContent] Always rendering now - no complex logic');
+  if (!IS_PRODUCTION) console.log('🔍 [AppContent] Always rendering now - no complex logic');
 
   // Simple bfcache support
   useEffect(() => {
@@ -377,16 +378,16 @@ function AppContent(props: AppProps) {
       const currentState = document.visibilityState;
       visibilityChangeCount++;
 
-      console.log(`🔍 [AppContent] Visibility changed to ${currentState} (change #${visibilityChangeCount})`);
+      if (!IS_PRODUCTION) console.log(`🔍 [AppContent] Visibility changed to ${currentState} (change #${visibilityChangeCount})`);
 
       // Simple visibility logging
-      console.log(`🔍 [AppContent] Visibility: ${currentState}`);
+      if (!IS_PRODUCTION) console.log(`🔍 [AppContent] Visibility: ${currentState}`);
 
       lastVisibilityState = currentState;
     };
 
     const handlePageHide = (event: PageTransitionEvent) => {
-      console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
+      if (!IS_PRODUCTION) console.log('🗄️ [BFCACHE] Page hiding - preparing for bfcache');
 
       // Don't prevent bfcache if user is navigating away
       // The individual socket hooks will handle their own cleanup
@@ -394,18 +395,18 @@ function AppContent(props: AppProps) {
 
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        console.log('🗄️ [BFCACHE] Page restored from bfcache');
+        if (!IS_PRODUCTION) console.log('🗄️ [BFCACHE] Page restored from bfcache');
         // Individual socket hooks will handle reconnection
       }
     };
 
     // Add freeze event for additional bfcache support
     const handleFreeze = () => {
-      console.log('🧊 [BFCACHE] Page frozen');
+      if (!IS_PRODUCTION) console.log('🧊 [BFCACHE] Page frozen');
     };
 
     const handleResume = () => {
-      console.log('▶️ [BFCACHE] Page resumed');
+      if (!IS_PRODUCTION) console.log('▶️ [BFCACHE] Page resumed');
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -423,7 +424,7 @@ function AppContent(props: AppProps) {
     };
     }, []);
 
-  console.log('🔍 [AppContent] Always rendering app content now');
+  if (!IS_PRODUCTION) console.log('🔍 [AppContent] Always rendering app content now');
 
   return (
       <>
@@ -504,7 +505,7 @@ function AppContent(props: AppProps) {
 
 // Automatic debug exception capture
 const captureDebugException = (reason: string, additionalData: any = {}) => {
-  console.log(`🚨 [AUTO-DEBUG] Capturing exception: ${reason}`);
+  if (!IS_PRODUCTION) console.log(`🚨 [AUTO-DEBUG] Capturing exception: ${reason}`);
 
   Sentry.addBreadcrumb({
     message: `Automatic debug exception capture: ${reason}`,
@@ -530,7 +531,7 @@ const captureDebugException = (reason: string, additionalData: any = {}) => {
     }
   });
 
-  console.log('🚨 [AUTO-DEBUG] Exception captured! Check Sentry for breadcrumbs.');
+  if (!IS_PRODUCTION) console.log('🚨 [AUTO-DEBUG] Exception captured! Check Sentry for breadcrumbs.');
 };
 
 // Manual debug helpers (still available for development)
@@ -538,7 +539,7 @@ if (typeof window !== 'undefined') {
   (window as any).captureDebugException = () => captureDebugException('manual-trigger');
 
   (window as any).showDebugState = () => {
-    console.log('🔍 [DEBUG] Current mini app state:', {
+    if (!IS_PRODUCTION) console.log('🔍 [DEBUG] Current mini app state:', {
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href,
@@ -548,11 +549,11 @@ if (typeof window !== 'undefined') {
     });
   };
 
-  console.log('🔧 [DEBUG] Auto-debug system loaded!');
+  if (!IS_PRODUCTION) console.log('🔧 [DEBUG] Auto-debug system loaded!');
 }
 
 export default function MyApp(props: AppProps) {
-  console.log('🔍 [MyApp] Root component render');
+  if (!IS_PRODUCTION) console.log('🔍 [MyApp] Root component render');
 
   Sentry.addBreadcrumb({
     message: 'MyApp root component render',
