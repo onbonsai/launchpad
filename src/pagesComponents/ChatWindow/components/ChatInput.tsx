@@ -304,7 +304,7 @@ export default function ChatInput({
   const isImage = !isVideo;
 
   // Calculate credits needed for remix
-  const remixCreditsNeeded = animateImage ? (remixTemplate?.estimatedCost || 10) + 30 : (remixTemplate?.estimatedCost || 10);
+  const remixCreditsNeeded = animateImage ? 30 : (remixTemplate?.estimatedCost || 10);
   const hasEnoughCredits = (creditBalance?.creditsRemaining || 0) >= remixCreditsNeeded;
 
   useEffect(() => {
