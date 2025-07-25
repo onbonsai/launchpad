@@ -22,7 +22,7 @@ import { TopUpModalProvider } from "@src/context/TopUpContext";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { base } from "viem/chains";
 import { ErrorBoundary } from "@src/components/ErrorBoundary";
-import { IS_PRODUCTION } from "@src/services/madfi/utils.js";
+import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 // Simplified wrapper that always renders and handles mini app as enhancement
 function CoinbaseMiniAppWrapper({ children }: { children: React.ReactNode }) {
