@@ -462,7 +462,7 @@ export function Publication({
     <div className={profileContainerStyle(isMirror, profilePadding)}>
       <div className={onProfileClick ? "cursor-pointer" : "cursor-default"} onClick={onProfilePress}>
         <Image
-          src={publication.author?.metadata?.picture || "/default.png"}
+          src={publication.author?.metadata?.picture || "/default.webp"}
           className={activeProfilePictureStyle}
           loading="eager"
           decoding="async"

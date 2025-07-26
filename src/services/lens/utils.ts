@@ -45,5 +45,5 @@ export const getProfileImage = (profile) => {
   if (picture && typeof picture === 'string' && picture.startsWith('ipfs://')) {
     return `https://ipfs.io/ipfs/${picture.slice(7)}`;
   }
-  return picture || "/default.png";
+  return picture || "/default.webp";
 };

@@ -54,7 +54,7 @@ export const ProfileContainer = ({
           <div className='w-full'>
             <div className="flex flex-col">
               <SafeImage
-                src={profile.metadata?.picture || "/default.png"}
+                src={profile.metadata?.picture || "/default.webp"}
                 alt={profile?.metadata?.name || 'Profile picture'}
                 width={96}
                 height={96}

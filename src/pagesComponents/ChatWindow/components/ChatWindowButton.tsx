@@ -115,7 +115,7 @@ export default function ChatWindowButton({
               <div className="flex items-center space-x-4">
                 {/* <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
                   <Image
-                    src={agentInfo.account?.metadata?.picture || "/default.png"}
+                    src={agentInfo.account?.metadata?.picture || "/default.webp"}
                     alt="Agent avatar"
                     className="h-full w-full rounded-full object-cover"
                     width={40}

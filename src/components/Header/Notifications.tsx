@@ -339,7 +339,7 @@ const GroupedReactionNotification = ({
                     >
                       {/* Image component */}
                       <SafeImage
-                        src={profile.metadata?.picture || "/default.png"}
+                        src={profile.metadata?.picture || "/default.webp"}
                         alt={username || "profile"}
                         className="w-full h-full object-cover"
                         width={32}
@@ -466,7 +466,7 @@ const NotificationItem = ({
                 >
                   {/* Image component */}
                   <SafeImage
-                    src={profile.metadata?.picture || "/default.png"}
+                    src={profile.metadata?.picture || "/default.webp"}
                     alt={"pfp"}
                     className="w-full h-full object-cover"
                     width={32}

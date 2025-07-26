@@ -35,7 +35,7 @@ const BonsaiToken: Token = {
   metadata: {
     name: "Bonsai",
     symbol: "BONSAI",
-    logo: "https://app.onbons.ai/logo-spaced.png",
+    logo: "https://app.onbons.ai/logo-spaced.webp",
     decimals: 18,
   },
 };

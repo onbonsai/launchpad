@@ -229,7 +229,7 @@ export const CardOverlay: React.FC<CardOverlayProps> = ({
                   <SafeImage
                     key={index}
                     className="inline-block h-8 w-8 rounded-full ring-2 ring-dark-grey"
-                    src={account.metadata?.picture || "/default.png"}
+                    src={account.metadata?.picture || "/default.webp"}
                     alt="avatar"
                     width={32}
                     height={32}
