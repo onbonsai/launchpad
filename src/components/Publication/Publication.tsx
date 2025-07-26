@@ -395,15 +395,13 @@ export function Publication({
         <>
           {publication.metadata?.__typename === "ImageMetadata" && (
             <div className={layout === "horizontal" ? horizontalImageContainerStyle : imageContainerStyle}>
-              <Image
+              <img
                 ref={imageRef as React.RefObject<HTMLImageElement>}
                 onLoad={handleImageLoad}
                 className={layout === "horizontal" ? horizontalMediaImageStyle : mediaImageStyle}
                 src={assetUrl}
                 onClick={onPublicationPress}
                 alt="Publication Image"
-                width={400}
-                height={400}
               />
             </div>
           )}
