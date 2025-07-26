@@ -17,6 +17,7 @@ import { PublicClient } from "@lens-protocol/client";
 import { postId } from "@lens-protocol/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { storageClient } from "@src/services/lens/client";
+import Image from "next/image";
 
 export function Publication({
   publicationId,
@@ -458,12 +459,14 @@ export function Publication({
   const profileInfo = !hideProfile ? (
     <div className={profileContainerStyle(isMirror, profilePadding)}>
       <div className={onProfileClick ? "cursor-pointer" : "cursor-default"} onClick={onProfilePress}>
-        <img
-          src={publication.author?.metadata?.picture || "/default.png"}
+        <Image
+          src={publication.author?.metadata?.picture || "/default.webp"}
           className={activeProfilePictureStyle}
           loading="eager"
           decoding="async"
           alt="Profile picture"
+          width={36}
+          height={36}
         />
       </div>
       <div className={profileDetailsContainerStyle(color)}>
