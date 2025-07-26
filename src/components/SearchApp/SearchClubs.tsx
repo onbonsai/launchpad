@@ -19,7 +19,11 @@ import { V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getProfileImage } from '@src/services/lens/utils';
 import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 
-export const SearchClubs = () => {
+interface SearchClubsProps {
+  onItemSelect?: () => void;
+}
+
+export const SearchClubs = ({ onItemSelect }: SearchClubsProps = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [persistentQuery, setPersistentQuery] = useState(""); // Keep query even when modal closes
@@ -78,6 +82,19 @@ export const SearchClubs = () => {
     }
   }, [isOpen, persistentQuery]);
 
+  // Handle focus on desktop only to prevent mobile zoom
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      // Only auto-focus on desktop (768px and above), not on mobile
+      if (window.innerWidth >= 768) {
+        // Small delay to ensure modal is fully rendered
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 100);
+      }
+    }
+  }, [isOpen]);
+
   function closeModal() {
     setPersistentQuery(query); // Save current query
     setIsOpen(false);
@@ -102,6 +119,9 @@ export const SearchClubs = () => {
     setQuery("");
     setIsOpen(false);
     setKeyboardHeight(0);
+    
+    // Call the callback if provided (e.g., to close mobile menu)
+    onItemSelect?.();
     
     if (item.type === "profile") {
       push(`/profile/${item.username.localName}`);
@@ -251,7 +271,11 @@ export const SearchClubs = () => {
                           placeholder="Type to search across tokens, profiles, and posts"
                           onChange={handleSelected}
                           value={query}
-                          autoFocus={!isAlmostMobile} // Avoid auto-focus on mobile to prevent zoom
+                          autoFocus={false}
+                          style={{
+                            fontSize: '16px', // Prevents zoom on iOS Safari when font-size is less than 16px
+                            ...(isAlmostMobile ? { touchAction: 'manipulation' } : {})
+                          }}
                         />
                         {/* Clear button for mobile */}
                         {query && isAlmostMobile && (

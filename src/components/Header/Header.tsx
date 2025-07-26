@@ -280,7 +280,9 @@ export const Header = () => {
           <div className="md:hidden bg-black border-t border-dark-grey px-4 py-3">
             <div className="flex flex-col space-y-2 w-full">
               <div className="pb-2 w-full">
-                <SearchClubs />
+                <SearchClubs onItemSelect={() => {
+                  setOpenMobileMenu(false);
+                }} />
               </div>
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
