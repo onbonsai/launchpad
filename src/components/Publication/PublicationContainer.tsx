@@ -3,28 +3,20 @@ import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import { useWalletClient, useAccount, useReadContract } from "wagmi";
 import { switchChain } from "viem/actions";
-import dynamic from 'next/dynamic';
 import { erc20Abi } from "viem";
-import { BookmarkAddOutlined, BookmarkOutlined, MoreHoriz, SwapCalls } from "@mui/icons-material";
+import { MoreHoriz, SwapCalls } from "@mui/icons-material";
 import { DownloadIcon } from '@heroicons/react/outline';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { MADFI_BANNER_IMAGE_SMALL, BONSAI_POST_URL } from "@src/constants/constants";
+import { MADFI_BANNER_IMAGE_SMALL } from "@src/constants/constants";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import { ChainRpcs } from "@src/constants/chains";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
 import {
-  shareContainerStyleOverride,
-  imageContainerStyleOverride,
-  mediaImageStyleOverride,
   publicationProfilePictureStyle,
-  reactionContainerStyleOverride,
-  reactionsContainerStyleOverride,
   textContainerStyleOverrides,
-  actButtonContainerStyleOverride,
 } from "./PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
@@ -32,7 +24,6 @@ import { LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { checkCollectAmount, collectPost } from "@src/services/lens/collect";
 import { ELIZA_API_URL, SET_FEATURED_ADMINS, SmartMediaStatus, type SmartMedia } from "@src/services/madfi/studio";
 import CollectModal from "./CollectModal";
-import { Button } from "../Button";
 import DropdownMenu from "./DropdownMenu";
 import { sendRepost } from "@src/services/lens/posts";
 import { SparkIcon } from "../Icons/SparkIcon";
@@ -40,13 +31,9 @@ import { formatNextUpdate } from "@src/utils/utils";
 import { useGetCredits } from "@src/hooks/useGetCredits";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useTopUpModal } from "@src/context/TopUpContext";
-import { ChatIcon } from "@heroicons/react/outline";
 import useIsMobile from "@src/hooks/useIsMobile";
 import clsx from "clsx";
-import { Tooltip } from "@src/components/Tooltip";
-import { usePWA } from "@src/hooks/usePWA";
 import { sharePost } from "@src/utils/webShare";
-import { ShareIcon } from "@heroicons/react/outline";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { Publication } from "./Publication";
 
@@ -114,10 +101,9 @@ const PublicationContainer = ({
   showDownload,
 }: PublicationContainerProps) => {
   const router = useRouter();
-  const {isMiniApp} = useIsMiniApp();
+  const { isMiniApp } = useIsMiniApp();
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();
-  const { isStandalone } = usePWA();
   const referralAddress = router.query.ref as `0x${string}`;
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -253,14 +239,18 @@ const PublicationContainer = ({
 
   const _publicationId = publication?.slug || publicationId!;
 
-  const onShareButtonClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onShareButtonClick = async (e: React.MouseEvent) => {
+    try {
+      const postTitle = publication?.metadata?.content?.slice(0, 50) + (publication?.metadata?.content?.length > 50 ? '...' : '') || 'Check out this post on Bonsai';
 
-    navigator.clipboard.writeText(`${BONSAI_POST_URL}/${_publicationId}`);
-
-    toast("Link copied", { position: "bottom-center", icon: "🔗", duration: 2000 });
-  }, [_publicationId]);
+      await sharePost(_publicationId, {
+        title: postTitle,
+        text: 'Check out this amazing content on Bonsai',
+      });
+    } catch (error) {
+      console.error('Web share failed:', error);
+    }
+  };
 
   const goToPublicationPage = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -531,20 +521,6 @@ const PublicationContainer = ({
     }
   };
 
-  // Web share function for PWA
-  const handleWebShare = async () => {
-    try {
-      const postTitle = publication?.metadata?.content?.slice(0, 50) + (publication?.metadata?.content?.length > 50 ? '...' : '') || 'Check out this post on Bonsai';
-
-      await sharePost(_publicationId, {
-        title: postTitle,
-        text: 'Check out this amazing content on Bonsai',
-      });
-    } catch (error) {
-      console.error('Web share failed:', error);
-    }
-  };
-
   // Simplify the PublicationType logic since we now have a unified component
   const layout = useMemo(() => {
     if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
@@ -593,7 +569,6 @@ const PublicationContainer = ({
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
           hideCommentButton
-          hideShareButton
           onCollectButtonClick={onCollectButtonClick}
           layout={layout}
         />
@@ -678,23 +653,6 @@ const PublicationContainer = ({
         </div>
       )}
 
-      {/* Web share button for PWA */}
-      {isStandalone && (
-        <div
-          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${isCreator ? 'right-[6.5rem]' : 'right-14'}` : `bottom-3 ${isCreator ? 'right-[5.3rem]' : 'right-12'}`}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleWebShare();
-          }}
-        >
-          <div
-            className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[4px] scale-77'}`}
-          >
-            <ShareIcon className={`text-white ${sideBySideMode ? 'w-6 h-6' : 'w-4 h-4'}`} />
-          </div>
-        </div>
-      )}
-
       {/* Download button for video content (only for creator) */}
       {!!publication?.metadata?.video?.item && (showDownload || (isAuthenticated && isCreator)) ? (
         <div
@@ -718,14 +676,14 @@ const PublicationContainer = ({
 
       {!!media?.agentId && isAuthenticated && (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-3'}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-5 right-3'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
           <button
             ref={dropdownButtonRef}
             className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[2px] scale-77'}`}
           >
-            <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
+            <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 24 }} />
           </button>
         </div>
       )}

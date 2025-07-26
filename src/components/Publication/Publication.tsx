@@ -10,7 +10,6 @@ import { formatCustomDate } from "@src/utils/utils";
 import { AudioPlayer } from "./AudioPlayer";
 import { NewHeartIcon } from "../Icons/NewHeartIcon";
 import { NewMessageIcon } from "../Icons/NewMessageIcon";
-import { NewShareIcon } from "../Icons/NewShareIcon";
 import { NewColllectIcon } from "../Icons/NewCollectIcon";
 import { EyeIcon } from "../Icons/EyeIcon";
 import { PublicClient } from "@lens-protocol/client";
@@ -18,6 +17,7 @@ import { postId } from "@lens-protocol/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { storageClient } from "@src/services/lens/client";
 import Image from "next/image";
+import { ShareIcon } from "@heroicons/react/outline";
 
 export function Publication({
   publicationId,
@@ -332,21 +332,20 @@ export function Publication({
               {publication.stats.collects > 0 && <p>{publication.stats.collects}</p>}
             </div>
           )}
-          {presenceCount && presenceCount > 1 && (
+          {presenceCount && presenceCount > 1 ? (
             <div className={reactionContainerStyle(reactionTextColor, reactionBgColor, false, false)}>
               <EyeIcon outlineColor={reactionTextColor} />
               <p>{presenceCount}</p>
             </div>
-          )}
+          ) : null}
           {!hideShareButton && (
-            <div
-              className={(layout === "horizontal" ? horizontalShareContainerStyle : shareContainerStyle)(
-                reactionTextColor,
-                reactionBgColor,
-              )}
-              onClick={onShareButtonClick}
-            >
-              <NewShareIcon color={reactionTextColor} />
+            <div className={horizontalReactionContainerStyle(
+              reactionTextColor,
+              reactionBgColor,
+              isAuthenticated && onShareButtonClick,
+              false,
+            )} onClick={onShareButtonClick} >
+              <ShareIcon className={`text-[#dcdcdc] w-4 h-4`} />
             </div>
           )}
         </>
