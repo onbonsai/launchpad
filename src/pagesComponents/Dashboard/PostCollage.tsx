@@ -12,12 +12,7 @@ import { uniqBy } from "lodash/array";
 import clsx from "clsx";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import {
-  imageContainerStyleOverride,
-  mediaImageStyleOverride,
   publicationProfilePictureStyle,
-  reactionContainerStyleOverride,
-  reactionsContainerStyleOverride,
-  shareContainerStyleOverride,
   postCollageTextContainerStyleOverrides,
 } from "@src/components/Publication/PublicationStyleOverrides";
 import { CardOverlay } from "@src/components/CardOverlay";
@@ -34,7 +29,6 @@ import useIsMobile from "@src/hooks/useIsMobile";
 import { PostTabType } from "@src/components/Publication/PostsTabs";
 import { TimelineItemInteractions } from '@src/components/Publication/TimelineItemInteractions';
 import { Button } from "@src/components/Button";
-import dynamic from "next/dynamic";
 import { sendLike } from "@src/services/lens/getReactions";
 import { Publication } from "@src/components/Publication/Publication";
 
@@ -249,7 +243,6 @@ const PostItem = React.memo(({
           <Publication
             key={`preview-${post.slug}`}
             publicationData={memoizedPublicationData}
-            followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
             profilePictureStyleOverride={publicationProfilePictureStyle}
             containerBorderRadius={'24px'}
@@ -257,15 +250,7 @@ const PostItem = React.memo(({
             profilePadding={'0 0 0 0'}
             textContainerStyleOverride={postCollageTextContainerStyleOverrides}
             backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-            mediaImageStyleOverride={mediaImageStyleOverride}
-            imageContainerStyleOverride={imageContainerStyleOverride}
-            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-            reactionContainerStyleOverride={reactionContainerStyleOverride}
-            shareContainerStyleOverride={shareContainerStyleOverride}
             markdownStyleBottomMargin={'0'}
-            heartIconOverride={true}
-            messageIconOverride={true}
-            shareIconOverride={true}
             profileMaxWidth={'120px'}
             fullVideoHeight
             playVideo={postInView}

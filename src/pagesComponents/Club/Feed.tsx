@@ -1,33 +1,18 @@
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 
-import { LENS_ENVIRONMENT, lensClient, storageClient } from "@src/services/lens/client";
+import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
-// import { useDecryptedGatedPosts } from "@src/hooks/useGetGatedPosts";
-import { pinFile, pinJson, storjGatewayURL } from "@src/utils/storj";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { GenericUploader } from "@src/components/ImageUploader/GenericUploader";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { useGetComments } from "@src/hooks/useGetComments";
-import PublicationContainer, {
-  PostFragmentPotentiallyDecrypted,
-} from "@src/components/Publication/PublicationContainer";
-// import { actWithActionHandler } from "@src/services/madfi/rewardEngagementAction";
+import PublicationContainer from "@src/components/Publication/PublicationContainer";
 import { followProfile } from "@src/services/lens/follow";
 import { polygon } from "viem/chains";
-import clsx from "clsx";
-import {
-  shareContainerStyleOverride,
-  imageContainerStyleOverride,
-  mediaImageStyleOverride,
-  publicationContainerStyleOverride,
-  publicationProfilePictureStyle,
-  reactionContainerStyleOverride,
-  reactionsContainerStyleOverride,
-  textContainerStyleOverrides,
-} from "@src/components/Publication/PublicationStyleOverrides";
+import { publicationContainerStyleOverride, publicationProfilePictureStyle, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { sendLike } from "@src/services/lens/getReactions";
 import { getProfileImage } from "@src/services/lens/utils";
@@ -285,8 +270,6 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
               hasUpvotedComment={hasUpvotedComment}
               onLikeButtonClick={onLikeButtonClick}
               getOperationsFor={getOperationsFor}
-              followButtonDisabled={!isConnected}
-              onFollowPress={onFollowClick}
               onProfileClick={goToProfile}
               profilePictureStyleOverride={publicationProfilePictureStyle}
               containerBorderRadius={'24px'}
@@ -294,17 +277,8 @@ export const Feed = ({ postId, isLoading, publicationWithComments }) => {
               profilePadding={'0 0 0 0'}
               textContainerStyleOverride={textContainerStyleOverrides}
               backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-              mediaImageStyleOverride={mediaImageStyleOverride}
-              imageContainerStyleOverride={imageContainerStyleOverride}
-              reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-              reactionContainerStyleOverride={reactionContainerStyleOverride}
               publicationContainerStyleOverride={publicationContainerStyleOverride}
-              shareContainerStyleOverride={shareContainerStyleOverride}
               markdownStyleBottomMargin={'0'}
-              heartIconOverride={true}
-              messageIconOverride={true}
-              shareIconOverride={true}
-              hideCollectButton={true}
             />
           </div>
         </div>

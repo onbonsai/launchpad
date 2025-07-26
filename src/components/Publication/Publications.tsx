@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { css } from "@emotion/css";
 import { Publication as PublicationComponent } from "./Publication";
 import { Theme } from "./types";
-import { PublicClient } from "@lens-protocol/client";
+import { PublicClient, Cursor } from "@lens-protocol/client";
 import { getComments } from "@src/utils/publicationUtils";
+import { getProfileByHandle } from "@src/services/lens/getProfiles";
+import { getPostsByAuthor } from "@src/services/lens/posts";
 
 // First, let's create a reusable CommentThread component to handle nested comments
 const CommentThread = ({ comment, level = 0, maxDepth = 3, isLastComment = false, ...props }) => {
@@ -14,7 +16,6 @@ const CommentThread = ({ comment, level = 0, maxDepth = 3, isLastComment = false
     setLoadingComments(true);
     try {
       const lensClient = PublicClient.create({ environment: props.environment });
-      console.log(`fetchNestedComments for: ${publicationId}`);
       const comments = await getComments(publicationId, lensClient);
 
       if (comments) {
@@ -82,7 +83,6 @@ const CommentThread = ({ comment, level = 0, maxDepth = 3, isLastComment = false
         hideCommentButton={level >= maxDepth}
         hideQuoteButton={true}
         hideShareButton={true}
-        followButtonDisabled={props.followButtonDisabled}
         hideCollectButton={true}
         onCommentButtonClick={(e) => {
           e.preventDefault();
@@ -154,8 +154,8 @@ export function Publications({
   profileId,
   handle,
   theme,
-  numberOfPublications,
-  publications,
+  numberOfPublications = 10,
+  publications: initialPublications,
   environment,
   authenticatedProfile,
   hideFollowButton = true,
@@ -167,29 +167,15 @@ export function Publications({
   onCommentButtonClick,
   hasUpvotedComment,
   getOperationsFor,
-  renderMadFiBadge = false,
-  followButtonDisabled = false,
-  onFollowPress,
   onProfileClick,
   profilePictureStyleOverride,
-  profileContainerStyleOverride,
   textContainerStyleOverride,
   containerBorderRadius,
   containerPadding,
   profilePadding,
   backgroundColorOverride,
-  mediaImageStyleOverride,
-  imageContainerStyleOverride,
-  reactionsContainerStyleOverride,
-  reactionContainerStyleOverride,
   publicationContainerStyleOverride,
-  profileNameStyleOverride,
-  dateNameStyleOverride,
   markdownStyleBottomMargin,
-  shareContainerStyleOverride,
-  heartIconOverride,
-  messageIconOverride,
-  shareIconOverride,
   maxCommentDepth = 3, // Add this new prop
 }: {
   profileId?: string;
@@ -207,13 +193,9 @@ export function Publications({
   onCommentButtonClick?: (e, publicationId: string, username: string) => void;
   hasUpvotedComment: (publicationId: string) => boolean;
   getOperationsFor: (publicationId: string) => any;
-  renderMadFiBadge?: boolean;
   hideFollowButton?: boolean;
-  followButtonDisabled: boolean;
-  onFollowPress?: (event, profileId) => void;
   onProfileClick?: (e, handleLocalName) => void;
   profilePictureStyleOverride?: string;
-  profileContainerStyleOverride?: (isMirror, padding?: string) => string;
   textContainerStyleOverride?: string;
   containerBorderRadius?: string;
   containerPadding?: string;
@@ -225,17 +207,62 @@ export function Publications({
   reactionContainerStyleOverride?: (color, backgroundColor, isAuthenticatedAndWithHandler, hasReacted) => string;
   publicationContainerStyleOverride?: string;
   markdownStyleBottomMargin?: string;
-  profileNameStyleOverride?: string;
-  dateNameStyleOverride?: string;
-  shareContainerStyleOverride?: (color, backgroundColor) => string;
-  heartIconOverride?: boolean;
-  messageIconOverride?: boolean;
-  shareIconOverride?: boolean;
   maxCommentDepth?: number;
 }) {
-  const [followed, setFollowed] = useState({});
+  const [publications, setPublications] = useState<any[] | undefined>(initialPublications);
   const [expandedComments, setExpandedComments] = useState<{ [key: string]: any[] }>({});
   const [loadingComments, setLoadingComments] = useState<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    if (!initialPublications?.length) {
+      fetchPublications();
+    } else {
+      setPublications(initialPublications);
+    }
+  }, [profileId, handle, initialPublications, numberOfPublications]);
+
+  async function fetchPublications() {
+    let id = profileId;
+
+    if (!id && handle) {
+      try {
+        const profile = await getProfileByHandle(handle);
+        id = profile?.address;
+      } catch (err) {
+        console.log("error fetching profile: ", err);
+      }
+    }
+
+    if (!id) return;
+
+    try {
+      let allItems: any[] = [];
+      let cursor: Cursor | null = null;
+      const targetCount = numberOfPublications;
+
+      while (allItems.length < targetCount) {
+        const result = await getPostsByAuthor(id, cursor);
+
+        if (result.isErr()) {
+          throw result.error;
+        }
+
+        const { items, pageInfo } = result.value;
+        allItems = [...allItems, ...items];
+
+        if (!pageInfo.next || allItems.length >= targetCount) {
+          break;
+        }
+
+        cursor = pageInfo.next as Cursor | null;
+      }
+
+      const finalItems = allItems.slice(0, targetCount);
+      setPublications(finalItems);
+    } catch (err) {
+      console.log("error fetching publications: ", err);
+    }
+  }
 
   async function fetchComments(publicationId: string) {
     setLoadingComments((prev) => ({ ...prev, [publicationId]: true }));
@@ -286,38 +313,14 @@ export function Publications({
                     : undefined
                 }
                 operations={getOperationsFor(publication.id)}
-                renderMadFiBadge={renderMadFiBadge}
-                hideFollowButton={false} // TODO: fix this
-                followButtonDisabled={followButtonDisabled}
-                followButtonBackgroundColor={"#EEEDED"} // TODO: fix this
-                isFollowed={false} // TODO: fix this
-                onFollowPress={(e) => {
-                  if (onFollowPress) {
-                    onFollowPress(e, publication.by.id);
-                    const res = {};
-                    res[publication.id] = true;
-                    setFollowed({ ...followed, ...res }); // optimistic, better than leaving no state changed
-                  }
-                }}
                 onProfileClick={onProfileClick}
                 profilePictureStyleOverride={profilePictureStyleOverride}
-                profileContainerStyleOverride={profileContainerStyleOverride}
                 textContainerStyleOverride={textContainerStyleOverride}
                 containerBorderRadius={containerBorderRadius}
                 containerPadding={containerPadding}
                 profilePadding={profilePadding}
                 backgroundColorOverride={backgroundColorOverride}
-                mediaImageStyleOverride={mediaImageStyleOverride}
-                imageContainerStyleOverride={imageContainerStyleOverride}
-                reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                reactionContainerStyleOverride={reactionContainerStyleOverride}
                 markdownStyleBottomMargin={markdownStyleBottomMargin}
-                shareContainerStyleOverride={shareContainerStyleOverride}
-                heartIconOverride={heartIconOverride}
-                messageIconOverride={messageIconOverride}
-                shareIconOverride={shareIconOverride}
-                profileNameStyleOverride={profileNameStyleOverride}
-                dateNameStyleOverride={dateNameStyleOverride}
                 onCommentButtonClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -383,27 +386,14 @@ export function Publications({
                     onLikeButtonClick={onLikeButtonClick}
                     hasUpvotedComment={hasUpvotedComment}
                     hideFollowButton={hideFollowButton}
-                    followButtonDisabled={followButtonDisabled}
-                    onFollowPress={onFollowPress}
                     onProfileClick={onProfileClick}
                     profilePictureStyleOverride={profilePictureStyleOverride}
-                    profileContainerStyleOverride={profileContainerStyleOverride}
                     textContainerStyleOverride={textContainerStyleOverride}
                     containerBorderRadius={containerBorderRadius}
                     containerPadding={containerPadding}
                     profilePadding={profilePadding}
                     backgroundColorOverride={backgroundColorOverride}
-                    mediaImageStyleOverride={mediaImageStyleOverride}
-                    imageContainerStyleOverride={imageContainerStyleOverride}
-                    reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                    reactionContainerStyleOverride={reactionContainerStyleOverride}
                     markdownStyleBottomMargin={markdownStyleBottomMargin}
-                    shareContainerStyleOverride={shareContainerStyleOverride}
-                    heartIconOverride={heartIconOverride}
-                    messageIconOverride={messageIconOverride}
-                    shareIconOverride={shareIconOverride}
-                    profileNameStyleOverride={profileNameStyleOverride}
-                    dateNameStyleOverride={dateNameStyleOverride}
                     onCommentButtonClick={onCommentButtonClick}
                     isLastComment={!isThread ? index === expandedComments[publication.id].length - 1 : true}
                   />

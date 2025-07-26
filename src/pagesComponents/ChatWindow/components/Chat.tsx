@@ -29,15 +29,7 @@ import axios from 'axios';
 import { encodeAbi } from '@src/utils/viem';
 import { cloneDeep } from "lodash/lang";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import {
-  shareContainerStyleOverride,
-  imageContainerStyleOverride,
-  mediaImageStyleOverride,
-  reactionContainerStyleOverride,
-  reactionsContainerStyleOverride,
-  textContainerStyleOverrides,
-  previewProfileContainerStyleOverride,
-} from "@src/components/Publication/PublicationStyleOverrides";
+import { textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import { DownloadIcon } from '@heroicons/react/outline';
 
@@ -135,23 +127,13 @@ const PreviewMessage = ({
                   : undefined
               }
             }}
-            followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
-            profileContainerStyleOverride={previewProfileContainerStyleOverride}
             containerBorderRadius={hasVideo ? '0' : '16px'}
             containerPadding={'10px'}
             profilePadding={'0 0 0 0'}
             textContainerStyleOverride={textContainerStyleOverrides}
             backgroundColorOverride={'transparent'}
-            mediaImageStyleOverride={mediaImageStyleOverride}
-            imageContainerStyleOverride={imageContainerStyleOverride}
-            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-            reactionContainerStyleOverride={reactionContainerStyleOverride}
-            shareContainerStyleOverride={shareContainerStyleOverride}
             markdownStyleBottomMargin={'0'}
-            heartIconOverride={true}
-            messageIconOverride={true}
-            shareIconOverride={true}
             fullVideoHeight={false}
           />
         </div>
