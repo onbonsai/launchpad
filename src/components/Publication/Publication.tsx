@@ -105,6 +105,7 @@ export function Publication({
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [videoLoading, setVideoLoading] = useState(true);
 
   const measureImageHeight = () => {
     if (resizeTimeoutRef.current) {
@@ -167,6 +168,7 @@ export function Publication({
             : publication.metadata.image.item;
           if (isMounted) setAssetUrl(url);
         } else if (publication.metadata.__typename === "VideoMetadata") {
+          setVideoLoading(true);
           const url = publication.metadata.video.item?.startsWith("lens://")
             ? await storageClient.resolve(publication.metadata.video.item)
             : publication.metadata.video.item;
@@ -417,14 +419,21 @@ export function Publication({
             <div
               className={layout === "horizontal" ? horizontalVideoContainerStyle : videoContainerStyle(fullVideoHeight)}
             >
+              {videoLoading && assetUrl && (
+                <div className={videoSkeletonStyle} />
+              )}
               <video
                 ref={videoRef}
                 className={videoStyle}
                 src={assetUrl}
-                onLoadedMetadata={measureImageHeight}
+                onLoadedMetadata={(e) => {
+                  setVideoLoading(false);
+                  measureImageHeight();
+                }}
                 onError={(e) => {
                   console.error("Video error:", e);
                   setIsPlaying(false);
+                  setVideoLoading(false);
                 }}
                 controls={!hideVideoControls}
                 controlsList="nodownload"
@@ -433,6 +442,7 @@ export function Publication({
                 autoPlay={isPlaying && !disableAutoplay}
                 loop={isPlaying}
                 onEnded={handleEnded}
+                style={{ display: videoLoading ? 'none' : 'block' }}
               />
               {publication.metadata?.__typename === "LiveStreamMetadataV3" && (
                 <div className={liveContainerStyle}>
@@ -659,15 +669,22 @@ const mediaImageStyle = css`
 const videoContainerStyle = (fullVideoHeight: boolean = false) => css`
   position: relative;
   width: 100%;
-  height: ${fullVideoHeight ? "auto" : "480px"};
+  min-height: ${fullVideoHeight ? "200px" : "200px"};
+  max-height: ${fullVideoHeight ? "none" : "80vh"};
   background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 `;
 
 const videoStyle = css`
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 `;
 
 const audioContainerStyle = css`
@@ -788,9 +805,13 @@ const horizontalVideoContainerStyle = css`
   margin-top: 0;
   width: 100%;
   height: auto;
+  min-height: 200px;
   max-height: 720px;
-  overflow: hidden;
   background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 `;
 
 const horizontalReactionsContainerStyle = css`
@@ -1029,21 +1050,9 @@ const imageSkeletonStyle = css`
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
+`;
+
+const videoSkeletonStyle = css`
+  width: 100%;
+  height: 400px;
 `;

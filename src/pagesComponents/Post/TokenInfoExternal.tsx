@@ -160,7 +160,7 @@ export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Tok
                   subtitle={
                     <div className="flex gap-1 items-center">
                       <SafeImage
-                        src={`/${token.chain}.png`}
+                        src={`/${token.chain}.webp`}
                         alt={token.chain}
                         className="opacity-7 w-auto h-4"
                         height={12}
