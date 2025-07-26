@@ -104,7 +104,6 @@ export function Publication({
   const imageRef = useRef<HTMLImageElement | HTMLIFrameElement | null>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [imageLoading, setImageLoading] = useState(true);
   const [videoLoading, setVideoLoading] = useState(true);
 
   const measureImageHeight = () => {
@@ -116,13 +115,6 @@ export function Publication({
         setLeftColumnHeight(imageRef.current.clientHeight);
       }
     }, 100);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-    if (imageRef.current) {
-      setLeftColumnHeight(imageRef.current.clientHeight);
-    }
   };
 
   useEffect(() => {
@@ -162,7 +154,6 @@ export function Publication({
     const resolveAssetUrl = async () => {
       try {
         if (publication.metadata.__typename === "ImageMetadata") {
-          setImageLoading(true);
           const url = publication.metadata.image.item?.startsWith("lens://")
             ? await storageClient.resolve(publication.metadata.image.item)
             : publication.metadata.image.item;
@@ -369,12 +360,7 @@ export function Publication({
         <div className={iframeContainerStyle}>
           {operations?.hasCollected ? (
             <>
-              <iframe
-                src={canvasUrl}
-                className={iframeStyle}
-                ref={imageRef as React.RefObject<HTMLIFrameElement>}
-                onLoad={handleImageLoad}
-              />
+              <iframe src={canvasUrl} className={iframeStyle} ref={imageRef as React.RefObject<HTMLIFrameElement>} />
               <button
                 className={fullscreenButtonStyle}
                 onClick={() => {
@@ -398,19 +384,14 @@ export function Publication({
         </div>
       ) : (
         <>
-          {publication.metadata?.__typename === "ImageMetadata" && (
+          {publication.metadata?.__typename === "ImageMetadata" && assetUrl && (
             <div className={layout === "horizontal" ? horizontalImageContainerStyle : imageContainerStyle}>
-              {imageLoading && assetUrl && (
-                <div className={imageSkeletonStyle} />
-              )}
               <img
-                ref={imageRef as React.RefObject<HTMLImageElement>}
-                onLoad={handleImageLoad}
                 className={layout === "horizontal" ? horizontalMediaImageStyle : mediaImageStyle}
                 src={assetUrl}
                 onClick={onPublicationPress}
                 alt="Publication Image"
-                style={{ display: imageLoading ? 'none' : 'block', maxHeight: '80vh' }}
+                loading="lazy"
               />
             </div>
           )}
@@ -419,9 +400,7 @@ export function Publication({
             <div
               className={layout === "horizontal" ? horizontalVideoContainerStyle : videoContainerStyle(fullVideoHeight)}
             >
-              {videoLoading && assetUrl && (
-                <div className={videoSkeletonStyle} />
-              )}
+              {videoLoading && assetUrl && <div className={videoSkeletonStyle} />}
               <video
                 ref={videoRef}
                 className={videoStyle}
@@ -442,7 +421,7 @@ export function Publication({
                 autoPlay={isPlaying && !disableAutoplay}
                 loop={isPlaying}
                 onEnded={handleEnded}
-                style={{ display: videoLoading ? 'none' : 'block' }}
+                style={{ display: videoLoading ? "none" : "block" }}
               />
               {publication.metadata?.__typename === "LiveStreamMetadataV3" && (
                 <div className={liveContainerStyle}>
@@ -647,29 +626,29 @@ const profilePictureStyle = css`
 
 const imageContainerStyle = css`
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
-  overflow: hidden;
-  max-height: 480px;
-  min-height: 200px;
+  height: auto;
+  min-height: 400px;
+  max-height: 70vh;
   margin-top: 14px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: black;
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
 const mediaImageStyle = css`
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  max-height: 100%;
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 720px;
+  object-fit: contain !important;
 `;
 
 const videoContainerStyle = (fullVideoHeight: boolean = false) => css`
   position: relative;
   width: 100%;
-  min-height: ${fullVideoHeight ? "200px" : "200px"};
+  min-height: 400px;
+  height: ${fullVideoHeight ? "auto" : "min(80vh, 600px)"};
   max-height: ${fullVideoHeight ? "none" : "80vh"};
   background-color: black;
   display: flex;
@@ -788,7 +767,7 @@ const horizontalImageContainerStyle = css`
   overflow: hidden;
   border-radius: 16px;
   margin-top: 0;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: black;
 `;
 
 const horizontalMediaImageStyle = css`
@@ -798,6 +777,7 @@ const horizontalMediaImageStyle = css`
   display: block;
   border-radius: 16px;
   object-fit: contain;
+  max-height: 720px;
 `;
 
 const horizontalVideoContainerStyle = css`
@@ -1044,15 +1024,8 @@ const fullscreenButtonStyle = css`
   z-index: 10;
 `;
 
-const imageSkeletonStyle = css`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
-
 const videoSkeletonStyle = css`
   width: 100%;
   height: 400px;
+  background-color: black;
 `;
