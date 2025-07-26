@@ -12,6 +12,7 @@ import { useGetCredits } from '@src/hooks/useGetCredits';
 import { useAccount } from 'wagmi';
 import { useAuth } from '@src/hooks/useAuth';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { SparkIcon } from '@src/components/Icons/SparkIcon';
 
 // Helper function to extract frame from video
 const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
@@ -43,11 +44,11 @@ const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): P
       videoElement.onloadedmetadata = () => {
         canvas.width = videoElement.videoWidth;
         canvas.height = videoElement.videoHeight;
-        
+
         // Seek to a small offset to ensure we get a proper frame
         videoElement.currentTime = 0.1;
       };
-      
+
       videoElement.onseeked = () => {
         try {
           ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
@@ -293,10 +294,10 @@ export default function ChatInput({
   }, [remixMedia, templates]);
 
   const { openSwapToGenerateModal } = useTopUpModal();
-  
+
   // Check if the media is a video
-  const isVideo = remixMedia?.templateData && 
-    (remixMedia.template === 'video' || 
+  const isVideo = remixMedia?.templateData &&
+    (remixMedia.template === 'video' ||
      !!(remixMedia.templateData as any).video ||
      !!(remixMedia.templateData as any).clips);
 
@@ -309,7 +310,10 @@ export default function ChatInput({
 
   useEffect(() => {
     if (textareaRef.current && !isGeneratingPreview) {
-      textareaRef.current.focus();
+      // Only auto-focus on desktop, not on mobile
+      if (window.innerWidth >= 768) {
+        textareaRef.current.focus();
+      }
     }
   }, [isGeneratingPreview]);
 
@@ -362,25 +366,25 @@ export default function ChatInput({
 
     try {
       let imageToUse: File | undefined;
-      
+
       // Extract frame from video or use existing image
       if (isVideo) {
         // Check templateData first, then fall back to post metadata
-        const videoData = (remixMedia?.templateData as any)?.video || 
+        const videoData = (remixMedia?.templateData as any)?.video ||
           ((post?.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
-        
+
         if (videoData) {
           toast.loading("Extracting frame...", { id: 'extract-frame' });
-          
+
           try {
             const videoUrl = typeof videoData === 'string' ? videoData : videoData.url;
             const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start');
-            
+
             // Convert data URL to File
             const response = await fetch(frameDataUrl);
             const blob = await response.blob();
             imageToUse = new File([blob], 'frame.png', { type: 'image/png' });
-            
+
             toast.success(`${frameSelection === 'start' ? 'First' : 'Last'} frame extracted!`, { id: 'extract-frame' });
           } catch (error) {
             console.error('Failed to extract frame:', error);
@@ -391,9 +395,9 @@ export default function ChatInput({
         }
       } else if (isImage) {
         // For images, check templateData first, then fall back to post metadata
-        const imageData = (remixMedia?.templateData as any)?.image || 
+        const imageData = (remixMedia?.templateData as any)?.image ||
           (post?.metadata as any)?.image?.item;
-        
+
         if (imageData) {
           try {
             // If it's a URL, fetch and convert to File
@@ -421,10 +425,10 @@ export default function ChatInput({
         // Use the existing worker/preview generation logic
       if (worker && setPendingGenerations) {
         const tempId = `remix-${Date.now()}`;
-        
+
         // Add to pending generations
         setPendingGenerations(prev => new Set(prev).add(tempId));
-        
+
         // Add to local previews as pending
         if (setLocalPreviews) {
           const now = new Date().toISOString();
@@ -476,7 +480,7 @@ export default function ChatInput({
           aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
           roomId: roomId || `remix-${remixMedia?.postId || 'default'}`,
         });
-        
+
         // Send to worker for processing
         worker.postMessage({
           tempId,
@@ -504,15 +508,15 @@ export default function ChatInput({
       }
 
       refetchCredits();
-       
+
     } catch (error: any) {
       console.error('Error generating remix:', error);
       toast.error(error.message || "Failed to generate remix");
     } finally {
       setIsGeneratingRemix(false);
     }
-  }, [remixTemplate, userInput, hasEnoughCredits, remixCreditsNeeded, openSwapToGenerateModal, 
-      refetchCredits, remixMedia, isVideo, frameSelection, isImage, animateImage, 
+  }, [remixTemplate, userInput, hasEnoughCredits, remixCreditsNeeded, openSwapToGenerateModal,
+      refetchCredits, remixMedia, isVideo, frameSelection, isImage, animateImage,
       setCurrentPreview, setUserInput, worker, setPendingGenerations, setLocalPreviews, roomId, post, getAuthHeaders]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -530,7 +534,10 @@ export default function ChatInput({
 
   useEffect(() => {
     if (userInput && textareaRef.current && document.activeElement !== textareaRef.current) {
-      textareaRef.current.focus();
+      // Only auto-focus on desktop, not on mobile
+      if (window.innerWidth >= 768) {
+        textareaRef.current.focus();
+      }
     } else if (!userInput) {
       setRequireAttachment(false);
     }
@@ -574,7 +581,7 @@ export default function ChatInput({
                     disabled={disabled || isGeneratingRemix}
                   />
                 )}
-                
+
                 {/* Action buttons - show Post button when posting, otherwise show appropriate controls */}
                 {!isGeneratingPreview && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
@@ -624,7 +631,7 @@ export default function ChatInput({
                   </div>
                 )}
               </div>
-              <div className='flex flex-row justify-between mt-2'>
+              <div className='flex flex-row justify-between mt-1'>
                 <div className='flex space-x-2 overflow-x-auto mr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
                   {/* Remix controls - only show when remixing and not posting */}
                   {isRemixing && !isPosting && (
@@ -637,7 +644,7 @@ export default function ChatInput({
                             onClick={() => setFrameSelection('start')}
                             className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
                               frameSelection === 'start'
-                                ? 'bg-brand-highlight text-black'
+                                ? 'bg-white/80 text-black'
                                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                             }`}
                           >
@@ -648,7 +655,7 @@ export default function ChatInput({
                             onClick={() => setFrameSelection('end')}
                             className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
                               frameSelection === 'end'
-                                ? 'bg-brand-highlight text-black'
+                                ? 'bg-white/80 text-black'
                                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                             }`}
                           >
@@ -675,7 +682,7 @@ export default function ChatInput({
                       )}
                     </>
                   )}
-                  
+
                   {/* Regular suggestions when not remixing */}
                   {!userInput && showSuggestions && !isPosting && !isGeneratingPreview && !isRemixing && (
                     <>
@@ -704,52 +711,55 @@ export default function ChatInput({
                     </>
                   )}
                 </div>
-                
-                {/* Remix Generate Button - aligned to the right */}
-                {isRemixing && !isPosting && (
-                  <div className='flex items-center gap-2'>
-                    {creditBalance && (
-                      <span className="text-xs text-gray-500">
-                        {creditBalance.creditsRemaining?.toFixed(2)} credits
-                      </span>
-                    )}
-                    {hasEnoughCredits ? (
-                      <Button
-                        type="button"
-                        onClick={generateRemix}
-                        disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
-                        variant="accentBrand"
-                        size="xs"
-                        className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} min-w-[120px]`}
-                      >
-                        {isGeneratingRemix ? (
-                          <div className="flex items-center gap-2">
-                            <Spinner customClasses="h-4 w-4" color="#000000" />
-                            <span>Generating...</span>
-                          </div>
-                        ) : (
-                          `Generate (${remixCreditsNeeded})`
-                        )}
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        onClick={() => openSwapToGenerateModal({
-                          creditsNeeded: remixCreditsNeeded,
-                          onSuccess: () => {
-                            refetchCredits();
-                            generateRemix();
-                          },
-                        })}
-                        variant="accentBrand"
-                        size="xs"
-                      >
-                        Swap to Generate
-                      </Button>
-                    )}
-                  </div>
-                )}
               </div>
+
+              {/* Remix Generate Button - on its own row */}
+              {isRemixing && !isPosting && (
+                <div className='flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2'>
+                  {/* {creditBalance && (
+                    <span className="text-xs text-gray-500 sm:order-1 order-2 text-center sm:text-left">
+                      {parseInt(creditBalance.creditsRemaining)} credits
+                    </span>
+                  )} */}
+                  {hasEnoughCredits ? (
+                    <Button
+                      type="button"
+                      onClick={generateRemix}
+                      disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
+                      variant="accentBrand"
+                      size="xs"
+                      className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} w-full sm:w-auto sm:min-w-[120px] sm:order-2 order-1`}
+                    >
+                      <SparkIcon color="#000" height={14} />
+                      {isGeneratingRemix ? (
+                        <div className="flex items-center gap-2">
+                          <Spinner customClasses="h-4 w-4" color="#000000" />
+                          <span>Generating...</span>
+                        </div>
+                      ) : (
+                        // `Generate (${parseInt(remixCreditsNeeded)} credits)`
+                        'Generate'
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => openSwapToGenerateModal({
+                        creditsNeeded: remixCreditsNeeded,
+                        onSuccess: () => {
+                          refetchCredits();
+                          generateRemix();
+                        },
+                      })}
+                      variant="accentBrand"
+                      size="xs"
+                      className="w-full sm:w-auto sm:order-2 order-1"
+                    >
+                      Swap to Generate
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </form>

@@ -34,13 +34,13 @@ export default function RemixForm({
   const [animateImage, setAnimateImage] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
-  
+
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const { openSwapToGenerateModal } = useTopUpModal();
 
   // Check if the media is a video
-  const isVideo = remixMedia?.templateData && 
-    (remixMedia.template === 'video' || 
+  const isVideo = remixMedia?.templateData &&
+    (remixMedia.template === 'video' ||
      !!(remixMedia.templateData as any).video ||
      !!(remixMedia.templateData as any).clips);
 
@@ -63,7 +63,7 @@ export default function RemixForm({
 
     try {
       const authHeaders = await getAuthHeaders({ isWrite: true });
-      
+
       // Call the new remix endpoint
       const response = await fetch('/api/media/remix', {
         method: 'POST',
@@ -85,7 +85,7 @@ export default function RemixForm({
       }
 
       const result = await response.json();
-      
+
       // Set the preview
       if (result.preview) {
         setPreview(result.preview);
@@ -96,7 +96,7 @@ export default function RemixForm({
 
       toast.success("Remix generated!");
       refetchCredits();
-       
+
     } catch (error: any) {
       console.error('Error generating remix:', error);
       toast.error(error.message || "Failed to generate remix");
@@ -145,15 +145,15 @@ export default function RemixForm({
                 </Button>
               </div>
               {preview.video ? (
-                <video 
-                  src={typeof preview.video === 'string' ? preview.video : preview.video.url} 
+                <video
+                  src={typeof preview.video === 'string' ? preview.video : preview.video.url}
                   controls
                   className="w-full max-h-64 object-contain rounded bg-black"
                 />
               ) : preview.image ? (
-                <img 
-                  src={preview.image} 
-                  alt="Preview" 
+                <img
+                  src={preview.image}
+                  alt="Preview"
                   className="w-full max-h-64 object-contain rounded"
                 />
               ) : null}
@@ -229,13 +229,13 @@ export default function RemixForm({
           </div>
 
           {/* Generate Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-center sm:justify-end">
             {hasEnoughCredits ? (
               <Button
                 onClick={generateRemix}
                 disabled={!prompt.trim() || isGenerating}
                 variant="accentBrand"
-                className="min-w-[120px]"
+                className="w-full sm:w-auto sm:min-w-[120px]"
               >
                 {isGenerating ? (
                   <div className="flex items-center gap-2">
@@ -256,6 +256,7 @@ export default function RemixForm({
                   },
                 })}
                 variant="accentBrand"
+                className="w-full sm:w-auto"
               >
                 Swap to Generate
               </Button>
