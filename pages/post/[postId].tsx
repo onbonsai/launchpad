@@ -48,6 +48,7 @@ import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { Publications } from "@src/components/Publication/Publications";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -59,12 +60,6 @@ interface PublicationProps {
   postId: string;
   quotes: any[];
 }
-
-// Lazy load the Publications component
-const Publications = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.Publications),
-  { ssr: false }
-);
 
 // Add the dynamic import for PublicationContainer with loading state
 const PublicationContainer = dynamic(
@@ -496,7 +491,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                 </div>
               )}
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
-              {(!club && media?.token) && <TokenInfoExternal token={{ ...media.token }} />}
+              {!club && <TokenInfoExternal token={media?.token ? { ...media.token } : undefined} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">
@@ -662,12 +657,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                               reactionsContainerStyleOverride={reactionsContainerStyleOverride}
                               reactionContainerStyleOverride={reactionContainerStyleOverride}
                               publicationContainerStyleOverride={publicationContainerStyleOverride}
-                              shareContainerStyleOverride={shareContainerStyleOverride}
                               markdownStyleBottomMargin={'0px'}
-                              heartIconOverride={true}
-                              messageIconOverride={true}
-                              shareIconOverride={true}
-                              followButtonDisabled={true}
                               onProfileClick={goToCreatorPage}
                               hideCollectButton={true}
                               onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
@@ -706,12 +696,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                       reactionsContainerStyleOverride={reactionsContainerStyleOverride}
                                       reactionContainerStyleOverride={reactionContainerStyleOverride}
                                       publicationContainerStyleOverride={publicationContainerStyleOverride}
-                                      shareContainerStyleOverride={shareContainerStyleOverride}
                                       markdownStyleBottomMargin={'0px'}
-                                      heartIconOverride={true}
-                                      messageIconOverride={true}
-                                      shareIconOverride={true}
-                                      followButtonDisabled={true}
                                       onProfileClick={goToCreatorPage}
                                       hideCollectButton={true}
                                       onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}

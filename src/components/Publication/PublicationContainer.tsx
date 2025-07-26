@@ -48,6 +48,7 @@ import { usePWA } from "@src/hooks/usePWA";
 import { sharePost } from "@src/utils/webShare";
 import { ShareIcon } from "@heroicons/react/outline";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { Publication } from "./Publication";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -81,27 +82,6 @@ type PublicationContainerProps = {
 export type PostFragmentPotentiallyDecrypted = any & {
   isDecrypted?: boolean;
 };
-
-// Lazy load the Publication components with loading states
-const Publication = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.Publication),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-    )
-  }
-);
-
-const HorizontalPublication = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.HorizontalPublication),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-    )
-  }
-);
 
 // handles all the mf buttons
 // - decrypt
@@ -565,16 +545,13 @@ const PublicationContainer = ({
     }
   };
 
-  let PublicationType = HorizontalPublication;
-  if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
-    PublicationType = Publication;
-    sideBySideMode = false;
-  } else {
-    PublicationType = sideBySideMode ? HorizontalPublication : Publication;
-    if (sideBySideMode) {
-      mdMinWidth = 'md:min-w-[900px]'
+  // Simplify the PublicationType logic since we now have a unified component
+  const layout = useMemo(() => {
+    if (publication?.metadata.__typename === "TextOnlyMetadata" && !publication?.metadata?.attributes?.find(attr => attr.key === "isCanvas")) {
+      return "vertical";
     }
-  }
+    return sideBySideMode ? "horizontal" : "vertical";
+  }, [publication?.metadata.__typename, publication?.metadata?.attributes, sideBySideMode]);
 
   return (
     <div className="relative">
@@ -591,32 +568,19 @@ const PublicationContainer = ({
         }
       `}</style>
       {isMounted && (
-        <PublicationType
+        <Publication
           key={publicationKey}
           publicationId={publication?.id ? publication!.id : publicationId}
           publicationData={optimizedPublicationData}
           environment={LENS_ENVIRONMENT}
           authenticatedProfile={authenticatedProfile || undefined}
-          walletClient={walletClient || undefined}
           onClick={shouldGoToPublicationPage ? (e) => goToPublicationPage(e) : undefined}
           onProfileClick={!shouldGoToPublicationPage ? handleProfileClick : undefined}
           onShareButtonClick={(e) => onShareButtonClick(e)}
           onCommentButtonClick={handleCommentButton}
           onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}
           onMirrorButtonClick={!hasMirrored ? onMirrorButtonClick : undefined}
-          // @ts-ignore
           operations={stableOperations}
-          useToast={toast}
-          rpcURLs={ChainRpcs}
-          appDomainWhitelistedGasless={true}
-          // handlePinMetadata={handlePinMetadata}
-          // onActButtonClick={_onActButtonClick}
-          // renderActButtonWithCTA={_renderActButtonWithCTA}
-          hideFollowButton={!(isConnected && isAuthenticated) || isProfileAdmin || hideFollowButton}
-          onFollowPress={onFollowClick}
-          followButtonBackgroundColor={(isFollowed || _isFollowed) ? "transparent" : "#EEEDED"}
-          followButtonDisabled={!isConnected}
-          isFollowed={_isFollowed || isFollowed}
           hideQuoteButton={hideQuoteButton}
           profilePictureStyleOverride={publicationProfilePictureStyle}
           containerBorderRadius={'24px'}
@@ -624,23 +588,14 @@ const PublicationContainer = ({
           profilePadding={'0 0 0 0'}
           textContainerStyleOverride={textContainerStyleOverrides}
           backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-          mediaImageStyleOverride={mediaImageStyleOverride}
-          imageContainerStyleOverride={imageContainerStyleOverride}
-          reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-          reactionContainerStyleOverride={reactionContainerStyleOverride}
-          shareContainerStyleOverride={shareContainerStyleOverride}
-          actButtonContainerStyleOverride={actButtonContainerStyleOverride}
           markdownStyleBottomMargin={'0'}
-          heartIconOverride={true}
-          messageIconOverride={true}
-          shareIconOverride={true}
           nestedWidget={nestedWidget}
-          // updatedAt={sideBySideMode && media?.updatedAt !== media?.createdAt ? media?.updatedAt : undefined}
           hideCollectButton={!!publication.root}
           presenceCount={connectedAccounts?.length}
           hideCommentButton
           hideShareButton
           onCollectButtonClick={onCollectButtonClick}
+          layout={layout}
         />
       )}
       <div className={clsx(
@@ -766,12 +721,12 @@ const PublicationContainer = ({
           className={`absolute cursor-pointer ${sideBySideMode ? 'bottom-4 right-2' : 'bottom-3 right-3'}`}
           onClick={(e) => { setShowDropdown(!showDropdown) }}
         >
-          <div
+          <button
             ref={dropdownButtonRef}
             className={`bg-dark-grey hover:bg-dark-grey/80 text-sm font-bold rounded-[10px] flex items-center justify-center ${sideBySideMode ? 'p-[6px]' : '!mb-1 p-[2px] scale-77'}`}
           >
             <MoreHoriz sx={{ color: '#fff', fontSize: sideBySideMode ? 24 : 20 }} />
-          </div>
+          </button>
         </div>
       )}
 

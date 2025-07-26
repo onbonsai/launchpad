@@ -80,8 +80,8 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
         onClick={(e) => (isConnected ? handleClick(e) : null)}
       >
         <div className="flex items-center gap-x-1.5 md:gap-x-3">
-          <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1 ${!isConnected ? "opacity-80" : ""}`} />
-          <BodySemiBold className={`text-md md:text-md ${brandFont.className}`}>BUY</BodySemiBold>
+        <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1`} />
+        <BodySemiBold className={`text-md md:text-md ${brandFont.className} ${!isConnected ? "text-black" : ""}`}>BUY</BodySemiBold>
         </div>
       </div>
     );

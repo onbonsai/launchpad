@@ -1,5 +1,4 @@
 import { css } from "@emotion/css";
-import { brandFont } from "@src/fonts/fonts";
 
 export const publicationProfilePictureStyle = css`
   width: 36px;

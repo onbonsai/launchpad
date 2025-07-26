@@ -50,7 +50,7 @@ export const ProfilePopperContent = ({ profile, isProfileAdmin, followed, setFol
             <div className="flex justify-between items-center w-full">
               <div className="flex flex-col">
                 <SafeImage
-                  src={profile.metadata?.picture || "/default.png"}
+                  src={profile.metadata?.picture || "/default.webp"}
                   alt="pfp"
                   width={60}
                   height={60}

@@ -52,12 +52,12 @@ const NETWORK_OPTIONS: NetworkOption[] = [
   {
     value: 'lens',
     label: 'Lens',
-    icon: '/lens.png'
+    icon: '/lens.webp'
   },
   {
     value: 'base',
     label: 'Base',
-    icon: '/base.png'
+    icon: '/base.webp'
   }
 ];
 

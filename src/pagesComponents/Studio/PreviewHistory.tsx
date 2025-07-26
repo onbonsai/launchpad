@@ -1,16 +1,6 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
-import { Publication } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
-import {
-  shareContainerStyleOverride,
-  imageContainerStyleOverride,
-  mediaImageStyleOverride,
-  publicationProfilePictureStyle,
-  reactionContainerStyleOverride,
-  reactionsContainerStyleOverride,
-  textContainerStyleOverrides,
-  previewProfileContainerStyleOverride,
-} from "@src/components/Publication/PublicationStyleOverrides";
+import { publicationProfilePictureStyle, textContainerStyleOverrides } from "@src/components/Publication/PublicationStyleOverrides";
 import { Preview, useGetPreviews, Template, ELIZA_API_URL } from "@src/services/madfi/studio";
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import { GLOBAL_AGENT_ID, Memory } from '@src/services/madfi/terminal';
@@ -28,6 +18,7 @@ import { ANIMATED_HINT_LINES } from '@src/constants/constants';
 import { NFTMetadata, type StoryboardClip } from '@src/services/madfi/studio';
 import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
 import { useAccount } from 'wagmi';
+import { Publication } from '@src/components/Publication/Publication';
 
 export type LocalPreview = {
   agentId?: string;
@@ -414,7 +405,6 @@ export default function PreviewHistory({
                   : undefined
               }
             }}
-            followButtonDisabled={true}
             environment={LENS_ENVIRONMENT}
             profilePictureStyleOverride={publicationProfilePictureStyle}
             containerBorderRadius={'24px'}
@@ -422,16 +412,10 @@ export default function PreviewHistory({
             profilePadding={'0 0 0 0'}
             textContainerStyleOverride={textContainerStyleOverrides}
             backgroundColorOverride={'rgba(255,255,255, 0.08)'}
-            mediaImageStyleOverride={mediaImageStyleOverride}
-            imageContainerStyleOverride={imageContainerStyleOverride}
-            reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-            reactionContainerStyleOverride={reactionContainerStyleOverride}
-            shareContainerStyleOverride={shareContainerStyleOverride}
             markdownStyleBottomMargin={'0'}
-            heartIconOverride={true}
-            messageIconOverride={true}
-            shareIconOverride={true}
             fullVideoHeight
+            hideProfile={true}
+            disableAutoplay={true}
           />
         </div>
       </div>
@@ -674,11 +658,12 @@ export default function PreviewHistory({
                       className={`relative bg-transparent hover:bg-brand-highlight/60 rounded-xl p-2 backdrop-blur-sm ${preview?.video && isProcessingVideo[preview.agentId as string] ? 'opacity-50 cursor-not-allowed' : ''}`}
                       title={`Download media${preview?.video ? ' (with branding)' : ''}`}
                     >
-                      <DownloadIcon className="w-5 h-5 text-white" />
-                      {preview?.video && isProcessingVideo[preview.agentId as string] && (
+                      {preview?.video && isProcessingVideo[preview.agentId as string] ? (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Spinner customClasses="h-4 w-4" color="#ffffff" />
                         </div>
+                      ) : (
+                        <DownloadIcon className="w-5 h-5 text-white" />
                       )}
                     </button>
                   )}
@@ -705,24 +690,15 @@ export default function PreviewHistory({
                         : undefined
                     }
                   }}
-                  followButtonDisabled={true}
                   environment={LENS_ENVIRONMENT}
-                  profileContainerStyleOverride={previewProfileContainerStyleOverride}
                   containerBorderRadius={'24px'}
                   containerPadding={'10px'}
                   profilePadding={'0 0 0 0'}
                   textContainerStyleOverride={textContainerStyleOverrides}
                   backgroundColorOverride={message.isAgent ? '#141414' : '#141414'}
-                  mediaImageStyleOverride={mediaImageStyleOverride}
-                  imageContainerStyleOverride={imageContainerStyleOverride}
-                  reactionsContainerStyleOverride={reactionsContainerStyleOverride}
-                  reactionContainerStyleOverride={reactionContainerStyleOverride}
-                  shareContainerStyleOverride={shareContainerStyleOverride}
                   markdownStyleBottomMargin={'0'}
-                  heartIconOverride={true}
-                  messageIconOverride={true}
-                  shareIconOverride={true}
                   fullVideoHeight
+                  hideProfile={true}
                   onClick={message.isAgent ? () => {
                     setFinalTemplateData(templateData);
                     setCurrentPreview(preview as Preview);

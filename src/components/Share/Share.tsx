@@ -58,7 +58,7 @@ const Share = ({ text, url }: { text: string; url: string }) => {
             <Image
               height={46}
               width={46}
-              src="/lens.png"
+              src="/lens.webp"
               title="Lens"
               unoptimized={true}
               alt="Lens"

@@ -47,7 +47,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                 {postData.presence?.topUsers.slice(0, 3).map((user, index) => (
                   <SafeImage
                     key={user.handle}
-                    src={user.image || "/default.png"}
+                    src={user.image || "/default.webp"}
                     alt={user.handle}
                     className="w-5 h-5 rounded-full border border-dark-grey"
                     width={20}
@@ -84,7 +84,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                             className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
                           >
                             <SafeImage
-                              src={profile.metadata?.picture || "/default.png"}
+                              src={profile.metadata?.picture || "/default.webp"}
                               alt={username || "profile"}
                               className="w-full h-full object-cover"
                               width={32}
@@ -127,7 +127,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                   <div className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative">
                     <ProfilePopper profile={comment.author} followed={{}} setFollowed={() => {}}>
                       <SafeImage
-                        src={comment.author.metadata?.picture || "/default.png"}
+                        src={comment.author.metadata?.picture || "/default.webp"}
                         alt={comment.author.username?.localName || "profile"}
                         className="w-full h-full object-cover"
                         width={32}

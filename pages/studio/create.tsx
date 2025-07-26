@@ -1001,7 +1001,7 @@ const StudioCreatePage: NextPage = () => {
           metadata: {
             name: "Bonsai",
             symbol: "BONSAI",
-            image: "https://app.onbons.ai/logo-spaced.png"
+            image: "https://app.onbons.ai/logo-spaced.webp"
           }
         };
       }
@@ -1245,7 +1245,7 @@ const StudioCreatePage: NextPage = () => {
         initialSupply: 0,
         tokenName: "Bonsai",
         tokenSymbol: "BONSAI",
-        tokenImage: [{ preview: "https://app.onbons.ai/logo-spaced.png" }],
+        tokenImage: [{ preview: "https://app.onbons.ai/logo-spaced.webp" }],
         selectedNetwork: _chain as "base" | "lens",
       }
     }
