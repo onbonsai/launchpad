@@ -104,6 +104,7 @@ export function Publication({
   const imageRef = useRef<HTMLImageElement | HTMLIFrameElement | null>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const measureImageHeight = () => {
     if (resizeTimeoutRef.current) {
@@ -117,6 +118,7 @@ export function Publication({
   };
 
   const handleImageLoad = () => {
+    setImageLoading(false);
     if (imageRef.current) {
       setLeftColumnHeight(imageRef.current.clientHeight);
     }
@@ -159,6 +161,7 @@ export function Publication({
     const resolveAssetUrl = async () => {
       try {
         if (publication.metadata.__typename === "ImageMetadata") {
+          setImageLoading(true);
           const url = publication.metadata.image.item?.startsWith("lens://")
             ? await storageClient.resolve(publication.metadata.image.item)
             : publication.metadata.image.item;
@@ -395,6 +398,9 @@ export function Publication({
         <>
           {publication.metadata?.__typename === "ImageMetadata" && (
             <div className={layout === "horizontal" ? horizontalImageContainerStyle : imageContainerStyle}>
+              {imageLoading && assetUrl && (
+                <div className={imageSkeletonStyle} />
+              )}
               <img
                 ref={imageRef as React.RefObject<HTMLImageElement>}
                 onLoad={handleImageLoad}
@@ -402,6 +408,7 @@ export function Publication({
                 src={assetUrl}
                 onClick={onPublicationPress}
                 alt="Publication Image"
+                style={{ display: imageLoading ? 'none' : 'block' }}
               />
             </div>
           )}
@@ -636,7 +643,9 @@ const imageContainerStyle = css`
   width: 100%;
   overflow: hidden;
   max-height: 480px;
+  min-height: 200px;
   margin-top: 14px;
+  background-color: rgba(255, 255, 255, 0.05);
 `;
 
 const mediaImageStyle = css`
@@ -758,9 +767,11 @@ const horizontalImageContainerStyle = css`
   align-items: flex-start;
   width: 100%;
   height: auto;
+  min-height: 200px;
   overflow: hidden;
   border-radius: 16px;
   margin-top: 0;
+  background-color: rgba(255, 255, 255, 0.05);
 `;
 
 const horizontalMediaImageStyle = css`
@@ -1010,4 +1021,29 @@ const fullscreenButtonStyle = css`
     background-color: rgba(0, 0, 0, 0.7);
   }
   z-index: 10;
+`;
+
+const imageSkeletonStyle = css`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
 `;

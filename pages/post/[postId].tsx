@@ -657,12 +657,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                               reactionsContainerStyleOverride={reactionsContainerStyleOverride}
                               reactionContainerStyleOverride={reactionContainerStyleOverride}
                               publicationContainerStyleOverride={publicationContainerStyleOverride}
-                              shareContainerStyleOverride={shareContainerStyleOverride}
                               markdownStyleBottomMargin={'0px'}
-                              heartIconOverride={true}
-                              messageIconOverride={true}
-                              shareIconOverride={true}
-                              followButtonDisabled={true}
                               onProfileClick={goToCreatorPage}
                               hideCollectButton={true}
                               onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
@@ -701,12 +696,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                                       reactionsContainerStyleOverride={reactionsContainerStyleOverride}
                                       reactionContainerStyleOverride={reactionContainerStyleOverride}
                                       publicationContainerStyleOverride={publicationContainerStyleOverride}
-                                      shareContainerStyleOverride={shareContainerStyleOverride}
                                       markdownStyleBottomMargin={'0px'}
-                                      heartIconOverride={true}
-                                      messageIconOverride={true}
-                                      shareIconOverride={true}
-                                      followButtonDisabled={true}
                                       onProfileClick={goToCreatorPage}
                                       hideCollectButton={true}
                                       onCommentButtonClick={(e, p, u) => onCommentButtonClick(e, p, u, true)}
