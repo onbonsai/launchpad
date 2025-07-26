@@ -12,7 +12,7 @@ import { fetchTokenMetadata } from "@src/utils/tokenMetadata";
 import WalletButton from "@src/components/Creators/WalletButton";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import CoinPile from "@src/components/Icons/CoinPile";
-import { getChain } from "@src/services/madfi/utils";
+import { getChain, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"), { ssr: false });
 
@@ -29,7 +29,18 @@ interface TokenMetadata {
   decimals: number;
 }
 
-export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: string }) => {
+const BonsaiToken: Token = {
+  address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+  chain: "lens",
+  metadata: {
+    name: "Bonsai",
+    symbol: "BONSAI",
+    logo: "https://app.onbons.ai/logo-spaced.png",
+    decimals: 18,
+  },
+};
+
+export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Token; postId?: string }) => {
   const { address, isConnected } = useAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -40,7 +51,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
   // Fetch token metadata
   useEffect(() => {
     const getMetadata = async () => {
-      const metadata = token.metadata || await fetchTokenMetadata(token.address, token.chain as "lens" | "base");
+      const metadata = token.metadata || (await fetchTokenMetadata(token.address, token.chain as "lens" | "base"));
       if (metadata) {
         setTokenMetadata({
           name: metadata.name,
@@ -109,9 +120,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
     >
       <div className="flex items-center gap-x-1.5 md:gap-x-3">
         <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1 ${!isConnected ? "opacity-80" : ""}`} />
-        <BodySemiBold className={`text-md md:text-md ${brandFont.className}`}>
-          BUY
-        </BodySemiBold>
+        <BodySemiBold className={`text-md md:text-md ${brandFont.className}`}>BUY</BodySemiBold>
       </div>
     </div>
   );
@@ -122,12 +131,7 @@ export const TokenInfoExternal = ({ token, postId }: { token: Token; postId?: st
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
-          <SafeImage
-            src={tokenMetadata.logo}
-            alt={tokenMetadata.name}
-            className="w-full h-full object-cover"
-            fill
-          />
+          <SafeImage src={tokenMetadata.logo} alt={tokenMetadata.name} className="w-full h-full object-cover" fill />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 

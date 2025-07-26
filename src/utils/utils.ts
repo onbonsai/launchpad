@@ -103,10 +103,6 @@ export function getPictureToDisplay(picture: any) {
   }
 }
 
-export function tweetIntentUrlMinted(handle: string) {
-  return `https://twitter.com/intent/tweet?text=I just minted a Follow NFT from ${handle} via @madfiprotocol. You can too &url=https://madfinance.xyz/follow/${handle}`;
-}
-
 interface IntentUrlProps {
   text: string;
   referralAddress: string;

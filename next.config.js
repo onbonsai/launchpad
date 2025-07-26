@@ -31,7 +31,7 @@ const nextConfig = {
   // },
   // Compress responses
   compress: true,
-  transpilePackages: ["@lens-protocol", "@madfi", "@farcaster/miniapp-sdk", "@madfi/widgets-react"],
+  transpilePackages: ["@lens-protocol", "@farcaster/miniapp-sdk"],
   async rewrites() {
     return [
       {
@@ -58,7 +58,6 @@ const nextConfig = {
       '@lens-protocol/client',
       '@lens-protocol/gated-content',
       '@lens-protocol/metadata',
-      '@madfi/lens-oa-client',
       '@sentry/nextjs',
       '@tailwindcss/forms',
       '@tanstack/react-query',

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
-import { Publication } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import {
   shareContainerStyleOverride,
@@ -28,6 +27,7 @@ import { ANIMATED_HINT_LINES } from '@src/constants/constants';
 import { NFTMetadata, type StoryboardClip } from '@src/services/madfi/studio';
 import { useIsMiniApp } from '@src/hooks/useIsMiniApp';
 import { useAccount } from 'wagmi';
+import { Publication } from '@src/components/Publication/Publication';
 
 export type LocalPreview = {
   agentId?: string;

@@ -1,0 +1,836 @@
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { css } from "@emotion/css";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import { ThemeColor, Theme } from "./types";
+import { isEmpty } from "lodash/lang";
+import { MirrorIcon, VideoCameraSlashIcon } from "../Icons";
+import { formatHandleColors, getDisplayName, formatCustomDistance } from "@src/utils/publicationUtils";
+import { formatCustomDate } from "@src/utils/utils";
+import { AudioPlayer } from "./AudioPlayer";
+import { WalletClient } from "viem";
+import { NewHeartIcon } from "../Icons/NewHeartIcon";
+import { NewMessageIcon } from "../Icons/NewMessageIcon";
+import { NewShareIcon } from "../Icons/NewShareIcon";
+import { NewColllectIcon } from "../Icons/NewCollectIcon";
+import { EyeIcon } from "../Icons/EyeIcon";
+import { PublicClient } from "@lens-protocol/client";
+import { postId } from "@lens-protocol/client";
+import { fetchPost } from "@lens-protocol/client/actions";
+import { Toast } from "react-hot-toast";
+import { storageClient } from "@src/services/lens/client";
+
+export function HorizontalPublication({
+  publicationId,
+  onClick,
+  onProfileClick,
+  publicationData,
+  theme = Theme.dark,
+  ipfsGateway,
+  fontSize,
+  environment,
+  authenticatedProfile,
+  walletClient,
+  onCommentButtonClick,
+  onMirrorButtonClick,
+  onLikeButtonClick,
+  onShareButtonClick,
+  onCollectButtonClick,
+  hideFollowButton = true,
+  hideCommentButton = false,
+  hideQuoteButton = false,
+  hideShareButton = false,
+  hideCollectButton = false,
+  followButtonDisabled = false,
+  followButtonBackgroundColor,
+  operations,
+  useToast,
+  rpcURLs,
+  appDomainWhitelistedGasless,
+  renderMadFiBadge = false,
+  handlePinMetadata,
+  isFollowed = false,
+  onFollowPress,
+  nestedWidget,
+  updatedAt,
+  presenceCount,
+}: {
+  publicationId?: string;
+  publicationData?: any;
+  onClick?: (e) => void;
+  onProfileClick?: (e, handleLocalName) => void;
+  theme?: Theme;
+  ipfsGateway?: string;
+  fontSize?: string;
+  environment?: any;
+  authenticatedProfile?: any;
+  walletClient?: WalletClient;
+  onCommentButtonClick?: (e) => void;
+  onMirrorButtonClick?: (e) => void;
+  onLikeButtonClick?: (e, p) => void;
+  onShareButtonClick?: (e) => void;
+  onCollectButtonClick?: (e) => void;
+  hideFollowButton?: boolean;
+  hideCommentButton?: boolean;
+  hideQuoteButton?: boolean;
+  hideShareButton?: boolean;
+  hideCollectButton?: boolean;
+  followButtonDisabled: boolean;
+  followButtonBackgroundColor?: string;
+  operations?: any;
+  useToast?: Toast;
+  rpcURLs?: { [chainId: number]: string };
+  appDomainWhitelistedGasless?: boolean;
+  renderMadFiBadge?: boolean;
+  handlePinMetadata?: (content: string, files: any[]) => Promise<string>;
+  isFollowed?: boolean;
+  onFollowPress?: (event, profileId) => void;
+  nestedWidget?: ReactNode;
+  updatedAt?: number;
+  presenceCount?: number;
+}) {
+  const [publication, setPublication] = useState<any>(publicationData);
+  const [assetUrl, setAssetUrl] = useState<string>("");
+  const [isPlaying, setIsPlaying] = useState(true);
+  const playCount = useRef(0);
+  const playerRef = useRef<HTMLVideoElement>(null);
+
+  const [leftColumnHeight, setLeftColumnHeight] = useState<number>(0);
+  const imageRef = useRef<HTMLImageElement | HTMLIFrameElement | null>(null);
+  const leftColumnRef = useRef<HTMLDivElement>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const measureImageHeight = () => {
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
+    }
+
+    resizeTimeoutRef.current = setTimeout(() => {
+      if (imageRef.current) {
+        setLeftColumnHeight(imageRef.current.clientHeight);
+      }
+    }, 100); // Debounce resize events
+  };
+
+  const handleImageLoad = () => {
+    if (imageRef.current) {
+      setLeftColumnHeight(imageRef.current.clientHeight);
+    }
+  };
+
+  useEffect(() => {
+    if (!publicationData) {
+      fetchPublication();
+    } else {
+      setPublication(publicationData);
+    }
+  }, [publicationId]);
+
+  useEffect(() => {
+    const handleResize = () => measureImageHeight();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!publication) return;
+
+    let isMounted = true;
+
+    const resolveAssetUrl = async () => {
+      try {
+        if (publication.metadata.__typename === "ImageMetadata") {
+          const url = publication.metadata.image.item?.startsWith("lens://")
+            ? await storageClient.resolve(publication.metadata.image.item)
+            : publication.metadata.image.item;
+          if (isMounted) {
+            setAssetUrl(url);
+          }
+        } else if (publication.metadata.__typename === "VideoMetadata") {
+          const url = publication.metadata.video.item?.startsWith("lens://")
+            ? await storageClient.resolve(publication.metadata.video.item)
+            : publication.metadata.video.item;
+          if (isMounted) {
+            setAssetUrl(url);
+          }
+        }
+      } catch (error) {
+        console.error("Error resolving asset URL:", error);
+        if (isMounted) {
+          setAssetUrl("");
+        }
+      }
+    };
+
+    resolveAssetUrl();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [publication]);
+
+  async function fetchPublication() {
+    try {
+      const lensClient = PublicClient.create({ environment });
+      const result = await fetchPost(lensClient, { post: postId(publicationId!) });
+      if (result.isErr()) {
+        return console.error(result.error);
+      }
+      setPublication(result.value);
+    } catch (err) {
+      console.log("error fetching publication: ", err);
+    }
+  }
+
+  function onPublicationPress(e) {
+    if (onClick) {
+      onClick(e);
+    }
+  }
+
+  function onProfilePress(e) {
+    if (publication.author.username?.localName) {
+      onProfileClick?.(e, publication.author.username.localName);
+    }
+  }
+
+  function onCommentPress(e) {
+    onCommentButtonClick?.(e);
+  }
+
+  function onMirrorPress(e) {
+    onMirrorButtonClick?.(e);
+  }
+
+  const handleEnded = () => {
+    playCount.current += 1;
+    if (playCount.current < 2) {
+      try {
+        if (playerRef.current) {
+          playerRef.current.currentTime = 0;
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error("Error resetting video:", error);
+      }
+    } else {
+      setIsPlaying(false);
+    }
+  };
+
+  if (!publication) return null;
+
+  const { isMirror, processedPublication } = useMemo(() => {
+    if (publication.mirrorOf) {
+      const { mirrorOf, ...original } = publication;
+      return { isMirror: true, processedPublication: { ...mirrorOf, original } };
+    }
+    return { isMirror: false, processedPublication: publication };
+  }, [publication]);
+
+  const { isDarkTheme, color, backgroundColor, reactionBgColor, reactionTextColor } = useMemo(() => {
+    const isDarkTheme = theme === Theme.dark;
+    return {
+      isDarkTheme,
+      color: isDarkTheme ? ThemeColor.white : ThemeColor.darkGray,
+      backgroundColor: isDarkTheme ? "#191919" : ThemeColor.white,
+      reactionBgColor: isDarkTheme ? ThemeColor.darkGray : ThemeColor.lightGray,
+      reactionTextColor: isDarkTheme ? ThemeColor.lightGray : ThemeColor.darkGray,
+    };
+  }, [theme]);
+
+  const isAuthenticated = useMemo(() => !!authenticatedProfile?.address, [authenticatedProfile]);
+
+  const canvasUrl = useMemo(() => {
+    if (!publication?.metadata?.attributes) return null;
+
+    const isCanvas = publication.metadata.attributes.find((attr: any) => attr.key === "isCanvas");
+    if (!isCanvas) return null;
+
+    // If isCanvas contains a URL, return it directly
+    if (isCanvas.value && (isCanvas.value.startsWith("http://") || isCanvas.value.startsWith("https://"))) {
+      return isCanvas.value;
+    }
+
+    const apiUrl = publication.metadata.attributes.find((attr: any) => attr.key === "apiUrl");
+    if (!apiUrl?.value) return null;
+
+    return `${apiUrl.value}/post/${publication.id}/canvas`;
+  }, [publication]);
+
+  return (
+    <div
+      className={publicationContainerStyle(backgroundColor, !!onClick)}
+      style={{ minHeight: leftColumnHeight > 0 ? leftColumnHeight : "auto" }}
+    >
+      <div className={leftColumnStyle} ref={leftColumnRef}>
+        <div></div>
+        {canvasUrl ? (
+          <div className={iframeContainerStyle}>
+            {operations?.hasCollected ? (
+              <>
+                <iframe
+                  src={canvasUrl}
+                  className={iframeStyle}
+                  ref={imageRef as React.RefObject<HTMLIFrameElement>}
+                  onLoad={(e: React.SyntheticEvent<HTMLIFrameElement>) => handleImageLoad()}
+                />
+                <button
+                  className={fullscreenButtonStyle}
+                  onClick={() => {
+                    const container = imageRef.current?.parentElement;
+                    if (!container) return;
+                    // Toggle fullscreen
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    } else {
+                      container.requestFullscreen();
+                    }
+                  }}
+                >
+                  {document.fullscreenElement ? "Exit Fullscreen" : "Enter Fullscreen"}
+                </button>
+              </>
+            ) : (
+              <div className={collectMessageContainerStyle}>
+                <p className={collectMessageStyle}>Collect this post to view the canvas</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {publication.metadata?.__typename === "ImageMetadata" && (
+              <div className={imageContainerStyle}>
+                <img
+                  ref={imageRef as React.RefObject<HTMLImageElement>}
+                  onLoad={handleImageLoad}
+                  className={mediaImageStyle}
+                  src={assetUrl}
+                  onClick={onPublicationPress}
+                  alt="Publication Image"
+                />
+              </div>
+            )}
+            {(publication.metadata?.__typename === "VideoMetadata" ||
+              publication.metadata?.__typename === "LiveStreamMetadata") && (
+              <div className={videoContainerStyle}>
+                <video
+                  ref={playerRef}
+                  className={videoStyle}
+                  src={assetUrl}
+                  onLoadedMetadata={() => {
+                    measureImageHeight();
+                  }}
+                  onError={(e) => {
+                    console.error("Video error:", e);
+                    setIsPlaying(false);
+                  }}
+                  controls
+                  controlsList="nodownload"
+                  playsInline
+                  muted
+                  autoPlay={isPlaying}
+                  loop={isPlaying}
+                  onEnded={handleEnded}
+                  style={{ width: "100%", height: "100%" }}
+                />
+                {publication.metadata?.__typename === "LiveStreamMetadataV3" && (
+                  <div className={liveContainerStyle}>
+                    <div className={liveDotStyle} />
+                    LIVE
+                  </div>
+                )}
+                {publication.metadata?.__typename === "LiveStreamMetadataV3" && (
+                  <div className={endedContainerStyle}>
+                    <VideoCameraSlashIcon color={reactionTextColor} />
+                    <p>Stream Ended</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {publication.metadata?.__typename === "AudioMetadata" && (
+              <div className={audioContainerStyle}>
+                <AudioPlayer
+                  url={assetUrl}
+                  theme={theme}
+                  cover={publication.metadata.audio.item?.cover}
+                  profile={publication.by}
+                />
+              </div>
+            )}
+          </>
+        )}
+        <div className={reactionsContainerStyle} onClick={onPublicationPress}>
+          {!isEmpty(publication.stats) && (
+            <>
+              <div
+                className={reactionContainerStyle(
+                  reactionTextColor,
+                  reactionBgColor,
+                  isAuthenticated && onLikeButtonClick,
+                  operations?.hasUpvoted,
+                )}
+                onClick={(e) => {
+                  onLikeButtonClick?.(e, publication);
+                }}
+              >
+                <NewHeartIcon
+                  fillColor={!operations?.hasUpvoted ? ThemeColor.transparent : ThemeColor.red}
+                  outlineColor={!operations?.hasUpvoted ? reactionTextColor : ThemeColor.red}
+                />
+                {publication.stats.upvotes > 0 && <p>{publication.stats.upvotes}</p>}
+              </div>
+              {!hideCommentButton && (
+                <div
+                  className={reactionContainerStyle(
+                    reactionTextColor,
+                    reactionBgColor,
+                    isAuthenticated && onCommentButtonClick && operations?.canComment,
+                    false,
+                  )}
+                  onClick={onCommentPress}
+                >
+                  <NewMessageIcon color={reactionTextColor} />
+                  {publication.stats.comments > 0 && <p>{publication.stats.comments}</p>}
+                </div>
+              )}
+              {!hideQuoteButton && (
+                <div
+                  className={reactionContainerStyle(
+                    reactionTextColor,
+                    reactionBgColor,
+                    isAuthenticated && onMirrorButtonClick,
+                    operations?.hasMirrored,
+                  )}
+                  onClick={onMirrorPress}
+                >
+                  <MirrorIcon color={!operations?.hasMirrored ? reactionTextColor : ThemeColor.lightGreen} />
+                  {publication.stats.mirrors + publication.stats.quotes > 0 ? (
+                    <p>{publication.stats.mirrors + publication.stats.quotes}</p>
+                  ) : null}
+                </div>
+              )}
+              {!hideCollectButton && (
+                <div
+                  className={reactionContainerStyle(
+                    reactionTextColor,
+                    reactionBgColor,
+                    isAuthenticated && onCollectButtonClick,
+                    operations?.hasCollected,
+                  )}
+                  onClick={onCollectButtonClick}
+                >
+                  <NewColllectIcon
+                    fillColor={operations?.hasCollected ? reactionTextColor : ThemeColor.transparent}
+                    outlineColor={reactionTextColor}
+                  />
+                  {publication.stats.collects > 0 && <p>{publication.stats.collects}</p>}
+                </div>
+              )}
+              {presenceCount && presenceCount > 1 ? (
+                <div className={reactionContainerStyle(reactionTextColor, reactionBgColor, false, false)}>
+                  <EyeIcon outlineColor={reactionTextColor} />
+                  <p>{presenceCount}</p>
+                </div>
+              ) : null}
+              {!hideShareButton && (
+                <div className={shareContainerStyle(reactionTextColor, reactionBgColor)} onClick={onShareButtonClick}>
+                  <NewShareIcon color={reactionTextColor} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className={rightColumnStyle}>
+        <div onClick={onPublicationPress} className={topLevelContentStyle}>
+          <div className={profileContainerStyle(isMirror)}>
+            <div className={onProfileClick ? "cursor-pointer" : "cursor-default"} onClick={onProfilePress}>
+              <img
+                src={publication.author?.metadata?.picture || "/default.png"}
+                className={profilePictureStyle}
+                loading="eager"
+                decoding="async"
+                alt="Profile picture"
+              />
+            </div>
+            <div className={profileDetailsContainerStyle(color)}>
+              <div className="flex items-center gap-x-2 w-fit">
+                <p onClick={onProfilePress} className={activeProfileNameStyle}>
+                  {getDisplayName(publication.author)}
+                </p>
+                <p onClick={onProfilePress} className={usernameStyle}>
+                  @{publication.author.username?.localName}
+                </p>
+                <div className="flex items-center">
+                  <span className="mx-2 text-sm opacity-60">•</span>
+                </div>
+                <p className={timestampStyle}>{formatCustomDate(publication.timestamp)}</p>
+                {updatedAt && (
+                  <>
+                    <div className="flex items-center">
+                      <span className="mx-2 text-sm opacity-60">•</span>
+                    </div>
+                    <p className={timestampStyle}>{`updated ${formatCustomDistance(updatedAt)} ago`}</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className={textContainerStyle}>
+            <div className={markdownStyle(color, fontSize)}>
+              <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                {formatHandleColors(publication.metadata.content)}
+              </ReactMarkdown>
+            </div>
+          </div>
+          {nestedWidget}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** STYLES **/
+
+const textContainerStyle = css`
+  padding-top: 24px;
+  margin-bottom: 16px;
+  font-size: 16px;
+  line-height: 20px;
+  font-family: inherit;
+`;
+
+const topLevelContentStyle = css`
+  padding: 12px;
+  font-family: inherit;
+`;
+
+const publicationContainerStyle = (backgroundColor: string, hasClick: boolean) => css`
+  width: 100%;
+  background-color: ${backgroundColor};
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border-radius: 24px;
+  font-family: inherit;
+  ${hasClick ? "cursor: pointer;" : ""}
+`;
+
+const leftColumnStyle = css`
+  flex: 0 0 auto;
+  width: 50%;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: auto;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+`;
+
+const rightColumnStyle = css`
+  flex: 1;
+  overflow-y: auto;
+  margin-left: 6px;
+`;
+
+const imageContainerStyle = css`
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  border-radius: 16px;
+  margin-top: 0;
+`;
+
+const mediaImageStyle = css`
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  display: block;
+  border-radius: 16px;
+  object-fit: contain;
+`;
+
+const videoContainerStyle = css`
+  position: relative !important;
+  margin-top: 0;
+  width: 100%;
+  height: auto;
+  max-height: 720px;
+  overflow: hidden;
+  background-color: black;
+`;
+
+const videoStyle = css`
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  & > div {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 1080px !important;
+  }
+`;
+
+const audioContainerStyle = css`
+  margin-top: 0;
+`;
+
+const markdownStyle = (color, fontSize) => css`
+  color: ${color};
+  overflow: hidden;
+  font-family: inherit;
+  li {
+    font-size: ${fontSize || "16px"};
+    font-family: inherit;
+  }
+  p {
+    font-size: ${fontSize || "16px"};
+    margin-bottom: 0px;
+    font-family: inherit;
+    font-weight: 300;
+  }
+`;
+
+const profileContainerStyle = (isMirror) => css`
+  display: flex;
+  align-items: center;
+  padding: 0;
+  font-family: inherit;
+`;
+
+const profilePictureStyle = css`
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  object-fit: cover;
+  background-color: #dddddd;
+  transform: translateZ(0);
+  will-change: auto;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+`;
+
+const profileDetailsContainerStyle = (color) => css`
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+  font-family: inherit;
+  p {
+    margin: 0;
+    color: ${color};
+    font-family: inherit;
+  }
+`;
+
+const activeProfileNameStyle = css`
+  font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap;
+  font-family: inherit;
+`;
+
+const usernameStyle = css`
+  opacity: 0.6;
+  font-size: 14px;
+  color: inherit;
+  white-space: nowrap;
+  font-family: inherit;
+`;
+
+const timestampStyle = css`
+  opacity: 0.6;
+  font-size: 14px;
+  color: inherit;
+  cursor: help;
+  white-space: nowrap;
+  font-family: inherit;
+`;
+
+const reactionsContainerStyle = css`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 12px;
+  gap: 8px;
+  cursor: default;
+  font-family: inherit;
+`;
+
+const reactionContainerStyle = (color, backgroundColor, isAuthenticatedAndWithHandler, hasReacted) => css`
+  background-color: rgba(255, 255, 255, 0.04);
+  &:hover {
+    background-color: ${isAuthenticatedAndWithHandler && !hasReacted ? backgroundColor : "transparent"};
+  }
+  display: flex;
+  border-radius: 10px;
+  padding: 6px;
+  font-family: inherit;
+  p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: ${color};
+    background-color: rgba(255, 255, 255, 0.04);
+    font-size: 10px;
+    margin: 0;
+    margin-left: 4px;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    font-weight: 500;
+    font-family: inherit;
+  }
+  cursor: ${isAuthenticatedAndWithHandler && !hasReacted ? "pointer" : "default"};
+`;
+
+const shareContainerStyle = (color, backgroundColor) => css`
+  background-color: rgba(255, 255, 255, 0.08);
+  &:hover {
+    background-color: ${backgroundColor};
+  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 6px;
+  margin-right: 4px;
+  position: absolute;
+  right: 5px;
+  top: 0px;
+  height: 24px;
+  width: 24px;
+  font-family: inherit;
+  p {
+    color: ${color};
+    font-size: 12px;
+    opacity: 0.75;
+    margin: 0;
+    margin-left: 4px;
+  }
+  cursor: pointer;
+`;
+
+const iframeContainerStyle = css`
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  margin-top: 0;
+  border-radius: 16px;
+  overflow: hidden;
+`;
+
+const iframeStyle = css`
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 16px;
+`;
+
+const liveContainerStyle = css`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+`;
+
+const liveDotStyle = css`
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  margin-right: 5px;
+  animation: flash 3s linear infinite;
+  @keyframes flash {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.25;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+`;
+
+const endedContainerStyle = css`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  gap: 5px;
+`;
+
+const collectMessageContainerStyle = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: inherit;
+`;
+
+const collectMessageStyle = css`
+  color: ${ThemeColor.darkGray};
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 500;
+  font-family: inherit;
+`;
+
+const fullscreenButtonStyle = css`
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  z-index: 10;
+`;

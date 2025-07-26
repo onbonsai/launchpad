@@ -48,6 +48,8 @@ import { usePWA } from "@src/hooks/usePWA";
 import { sharePost } from "@src/utils/webShare";
 import { ShareIcon } from "@heroicons/react/outline";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { HorizontalPublication } from "./HorizontalPublication";
+import { Publication } from "./Publication";
 
 type PublicationContainerProps = {
   publicationId?: string;
@@ -81,27 +83,6 @@ type PublicationContainerProps = {
 export type PostFragmentPotentiallyDecrypted = any & {
   isDecrypted?: boolean;
 };
-
-// Lazy load the Publication components with loading states
-const Publication = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.Publication),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-    )
-  }
-);
-
-const HorizontalPublication = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.HorizontalPublication),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="animate-pulse bg-dark-grey/20 rounded-2xl h-[200px] w-full" />
-    )
-  }
-);
 
 // handles all the mf buttons
 // - decrypt

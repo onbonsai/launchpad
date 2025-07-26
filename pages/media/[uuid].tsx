@@ -36,12 +36,6 @@ interface MediaPageProps {
   preview: Preview;
 }
 
-// Lazy load the Publications component
-const Publications = dynamic(
-  () => import("@madfi/widgets-react").then(mod => mod.Publications),
-  { ssr: false }
-);
-
 const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid, preview }) => {
   const isMounted = useIsMounted();
   const isMobile = useIsMobile();

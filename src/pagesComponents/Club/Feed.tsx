@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { Publications } from "@madfi/widgets-react";
 import { useAccount, useWalletClient, useSwitchChain } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -35,6 +34,7 @@ import { getProfileImage } from "@src/services/lens/utils";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { Button } from "@src/components/Button";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
+import { Publications } from "@src/components/Publication/Publications";
 
 export const Feed = ({ postId, isLoading, publicationWithComments }) => {
   const isMounted = useIsMounted();

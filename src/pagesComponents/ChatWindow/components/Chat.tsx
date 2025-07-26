@@ -28,7 +28,6 @@ import { PROTOCOL_DEPLOYMENT } from '@src/services/madfi/utils';
 import axios from 'axios';
 import { encodeAbi } from '@src/utils/viem';
 import { cloneDeep } from "lodash/lang";
-import { Publication } from "@madfi/widgets-react";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import {
   shareContainerStyleOverride,
@@ -48,6 +47,7 @@ import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
 import { useAuth } from "@src/hooks/useAuth";
 import { useComposeCast } from '@coinbase/onchainkit/minikit';
+import { Publication } from "@src/components/Publication/Publication";
 
 type ChatProps = {
   agentId: string;

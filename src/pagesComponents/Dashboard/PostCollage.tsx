@@ -36,11 +36,7 @@ import { TimelineItemInteractions } from '@src/components/Publication/TimelineIt
 import { Button } from "@src/components/Button";
 import dynamic from "next/dynamic";
 import { sendLike } from "@src/services/lens/getReactions";
-
-const Publication = dynamic(
-  () => import('@madfi/widgets-react').then(mod => mod.Publication),
-  { ssr: false }
-);
+import { Publication } from "@src/components/Publication/Publication";
 
 interface PostItemProps {
   post: any;
