@@ -410,7 +410,7 @@ export function Publication({
                 src={assetUrl}
                 onClick={onPublicationPress}
                 alt="Publication Image"
-                style={{ display: imageLoading ? 'none' : 'block' }}
+                style={{ display: imageLoading ? 'none' : 'block', maxHeight: '80vh' }}
               />
             </div>
           )}
