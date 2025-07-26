@@ -220,10 +220,10 @@ const TokenPage: NextPage<TokenPageProps> = ({
     );
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
-    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-card-light", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
+    <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-black/40 backdrop-blur-sm", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>
       {title ? (
         <>
-          <Subtitle className="text-xs">{title}</Subtitle>
+          <Subtitle className="text-xs text-white/80">{title}</Subtitle>
           <span>{subtitle}</span>
         </>
       ) : (
@@ -358,7 +358,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div className="flex-row pt-4 justify-end items-center flex md:hidden w-full">
+                  <div className="flex flex-row pt-4 px-3 justify-center items-center md:hidden w-full bg-black/20 rounded-xl">
                     {infoCardRow()}
                   </div>
                 </div>
