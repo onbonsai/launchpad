@@ -40,8 +40,29 @@ export const pinFolderBase64 = async (base64Files: string[], watermark = false) 
   const formData = new FormData();
 
   base64Files.forEach((file, index) => {
+    // Detect the actual image format from the data URL
+    let mimeType = 'image/webp'; // Default to WebP
+    let extension = 'webp';
+
+    if (file.startsWith('data:')) {
+      const mimeMatch = file.match(/^data:([^;]+)/);
+      if (mimeMatch && mimeMatch[1]) {
+        const detectedMime = mimeMatch[1];
+        if (detectedMime.startsWith('image/')) {
+          mimeType = detectedMime;
+          // Extract extension from MIME type
+          if (detectedMime === 'image/jpeg') extension = 'jpg';
+          else if (detectedMime === 'image/png') extension = 'png';
+          else if (detectedMime === 'image/gif') extension = 'gif';
+          else if (detectedMime === 'image/webp') extension = 'webp';
+          else if (detectedMime === 'image/svg+xml') extension = 'svg';
+          else extension = 'webp'; // Fallback to webp for unknown image types
+        }
+      }
+    }
+
     const blob = Buffer.from(file.split(",")[1], "base64");
-    const fileObject = new File([blob], `${index}.png`, { type: "image/png" });
+    const fileObject = new File([blob], `${index}.${extension}`, { type: mimeType });
     formData.append(`file_${index}`, fileObject);
   });
 

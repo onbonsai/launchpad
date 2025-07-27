@@ -49,6 +49,7 @@ import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { Publications } from "@src/components/Publication/Publications";
+import PublicationContainer from "@src/components/Publication/PublicationContainer";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -60,12 +61,6 @@ interface PublicationProps {
   postId: string;
   quotes: any[];
 }
-
-// Add the dynamic import for PublicationContainer with loading state
-const PublicationContainer = dynamic(
-  () => import("@src/components/Publication/PublicationContainer"),
-  { ssr: false }
-);
 
 const COMMENT_SCORE_THRESHOLD = 500;
 

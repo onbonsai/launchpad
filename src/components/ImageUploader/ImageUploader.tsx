@@ -137,7 +137,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
           const blob = await response.blob();
 
           const file = new File([blob], fileName, {
-            type: blob.type || 'image/png'
+            type: blob.type || 'image/webp'
           });
 
           fileWithPreview = Object.assign(file, {
@@ -155,7 +155,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
             const blob = await response.blob();
 
             const file = new File([blob], fileName, {
-              type: blob.type || 'image/png'
+              type: blob.type || 'image/webp'
             });
 
             // Create an object URL for the blob to avoid CORS issues
@@ -169,7 +169,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
             console.warn('CORS fetch failed, using original URL:', corsError);
 
             // Create a dummy file for the interface
-            const file = new File([], fileName, { type: 'image/png' });
+            const file = new File([], fileName, { type: 'image/webp' });
 
             fileWithPreview = Object.assign(file, {
               preview: imageUrl
@@ -533,7 +533,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : defaultImage ? (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"], "image/webp": [".webp"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}
@@ -567,7 +567,7 @@ export const ImageUploader = forwardRef<ImageUploaderRef, ImageUploaderProps>(({
       ) : (
         <div data-testid="dropzone">
           <Dropzone
-            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"] }}
+            accept={{ "image/png": [".png"], "image/jpeg": [".jpeg"], "image/jpg": [".jpg"], "image/webp": [".webp"] }}
             onDrop={onDrop}
             maxFiles={maxFiles}
             {...rest}

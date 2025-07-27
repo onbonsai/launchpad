@@ -33,7 +33,7 @@ import { textContainerStyleOverrides } from "@src/components/Publication/Publica
 import AnimatedBonsaiGrid from '@src/components/LoadingSpinner/AnimatedBonsaiGrid';
 import { DownloadIcon } from '@heroicons/react/outline';
 
-import { mapTemplateNameToTemplate } from "@src/utils/utils";
+import { getImageTypeFromUrl, mapTemplateNameToTemplate } from "@src/utils/utils";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { SITE_URL } from "@src/constants/constants";
 import { sdk } from '@farcaster/miniapp-sdk';
@@ -135,6 +135,7 @@ const PreviewMessage = ({
             backgroundColorOverride={'transparent'}
             markdownStyleBottomMargin={'0'}
             fullVideoHeight={false}
+            hideProfile
           />
         </div>
 
@@ -709,7 +710,8 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
       }
 
       if (postingPreview.image && postingPreview.image.startsWith("https://")) {
-        image = { url: postingPreview.image, type: "image/png" };
+        const imageType = getImageTypeFromUrl(postingPreview.image);
+        image = { url: postingPreview.image, type: imageType };
       } else if (postingPreview.image) {
         const { uri: imageUri, type } = await uploadImageBase64(postingPreview.image);
         image = { url: imageUri, type };

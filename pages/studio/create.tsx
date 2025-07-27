@@ -22,7 +22,7 @@ import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client
 import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
-import { cacheImageToStorj, parseBase64Image } from "@src/utils/utils";
+import { cacheImageToStorj, getImageTypeFromUrl, parseBase64Image } from "@src/utils/utils";
 import axios from "axios";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
@@ -895,7 +895,7 @@ const StudioCreatePage: NextPage = () => {
       videoElement.onseeked = () => {
         try {
           ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-          const dataURL = canvas.toDataURL('image/png');
+          const dataURL = canvas.toDataURL('image/webp');
           resolve(dataURL);
         } catch (error) {
           reject(error);
@@ -1297,7 +1297,8 @@ const StudioCreatePage: NextPage = () => {
       }
 
       if (currentPreview?.image && currentPreview?.image.startsWith("https://")) {
-        image = { url: currentPreview?.image, type: "image/png" };
+        const imageType = getImageTypeFromUrl(currentPreview.image);
+        image = { url: currentPreview?.image, type: imageType };
       } else if (currentPreview?.image) {
         ({ uri: imageUri, type } = await uploadImageBase64(currentPreview.image, template?.acl));
         image = { url: imageUri, type };

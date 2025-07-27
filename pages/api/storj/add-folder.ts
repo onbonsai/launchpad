@@ -43,7 +43,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             // Read the image file from the parsed form data
             const fileData = fs.readFileSync(file.filepath);
             // Convert the image data to base64
-            const base64Image = "data:image/png;base64," + Buffer.from(fileData).toString("base64");
+            const base64Image = "data:image/webp;base64," + Buffer.from(fileData).toString("base64");
             // Overlay the watermark on the base64 image
             const overlaidImage = base64Image; // await overlayImage(base64Image, overlaybase64);
             return overlaidImage;
@@ -53,8 +53,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         overlaidImages.forEach((image, index) => {
           const blob = Buffer.from(image.split(",")[1], "base64");
           formData.append(`file_${index + 1}`, blob, {
-            filename: `${index + 1}.png`,
-            contentType: "image/png",
+            filename: `${index + 1}.webp`,
+            contentType: "image/webp",
           });
         });
       } else {

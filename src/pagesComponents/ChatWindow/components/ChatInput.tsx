@@ -13,6 +13,7 @@ import { useAccount } from 'wagmi';
 import { useAuth } from '@src/hooks/useAuth';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { SparkIcon } from '@src/components/Icons/SparkIcon';
+import { usePWA } from '@src/hooks/usePWA';
 
 // Helper function to extract frame from video
 const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
@@ -52,7 +53,7 @@ const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): P
       videoElement.onseeked = () => {
         try {
           ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-          const dataURL = canvas.toDataURL('image/png');
+          const dataURL = canvas.toDataURL('image/webp');
           resolve(dataURL);
         } catch (error) {
           reject(error);
@@ -69,7 +70,7 @@ const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): P
       videoElement.onseeked = () => {
         try {
           ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-          const dataURL = canvas.toDataURL('image/png');
+          const dataURL = canvas.toDataURL('image/webp');
           resolve(dataURL);
         } catch (error) {
           reject(error);
@@ -259,6 +260,7 @@ export default function ChatInput({
   setImageToExtend,
 }: ChatInputProps) {
   const { isMiniApp } = useIsMiniApp();
+  const { isStandalone } = usePWA();
   const { address, isConnected } = useAccount();
   const { getAuthHeaders } = useAuth();
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
@@ -374,8 +376,6 @@ export default function ChatInput({
           ((post?.metadata as any)?.video?.item ? { url: (post.metadata as any).video.item } : undefined);
 
         if (videoData) {
-          toast.loading("Extracting frame...", { id: 'extract-frame' });
-
           try {
             const videoUrl = typeof videoData === 'string' ? videoData : videoData.url;
             const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start');
@@ -383,12 +383,9 @@ export default function ChatInput({
             // Convert data URL to File
             const response = await fetch(frameDataUrl);
             const blob = await response.blob();
-            imageToUse = new File([blob], 'frame.png', { type: 'image/png' });
-
-            toast.success(`${frameSelection === 'start' ? 'First' : 'Last'} frame extracted!`, { id: 'extract-frame' });
+            imageToUse = new File([blob], 'frame.webp', { type: 'image/webp' });
           } catch (error) {
             console.error('Failed to extract frame:', error);
-            toast.error('Failed to extract frame from video', { id: 'extract-frame' });
             setIsGeneratingRemix(false);
             return;
           }
@@ -409,7 +406,6 @@ export default function ChatInput({
             }
           } catch (error) {
             console.error('Failed to process image:', error);
-            toast.error('Failed to process image');
             setIsGeneratingRemix(false);
             return;
           }
@@ -464,23 +460,6 @@ export default function ChatInput({
           }
         }
 
-        console.log('🎨 Remix generation:', {
-          url: remixTemplate.apiUrl || '',
-          category: remixTemplate.category,
-          templateName: _templateName,
-          templateData: {
-            prompt: userInput.trim(),
-            enableVideo: animateImage,
-            aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
-            // DON'T include remixMedia.templateData
-            // ...(remixMedia?.templateData as any || {}),
-          },
-          prompt: userInput.trim(),
-          image: imageToUse ? "imageToUse" : undefined,
-          aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
-          roomId: roomId || `remix-${remixMedia?.postId || 'default'}`,
-        });
-
         // Send to worker for processing
         worker.postMessage({
           tempId,
@@ -499,6 +478,7 @@ export default function ChatInput({
           image: imageToUse,
           aspectRatio: (remixMedia?.templateData as any)?.aspectRatio || '9:16',
           roomId: roomId || `remix-${remixMedia?.postId || 'default'}`,
+          remixPostId: postId,
         });
 
         setUserInput(''); // Clear the input
@@ -684,9 +664,9 @@ export default function ChatInput({
                   )}
 
                   {/* Regular suggestions when not remixing */}
-                  {!userInput && showSuggestions && !isPosting && !isGeneratingPreview && !isRemixing && (
+                  {/* {!userInput && showSuggestions && !isPosting && !isGeneratingPreview && !isRemixing && (
                     <>
-                      {/* {!isMiniApp && (
+                      {!isMiniApp && (
                         <>
                           <PremadeChatInput
                             setUserInput={disabled ? () => { } : setUserInput}
@@ -707,15 +687,15 @@ export default function ChatInput({
                             disabled={disabled}
                           />
                         </>
-                      )} */}
+                      )}
                     </>
-                  )}
+                  )} */}
                 </div>
               </div>
 
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
-                <div className='flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2'>
+                <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2 ${isStandalone ? 'mb-2' : ''}`}>
                   {/* {creditBalance && (
                     <span className="text-xs text-gray-500 sm:order-1 order-2 text-center sm:text-left">
                       {parseInt(creditBalance.creditsRemaining)} credits

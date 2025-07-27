@@ -12,7 +12,7 @@ export const overlayImage = async (base64Image: string, overlayUrl: string): Pro
       const overlayImg = new Image();
       overlayImg.onload = () => {
         ctx?.drawImage(overlayImg, 0, 0);
-        const overlaidImage = canvas.toDataURL("image/png");
+        const overlaidImage = canvas.toDataURL("image/webp");
         resolve(overlaidImage);
       };
       overlayImg.onerror = reject;

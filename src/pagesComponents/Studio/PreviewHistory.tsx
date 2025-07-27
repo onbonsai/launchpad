@@ -414,7 +414,7 @@ export default function PreviewHistory({
             backgroundColorOverride={'rgba(255,255,255, 0.08)'}
             markdownStyleBottomMargin={'0'}
             fullVideoHeight
-            hideProfile={true}
+            hideProfile
             disableAutoplay={true}
           />
         </div>
@@ -698,7 +698,7 @@ export default function PreviewHistory({
                   backgroundColorOverride={message.isAgent ? '#141414' : '#141414'}
                   markdownStyleBottomMargin={'0'}
                   fullVideoHeight
-                  hideProfile={true}
+                  hideProfile
                   onClick={message.isAgent ? () => {
                     setFinalTemplateData(templateData);
                     setCurrentPreview(preview as Preview);
