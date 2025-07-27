@@ -456,9 +456,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     );
   }
 
-  const safeMedia = (media: SmartMedia | null | undefined): SmartMedia | undefined => {
-    return media || undefined;
-  };
+  const safeMedia: SmartMedia | undefined = useMemo(() => media || undefined, [media]);
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
@@ -469,7 +467,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
             agentId={currentPostId as string}
             agentWallet={agentInfoSage.info.wallets[0]}
             agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
-            media={safeMedia(media)}
+            media={safeMedia}
             conversationId={conversationId}
             post={publication}
             remixVersionQuery={v as string}
@@ -485,7 +483,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                   🏆 Remix Contest: Win $10 - Create your own version of this post!
                 </div>
               )}
-              {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia(media)} remixPostId={remixPostId} postId={publication?.id} />}
+              {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia} remixPostId={remixPostId} postId={publication?.id} />}
               {!club && <TokenInfoExternal token={media?.token ? { ...media.token } : undefined} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
@@ -528,7 +526,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             onCommentButtonClick={onCommentButtonClick}
                             shouldGoToPublicationPage={showRootPublication}
                             isProfileAdmin={isProfileAdmin}
-                            media={safeMedia(media)}
+                            media={safeMedia}
                             onCollectCallback={() => {
                               refetch();
                               scrollToReplyInput();
@@ -551,7 +549,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                             onCommentButtonClick={onCommentButtonClick}
                             shouldGoToPublicationPage={showRootPublication}
                             isProfileAdmin={isProfileAdmin}
-                            media={safeMedia(media)}
+                            media={safeMedia}
                             onCollectCallback={() => {
                               refetch();
                               scrollToReplyInput();
