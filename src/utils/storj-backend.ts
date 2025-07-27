@@ -90,7 +90,7 @@ const getExtensionFromContentType = (contentType: string): string => {
   return contentTypeMap[contentType] || '';
 };
 
-export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image/png' }): Promise<StorjUploadResult> => {
+export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image/webp' }): Promise<StorjUploadResult> => {
   if (!STORJ_ACCESS_KEY || !STORJ_SECRET_KEY || !STORJ_ENDPOINT) {
     return {
       success: false,
@@ -132,7 +132,7 @@ export const cacheImageStorj = async ({ id, buffer, bucket, contentType = 'image
   }
 };
 
-export const fetchImagesStorj = async (ids: string[]) => {
+export const fetchImagesStorj = async (ids: string[], convertToWebP: boolean = false) => {
   const s3 = new S3({
     accessKeyId: process.env.STORJ_ACCESS_KEY,
     secretAccessKey: process.env.STORJ_SECRET_KEY,
@@ -151,8 +151,34 @@ export const fetchImagesStorj = async (ids: string[]) => {
 
         const data = await s3.getObject(params).promise();
 
-        // assuming the images are stored as 'image/png'
-        const image = `data:image/png;base64,${data.Body.toString("base64")}`;
+        // Get the actual content type from S3 metadata, with smart fallback
+        let contentType = data.ContentType || 'image/webp';
+        
+        // Detect content type from file extension if metadata is missing
+        if (!data.ContentType) {
+          const idLower = id.toLowerCase();
+          if (idLower.endsWith('.png')) contentType = 'image/png';
+          else if (idLower.endsWith('.jpg') || idLower.endsWith('.jpeg')) contentType = 'image/jpeg';
+          else if (idLower.endsWith('.gif')) contentType = 'image/gif';
+          else if (idLower.endsWith('.svg')) contentType = 'image/svg+xml';
+          else if (idLower.endsWith('.webp')) contentType = 'image/webp';
+        }
+
+        const base64Data = data.Body?.toString("base64");
+        
+        // If conversion to WebP is requested and it's not already WebP
+        if (convertToWebP && contentType !== 'image/webp' && contentType !== 'image/svg+xml') {
+          try {
+            // Convert to WebP using Canvas API (Node.js environment)
+            // Note: This would require additional setup for server-side image conversion
+            // For now, we'll just use the original format but could implement conversion here
+            console.log(`[storj-backend] WebP conversion requested for ${id} (${contentType}), but conversion not implemented yet`);
+          } catch (error) {
+            console.warn(`[storj-backend] Failed to convert ${id} to WebP:`, error);
+          }
+        }
+
+        const image = `data:${contentType};base64,${base64Data}`;
 
         return image;
       }),

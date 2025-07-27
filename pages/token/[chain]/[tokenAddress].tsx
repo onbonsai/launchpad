@@ -358,7 +358,7 @@ const TokenPage: NextPage<TokenPageProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-row pt-4 px-3 justify-center items-center md:hidden w-full bg-black/20 rounded-xl">
+                  <div className="flex flex-row px-3 justify-center items-center md:hidden w-full bg-black/20 rounded-xl">
                     {infoCardRow()}
                   </div>
                 </div>

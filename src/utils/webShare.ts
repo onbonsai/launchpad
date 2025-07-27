@@ -5,6 +5,7 @@
 
 import { haptics } from './haptics';
 import toast from 'react-hot-toast';
+import { getFileExtensionFromMimeType } from './utils';
 
 interface ShareData {
   title?: string;
@@ -242,7 +243,7 @@ export class WebShareManager {
     imageBlob?: Blob
   ): Promise<boolean> {
     if (imageBlob && this.canShareFiles()) {
-      const file = new File([imageBlob], 'bonsai-share.png', { type: 'image/png' });
+      const file = new File([imageBlob], `bonsai-share.${getFileExtensionFromMimeType(imageBlob.type)}`, { type: imageBlob.type });
       
       // Check if we can share this file
       if (navigator.canShare && navigator.canShare({ files: [file] })) {

@@ -11,7 +11,9 @@ import type { AspectRatio } from '@src/components/ImageUploader/ImageUploader';
 import { ipfsOrNot } from '@src/utils/pinata';
 import { NFTMetadata } from '@src/services/madfi/studio';
 
-const ASPECT_RATIOS: { [key in AspectRatio]: { width: number; height: number; label: string } } = {
+type NFTAspectRatio =  AspectRatio | "1:1" | "4:3" | "3:4" | "21:9";
+
+const ASPECT_RATIOS: { [key in NFTAspectRatio]: { width: number; height: number; label: string } } = {
   "16:9": { width: 16, height: 9, label: "16:9" },
   "9:16": { width: 9, height: 16, label: "9:16" },
   "1:1": { width: 1, height: 1, label: "1:1" },
@@ -172,8 +174,8 @@ const WhitelistedNFTsSection = ({
       canvas.height
     );
 
-    // Convert the canvas to a base64 string
-    const base64String = canvas.toDataURL('image/png', 1.0);
+    // Convert the canvas to a base64 string as WebP for better compression
+    const base64String = canvas.toDataURL('image/webp', 0.95);
 
     // Update the selected NFT with the base64 string
     const updatedNFT = {
@@ -206,14 +208,14 @@ const WhitelistedNFTsSection = ({
         <div className="flex space-x-2 w-full overflow-x-auto mt-2 pb-2">
           {nfts.map((nft) => (
             <div
-              key={`${nft.contract.address}-${nft.tokenId}`}
-              data-nft-id={`${nft.contract.address}-${nft.tokenId}`}
+              key={`${nft?.contract.address}-${nft?.tokenId}`}
+              data-nft-id={`${nft?.contract.address}-${nft?.tokenId}`}
             >
               <NFTCard
                 nft={nft}
                 selectable
-                selected={selectedNFT?.tokenId === nft.tokenId && selectedNFT?.contract.address === nft.contract.address}
-                onClick={() => handleNFTSelect(nft)}
+                selected={selectedNFT?.tokenId === nft?.tokenId && selectedNFT?.contract.address === nft?.contract.address}
+                onClick={() => handleNFTSelect(nft!)}
               />
             </div>
           ))}

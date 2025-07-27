@@ -617,3 +617,22 @@ export const mapTemplateNameToTemplate = (templateName: string, registeredTempla
       (templateName === "image" && t.name === "image");
   });
 };
+
+export const getImageTypeFromUrl = (url: string) => {
+  const urlLower = url.toLowerCase();
+  if (urlLower.includes('.png')) return "image/png";
+  else if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) return "image/jpeg";
+  else if (urlLower.includes('.gif')) return "image/gif";
+  else if (urlLower.includes('.svg')) return "image/svg+xml";
+  else if (urlLower.includes('.webp')) return "image/webp";
+  return "image/webp";
+};
+
+export const getFileExtensionFromMimeType = (mimeType: string) => {
+  if (mimeType === 'image/png') return 'png';
+  else if (mimeType === 'image/jpeg') return 'jpg';
+  else if (mimeType === 'image/gif') return 'gif';
+  else if (mimeType === 'image/svg+xml') return 'svg';
+  else if (mimeType === 'image/webp') return 'webp';
+  return 'webp';
+};

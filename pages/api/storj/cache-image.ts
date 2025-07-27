@@ -13,7 +13,7 @@ const getContentTypeFromBase64 = (base64String: string): string => {
   console.log(base64String.slice(0, 100));
   const matches = base64String.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
   if (!matches || matches.length !== 3) {
-    return 'image/png'; // Default to png if we can't determine
+    return 'image/webp'; // Default to webp if we can't determine
   }
   return matches[1];
 };

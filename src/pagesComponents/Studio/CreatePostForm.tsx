@@ -283,7 +283,7 @@ const CreatePostForm = ({
           // Convert base64 to blob
           const base64Response = await fetch(selectedNFT.image.croppedBase64);
           const blob = await base64Response.blob();
-          const file = new File([blob], 'nft.png', { type: 'image/png' });
+          const file = new File([blob], 'nft.webp', { type: 'image/webp' });
 
           // Compress the image
           const options = {

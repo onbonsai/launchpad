@@ -1,7 +1,7 @@
 import axios from "axios";
 import sharp from "sharp";
 
-const base64Prefix = "data:image/png;base64,";
+const base64Prefix = "data:image/webp;base64,";
 
 export const overlayImage = async (base64Image: string, overlayUrl: string): Promise<string> => {
   if (!base64Image.startsWith(base64Prefix)) base64Image = `${base64Prefix}${base64Image}`;
@@ -16,7 +16,7 @@ export const overlayImage = async (base64Image: string, overlayUrl: string): Pro
     .toBuffer();
 
   // Convert the output buffer back to a base64 string
-  const outputBase64Image = `data:image/png;base64,${outputBuffer.toString("base64")}`;
+  const outputBase64Image = `data:image/webp;base64,${outputBuffer.toString("base64")}`;
 
   return outputBase64Image;
 };

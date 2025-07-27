@@ -98,6 +98,7 @@ const generatePreviewImpl = async (
     file: File;
     startTime: number;
   },
+  remixPostId?: string,
 ): Promise<GeneratePreviewResponse | undefined> => {
   try {
     // Step 1: Make the initial request to create the preview task
@@ -113,6 +114,7 @@ const generatePreviewImpl = async (
         audioStartTime: templateData.audioStartTime || audio?.startTime
       },
       prompt,
+      remixPostId,
     }));
     if (image) formData.append('image', image);
     if (audio) formData.append('audio', audio.file);
@@ -187,7 +189,7 @@ const generatePreviewImpl = async (
             const imageBuffer = await response.arrayBuffer();
             imageData = {
               buffer: imageBuffer,
-              mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
+              mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/webp',
               isLargeImage: true
             };
           } catch (error) {
@@ -258,7 +260,7 @@ const generatePreviewImpl = async (
           const imageBuffer = await response.arrayBuffer();
           processedImageData = {
             buffer: imageBuffer,
-            mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/png',
+            mimeType: data.preview.image.split(';')[0].split(':')[1] || 'image/webp',
             isLargeImage: true
           };
         } catch (error) {

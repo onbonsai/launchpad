@@ -37,8 +37,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     overlaidImages.forEach((image, index) => {
       const blob = Buffer.from(image.split(",")[1], "base64");
       formData.append(`file_${index + 1}`, blob, {
-        filename: `${index + 1}.png`,
-        contentType: "image/png",
+        filename: `${index + 1}.webp`,
+        contentType: "image/webp",
       });
     });
 
