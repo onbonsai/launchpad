@@ -5,6 +5,3 @@ Allow: /
 # Point to special files
 Sitemap: https://app.onbons.ai/sitemap.xml
 LLMs: https://app.onbons.ai/llms.txt
-
-# Disallow API routes
-Disallow: /api/
