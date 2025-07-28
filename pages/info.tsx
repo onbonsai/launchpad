@@ -7,7 +7,6 @@ import { Header2, Subtitle } from "@src/styles/text";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { baseScanUrl, BONSAI_NFT_BASE_ADDRESS, BONSAI_TOKEN_BASE_ADDRESS, lensScanUrl, V1_LAUNCHPAD_URL } from "@src/services/madfi/moneyClubs";
 import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
-import { Footer } from "@src/components/Footer/Footer";
 
 const DisclosurePanelWithTransition = ({ children }) => {
   return (
@@ -477,7 +476,6 @@ const Help = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

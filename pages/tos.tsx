@@ -1,5 +1,3 @@
-import { Footer } from "@src/components/Footer/Footer";
-
 const Tos = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -868,7 +866,6 @@ const Tos = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };
