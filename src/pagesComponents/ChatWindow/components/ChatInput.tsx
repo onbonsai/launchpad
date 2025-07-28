@@ -569,7 +569,7 @@ export default function ChatInput({
                         type="submit"
                         disabled={!/[a-zA-Z]/.test(userInput) || disabled}
                         variant="accentBrand"
-                        size="xs"
+                        size="sm"
                         className={`${!/[a-zA-Z]/.test(userInput) || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {!isMiniApp ? "Post" : "Cast"}
@@ -585,7 +585,7 @@ export default function ChatInput({
                             type="submit"
                             disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
                             variant="accentBrand"
-                            size="xs"
+                            size="sm"
                             className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <SendSvg />
@@ -694,11 +694,6 @@ export default function ChatInput({
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 my-2">
-                  {/* {creditBalance && (
-                    <span className="text-xs text-gray-500 sm:order-1 order-2 text-center sm:text-left">
-                      {parseInt(creditBalance.creditsRemaining)} credits
-                    </span>
-                  )} */}
                   {hasEnoughCredits ? (
                     <Button
                       type="button"
@@ -730,7 +725,7 @@ export default function ChatInput({
                         },
                       })}
                       variant="accentBrand"
-                      size="xs"
+                      size="sm"
                       className="w-full sm:w-auto sm:order-2 order-1"
                     >
                       Swap to Generate
