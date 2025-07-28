@@ -1,4 +1,5 @@
 import { type ChangeEvent, useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import * as Sentry from "@sentry/nextjs";
 import SendSvg from '../svg/SendSvg';
 import PaySvg from '../svg/PaySvg';
 import ImageAttachment from "../svg/ImageAttachment";
@@ -258,6 +259,22 @@ export default function ChatInput({
   imageToExtend,
   setImageToExtend,
 }: ChatInputProps) {
+  // Add Sentry tracking for ChatInput props
+  useEffect(() => {
+    Sentry.addBreadcrumb({
+      message: 'ChatInput rendered',
+      category: 'ui',
+      level: 'info',
+      data: {
+        isPosting,
+        hasOnPost: !!onPost,
+        disabled,
+        showSuggestions,
+        placeholder,
+        userInputLength: userInput?.length || 0
+      }
+    });
+  }, [isPosting, onPost, disabled, showSuggestions, placeholder, userInput]);
   const { isMiniApp } = useIsMiniApp();
   const { address, isConnected } = useAccount();
   const { getAuthHeaders } = useAuth();
@@ -345,9 +362,34 @@ export default function ChatInput({
 
   const handlePost = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInput.trim() || !onPost) return;
+
+    Sentry.addBreadcrumb({
+      message: 'ChatInput handlePost called',
+      category: 'ui',
+      level: 'info',
+      data: {
+        hasUserInput: !!userInput.trim(),
+        hasOnPost: !!onPost,
+        userInputLength: userInput?.length || 0,
+        isPosting
+      }
+    });
+
+    if (!userInput.trim() || !onPost) {
+      Sentry.addBreadcrumb({
+        message: 'ChatInput handlePost early return',
+        category: 'ui',
+        level: 'warning',
+        data: {
+          hasUserInput: !!userInput.trim(),
+          hasOnPost: !!onPost
+        }
+      });
+      return;
+    }
+
     await onPost(userInput.trim());
-  }, [userInput, onPost]);
+  }, [userInput, onPost, isPosting]);
 
   const generateRemix = useCallback(async () => {
     if (!remixTemplate || !userInput.trim()) return;
@@ -549,7 +591,23 @@ export default function ChatInput({
     return (
     <>
         <form
-          onSubmit={isPosting ? handlePost : handleSubmit}
+          onSubmit={(e) => {
+            Sentry.addBreadcrumb({
+              message: 'ChatInput form submitted',
+              category: 'ui',
+              level: 'info',
+              data: {
+                isPosting,
+                willUseHandlePost: isPosting,
+                willUseHandleSubmit: !isPosting
+              }
+            });
+            if (isPosting) {
+              handlePost(e);
+            } else {
+              handleSubmit(e);
+            }
+          }}
           className="mt-auto flex w-full flex-col pb-1 md:mt-0 items-center"
         >
           <div className="flex flex-col w-full">

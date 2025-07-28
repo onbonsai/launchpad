@@ -223,7 +223,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
 
     const _data = await response.json();
-    const data = _data ? _data[0] : {};
+    const data = _data?.length ? _data[0] : {};
     const { preview, creatorFid }: { preview: Preview, creatorFid: number } = data;
 
     if (!preview || !creatorFid) {
