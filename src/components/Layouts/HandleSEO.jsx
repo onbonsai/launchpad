@@ -84,7 +84,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const description = trimText("Profile on Bonsai", 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const profileUrl = `${SITE_URL}/profile/${handle}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`;
+    // const ogImageUrl = `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
@@ -96,7 +96,7 @@ const HandleSEO = ({ pageProps, query }) => {
     return (
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
-        {generateMetaTags(title, description, profileUrl, ogImageUrl, "profile", `${handle}'s profile picture`)}
+        {generateMetaTags(title, description, profileUrl, absoluteImageUrl, "profile", `${handle}'s profile picture`)}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
@@ -109,7 +109,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const description = trimText(content, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const postUrl = postId ? `${SITE_URL}/post/${postId}` : `${SITE_URL}/media/${uuid}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}${profileImage ? `&profileImage=${encodeURIComponent(profileImage)}` : ''}`;
+    // const ogImageUrl = `${SITE_URL}/api/og-image?postId=${encodeURIComponent(postId)}${image ? `&image=${encodeURIComponent(image)}` : ''}${profileImage ? `&profileImage=${encodeURIComponent(profileImage)}` : ''}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
@@ -121,7 +121,7 @@ const HandleSEO = ({ pageProps, query }) => {
     return (
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
-        {generateMetaTags(title, description, postUrl, ogImageUrl, "article", "Post image")}
+        {generateMetaTags(title, description, postUrl, absoluteImageUrl, "article", "Post image")}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
@@ -134,7 +134,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const description = trimText(`Buy $${club.token.symbol} on Bonsai`, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(club.token.image);
     const tokenUrl = `${SITE_URL}/token/${club.chain}/${club.tokenAddress}`;
-    const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`;
+    // const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`;
 
     const frameData = createFrameData(
       absoluteImageUrl,
@@ -146,7 +146,7 @@ const HandleSEO = ({ pageProps, query }) => {
     return (
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
-        {generateMetaTags(title, description, tokenUrl, ogImageUrl, "website", `${club.token.name} token image`)}
+        {generateMetaTags(title, description, tokenUrl, absoluteImageUrl, "website", `${club.token.name} token image`)}
         <meta name="fc:frame" content={JSON.stringify(frameData)} />
       </Head>
     );
