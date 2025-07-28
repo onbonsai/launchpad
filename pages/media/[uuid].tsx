@@ -176,7 +176,7 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
                         isPresenceConnected={false}
                         connectedAccounts={[]}
                         version={0}
-                        showDownload
+                        isMediaPage
                       />
                     </div>
                     <div className="sm:hidden">
@@ -192,7 +192,7 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
                         isPresenceConnected={false}
                         connectedAccounts={[]}
                         version={0}
-                        showDownload
+                        isMediaPage
                       />
                     </div>
                   </>

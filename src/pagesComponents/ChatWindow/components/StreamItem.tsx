@@ -15,6 +15,7 @@ type StreamItemProps = {
   onPostButtonClick?: (preview: Preview) => void;
   isSelected?: boolean;
   onCancel?: () => void;
+  isMiniApp?: boolean;
 };
 
 const formatContent = (content: string) => {
@@ -47,7 +48,8 @@ export default function StreamItem({
   preview,
   onPostButtonClick,
   isSelected,
-  onCancel
+  onCancel,
+  isMiniApp,
 }: StreamItemProps) {
   const isAgent = entry?.type !== 'user';
   const buttonClasses = 'flex w-full whitespace-nowrap px-[10px] py-1 text-start text-[#ffffff] transition-colors hover:bg-zinc-900 hover:text-[#e5e7eb] lg:w-auto bg-backgroundAccent backdrop-blur-xl rounded-[10px]';
@@ -92,6 +94,7 @@ export default function StreamItem({
           {preview.video && (
             <div className={`w-full ${isSelected ? 'h-[450px]' : ''}`}>
               <video
+                autoPlay
                 src={preview.video.url}
                 controls
                 className={`w-full ${isSelected ? `h-full object-cover rounded-b-[24px]` : ''} ${!preview.text ? 'rounded-t-[24px]' : ''}`}
@@ -121,7 +124,7 @@ export default function StreamItem({
                     }
                   }}
                 >
-                  Use this
+                  {isMiniApp ? "Cast this" : "Use this"}
                 </Button>
               </div>
             ) : null}

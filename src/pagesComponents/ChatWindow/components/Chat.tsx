@@ -142,44 +142,12 @@ const PreviewMessage = ({
         </div>
 
         {/* Action buttons */}
-        {(() => {
-          Sentry.addBreadcrumb({
-            message: 'PreviewMessage rendering action buttons',
-            category: 'ui',
-            level: 'info',
-            data: {
-              isAgent,
-              hasOnUseThis: !!onUseThis,
-              isPosting,
-              isMiniApp,
-              previewId: preview?.agentId,
-              hasVideo: !!hasVideo,
-              hasImage: !!hasImage
-            }
-          });
-          return null;
-        })()}
         {isAgent && (
           <div className={`flex flex-row gap-3 p-4 bg-[#141414] ${hasVideo ? '-mt-12' : '-mt-4'} justify-end`}>
             {/* Primary action button - Use this button */}
             {onUseThis && !isPosting && (
               <button
-                onClick={() => {
-                  Sentry.addBreadcrumb({
-                    message: 'Cast/Post button clicked',
-                    category: 'ui',
-                    level: 'info',
-                    data: {
-                      isAgent,
-                      isPosting,
-                      hasOnUseThis: !!onUseThis,
-                      isMiniApp,
-                      previewId: preview?.agentId,
-                      buttonText: isMiniApp ? "Cast this" : "Post this"
-                    }
-                  });
-                  onUseThis(preview);
-                }}
+                onClick={() => onUseThis(preview)}
                 className={`flex items-center justify-center gap-2 bg-brand-highlight rounded-lg px-4 py-2 hover:bg-brand-highlight/80 transition-colors text-black font-medium text-sm md:text-base h-10 ${
                   isMiniApp ? 'w-full max-w-none' : 'w-full max-w-[160px]'
                 }`}
@@ -218,23 +186,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   const { data: walletClient } = useWalletClient();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { isMiniApp, isCoinbaseMiniApp, context, isLoading: isMiniAppLoading } = useIsMiniApp();
-
-  // Debug miniapp state
-  useEffect(() => {
-    Sentry.addBreadcrumb({
-      message: 'Miniapp state changed',
-      category: 'miniapp',
-      level: 'info',
-      data: {
-        isMiniApp,
-        isCoinbaseMiniApp,
-        isMiniAppLoading,
-        hasContext: !!context,
-        contextUserFid: context?.user?.fid,
-        contextUsername: context?.user?.username
-      }
-    });
-  }, [isMiniApp, isCoinbaseMiniApp, isMiniAppLoading, context]);
   const { getAuthHeaders } = useAuth();
 
   // Track if we've loaded messages to prevent refetching duplicates
@@ -306,20 +257,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   }>>([]);
   const [isPosting, setIsPosting] = useState(false);
   const [postingPreview, setPostingPreview] = useState<Preview | undefined>();
-
-  // Debug isPosting state changes
-  useEffect(() => {
-    Sentry.addBreadcrumb({
-      message: 'isPosting state changed',
-      category: 'chat',
-      level: 'info',
-      data: {
-        isPosting,
-        hasPostingPreview: !!postingPreview,
-        postingPreviewId: postingPreview?.agentId
-      }
-    });
-  }, [isPosting, postingPreview]);
   const [imageToExtend, setImageToExtend] = useState<string | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState<Record<string, boolean>>({});
 
@@ -444,53 +381,17 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // --- End Worker Management ---
 
   const handlePostButtonClick = useCallback((preview: Preview) => {
-    Sentry.addBreadcrumb({
-      message: 'handlePostButtonClick called',
-      category: 'chat',
-      level: 'info',
-      data: {
-        previewId: preview.agentId,
-        hasText: !!preview.text,
-        hasImage: !!preview.image,
-        hasVideo: !!preview.video,
-        isPosting: isPosting,
-        isMiniApp: isMiniApp,
-        isCoinbaseMiniApp: isCoinbaseMiniApp
-      }
-    });
-
     setPostingPreview(preview);
     setIsPosting(true);
     if (preview.text) {
       setUserInput(preview.text);
     }
-
-    Sentry.addBreadcrumb({
-      message: 'handlePostButtonClick state updated',
-      category: 'chat',
-      level: 'info',
-      data: {
-        postingPreviewSet: true,
-        isPostingSet: true,
-        userInputSet: !!preview.text
-      }
-    });
-  }, [setUserInput, isPosting, isMiniApp, isCoinbaseMiniApp]);
+  }, [setUserInput]);
 
   const handleCancelPost = useCallback(() => {
-    Sentry.addBreadcrumb({
-      message: 'handleCancelPost called',
-      category: 'chat',
-      level: 'info',
-      data: {
-        previousIsPosting: isPosting,
-        hadPostingPreview: !!postingPreview
-      }
-    });
-
     setIsPosting(false);
     setPostingPreview(undefined);
-  }, [isPosting, postingPreview]);
+  }, []);
 
   useEffect(() => {
     if (!isThinking) return;
@@ -664,46 +565,12 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   };
 
   const handleCast = useCallback(async (text: string) => {
-    if (!postingPreview) {
-      Sentry.addBreadcrumb({
-        message: 'handleCast called but no postingPreview',
-        category: 'chat',
-        level: 'warning',
-        data: {
-          hasPostingPreview: false,
-          isPosting
-        }
-      });
-      return;
-    }
-
-    Sentry.addBreadcrumb({
-      message: 'handleCast called',
-      category: 'chat',
-      level: 'info',
-      data: {
-        postingPreviewId: postingPreview.agentId,
-        textLength: text?.length || 0,
-        hasTemplate: !!media?.template,
-        registeredTemplatesCount: registeredTemplates?.length || 0
-      }
-    });
+    if (!postingPreview) return;
 
     let toastId: string | undefined;
     try {
       const template = media ? mapTemplateNameToTemplate(media?.template, registeredTemplates || []) : undefined;
-      if (!template) {
-        Sentry.addBreadcrumb({
-          message: 'Template not found in handleCast',
-          category: 'chat',
-          level: 'error',
-          data: {
-            mediaTemplate: media?.template,
-            registeredTemplatesCount: registeredTemplates?.length || 0
-          }
-        });
-        throw new Error("template not found");
-      }
+      if (!template) throw new Error("template not found");
 
       setIsPosting(true);
       toastId = toast.loading("Creating your cast...", { id: toastId });
@@ -761,8 +628,8 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
 
       // Create embeds array
       const embeds: string[] = [];
-      if (imageUrl) embeds.push(imageUrl);
-      if (videoUrl) embeds.push(videoUrl);
+      // if (imageUrl) embeds.push(imageUrl);
+      // if (videoUrl) embeds.push(videoUrl);
 
       // Add the media page URL
       if (postingPreview.agentMessageId) {
@@ -806,31 +673,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   }, [postingPreview, conversationId, context, sdk, media, registeredTemplates, isMiniApp, isMiniAppLoading, address]);
 
   const handlePost = useCallback(async (text: string) => {
-    if (!postingPreview) {
-      Sentry.addBreadcrumb({
-        message: 'handlePost called but no postingPreview',
-        category: 'chat',
-        level: 'warning',
-        data: {
-          hasPostingPreview: false,
-          isPosting,
-          isMiniApp
-        }
-      });
-      return;
-    }
-
-    Sentry.addBreadcrumb({
-      message: 'handlePost called',
-      category: 'chat',
-      level: 'info',
-      data: {
-        isMiniApp,
-        sdkAvailable: !!sdk,
-        postingPreviewId: postingPreview.agentId,
-        textLength: text?.length || 0
-      }
-    });
+    if (!postingPreview) return;
 
     // Use cast flow for miniapp users
     if (isMiniApp && sdk) {
@@ -1298,22 +1141,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                       </div>
                                     </div>
                                   )}
-                                  {(() => {
-                                    const isAgent = message.content.source !== "bonsai-terminal";
-                                    Sentry.addBreadcrumb({
-                                      message: 'Rendering PreviewMessage for message',
-                                      category: 'ui',
-                                      level: 'info',
-                                      data: {
-                                        messageSource: message.content.source,
-                                        isAgent,
-                                        hasPreview: !!message.content.preview,
-                                        previewId: (message.content.preview as Preview)?.agentId,
-                                        isMiniApp
-                                      }
-                                    });
-                                    return null;
-                                  })()}
                                   <PreviewMessage
                                     preview={{
                                       ...(message.content.preview as Preview),
@@ -1340,6 +1167,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                   }}
                                   setUserInput={setUserInput}
                                   setRequestPayload={setRequestPayload}
+                                  isMiniApp={isMiniApp}
                                 />
                               )}
                             </div>
@@ -1352,6 +1180,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                               entry={entry}
                               setUserInput={setUserInput}
                               setRequestPayload={setRequestPayload}
+                              isMiniApp={isMiniApp}
                             />
                           );
                         } else if (item.type === 'local') {
@@ -1376,21 +1205,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                             // Agent messages go on the left side with extra bottom margin
                             return (
                               <div key={item.id} className="mb-4">
-                                {(() => {
-                                  Sentry.addBreadcrumb({
-                                    message: 'Rendering local PreviewMessage',
-                                    category: 'ui',
-                                    level: 'info',
-                                    data: {
-                                      isAgent: true,
-                                      isPending: (preview as any).pending,
-                                      hasPreview: !!preview.content.preview,
-                                      previewId: (preview.content.preview as Preview)?.agentId,
-                                      isMiniApp
-                                    }
-                                  });
-                                  return null;
-                                })()}
                                 <PreviewMessage
                                   preview={preview.content.preview}
                                   isAgent={true} // Force to true for agent messages

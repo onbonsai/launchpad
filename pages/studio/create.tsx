@@ -1051,8 +1051,8 @@ const StudioCreatePage: NextPage = () => {
 
       // Create embeds array
       const embeds: string[] = [];
-      if (videoUrl) embeds.push(videoUrl);
-      else if (imageUrl) embeds.push(imageUrl);
+      // if (videoUrl) embeds.push(videoUrl);
+      // else if (imageUrl) embeds.push(imageUrl);
 
       embeds.push(`${SITE_URL}/media/${currentPreview?.agentMessageId || currentPreview?.agentId}`);
 

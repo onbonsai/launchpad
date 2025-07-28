@@ -13,7 +13,7 @@ import { ThemeColor } from "./types";
 import { sdk } from "@farcaster/miniapp-sdk";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
-import { MADFI_BANNER_IMAGE_SMALL } from "@src/constants/constants";
+import { MADFI_BANNER_IMAGE_SMALL, SITE_URL } from "@src/constants/constants";
 import { LENS_ENVIRONMENT } from "@src/services/lens/client";
 import { followProfile } from "@src/services/lens/follow";
 import useIsFollowed from "@src/hooks/useIsFollowed";
@@ -66,7 +66,7 @@ type PublicationContainerProps = {
   isPresenceConnected?: boolean; // are we connected to the websocket
   connectedAccounts?: any; // connected accounts on the websocket
   version?: number;
-  showDownload?: boolean;
+  isMediaPage?: boolean;
 };
 
 export type PostFragmentPotentiallyDecrypted = any & {
@@ -101,7 +101,7 @@ const PublicationContainer = ({
   isPresenceConnected,
   connectedAccounts,
   version,
-  showDownload,
+  isMediaPage,
 }: PublicationContainerProps) => {
   const router = useRouter();
   const { isMiniApp } = useIsMiniApp();
@@ -519,11 +519,11 @@ const PublicationContainer = ({
       }
 
       const embeds: string[] = [];
-      if (videoUrl) embeds.push(videoUrl);
-      else if (imageUrl) embeds.push(imageUrl);
+      // if (videoUrl) embeds.push(videoUrl);
+      // else if (imageUrl) embeds.push(imageUrl);
 
-      // const mediaUrl = `${window.location.origin}/media/${publication?.slug || publication?.id}`;
-      // embeds.push(mediaUrl);
+      const mediaUrl = `${SITE_URL}/${isMediaPage ? 'media' : 'post'}/${isMediaPage ? publication?.id : publication?.slug}`;
+      embeds.push(mediaUrl);
 
       await sdk.actions.composeCast({
         text: `Check out this ${videoUrl ? 'video' : 'image'}\n\nmade @onbonsai.eth`,
@@ -699,9 +699,9 @@ const PublicationContainer = ({
       )}
 
       {/* Download/Cast button for media content (NOT showing in miniapp for now) */}
-      {!!(publication?.metadata?.video?.item || publication?.metadata?.image?.item) && showDownload && !isMiniApp ? (
+      {!!(publication?.metadata?.video?.item || publication?.metadata?.image?.item) && isMediaPage && !isMiniApp ? (
         <div
-          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${showDownload ? 'right-2' : 'right-14'}` : `bottom-3 ${showDownload ? 'right-3' : 'right-12'}`}`}
+          className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${isMediaPage ? 'right-2' : 'right-14'}` : `bottom-3 ${isMediaPage ? 'right-3' : 'right-12'}`}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isMiniApp) {
