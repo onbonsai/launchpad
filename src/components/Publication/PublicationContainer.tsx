@@ -8,6 +8,9 @@ import { MoreHoriz, SwapCalls } from "@mui/icons-material";
 import { DownloadIcon } from '@heroicons/react/outline';
 import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
+import { ShareIcon } from "@src/components/Icons/ShareIcon";
+import { ThemeColor } from "./types";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { MADFI_BANNER_IMAGE_SMALL } from "@src/constants/constants";
@@ -505,16 +508,58 @@ const PublicationContainer = ({
     }
   };
 
+  // Cast media function for mini app
+  const castMedia = async () => {
+    try {
+      const videoUrl = publication?.metadata?.video?.item;
+      const imageUrl = publication?.metadata?.image?.item;
+
+      if (!videoUrl && !imageUrl) {
+        throw new Error('No media to cast');
+      }
+
+      const embeds: string[] = [];
+      if (videoUrl) embeds.push(videoUrl);
+      else if (imageUrl) embeds.push(imageUrl);
+
+      // const mediaUrl = `${window.location.origin}/media/${publication?.slug || publication?.id}`;
+      // embeds.push(mediaUrl);
+
+      await sdk.actions.composeCast({
+        text: `Check out this ${videoUrl ? 'video' : 'image'}\n\nmade @onbonsai.eth`,
+        embeds: embeds as any,
+      });
+
+      toast.success('Cast created successfully!');
+    } catch (error) {
+      console.error('Cast failed:', error);
+      toast.error('Failed to create cast');
+    }
+  };
+
   // Main download function
   const downloadMedia = async () => {
     try {
       const videoUrl = publication?.metadata?.video?.item;
+      const imageUrl = publication?.metadata?.image?.item;
+
       if (videoUrl) {
         const filename = `bonsai-${publication?.slug || 'video'}-${Date.now()}`;
         return downloadVideoWithOutro(videoUrl, filename);
       }
 
-      throw new Error('No video to download');
+      if (imageUrl) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = `bonsai-${publication?.slug || 'image'}-${Date.now()}.jpg`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
+      throw new Error('No media to download');
     } catch (error) {
       console.error('Download failed:', error);
       toast.error('Download failed');
@@ -653,13 +698,17 @@ const PublicationContainer = ({
         </div>
       )}
 
-      {/* Download button for video content (only for creator) */}
-      {!!publication?.metadata?.video?.item && (showDownload || (isAuthenticated && isCreator)) ? (
+      {/* Download/Cast button for media content (only for creator) */}
+      {!!(publication?.metadata?.video?.item || publication?.metadata?.image?.item) && (showDownload || (isAuthenticated && isCreator)) ? (
         <div
           className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${showDownload ? 'right-2' : 'right-14'}` : `bottom-3 ${showDownload ? 'right-3' : 'right-12'}`}`}
           onClick={(e) => {
             e.stopPropagation();
-            downloadMedia();
+            if (isMiniApp) {
+              castMedia();
+            } else {
+              downloadMedia();
+            }
           }}
         >
           <div
@@ -667,6 +716,8 @@ const PublicationContainer = ({
           >
             {isProcessingVideo ? (
               <Spinner customClasses="h-4 w-4" color="#ffffff" />
+            ) : isMiniApp ? (
+              <ShareIcon color={ThemeColor.white} />
             ) : (
               <DownloadIcon className={`text-white ${sideBySideMode ? 'w-6 h-6' : 'w-4 h-4'}`} />
             )}
