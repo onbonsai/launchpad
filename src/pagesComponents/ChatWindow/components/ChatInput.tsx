@@ -269,6 +269,7 @@ export default function ChatInput({
   const [frameSelection, setFrameSelection] = useState<'start' | 'end'>('start');
   const [animateImage, setAnimateImage] = useState(false);
   const [isGeneratingRemix, setIsGeneratingRemix] = useState(false);
+  const [insufficientCreditsError, setInsufficientCreditsError] = useState(false);
 
   const remixTemplate = useMemo(() => {
     if (!remixMedia || !templates) return undefined;
@@ -363,6 +364,7 @@ export default function ChatInput({
     }
 
     setIsGeneratingRemix(true);
+    setInsufficientCreditsError(false); // Reset error state when starting generation
 
     try {
       let imageToUse: File | undefined;
@@ -489,6 +491,12 @@ export default function ChatInput({
 
     } catch (error: any) {
       console.error('Error generating remix:', error);
+
+      // Check if the error is due to insufficient credits
+      if (error.message === "not enough credits" || error.message?.includes("not enough credits")) {
+        setInsufficientCreditsError(true);
+      }
+
       toast.error(error.message || "Failed to generate remix");
     } finally {
       setIsGeneratingRemix(false);
@@ -694,7 +702,7 @@ export default function ChatInput({
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 my-2">
-                  {hasEnoughCredits ? (
+                  {hasEnoughCredits && !insufficientCreditsError ? (
                     <Button
                       type="button"
                       onClick={generateRemix}
@@ -721,6 +729,7 @@ export default function ChatInput({
                         creditsNeeded: remixCreditsNeeded,
                         onSuccess: () => {
                           refetchCredits();
+                          setInsufficientCreditsError(false); // Reset error state on success
                           generateRemix();
                         },
                       })}

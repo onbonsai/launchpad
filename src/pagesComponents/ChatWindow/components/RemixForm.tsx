@@ -34,6 +34,7 @@ export default function RemixForm({
   const [animateImage, setAnimateImage] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [preview, setPreview] = useState<Preview | undefined>(currentPreview);
+  const [insufficientCreditsError, setInsufficientCreditsError] = useState(false);
 
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
   const { openSwapToGenerateModal } = useTopUpModal();
@@ -60,6 +61,7 @@ export default function RemixForm({
     }
 
     setIsGenerating(true);
+    setInsufficientCreditsError(false); // Reset error state when starting generation
 
     try {
       const authHeaders = await getAuthHeaders({ isWrite: true });
@@ -99,6 +101,12 @@ export default function RemixForm({
 
     } catch (error: any) {
       console.error('Error generating remix:', error);
+
+      // Check if the error is due to insufficient credits
+      if (error.message === "not enough credits" || error.message?.includes("not enough credits")) {
+        setInsufficientCreditsError(true);
+      }
+
       toast.error(error.message || "Failed to generate remix");
     } finally {
       setIsGenerating(false);
@@ -230,7 +238,7 @@ export default function RemixForm({
 
           {/* Generate Button */}
           <div className="flex justify-center sm:justify-end">
-            {hasEnoughCredits ? (
+            {hasEnoughCredits && !insufficientCreditsError ? (
               <Button
                 onClick={generateRemix}
                 disabled={!prompt.trim() || isGenerating}
@@ -252,6 +260,7 @@ export default function RemixForm({
                   creditsNeeded,
                   onSuccess: () => {
                     refetchCredits();
+                    setInsufficientCreditsError(false); // Reset error state on success
                     generateRemix();
                   },
                 })}
