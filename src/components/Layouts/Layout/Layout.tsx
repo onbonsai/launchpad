@@ -4,6 +4,7 @@ import { brandFont } from "../../../fonts/fonts";
 import { useRouter } from "next/router";
 import PWAInstallPrompt from "../../PWAInstallPrompt";
 import OfflineIndicator from "../../OfflineIndicator";
+import { Footer } from "@src/components/Footer/Footer";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
@@ -56,6 +57,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
           <main className="flex-1 flex flex-col bg-background text-secondary w-full max-w-full flex-grow min-h-full">
             {children}
           </main>
+          <Footer />
         </div>
         <PWAInstallPrompt />
       </div>
