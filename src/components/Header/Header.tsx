@@ -93,8 +93,8 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
-    // If miniapp and not budget modal, skip the whole thing
-    if (isMiniApp && query.modal !== "budget") return;
+    // Only run this effect for miniapp users or when there's a specific budget modal query
+    if (!isMiniApp && query.modal !== "budget") return;
 
     const timer = setTimeout(() => {
       if (isMiniApp && !isConnected && !hasHandledInitialModal.current) {
@@ -102,7 +102,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
         hasHandledInitialModal.current = true;
         return;
       }
-      if ((!isMiniApp || query.modal === "budget") && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
+      if (isMiniApp && (!isAuthenticated || (query.modal === "budget" && !hasHandledBudgetModal.current)) && !hasHandledInitialModal.current) {
         setOpenSignInModal(true);
         hasHandledInitialModal.current = true;
         if (query.modal === "budget") {
