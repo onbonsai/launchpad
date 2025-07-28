@@ -577,7 +577,7 @@ export default function ChatInput({
                         type="submit"
                         disabled={!/[a-zA-Z]/.test(userInput) || disabled}
                         variant="accentBrand"
-                        size="sm"
+                        size="md"
                         className={`${!/[a-zA-Z]/.test(userInput) || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {!isMiniApp ? "Post" : "Cast"}
@@ -593,7 +593,7 @@ export default function ChatInput({
                             type="submit"
                             disabled={!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment}
                             variant="accentBrand"
-                            size="sm"
+                            size="md"
                             className={`${!/[a-zA-Z]/.test(userInput) || disabled || !validAttachment ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <SendSvg />
@@ -668,47 +668,19 @@ export default function ChatInput({
                       )}
                     </>
                   )}
-
-                  {/* Regular suggestions when not remixing */}
-                  {/* {!userInput && showSuggestions && !isPosting && !isGeneratingPreview && !isRemixing && (
-                    <>
-                      {!isMiniApp && (
-                        <>
-                          <PremadeChatInput
-                            setUserInput={disabled ? () => { } : setUserInput}
-                            label="About"
-                            input="What is this post about?"
-                            disabled={disabled}
-                          />
-                          <PremadeChatInput
-                            setUserInput={disabled ? () => { } : setUserInput}
-                            label="Commentary"
-                            input="What is the sentiment in the comments?"
-                            disabled={disabled}
-                          />
-                          <PremadeChatInput
-                            setUserInput={disabled ? () => { } : setUserInput}
-                            label="Author"
-                            input="Who made this post?"
-                            disabled={disabled}
-                          />
-                        </>
-                      )}
-                    </>
-                  )} */}
                 </div>
               </div>
 
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 my-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 py-2">
                   {hasEnoughCredits && !insufficientCreditsError ? (
                     <Button
                       type="button"
                       onClick={generateRemix}
                       disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
                       variant="accentBrand"
-                      size="sm"
+                      size="md"
                       className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} w-full sm:w-auto sm:min-w-[120px] sm:order-2 order-1`}
                     >
                       <SparkIcon color="#000" height={14} />
@@ -718,7 +690,6 @@ export default function ChatInput({
                           <span>Generating...</span>
                         </div>
                       ) : (
-                        // `Generate (${parseInt(remixCreditsNeeded)} credits)`
                         'Generate'
                       )}
                     </Button>
@@ -734,7 +705,7 @@ export default function ChatInput({
                         },
                       })}
                       variant="accentBrand"
-                      size="sm"
+                      size="md"
                       className="w-full sm:w-auto sm:order-2 order-1"
                     >
                       Swap to Generate

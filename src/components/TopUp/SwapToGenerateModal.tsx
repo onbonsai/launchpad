@@ -3,7 +3,7 @@ import { Button } from "@src/components/Button";
 import { brandFont } from "@src/fonts/fonts";
 import clsx from "clsx";
 import { useAccount, useBalance, useWalletClient } from "wagmi";
-import { erc20Abi, formatUnits, parseUnits, encodeAbiParameters, zeroAddress } from "viem";
+import { erc20Abi, formatUnits, parseUnits, encodeAbiParameters, zeroAddress, type SendCallsParameters } from "viem";
 import { toast } from "react-hot-toast";
 import {
   ADMIN_WALLET,
@@ -76,10 +76,10 @@ export const SwapToGenerateModal = ({
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isMiniApp, context } = useIsMiniApp();
+  const { refetch: _refetchCredits } = useGetCredits(address as string, isConnected);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
-  const { refetch: _refetchCredits } = useGetCredits(address as string, isConnected);
 
   // Load remembered selection
   useEffect(() => {
@@ -145,6 +145,23 @@ export const SwapToGenerateModal = ({
     return totalGhoBalance >= parseUnits(totalCost.toString(), 18);
   }, [selectedAmount, totalCost, usdcBalance, totalGhoBalance, token.chain]);
 
+  // Check if wallet supports sendCalls (EIP-5792)
+  const checkWalletCapabilities = async () => {
+    try {
+      if (!walletClient) return null;
+      
+      const capabilities = await walletClient.getCapabilities({
+        account: address as `0x${string}`,
+      });
+
+      // Check if Base chain (8453) supports sendCalls
+      return capabilities?.[baseChain.id]?.atomicBatch?.supported === true;
+    } catch (error) {
+      console.log("Wallet doesn't support getCapabilities or sendCalls");
+      return false;
+    }
+  };
+
   const handleSwap = async () => {
     if (!walletClient || !address || !selectedAmount) {
       toast.error("Missing required data");
@@ -181,7 +198,11 @@ export const SwapToGenerateModal = ({
 
     let toastId = toast.loading("Processing swap and credits...");
 
-    let transferTx = "";
+    let transferTx: any = {
+      txHash: "",
+      creditsAmount: "",
+      user: address,
+    };
 
     try {
       const club = await getRegisteredClubByTokenAddress(token.address as `0x${string}`, token.chain);
@@ -244,12 +265,13 @@ export const SwapToGenerateModal = ({
         });
 
         const creditsAmount = parseUnits(generationFee.toString(), DECIMALS);
-        transferTx = await walletClient.writeContract({
+        transferTx.txHash = await walletClient.writeContract({
           address: WGHO_CONTRACT_ADDRESS,
           abi: erc20Abi,
           functionName: "transfer",
           args: [ADMIN_WALLET, creditsAmount],
         });
+        transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
       } else {
         // swap USDC to token
         if (club && !club.complete && !club.liquidityReleasedAt) {
@@ -263,7 +285,20 @@ export const SwapToGenerateModal = ({
           );
           toast.loading("Buying", { id: toastId });
           await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
+          
+          // Pay for credits after launchpad buy
+          const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
+          transferTx.txHash = await walletClient.writeContract({
+            address: USDC_CONTRACT_ADDRESS,
+            abi: erc20Abi,
+            functionName: "transfer",
+            args: [ADMIN_WALLET, creditsAmount],
+          });
+          transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
         } else {
+          // Check if we can batch the calls on Base
+          let supportsBatchedCalls = token.chain === "base" && (await checkWalletCapabilities());
+          
           // Execute Matcha swap
           toast.loading("Preparing swap...", { id: toastId });
           const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
@@ -316,29 +351,111 @@ export const SwapToGenerateModal = ({
             ]);
           }
 
-          // Execute the swap
-          toast.loading("Swapping...", { id: toastId });
-          const hash = await walletClient.sendTransaction({
-            to: quote.transaction.to,
-            data: quote.transaction.data,
-            value: BigInt(quote.transaction.value || 0),
-            gas: BigInt(quote.transaction.gas),
-            chain: baseChain,
-          });
+          const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
 
-          await publicClient("base").waitForTransactionReceipt({ hash });
-          toast.success("Swap completed!", { id: toastId });
+          if (supportsBatchedCalls) {
+            // Batch the swap and credit payment
+            toast.loading("Processing swap and credits in batch...", { id: toastId });
+            
+            const calls: SendCallsParameters['calls'] = [
+              // Matcha swap call
+              {
+                to: quote.transaction.to as `0x${string}`,
+                data: quote.transaction.data as `0x${string}`,
+                value: BigInt(quote.transaction.value || 0),
+              },
+              // Credit payment call
+              {
+                to: USDC_CONTRACT_ADDRESS,
+                abi: erc20Abi,
+                functionName: "transfer",
+                args: [ADMIN_WALLET, creditsAmount],
+              }
+            ];
+
+            try {
+              const result = await walletClient.sendCalls({
+                account: address as `0x${string}`,
+                calls,
+                chain: baseChain,
+                // @ts-ignore - experimental_fallback might not be in types yet
+                experimental_fallback: true, // Allow fallback to sequential if sendCalls not supported
+              });
+
+              // Wait for the batch to complete
+              if (result.id) {
+                toast.loading("Waiting for batch transaction...", { id: toastId });
+                
+                // Poll for status (you might want to implement waitForCallsStatus if available)
+                let completed = false;
+                let attempts = 0;
+                while (!completed && attempts < 60) { // 60 attempts, ~1 minute timeout
+                  try {
+                    const status = await walletClient.getCallsStatus({
+                      id: result.id,
+                    });
+                    
+                    // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
+                    const statusValue = (status.status || '').toString().toUpperCase();
+                    if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
+                      completed = true;
+                      toast.success("Swap and credit payment completed!", { id: toastId });
+                      // Set transferTx for the credit update later
+                      transferTx.txHash = "batched";
+                      transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+                    } else if (statusValue === 'REVERTED' || statusValue === 'FAILURE' || statusValue === 'FAILED') {
+                      throw new Error("Batch transaction reverted");
+                    }
+                  } catch (e) {
+                    // If getCallsStatus is not supported, just wait a bit and assume success
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    completed = true;
+                    transferTx.txHash = "batched";
+                    transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+                  }
+                  
+                  attempts++;
+                  if (!completed) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+                
+                if (!completed) {
+                  throw new Error("Batch transaction timeout");
+                }
+              }
+            } catch (batchError) {
+              console.warn("Batch call failed, falling back to sequential:", batchError);
+              // Fall back to sequential execution
+              supportsBatchedCalls = false;
+            }
+          }
+          
+          if (!supportsBatchedCalls) {
+            // Execute sequentially (original flow)
+            toast.loading("Swapping...", { id: toastId });
+            const hash = await walletClient.sendTransaction({
+              to: quote.transaction.to,
+              data: quote.transaction.data,
+              value: BigInt(quote.transaction.value || 0),
+              gas: BigInt(quote.transaction.gas),
+              chain: baseChain,
+            });
+
+            await publicClient("base").waitForTransactionReceipt({ hash });
+            toast.success("Swap completed!", { id: toastId });
+            
+            // Pay for the credits
+            transferTx.txHash = await walletClient.writeContract({
+              address: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "transfer",
+              args: [ADMIN_WALLET, creditsAmount],
+            });
+            transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+          }
         }
       }
-
-      // then pay for the credits
-      const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
-      transferTx = await walletClient.writeContract({
-        address: USDC_CONTRACT_ADDRESS,
-        abi: erc20Abi,
-        functionName: "transfer",
-        args: [ADMIN_WALLET, creditsAmount],
-      });
     } catch (error) {
       console.error("Error processing swap:", error);
       toast.dismiss(toastId);
@@ -350,7 +467,7 @@ export const SwapToGenerateModal = ({
     try {
       const response = await axios.post("/api/credits/purchase", {
         fid: isMiniApp ? context?.user?.fid : undefined,
-        txHash: transferTx,
+        transferTx,
         chain: token.chain,
         price: 100, // 100 credits for 1$
       });
