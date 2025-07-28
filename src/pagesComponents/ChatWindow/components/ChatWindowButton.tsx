@@ -108,7 +108,7 @@ export default function ChatWindowButton({
               "animate-fade-in",
               "rounded-xl overflow-hidden flex flex-col pointer-events-auto",
               "z-10",
-              isMobile ? 'h-[90vh]' : 'h-[95vh]'
+              isMobile && !isStandalone && !isMiniApp ? 'h-[90vh]' : 'h-[95vh]'
             )}
           >
             {/* Chat Header */}
@@ -136,7 +136,8 @@ export default function ChatWindowButton({
       {isConnected && !isOpen && isMobile && (
         <div
           className={clsx(
-            "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto bottom-[3.5rem]"
+            "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto",
+            isStandalone || isMiniApp ? "bottom-[calc(3.5rem+1.5rem)]" : "bottom-[3.5rem]"
           )}
         >
           <div className="flex justify-between items-center px-4 py-3">
