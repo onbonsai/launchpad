@@ -60,24 +60,29 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const hasHandledBudgetModal = useRef(false);
   const hasHandledInitialModal = useRef(false);
 
-  const { setOpen } = useModal({
-    onConnect: () => {
-      // Don't auto-trigger Lens login for miniapp users
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
-        setTimeout(() => {
-          setOpenSignInModal(true);
-        }, 500);
-      }
-    },
-    onDisconnect: () => {
+  const { setOpen } = useModal();
+
+  // Handle connection events in useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isConnected && !isAuthenticated && setOpenSignInModal && !isMiniApp) {
+      const timer = setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
+
+  // Handle disconnection events in useEffect
+  useEffect(() => {
+    if (!isConnected) {
       // Reset the modal flags when user disconnects
       hasHandledInitialModal.current = false;
       hasHandledBudgetModal.current = false;
       if (!isMiniApp) {
-        lensLogout().then(fullRefetch)
+        lensLogout().then(fullRefetch);
       }
     }
-  });
+  }, [isConnected, isMiniApp, fullRefetch]);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
@@ -159,17 +164,18 @@ export const Header = () => {
   const isMounted = useIsMounted();
   const isAlmostMobile = useIsAlmostMobile();
   const { isConnected } = useAccount();
-  const { setOpen } = useModal({
-    onConnect: () => {
-      // Don't auto-trigger Lens login for miniapp users
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
-        setTimeout(() => {
-          setOpenSignInModal(true);
-        }, 500);
-      }
-    },
-  });
   const { isMiniApp } = useIsMiniApp();
+  const { setOpen } = useModal();
+
+  // Handle connection events in useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isConnected && !isAuthenticated && setOpenSignInModal && !isMiniApp) {
+      const timer = setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
 
   if (!isMounted) return null;
 
