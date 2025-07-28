@@ -1,3 +1,5 @@
+import { Footer } from "@src/components/Footer/Footer";
+
 const PP = () => {
   return (
     <div className="bg-background text-secondary min-h-[90vh]">
@@ -409,6 +411,7 @@ const PP = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

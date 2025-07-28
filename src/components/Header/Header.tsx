@@ -1,7 +1,5 @@
 import { brandFont } from "@src/fonts/fonts";
 import Link from "next/link";
-import { shareBonsai } from "@src/utils/webShare";
-import { ShareIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
 import { useEffect, useState, useRef } from "react";
@@ -27,6 +25,7 @@ import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { usePWA } from "@src/hooks/usePWA";
+import { HelpOutline } from "@mui/icons-material";
 
 const headerLinks = [
   {
@@ -159,7 +158,6 @@ export const Header = () => {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const isMounted = useIsMounted();
   const isAlmostMobile = useIsAlmostMobile();
-  const isMobile = useIsMobile();
   const { isConnected } = useAccount();
   const { setOpen } = useModal({
     onConnect: () => {
@@ -254,6 +252,17 @@ export const Header = () => {
                 className="sm:hidden"
                 setOpenHelpModal={setOpenHelpModal}
               />
+
+              {/* Help icon for unauthenticated users on larger screens */}
+              {(!isAuthenticated || !isConnected) && (
+                <button
+                  className="hidden sm:flex items-center justify-center w-10 h-10 ml-2 text-white/70 hover:text-white transition-colors duration-200 focus:outline-none"
+                  onClick={() => setOpenHelpModal(true)}
+                  title="Help & Info"
+                >
+                  <HelpOutline className="w-5 h-5"/>
+                </button>
+              )}
 
               {/* Hamburger (visible on small screens only) */}
               <button

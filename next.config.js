@@ -177,6 +177,16 @@ const nextConfig = {
           },
         ],
       },
+      // Disable CSP entirely - allow everything
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src * data:; connect-src *; media-src * data: blob:; object-src *; child-src *; frame-src *; worker-src * blob: data:; form-action *; frame-ancestors *;"
+          },
+        ],
+      },
     ];
   },
   images: {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { useOfflineRedirect } from "@src/hooks/useOfflineRedirect";
 import { usePWA } from "@src/hooks/usePWA";
+import { Footer } from "@src/components/Footer/Footer";
 
 const OfflinePage: React.FC = () => {
   const [showOnlineMessage, setShowOnlineMessage] = useState(false);
@@ -108,6 +109,7 @@ const OfflinePage: React.FC = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 };
