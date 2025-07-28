@@ -428,6 +428,8 @@ function AppContent(props: AppProps) {
 
   return (
       <>
+        <HandleSEO pageProps={pageProps} query={router.query} />
+
         <style jsx global>{`
           :root {
             --font-brand: ${brandFont.style.fontFamily};
@@ -461,7 +463,6 @@ function AppContent(props: AppProps) {
 
         {isMiniApp && <link rel="preconnect" href="https://auth.farcaster.xyz" />}
 
-        <HandleSEO pageProps={pageProps} query={router.query} />
         <Web3Provider>
           <ThirdwebProvider>
             <ThemeProvider>
