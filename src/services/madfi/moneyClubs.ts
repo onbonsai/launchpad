@@ -22,7 +22,7 @@ import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import { lensClient } from "../lens/client";
 import axios from "axios";
 import queryFiatViaLIFI from "@src/utils/tokenPriceHelper";
-import { getPosts } from "../lens/posts";
+import { getPostsBatched } from "../lens/posts";
 import { Post, SessionClient } from "@lens-protocol/client";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { apolloClientReadOnly } from "../lens/apolloClient";
@@ -1036,7 +1036,7 @@ export const getRegisteredClubs = async (page = 0, sortedBy: string, chain = "ba
 
     try {
       const lensTokens = clubs.filter(({ strategy, postId }) => (strategy === "lens" && !!postId && typeof postId === "string" && postId.trim() !== ""));
-      const publications: Post[] = await getPosts(lensTokens.map(({ postId }) => postId)) as unknown[] as Post[];
+      const publications: Post[] = await getPostsBatched(lensTokens.map(({ postId }) => postId)) as unknown[] as Post[];
       const gPublications = groupBy(publications || [], "slug");
       const groupedClubs = groupBy(clubs || [], chain === "base" ? "clubId" : "tokenAddress");
       const responseClubs = data?.clubs.map((_club: any) => {

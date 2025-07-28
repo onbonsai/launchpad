@@ -66,7 +66,7 @@ const ProfileTokenRow = (props: ProfileTokenRowProps) => {
         : `${V1_LAUNCHPAD_URL}/token/${holding?.club?.clubId}`;
 
     return (
-        <Link href={link} legacyBehavior target="_blank">
+        <Link href={link} target="_blank">
             <div className="rounded-3xl p-3 bg-card flex flex-row justify-between flex-grow cursor-pointer hover:opacity-90">
                 <div className="flex flex-row items-center">
                     <SafeImage src={holding?.token.image} alt='token-image' className='h-9 w-9 rounded-lg' height={32} width={32}/>

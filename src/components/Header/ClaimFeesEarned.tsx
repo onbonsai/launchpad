@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
+import useIsMounted from "@src/hooks/useIsMounted";
 import { useAccount, useWalletClient } from "wagmi";
 import { formatUnits } from "viem";
 import { base, baseSepolia } from "viem/chains";
@@ -15,6 +16,7 @@ import Image from "next/image";
 import Popper from "@mui/material/Popper";
 
 export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
+  const isMounted = useIsMounted();
   const { address, chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { data: creatorFeesEarned, isLoading, refetch } = useGetFeesEarned(address);
@@ -119,6 +121,9 @@ export const ClaimFeesEarned = ({ openMobileMenu }: { openMobileMenu?: boolean }
     Number(creatorFeesEarned?.grandTotal) < 0.01 ||
     isClaiming;
 
+  // Prevent hydration mismatch by ensuring component doesn't render until mounted
+  if (!isMounted) return null;
+  
   if ((isLoading || disabled) && !isClaiming) return null;
 
   return (

@@ -46,6 +46,7 @@ const headerLinks = [
 ];
 
 const MobileBottomNav = ({ setOpenSignInModal }) => {
+  const isMounted = useIsMounted();
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { isMiniApp } = useIsMiniApp();
@@ -98,6 +99,9 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
+    // Only run when mounted to prevent hydration issues
+    if (!isMounted) return;
+    
     // If miniapp and not budget modal, skip the whole thing
     if (isMiniApp && query.modal !== "budget") return;
 
@@ -117,9 +121,12 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);
+  }, [isMounted, isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);
 
   const { isStandalone } = usePWA();
+
+  // Prevent hydration mismatch by ensuring component doesn't render until mounted
+  if (!isMounted) return null;
 
   return (
     <div className={clsx(
@@ -374,7 +381,7 @@ export const Header = () => {
         </p>
 
         <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
-          <Link href={routesApp.info} legacyBehavior target="_blank">
+          <Link href={routesApp.info}>
             <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
           </Link>
         </div>

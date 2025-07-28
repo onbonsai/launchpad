@@ -22,7 +22,7 @@ const TokenCard = (props: TokenCardProps) => {
         ? `/token/${chain}/${tokenAddress!}`
         : `${V1_LAUNCHPAD_URL}/token/${clubId}`;
     return (
-        <Link href={link} legacyBehavior target="_blank" >
+        <Link href={link}>
             <div className='flex flex-col items-start justify-start text-white bg-white/5 h-[100px] min-w-[160px] py-2 px-3 rounded-2xl cursor-pointer hover:opacity-90'>
                 <div className='flex justify-between items-center w-full'>
                     <p className='text-[16px] leading-tight font-semibold truncate max-w-[70%]'>{title}</p>
