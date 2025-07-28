@@ -31,8 +31,36 @@ const IndexPage: NextPage = () => {
   const { isAuthenticated } = useLensSignIn(walletClient);
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const { isMiniApp } = useIsMiniApp();
-  const [activeTab, setActiveTab] = useState<PostTabType>(PostTabType.EXPLORE);
+  
+  // Initialize activeTab from localStorage or default to EXPLORE
+  const [activeTab, setActiveTab] = useState<PostTabType>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('selectedPostTab');
+      if (savedTab && Object.values(PostTabType).includes(savedTab as PostTabType)) {
+        return savedTab as PostTabType;
+      }
+    }
+    return PostTabType.EXPLORE;
+  });
+  
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
+
+  // Save activeTab to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedPostTab', activeTab);
+    }
+  }, [activeTab]);
+
+  // Check if saved tab requires authentication on mount
+  useEffect(() => {
+    if (isMounted && !isLoadingAuthenticatedProfile) {
+      const requiresAuth = activeTab === PostTabType.FOR_YOU || activeTab === PostTabType.COLLECTED;
+      if (requiresAuth && !isAuthenticated) {
+        setActiveTab(PostTabType.EXPLORE);
+      }
+    }
+  }, [isMounted, isAuthenticated, isLoadingAuthenticatedProfile]);
 
   const { data: exploreData, fetchNextPage: fetchNextExplorePage, isFetchingNextPage: isFetchingNextExplorePage, hasNextPage: hasNextExplorePage, isLoading: isLoadingExplorePosts } = useGetExplorePosts({
     isLoadingAuthenticatedProfile,
@@ -77,12 +105,6 @@ const IndexPage: NextPage = () => {
   }), [activeTab === PostTabType.EXPLORE ? exploreData : timelineData, featuredData, data]);
 
   useScrollRestoration('posts-page-scroll', isMounted && !isLoadingExplorePosts && !isLoadingTimelinePosts && !isLoadingFeaturedPosts && posts.length > 0, 50);
-
-  useEffect(() => {
-    if (isMounted && isConnected && isAuthenticated && !isMiniApp && activeTab !== PostTabType.FOR_YOU) {
-      setActiveTab(PostTabType.FOR_YOU);
-    }
-  }, [isConnected, isAuthenticated, isMounted, isMiniApp]);
 
   // fix hydration issues
   if (!isMounted) return null;
