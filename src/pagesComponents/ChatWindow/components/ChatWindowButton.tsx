@@ -137,7 +137,7 @@ export default function ChatWindowButton({
             </div>
 
             {/* Chat Content Area - Render children (Chat component) here */}
-            <div className="flex-1 overflow-y-auto p-4">{childrenWithProps}</div>
+            <div className={`flex-1 overflow-y-auto p-4 ${isStandalone ? 'mb-8' : ''}`}>{childrenWithProps}</div>
           </div>
         </div>
       )}

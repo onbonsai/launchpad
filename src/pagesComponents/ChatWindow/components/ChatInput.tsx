@@ -13,7 +13,6 @@ import { useAccount } from 'wagmi';
 import { useAuth } from '@src/hooks/useAuth';
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { SparkIcon } from '@src/components/Icons/SparkIcon';
-import { usePWA } from '@src/hooks/usePWA';
 
 // Helper function to extract frame from video
 const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
@@ -260,7 +259,6 @@ export default function ChatInput({
   setImageToExtend,
 }: ChatInputProps) {
   const { isMiniApp } = useIsMiniApp();
-  const { isStandalone } = usePWA();
   const { address, isConnected } = useAccount();
   const { getAuthHeaders } = useAuth();
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
@@ -695,7 +693,7 @@ export default function ChatInput({
 
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
-                <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2 ${isStandalone ? 'mb-2' : ''}`}>
+                <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2`}>
                   {/* {creditBalance && (
                     <span className="text-xs text-gray-500 sm:order-1 order-2 text-center sm:text-left">
                       {parseInt(creditBalance.creditsRemaining)} credits
