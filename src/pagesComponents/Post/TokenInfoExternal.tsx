@@ -131,7 +131,7 @@ export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Tok
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
-          <SafeImage src={tokenMetadata.logo} alt={tokenMetadata.name} className="w-full h-full object-cover" fill />
+          <img src={tokenMetadata.logo} alt={tokenMetadata.name} className="w-full h-full object-cover" fill="true" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 
@@ -139,12 +139,10 @@ export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Tok
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-center w-full">
             <div className="w-full">
               <div className="flex items-center gap-x-4 w-full">
-                <SafeImage
+                <img
                   src={tokenMetadata.logo}
                   alt={tokenMetadata.name}
-                  className="object-cover rounded-lg aspect-square"
-                  width={48}
-                  height={48}
+                  className="object-cover rounded-lg aspect-square w-12 h-12"
                 />
                 <div className="flex flex-col items-start">
                   <Header2 className="text-white text-md">${tokenMetadata?.symbol}</Header2>
