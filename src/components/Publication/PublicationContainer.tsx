@@ -698,8 +698,8 @@ const PublicationContainer = ({
         </div>
       )}
 
-      {/* Download/Cast button for media content (only for creator) */}
-      {!!(publication?.metadata?.video?.item || publication?.metadata?.image?.item) && (showDownload || (isAuthenticated && isCreator)) ? (
+      {/* Download/Cast button for media content (NOT showing in miniapp for now) */}
+      {!!(publication?.metadata?.video?.item || publication?.metadata?.image?.item) && showDownload && !isMiniApp ? (
         <div
           className={`absolute cursor-pointer ${sideBySideMode ? `bottom-4 ${showDownload ? 'right-2' : 'right-14'}` : `bottom-3 ${showDownload ? 'right-3' : 'right-12'}`}`}
           onClick={(e) => {

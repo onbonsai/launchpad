@@ -65,7 +65,8 @@ const PreviewMessage = ({
   onExtendVideo,
   onDownload,
   isProcessingVideo = false,
-  isPosting = false
+  isPosting = false,
+  isMiniApp = false,
 }: {
   preview?: Preview;
   isAgent: boolean;
@@ -78,6 +79,7 @@ const PreviewMessage = ({
   onDownload?: (preview: Preview) => void;
   isProcessingVideo?: boolean;
   isPosting?: boolean;
+  isMiniApp?: boolean;
 }) => {
   if (isPending) {
     return (
@@ -152,8 +154,8 @@ const PreviewMessage = ({
               </button>
             )}
 
-            {/* Download button - only show if there's media to download */}
-            {(hasImage || hasVideo) && onDownload && !isPosting && (
+            {/* Download button - only show if there's media to download and not in the miniapp */}
+            {(hasImage || hasVideo) && onDownload && !isPosting && !isMiniApp && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1151,6 +1153,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                     onDownload={handleDownload}
                                     isProcessingVideo={isProcessingVideo[(message.content.preview as Preview)?.agentId || 'unknown']}
                                     isPosting={isPosting}
+                                    isMiniApp={isMiniApp}
                                   />
                                 </div>
                               ) : (
@@ -1210,6 +1213,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                                   onDownload={handleDownload}
                                   isProcessingVideo={isProcessingVideo?.[(preview.content.preview as Preview)?.agentId || 'unknown']}
                                   isPosting={isPosting}
+                                  isMiniApp={isMiniApp}
                                 />
                               </div>
                             );
