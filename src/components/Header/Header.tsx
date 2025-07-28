@@ -46,6 +46,7 @@ const headerLinks = [
 ];
 
 const MobileBottomNav = ({ setOpenSignInModal }) => {
+  const isMounted = useIsMounted();
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { isMiniApp } = useIsMiniApp();
@@ -60,24 +61,29 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const hasHandledBudgetModal = useRef(false);
   const hasHandledInitialModal = useRef(false);
 
-  const { setOpen } = useModal({
-    onConnect: () => {
-      // Don't auto-trigger Lens login for miniapp users
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
-        setTimeout(() => {
-          setOpenSignInModal(true);
-        }, 500);
-      }
-    },
-    onDisconnect: () => {
+  const { setOpen } = useModal();
+
+  // Handle connection events in useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isConnected && !isAuthenticated && setOpenSignInModal && !isMiniApp) {
+      const timer = setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
+
+  // Handle disconnection events in useEffect
+  useEffect(() => {
+    if (!isConnected) {
       // Reset the modal flags when user disconnects
       hasHandledInitialModal.current = false;
       hasHandledBudgetModal.current = false;
       if (!isMiniApp) {
-        lensLogout().then(fullRefetch)
+        lensLogout().then(fullRefetch);
       }
     }
-  });
+  }, [isConnected, isMiniApp, fullRefetch]);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
@@ -93,8 +99,14 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   };
 
   useEffect(() => {
-    // Only run this effect for miniapp users or when there's a specific budget modal query
-    if (!isMiniApp && query.modal !== "budget") return;
+    // Only run when mounted to prevent hydration issues
+    if (!isMounted) return;
+
+    // If miniapp and not budget modal, skip the whole thing
+    if (isMiniApp && query.modal !== "budget") return;
+
+    // If not miniapp, skip
+    if (!isMiniApp) return;
 
     const timer = setTimeout(() => {
       if (isMiniApp && !isConnected && !hasHandledInitialModal.current) {
@@ -112,9 +124,12 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);
+  }, [isMounted, isMiniApp, isAuthenticated, isConnected, query.modal, setOpen, setOpenSignInModal]);
 
   const { isStandalone } = usePWA();
+
+  // Prevent hydration mismatch by ensuring component doesn't render until mounted
+  if (!isMounted) return null;
 
   return (
     <div className={clsx(
@@ -159,17 +174,18 @@ export const Header = () => {
   const isMounted = useIsMounted();
   const isAlmostMobile = useIsAlmostMobile();
   const { isConnected } = useAccount();
-  const { setOpen } = useModal({
-    onConnect: () => {
-      // Don't auto-trigger Lens login for miniapp users
-      if (!isAuthenticated && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
-        setTimeout(() => {
-          setOpenSignInModal(true);
-        }, 500);
-      }
-    },
-  });
   const { isMiniApp } = useIsMiniApp();
+  const { setOpen } = useModal();
+
+  // Handle connection events in useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isConnected && !isAuthenticated && setOpenSignInModal && !isMiniApp) {
+      const timer = setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
 
   if (!isMounted) return null;
 
@@ -368,7 +384,7 @@ export const Header = () => {
         </p>
 
         <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
-          <Link href={routesApp.info} legacyBehavior target="_blank">
+          <Link href={routesApp.info}>
             <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
           </Link>
         </div>

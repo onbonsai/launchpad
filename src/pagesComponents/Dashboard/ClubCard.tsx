@@ -113,14 +113,6 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
             </div>
           </div>
         </div>
-        {/* <div className="flex flex-col">
-                <p className="text-grey text-xs max-w-fit mt-1">
-                  created by{" "}
-                  <Link href={`/profile/${club.handle}`} legacyBehavior target="_blank">
-                    <span className="text-grey link-hover">@{club.handle}</span>
-                  </Link>
-                </p>
-              </div> */}
       </div>
     );
   }
@@ -132,7 +124,7 @@ const ClubCard = ({ data, creatorProfile, funny, funnier }: Props) => {
   const _DECIMALS = chain === "lens" ? DECIMALS : USDC_DECIMALS;
 
   return (
-    <Link href={link} legacyBehavior target="_blank">
+    <Link href={link}>
       <div className="col-span-1 rounded-lg relative group cursor-pointer transition-all max-w-full focus:outline-brand-highlight">
         <canvas
           className={`absolute inset-0 scale-x-100 scale-y-100 z-0 transition-all duration-500 blur-xl ${club?.featured ? "bg-gradient opacity-20 group-hover:opacity-50" : "bg-red-400 opacity-0 group-hover:opacity-40"

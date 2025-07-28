@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import useIsMounted from "@src/hooks/useIsMounted";
 import { NotificationsOutlined } from "@mui/icons-material";
 import { HeartIcon, ChatIcon, BookmarkIcon } from "@heroicons/react/outline";
 import { useWalletClient } from "wagmi";
@@ -16,6 +17,7 @@ import { SafeImage } from "../SafeImage/SafeImage";
 const LAST_SEEN_NOTIFICATION_KEY = 'last_seen_notification_id';
 
 export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { openMobileMenu?: boolean; isMobile?: boolean; onShowChange?: (show: boolean) => void }) => {
+  const isMounted = useIsMounted();
   const { ref, inView } = useInView();
   const { data: walletClient } = useWalletClient();
   const { authenticatedProfileId } = useLensSignIn(walletClient);
@@ -28,7 +30,8 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
 
   // Group notifications, combining reactions for the same post
   const groupedNotifications = useMemo(() => {
-    const lastSeenId = localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY);
+    // Only access localStorage when mounted to prevent hydration mismatches
+    const lastSeenId = isMounted ? localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY) : null;
 
     // If the latest notification is different from last seen, find the range
     let foundLastSeen = !lastSeenId; // If no last seen ID, consider all as new
@@ -88,11 +91,11 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
         : b.timestamp;
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
-  }, [notifs]);
+  }, [notifs, isMounted]);
 
   // Effect to check for new notifications and mark them
   useEffect(() => {
-    if (!notifs.length) return;
+    if (!isMounted || !notifs.length) return;
 
     const lastSeenId = localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY);
     const latestNotificationId = notifs[0]?.id;
@@ -106,7 +109,7 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
     } else {
       setHasNewNotifications(false);
     }
-  }, [notifs]);
+  }, [notifs, isMounted]);
 
   // Effect to clear new notifications indicator after 3 seconds when tooltip is shown
   useEffect(() => {

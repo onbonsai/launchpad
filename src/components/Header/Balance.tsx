@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import useIsMounted from "@src/hooks/useIsMounted";
 import { useAccount, useBalance, useReadContract, useSwitchChain, useWalletClient } from "wagmi";
 import { formatUnits, erc20Abi } from "viem";
 import clsx from "clsx";
@@ -25,6 +26,7 @@ import Image from "next/image";
 import useIsMobile from "@src/hooks/useIsMobile";
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
+  const isMounted = useIsMounted();
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const isMobile = useIsMobile();
@@ -198,6 +200,9 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   //   console.log(price);
   // }, []);
 
+  // Prevent hydration mismatch by ensuring component doesn't render until mounted
+  if (!isMounted) return null;
+  
   if (!isConnected) return null;
 
   return (

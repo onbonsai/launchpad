@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import { useAuthenticatedLensProfile } from "@src/hooks/useLensProfile";
 import useIsMounted from "@src/hooks/useIsMounted";
@@ -31,6 +31,7 @@ const IndexPage: NextPage = () => {
   const { isAuthenticated } = useLensSignIn(walletClient);
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const { isMiniApp } = useIsMiniApp();
+  const hasCheckedAuth = useRef(false);
   
   // Initialize activeTab from localStorage or default to EXPLORE
   const [activeTab, setActiveTab] = useState<PostTabType>(() => {
@@ -52,13 +53,14 @@ const IndexPage: NextPage = () => {
     }
   }, [activeTab]);
 
-  // Check if saved tab requires authentication on mount
+  // Check if saved tab requires authentication on mount (only once)
   useEffect(() => {
-    if (isMounted && !isLoadingAuthenticatedProfile) {
+    if (isMounted && !isLoadingAuthenticatedProfile && !hasCheckedAuth.current) {
       const requiresAuth = activeTab === PostTabType.FOR_YOU || activeTab === PostTabType.COLLECTED;
       if (requiresAuth && !isAuthenticated) {
         setActiveTab(PostTabType.EXPLORE);
       }
+      hasCheckedAuth.current = true;
     }
   }, [isMounted, isAuthenticated, isLoadingAuthenticatedProfile]);
 

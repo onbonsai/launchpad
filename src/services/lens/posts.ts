@@ -40,6 +40,35 @@ export const getPosts = async (publicationIds: string[], sessionClient?: Session
   }
 };
 
+// Batched version to handle large arrays of post IDs (max 50 per API call)
+export const getPostsBatched = async (publicationIds: string[], sessionClient?: SessionClient, batchSize: number = 50) => {
+  try {
+    if (publicationIds.length === 0) return [];
+    
+    // If within limit, use regular function
+    if (publicationIds.length <= batchSize) {
+      return await getPosts(publicationIds, sessionClient);
+    }
+    
+    // Split into batches
+    const batches: string[][] = [];
+    for (let i = 0; i < publicationIds.length; i += batchSize) {
+      batches.push(publicationIds.slice(i, i + batchSize));
+    }
+    
+    // Execute all batches in parallel
+    const results = await Promise.all(
+      batches.map((batch: string[]) => getPosts(batch, sessionClient))
+    );
+    
+    // Flatten results
+    return results.flat();
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
 export const useGetPosts = (publicationIds: string[]) => {
   return useQuery({
     queryKey: ["get-posts", publicationIds],

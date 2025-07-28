@@ -242,6 +242,11 @@ self.addEventListener('fetch', (event) => {
                   });
               }
               return response;
+            })
+            .catch((error) => {
+              // Network failed, try to serve from cache again
+              console.log('[SW] Network request failed, attempting cache lookup:', error);
+              return caches.match(event.request);
             });
         })
     );

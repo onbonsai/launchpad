@@ -1,4 +1,5 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo, useState, useEffect } from "react";
+import useIsMounted from "@src/hooks/useIsMounted";
 import { styled } from '@mui/material/styles';
 import { useAccount, useDisconnect, useWalletClient } from "wagmi";
 import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
@@ -48,6 +49,7 @@ interface Props {
 }
 
 export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin, setOpenHelpModal }) => {
+  const isMounted = useIsMounted();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
@@ -55,18 +57,28 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { ensName, loading: loadingENS } = useENS(address);
   const { isAuthenticated, signingIn } = useLensSignIn(walletClient);
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
-  const { setOpen } = useModal({
-    onConnect: () => {
-      if (autoLensLogin && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
-        setTimeout(() => {
-          setOpenSignInModal(true);
-        }, 500);
-      }
-    },
-    onDisconnect: () => {
-      if (isAuthenticated) lensLogout().then(fullRefetch)
+  const { setOpen } = useModal();
+
+  const {
+    fullRefetch,
+  } = useLensSignIn(walletClient);
+
+  // Handle connection events in useEffect to avoid state updates during render
+  useEffect(() => {
+    if (isConnected && autoLensLogin && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
+      const timer = setTimeout(() => {
+        setOpenSignInModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  });
+  }, [isConnected, autoLensLogin, setOpenSignInModal, isAuthenticated, isMiniApp]);
+
+  // Handle disconnection events in useEffect
+  useEffect(() => {
+    if (!isConnected && isAuthenticated) {
+      lensLogout().then(fullRefetch);
+    }
+  }, [isConnected, isAuthenticated, fullRefetch]);
   // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
   //   onSignOut: () => {
   //     const asyncLogout = async () => {
@@ -79,10 +91,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   //   }
   // });
   const router = useRouter();
-
-  const {
-    fullRefetch,
-  } = useLensSignIn(walletClient);
 
   const identity = useMemo(() => {
     if (authenticatedProfile)
@@ -122,6 +130,9 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   // };
 
   // if (!ready && !connected) return null;
+
+  // Prevent hydration mismatch by ensuring component doesn't render until mounted
+  if (!isMounted) return null;
 
   if (!isConnected) {
   // if (!connected || !isConnected) {
