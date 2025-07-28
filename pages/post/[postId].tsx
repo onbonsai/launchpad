@@ -442,6 +442,8 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
     publication?.root?.metadata?.__typename
   ]);
 
+  const safeMedia: SmartMedia | undefined = useMemo(() => media || undefined, [media]);
+
   if (!isMounted) return null;
 
   if (isLoadingPage) {
@@ -455,8 +457,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
       </div>
     );
   }
-
-  const safeMedia: SmartMedia | undefined = useMemo(() => media || undefined, [media]);
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">

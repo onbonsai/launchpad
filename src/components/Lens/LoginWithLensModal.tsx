@@ -336,7 +336,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       let sessionClient = authenticated.value;
 
       // create metadata
-      let picture = "https://picsum.photos/400/400"; // default profile picture
+      let picture;
       if (profilePicture.length > 0) {
         picture = await cacheImageToStorj(
           profilePicture[0],
@@ -347,7 +347,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
       const metadata = account({
         name: displayName,
-        bio: `Welcome to my Lens profile!`,
+        bio: `Welcome to my profile!`,
         picture
       });
 
