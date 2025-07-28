@@ -37,7 +37,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
   const [selectedOption, setSelectedOption] = useState<TopUpOption | null>(null);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
   const { data: creditBalance, refetch: refetchCredits } = useGetCredits(address as string, isConnected);
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -225,6 +225,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
   const updateCredits = async (txHash: `0x${string}`) => {
     try {
       const response = await axios.post("/api/credits/purchase", {
+        fid: isMiniApp ? context?.user?.fid : undefined,
         txHash,
         chain: isMiniApp ? "base" : "lens",
         price: selectedOption?.isMaxMode ? 200 / 2.5 : 200 / 3, // Credits per dollar ratio

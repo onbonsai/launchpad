@@ -75,6 +75,7 @@ export const SwapToGenerateModal = ({
 }: SwapToGenerateModalProps) => {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { isMiniApp, context } = useIsMiniApp();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [rememberSelection, setRememberSelection] = useState(false);
   const [buyUSDCModalOpen, setBuyUSDCModalOpen] = useState(false);
@@ -260,11 +261,11 @@ export const SwapToGenerateModal = ({
             token.address as `0x${string}`,
             _selectedAmount.toString(),
           );
-          toastId = toast.loading("Buying", { id: toastId });
+          toast.loading("Buying", { id: toastId });
           await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
         } else {
           // Execute Matcha swap
-          toastId = toast.loading("Preparing swap...");
+          toast.loading("Preparing swap...", { id: toastId });
           const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
           const sellAmount = sellAmountBigInt.toString();
 
@@ -348,6 +349,7 @@ export const SwapToGenerateModal = ({
     // then update the credits
     try {
       const response = await axios.post("/api/credits/purchase", {
+        fid: isMiniApp ? context?.user?.fid : undefined,
         txHash: transferTx,
         chain: token.chain,
         price: 100, // 100 credits for 1$
