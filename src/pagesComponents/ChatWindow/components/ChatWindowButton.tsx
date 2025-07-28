@@ -104,30 +104,20 @@ export default function ChatWindowButton({
           {/* Chat Modal */}
           <div
             className={clsx(
-              "relative w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl h-[95vh]",
+              "relative w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl",
               "animate-fade-in",
               "rounded-xl overflow-hidden flex flex-col pointer-events-auto",
-              "z-10"
+              "z-10",
+              isMobile ? 'h-[90vh]' : 'h-[95vh]'
             )}
           >
             {/* Chat Header */}
             <div className="flex items-center justify-between pr-4 pb-3 pl-4 border-b border-zinc-700/50">
               <div className="flex items-center space-x-4">
-                {/* <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center">
-                  <Image
-                    src={agentInfo.account?.metadata?.picture || "/default.webp"}
-                    alt="Agent avatar"
-                    className="h-full w-full rounded-full object-cover"
-                    width={40}
-                    height={40}
-                  />
-                </div> */}
                 <div className="flex flex-col">
                   <h3 className="font-medium text-white">
-                    {/* Create with {agentInfo.account?.metadata?.name || `@${agentInfo.account?.username?.localName}`} */}
                     Remixing Media
                   </h3>
-                  {/* <span className="text-sm text-white/60">Explore the reality of the post or remix it</span> */}
                 </div>
               </div>
               {/* Close Button in Header */}
@@ -137,46 +127,19 @@ export default function ChatWindowButton({
             </div>
 
             {/* Chat Content Area - Render children (Chat component) here */}
-            <div className={`flex-1 overflow-y-auto p-4 ${isStandalone ? 'mb-8' : ''}`}>{childrenWithProps}</div>
+            <div className="flex-1 overflow-y-auto p-2">{childrenWithProps}</div>
           </div>
         </div>
       )}
-
-      {/* Floating Open Button - Desktop */}
-      {/* {isConnected && !isOpen && !isMobile && (
-        <div className="fixed bottom-6 right-6 z-50 pointer-events-auto">
-          <Button
-            onClick={toggleChat}
-            variant="primary"
-            className={clsx(
-              "h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-              "bg-background border border-dark-grey hover:bg-background shining-border",
-            )}
-          >
-            <div className="flex items-center justify-center">
-              <span className="bonsaiLogoPattern -mt-2" />
-            </div>
-          </Button>
-        </div>
-      )} */}
 
       {/* Mobile Bottom Bar */}
       {isConnected && !isOpen && isMobile && (
         <div
           className={clsx(
-            "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto",
-            isStandalone || isMiniApp ? "bottom-[calc(3.5rem+1.5rem)]" : "bottom-[3.5rem]"
+            "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto bottom-[3.5rem]"
           )}
         >
           <div className="flex justify-between items-center px-4 py-3">
-            {/* <Button
-              onClick={toggleChat}
-              variant="primary"
-              size="sm"
-              className="flex-1 mr-2 bg-background border border-dark-grey hover:bg-background"
-            >
-              Chat
-            </Button> */}
             <Button
               onClick={handleRemix}
               variant="secondary"

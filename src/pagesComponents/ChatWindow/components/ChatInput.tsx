@@ -542,7 +542,7 @@ export default function ChatInput({
     <>
         <form
           onSubmit={isPosting ? handlePost : handleSubmit}
-          className="mt-auto flex w-full flex-col pb-4 md:mt-0 items-center"
+          className="mt-auto flex w-full flex-col pb-1 md:mt-0 items-center"
         >
           <div className="flex flex-col w-full">
             <div className="relative flex flex-col w-full px-[10px]">
@@ -693,7 +693,7 @@ export default function ChatInput({
 
               {/* Remix Generate Button - on its own row */}
               {isRemixing && !isPosting && (
-                <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 mt-2`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 my-2">
                   {/* {creditBalance && (
                     <span className="text-xs text-gray-500 sm:order-1 order-2 text-center sm:text-left">
                       {parseInt(creditBalance.creditsRemaining)} credits
@@ -705,7 +705,7 @@ export default function ChatInput({
                       onClick={generateRemix}
                       disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
                       variant="accentBrand"
-                      size="xs"
+                      size="sm"
                       className={`${!/[a-zA-Z]/.test(userInput) || isGeneratingRemix ? 'opacity-50 cursor-not-allowed' : ''} w-full sm:w-auto sm:min-w-[120px] sm:order-2 order-1`}
                     >
                       <SparkIcon color="#000" height={14} />

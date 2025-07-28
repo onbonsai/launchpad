@@ -460,7 +460,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
-      {/* Chat Sidebar, fixed and underneath main content */}
       {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
         <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
           <Chat
