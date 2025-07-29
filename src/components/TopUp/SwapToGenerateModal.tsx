@@ -28,7 +28,9 @@ import {
   LENS_CHAIN_ID,
   LENS_GLOBAL_FEED,
   PROTOCOL_DEPLOYMENT,
+  getLaunchpadAddress,
 } from "@src/services/madfi/utils";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import axios from "axios";
 import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
@@ -40,7 +42,6 @@ import {
   PARAM__PATH,
   PARAM__REFERRALS,
 } from "@src/services/lens/rewardSwap";
-import { sdk } from "@farcaster/miniapp-sdk";
 import { getPostId } from "@src/services/lens/getStats";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { base as baseChain } from "viem/chains";
@@ -155,7 +156,11 @@ export const SwapToGenerateModal = ({
       });
 
       // Check if Base chain (8453) supports sendCalls
-      return capabilities?.[baseChain.id]?.atomicBatch?.supported === true;
+      return (
+        capabilities?.[baseChain.id]?.atomicBatch?.supported === true ||
+        capabilities?.[baseChain.id]?.atomic.status === "ready" ||
+        capabilities?.[baseChain.id]?.atomic.status === "supported"
+      );
     } catch (error) {
       console.log("Wallet doesn't support getCapabilities or sendCalls");
       return false;
@@ -273,32 +278,139 @@ export const SwapToGenerateModal = ({
         });
         transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
       } else {
+        let supportsBatchedCalls = await checkWalletCapabilities();
+        const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
+        const _selectedAmount = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
+
         // swap USDC to token
         if (club && !club.complete && !club.liquidityReleasedAt) {
           // swap through launchpad
-          const _selectedAmount = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
-          await approveToken(USDC_CONTRACT_ADDRESS, _selectedAmount, walletClient, toastId, undefined, "base");
           const { buyAmount } = await getBuyAmount(
             address as `0x${string}`,
             token.address as `0x${string}`,
-            _selectedAmount.toString(),
+            selectedAmount.toString(),
+            false,
+            club.chain,
           );
-          toast.loading("Buying", { id: toastId });
-          await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
           
-          // Pay for credits after launchpad buy
-          const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
-          transferTx.txHash = await walletClient.writeContract({
-            address: USDC_CONTRACT_ADDRESS,
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [ADMIN_WALLET, creditsAmount],
-          });
-          transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+          if (supportsBatchedCalls) {
+            // Check current allowances to determine what needs approval
+            const client = publicClient("base");
+            
+            const launchpadAddress = getLaunchpadAddress("BonsaiLaunchpad", club.clubId, club.chain);
+            const launchpadAllowance = await client.readContract({
+              address: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "allowance",
+              args: [address as `0x${string}`, launchpadAddress],
+            });
+            
+            // Batch approve + buy + credit payment
+            toast.loading("Processing launchpad purchase and credits in batch...", { id: toastId });
+            
+            const calls: any[] = [];
+            
+            // Add approval call if needed
+            if (launchpadAllowance < _selectedAmount) {
+              calls.push({
+                to: USDC_CONTRACT_ADDRESS,
+                abi: erc20Abi,
+                functionName: "approve",
+                args: [launchpadAddress, maxUint256],
+              });
+            }
+            
+            // Add buy chips call
+            calls.push({
+              to: launchpadAddress,
+              abi: BonsaiLaunchpadAbi,
+              functionName: "buyChips",
+              args: [club.clubId, buyAmount, _selectedAmount, zeroAddress, address as `0x${string}`, zeroAddress],
+            });
+            
+            // Add credit payment call
+            calls.push({
+              to: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "transfer",
+              args: [ADMIN_WALLET, creditsAmount],
+            });
+
+            try {
+              const result = await walletClient.sendCalls({
+                account: address as `0x${string}`,
+                calls,
+                chain: baseChain,
+                // @ts-ignore - experimental_fallback might not be in types yet
+                experimental_fallback: true, // Allow fallback to sequential if sendCalls not supported
+              });
+
+              // Wait for the batch to complete
+              if (result.id) {
+                toast.loading("Waiting for batch transaction...", { id: toastId });
+                
+                // Poll for status
+                let completed = false;
+                let attempts = 0;
+
+                while (!completed && attempts < 60) { // 60 attempts, ~1 minute timeout
+                  try {
+                    const status = await walletClient.getCallsStatus({
+                      id: result.id,
+                    });
+                    
+                    // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
+                    const statusValue = (status.status || '').toString().toUpperCase();
+                    if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
+                      completed = true;
+                      toast.success("Purchase and credit payment completed!", { id: toastId });
+                      // Set transferTx for the credit update later
+                      transferTx.txHash = "batched";
+                      transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+                    } else if (statusValue === 'REVERTED' || statusValue === 'FAILURE' || statusValue === 'FAILED') {
+                      throw new Error("Batch transaction reverted");
+                    }
+                  } catch (e) {
+                    // If getCallsStatus is not supported, just wait a bit and assume success
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    completed = true;
+                    transferTx.txHash = "batched";
+                    transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+                  }
+                  
+                  attempts++;
+                  if (!completed) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                }
+                
+                if (!completed) {
+                  throw new Error("Batch transaction timeout");
+                }
+              }
+            } catch (batchError) {
+              console.warn("Batch call failed, falling back to sequential:", batchError);
+              // Fall back to sequential execution
+              supportsBatchedCalls = false;
+            }
+          }
+          
+          if (!supportsBatchedCalls) {
+            // Execute sequentially (original flow)
+            await approveToken(USDC_CONTRACT_ADDRESS, _selectedAmount, walletClient, toastId, undefined, "base");
+            toast.loading("Buying", { id: toastId });
+            await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
+            
+            // Pay for credits after launchpad buy
+            transferTx.txHash = await walletClient.writeContract({
+              address: USDC_CONTRACT_ADDRESS,
+              abi: erc20Abi,
+              functionName: "transfer",
+              args: [ADMIN_WALLET, creditsAmount],
+            });
+            transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
+          }
         } else {
-          // Check if we can batch the calls on Base
-          let supportsBatchedCalls = token.chain === "base" && (await checkWalletCapabilities());
-          
           // Execute Matcha swap
           toast.loading("Preparing swap...", { id: toastId });
           const sellAmountBigInt = parseUnits(selectedAmount.toString(), USDC_DECIMALS);
@@ -350,8 +462,6 @@ export const SwapToGenerateModal = ({
               signature,
             ]);
           }
-
-          const creditsAmount = parseUnits(generationFee.toString(), USDC_DECIMALS);
 
           if (supportsBatchedCalls) {
             // Batch the swap and credit payment

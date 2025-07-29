@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get user credits or create if doesn't exist
     const userCredits = isMiniApp && !!fid
       ? await collection.findOne({ fid: normalizedFid })
-      : await collection.findOne({ address: normalizedAddress });
+      : await collection.findOne({ $or: [{ address: normalizedAddress }, { normalizedAddress: normalizedAddress }] });
 
     if (!userCredits) {
       // New user - create with initial allocation
