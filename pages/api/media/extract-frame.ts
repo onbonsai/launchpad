@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { videoUrl, framePosition = 'start' } = req.body;
+    const { videoUrl, framePosition = 'start', hasOutro } = req.body;
 
     if (!videoUrl) {
       return res.status(400).json({ error: 'Video URL is required' });
@@ -18,19 +18,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': process.env.MADFI_API_KEY as string,
       },
       body: JSON.stringify({
         videoUrl,
         framePosition, // 'start' or 'end'
+        hasOutro
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Frame extraction failed:', response.status, errorText);
-      return res.status(response.status).json({ 
+      return res.status(response.status).json({
         error: 'Failed to extract frame from video',
-        details: errorText 
+        details: errorText
       });
     }
 
@@ -39,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('Error in frame extraction API:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error',
     });

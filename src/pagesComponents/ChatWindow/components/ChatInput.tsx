@@ -15,7 +15,7 @@ import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import { SparkIcon } from '@src/components/Icons/SparkIcon';
 
 // Helper function to extract frame from video
-const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
+const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true, hasOutro?: boolean): Promise<string> => {
   return new Promise(async (resolve, reject) => {
     if (!video) {
       reject(new Error('No video data provided'));
@@ -47,6 +47,7 @@ const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): P
         body: JSON.stringify({
           videoUrl,
           framePosition: extractFirstFrame ? 'start' : 'end',
+          hasOutro,
         }),
       });
 
@@ -317,7 +318,7 @@ export default function ChatInput({
         if (videoData) {
           try {
             const videoUrl = typeof videoData === 'string' ? videoData : videoData.url;
-            const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start');
+            const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start', remixMedia?.templateData?.hasOutro);
 
             // Convert data URL to File
             const response = await fetch(frameDataUrl);
