@@ -149,6 +149,11 @@ export type SmartMedia = {
     chain: "base" | "lens";
     address: `0x${string}`;
     external?: boolean;
+    metadata?: {
+      symbol?: string;
+      name?: string;
+      image?: string;
+    }
   };
   protocolFeeRecipient: `0x${string}`; // media template
   description?: string;

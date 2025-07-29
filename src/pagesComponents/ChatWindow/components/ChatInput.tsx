@@ -299,6 +299,11 @@ export default function ChatInput({
           refetchCredits();
           generateRemix();
         },
+        token: !!remixMedia?.token ? {
+          address: remixMedia?.token.address as `0x${string}`,
+          chain: remixMedia?.token.chain as string,
+          symbol: remixMedia?.token?.metadata?.symbol as string,
+        } : undefined
       });
       return;
     }
@@ -643,6 +648,11 @@ export default function ChatInput({
                           setInsufficientCreditsError(false); // Reset error state on success
                           generateRemix();
                         },
+                        token: !!remixMedia?.token ? {
+                          address: remixMedia?.token.address as `0x${string}`,
+                          chain: remixMedia?.token.chain as string,
+                          symbol: remixMedia?.token?.metadata?.symbol as string,
+                        } : undefined
                       })}
                       variant="accentBrand"
                       size="md"
