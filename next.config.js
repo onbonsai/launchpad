@@ -185,6 +185,22 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; font-src * data:; connect-src * data: blob:; media-src * data: blob:; object-src *; child-src *; frame-src * blob: data:; worker-src * blob: data:; form-action *; frame-ancestors *;"
           },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none'
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'unsafe-none'
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'accelerometer=*, ambient-light-sensor=*, autoplay=*, battery=*, camera=*, display-capture=*, document-domain=*, encrypted-media=*, execution-while-not-rendered=*, execution-while-out-of-viewport=*, fullscreen=*, geolocation=*, gyroscope=*, layout-animations=*, legacy-image-formats=*, magnetometer=*, microphone=*, midi=*, navigation-override=*, payment=*, picture-in-picture=*, publickey-credentials-get=*, sync-xhr=*, usb=*, vr=*, wake-lock=*, xr-spatial-tracking=*'
+          }
         ],
       },
     ];

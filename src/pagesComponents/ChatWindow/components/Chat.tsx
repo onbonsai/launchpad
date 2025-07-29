@@ -1230,6 +1230,16 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                   </div>
                 )}
 
+                {/* Loading indicator for when sending a message */}
+                {isLoading && !isThinking && (
+                  <div className="flex justify-center my-4">
+                    <div className="flex items-center gap-2 text-zinc-400">
+                      <Spinner customClasses="h-4 w-4" color="#5be39d" />
+                      <span className="text-sm">Sending message...</span>
+                    </div>
+                  </div>
+                )}
+
                 <div
                   className={`mt-4 flex items-center text-[#ffffff] opacity-70 ${
                     !isPosting ? "flex-grow min-h-6" : "h-6"
