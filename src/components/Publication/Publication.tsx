@@ -454,7 +454,7 @@ export function Publication({
   const profileInfo = !hideProfile ? (
     <div className={profileContainerStyle(isMirror, profilePadding)}>
       <div className={onProfileClick ? "cursor-pointer" : "cursor-default"} onClick={onProfilePress}>
-        <Image
+        <img
           src={publication.author?.metadata?.picture || "/default.webp"}
           className={activeProfilePictureStyle}
           loading="eager"
