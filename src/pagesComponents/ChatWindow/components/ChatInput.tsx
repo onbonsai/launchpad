@@ -16,7 +16,7 @@ import { SparkIcon } from '@src/components/Icons/SparkIcon';
 
 // Helper function to extract frame from video
 const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (!video) {
       reject(new Error('No video data provided'));
       return;
@@ -27,340 +27,44 @@ const extractFrameFromVideo = (video: any, extractFirstFrame: boolean = true): P
       return;
     }
 
-    const videoElement = document.createElement('video');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) {
-      reject(new Error('Could not get canvas context'));
-      return;
-    }
-
-    // Set up timeout to prevent hanging
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error('Video frame extraction timed out'));
-    }, 15000); // 15 second timeout
-
-    let hasResolved = false;
-    
-    const cleanup = () => {
-      clearTimeout(timeout);
-      if (videoElement.src && videoElement.src.startsWith('blob:')) {
-        URL.revokeObjectURL(videoElement.src);
-      }
-    };
-
-    const resolveOnce = (dataURL: string) => {
-      if (hasResolved) return;
-      hasResolved = true;
-      cleanup();
-      resolve(dataURL);
-    };
-
-    const rejectOnce = (error: Error) => {
-      if (hasResolved) return;
-      hasResolved = true;
-      cleanup();
-      reject(error);
-    };
-
-    // Enhanced video element setup
-    videoElement.muted = true;
-    videoElement.playsInline = true; // Important for mobile/PWA
-    videoElement.preload = 'metadata';
-    
-    // Always try with crossOrigin first for external URLs
-    let crossOriginAttempted = false;
-    const shouldUseCORS = typeof video === 'string' && 
-                         (video.startsWith('http://') || video.startsWith('https://')) &&
-                         !video.includes(window.location.hostname);
-
-    const setupVideoEvents = () => {
-      if (extractFirstFrame) {
-        videoElement.onloadedmetadata = () => {
-          try {
-            if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-              if (!crossOriginAttempted && shouldUseCORS) {
-                console.log('[Frame Extraction] Retrying with CORS...');
-                crossOriginAttempted = true;
-                videoElement.crossOrigin = 'anonymous';
-                videoElement.load();
-                return; // Let it reload with CORS
-              }
-              rejectOnce(new Error('Video has no dimensions'));
-              return;
-            }
-
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-
-            // Seek to a small offset to ensure we get a proper frame
-            videoElement.currentTime = Math.min(0.1, videoElement.duration / 10);
-          } catch (error) {
-            rejectOnce(new Error(`Failed in onloadedmetadata: ${error instanceof Error ? error.message : String(error)}`));
-          }
-        };
-
-        videoElement.onseeked = () => {
-          try {
-            // Additional check for video readiness
-            if (videoElement.readyState < 2) {
-              // Wait a bit more and try again
-              setTimeout(() => {
-                if (videoElement.readyState >= 2) {
-                  videoElement.onseeked?.(null as any);
-                } else {
-                  rejectOnce(new Error('Video not ready after seeking'));
-                }
-              }, 100);
-              return;
-            }
-
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            
-            // Check if canvas is blank (all white/transparent)
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            let isBlank = true;
-            
-            // Check first 1000 pixels to see if they're all the same
-            for (let i = 0; i < Math.min(4000, data.length); i += 4) {
-              if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) {
-                isBlank = false;
-                break;
-              }
-            }
-
-            if (isBlank) {
-              // Try seeking to a different position
-              const newTime = Math.min(videoElement.duration * 0.25, 1.0);
-              if (videoElement.currentTime !== newTime && newTime > 0) {
-                videoElement.currentTime = newTime;
-                return; // Will trigger onseeked again
-              } else {
-                rejectOnce(new Error('Extracted frame appears to be blank'));
-                return;
-              }
-            }
-
-            const dataURL = canvas.toDataURL('image/webp', 0.8);
-            resolveOnce(dataURL);
-          } catch (error) {
-            // Enhanced error detection for CSP and security issues
-            const errorString = String(error);
-            const isSecurityError = errorString.includes('tainted') || 
-                                   errorString.includes('cross-origin') ||
-                                   errorString.includes('SecurityError') ||
-                                   errorString.includes('DOMException') ||
-                                   errorString.includes('SECURITY_ERR') ||
-                                   errorString.includes('canvas') && errorString.includes('origin');
-            
-            console.warn('[Frame Extraction] Canvas error detected:', {
-              error: errorString,
-              isSecurityError,
-              videoSrc: videoElement.src,
-              crossOrigin: videoElement.crossOrigin,
-              videoWidth: videoElement.videoWidth,
-              videoHeight: videoElement.videoHeight
-            });
-
-            if (isSecurityError) {
-              // Try server-side extraction as fallback for security errors
-              tryServerSideExtraction();
-            } else {
-              rejectOnce(error as Error);
-            }
-          }
-        };
-      } else {
-        // Extract last frame
-        videoElement.onloadedmetadata = () => {
-          try {
-            if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-              rejectOnce(new Error('Video has no dimensions'));
-              return;
-            }
-
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            videoElement.currentTime = Math.max(0, videoElement.duration - 0.1);
-          } catch (error) {
-            rejectOnce(new Error(`Failed in onloadedmetadata: ${error instanceof Error ? error.message : String(error)}`));
-          }
-        };
-
-        videoElement.onseeked = () => {
-          try {
-            if (videoElement.readyState < 2) {
-              setTimeout(() => {
-                if (videoElement.readyState >= 2) {
-                  videoElement.onseeked?.(null as any);
-                } else {
-                  rejectOnce(new Error('Video not ready after seeking'));
-                }
-              }, 100);
-              return;
-            }
-
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            const dataURL = canvas.toDataURL('image/webp', 0.8);
-            resolveOnce(dataURL);
-          } catch (error) {
-            // Enhanced error detection for CSP and security issues
-            const errorString = String(error);
-            const isSecurityError = errorString.includes('tainted') || 
-                                   errorString.includes('cross-origin') ||
-                                   errorString.includes('SecurityError') ||
-                                   errorString.includes('DOMException') ||
-                                   errorString.includes('SECURITY_ERR') ||
-                                   errorString.includes('canvas') && errorString.includes('origin');
-            
-            console.warn('[Frame Extraction] Canvas error detected (last frame):', {
-              error: errorString,
-              isSecurityError,
-              videoSrc: videoElement.src,
-              crossOrigin: videoElement.crossOrigin
-            });
-
-            if (isSecurityError) {
-              tryServerSideExtraction();
-            } else {
-              rejectOnce(error as Error);
-            }
-          }
-        };
-      }
-    };
-
-    // Server-side fallback function
-    const tryServerSideExtraction = async () => {
-      try {
-        let videoUrl: string;
-        if (typeof video === 'string') {
-          videoUrl = video;
-        } else if (video.url) {
-          videoUrl = video.url;
-        } else {
-          rejectOnce(new Error('Cannot extract frame server-side: no URL available'));
-          return;
-        }
-
-        const response = await fetch('/api/media/extract-frame', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            videoUrl,
-            framePosition: extractFirstFrame ? 'start' : 'end',
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Server-side extraction failed');
-        }
-
-        const result = await response.json();
-        if (result.frameData) {
-          resolveOnce(result.frameData);
-        } else {
-          rejectOnce(new Error('Server-side extraction returned no image'));
-        }
-      } catch (error) {
-        rejectOnce(new Error(`Server-side extraction failed: ${error instanceof Error ? error.message : String(error)}`));
-      }
-    };
-
-    videoElement.onerror = (e) => {
-      console.error('Video error:', e, {
-        error: videoElement.error,
-        src: videoElement.src,
-        networkState: videoElement.networkState,
-        readyState: videoElement.readyState,
-        crossOrigin: videoElement.crossOrigin
-      });
-      
-      // If CORS failed, try without CORS
-      if (crossOriginAttempted && videoElement.error?.code === videoElement.error?.MEDIA_ERR_SRC_NOT_SUPPORTED) {
-        console.log('[Frame Extraction] CORS failed, retrying without CORS...');
-        videoElement.crossOrigin = null;
-        crossOriginAttempted = false;
-        videoElement.load();
-        return;
-      }
-      
-      // Try server-side extraction as fallback
-      if (typeof video === 'string' || video.url) {
-        tryServerSideExtraction();
-      } else {
-        rejectOnce(new Error(`Failed to load video: ${videoElement.error?.message || 'Unknown error'}`));
-      }
-    };
-
-    setupVideoEvents();
-
-    // Handle different video source types
+    // Always use server-side extraction
     try {
+      let videoUrl: string;
       if (typeof video === 'string') {
-        if (video.startsWith('data:image/')) {
-          resolveOnce(video);
-          return;
-        }
-        // Set crossOrigin before setting src for external URLs
-        if (shouldUseCORS) {
-          videoElement.crossOrigin = 'anonymous';
-          crossOriginAttempted = true;
-        }
-        videoElement.src = video;
+        videoUrl = video;
       } else if (video.url) {
-        // Check if the URL is external
-        if (video.url.startsWith('http://') || video.url.startsWith('https://')) {
-          if (!video.url.includes(window.location.hostname)) {
-            videoElement.crossOrigin = 'anonymous';
-            crossOriginAttempted = true;
-          }
-        }
-        videoElement.src = video.url;
-      } else if (video.blob) {
-        // Blob URLs don't need CORS
-        videoElement.src = URL.createObjectURL(video.blob);
+        videoUrl = video.url;
       } else {
-        rejectOnce(new Error('Invalid video source'));
+        reject(new Error('Cannot extract frame: no URL available'));
         return;
       }
 
-      // Force load metadata
-      videoElement.load();
+      const response = await fetch('/api/media/extract-frame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          framePosition: extractFirstFrame ? 'start' : 'end',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server extraction failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.frameData) {
+        resolve(result.frameData);
+      } else {
+        reject(new Error('Server extraction returned no image'));
+      }
     } catch (error) {
-      rejectOnce(new Error(`Failed to set video source: ${error instanceof Error ? error.message : String(error)}`));
+      reject(new Error(`Frame extraction failed: ${error instanceof Error ? error.message : String(error)}`));
     }
   });
 };
-
-type PremadeChatInputProps = {
-  label: string;
-  input: string;
-  setUserInput: (input: string) => void;
-  disabled?: boolean;
-  setRequirement?: () => void;
-};
-
-function PremadeChatInput({ label, setUserInput, input, disabled, setRequirement }: PremadeChatInputProps) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setUserInput(input);
-        if (setRequirement) setRequirement();
-      }}
-      className={`whitespace-nowrap rounded-lg bg-card-light px-2 py-1 text-start text-white/80 text-[14px] tracking-[-0.02em] leading-5 transition-colors hover:bg-dark-grey/80 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-    >
-      {label}
-    </button>
-  );
-}
 
 function AttachmentButton({ attachment, setAttachment }) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
