@@ -572,6 +572,7 @@ export default function ChatInput({
                         <div className="flex gap-2">
                           <button
                             type="button"
+                            disabled={isGeneratingRemix}
                             onClick={() => setFrameSelection('start')}
                             className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
                               frameSelection === 'start'
@@ -583,6 +584,7 @@ export default function ChatInput({
                           </button>
                           <button
                             type="button"
+                            disabled={isGeneratingRemix}
                             onClick={() => setFrameSelection('end')}
                             className={`px-3 py-1 rounded-lg text-[14px] font-medium transition-colors ${
                               frameSelection === 'end'
@@ -654,6 +656,7 @@ export default function ChatInput({
                           symbol: remixMedia?.token?.metadata?.symbol as string,
                         } : undefined
                       })}
+                      disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
                       variant="accentBrand"
                       size="md"
                       className="w-full sm:w-auto sm:order-2 order-1"
