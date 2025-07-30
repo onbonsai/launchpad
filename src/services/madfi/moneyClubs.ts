@@ -722,7 +722,7 @@ export const getRegisteredClubByTokenAddress = async (tokenAddress: `0x${string}
       }
     });
 
-    return data.clubs ? data.clubs[0] : null;
+    return data.clubs ? { ...data.clubs[0], chain } : null;
   } catch (error) {
     console.log(error);
   }
@@ -1298,7 +1298,9 @@ export const getBuyAmount = async (
     account
   }) as bigint;
 
-  const rawBuyAmount = options ? calculateTokensForUSDC(spendAfterFees, currentSupply, BigInt(options.initialPrice!), BigInt(options.targetPriceMultiplier!), BigInt(options.flatThreshold!)) : calculateTokensForUSDC(spendAfterFees, currentSupply);
+  const rawBuyAmount = options?.initialPrice && options?.targetPriceMultiplier && options?.flatThreshold ? 
+    calculateTokensForUSDC(spendAfterFees, currentSupply, BigInt(options.initialPrice!), BigInt(options.targetPriceMultiplier!), BigInt(options.flatThreshold!)) :
+    calculateTokensForUSDC(spendAfterFees, currentSupply, chain === "base" ? BigInt("12384118034062500000") : undefined);
   const buyAmount = cleanupTrailingOne(rawBuyAmount);
 
   let effectiveSpend = spendAfterFees

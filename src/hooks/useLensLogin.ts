@@ -5,9 +5,8 @@ import { lensClient } from "@src/services/lens/client";
 import { type Account, evmAddress, SessionClient } from "@lens-protocol/client";
 import { currentSession, fetchAccount, fetchAccountsAvailable } from "@lens-protocol/client/actions";
 import { fetchAuthenticatedSessions } from "@lens-protocol/client/actions";
-import { createWalletClient, http, WalletClient } from "viem";
-import { getChain, IS_PRODUCTION, LENS_BONSAI_APP, SAGE_EVM_ADDRESS } from "@src/services/madfi/utils";
-import { privateKeyToAccount } from "viem/accounts";
+import { WalletClient } from "viem";
+import { LENS_BONSAI_APP } from "@src/services/madfi/utils";
 
 export const fetchAvailableAccounts = async (address: string) => {
   return await fetchAccountsAvailable(lensClient, {

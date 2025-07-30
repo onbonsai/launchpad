@@ -12,10 +12,9 @@ import { NewHeartIcon } from "../Icons/NewHeartIcon";
 import { NewMessageIcon } from "../Icons/NewMessageIcon";
 import { NewColllectIcon } from "../Icons/NewCollectIcon";
 import { EyeIcon } from "../Icons/EyeIcon";
-import { PublicClient } from "@lens-protocol/client";
 import { postId } from "@lens-protocol/client";
 import { fetchPost } from "@lens-protocol/client/actions";
-import { storageClient } from "@src/services/lens/client";
+import { lensClient, storageClient } from "@src/services/lens/client";
 import Image from "next/image";
 import { ShareIcon } from "@heroicons/react/outline";
 
@@ -178,7 +177,6 @@ export function Publication({
 
   async function fetchPublication() {
     try {
-      const lensClient = PublicClient.create({ environment });
       const result = await fetchPost(lensClient, { post: postId(publicationId!) });
       if (result.isErr()) {
         return console.error(result.error);

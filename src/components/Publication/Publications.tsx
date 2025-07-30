@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { css } from "@emotion/css";
 import { Publication as PublicationComponent } from "./Publication";
 import { Theme } from "./types";
-import { PublicClient, Cursor } from "@lens-protocol/client";
+import { Cursor } from "@lens-protocol/client";
 import { getComments } from "@src/utils/publicationUtils";
 import { getProfileByHandle } from "@src/services/lens/getProfiles";
 import { getPostsByAuthor } from "@src/services/lens/posts";
+import { lensClient } from "@src/services/lens/client";
 
 // First, let's create a reusable CommentThread component to handle nested comments
 const CommentThread = ({ comment, level = 0, maxDepth = 3, isLastComment = false, ...props }) => {
@@ -15,7 +16,6 @@ const CommentThread = ({ comment, level = 0, maxDepth = 3, isLastComment = false
   async function fetchNestedComments(publicationId: string) {
     setLoadingComments(true);
     try {
-      const lensClient = PublicClient.create({ environment: props.environment });
       const comments = await getComments(publicationId, lensClient);
 
       if (comments) {
@@ -267,7 +267,6 @@ export function Publications({
   async function fetchComments(publicationId: string) {
     setLoadingComments((prev) => ({ ...prev, [publicationId]: true }));
     try {
-      const lensClient = PublicClient.create({ environment });
       const comments = await getComments(publicationId, lensClient);
 
       if (comments) {

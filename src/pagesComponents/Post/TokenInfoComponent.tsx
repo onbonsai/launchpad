@@ -6,7 +6,7 @@ import { Club, DECIMALS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { localizeNumber } from '@src/constants/utils';
 import { useGetTradingInfo, useGetClubBalance } from "@src/hooks/useMoneyClubs";
 import Link from 'next/link';
-import { Button } from '@src/components/Button';
+
 import { useAccount } from 'wagmi';
 import { SmartMedia } from '@src/services/madfi/studio';
 import { kFormatter } from '@src/utils/utils';
@@ -169,7 +169,7 @@ export const TokenInfoComponent = ({ club, media, remixPostId, postId }: { club:
                 />
                 <InfoCard
                   title='Balance'
-                  subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, _DECIMALS)))}</Subtitle>}
+                  subtitle={<Subtitle>{!clubBalance ? '-' : kFormatter(parseFloat(formatUnits(clubBalance, DECIMALS)))}</Subtitle>}
                   roundedRight
                   className="flex-1"
                 />

@@ -1,5 +1,4 @@
 import { gql } from "@apollo/client";
-import { ProfileFragment } from "@lens-protocol/client";
 
 import { apolloClient } from "./apolloClient";
 
@@ -84,7 +83,7 @@ query($request: DefaultProfileRequest!) {
 `;
 
 interface GetDefaultProfileResponse {
-  data: { defaultProfile: ProfileFragment };
+  data: { defaultProfile: any };
 }
 
 export const getDefaultProfile = (ethereumAddress: string | `0x${string}` | undefined) => {
