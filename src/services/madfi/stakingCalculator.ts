@@ -16,7 +16,7 @@ export interface StakingSummary {
 export type LockupPeriod = 0 | 1 | 3 | 6 | 12;
 
 // Constants from the credit model
-export const FREE_TIER_CREDITS = 50;
+export const FREE_TIER_CREDITS = 10;
 export const MAX_STAKING_CREDITS = 250; // Maximum staking credits (without multipliers)
 const TIER1_RATE = 0.5; // Credits per dollar for first $20
 const TIER1_MAX = 20; // First $20 staked

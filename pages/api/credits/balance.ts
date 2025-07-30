@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDITS,
         lastResetTime: now,
-        creditsPurchased: isMiniApp ? 100 : 0,
+        creditsPurchased: 100, // 100 free credits to start with
         postUpdates: [],
       });
 
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         creditsUsed: 0,
         creditsRemaining: FREE_TIER_CREDITS,
         lastResetTime: now.toISOString(),
-        creditsPurchased: isMiniApp ? 100 : 0,
+        creditsPurchased: 100, // 100 free credits to start with
         postUpdates: [],
       });
     }
