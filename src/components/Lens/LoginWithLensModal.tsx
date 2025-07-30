@@ -201,113 +201,113 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
     return () => clearTimeout(timeoutId);
   }, [searchHandle, address, walletClient]);
 
-  const handleCreateProfile = async () => {
-    if (!context || !walletClient) return;
+  // const handleCreateProfile = async () => {
+  //   if (!context || !walletClient) return;
 
-    setIsCreatingProfile(true);
-    try {
-      const lensWalletClient = createWalletClient({
-        account: walletClient.account,
-        chain: getChain("lens"),
-        transport: http()
-      });
+  //   setIsCreatingProfile(true);
+  //   try {
+  //     const lensWalletClient = createWalletClient({
+  //       account: walletClient.account,
+  //       chain: getChain("lens"),
+  //       transport: http()
+  //     });
 
-      // authenticate as onboarding user
-      const authenticated = await lensClient.login({
-        onboardingUser: {
-          app: LENS_BONSAI_APP,
-          wallet: address,
-        },
-        signMessage: (message) => walletClient.signMessage({ account: address, message }),
-      });
+  //     // authenticate as onboarding user
+  //     const authenticated = await lensClient.login({
+  //       onboardingUser: {
+  //         app: LENS_BONSAI_APP,
+  //         wallet: address,
+  //       },
+  //       signMessage: (message) => walletClient.signMessage({ account: address, message }),
+  //     });
 
-      if (authenticated.isErr()) {
-        return console.error(authenticated.error);
-      }
+  //     if (authenticated.isErr()) {
+  //       return console.error(authenticated.error);
+  //     }
 
-      let sessionClient = authenticated.value;
+  //     let sessionClient = authenticated.value;
 
-      // create metadata using edited values if available
-      let picture = context.user.pfpUrl;
-      if (uploadedImage.length > 0) {
-        picture = await cacheImageToStorj(
-          uploadedImage[0],
-          editedUsername || context.user.username,
-          'token-images'
-        );
-      }
-      const metadata = account({
-        name: editedDisplayName || context.user.displayName,
-        bio: `replika for FC user @${context.user.username}`,
-        picture
-      });
+  //     // create metadata using edited values if available
+  //     let picture = context.user.pfpUrl;
+  //     if (uploadedImage.length > 0) {
+  //       picture = await cacheImageToStorj(
+  //         uploadedImage[0],
+  //         editedUsername || context.user.username,
+  //         'token-images'
+  //       );
+  //     }
+  //     const metadata = account({
+  //       name: editedDisplayName || context.user.displayName,
+  //       bio: `replika for FC user @${context.user.username}`,
+  //       picture
+  //     });
 
-      // upload metadata to lens chain storage
-      const { uri: metadataUri } = await storageClient.uploadAsJson(metadata, {
-        acl: immutable(getChain("lens").id),
-      });
+  //     // upload metadata to lens chain storage
+  //     const { uri: metadataUri } = await storageClient.uploadAsJson(metadata, {
+  //       acl: immutable(getChain("lens").id),
+  //     });
 
-      // deploy account contract
-      const result = await createAccountWithUsername(sessionClient, {
-        username: { localName: `${editedUsername || context.user.username}`}, // , namespace: evmAddress(BONSAI_NAMESPACE) },
-        metadataUri,
-        accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
-        enableSignless: true,
-      }).andThen(handleOperationWith(lensWalletClient))
-        .andThen(sessionClient.waitForTransaction)
-        .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
-        .andThen((account) =>
-          sessionClient.switchAccount({
-            account: account?.address ?? never("Account not found"),
-          })
-        );
+  //     // deploy account contract
+  //     const result = await createAccountWithUsername(sessionClient, {
+  //       username: { localName: `${editedUsername || context.user.username}`}, // , namespace: evmAddress(BONSAI_NAMESPACE) },
+  //       metadataUri,
+  //       accountManager: [evmAddress(SAGE_EVM_ADDRESS)],
+  //       enableSignless: true,
+  //     }).andThen(handleOperationWith(lensWalletClient))
+  //       .andThen(sessionClient.waitForTransaction)
+  //       .andThen((txHash) => fetchAccount(sessionClient, { txHash }))
+  //       .andThen((account) =>
+  //         sessionClient.switchAccount({
+  //           account: account?.address ?? never("Account not found"),
+  //         })
+  //       );
 
-      if (result.isErr()) throw new Error(result.error.message);
+  //     if (result.isErr()) throw new Error(result.error.message);
 
-      sessionClient = result.value;
+  //     sessionClient = result.value;
 
-      // create the replika in our db
-      let idToken;
-      const creds = await sessionClient.getCredentials();
-      if (creds.isOk()) {
-        idToken = creds.value?.idToken;
-      } else {
-        throw new Error("Failed to get credentials");
-      }
-      const response = await fetch('/api/bonsai/create-replika', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ source: "farcaster", fid: context.user.fid })
-      });
+  //     // create the replika in our db
+  //     let idToken;
+  //     const creds = await sessionClient.getCredentials();
+  //     if (creds.isOk()) {
+  //       idToken = creds.value?.idToken;
+  //     } else {
+  //       throw new Error("Failed to get credentials");
+  //     }
+  //     const response = await fetch('/api/bonsai/create-replika', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${idToken}`,
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({ source: "farcaster", fid: context.user.fid })
+  //     });
 
-      if (!response.ok) throw new Error('Failed to persist replika info');
+  //     if (!response.ok) throw new Error('Failed to persist replika info');
 
-      // Handle successful profile creation
-      await fullRefetch();
+  //     // Handle successful profile creation
+  //     await fullRefetch();
 
-      if (withBudget) {
-        setCreationStep("budget");
-      } else {
-        handleCloseModal();
-      }
-    } catch (error) {
-      console.error("Error creating profile:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  //     if (withBudget) {
+  //       setCreationStep("budget");
+  //     } else {
+  //       handleCloseModal();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating profile:", error);
+  //     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      // Handle specific error cases
-      if (errorMessage.toLowerCase().includes('username already taken') ||
-          errorMessage.toLowerCase().includes('already taken')) {
-        toast.error(`Username already taken. Please try a different username.`, { duration: 5000 });
-      } else {
-        toast.error(`Failed to create profile: ${errorMessage}`, { duration: 5000 });
-      }
-    } finally {
-      setIsCreatingProfile(false);
-    }
-  };
+  //     // Handle specific error cases
+  //     if (errorMessage.toLowerCase().includes('username already taken') ||
+  //         errorMessage.toLowerCase().includes('already taken')) {
+  //       toast.error(`Username already taken. Please try a different username.`, { duration: 5000 });
+  //     } else {
+  //       toast.error(`Failed to create profile: ${errorMessage}`, { duration: 5000 });
+  //     }
+  //   } finally {
+  //     setIsCreatingProfile(false);
+  //   }
+  // };
 
   const handleCreateNewProfile = async () => {
     if (!walletClient || !selectedHandle || !displayName) return;
