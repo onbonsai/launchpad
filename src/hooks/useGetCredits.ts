@@ -19,20 +19,18 @@ export type CreditBalance = {
   postUpdates: PostUpdate[];
 };
 
-export const fetchCredits = async (address: string): Promise<CreditBalance> => {
-  const isMiniApp = await sdk.isInMiniApp(); // bonus credits for mini app users
-  const context = await sdk.context;
-  const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}&fid=${context?.user?.fid}`);
+export const fetchCredits = async (address: string, isMiniApp?: boolean, fid?: number): Promise<CreditBalance> => {
+  const response = await fetch(`/api/credits/balance?address=${address}&isMiniApp=${isMiniApp}${!!fid ? `&fid=${fid}` : ''}`);
   if (!response.ok) throw new Error("Failed to fetch credits");
   const data = await response.json();
   return data;
 };
 
 export const useGetCredits = (address: string, isConnected: boolean) => {
-  const { isLoading: isMiniAppLoading } = useIsMiniApp();
+  const { isLoading: isMiniAppLoading, isMiniApp, context } = useIsMiniApp();
   return useQuery({
-    queryKey: ["credits", address],
-    queryFn: () => fetchCredits(address as string),
+    queryKey: ["credits", isMiniApp ? context?.user?.fid : address],
+    queryFn: () => fetchCredits(address as string, isMiniApp, context?.user?.fid),
     enabled: !!address && isConnected && !isMiniAppLoading,
     refetchInterval: 60000, // Refetch every minute
   });

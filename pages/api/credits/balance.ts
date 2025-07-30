@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { collection } = await getClientWithApiCredits();
 
     // Get user credits or create if doesn't exist
-    const userCredits = isMiniApp && !!fid
+    const userCredits = isMiniApp && !!fid && fid !== "undefined"
       ? await collection.findOne({ fid: normalizedFid })
       : await collection.findOne({ address: normalizedAddress });
 
