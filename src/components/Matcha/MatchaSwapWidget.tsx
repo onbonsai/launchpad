@@ -201,7 +201,7 @@ export const MatchaSwapWidget = ({
         to: quote.transaction.to,
         data: quote.transaction.data as `0x${string}`,
         value: BigInt(quote.transaction.value || 0),
-        gas: BigInt(quote.transaction.gas),
+        gas: BigInt(quote.transaction.gas) * BigInt("2"),
         chain: base,
       });
 
