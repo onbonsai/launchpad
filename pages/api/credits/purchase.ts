@@ -4,11 +4,11 @@ import { isAddress, parseAbi, formatUnits } from "viem";
 import {
   publicClient,
   WGHO_CONTRACT_ADDRESS,
-  ADMIN_WALLET,
   USDC_CONTRACT_ADDRESS,
   USDC_DECIMALS,
 } from "@src/services/madfi/moneyClubs";
 import { getEventFromReceipt } from "@src/utils/viem";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -77,8 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: "Invalid transfer event data" });
       }
 
-      if (to.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-        return res.status(400).json({ error: "Transfer was not sent to admin wallet" });
+      if (to.toLowerCase() !== PROTOCOL_DEPLOYMENT[chain].RevenueSplitter.toLowerCase()) {
+        return res.status(400).json({ error: "Transfer was not sent to RevenueSplitter" });
       }
 
       if (!isAddress(from)) {

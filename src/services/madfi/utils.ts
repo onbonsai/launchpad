@@ -27,6 +27,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
     // v2 with token vesting fix
     BonsaiLaunchpadFix: "0xEd724DAD5e23C8e3E9A8dB8D252825F86E8Dd5b5",
     CreatorNFTFix: "0xF8154ad1e28c216d5b8A0FA37a8bB1fe417E1c70",
+    RevenueSplitter: "0x21aF1185734D213D45C6236146fb81E2b0E8b821",
   },
   lens: {
     Bonsai: "0x795cc31B44834Ff1F72F7db73985f9159Bd51ac2",
@@ -42,6 +43,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
     CreatorNFTFix: "0xc860899A6006d0be1e86E534242E4F1542e501A1",
     PeripheryFix: "0xf3CD5925F22A08A54652e9d44CB804bC59498a54",
     StakingRewards: "0x652fA04CfaD90c06DF785c6eD3A404176b1b4dd1",
+    RevenueSplitter: "0x21aF1185734D213D45C6236146fb81E2b0E8b821",
   },
 };
 
@@ -54,6 +56,7 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     // v2 with token vesting fix
     BonsaiLaunchpadFix: "0xC0Ffb22aCF44b5E8E66DAE180e5A23380C7ece16",
     CreatorNFTFix: "0x4DC6CC80198aB90cD094Ab13F3c582afbF0AAE74",
+    RevenueSplitter: "0x4188C0a51825473704A9eFF23aE26dE63FF696B9",
   },
   lens: {
     Bonsai: "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82",
@@ -68,7 +71,8 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
     CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
     PeripheryFix: "0xAFcE1C785dD1c33F215B7aB5B2C23aF1Ed7cB7b9",
-    StakingRewards: "0x7BeB726Bb3D1E7249d6cdF6B5B08E40Cb6D4F284"
+    StakingRewards: "0x7BeB726Bb3D1E7249d6cdF6B5B08E40Cb6D4F284",
+    RevenueSplitter: "0x33890D6Ca047F212f4F0dAAF4AA74900B2Ee4838",
   },
 };
 
