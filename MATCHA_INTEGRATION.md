@@ -8,7 +8,6 @@ Add the following environment variables to your `.env` file:
 
 ```
 MATCHA_API_KEY=your_matcha_api_key_here
-ADMIN_WALLET=0x21aF1185734D213D45C6236146fb81E2b0E8b821  # Optional, defaults to this address
 ```
 
 You can obtain an API key from https://0x.org/docs/0x-swap-api/introduction
@@ -47,7 +46,7 @@ The integration follows the Permit2 flow:
 
 The integration includes a 0.1% affiliate fee on all swaps:
 
-- Fee recipient: Admin wallet (configurable via `ADMIN_WALLET` env var)
+- Fee recipient: treasury contract
 - Fee amount: 10 basis points (0.1%)
 - Fee token: Collected in the sell token
 

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
-import { ADMIN_WALLET } from "@src/services/madfi/moneyClubs";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { base } from "viem/chains";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -28,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       buyToken,
       sellAmount,
       taker,
-      swapFeeRecipient: ADMIN_WALLET,
+      swapFeeRecipient: PROTOCOL_DEPLOYMENT[chainId === base.id ? "base" : "lens"].RevenueSplitter,
       swapFeeBps: "10", // 0.1% = 10 basis points
       swapFeeToken: sellToken, // Collect fee in sell token
     });

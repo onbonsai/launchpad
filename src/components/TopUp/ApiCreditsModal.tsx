@@ -9,12 +9,13 @@ import { base } from "viem/chains";
 import { erc20Abi, formatUnits, parseUnits } from "viem";
 import { toast } from "react-hot-toast";
 import { useGetCredits } from "@src/hooks/useGetCredits";
-import { ADMIN_WALLET, publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
+import { publicClient, WGHO_CONTRACT_ADDRESS, WGHO_ABI, USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from "@src/services/madfi/moneyClubs";
 import { CreditCardIcon } from "@heroicons/react/outline";
 import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { switchChain } from "viem/actions";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import axios from "axios";
+import { PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 
 interface TopUpOption {
   credits: number;
@@ -151,7 +152,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
               address: USDC_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
-              args: [ADMIN_WALLET, selectedOption.usdcRequired],
+              args: [PROTOCOL_DEPLOYMENT.base.RevenueSplitter, selectedOption.usdcRequired],
             });
 
             await updateCredits(tx);
@@ -173,7 +174,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
               address: WGHO_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
-              args: [ADMIN_WALLET, requiredWgho],
+              args: [PROTOCOL_DEPLOYMENT.lens.RevenueSplitter, requiredWgho],
             });
 
             await updateCredits(tx);
@@ -203,7 +204,7 @@ export const ApiCreditsModal = ({ customHeader, customSubheader }: ApiCreditsMod
                 address: WGHO_CONTRACT_ADDRESS,
                 abi: erc20Abi,
                 functionName: "transfer",
-                args: [ADMIN_WALLET, requiredWgho],
+                args: [PROTOCOL_DEPLOYMENT.lens.RevenueSplitter, requiredWgho],
               });
 
               await updateCredits(transferTx);
