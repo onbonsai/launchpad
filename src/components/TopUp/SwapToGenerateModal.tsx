@@ -6,7 +6,6 @@ import { useAccount, useBalance, useWalletClient } from "wagmi";
 import { erc20Abi, formatUnits, parseUnits, encodeAbiParameters, zeroAddress, type SendCallsParameters } from "viem";
 import { toast } from "react-hot-toast";
 import {
-  ADMIN_WALLET,
   USDC_CONTRACT_ADDRESS,
   USDC_DECIMALS,
   WGHO_CONTRACT_ADDRESS,
@@ -274,7 +273,7 @@ export const SwapToGenerateModal = ({
           address: WGHO_CONTRACT_ADDRESS,
           abi: erc20Abi,
           functionName: "transfer",
-          args: [ADMIN_WALLET, creditsAmount],
+          args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
         });
         transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
       } else {
@@ -334,7 +333,7 @@ export const SwapToGenerateModal = ({
               to: USDC_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
-              args: [ADMIN_WALLET, creditsAmount],
+              args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
             });
 
             try {
@@ -407,7 +406,7 @@ export const SwapToGenerateModal = ({
               address: USDC_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
-              args: [ADMIN_WALLET, creditsAmount],
+              args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
             });
             transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
           }
@@ -480,7 +479,7 @@ export const SwapToGenerateModal = ({
                 to: USDC_CONTRACT_ADDRESS,
                 abi: erc20Abi,
                 functionName: "transfer",
-                args: [ADMIN_WALLET, creditsAmount],
+                args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
               }
             ];
 
@@ -561,7 +560,7 @@ export const SwapToGenerateModal = ({
               address: USDC_CONTRACT_ADDRESS,
               abi: erc20Abi,
               functionName: "transfer",
-              args: [ADMIN_WALLET, creditsAmount],
+              args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
             });
             transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
           }

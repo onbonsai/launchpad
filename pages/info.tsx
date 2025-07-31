@@ -465,6 +465,27 @@ const Help = () => {
                                 Lens: {PROTOCOL_DEPLOYMENT.lens.Staking}
                               </a>
                             </p>
+                            <p className="mt-4 text-lg text-secondary">
+                              RevenueSplitter
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.RevenueSplitter, false)}
+                              >
+                                Base: {PROTOCOL_DEPLOYMENT.base.RevenueSplitter}
+                              </a>
+                              <br />
+                              <a
+                                className="link link-hover text-brand-highlight/80"
+                                target="_blank"
+                                rel="noreferrer"
+                                href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.RevenueSplitter, false)}
+                              >
+                                Lens: {PROTOCOL_DEPLOYMENT.base.RevenueSplitter}
+                              </a>
+                            </p>
                           </Disclosure.Panel>
                         </DisclosurePanelWithTransition>
                     </>
