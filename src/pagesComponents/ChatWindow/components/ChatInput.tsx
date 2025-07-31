@@ -289,15 +289,15 @@ export default function ChatInput({
     await onPost(userInput.trim());
   }, [userInput, onPost]);
 
-  const generateRemix = useCallback(async () => {
+  const generateRemix = useCallback(async (skipCreditCheck = false) => {
     if (!remixTemplate || !userInput.trim()) return;
 
-    if (!hasEnoughCredits) {
+    if (!skipCreditCheck && !hasEnoughCredits) {
       openSwapToGenerateModal({
         creditsNeeded: remixCreditsNeeded,
         onSuccess: () => {
           refetchCredits();
-          generateRemix();
+          generateRemix(true); // Skip credit check since we just purchased credits
         },
         token: !!remixMedia?.token ? {
           address: remixMedia?.token.address as `0x${string}`,
@@ -643,19 +643,19 @@ export default function ChatInput({
                   ) : (
                     <Button
                       type="button"
-                      onClick={() => openSwapToGenerateModal({
-                        creditsNeeded: remixCreditsNeeded,
-                        onSuccess: () => {
-                          refetchCredits();
-                          setInsufficientCreditsError(false); // Reset error state on success
-                          generateRemix();
-                        },
-                        token: !!remixMedia?.token ? {
-                          address: remixMedia?.token.address as `0x${string}`,
-                          chain: remixMedia?.token.chain as string,
-                          symbol: remixMedia?.token?.metadata?.symbol as string,
-                        } : undefined
-                      })}
+                        onClick={() => openSwapToGenerateModal({
+                          creditsNeeded: remixCreditsNeeded,
+                          onSuccess: () => {
+                            refetchCredits();
+                            setInsufficientCreditsError(false); // Reset error state on success
+                            generateRemix(true); // Skip credit check since we just purchased credits
+                          },
+                          token: !!remixMedia?.token ? {
+                            address: remixMedia?.token.address as `0x${string}`,
+                            chain: remixMedia?.token.chain as string,
+                            symbol: remixMedia?.token?.metadata?.symbol as string,
+                          } : undefined
+                        })}
                       disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
                       variant="accentBrand"
                       size="md"

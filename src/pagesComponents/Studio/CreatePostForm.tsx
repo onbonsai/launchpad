@@ -232,7 +232,7 @@ const CreatePostForm = ({
     return credits;
   }, [template.estimatedCost, templateData.enableVideo]);
 
-  const _generatePreview = async () => {
+  const _generatePreview = async (skipCreditCheck?: boolean) => {
     // Collapse advanced options when generating
     setIsDrawerExpanded(false);
     setIsSubmitting(true);
@@ -240,7 +240,7 @@ const CreatePostForm = ({
     const creditsNeeded = estimatedCost || 0;
     const hasEnoughCredits = (creditBalance || 0) >= creditsNeeded;
 
-    if (!hasEnoughCredits) {
+    if (!skipCreditCheck && !hasEnoughCredits) {
       // Check if we're in remix view
       const isRemixView = !!(remixToken || remixPostId);
 
@@ -258,7 +258,8 @@ const CreatePostForm = ({
           creditsNeeded: Math.ceil(creditsNeeded) + 1,
           refetchCredits,
           onSuccess: () => {
-            _generatePreview();
+            refetchCredits();
+            _generatePreview(true); // Skip credit check since we just purchased credits
           }
         });
       } else {
@@ -952,7 +953,7 @@ const CreatePostForm = ({
 
       <div className="pt-4 flex flex-col gap-2 justify-center items-center">
         {template.options.allowPreview && (
-          <Button size='md' disabled={isSubmitting || !isValid()} onClick={_generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isSubmitting || !isValid()} onClick={() => _generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
               (creditBalance || 0) >= (estimatedCost)
                 ? `Generate`

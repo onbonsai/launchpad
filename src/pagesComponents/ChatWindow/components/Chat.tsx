@@ -147,7 +147,11 @@ const PreviewMessage = ({
             {/* Primary action button - Use this button */}
             {onUseThis && !isPosting && (
               <button
-                onClick={() => onUseThis(preview)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onUseThis(preview);
+                }}
                 className={`flex items-center justify-center gap-2 bg-brand-highlight rounded-lg px-4 py-2 hover:bg-brand-highlight/80 transition-colors text-black font-medium text-sm md:text-base h-10 ${
                   isMiniApp ? 'w-full max-w-none' : 'w-full max-w-[160px]'
                 }`}

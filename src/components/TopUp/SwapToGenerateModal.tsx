@@ -585,9 +585,6 @@ export const SwapToGenerateModal = ({
       if (response.status !== 200) {
         throw new Error("Failed to update credits");
       }
-
-      if (refetchCredits) refetchCredits();
-      else _refetchCredits?.();
     } catch (error) {
       console.error("Error updating credits:", error);
       toast.error("Failed to update credits", { id: toastId });
