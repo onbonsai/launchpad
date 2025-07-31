@@ -85,7 +85,6 @@ const nextConfig = {
       'wavesurfer.js',
       "date-fns",
       "aws-sdk",
-      "mongodb",
     ]
   },
   i18n: {
