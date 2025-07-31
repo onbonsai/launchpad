@@ -361,7 +361,7 @@ export const Header = () => {
       >
         <Header2>Bonsai</Header2>
         <p className="mt-4 text-secondary/70">
-          With Bonsai, you can create and monetize AI content on Lens. This new format is called Smart Media.
+          With Bonsai, you can create and monetize AI media. This new format is called Smart Media.
         </p>
         <p className="mt-4 text-secondary/70">
           Creators can choose from a selection of templates that make it easy to create Smart Media and experiment with

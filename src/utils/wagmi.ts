@@ -12,7 +12,7 @@ let configInstance: ReturnType<typeof createConfig> | null = null;
 export const config = (isMiniApp?: boolean) => {
   if (!configInstance) {
     const options = {
-      chains: [lens, lensTestnet, polygon, base, baseSepolia, mainnet, zkSync],
+      chains: [isMiniApp ? base : lens, isMiniApp ? lens : base, lensTestnet, polygon, baseSepolia, mainnet, zkSync],
       transports: {
         [lens.id]: http(ChainRpcs[lens.id]),
         [lensTestnet.id]: http(ChainRpcs[lensTestnet.id]),
@@ -25,7 +25,7 @@ export const config = (isMiniApp?: boolean) => {
       connectors: isMiniApp ? [miniAppConnector] : undefined,
       walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
       appName: "Bonsai",
-      appDescription: "Create autonomous, agentic content on Lens",
+      appDescription: "Create & monetize AI media",
       appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai",
       appIcon: "/static/images/logo.png",
     }

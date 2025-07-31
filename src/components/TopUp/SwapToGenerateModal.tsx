@@ -150,7 +150,7 @@ export const SwapToGenerateModal = ({
   const checkWalletCapabilities = async () => {
     try {
       if (!walletClient) return null;
-      
+
       const capabilities = await walletClient.getCapabilities({
         account: address as `0x${string}`,
       });
@@ -284,6 +284,7 @@ export const SwapToGenerateModal = ({
 
         // swap USDC to token
         if (club && !club.complete && !club.liquidityReleasedAt) {
+          console.log("launchpad club", club);
           // swap through launchpad
           const { buyAmount } = await getBuyAmount(
             address as `0x${string}`,
@@ -292,11 +293,11 @@ export const SwapToGenerateModal = ({
             false,
             club.chain,
           );
-          
+
           if (supportsBatchedCalls) {
             // Check current allowances to determine what needs approval
             const client = publicClient("base");
-            
+
             const launchpadAddress = getLaunchpadAddress("BonsaiLaunchpad", club.clubId, club.chain);
             const launchpadAllowance = await client.readContract({
               address: USDC_CONTRACT_ADDRESS,
@@ -304,12 +305,12 @@ export const SwapToGenerateModal = ({
               functionName: "allowance",
               args: [address as `0x${string}`, launchpadAddress],
             });
-            
+
             // Batch approve + buy + credit payment
             toast.loading("Processing launchpad purchase and credits in batch...", { id: toastId });
-            
+
             const calls: any[] = [];
-            
+
             // Add approval call if needed
             if (launchpadAllowance < _selectedAmount) {
               calls.push({
@@ -319,7 +320,7 @@ export const SwapToGenerateModal = ({
                 args: [launchpadAddress, maxUint256],
               });
             }
-            
+
             // Add buy chips call
             calls.push({
               to: launchpadAddress,
@@ -327,7 +328,7 @@ export const SwapToGenerateModal = ({
               functionName: "buyChips",
               args: [club.clubId, buyAmount, _selectedAmount, zeroAddress, address as `0x${string}`, zeroAddress],
             });
-            
+
             // Add credit payment call
             calls.push({
               to: USDC_CONTRACT_ADDRESS,
@@ -348,7 +349,7 @@ export const SwapToGenerateModal = ({
               // Wait for the batch to complete
               if (result.id) {
                 toast.loading("Waiting for batch transaction...", { id: toastId });
-                
+
                 // Poll for status
                 let completed = false;
                 let attempts = 0;
@@ -358,7 +359,7 @@ export const SwapToGenerateModal = ({
                     const status = await walletClient.getCallsStatus({
                       id: result.id,
                     });
-                    
+
                     // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
                     const statusValue = (status.status || '').toString().toUpperCase();
                     if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
@@ -377,13 +378,13 @@ export const SwapToGenerateModal = ({
                     transferTx.txHash = "batched";
                     transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
                   }
-                  
+
                   attempts++;
                   if (!completed) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
                   }
                 }
-                
+
                 if (!completed) {
                   throw new Error("Batch transaction timeout");
                 }
@@ -394,13 +395,13 @@ export const SwapToGenerateModal = ({
               supportsBatchedCalls = false;
             }
           }
-          
+
           if (!supportsBatchedCalls) {
             // Execute sequentially (original flow)
             await approveToken(USDC_CONTRACT_ADDRESS, _selectedAmount, walletClient, toastId, undefined, "base");
             toast.loading("Buying", { id: toastId });
             await buyChips(walletClient, club.clubId, buyAmount, _selectedAmount, zeroAddress, club.chain, zeroAddress);
-            
+
             // Pay for credits after launchpad buy
             transferTx.txHash = await walletClient.writeContract({
               address: USDC_CONTRACT_ADDRESS,
@@ -466,7 +467,7 @@ export const SwapToGenerateModal = ({
           if (supportsBatchedCalls) {
             // Batch the swap and credit payment
             toast.loading("Processing swap and credits in batch...", { id: toastId });
-            
+
             const calls: SendCallsParameters['calls'] = [
               // Matcha swap call
               {
@@ -495,7 +496,7 @@ export const SwapToGenerateModal = ({
               // Wait for the batch to complete
               if (result.id) {
                 toast.loading("Waiting for batch transaction...", { id: toastId });
-                
+
                 // Poll for status (you might want to implement waitForCallsStatus if available)
                 let completed = false;
                 let attempts = 0;
@@ -504,7 +505,7 @@ export const SwapToGenerateModal = ({
                     const status = await walletClient.getCallsStatus({
                       id: result.id,
                     });
-                    
+
                     // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
                     const statusValue = (status.status || '').toString().toUpperCase();
                     if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
@@ -523,13 +524,13 @@ export const SwapToGenerateModal = ({
                     transferTx.txHash = "batched";
                     transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
                   }
-                  
+
                   attempts++;
                   if (!completed) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
                   }
                 }
-                
+
                 if (!completed) {
                   throw new Error("Batch transaction timeout");
                 }
@@ -540,7 +541,7 @@ export const SwapToGenerateModal = ({
               supportsBatchedCalls = false;
             }
           }
-          
+
           if (!supportsBatchedCalls) {
             // Execute sequentially (original flow)
             toast.loading("Swapping...", { id: toastId });
@@ -554,7 +555,7 @@ export const SwapToGenerateModal = ({
 
             await publicClient("base").waitForTransactionReceipt({ hash });
             toast.success("Swap completed!", { id: toastId });
-            
+
             // Pay for the credits
             transferTx.txHash = await walletClient.writeContract({
               address: USDC_CONTRACT_ADDRESS,
@@ -568,7 +569,6 @@ export const SwapToGenerateModal = ({
       }
     } catch (error) {
       console.error("Error processing swap:", error);
-      toast.dismiss(toastId);
       toast.error("Failed to complete transaction", { id: toastId });
       return;
     }
