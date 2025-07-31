@@ -953,7 +953,7 @@ const CreatePostForm = ({
 
       <div className="pt-4 flex flex-col gap-2 justify-center items-center">
         {template.options.allowPreview && (
-          <Button size='md' disabled={isSubmitting || !isValid()} onClick={() => _generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isSubmitting || !isValid()} onClick={_generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
               (creditBalance || 0) >= (estimatedCost)
                 ? `Generate`
