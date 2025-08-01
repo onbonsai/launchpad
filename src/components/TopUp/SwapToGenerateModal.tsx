@@ -46,6 +46,7 @@ import BuyUSDCWidget from "@pagesComponents/Club/BuyUSDCWidget";
 import { base as baseChain } from "viem/chains";
 import { maxUint256, concat, numberToHex, size } from "viem";
 import { useGetCredits } from "@src/hooks/useGetCredits";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 interface SwapToGenerateModalProps {
   open: boolean;
@@ -591,6 +592,17 @@ export const SwapToGenerateModal = ({
     }
 
     toast.success("Successfully swapped and purchased credits!", { id: toastId });
+
+    // Prompt to add mini app
+    if (isMiniApp) {
+      if (!(await sdk.context).client.added) {
+        try {
+          await sdk.actions.addMiniApp();
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
 
     onSuccess();
     onClose();
