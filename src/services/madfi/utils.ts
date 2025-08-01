@@ -54,8 +54,8 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     BonsaiLaunchpad: "0xb43a85C7369FA6535abCbBB9Da71f8eDCE067E03",
     CreatorNFT: "0x598cbeAce49CfE711D5AD75fb71e81e5B81c2eB5",
     // v2 with token vesting fix
-    BonsaiLaunchpadFix: "0xC0Ffb22aCF44b5E8E66DAE180e5A23380C7ece16",
-    CreatorNFTFix: "0x4DC6CC80198aB90cD094Ab13F3c582afbF0AAE74",
+    BonsaiLaunchpadFix: "0x1EEC8b1338d36f189D8bc075d801bbd4b0d04caa",
+    CreatorNFTFix: "0xfC9A94c0788511356EFF2E304b9258a3688A899e",
     RevenueSplitter: "0x4188C0a51825473704A9eFF23aE26dE63FF696B9",
   },
   lens: {
