@@ -70,7 +70,7 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     // v3 with token vesting fix
     BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
     CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
-    PeripheryFix: "0xAFcE1C785dD1c33F215B7aB5B2C23aF1Ed7cB7b9",
+    PeripheryFix: "0x59b8e5a2141db6e39d19EEbE33Fcb9714c2FF719",
     StakingRewards: "0x7BeB726Bb3D1E7249d6cdF6B5B08E40Cb6D4F284",
     RevenueSplitter: "0x33890D6Ca047F212f4F0dAAF4AA74900B2Ee4838",
   },
