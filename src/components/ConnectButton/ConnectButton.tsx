@@ -59,6 +59,8 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const { setOpen } = useModal();
 
+  console.log(`address: ${address}; isConnected: ${isConnected}`);
+
   const {
     fullRefetch,
   } = useLensSignIn(walletClient);
