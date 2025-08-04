@@ -22,6 +22,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     } catch (error) {
       console.error("Error upserting replika:", error);
     }
+    let generating = false;
     try {
       // Assuming they just approved a budget, notify any pending casts on eliza to continue
       await fetch(`${ELIZA_API_URL}/webhook/cast/pending`, {
@@ -32,10 +33,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
         body: JSON.stringify({ fid }),
       });
+      generating = true;
     } catch (error) {
       console.error("Failed or no pending cast on eliza")
     }
-    return res.status(200).end();
+    return res.status(200).json({ generating });
   }
 
   const token = authorization.split(" ")[1];
