@@ -125,12 +125,6 @@ const IndexPage: NextPage = () => {
                 {!isMiniApp && (
                   <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
                 )}
-                {/* Render top zora coins */}
-                {isMiniApp && (
-                  <div className="mb-6">
-                    <ZoraCoinsList />
-                  </div>
-                )}
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
