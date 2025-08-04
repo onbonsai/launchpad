@@ -441,7 +441,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       });
       const { generating } = await response.json();
 
-      toast.success(`Budget approved!${generating ? 'Generation in progress, sloppr will reply shortly' : ''}`, { id: toastId, duration: 5000 });
+      toast.success(`Budget approved!${generating ? ' Generation in progress, sloppr will reply shortly' : ''}`, { id: toastId, duration: 5000 });
 
       handleCloseModal();
 

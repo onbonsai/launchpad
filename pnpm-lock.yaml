@@ -84,6 +84,9 @@ importers:
       '@wavesurfer/react':
         specifier: ^1.0.11
         version: 1.0.11(react@18.3.1)(wavesurfer.js@7.10.1)
+      '@zoralabs/coins-sdk':
+        specifier: ^0.2.10
+        version: 0.2.10(abitype@1.0.8(typescript@5.9.2)(zod@3.25.76))(viem@2.33.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76))
       aws-sdk:
         specifier: ^2.1692.0
         version: 2.1692.0
@@ -886,8 +889,13 @@ packages:
 
   '@hey-api/client-fetch@0.10.0':
     resolution: {integrity: sha512-C7vzj4t52qPiHCqjn1l8cRTI2p4pZCd7ViLtJDTHr5ZwI4sWOYC1tmv6bd529qqY6HFFbhGCz4TAZSwKAMJncg==}
+    deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
     peerDependencies:
       '@hey-api/openapi-ts': < 2
+
+  '@hey-api/client-fetch@0.8.4':
+    resolution: {integrity: sha512-SWtUjVEFIUdiJGR2NiuF0njsSrSdTe7WHWkp3BLH3DEl2bRhiflOnBo29NSDdrY90hjtTQiTQkBxUgGOF29Xzg==}
+    deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
 
   '@hey-api/json-schema-ref-parser@1.0.6':
     resolution: {integrity: sha512-yktiFZoWPtEW8QKS65eqKwA5MTKp88CyiL8q72WynrBs/73SAaxlSWlA2zW/DZlywZ5hX1OYzrCC0wFdvO9c2w==}
@@ -3041,6 +3049,16 @@ packages:
 
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
+
+  '@zoralabs/coins-sdk@0.2.10':
+    resolution: {integrity: sha512-8h05bwSLDqxjNw1+ioetExiCA6zVXh/aLMfywUXIECwgo6dAmey4agyfo6fEWWIkkhdQZf4adDxXcy50edgghA==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      abitype: ^1.0.8
+      viem: ^2.21.55
+
+  '@zoralabs/protocol-deployments@0.6.2':
+    resolution: {integrity: sha512-RvyoNtVwcEzCNLWKqIwYlIC60TzBoZhxYrwpLxBfvoBlWSvQ8wyoc1/Z1f5fqNMPOd2wjk/eK8FAhMgaHerJdQ==}
 
   abitype@1.0.8:
     resolution: {integrity: sha512-ZeiI6h3GnW06uYDLx0etQtX/p8E24UaHHBj57RSjK7YBFe7iuVn07EDpOeP451D06sF27VOz9JJPlIKJmXgkEg==}
@@ -8532,6 +8550,8 @@ snapshots:
     dependencies:
       '@hey-api/openapi-ts': 0.80.1(typescript@5.9.2)
 
+  '@hey-api/client-fetch@0.8.4': {}
+
   '@hey-api/json-schema-ref-parser@1.0.6':
     dependencies:
       '@jsdevtools/ono': 7.1.3
@@ -11904,6 +11924,15 @@ snapshots:
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
+
+  '@zoralabs/coins-sdk@0.2.10(abitype@1.0.8(typescript@5.9.2)(zod@3.25.76))(viem@2.33.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76))':
+    dependencies:
+      '@hey-api/client-fetch': 0.8.4
+      '@zoralabs/protocol-deployments': 0.6.2
+      abitype: 1.0.8(typescript@5.9.2)(zod@3.25.76)
+      viem: 2.33.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
+
+  '@zoralabs/protocol-deployments@0.6.2': {}
 
   abitype@1.0.8(typescript@5.9.2)(zod@3.22.4):
     optionalDependencies:

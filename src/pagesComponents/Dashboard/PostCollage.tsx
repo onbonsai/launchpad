@@ -112,8 +112,8 @@ const PostItem = React.memo(({
         : undefined
     }
   }), [
-    post.author?.id, 
-    post.author?.username?.localName, 
+    post.author?.id,
+    post.author?.username?.localName,
     post.author?.metadata?.picture,
     post.timestamp,
     post.metadata?.__typename,
@@ -127,19 +127,19 @@ const PostItem = React.memo(({
     const now = new Date().getTime();
     const timeDelta = now - lastTapRef.current;
     const DOUBLE_TAP_DELAY = 300; // milliseconds
-    
+
     // Clear any existing timeout
     if (tapTimeoutRef.current) {
       clearTimeout(tapTimeoutRef.current);
       tapTimeoutRef.current = null;
     }
-    
+
     if (timeDelta < DOUBLE_TAP_DELAY && timeDelta > 0) {
       // Double tap detected
       e.preventDefault();
       e.stopPropagation();
       isDoubleTapping.current = true;
-      
+
       // Handle the double tap
       if (!isAuthenticated) {
         toast.error("Please sign in to like posts");
@@ -148,27 +148,27 @@ const PostItem = React.memo(({
         }, 300);
         return;
       }
-      
+
       (async () => {
         try {
           await sendLike(post.slug);
-          
+
           // Show heart animation
           setShowLikeHeart(true);
           setTimeout(() => setShowLikeHeart(false), 1000);
-          
+
           // Haptic feedback
           if (isMobile) {
             haptics.light();
           }
-          
+
           toast.success("Liked!", { duration: 1500 });
         } catch (error) {
           console.error('Error liking post:', error);
           toast.error("Failed to like post");
         }
       })();
-      
+
       // Reset double tap state after a delay
       setTimeout(() => {
         isDoubleTapping.current = false;
@@ -181,7 +181,7 @@ const PostItem = React.memo(({
         }
       }, DOUBLE_TAP_DELAY);
     }
-    
+
     lastTapRef.current = now;
   }, [isAuthenticated, post.slug, isMobile]);
 
@@ -189,7 +189,7 @@ const PostItem = React.memo(({
   const handleCardClick = useCallback(() => {
     // Don't navigate if we're in the middle of a double-tap
     if (isDoubleTapping.current) return;
-    
+
     localStorage.setItem('tempPostData', JSON.stringify(post));
     router.push({ pathname: `/post/${post.slug}` });
   }, [post, router]);
@@ -292,7 +292,7 @@ const PostItem = React.memo(({
           position="bottom"
         />
       )}
-      
+
       {/* Double-tap like heart animation */}
       {showLikeHeart && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
@@ -412,7 +412,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
       text: 'Discover amazing content and trade tokens on Bonsai',
       url: `${BONSAI_POST_URL}/${postSlug}`
     });
-    
+
     // Haptic feedback is handled in the webShare utility
     if (!success && !isWebShareSupported()) {
       // Fallback already handled in webShare utility

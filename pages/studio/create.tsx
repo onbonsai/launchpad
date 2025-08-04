@@ -1537,7 +1537,7 @@ const StudioCreatePage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh] w-full overflow-visible">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6 overflow-visible">
+      <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 md:pt-6 pt-4 overflow-visible">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full overflow-visible">
           <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-8 max-w-full overflow-visible">
               <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
