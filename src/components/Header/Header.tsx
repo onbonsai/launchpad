@@ -131,6 +131,26 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   // Prevent hydration mismatch by ensuring component doesn't render until mounted
   if (!isMounted) return null;
 
+  // Only the create button on miniapp
+  if (isMiniApp) {
+    return (
+      <div className={clsx(
+        "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
+        "pb-6"
+      )}>
+        <div className="flex justify-center items-center h-14 px-6">
+          <Link href="/studio/create" className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
+            <div className="bg-[#111] rounded-lg p-1.5">
+              <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={clsx(
       "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
