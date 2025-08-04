@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { getClientWithMedia } from "@src/services/mongo/client";
 import verifyIdToken from "@src/services/lens/verifyIdToken";
+import { ELIZA_API_URL } from "@src/services/madfi/studio";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { source, fid, address } = req.body;
@@ -20,6 +21,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       );
     } catch (error) {
       console.error("Error upserting replika:", error);
+    }
+    try {
+      // Assuming they just approved a budget, notify any pending casts on eliza to continue
+      await fetch(`${ELIZA_API_URL}/webhook/cast/pending`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.MADFI_API_KEY as string,
+        },
+        body: JSON.stringify({ fid }),
+      });
+    } catch (error) {
+      console.error("Failed or no pending cast on eliza")
     }
     return res.status(200).end();
   }

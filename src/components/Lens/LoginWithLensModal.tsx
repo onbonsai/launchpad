@@ -429,7 +429,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       console.log(`hash: ${hash}`)
       await client.waitForTransactionReceipt({ hash });
 
-      // create a dummy replika record so we can know which address to handle payments
+      // create or update a dummy replika record so we can know which address to handle payments
       await fetch('/api/bonsai/create-replika', {
         method: 'POST',
         headers: {
