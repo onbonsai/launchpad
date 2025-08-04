@@ -122,7 +122,7 @@ const PreviewMessage = ({
               author: publicationAuthor,
               timestamp: timestamp.getTime(),
               metadata: {
-                __typename: preview.text ? "TextOnlyMetadata" : (preview.image && !hasVideo ? "ImageMetadata" : "TextOnlyMetadata"),
+                __typename: preview.text && !hasVideo && !hasImage ? "TextOnlyMetadata" : (preview.image && !hasVideo ? "ImageMetadata" : "TextOnlyMetadata"),
                 content: preview.text || '',
                 image: !hasVideo && (preview.imagePreview || preview.image)
                   ? { item: preview.imagePreview || preview.image }
@@ -1130,7 +1130,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
                           // Keep all other types as they have different deduplication logic
                           return true;
                         })
-                        .map((item, index) => {
+                        .map((item) => {
                         if (item.type === 'message') {
                           const message = item.data;
                           return (

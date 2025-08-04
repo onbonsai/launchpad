@@ -94,7 +94,7 @@ export function Publication({
   disableAutoplay?: boolean;
 }) {
   const [publication, setPublication] = useState<any>(publicationData);
-  const [showFullText, setShowFullText] = useState(false);
+  const [showFullText, setShowFullText] = useState(layout === "horizontal");
   const [assetUrl, setAssetUrl] = useState<string>("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
