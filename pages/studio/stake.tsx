@@ -264,9 +264,6 @@ const TokenPage: NextPage = () => {
       if (chain?.id !== LENS_CHAIN_ID && walletClient) {
         try {
           await switchChain(walletClient, { id: LENS_CHAIN_ID });
-          // TODO: if siweClient.Provider has signOutOnNetworkChange set to true
-          // toast("Please re-connect your wallet");
-          // setOpen(true);
           return false;
         } catch {
           toast.error("Please switch to Lens Chain");

@@ -23,7 +23,6 @@ import { useGetBonsaiNFTs } from "@src/hooks/useGetBonsaiNFTs";
 import { useProfileWithSession } from '@src/hooks/useProfileWithSession';
 import { useFollowersYouKnow } from '@src/hooks/useFollowersYouKnow';
 import toast from 'react-hot-toast';
-import { useSIWE } from 'connectkit';
 import { Tabs } from '@src/components/Profile/Tabs';
 import { ProfileContainer } from "@src/components/Profile/ProfileContainer";
 import { Account } from '@lens-protocol/client';
@@ -67,7 +66,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { isReady: ready } = useSIWE();
   const {
     // signInWithLens,
     signingIn,
@@ -117,17 +115,6 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
   }, [router.query]);
 
   if (!isMounted) return null;
-
-  if (!ready)
-    return (
-      <div className="bg-background text-secondary min-h-[50vh]">
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-28 pb-4">
-          <div className="flex justify-center">
-            <Spinner customClasses="h-6 w-6" color="#5be39d" />
-          </div>
-        </main>
-      </div>
-    );
 
   // function isFarcasterProfile(profile: ProfileFragment | FarcasterProfile): profile is FarcasterProfile {
   //   return (profile as FarcasterProfile).profileHandle !== undefined;
@@ -221,8 +208,8 @@ const CreatorPage: NextPage<CreatorPageProps> = ({
         setOpen={setIsEditModalOpen}
         panelClassnames="bg-card w-screen h-screen md:h-full md:w-[60vw] lg:w-[40vw] p-4 text-secondary"
       >
-        <EditProfileModal 
-          profile={profileData as Account} 
+        <EditProfileModal
+          profile={profileData as Account}
           closeModal={() => setIsEditModalOpen(false)}
           onProfileUpdate={() => {
             refetch();

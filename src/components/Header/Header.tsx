@@ -80,6 +80,7 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       hasHandledInitialModal.current = false;
       hasHandledBudgetModal.current = false;
       if (!isMiniApp) {
+        console.log("HEADER USE EFFECT")
         lensLogout().then(fullRefetch);
       }
     }

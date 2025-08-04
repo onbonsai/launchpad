@@ -1,10 +1,11 @@
-import { FC, ReactNode, useState, createContext, useEffect } from "react";
+import { FC, ReactNode, useState, createContext, useEffect, useRef } from "react";
 import { Header } from "@components/Header";
 import { brandFont } from "../../../fonts/fonts";
 import { useRouter } from "next/router";
 import PWAInstallPrompt from "../../PWAInstallPrompt";
 import OfflineIndicator from "../../OfflineIndicator";
 import { Footer } from "@src/components/Footer/Footer";
+import { useAccount } from "wagmi";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
@@ -24,15 +25,34 @@ interface LayoutProps {
 }
 
 export const Layout: FC<LayoutProps> = ({ children }) => {
+  const router = useRouter();
+  const { isConnected } = useAccount();
+  const remixParam = !!router.query.remix;
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isRemixing, setIsRemixing] = useState(false);
-  const router = useRouter();
+  const hasHandledRemixParam = useRef(false);
 
-  // Reset chat window state when route changes
+  // Handle remix param only once when wallet is connected (with 1 second delay)
   useEffect(() => {
-    setIsChatOpen(false);
-    setIsRemixing(false);
-  }, [router.asPath]);
+    if (remixParam && isConnected && !hasHandledRemixParam.current) {
+      const timer = setTimeout(() => {
+        setIsChatOpen(true);
+        hasHandledRemixParam.current = true;
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [remixParam, isConnected]);
+
+  // Reset chat window state and ref when route changes (but not when just handling remix param)
+  useEffect(() => {
+    // Don't reset if we just set isChatOpen due to remix param
+    if (!remixParam) {
+      setIsChatOpen(false);
+      setIsRemixing(false);
+    }
+    hasHandledRemixParam.current = false;
+  }, [router.asPath, remixParam]);
 
   // Prevent body scroll when chat is open
   useEffect(() => {

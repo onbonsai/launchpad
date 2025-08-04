@@ -129,17 +129,24 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
-      {/* Chat Sidebar */}
-      {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-        <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
+      {/* Chat Sidebar - Show when agent info is loaded OR when in remix mode */}
+      {((!isLoadingAgentInfo && !!agentInfoSage?.agentId) || !!router.query.remix) && (
+        <ChatWindowButton
+          agentInfo={agentInfoSage || { agentId: uuid, info: { wallets: [] }, account: null }}
+          isOpen={isChatOpen}
+          setIsOpen={setIsChatOpen}
+        >
           <Chat
             agentId={uuid}
-            agentWallet={agentInfoSage.info.wallets[0]}
-            agentName={`${agentInfoSage?.account?.metadata?.name} (${agentInfoSage?.account?.username?.localName})`}
+            agentWallet={agentInfoSage?.info?.wallets?.[0] || ''}
+            agentName={agentInfoSage?.account?.metadata?.name ?
+              `${agentInfoSage.account.metadata.name} (${agentInfoSage.account.username?.localName})` :
+              'Remix Agent'
+            }
             media={safeMedia(media)}
             conversationId={conversationId}
             post={publicationData as any}
-            isRemixing={false}
+            isRemixing={!!router.query.remix}
           />
         </ChatWindowButton>
       )}

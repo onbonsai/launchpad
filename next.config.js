@@ -2,7 +2,7 @@
 const { withSentryConfig } = require("@sentry/nextjs");
 
 const nextConfig = {
-  webpack: (config, { isServer, dev }) => {
+    webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         fs: false,
@@ -32,6 +32,7 @@ const nextConfig = {
   // Compress responses
   compress: true,
   transpilePackages: ["@lens-protocol", "@farcaster/miniapp-sdk"],
+
   async rewrites() {
     return [
       {
@@ -41,7 +42,6 @@ const nextConfig = {
     ];
   },
   experimental: {
-    esmExternals: true,
     staleTimes: {
       dynamic: 30,
       static: 180,

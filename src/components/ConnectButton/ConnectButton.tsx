@@ -76,20 +76,10 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   // Handle disconnection events in useEffect
   useEffect(() => {
     if (!isConnected && isAuthenticated) {
+      console.log("CONNECT USE EFFECT")
       lensLogout().then(fullRefetch);
     }
   }, [isConnected, isAuthenticated, fullRefetch]);
-  // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
-  //   onSignOut: () => {
-  //     const asyncLogout = async () => {
-  //       await lensLogout();
-  //       fullRefetch() // invalidate cached query data
-  //     }
-
-  //     disconnect();
-  //     if ((!!authenticatedProfile?.address)) asyncLogout();
-  //   }
-  // });
   const router = useRouter();
 
   const identity = useMemo(() => {
@@ -123,13 +113,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  // // need this to trigger the onSignIn callback
-  // const handleSignIn = async () => {
-  //   await signIn()?.then((session?: SIWESession) => { });
-  // };
-
-  // if (!ready && !connected) return null;
 
   // Prevent hydration mismatch by ensuring component doesn't render until mounted
   if (!isMounted) return null;

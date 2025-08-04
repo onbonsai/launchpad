@@ -127,6 +127,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   useModal({
     onDisconnect: () => {
       if (authenticatedProfileId) {
+        console.log(`MODAL ON DISCONNECT`)
         lensLogout().then(fullRefetch);
       }
     }
@@ -134,7 +135,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (selectedProfile?.address) {
-      if (authenticatedProfileId) lensLogout().then(fullRefetch);
+      if (authenticatedProfileId) { console.log(`USEFFECT ON DISCONNECT`); lensLogout().then(fullRefetch); }
       else signInWithLens(selectedProfile);
     }
   }, [selectedProfile?.address]);

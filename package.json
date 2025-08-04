@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -38,8 +38,7 @@
     "axios": "^0.27.2",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
-    "connectkit": "^1.9.0",
-    "connectkit-next-siwe": "^0.3.0",
+    "connectkit": "^1.9.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "cva": "npm:class-variance-authority@^0.6.1",
@@ -90,7 +89,7 @@
     "use-debounce": "^9.0.4",
     "uuid": "^11.1.0",
     "viem": "^2.31.3",
-    "wagmi": "^2.15.6",
+    "wagmi": "^2.16.1",
     "wavesurfer.js": "^7.9.4",
     "zod": "^3.24.2"
   },
