@@ -14,7 +14,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       // Use upsert: insert if doesn't exist, update address if it does exist
       await collection.updateOne(
-        { owner: address, source, fid },
+        { source, fid },
         { $set: { owner: address, source, fid } },
         { upsert: true }
       );
