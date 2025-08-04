@@ -20,6 +20,7 @@ interface WorkerData {
         startTime: number;
     };
     tempId: string;
+    remixPostId?: string;
 }
 
 // Only run this code if we're in a web worker environment
@@ -38,6 +39,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
       roomId,
       audio,
       tempId,
+      remixPostId,
     } = event.data;
 
     try {
@@ -53,6 +55,7 @@ if (typeof self !== 'undefined' && 'DedicatedWorkerGlobalScope' in self) {
         nft,
         roomId,
         audio,
+        remixPostId,
       );
 
       // If there's video data with ArrayBuffer, we need to transfer it properly

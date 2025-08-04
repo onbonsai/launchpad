@@ -324,20 +324,22 @@ self.addEventListener("notificationclick", function (event) {
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // Try to find an existing window with the studio/create page
-      for (const client of clientList) {
-        if (client.url.includes("/studio/create") && "focus" in client) {
-          // Send a message to reload messages
-          client.postMessage({
-            type: "RELOAD_MESSAGES",
-            roomId: roomId,
-            generationId: generationId,
-          });
-          return client.focus();
+      // For studio/create notifications, try to find an existing studio window
+      if (url.includes("/studio/create")) {
+        for (const client of clientList) {
+          if (client.url.includes("/studio/create") && "focus" in client) {
+            // Send a message to reload messages
+            client.postMessage({
+              type: "RELOAD_MESSAGES",
+              roomId: roomId,
+              generationId: generationId,
+            });
+            return client.focus();
+          }
         }
       }
 
-      // If no existing window, open a new one
+      // If no existing window or not a studio notification, open a new one
       if (clients.openWindow) {
         // const finalUrl = roomId ? `${url}?roomId=${roomId}` : url;
         return clients.openWindow(url);
