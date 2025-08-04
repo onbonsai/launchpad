@@ -48,7 +48,7 @@
     "ethers": "^6.13.4",
     "form-data": "^4.0.0",
     "formidable": "^2.1.1",
-    "framer-motion": "^12.5.0",
+    "framer-motion": "^10.16.4",
     "franc": "^6.2.0",
     "fs-extra": "^11.1.1",
     "git": "link:github.com:ensdomains/ensjs.git",
