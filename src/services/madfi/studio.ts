@@ -15,6 +15,7 @@ import { generatePreview } from "./../studio.worker";
 export const APP_ID = "BONSAI";
 export const ELIZA_API_URL = process.env.NEXT_PUBLIC_ELIZA_API_URL ||
   (IS_PRODUCTION ? "https://eliza.onbons.ai" : "https://eliza-staging.onbons.ai");
+export const ELIZA_WEBHOOKS_URL = "https://eliza-webhooks.onbons.ai";
 export const ELEVENLABS_VOICES = [
   { label: 'Italian Brainrot (Male)', value: 'pNInz6obpgDQGcFmaJgB' },
   { label: 'Australian (Female)', value: 'ZF6FPAbjXT4488VcRRnw' },

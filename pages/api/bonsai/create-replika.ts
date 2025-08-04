@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { getClientWithMedia } from "@src/services/mongo/client";
 import verifyIdToken from "@src/services/lens/verifyIdToken";
-import { ELIZA_API_URL } from "@src/services/madfi/studio";
+import { ELIZA_WEBHOOKS_URL } from "@src/services/madfi/studio";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { source, fid, address } = req.body;
@@ -25,7 +25,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     let generating = false;
     try {
       // Assuming they just approved a budget, notify any pending casts on eliza to continue
-      await fetch(`${ELIZA_API_URL}/webhook/cast/pending`, {
+      await fetch(`${ELIZA_WEBHOOKS_URL}/webhook/cast/pending`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
