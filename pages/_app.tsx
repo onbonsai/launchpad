@@ -11,6 +11,8 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/router.js";
 import { MiniKitProvider, useMiniKit, useAddFrame } from '@coinbase/onchainkit/minikit';
 
+
+
 import { Layout } from "@src/components/Layouts/Layout";
 import HandleSEO from "@src/components/Layouts/HandleSEO";
 import { ThemeProvider } from "@src/context/ThemeContext";
@@ -299,6 +301,17 @@ function AppContent(props: AppProps) {
 }
 
 export default function MyApp(props: AppProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Client-only rendering to avoid hydration issues
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <ErrorBoundary componentName="MyApp-Root">
       <MiniKitProvider

@@ -239,11 +239,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       ]);
 
       if (profile?.owner) {
-        const { collection } = await getClientWithCreatorInfo();
-        const creatorInfo = await collection.findOne(
-          { address: profile.owner.toLowerCase() },
-          { projection: { _id: 0 } },
-        );
+        // const { collection } = await getClientWithCreatorInfo();
+        // const creatorInfo = await collection.findOne(
+        //   { address: profile.owner.toLowerCase() },
+        //   { projection: { _id: 0 } },
+        // );
 
         return {
           props: {
@@ -251,7 +251,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             accountStats,
             type: "lens",
             pageName: "profile",
-            creatorInfo: creatorInfo || null,
+            creatorInfo: null,
             allSocials: {},
           },
         };

@@ -1,12 +1,5 @@
-import dynamic from "next/dynamic";
 import { ConnectKitProvider } from "connectkit";
-
-const WagmiProvider = dynamic(
-  () => import("@src/components/Web3Provider/WagmiProvider"),
-  {
-    ssr: false,
-  }
-);
+import WagmiProvider from "@src/components/Web3Provider/WagmiProvider";
 
 export const Web3Provider = ({ children }) => {
   return (

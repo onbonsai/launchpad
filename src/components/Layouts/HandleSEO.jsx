@@ -44,7 +44,7 @@ const createFrameData = (imageUrl, buttonTitle, actionName, actionUrl) => {
 };
 
 const HandleSEO = ({ pageProps, query }) => {
-  const { profile, pageName } = pageProps;
+  const { profile, pageName } = pageProps || {};
 
   // Profile page
   if (profile && pageName === "profile") {

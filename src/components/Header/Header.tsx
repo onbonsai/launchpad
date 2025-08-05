@@ -61,7 +61,17 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const hasHandledBudgetModal = useRef(false);
   const hasHandledInitialModal = useRef(false);
 
-  const { setOpen } = useModal();
+  const { setOpen } = useModal({
+    onDisconnect: () => {
+      if (!!authenticatedProfile) {
+        lensLogout().then(fullRefetch);
+      }
+
+      // Reset the modal flags when user disconnects
+      hasHandledInitialModal.current = false;
+      hasHandledBudgetModal.current = false;
+    }
+  });
 
   // Handle connection events in useEffect to avoid state updates during render
   useEffect(() => {
@@ -72,19 +82,6 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       return () => clearTimeout(timer);
     }
   }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
-
-  // Handle disconnection events in useEffect
-  useEffect(() => {
-    if (!isConnected) {
-      // Reset the modal flags when user disconnects
-      hasHandledInitialModal.current = false;
-      hasHandledBudgetModal.current = false;
-      if (!isMiniApp) {
-        console.log("HEADER USE EFFECT")
-        lensLogout().then(fullRefetch);
-      }
-    }
-  }, [isConnected, isMiniApp, fullRefetch]);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
@@ -240,7 +237,7 @@ export const Header = () => {
               )}
 
               {/* Create button */}
-              {isConnected && (
+              {isConnected && (isMiniApp || isAuthenticated) && (
                 <div className="hidden sm:block mr-2">
                   <Link href="/studio/create" onClick={handleAuthRequiredClick}>
                     <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">

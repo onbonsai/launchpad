@@ -36,6 +36,9 @@ const ALLOWANCE_AMOUNTS = [5, 10, 25, 50];
 
 const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () => void, modal?: string, withBudget?: boolean }) => {
   const { chain, address, isConnected } = useAccount();
+  console.log(`chain: ${chain}`)
+  console.log(`address: ${address}`)
+  console.log(`isConnected: ${isConnected}`)
   const { disconnect } = useDisconnect()
   const { profiles, isLoading } = useGetProfiles(address);
   const { data: walletClient } = useWalletClient();

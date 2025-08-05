@@ -59,12 +59,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const { setOpen } = useModal();
 
-  console.log(`address: ${address}; isConnected: ${isConnected}`);
-
-  const {
-    fullRefetch,
-  } = useLensSignIn(walletClient);
-
   // Handle connection events in useEffect to avoid state updates during render
   useEffect(() => {
     if (isConnected && autoLensLogin && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
@@ -75,13 +69,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     }
   }, [isConnected, autoLensLogin, setOpenSignInModal, isAuthenticated, isMiniApp]);
 
-  // Handle disconnection events in useEffect
-  useEffect(() => {
-    if (!isConnected && isAuthenticated) {
-      console.log("CONNECT USE EFFECT")
-      lensLogout().then(fullRefetch);
-    }
-  }, [isConnected, isAuthenticated, fullRefetch]);
   const router = useRouter();
 
   const identity = useMemo(() => {
