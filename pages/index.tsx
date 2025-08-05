@@ -37,11 +37,11 @@ interface TimelinePosts {
 
 const IndexPage: NextPage = () => {
   const isMounted = useIsMounted();
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated } = useLensSignIn(walletClient);
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
-  const { isMiniApp } = useIsMiniApp();
+  const { isMiniApp, context } = useIsMiniApp();
   const hasCheckedAuth = useRef(false);
   const [openHelpModal, setOpenHelpModal] = useState(false);
 
@@ -273,7 +273,7 @@ const IndexPage: NextPage = () => {
                 agentWallet={selectedCoin.coin_creator_address as `0x${string}`}
                 agentName={`${selectedCoin.name || selectedCoin.symbol} (${selectedCoin.symbol})`}
                 media={coinToSmartMedia(selectedCoin)}
-                conversationId={`coin-remix-${selectedCoin.id}`}
+                conversationId={`coin-remix-${context?.user?.fid || address}-${selectedCoin.id}`}
                 post={{
                   id: selectedCoin.cast_cast_hash || `coin-${selectedCoin.id}`,
                   slug: `coin-${selectedCoin.id}`,
