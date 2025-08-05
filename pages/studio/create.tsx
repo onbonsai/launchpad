@@ -937,7 +937,65 @@ const StudioCreatePage: NextPage = () => {
     setSelectedSubTemplate(subTemplate);
   };
 
-    const handleCoinSelect = (coin: ZoraCoin) => {
+  // Function to fetch image from URL and convert to File
+  const fetchImageAsFile = async (imageUrl: string): Promise<File | null> => {
+    try {
+      // Use our API endpoint to proxy the image fetch (avoids CORS issues)
+      const response = await fetch('/api/fetch-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to fetch image: ${errorData.error || response.statusText}`);
+      }
+
+      const { imageUrl: dataUrl, contentType, originalContentType } = await response.json();
+
+      // Parse the base64 data URL
+      const imageFile = parseBase64Image(dataUrl);
+      if (!imageFile) {
+        throw new Error('Failed to parse image data');
+      }
+
+      return imageFile;
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      return null;
+    }
+  };
+
+  // Function to extract frame from video using the API endpoint
+  const extractFrameFromVideo = async (videoUrl: string): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/media/extract-frame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          framePosition: 'start', // Extract from start of video
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to extract frame from video');
+      }
+
+      const frameData = await response.json();
+      return frameData.imageUrl;
+    } catch (error) {
+      console.error('Error extracting frame from video:', error);
+      return null;
+    }
+  };
+
+  const handleCoinSelect = async (coin: ZoraCoin) => {
     // Set the selected coin for visual state
     setSelectedCoin(coin);
 
@@ -952,13 +1010,45 @@ const StudioCreatePage: NextPage = () => {
       initialSupply: 0,
     });
 
-    // Set the coin image if available
-    if (coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri) {
-      const imageUrl = coin.mediaContent.previewImage?.small || coin.mediaContent.originalUri;
-      const imageFile = parseBase64Image(imageUrl!);
-      if (imageFile) {
-        setPostImage([imageFile]);
+    // Handle media content for post image
+    const animationUrl = (coin as any).animation_url || (coin as any).mediaContent?.animation_url;
+    const imageUrl = coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri;
+
+    try {
+      let finalImageUrl: string | null = null;
+
+      // Priority: 1. Video (animation_url) -> extract frame, 2. Image URL
+      if (animationUrl) {
+        // Extract frame from video
+        finalImageUrl = await extractFrameFromVideo(animationUrl);
+        if (!finalImageUrl) {
+          toast.error('Failed to extract frame from video');
+        }
+      } else if (imageUrl) {
+        finalImageUrl = imageUrl;
       }
+
+      // Download and set the image if we have a URL
+      if (finalImageUrl) {
+        if (finalImageUrl.startsWith('http')) {
+          // Fetch the image from URL
+          const imageFile = await fetchImageAsFile(finalImageUrl);
+          if (imageFile) {
+            setPostImage([imageFile]);
+          } else {
+            toast.error('Failed to download coin image');
+          }
+        } else {
+          // Handle as base64 data
+          const imageFile = parseBase64Image(finalImageUrl);
+          if (imageFile) {
+            setPostImage([imageFile]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error processing coin media:', error);
+      toast.error('Failed to process coin media');
     }
 
     // Store the coin address separately for when token creation is needed

@@ -65,7 +65,7 @@ const ZoraCoinsList: React.FC<ZoraCoinsListProps> = ({ className = '', onCoinSel
     return (
       <div
         key={`coin-${coin.id}-${index}`}
-        className={`relative flex items-center gap-3 px-4 py-3 rounded-lg border ${
+        className={`relative flex items-center gap-3 rounded-lg border ${
           isSelected
             ? "border-brand-highlight"
             : "border-dark-grey hover:border-brand-highlight"
@@ -85,24 +85,26 @@ const ZoraCoinsList: React.FC<ZoraCoinsListProps> = ({ className = '', onCoinSel
             }
           }
         }}
+        style={{ height: 80 }} // Increased height to 80px for a bigger image
       >
-        <div className="relative flex items-center gap-3 flex-1">
-          <div className="w-12 h-12 flex-shrink-0">
-            {coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri ? (
+        <div className="relative flex items-center gap-3 flex-1 h-full">
+          <div className="w-20 h-20 flex-shrink-0"> {/* 80px x 80px */}
+            {coinImage ? (
               <img
-                src={coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri}
+                src={coinImage}
                 alt={coin.name}
-                className="rounded-full"
-                width={48}
-                height={48}
+                className="w-full h-full object-cover"
+                width={80}
+                height={80}
+                style={{ height: "80px", width: "80px" }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 rounded-full text-base">
+              <div className="w-full h-full flex items-center justify-center bg-brand-highlight/20 text-2xl">
                 {coin.symbol.charAt(0)}
               </div>
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 px-4 py-3 h-full flex flex-col justify-center">
             <div className="flex items-center gap-2">
               {/* <span className="text-base font-medium text-white">{coin.name}</span> */}
               <span className="text-base font-semibold text-white whitespace-nowrap">{coin.symbol}</span>
@@ -110,7 +112,6 @@ const ZoraCoinsList: React.FC<ZoraCoinsListProps> = ({ className = '', onCoinSel
             <div className="flex items-center gap-4 text-sm text-white/80 whitespace-nowrap">
               <span>MC: {formatMarketCap(coin.marketCap)}</span>
               <span>24h: {formatVolume(coin.volume24h)}</span>
-              {/* <span>{coin.uniqueHolders} holders</span> */}
             </div>
           </div>
         </div>
@@ -145,7 +146,7 @@ const ZoraCoinsList: React.FC<ZoraCoinsListProps> = ({ className = '', onCoinSel
         className="overflow-x-auto"
       >
         {/* Two-row masonry layout with horizontal scroll */}
-        <div className="flex flex-col h-40 gap-2 min-w-max">
+        <div className="flex flex-col h-42 gap-2 min-w-max">
           {/* First row */}
           <div className="flex gap-2 flex-1">
             {coins.filter((_, index) => index % 2 === 0).map((coin, index) => renderCoinCard(coin, index * 2))}
