@@ -14,7 +14,6 @@ import { PostsTabs, PostTabType } from "@src/components/Publication/PostsTabs";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useAccount, useWalletClient } from "wagmi";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
-import ZoraCoinsList from "@src/components/ZoraCoins";
 import { useTopBaseCoins } from "@src/services/farcaster/zora";
 
 interface TimelinePosts {

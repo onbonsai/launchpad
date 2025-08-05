@@ -325,22 +325,26 @@ export const Header = () => {
           <div className="md:hidden bg-black border-t border-dark-grey px-4 py-3">
             <div className="flex flex-col space-y-2 w-full">
               <div className="pb-2 w-full">
-                <SearchClubs onItemSelect={() => {
-                  setOpenMobileMenu(false);
-                }} />
+                {!isMiniApp && (
+                  <SearchClubs onItemSelect={() => {
+                    setOpenMobileMenu(false);
+                  }} />
+                )}
               </div>
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
               {/* <ClaimBonsai openMobileMenu /> */}
-              <Link
-                href={routesApp.stake}
-                className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"
-                onClick={() => {
-                  setOpenMobileMenu(false);
-                }}
-              >
-                Stake
-              </Link>
+              {!isMiniApp && (
+                <Link
+                  href={routesApp.stake}
+                  className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"
+                  onClick={() => {
+                    setOpenMobileMenu(false);
+                  }}
+                >
+                  Stake
+                </Link>
+              )}
               <div
                 className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
                 onClick={() => {

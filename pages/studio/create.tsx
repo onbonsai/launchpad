@@ -22,7 +22,7 @@ import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client
 import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
-import { cacheImageToStorj, getImageTypeFromUrl, parseBase64Image } from "@src/utils/utils";
+import { cacheImageToStorj, getImageTypeFromUrl } from "@src/utils/utils";
 import axios from "axios";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
@@ -42,6 +42,9 @@ import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
 import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
 import { storageClient } from "@src/services/lens/client";
 import { usePWA } from '@src/hooks/usePWA';
+import ZoraCoinsList from "@src/components/ZoraCoins";
+import { parseBase64Image } from "@src/utils/utils";
+import type { ZoraCoin } from "@src/services/farcaster/zora";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -65,6 +68,7 @@ const StudioCreatePage: NextPage = () => {
   const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
   const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
+  const [selectedCoin, setSelectedCoin] = useState<ZoraCoin | undefined>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
   const [template, setTemplate] = useState<Template>();
@@ -933,6 +937,40 @@ const StudioCreatePage: NextPage = () => {
     setSelectedSubTemplate(subTemplate);
   };
 
+    const handleCoinSelect = (coin: ZoraCoin) => {
+    // Set the selected coin for visual state
+    setSelectedCoin(coin);
+
+    // Set token data for the selected coin
+    setFinalTokenData({
+      tokenName: coin.name,
+      tokenSymbol: coin.symbol,
+      tokenImage: coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri
+        ? [{ preview: coin.mediaContent.previewImage?.small || coin.mediaContent.originalUri }]
+        : [],
+      selectedNetwork: 'base',
+      initialSupply: 0,
+    });
+
+    // Set the coin image if available
+    if (coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri) {
+      const imageUrl = coin.mediaContent.previewImage?.small || coin.mediaContent.originalUri;
+      const imageFile = parseBase64Image(imageUrl!);
+      if (imageFile) {
+        setPostImage([imageFile]);
+      }
+    }
+
+    // Store the coin address separately for when token creation is needed
+    // The system will use this address when creating/importing the token
+    setSavedTokenAddress(coin.address as `0x${string}`);
+
+    // Enable token creation
+    setAddToken(true);
+
+    toast.success(`Coin set: ${coin.symbol}`);
+  };
+
   const onCast = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -1537,13 +1575,18 @@ const StudioCreatePage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh] w-full overflow-visible">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-2 sm:px-6 md:pt-6 pt-4 overflow-visible">
+      <main className="mx-auto max-w-full md:max-w-[100rem] md:pt-6 pt-4 overflow-visible">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full overflow-visible">
           <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-8 max-w-full overflow-visible">
               <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
                 <Sidebar />
               </div>
               <div className="flex-grow overflow-visible">
+                {/* Zora coin selector */}
+                <div className={`w-full mb-4 px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>
+                  <ZoraCoinsList onCoinSelect={handleCoinSelect} selectedCoin={selectedCoin} />
+                </div>
+
                 {/* Full-width Template Selector - moved above padding */}
                 {template && (
                   <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>

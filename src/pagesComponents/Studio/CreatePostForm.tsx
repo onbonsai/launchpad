@@ -158,38 +158,13 @@ const CreatePostForm = ({
   const textareaRef = useAutoGrow(prompt || '');
   const previousPromptRef = useRef<string | undefined>(prompt);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showMaxModeTooltip, setShowMaxModeTooltip] = useState(false);
-  const maxModeTooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasShownMaxModeTooltip = useRef(false);
+
 
   useEffect(() => {
     if (finalTemplateData) {
       setTemplateData(finalTemplateData);
     }
   }, [finalTemplateData]);
-
-  // Show MAX mode tooltip after 5 seconds, then hide after another 5 seconds (only once)
-  useEffect(() => {
-    const shape = template.templateData.form.shape as Record<string, z.ZodTypeAny>;
-
-    // Only show tooltip if it hasn't been shown before and MAX mode is available
-    if (shape.enableMaxMode && !hasShownMaxModeTooltip.current) {
-      const showTooltipTimer = setTimeout(() => {
-        setShowMaxModeTooltip(true);
-        hasShownMaxModeTooltip.current = true; // Mark as shown
-        maxModeTooltipTimeoutRef.current = setTimeout(() => {
-          setShowMaxModeTooltip(false);
-        }, 5000);
-      }, 5000);
-
-      return () => {
-        clearTimeout(showTooltipTimer);
-        if (maxModeTooltipTimeoutRef.current) {
-          clearTimeout(maxModeTooltipTimeoutRef.current);
-        }
-      };
-    }
-  }, [template.templateData.form]);
 
   // Lock aspect ratio to horizontal when subject reference is present, MAX Mode is enabled, or Veo models are selected
   useEffect(() => {
@@ -499,9 +474,10 @@ const CreatePostForm = ({
   const totalOptions = [
     template.options?.imageRequirement && template.options?.imageRequirement !== MediaRequirement.NONE,
     template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE,
-    template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE,
     !!postImage?.length, // Add aspect ratio options when image uploader is shown
     !!shape.forceVideoModel, // Add video model selection when available
+    !!shape.enableMaxMode, // Add MAX Mode toggle when available
+    template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE, // Audio moved to advanced
     ...availableFields
   ].filter(Boolean).length;
 
@@ -652,29 +628,7 @@ const CreatePostForm = ({
     return false;
   };
 
-  const handleMaxModeToggle = () => {
-    const hasEnoughCredits = (creditBalance || 0) >= 3000;
 
-    if (!hasEnoughCredits) {
-      // Show custom top up modal
-      openTopUpModal(
-        "api-credits",
-        undefined,
-        "Unlock MAX Mode",
-        "MAX Mode enables video generation with Veo 3. You need at least 3,000 credits."
-      );
-      return;
-    }
-
-    // User has enough credits, toggle MAX mode
-    const newMaxModeValue = !templateData.enableMaxMode;
-    setTemplateData({ ...templateData, enableMaxMode: newMaxModeValue });
-
-    // Reset aspect ratio to vertical when disabling MAX mode if no other constraints
-    if (!newMaxModeValue && !templateData.subjectReference && !templateData.forceVideoModel?.startsWith('veo-3.0') && !postImage?.length) {
-      setSelectedAspectRatio("9:16");
-    }
-  };
 
   return (
     <form
@@ -698,43 +652,18 @@ const CreatePostForm = ({
         )}
 
         {/* Compact Subtemplate Selector */}
-        {hasSubTemplates && (
+        {/* {hasSubTemplates && (
           <div className="space-y-2">
             <FieldLabel label="Template" classNames="!text-brand-highlight" />
             <div className="flex flex-wrap gap-1 md:gap-2">
-              {/* {renderDefaultSubTemplateOption()} */}
               {subTemplates.map((subTemplate: any) => renderCompactSubTemplateOption(subTemplate))}
             </div>
           </div>
-        )}
+        )} */}
 
-        {/* Labels Row: Prompt Label and MAX Mode Toggle */}
+        {/* Prompt Label */}
         <div className="flex items-center justify-between">
           <FieldLabel label={"Prompt"} classNames="!text-brand-highlight" />
-          {shape.enableMaxMode && (
-            <div className="flex items-center gap-2">
-              <FieldLabel
-                label="MAX Mode"
-                fieldDescription="Enable MAX Mode for Veo 3 generation with multiple scenes"
-                tooltipDirection={isMiniApp ? "top" : (tooltipDirection || "top")}
-                classNames="!text-brand-highlight !text-sm"
-                open={showMaxModeTooltip}
-              />
-              <button
-                type="button"
-                onClick={handleMaxModeToggle}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
-                  templateData.enableMaxMode ? 'bg-brand-highlight/90' : 'bg-dark-grey'
-                }`}
-              >
-                <span
-                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                    templateData.enableMaxMode ? 'translate-x-5' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Inputs Row: Prompt and Image */}
@@ -781,33 +710,7 @@ const CreatePostForm = ({
           )}
         </div>
 
-        {/* Audio Section */}
-        {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
-          <div className="w-full space-y-1">
-            <FieldLabel
-              label={"Audio"}
-              classNames="!text-brand-highlight"
-              fieldDescription={
-                template.options.audioRequirement === MediaRequirement.REQUIRED
-                  ? "Upload an MP3 file to use in your post and select a clip to use"
-                  : "Optionally add audio to your post and select a clip to use"
-              }
-              tooltipDirection={tooltipDirection}
-            />
-            {typeof postAudio === 'string' && postAudio.startsWith('http') ? (
-              <div className="text-secondary/70 bg-card-light rounded-lg p-2 text-sm">The original audio clip will be used.</div>
-            ) : (
-              <AudioUploader
-                file={postAudio}
-                setFile={setPostAudio}
-                startTime={audioStartTime || 0}
-                setStartTime={setAudioStartTime}
-                audioDuration={template.options?.audioDuration}
-                compact
-              />
-            )}
-          </div>
-        )}
+
 
         {/* NFT Section */}
         {template.options?.nftRequirement && template.options?.nftRequirement !== MediaRequirement.NONE && (
@@ -886,6 +789,8 @@ const CreatePostForm = ({
                         audioStartTime={audioStartTime || 0}
                         setAudioStartTime={setAudioStartTime}
                         tooltipDirection={tooltipDirection}
+                        creditBalance={creditBalance}
+                        openTopUpModal={openTopUpModal}
                       />
                 }
                 {/* Aspect Ratio Options */}
@@ -953,7 +858,7 @@ const CreatePostForm = ({
 
       <div className="pt-4 flex flex-col gap-2 justify-center items-center">
         {template.options.allowPreview && (
-          <Button size='md' disabled={isSubmitting || !isValid()} onClick={_generatePreview} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
+          <Button size='md' disabled={isSubmitting || !isValid()} onClick={() => _generatePreview()} variant={!preview && !isGeneratingPreview ? "accentBrand" : "dark-grey"} className="w-full hover:bg-bullish">
             {
               (creditBalance || 0) >= (estimatedCost)
                 ? `Generate`
@@ -1010,6 +915,8 @@ const DynamicForm = ({
   audioStartTime,
   setAudioStartTime,
   tooltipDirection,
+  creditBalance,
+  openTopUpModal,
 }: {
   template: Template;
   templateData: Record<string, any>;
@@ -1030,6 +937,8 @@ const DynamicForm = ({
   audioStartTime: number;
   setAudioStartTime: (t: number) => void;
   tooltipDirection?: "right" | "top" | "left" | "bottom";
+  creditBalance?: number;
+  openTopUpModal: (type?: any, requiredAmount?: any, customHeader?: string, customSubheader?: string) => void;
 }) => {
   const { models, stylePresets } = veniceImageOptions || {};
   const removeImageModelOptions = !!postImage?.length && template.options.imageRequirement !== MediaRequirement.REQUIRED;
@@ -1076,9 +985,7 @@ const DynamicForm = ({
     if (key === 'modelId' && (!modelOptions?.length || removeImageModelOptions)) return true;
     if (key === 'stylePreset' && (!modelOptions?.length || removeImageModelOptions)) return true;
     if (template.options?.imageRequirement !== MediaRequirement.NONE && key === 'image') return true;
-    if (template.options?.audioRequirement !== MediaRequirement.NONE && key === 'audio') return true;
     if (template.options?.nftRequirement !== MediaRequirement.NONE && key === 'nft') return true;
-    if (key === 'enableMaxMode') return true; // Skip enableMaxMode as it's rendered above the prompt
     if (key === 'forceVideoModel') return true; // Skip forceVideoModel as it's rendered with custom UI
     if (key === 'autoEnhance') return true; // Skip autoEnhance as it's rendered with custom UI
     if (key === 'duration') return true; // Skip duration as it's rendered with custom UI
@@ -1316,6 +1223,81 @@ const DynamicForm = ({
           </div>
         );
       })}
+
+      {/* MAX Mode Toggle */}
+      {shape.enableMaxMode && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="MAX Mode"
+            fieldDescription="Enable MAX Mode for Veo 3 generation with multiple scenes"
+            tooltipDirection={tooltipDirection}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const hasEnoughCredits = (creditBalance || 0) >= 3000;
+
+                if (!hasEnoughCredits) {
+                  // Show custom top up modal
+                  openTopUpModal(
+                    "api-credits",
+                    undefined,
+                    "Unlock MAX Mode",
+                    "MAX Mode enables video generation with Veo 3. You need at least 3,000 credits."
+                  );
+                  return;
+                }
+
+                // User has enough credits, toggle MAX mode
+                const newMaxModeValue = !templateData.enableMaxMode;
+                updateField('enableMaxMode', newMaxModeValue);
+
+                // Reset aspect ratio to vertical when disabling MAX mode if no other constraints
+                if (!newMaxModeValue && !templateData.subjectReference && !templateData.forceVideoModel?.startsWith('veo-3.0') && !postImage?.length) {
+                  setSelectedAspectRatio("9:16");
+                }
+              }}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-brand-highlight ${
+                templateData.enableMaxMode ? 'bg-brand-highlight/90' : 'bg-dark-grey'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  templateData.enableMaxMode ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Audio Section */}
+      {template.options?.audioRequirement && template.options?.audioRequirement !== MediaRequirement.NONE && (
+        <div className="space-y-2">
+          <FieldLabel
+            label="Audio"
+            fieldDescription={
+              template.options.audioRequirement === MediaRequirement.REQUIRED
+                ? "Upload an MP3 file to use in your post and select a clip to use"
+                : "Optionally add audio to your post and select a clip to use"
+            }
+            tooltipDirection={tooltipDirection}
+          />
+          {typeof postAudio === 'string' && postAudio.startsWith('http') ? (
+            <div className="text-secondary/70 bg-card-light rounded-lg p-2 text-sm">The original audio clip will be used.</div>
+          ) : (
+            <AudioUploader
+              file={postAudio}
+              setFile={setPostAudio}
+              startTime={audioStartTime || 0}
+              setStartTime={setAudioStartTime}
+              audioDuration={template.options?.audioDuration}
+              compact
+            />
+          )}
+        </div>
+      )}
 
       {/* Video Model Selection */}
       {shape.forceVideoModel && !postImage && !templateData.subjectReference && (

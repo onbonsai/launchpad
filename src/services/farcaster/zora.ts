@@ -73,7 +73,7 @@ export type ZoraCoin = {
 export const fetchTopVolumeCoins = async (after?: string): Promise<{ tokens: ZoraCoin[], cursor?: string }> => {
   setApiKey(process.env.ZORA_API_KEY as string);
   const response = await getCoinsTopVolume24h({
-    count: 20,
+    count: 10,
     after
   });
 

@@ -137,7 +137,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         } transition-colors w-64 flex-shrink-0 group relative`}
         onClick={() => handleTemplateSelect(template)}
       >
-        <div className="flex items-start pb-2">
+        <div className="flex items-start">
           <div className="w-10 h-10 bg-brand-highlight/20 rounded-full flex items-center justify-center text-xl">
             <TemplateIcon type={template.name} />
           </div>
