@@ -388,7 +388,6 @@ export function Publication({
                 src={assetUrl}
                 onClick={onPublicationPress}
                 alt="Publication Image"
-                loading="lazy"
               />
             </div>
           )}
@@ -625,11 +624,9 @@ const imageContainerStyle = css`
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 400px;
+  min-height: 300px;
   max-height: 70vh;
   margin-top: 14px;
-  background-color: black;
-  border-radius: 8px;
   overflow: hidden;
 `;
 
@@ -644,10 +641,9 @@ const mediaImageStyle = css`
 const videoContainerStyle = (fullVideoHeight: boolean = false) => css`
   position: relative;
   width: 100%;
-  min-height: 400px;
+  min-height: 200px;
   height: ${fullVideoHeight ? "auto" : "min(80vh, 600px)"};
   max-height: ${fullVideoHeight ? "none" : "80vh"};
-  background-color: black;
   display: flex;
   align-items: center;
   justify-content: center;
