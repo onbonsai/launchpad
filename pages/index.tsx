@@ -38,16 +38,20 @@ const IndexPage: NextPage = () => {
   const { isMiniApp } = useIsMiniApp();
   const hasCheckedAuth = useRef(false);
 
-  // Initialize activeTab from localStorage or default to EXPLORE
   const [activeTab, setActiveTab] = useState<PostTabType>(() => {
+    if (isMiniApp) return PostTabType.BASE;
     if (typeof window !== 'undefined') {
       const savedTab = localStorage.getItem('selectedPostTab');
       if (savedTab && Object.values(PostTabType).includes(savedTab as PostTabType)) {
         return savedTab as PostTabType;
       }
     }
-    return isMiniApp ? PostTabType.BASE : PostTabType.EXPLORE;
+    return PostTabType.EXPLORE;
   });
+
+  useEffect(() => {
+    if (isMiniApp && activeTab !== PostTabType.BASE) setActiveTab(PostTabType.BASE);
+  }, [isMiniApp, activeTab]);
 
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
 
@@ -94,7 +98,7 @@ const IndexPage: NextPage = () => {
     }
 
     // Determine if this is a video or image to set the correct template
-    const isVideo = coin.media_animationUrl || 
+    const isVideo = coin.media_animationUrl ||
                    (coin.media_contentMime?.startsWith('video/')) ||
                    (coin.media_contentUri?.endsWith('.m3u8')) ||
                    (coin.media_animationUrl?.endsWith('.m3u8'));
@@ -188,7 +192,7 @@ const IndexPage: NextPage = () => {
                 {!isMiniApp && (
                   <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
                 )}
-                {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile)
+                {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile || isLoadingBaseCoins)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
                     activeTab={activeTab}
@@ -229,7 +233,7 @@ const IndexPage: NextPage = () => {
 
           {/* Chat Window for Base Coin Remixing */}
           {selectedCoin && (
-            <ChatWindowButton 
+            <ChatWindowButton
               agentInfo={{
                 agentId: `coin-${selectedCoin.id}`,
                 info: {
@@ -265,11 +269,11 @@ const IndexPage: NextPage = () => {
                     ],
                     // Add media metadata as fallback
                     ...(() => {
-                      const coinIsVideo = selectedCoin.media_animationUrl || 
+                      const coinIsVideo = selectedCoin.media_animationUrl ||
                                          (selectedCoin.media_contentMime?.startsWith('video/')) ||
                                          (selectedCoin.media_contentUri?.endsWith('.m3u8')) ||
                                          (selectedCoin.media_animationUrl?.endsWith('.m3u8'));
-                      
+
                       if (coinIsVideo) {
                         const videoUrl = selectedCoin.media_animationUrl || selectedCoin.media_contentUri;
                         return videoUrl ? { video: { item: videoUrl } } : {};
