@@ -23,7 +23,7 @@ export const resumeSession = async (refreshTokens = false) => {
   }
   const sessionClient = resumed.value;
 
-  // if (refreshTokens) await currentSession(sessionClient);
+  if (refreshTokens) await currentSession(sessionClient);
 
   return sessionClient;
 };
