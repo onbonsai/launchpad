@@ -14,6 +14,7 @@ import { PostsTabs, PostTabType } from "@src/components/Publication/PostsTabs";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useAccount, useWalletClient } from "wagmi";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useTopBaseCoins } from "@src/services/farcaster/zora";
 
 interface TimelinePosts {
   posts: Post[];
@@ -32,7 +33,7 @@ const IndexPage: NextPage = () => {
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const { isMiniApp } = useIsMiniApp();
   const hasCheckedAuth = useRef(false);
-  
+
   // Initialize activeTab from localStorage or default to EXPLORE
   const [activeTab, setActiveTab] = useState<PostTabType>(() => {
     if (typeof window !== 'undefined') {
@@ -41,9 +42,9 @@ const IndexPage: NextPage = () => {
         return savedTab as PostTabType;
       }
     }
-    return PostTabType.EXPLORE;
+    return isMiniApp ? PostTabType.BASE : PostTabType.EXPLORE;
   });
-  
+
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
 
   // Save activeTab to localStorage whenever it changes
@@ -75,6 +76,9 @@ const IndexPage: NextPage = () => {
     accountAddress: authenticatedProfile?.address,
     enabled: activeTab === PostTabType.FOR_YOU
   });
+
+  const { data: baseCoins, isLoading: isLoadingBaseCoins } = useTopBaseCoins(activeTab === PostTabType.BASE);
+  console.log(baseCoins)
 
   const {
     data,
@@ -117,7 +121,9 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
-                <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
+                {!isMiniApp && (
+                  <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
+                )}
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage

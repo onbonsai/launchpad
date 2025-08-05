@@ -5,6 +5,7 @@ export enum PostTabType {
   FOR_YOU = 'for_you',
   EXPLORE = 'explore',
   COLLECTED = 'collected',
+  BASE = 'base',
 }
 
 interface PostsTabsProps {
@@ -50,6 +51,17 @@ export const PostsTabs: FC<PostsTabsProps> = ({ activeTab, onTabChange, isAuthen
         )}
       >
         Explore
+      </button>
+      <button
+        onClick={() => onTabChange(PostTabType.BASE)}
+        className={cx(
+          'text-lg font-medium pb-2 transition-colors duration-200',
+          activeTab === PostTabType.BASE
+            ? 'text-[#5be39d] border-b-2 border-[#5be39d]'
+            : 'text-white/60 hover:text-white'
+        )}
+      >
+        Base
       </button>
     </div>
   );

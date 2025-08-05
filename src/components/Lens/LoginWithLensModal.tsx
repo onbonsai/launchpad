@@ -420,6 +420,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       }
     }
 
+    const toastId = toast.loading("Approving a budget");
     setIsApprovingBudget(true);
     try {
       const client = publicClient("base");
@@ -433,8 +434,8 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       console.log(`hash: ${hash}`)
       await client.waitForTransactionReceipt({ hash });
 
-      // create a dummy replika record so we can know which address to handle payments
-      await fetch('/api/bonsai/create-replika', {
+      // create or update a dummy replika record so we can know which address to handle payments
+      const response = await fetch('/api/bonsai/create-replika', {
         method: 'POST',
         headers: {
           // 'Authorization': `Bearer ${idToken}`,
@@ -442,6 +443,9 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
         },
         body: JSON.stringify({ source: "farcaster", fid: context?.user.fid, address })
       });
+      const { generating } = await response.json();
+
+      toast.success(`Budget approved!${generating ? ' Generation in progress, sloppr will reply shortly' : ''}`, { id: toastId, duration: 5000 });
 
       handleCloseModal();
 
@@ -457,7 +461,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       closeModal(); // Close the modal normally
     } catch (error) {
       console.error("Error approving budget:", error);
-      toast.error("Failed to approve allowance", { duration: 5000 });
+      toast.error("Failed to approve allowance", { duration: 5000, id: toastId });
     } finally {
       setIsApprovingBudget(false);
     }
