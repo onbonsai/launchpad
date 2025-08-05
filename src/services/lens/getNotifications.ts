@@ -11,20 +11,31 @@ type NotificationsResponse = {
 };
 
 export const useGetNotifications = (authenticatedProfileId?: string | null) => {
-  return useInfiniteQuery<NotificationsResponse, Error, NotificationsResponse, (string | null | undefined)[], string | null>({
+  return useInfiniteQuery<
+    NotificationsResponse,
+    Error,
+    { pages: NotificationsResponse[] },
+    (string | null | undefined)[],
+    string | null
+  >({
     queryKey: ["notifications", authenticatedProfileId],
     queryFn: async ({ pageParam }) => {
       let sessionClient;
       try {
         sessionClient = await resumeSession();
-      } catch { }
+      } catch {}
 
       if (!sessionClient) throw new Error("no session client");
 
       const result = await fetchNotifications(sessionClient, {
         filter: {
           feeds: [{ feed: evmAddress(LENS_BONSAI_DEFAULT_FEED) }],
-          notificationTypes: [NotificationType.Commented, NotificationType.Reacted, NotificationType.ExecutedPostAction]
+          notificationTypes: [
+            NotificationType.Commented,
+            NotificationType.Reacted,
+            NotificationType.ExecutedPostAction,
+            NotificationType.TokenDistributed,
+          ],
         },
         cursor: pageParam,
       });

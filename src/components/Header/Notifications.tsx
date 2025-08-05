@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { formatUnits } from "viem";
 import useIsMounted from "@src/hooks/useIsMounted";
 import { NotificationsOutlined } from "@mui/icons-material";
-import { HeartIcon, ChatIcon, BookmarkIcon } from "@heroicons/react/outline";
+import { HeartIcon, ChatIcon, BookmarkIcon, CashIcon } from "@heroicons/react/outline";
 import { useWalletClient } from "wagmi";
 import { useInView } from "react-intersection-observer";
 import { Account, Post } from "@lens-protocol/client";
@@ -39,17 +40,18 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
 
     // First pass: mark notifications as new until we find the last seen one
     notifs.forEach(notification => {
-      if (notification.id === lastSeenId) {
+      if ('id' in notification && notification.id === lastSeenId) {
         foundLastSeen = true;
         isNewMap.set(notification.id, false);
-      } else if (!foundLastSeen) {
+      } else if ('id' in notification && !foundLastSeen) {
         isNewMap.set(notification.id, true);
-      } else {
+      } else if ('id' in notification) {
         isNewMap.set(notification.id, false);
       }
     });
 
     const grouped = notifs.reduce((acc, notification) => {
+      if (!('id' in notification)) return acc;
       const isNew = isNewMap.get(notification.id) || false;
 
       if (notification.__typename === "ReactionNotification") {
@@ -98,7 +100,10 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
     if (!isMounted || !notifs.length) return;
 
     const lastSeenId = localStorage.getItem(LAST_SEEN_NOTIFICATION_KEY);
-    const latestNotificationId = notifs[0]?.id;
+    const latestNotification = notifs[0];
+    if (!latestNotification || !('id' in latestNotification)) return;
+
+    const latestNotificationId = latestNotification.id;
 
     // If the latest notification is different from last seen, we have new notifications
     if (latestNotificationId && latestNotificationId !== lastSeenId) {
@@ -266,7 +271,7 @@ export const Notifications = ({ openMobileMenu, isMobile, onShowChange }: { open
   );
 };
 
-type NotificationType = "ReactionNotification" | "CommentNotification" | "collected"
+type NotificationType = "ReactionNotification" | "CommentNotification" | "collected" | "TokenDistributed"
 
 interface NotificationItemProps {
   type: NotificationType
@@ -410,6 +415,9 @@ const NotificationItem = ({
     postId = entity.operations.id.split("-")[0];
     timestamp = entity.timestamp;
     textContent = entity.metadata.content;
+  } else if (type === "TokenDistributed") {
+    entity = notification.transactionHash;
+    profile = notification.profile;
   }
 
   // TODO: handle collect notifs
@@ -422,6 +430,8 @@ const NotificationItem = ({
         return <ChatIcon className="w-5 h-5 text-white" />
       case "collected":
         return <BookmarkIcon className="w-5 h-5 text-white" />
+      case "TokenDistributed":
+        return <CashIcon className="w-5 h-5 text-white" />
       default:
         return <HeartIcon className="w-5 h-5 text-white" />
     }
@@ -433,12 +443,16 @@ const NotificationItem = ({
         return "commented on your post"
       case "collected":
         return "collected your post"
+      case "TokenDistributed":
+        const { amount } = notification;
+        const formattedAmount = formatUnits(BigInt(amount.value), amount.asset.decimals);
+        return `Received ${formattedAmount} ${amount.asset.symbol}`;
       default:
         return "interacted with your post"
     }
   }
 
-  if (!["ReactionNotification", "CommentNotification", "collected"].includes(type)) {
+  if (!["ReactionNotification", "CommentNotification", "collected", "TokenDistributed"].includes(type)) {
     return null;
   }
 
@@ -451,7 +465,7 @@ const NotificationItem = ({
         {/* Second Column - Content */}
         <div className="flex-1 flex flex-col gap-1.5">
           {/* First Row - Profile Picture */}
-          {profile && (
+          {profile && type !== "TokenDistributed" && (
             // Outer div for sizing and border
             <div className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative">
               <ProfilePopper profile={profile} followed={followed} setFollowed={setFollowed}>
@@ -482,7 +496,7 @@ const NotificationItem = ({
 
           {/* Second Row - Action Text */}
           <p className="text-white text-sm">
-            <span className="font-bold">{username}</span>{" "}
+            {type !== "TokenDistributed" && <span className="font-bold">{username}</span>}{" "}
             <span className="font-normal">{getActionText()}</span>
           </p>
 
