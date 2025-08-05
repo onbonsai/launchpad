@@ -22,7 +22,7 @@ import { BigDecimal, blockchainData, SessionClient } from "@lens-protocol/client
 import { IS_PRODUCTION, LENS_CHAIN_ID, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 import { EvmAddress, toEvmAddress } from "@lens-protocol/metadata";
 import { approveToken, NETWORK_CHAIN_IDS, USDC_CONTRACT_ADDRESS, WGHO_CONTRACT_ADDRESS, registerClubTransaction, DECIMALS, WHITELISTED_UNI_HOOKS, PricingTier, setLensData, getRegisteredClubInfoByAddress, WGHO_ABI, publicClient } from "@src/services/madfi/moneyClubs";
-import { cacheImageToStorj, getImageTypeFromUrl, parseBase64Image } from "@src/utils/utils";
+import { cacheImageToStorj, getImageTypeFromUrl } from "@src/utils/utils";
 import axios from "axios";
 import { encodeAbi } from "@src/utils/viem";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
@@ -42,6 +42,9 @@ import { ImageUploaderRef } from '@src/components/ImageUploader/ImageUploader';
 import { useTikTokIntegration } from '@src/hooks/useTikTokIntegration';
 import { storageClient } from "@src/services/lens/client";
 import { usePWA } from '@src/hooks/usePWA';
+import ZoraCoinsList from "@src/components/ZoraCoins";
+import { parseBase64Image } from "@src/utils/utils";
+import type { ZoraCoin } from "@src/services/farcaster/zora";
 
 const StudioCreatePage: NextPage = () => {
   const router = useRouter();
@@ -65,6 +68,7 @@ const StudioCreatePage: NextPage = () => {
   const [storyboardAudio, setStoryboardAudio] = useState<File | string | null>(null);
   const [storyboardAudioStartTime, setStoryboardAudioStartTime] = useState<number>(0);
   const [savedTokenAddress, setSavedTokenAddress] = useState<`0x${string}`>();
+  const [selectedCoin, setSelectedCoin] = useState<ZoraCoin | undefined>();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: registeredTemplates, isLoading: isLoadingRegisteredTemplates } = useRegisteredTemplates();
   const [template, setTemplate] = useState<Template>();
@@ -933,6 +937,128 @@ const StudioCreatePage: NextPage = () => {
     setSelectedSubTemplate(subTemplate);
   };
 
+  // Function to fetch image from URL and convert to File
+  const fetchImageAsFile = async (imageUrl: string): Promise<File | null> => {
+    try {
+      // Use our API endpoint to proxy the image fetch (avoids CORS issues)
+      const response = await fetch('/api/fetch-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to fetch image: ${errorData.error || response.statusText}`);
+      }
+
+      const { imageUrl: dataUrl, contentType, originalContentType } = await response.json();
+
+      // Parse the base64 data URL
+      const imageFile = parseBase64Image(dataUrl);
+      if (!imageFile) {
+        throw new Error('Failed to parse image data');
+      }
+
+      return imageFile;
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      return null;
+    }
+  };
+
+  // Function to extract frame from video using the API endpoint
+  const extractFrameFromVideo = async (videoUrl: string): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/media/extract-frame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoUrl,
+          framePosition: 'start', // Extract from start of video
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to extract frame from video');
+      }
+
+      const frameData = await response.json();
+      return frameData.imageUrl;
+    } catch (error) {
+      console.error('Error extracting frame from video:', error);
+      return null;
+    }
+  };
+
+  const handleCoinSelect = async (coin: ZoraCoin) => {
+    // Set the selected coin for visual state
+    setSelectedCoin(coin);
+
+    // Set token data for the selected coin
+    setFinalTokenData({
+      tokenName: coin.name,
+      tokenSymbol: coin.symbol,
+      tokenImage: coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri
+        ? [{ preview: coin.mediaContent.previewImage?.small || coin.mediaContent.originalUri }]
+        : [],
+      selectedNetwork: 'base',
+      initialSupply: 0,
+    });
+
+    // Handle media content for post image
+    const animationUrl = (coin as any).animation_url || (coin as any).mediaContent?.animation_url;
+    const imageUrl = coin.mediaContent?.previewImage?.small || coin.mediaContent?.originalUri;
+
+    try {
+      let finalImageUrl: string | null = null;
+
+      // Priority: 1. Video (animation_url) -> extract frame, 2. Image URL
+      if (animationUrl) {
+        // Extract frame from video
+        finalImageUrl = await extractFrameFromVideo(animationUrl);
+        if (!finalImageUrl) {
+          toast.error('Failed to extract frame from video');
+        }
+      } else if (imageUrl) {
+        finalImageUrl = imageUrl;
+      }
+
+      // Download and set the image if we have a URL
+      if (finalImageUrl) {
+        if (finalImageUrl.startsWith('http')) {
+          // Fetch the image from URL
+          const imageFile = await fetchImageAsFile(finalImageUrl);
+          if (imageFile) {
+            setPostImage([imageFile]);
+          } else {
+            toast.error('Failed to download coin image');
+          }
+        } else {
+          // Handle as base64 data
+          const imageFile = parseBase64Image(finalImageUrl);
+          if (imageFile) {
+            setPostImage([imageFile]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error processing coin media:', error);
+      toast.error('Failed to process coin media');
+    }
+
+    // Store the coin address separately for when token creation is needed
+    // The system will use this address when creating/importing the token
+    setSavedTokenAddress(coin.address as `0x${string}`);
+    setAddToken(false);
+
+    toast.success(`Coin set: ${coin.symbol}`);
+  };
+
   const onCast = async (collectAmount: number) => {
     let toastId: string | undefined;
     if (!template) {
@@ -1537,13 +1663,18 @@ const StudioCreatePage: NextPage = () => {
 
   return (
     <div className="bg-background text-secondary min-h-[90vh] w-full overflow-visible">
-      <main className="mx-auto max-w-full md:max-w-[100rem] px-4 sm:px-6 pt-6 overflow-visible">
+      <main className="mx-auto max-w-full md:max-w-[100rem] md:pt-6 pt-4 overflow-visible">
         <section aria-labelledby="studio-heading" className="pt-0 pb-24 max-w-full overflow-visible">
           <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-x-8 max-w-full overflow-visible">
               <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start">
                 <Sidebar />
               </div>
               <div className="flex-grow overflow-visible">
+                {/* Zora coin selector */}
+                <div className={`w-full mb-4 px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>
+                  <ZoraCoinsList onCoinSelect={handleCoinSelect} selectedCoin={selectedCoin} />
+                </div>
+
                 {/* Full-width Template Selector - moved above padding */}
                 {template && (
                   <div className={`w-full px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>

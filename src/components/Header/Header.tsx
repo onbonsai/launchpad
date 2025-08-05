@@ -61,7 +61,17 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const hasHandledBudgetModal = useRef(false);
   const hasHandledInitialModal = useRef(false);
 
-  const { setOpen } = useModal();
+  const { setOpen } = useModal({
+    onDisconnect: () => {
+      if (!!authenticatedProfile) {
+        lensLogout().then(fullRefetch);
+      }
+
+      // Reset the modal flags when user disconnects
+      hasHandledInitialModal.current = false;
+      hasHandledBudgetModal.current = false;
+    }
+  });
 
   // Handle connection events in useEffect to avoid state updates during render
   useEffect(() => {
@@ -72,18 +82,6 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
       return () => clearTimeout(timer);
     }
   }, [isConnected, isAuthenticated, setOpenSignInModal, isMiniApp]);
-
-  // Handle disconnection events in useEffect
-  useEffect(() => {
-    if (!isConnected) {
-      // Reset the modal flags when user disconnects
-      hasHandledInitialModal.current = false;
-      hasHandledBudgetModal.current = false;
-      if (!isMiniApp) {
-        lensLogout().then(fullRefetch);
-      }
-    }
-  }, [isConnected, isMiniApp, fullRefetch]);
 
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
@@ -259,7 +257,7 @@ export const Header = () => {
               )}
 
               {/* Create button */}
-              {isConnected && (
+              {isConnected && (isMiniApp || isAuthenticated) && (
                 <div className="hidden sm:block mr-2">
                   <Link href="/studio/create" onClick={handleAuthRequiredClick}>
                     <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">
@@ -325,22 +323,26 @@ export const Header = () => {
           <div className="md:hidden bg-black border-t border-dark-grey px-4 py-3">
             <div className="flex flex-col space-y-2 w-full">
               <div className="pb-2 w-full">
-                <SearchClubs onItemSelect={() => {
-                  setOpenMobileMenu(false);
-                }} />
+                {!isMiniApp && (
+                  <SearchClubs onItemSelect={() => {
+                    setOpenMobileMenu(false);
+                  }} />
+                )}
               </div>
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
               {/* <ClaimBonsai openMobileMenu /> */}
-              <Link
-                href={routesApp.stake}
-                className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"
-                onClick={() => {
-                  setOpenMobileMenu(false);
-                }}
-              >
-                Stake
-              </Link>
+              {!isMiniApp && (
+                <Link
+                  href={routesApp.stake}
+                  className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full text-white"
+                  onClick={() => {
+                    setOpenMobileMenu(false);
+                  }}
+                >
+                  Stake
+                </Link>
+              )}
               <div
                 className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
                 onClick={() => {

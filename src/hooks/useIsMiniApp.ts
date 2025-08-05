@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
-import * as Sentry from "@sentry/nextjs";
-import { IS_PRODUCTION } from "@src/services/madfi/utils";
 
 interface FarcasterContext {
   user: {
@@ -59,7 +57,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
   const [result, setResult] = useState<UseIsMiniAppResult>(() => {
     // Initialize with cached result if available
     if (detectionCache?.hasDetected) {
-      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Initializing with cached result');
       return detectionCache.result;
     }
 
@@ -75,7 +72,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
   useEffect(() => {
     // If already detected globally, don't run detection
     if (detectionCache?.hasDetected) {
-      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Using cached result, skipping detection');
       setResult(detectionCache.result);
       return;
     }
@@ -83,8 +79,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
     let isMounted = true;
 
     const detectOnce = async () => {
-      if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] Running ONE-TIME detection');
-
       try {
         // Simple detection logic
         const isFarcasterMiniApp = await sdk.isInMiniApp();
@@ -99,8 +93,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           context: context as FarcasterContext
         };
 
-        if (!IS_PRODUCTION) console.log('🔍 [useIsMiniApp] ONE-TIME detection complete:', finalResult);
-
         // Cache globally to prevent any re-detection
         detectionCache = {
           hasDetected: true,
@@ -112,21 +104,7 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
           setResult(finalResult);
         }
 
-        Sentry.addBreadcrumb({
-          message: 'useIsMiniApp ONE-TIME detection completed',
-          category: 'miniapp',
-          level: 'info',
-          data: {
-            isFarcasterMiniApp,
-            isCoinbaseMiniApp,
-            cached: true,
-            timestamp: Date.now()
-          }
-        });
-
       } catch (error) {
-        console.error('🚨 [useIsMiniApp] Detection error:', error);
-
         const errorResult: UseIsMiniAppResult = {
           isMiniApp: false,
           isFarcasterMiniApp: false,
@@ -144,10 +122,6 @@ export const useIsMiniApp = (): UseIsMiniAppResult => {
         if (isMounted) {
           setResult(errorResult);
         }
-
-        Sentry.captureException(error, {
-          tags: { component: 'useIsMiniApp' }
-        });
       }
     };
 

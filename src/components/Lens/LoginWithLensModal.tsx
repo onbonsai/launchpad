@@ -36,6 +36,9 @@ const ALLOWANCE_AMOUNTS = [5, 10, 25, 50];
 
 const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () => void, modal?: string, withBudget?: boolean }) => {
   const { chain, address, isConnected } = useAccount();
+  console.log(`chain: ${chain}`)
+  console.log(`address: ${address}`)
+  console.log(`isConnected: ${isConnected}`)
   const { disconnect } = useDisconnect()
   const { profiles, isLoading } = useGetProfiles(address);
   const { data: walletClient } = useWalletClient();
@@ -127,6 +130,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
   useModal({
     onDisconnect: () => {
       if (authenticatedProfileId) {
+        console.log(`MODAL ON DISCONNECT`)
         lensLogout().then(fullRefetch);
       }
     }
@@ -134,7 +138,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
 
   useEffect(() => {
     if (selectedProfile?.address) {
-      if (authenticatedProfileId) lensLogout().then(fullRefetch);
+      if (authenticatedProfileId) { console.log(`USEFFECT ON DISCONNECT`); lensLogout().then(fullRefetch); }
       else signInWithLens(selectedProfile);
     }
   }, [selectedProfile?.address]);
@@ -441,7 +445,7 @@ const LoginWithLensModal = ({ closeModal, modal, withBudget }: { closeModal: () 
       });
       const { generating } = await response.json();
 
-      toast.success(`Budget approved!${generating ? 'Generation in progress, sloppr will reply shortly' : ''}`, { id: toastId, duration: 5000 });
+      toast.success(`Budget approved!${generating ? ' Generation in progress, sloppr will reply shortly' : ''}`, { id: toastId, duration: 5000 });
 
       handleCloseModal();
 

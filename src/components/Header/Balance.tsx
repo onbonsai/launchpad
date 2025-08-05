@@ -24,6 +24,8 @@ import { useTopUpModal } from "@src/context/TopUpContext";
 import Link from "next/link";
 import Image from "next/image";
 import useIsMobile from "@src/hooks/useIsMobile";
+import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { base } from "viem/chains";
 
 export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const isMounted = useIsMounted();
@@ -36,6 +38,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const [isUnwrapping, setIsUnwrapping] = useState(false);
   const { switchChain } = useSwitchChain();
   const { openTopUpModal } = useTopUpModal();
+  const {isMiniApp} = useIsMiniApp();
 
   // USDC Balance
   const { data: usdcBalance } = useReadContract({
@@ -84,14 +87,14 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
 
   // BONSAI Balance
   const { data: bonsaiBalance } = useReadContract({
-    address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
+    address: !isMiniApp ? PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}` : PROTOCOL_DEPLOYMENT.base.Bonsai as `0x${string}`,
     abi: erc20Abi,
-    chainId: LENS_CHAIN_ID,
+    chainId: !isMiniApp ? LENS_CHAIN_ID : base.id,
     functionName: "balanceOf",
     args: [address!],
     query: {
       refetchInterval: 10000,
-      enabled: isAuthenticated && authenticatedProfile?.address
+      enabled: !isMiniApp ? (isAuthenticated && authenticatedProfile?.address) : isConnected
     },
   });
 
@@ -202,7 +205,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
 
   // Prevent hydration mismatch by ensuring component doesn't render until mounted
   if (!isMounted) return null;
-  
+
   if (!isConnected) return null;
 
   return (
@@ -288,7 +291,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </div>
               )}
 
-              <div className="my-3 md:my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />
+              {isAuthenticated && <div className="my-3 md:my-4 h-[1px] bg-[rgba(255,255,255,0.05)]" />}
 
               {/* Connected Wallet */}
               <div className="space-y-2">
@@ -337,60 +340,65 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                     </div>
                     <p className="text-base md:text-lg font-bold">{bonsaiFormatted}</p>
                   </div>
-                  <div className="p-2 md:p-3 rounded-md relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
-                        <span className="text-sm text-zinc-400">GHO</span>
-                      </div>
-                      <div className="relative group">
-                        <p className={`text-base md:text-lg font-bold opacity-100 group-hover:opacity-0 transition-opacity`}>{ghoFormatted}</p>
-                        <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Tooltip message="Bridge GHO to Lens Protocol" direction="bottom" classNames="z-100">
-                            <a
-                              target="_blank"
-                              href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
-                              className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80"
-                            >
-                              Bridge
-                            </a>
-                          </Tooltip>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Thread line container */}
-                    <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
-                      {/* Curved corner */}
-                      <div className="absolute left-5 top-0 w-4 h-5 border-b-2 border-l-2 border-zinc-700 rounded-bl-[10px]" />
-                    </div>
-                    <div className="mt-2 pl-7 flex flex-col relative">
-                      <div className={`flex items-center justify-between ${wghoBalance && wghoBalance > 0n ? 'group' : ''}`}>
+
+                  {/* GHO only on non-miniapp */}
+                  {!isMiniApp && (
+                    <div className="p-2 md:p-3 rounded-md relative">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Image src="/gho.webp" alt="gho" className="rounded-full opacity-70" width={16} height={16}/>
-                          <span className="text-zinc-500 text-sm">Wrapped GHO</span>
+                          <Image src="/gho.webp" alt="gho" className="rounded-full" width={20} height={20}/>
+                          <span className="text-sm text-zinc-400">GHO</span>
                         </div>
-                        <div className="relative">
-                          {wghoBalance && wghoBalance > 0n ? (
-                            <>
-                              <p className="font-medium text-zinc-400 text-sm md:text-base group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
-                              <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Tooltip message="Convert WGHO back to GHO" direction="bottom" classNames="z-100">
-                                  <p
-                                    onClick={handleUnwrapGHO}
-                                    className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80 cursor-pointer"
-                                  >
-                                    {isUnwrapping ? "Unwrapping..." : "Unwrap"}
-                                  </p>
-                                </Tooltip>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="font-medium text-zinc-400 text-sm md:text-base">{wghoFormatted}</p>
-                          )}
+                        <div className="relative group">
+                          <p className={`text-base md:text-lg font-bold opacity-100 group-hover:opacity-0 transition-opacity`}>{ghoFormatted}</p>
+                          <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Tooltip message="Bridge GHO to Lens Protocol" direction="bottom" classNames="z-100">
+                              <a
+                                target="_blank"
+                                href="https://app.across.to/bridge?fromChain=8453&toChain=232&outputToken=0x0000000000000000000000000000000000000000"
+                                className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80"
+                              >
+                                Bridge
+                              </a>
+                            </Tooltip>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Thread line container */}
+                      <div className="absolute left-0 top-[40px] w-12 h-[calc(100%-40px)] pointer-events-none">
+                        {/* Curved corner */}
+                        <div className="absolute left-5 top-0 w-4 h-5 border-b-2 border-l-2 border-zinc-700 rounded-bl-[10px]" />
+                      </div>
+                      <div className="mt-2 pl-7 flex flex-col relative">
+                        <div className={`flex items-center justify-between ${wghoBalance && wghoBalance > 0n ? 'group' : ''}`}>
+                          <div className="flex items-center gap-2">
+                            <Image src="/gho.webp" alt="gho" className="rounded-full opacity-70" width={16} height={16}/>
+                            <span className="text-zinc-500 text-sm">Wrapped GHO</span>
+                          </div>
+                          <div className="relative">
+                            {wghoBalance && wghoBalance > 0n ? (
+                              <>
+                                <p className="font-medium text-zinc-400 text-sm md:text-base group-hover:opacity-0 transition-opacity">{wghoFormatted}</p>
+                                <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Tooltip message="Convert WGHO back to GHO" direction="bottom" classNames="z-100">
+                                    <p
+                                      onClick={handleUnwrapGHO}
+                                      className="text-sm md:text-md font-medium text-brand-highlight hover:opacity-80 cursor-pointer"
+                                    >
+                                      {isUnwrapping ? "Unwrapping..." : "Unwrap"}
+                                    </p>
+                                  </Tooltip>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="font-medium text-zinc-400 text-sm md:text-base">{wghoFormatted}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
                   <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Image src="/usdc.png" alt="usdc" className="rounded-full" width={20} height={20}/>

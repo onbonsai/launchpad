@@ -6,7 +6,6 @@ import { useAccount } from "wagmi";
 import { formatUnits, getAddress, isAddress, zeroAddress } from "viem";
 import dynamic from "next/dynamic";
 import toast from 'react-hot-toast';
-import { useSIWE } from 'connectkit';
 import { sdk } from '@farcaster/miniapp-sdk';
 
 import { Modal } from "@src/components/Modal";
@@ -115,7 +114,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
   const postId = club.postId || club.pubId;
   const isMounted = useIsMounted();
   const { address, isConnected } = useAccount();
-  const { isReady: ready } = useSIWE();
   const { data: tradingInfo } = useGetTradingInfo(club.clubId, club.chain);
   const typedTokenAddressForBalance: `0x${string}` | undefined = club.tokenAddress ? club.tokenAddress as `0x${string}` : zeroAddress;
   const { data: vestingData } = useGetAvailableBalance(typedTokenAddressForBalance, address as `0x${string}`, club.complete, club.chain)
@@ -207,17 +205,6 @@ const TokenPage: NextPage<TokenPageProps> = ({
     }
     setIsReleasing(false)
   };
-
-  if (!ready)
-    return (
-      <div className="bg-background text-secondary min-h-[50vh]">
-        <main className="mx-auto max-w-full md:max-w-[92rem] px-4 sm:px-6 lg:px-8 pt-28 pb-4">
-          <div className="flex justify-center">
-            <Spinner customClasses="h-6 w-6" color="#5be39d" />
-          </div>
-        </main>
-      </div>
-    );
 
   const InfoCard: React.FC<{ title?: string; subtitle: ReactNode, roundedLeft?: boolean, roundedRight?: boolean, className?: string }> = ({ title, subtitle, roundedLeft, roundedRight, className }) => (
     <div className={clsx("min-w-[88px] flex flex-col items-center justify-center border border-card-light py-2 px-4 bg-black/40 backdrop-blur-sm", roundedLeft && 'rounded-l-xl', roundedRight && 'rounded-r-xl', className || "")}>

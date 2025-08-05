@@ -599,8 +599,8 @@ const PublicationContainer = ({
           onProfileClick={!shouldGoToPublicationPage ? handleProfileClick : undefined}
           onShareButtonClick={(e) => onShareButtonClick(e)}
           onCommentButtonClick={handleCommentButton}
-          onLikeButtonClick={!hasUpvoted ? onLikeButtonClick : undefined}
-          onMirrorButtonClick={!hasMirrored ? onMirrorButtonClick : undefined}
+          onLikeButtonClick={!hasUpvoted && !isMiniApp ? onLikeButtonClick : undefined}
+          onMirrorButtonClick={!hasMirrored && !isMiniApp ? onMirrorButtonClick : undefined}
           operations={stableOperations}
           hideQuoteButton={hideQuoteButton}
           profilePictureStyleOverride={publicationProfilePictureStyle}
@@ -611,7 +611,7 @@ const PublicationContainer = ({
           backgroundColorOverride={'rgba(255,255,255, 0.08)'}
           markdownStyleBottomMargin={'0'}
           nestedWidget={nestedWidget}
-          hideCollectButton={!!publication.root}
+          hideCollectButton={!!publication.root || isMiniApp}
           presenceCount={connectedAccounts?.length}
           hideCommentButton
           onCollectButtonClick={onCollectButtonClick}

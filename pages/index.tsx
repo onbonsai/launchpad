@@ -14,6 +14,11 @@ import { PostsTabs, PostTabType } from "@src/components/Publication/PostsTabs";
 import useLensSignIn from "@src/hooks/useLensSignIn";
 import { useAccount, useWalletClient } from "wagmi";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useTopBaseCoins } from "@src/services/farcaster/zora";
+import ChatWindowButton from "@src/pagesComponents/ChatWindow/components/ChatWindowButton";
+import Chat from "@src/pagesComponents/ChatWindow/components/Chat";
+import { Coin } from "@src/services/farcaster/tbd";
+import { SmartMedia } from "@src/services/madfi/studio";
 
 interface TimelinePosts {
   posts: Post[];
@@ -32,7 +37,7 @@ const IndexPage: NextPage = () => {
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const { isMiniApp } = useIsMiniApp();
   const hasCheckedAuth = useRef(false);
-  
+
   // Initialize activeTab from localStorage or default to EXPLORE
   const [activeTab, setActiveTab] = useState<PostTabType>(() => {
     if (typeof window !== 'undefined') {
@@ -41,10 +46,14 @@ const IndexPage: NextPage = () => {
         return savedTab as PostTabType;
       }
     }
-    return PostTabType.EXPLORE;
+    return isMiniApp ? PostTabType.BASE : PostTabType.EXPLORE;
   });
-  
+
   const { data: authenticatedProfile, isLoading: isLoadingAuthenticatedProfile } = useAuthenticatedLensProfile();
+
+  // Chat window state for Base coin remixing
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -75,6 +84,65 @@ const IndexPage: NextPage = () => {
     accountAddress: authenticatedProfile?.address,
     enabled: activeTab === PostTabType.FOR_YOU
   });
+
+  const { data: baseCoins, isLoading: isLoadingBaseCoins } = useTopBaseCoins(activeTab === PostTabType.BASE);
+
+  // Function to convert Coin to SmartMedia format
+  const coinToSmartMedia = (coin: Coin): SmartMedia | undefined => {
+    if (!coin.media_image && !coin.media_animationUrl && !coin.media_contentUri) {
+      return undefined;
+    }
+
+    // Determine if this is a video or image to set the correct template
+    const isVideo = coin.media_animationUrl || 
+                   (coin.media_contentMime?.startsWith('video/')) ||
+                   (coin.media_contentUri?.endsWith('.m3u8')) ||
+                   (coin.media_animationUrl?.endsWith('.m3u8'));
+    const template = isVideo ? "video" : "image";
+
+    return {
+      agentId: `coin-${coin.id}`, // Create a unique ID for the coin
+      creator: coin.coin_creator_address as `0x${string}`,
+      template: template,
+      category: "social" as any,
+      createdAt: parseInt(coin.coin_created_timestamp) || Date.now(),
+      updatedAt: Date.now(),
+      templateData: {
+        coinSymbol: coin.symbol,
+        coinName: coin.name,
+        castText: coin.cast_text,
+        // Structure media data the way ChatInput expects it
+        image: isVideo ? undefined : (coin.media_image || coin.media_contentUri),
+        video: isVideo ? (coin.media_animationUrl || coin.media_contentUri) : undefined,
+        // Keep original fields for reference
+        mediaImage: coin.media_image,
+        mediaAnimationUrl: coin.media_animationUrl,
+        mediaContentUri: coin.media_contentUri,
+        mediaContentMime: coin.media_contentMime,
+      },
+      postId: coin.cast_cast_hash || `coin-${coin.id}`,
+      maxStaleTime: 3600, // 1 hour
+      uri: (coin.media_image || coin.media_contentUri || coin.media_animationUrl || "") as any,
+      token: {
+        chain: "base" as const,
+        address: coin.coin as `0x${string}`,
+        external: true,
+        metadata: {
+          symbol: coin.symbol,
+          name: coin.name,
+          image: coin.media_image,
+        }
+      },
+      protocolFeeRecipient: coin.coin_creator_address as `0x${string}`,
+      description: coin.cast_text || `Remix ${coin.symbol} coin`,
+    };
+  };
+
+  // Function to handle coin selection for remixing
+  const handleCoinSelect = (coin: Coin) => {
+    setSelectedCoin(coin);
+    setIsChatOpen(true);
+  };
 
   const {
     data,
@@ -117,7 +185,9 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
-                <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
+                {!isMiniApp && (
+                  <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
+                )}
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
@@ -149,12 +219,71 @@ const IndexPage: NextPage = () => {
                     isLoadingForYou={isLoadingTimelinePosts}
                     isLoadingExplore={isLoadingExplorePosts}
                     isLoadingCollected={isLoading}
+                    baseCoins={baseCoins}
+                    onCoinSelect={handleCoinSelect}
                   />
                 }
               </div>
             </div>
           </section>
 
+          {/* Chat Window for Base Coin Remixing */}
+          {selectedCoin && (
+            <ChatWindowButton 
+              agentInfo={{
+                agentId: `coin-${selectedCoin.id}`,
+                info: {
+                  wallets: [selectedCoin.coin_creator_address as `0x${string}`]
+                },
+                account: {
+                  metadata: {
+                    name: selectedCoin.name || selectedCoin.symbol
+                  },
+                  username: {
+                    localName: selectedCoin.symbol
+                  }
+                }
+              } as any}
+              isOpen={isChatOpen}
+              setIsOpen={setIsChatOpen}
+              isRemixing={true}
+            >
+              <Chat
+                agentId={`coin-${selectedCoin.id}`}
+                agentWallet={selectedCoin.coin_creator_address as `0x${string}`}
+                agentName={`${selectedCoin.name || selectedCoin.symbol} (${selectedCoin.symbol})`}
+                media={coinToSmartMedia(selectedCoin)}
+                conversationId={`coin-remix-${selectedCoin.id}`}
+                post={{
+                  id: selectedCoin.cast_cast_hash || `coin-${selectedCoin.id}`,
+                  slug: `coin-${selectedCoin.id}`,
+                  content: selectedCoin.cast_text || `Remix ${selectedCoin.symbol} coin`,
+                  metadata: {
+                    attributes: [
+                      { key: "coinSymbol", value: selectedCoin.symbol },
+                      { key: "coinName", value: selectedCoin.name }
+                    ],
+                    // Add media metadata as fallback
+                    ...(() => {
+                      const coinIsVideo = selectedCoin.media_animationUrl || 
+                                         (selectedCoin.media_contentMime?.startsWith('video/')) ||
+                                         (selectedCoin.media_contentUri?.endsWith('.m3u8')) ||
+                                         (selectedCoin.media_animationUrl?.endsWith('.m3u8'));
+                      
+                      if (coinIsVideo) {
+                        const videoUrl = selectedCoin.media_animationUrl || selectedCoin.media_contentUri;
+                        return videoUrl ? { video: { item: videoUrl } } : {};
+                      } else {
+                        const imageUrl = selectedCoin.media_image || selectedCoin.media_contentUri;
+                        return imageUrl ? { image: { item: imageUrl } } : {};
+                      }
+                    })()
+                  }
+                } as any}
+                isRemixing={true}
+              />
+            </ChatWindowButton>
+          )}
 
         </main>
       </div>

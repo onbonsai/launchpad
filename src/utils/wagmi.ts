@@ -1,4 +1,4 @@
-import { http, createConfig } from "wagmi";
+import { http, createConfig, cookieStorage, createStorage } from "wagmi";
 import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
 import { getDefaultConfig } from "connectkit";
 import { farcasterFrame as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
@@ -30,7 +30,8 @@ export const config = (isMiniApp?: boolean) => {
       appIcon: "/static/images/logo.png",
     }
     const defaultConfig = getDefaultConfig(options as any);
-    defaultConfig.ssr = false; // https://bonsai-labs-ek.sentry.io/issues/6677952145/?project=4509125819039744&query=is:unresolved&stream_index=1
+    defaultConfig.ssr = true;
+    defaultConfig.storage = createStorage({ storage: cookieStorage });
     configInstance = createConfig(defaultConfig);
   }
   return configInstance;

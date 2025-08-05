@@ -1,3 +1,5 @@
+'use client'
+
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { config } from "@src/utils/wagmi";
@@ -9,7 +11,7 @@ export default function Provider({ children }: { children: React.ReactNode }) {
   const { isMiniApp } = useIsMiniApp();
 
   return (
-    <WagmiProvider config={config(isMiniApp)}>
+    <WagmiProvider config={config(isMiniApp)} reconnectOnMount={true}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );

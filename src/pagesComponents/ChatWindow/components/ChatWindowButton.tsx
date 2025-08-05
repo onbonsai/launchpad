@@ -8,6 +8,7 @@ import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
 import { SwapCalls } from "@mui/icons-material";
 import { usePWA } from "@src/hooks/usePWA";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
+import { useRouter } from "next/router";
 
 interface ChatWindowButtonProps {
   children: React.ReactElement<{ isRemixing?: boolean }>;
@@ -44,21 +45,24 @@ export default function ChatWindowButton({
   const isMobile = useIsMobile();
   const { isStandalone } = usePWA();
   const { isMiniApp } = useIsMiniApp();
+  const router = useRouter();
   const { isRemixing: contextIsRemixing, setIsRemixing } = useContext(ChatSidebarContext);
   const [isRemixingState, setIsRemixingState] = useState(isRemixing || contextIsRemixing);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setIsRemixingState(false);
-      setIsRemixing(false);
-    }
-  }, [isOpen, setIsRemixing]);
+  // Check if we're in remix mode from query parameter
+  const isRemixMode = !!router.query.remix;
 
   useEffect(() => {
-    if (contextIsRemixing) {
+    if (!isOpen) {
+      setIsRemixingState(isRemixing);
+    }
+  }, [isOpen, setIsRemixing, isRemixing]);
+
+  useEffect(() => {
+    if (contextIsRemixing || isRemixing) {
       setIsRemixingState(true);
     }
-  }, [contextIsRemixing]);
+  }, [contextIsRemixing, isRemixing]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -132,8 +136,8 @@ export default function ChatWindowButton({
         </div>
       )}
 
-      {/* Mobile Bottom Bar */}
-      {isConnected && !isOpen && isMobile && (
+      {/* Mobile Bottom Bar - Show for connected users OR when in remix mode */}
+      {(isConnected || isRemixMode) && !isOpen && isMobile && (
         <div
           className={clsx(
             "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto",

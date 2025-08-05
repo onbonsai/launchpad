@@ -59,10 +59,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const { isMiniApp, context: farcasterContext } = useIsMiniApp();
   const { setOpen } = useModal();
 
-  const {
-    fullRefetch,
-  } = useLensSignIn(walletClient);
-
   // Handle connection events in useEffect to avoid state updates during render
   useEffect(() => {
     if (isConnected && autoLensLogin && setOpenSignInModal && isAuthenticated === false && !isMiniApp) {
@@ -73,23 +69,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
     }
   }, [isConnected, autoLensLogin, setOpenSignInModal, isAuthenticated, isMiniApp]);
 
-  // Handle disconnection events in useEffect
-  useEffect(() => {
-    if (!isConnected && isAuthenticated) {
-      lensLogout().then(fullRefetch);
-    }
-  }, [isConnected, isAuthenticated, fullRefetch]);
-  // const { isReady: ready, isSignedIn: connected, signOut, signIn } = useSIWE({
-  //   onSignOut: () => {
-  //     const asyncLogout = async () => {
-  //       await lensLogout();
-  //       fullRefetch() // invalidate cached query data
-  //     }
-
-  //     disconnect();
-  //     if ((!!authenticatedProfile?.address)) asyncLogout();
-  //   }
-  // });
   const router = useRouter();
 
   const identity = useMemo(() => {
@@ -123,13 +102,6 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  // // need this to trigger the onSignIn callback
-  // const handleSignIn = async () => {
-  //   await signIn()?.then((session?: SIWESession) => { });
-  // };
-
-  // if (!ready && !connected) return null;
 
   // Prevent hydration mismatch by ensuring component doesn't render until mounted
   if (!isMounted) return null;

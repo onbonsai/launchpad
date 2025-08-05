@@ -460,16 +460,24 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
-      {!isLoadingAgentInfo && !!agentInfoSage?.agentId && (
-        <ChatWindowButton agentInfo={agentInfoSage} isOpen={isChatOpen} setIsOpen={setIsChatOpen}>
+      {((!isLoadingAgentInfo && !!agentInfoSage?.agentId) || !!router.query.remix) && (
+        <ChatWindowButton
+          agentInfo={agentInfoSage || { agentId: currentPostId as string, info: { wallets: [] }, account: null }}
+          isOpen={isChatOpen}
+          setIsOpen={setIsChatOpen}
+        >
           <Chat
             agentId={currentPostId as string}
-            agentWallet={agentInfoSage.info.wallets[0]}
-            agentName={`${agentInfoSage.account?.metadata?.name} (${agentInfoSage.account?.username?.localName})`}
+            agentWallet={agentInfoSage?.info?.wallets?.[0] || ''}
+            agentName={agentInfoSage?.account?.metadata?.name ?
+              `${agentInfoSage.account.metadata.name} (${agentInfoSage.account.username?.localName})` :
+              'Remix Agent'
+            }
             media={safeMedia}
             conversationId={conversationId}
             post={publication}
             remixVersionQuery={v as string}
+            isRemixing={!!router.query.remix}
           />
         </ChatWindowButton>
       )}
