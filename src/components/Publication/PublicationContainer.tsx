@@ -602,7 +602,7 @@ const PublicationContainer = ({
           onLikeButtonClick={!hasUpvoted && !isMiniApp ? onLikeButtonClick : undefined}
           onMirrorButtonClick={!hasMirrored && !isMiniApp ? onMirrorButtonClick : undefined}
           operations={stableOperations}
-          hideQuoteButton={hideQuoteButton}
+          hideQuoteButton={hideQuoteButton || isMiniApp}
           profilePictureStyleOverride={publicationProfilePictureStyle}
           containerBorderRadius={'24px'}
           containerPadding={'12px'}
@@ -612,8 +612,9 @@ const PublicationContainer = ({
           markdownStyleBottomMargin={'0'}
           nestedWidget={nestedWidget}
           hideCollectButton={!!publication.root || isMiniApp}
+          hideLikeButton={isMiniApp}
           presenceCount={connectedAccounts?.length}
-          hideCommentButton
+          hideCommentButton={isMiniApp}
           onCollectButtonClick={onCollectButtonClick}
           layout={layout}
         />

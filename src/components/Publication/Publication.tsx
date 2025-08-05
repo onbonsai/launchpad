@@ -15,8 +15,7 @@ import { EyeIcon } from "../Icons/EyeIcon";
 import { postId } from "@lens-protocol/client";
 import { fetchPost } from "@lens-protocol/client/actions";
 import { lensClient, storageClient } from "@src/services/lens/client";
-import Image from "next/image";
-import { ShareIcon } from "@heroicons/react/outline";
+import { NewShareIcon } from "../Share/NewShareIcon";
 
 export function Publication({
   publicationId,
@@ -32,6 +31,7 @@ export function Publication({
   onLikeButtonClick,
   onShareButtonClick,
   onCollectButtonClick,
+  hideLikeButton = false,
   hideCommentButton = false,
   hideQuoteButton = false,
   hideShareButton = false,
@@ -69,6 +69,7 @@ export function Publication({
   onLikeButtonClick?: (e, p) => void;
   onShareButtonClick?: (e) => void;
   onCollectButtonClick?: (e) => void;
+  hideLikeButton?: boolean;
   hideCommentButton?: boolean;
   hideQuoteButton?: boolean;
   hideShareButton?: boolean;
@@ -268,21 +269,23 @@ export function Publication({
     >
       {!isEmpty(publication.stats) && (
         <>
-          <div
-            className={(layout === "horizontal" ? horizontalReactionContainerStyle : reactionContainerStyle)(
-              reactionTextColor,
-              reactionBgColor,
-              isAuthenticated && onLikeButtonClick,
-              operations?.hasUpvoted,
-            )}
-            onClick={(e) => onLikeButtonClick?.(e, publication)}
-          >
-            <NewHeartIcon
-              fillColor={!operations?.hasUpvoted ? ThemeColor.transparent : ThemeColor.red}
-              outlineColor={!operations?.hasUpvoted ? reactionTextColor : ThemeColor.red}
-            />
-            {publication.stats.upvotes > 0 && <p>{publication.stats.upvotes}</p>}
-          </div>
+          {!hideLikeButton && (
+            <div
+              className={(layout === "horizontal" ? horizontalReactionContainerStyle : reactionContainerStyle)(
+                reactionTextColor,
+                reactionBgColor,
+                isAuthenticated && onLikeButtonClick,
+                operations?.hasUpvoted,
+              )}
+              onClick={(e) => onLikeButtonClick?.(e, publication)}
+            >
+              <NewHeartIcon
+                fillColor={!operations?.hasUpvoted ? ThemeColor.transparent : ThemeColor.red}
+                outlineColor={!operations?.hasUpvoted ? reactionTextColor : ThemeColor.red}
+              />
+              {publication.stats.upvotes > 0 && <p>{publication.stats.upvotes}</p>}
+            </div>
+          )}
           {!hideCommentButton && (
             <div
               className={(layout === "horizontal" ? horizontalReactionContainerStyle : reactionContainerStyle)(
@@ -343,7 +346,7 @@ export function Publication({
               isAuthenticated && onShareButtonClick,
               false,
             )} onClick={onShareButtonClick} >
-              <ShareIcon className={`text-[#dcdcdc] w-4 h-4`} />
+              <NewShareIcon color={"#dcdcdc"} height={16} />
             </div>
           )}
         </>

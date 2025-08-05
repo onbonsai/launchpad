@@ -196,11 +196,8 @@ const IndexPage: NextPage = () => {
           <section aria-labelledby="dashboard-heading" className="pt-0 pb-24 max-w-full">
             <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-10 max-w-full">
               <div className="lg:col-span-10 max-w-full">
-                {!isMiniApp && (
-                  <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
-                )}
-                <div className="pt-2 mb-2">
-                  <Header className="!text-brand-highlight text-2xl inline">{activeTab === PostTabType.BASE ? 'Choose a trending Base post to remix' : 'Choose a smart media post to remix'}.</Header>
+                <div className="pt-2 mb-4">
+                  <Header className="!text-brand-highlight text-2xl inline">{activeTab === PostTabType.BASE ? 'Remix a trending Base post' : 'Remix a smart media post'}</Header>
                   <span
                     className="text-lg ml-4 text-secondary/60 cursor-pointer hover:text-secondary/90 transition-colors"
                     onClick={() => setOpenHelpModal(true)}
@@ -208,6 +205,9 @@ const IndexPage: NextPage = () => {
                     More info
                   </span>
                 </div>
+                {!isMiniApp && (
+                  <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
+                )}
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile || isLoadingBaseCoins)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
