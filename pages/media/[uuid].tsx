@@ -184,6 +184,8 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
                         connectedAccounts={[]}
                         version={0}
                         isMediaPage
+                        hideFollowButton
+                        hideQuoteButton
                       />
                     </div>
                     <div className="sm:hidden">
@@ -200,6 +202,8 @@ const SingleMediaPage: NextPage<MediaPageProps> = ({ media, creatorProfile, uuid
                         connectedAccounts={[]}
                         version={0}
                         isMediaPage
+                        hideFollowButton
+                        hideQuoteButton
                       />
                     </div>
                   </>
