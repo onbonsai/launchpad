@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { Coin } from "@src/services/farcaster/tbd";
 import Image from "next/image";
+import HLSPlayer from "../HLSPlayer";
 
 interface BaseCoinItemProps {
   coin: Coin;
   onClick?: (coin: Coin) => void;
 }
 
-export const BaseCoinItem: React.FC<BaseCoinItemProps> = ({ coin, onClick }) => {
+export const BaseCoinItem: React.FC<BaseCoinItemProps> = ({
+  coin,
+  onClick,
+}) => {
   const [videoError, setVideoError] = useState(false);
 
   const handleClick = () => {
@@ -17,45 +21,54 @@ export const BaseCoinItem: React.FC<BaseCoinItemProps> = ({ coin, onClick }) => 
   };
 
   const getMediaContent = () => {
+    const renderVideo = (src, mimeType?) => {
+      const isM3U8 = src.endsWith(".m3u8");
+
+      if (isM3U8) {
+        return (
+          <HLSPlayer
+            src={src}
+            className="w-full h-full object-cover rounded-lg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            onError={() => {
+              console.error("Video failed to load:", src);
+              setVideoError(true);
+            }}
+          />
+        );
+      }
+
+      return (
+        <video
+          className="w-full h-full object-cover rounded-lg"
+          autoPlay
+          loop
+          muted
+          playsInline
+          onError={() => {
+            console.error("Video failed to load:", src);
+            setVideoError(true);
+          }}
+        >
+          <source src={src} type={mimeType || "video/mp4"} />
+        </video>
+      );
+    };
+
     // Prioritize video content first, then images
     if (coin.media_animationUrl && !videoError) {
-      const isM3U8 = coin.media_animationUrl.endsWith(".m3u8");
-      return (
-        <video
-          className="w-full h-full object-cover rounded-lg"
-          autoPlay
-          loop
-          muted
-          playsInline
-          src={isM3U8 ? coin.media_animationUrl : undefined}
-          onError={() => {
-            console.error("Video failed to load:", coin.media_animationUrl);
-            setVideoError(true);
-          }}
-        >
-          {!isM3U8 && <source src={coin.media_animationUrl} type="video/mp4" />}
-        </video>
-      );
+      return renderVideo(coin.media_animationUrl);
     }
 
-    if (coin.media_contentUri && coin.media_contentMime?.startsWith("video/") && !videoError) {
-      const isM3U8 = coin.media_contentUri.endsWith(".m3u8");
-      return (
-        <video
-          className="w-full h-full object-cover rounded-lg"
-          autoPlay
-          loop
-          muted
-          playsInline
-          src={isM3U8 ? coin.media_contentUri : undefined}
-          onError={() => {
-            console.error("Video failed to load:", coin.media_contentUri);
-            setVideoError(true);
-          }}
-        >
-          {!isM3U8 && <source src={coin.media_contentUri} type={coin.media_contentMime} />}
-        </video>
-      );
+    if (
+      coin.media_contentUri &&
+      coin.media_contentMime?.startsWith("video/") &&
+      !videoError
+    ) {
+      return renderVideo(coin.media_contentUri, coin.media_contentMime);
     }
 
     if (coin.media_image) {
@@ -85,21 +98,32 @@ export const BaseCoinItem: React.FC<BaseCoinItemProps> = ({ coin, onClick }) => 
     // Fallback placeholder - show when no media or video failed to load
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800 rounded-lg">
-        <span className="text-4xl font-bold text-white mb-2">{coin.symbol.charAt(0)}</span>
-        {videoError && <span className="text-xs text-gray-400 text-center px-2">Video unavailable</span>}
+        <span className="text-4xl font-bold text-white mb-2">
+          {coin.symbol.charAt(0)}
+        </span>
+        {videoError && (
+          <span className="text-xs text-gray-400 text-center px-2">
+            Video unavailable
+          </span>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="bg-card rounded-lg overflow-hidden cursor-pointer" onClick={handleClick}>
+    <div
+      className="bg-card rounded-lg overflow-hidden cursor-pointer"
+      onClick={handleClick}
+    >
       {/* Media Content */}
       <div className="relative aspect-square w-full">
         {getMediaContent()}
 
         {/* Coin symbol badge overlay */}
         <div className="absolute top-2 right-2">
-          <span className="text-white font-bold text-sm bg-black/70 px-2 py-1 rounded-full">${coin.symbol}</span>
+          <span className="text-white font-bold text-sm bg-black/70 px-2 py-1 rounded-full">
+            ${coin.symbol}
+          </span>
         </div>
       </div>
 
@@ -111,7 +135,11 @@ export const BaseCoinItem: React.FC<BaseCoinItemProps> = ({ coin, onClick }) => 
         </div>
 
         {/* Cast Text */}
-        {coin.cast_text && <p className="text-white/80 text-sm line-clamp-3 leading-relaxed">{coin.cast_text}</p>}
+        {coin.cast_text && (
+          <p className="text-white/80 text-sm line-clamp-3 leading-relaxed">
+            {coin.cast_text}
+          </p>
+        )}
       </div>
     </div>
   );
