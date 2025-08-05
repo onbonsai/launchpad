@@ -31,6 +31,10 @@ import { TimelineItemInteractions } from '@src/components/Publication/TimelineIt
 import { Button } from "@src/components/Button";
 import { sendLike } from "@src/services/lens/getReactions";
 import { Publication } from "@src/components/Publication/Publication";
+import { BaseCoinItem } from "@src/components/BaseCoinItem";
+import { Coin } from "@src/services/farcaster/tbd";
+import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
+import { useContext } from "react";
 
 interface PostItemProps {
   post: any;
@@ -314,7 +318,7 @@ const PostItem = React.memo(({
 
 PostItem.displayName = 'PostItem';
 
-export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, isLoadingForYou, isLoadingExplore, isLoadingCollected }) => {
+export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy, filteredPosts, setFilteredPosts, setFilterBy, isLoading, hasMore, fetchNextPage, isLoadingForYou, isLoadingExplore, isLoadingCollected, baseCoins, onCoinSelect }) => {
   const { data: walletClient } = useWalletClient();
   const [showCompleted, setShowCompleted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -323,6 +327,20 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
   const [hoveredPostSlug, setHoveredPostSlug] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
   const isMobile = useIsMobile();
+  
+  // Chat context for opening remix chat
+  const { setIsChatOpen, setIsRemixing } = useContext(ChatSidebarContext);
+
+  // Function to handle coin clicks and open remix chat
+  const handleCoinClick = useCallback((coin: Coin) => {
+    if (onCoinSelect) {
+      onCoinSelect(coin);
+    } else {
+      // Fallback: use context to open remix mode
+      setIsRemixing(true);
+      setIsChatOpen(true);
+    }
+  }, [onCoinSelect, setIsChatOpen, setIsRemixing]);
 
   const router = useRouter();
   const {
@@ -543,7 +561,42 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
 
         <section aria-labelledby="table-heading" className="max-w-full mt-6">
           <div className="lg:col-span-3 max-w-full">
-            {shouldShowEmptyState ? (
+            {activeTab === PostTabType.BASE ? (
+              // Base Coins Collage
+              baseCoins && baseCoins.length > 0 ? (
+                <Masonry
+                  breakpointCols={{
+                    default: 4,
+                    1530: 3,
+                    1145: 2,
+                    768: 1,
+                  }}
+                  className="flex w-auto -ml-4"
+                  columnClassName="pl-4 bg-clip-padding"
+                >
+                  {baseCoins.map((coin: Coin) => (
+                    <div key={coin.id} className="mb-4">
+                      <BaseCoinItem 
+                        coin={coin}
+                        onClick={handleCoinClick}
+                      />
+                    </div>
+                  ))}
+                </Masonry>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="mb-6 p-6 rounded-full bg-white/[0.04]">
+                    <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                  </div>
+                  <p className="text-white text-xl font-medium mb-2">No Base coins found</p>
+                  <p className="text-white/60 text-base max-w-sm">
+                    Base coins are loading or not available right now. Check back later!
+                  </p>
+                </div>
+              )
+            ) : shouldShowEmptyState ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="mb-6 p-6 rounded-full bg-white/[0.04]">
                   <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -54,16 +54,15 @@ export default function ChatWindowButton({
 
   useEffect(() => {
     if (!isOpen) {
-      setIsRemixingState(false);
-      setIsRemixing(false);
+      setIsRemixingState(isRemixing);
     }
-  }, [isOpen, setIsRemixing]);
+  }, [isOpen, setIsRemixing, isRemixing]);
 
   useEffect(() => {
-    if (contextIsRemixing) {
+    if (contextIsRemixing || isRemixing) {
       setIsRemixingState(true);
     }
-  }, [contextIsRemixing]);
+  }, [contextIsRemixing, isRemixing]);
 
   useEffect(() => {
     if (!isOpen) return;

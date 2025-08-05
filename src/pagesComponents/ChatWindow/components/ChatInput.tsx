@@ -323,7 +323,7 @@ export default function ChatInput({
         if (videoData) {
           try {
             const videoUrl = typeof videoData === 'string' ? videoData : videoData.url;
-            const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start', remixMedia?.templateData?.hasOutro);
+            const frameDataUrl = await extractFrameFromVideo({ url: videoUrl }, frameSelection === 'start', (remixMedia?.templateData as any)?.hasOutro);
 
             // Convert data URL to File
             const response = await fetch(frameDataUrl);
@@ -508,7 +508,7 @@ export default function ChatInput({
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
                     className="w-full bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/50 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm p-3 pr-12"
-                    placeholder={dynamicPlaceholder}
+                    placeholder={isRemixing ? "Describe how you want to remix this media..." : dynamicPlaceholder}
                     disabled={disabled || isGeneratingRemix}
                   />
                 )}
@@ -624,6 +624,7 @@ export default function ChatInput({
                   {hasEnoughCredits && !insufficientCreditsError ? (
                     <Button
                       type="button"
+                      // @ts-expect-error
                       onClick={generateRemix}
                       disabled={!/[a-zA-Z]/.test(userInput) || isGeneratingRemix}
                       variant="accentBrand"

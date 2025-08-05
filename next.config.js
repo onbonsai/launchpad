@@ -222,6 +222,8 @@ const nextConfig = {
       "token-media.defined.fi",
       "imagedelivery.net",
       "picsum.photos",
+      "tba-social.mypinata.cloud",
+      "b891d14d436694bb9a7feeba91730b95.ipfscdn.io",
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,
