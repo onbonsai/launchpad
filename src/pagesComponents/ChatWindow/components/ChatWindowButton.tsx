@@ -16,6 +16,7 @@ interface ChatWindowButtonProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   isRemixing?: boolean;
+  noBottomButton?: boolean;
 }
 
 const XIcon = ({ size = 24, className = "" }) => (
@@ -40,6 +41,7 @@ export default function ChatWindowButton({
   isOpen,
   setIsOpen,
   isRemixing = false,
+  noBottomButton = false,
 }: ChatWindowButtonProps) {
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
@@ -137,7 +139,7 @@ export default function ChatWindowButton({
       )}
 
       {/* Mobile Bottom Bar - Show for connected users OR when in remix mode */}
-      {(isConnected || isRemixMode) && !isOpen && isMobile && (
+      {(isConnected || isRemixMode) && !isOpen && isMobile && !noBottomButton && (
         <div
           className={clsx(
             "fixed left-0 right-0 bg-black border-t border-dark-grey z-50 pointer-events-auto",

@@ -627,7 +627,7 @@ const imageContainerStyle = css`
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 300px;
+  min-height: 200px;
   max-height: 70vh;
   margin-top: 14px;
   overflow: hidden;

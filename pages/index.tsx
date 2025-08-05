@@ -267,6 +267,7 @@ const IndexPage: NextPage = () => {
               isOpen={isChatOpen}
               setIsOpen={setIsChatOpen}
               isRemixing={true}
+              noBottomButton={true}
             >
               <Chat
                 agentId={`coin-${selectedCoin.id}`}
