@@ -122,6 +122,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const normalizedFid = fid ? fid.toString() : undefined;
     const { collection } = await getClientWithApiCredits();
 
+    credits += 2; // add 2 credits for free to ensure good experience
+
     // Get user credits or create if doesn't exist
     const userCredits = await collection.findOne(fid ? { fid: normalizedFid } : { address: normalizedAddress });
     if (!userCredits) {
