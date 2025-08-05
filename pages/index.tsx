@@ -94,7 +94,10 @@ const IndexPage: NextPage = () => {
     }
 
     // Determine if this is a video or image to set the correct template
-    const isVideo = coin.media_animationUrl || (coin.media_contentMime?.startsWith('video/'));
+    const isVideo = coin.media_animationUrl || 
+                   (coin.media_contentMime?.startsWith('video/')) ||
+                   (coin.media_contentUri?.endsWith('.m3u8')) ||
+                   (coin.media_animationUrl?.endsWith('.m3u8'));
     const template = isVideo ? "video" : "image";
 
     return {
@@ -109,8 +112,8 @@ const IndexPage: NextPage = () => {
         coinName: coin.name,
         castText: coin.cast_text,
         // Structure media data the way ChatInput expects it
-        image: coin.media_image || coin.media_contentUri,
-        video: coin.media_animationUrl || (coin.media_contentMime?.startsWith('video/') ? coin.media_contentUri : undefined),
+        image: isVideo ? undefined : (coin.media_image || coin.media_contentUri),
+        video: isVideo ? (coin.media_animationUrl || coin.media_contentUri) : undefined,
         // Keep original fields for reference
         mediaImage: coin.media_image,
         mediaAnimationUrl: coin.media_animationUrl,
@@ -261,12 +264,20 @@ const IndexPage: NextPage = () => {
                       { key: "coinName", value: selectedCoin.name }
                     ],
                     // Add media metadata as fallback
-                    image: selectedCoin.media_image || selectedCoin.media_contentUri ? {
-                      item: selectedCoin.media_image || selectedCoin.media_contentUri
-                    } : undefined,
-                    video: selectedCoin.media_animationUrl || (selectedCoin.media_contentMime?.startsWith('video/') ? selectedCoin.media_contentUri : undefined) ? {
-                      item: selectedCoin.media_animationUrl || selectedCoin.media_contentUri
-                    } : undefined
+                    ...(() => {
+                      const coinIsVideo = selectedCoin.media_animationUrl || 
+                                         (selectedCoin.media_contentMime?.startsWith('video/')) ||
+                                         (selectedCoin.media_contentUri?.endsWith('.m3u8')) ||
+                                         (selectedCoin.media_animationUrl?.endsWith('.m3u8'));
+                      
+                      if (coinIsVideo) {
+                        const videoUrl = selectedCoin.media_animationUrl || selectedCoin.media_contentUri;
+                        return videoUrl ? { video: { item: videoUrl } } : {};
+                      } else {
+                        const imageUrl = selectedCoin.media_image || selectedCoin.media_contentUri;
+                        return imageUrl ? { image: { item: imageUrl } } : {};
+                      }
+                    })()
                   }
                 } as any}
                 isRemixing={true}

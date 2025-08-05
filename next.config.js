@@ -224,6 +224,7 @@ const nextConfig = {
       "picsum.photos",
       "tba-social.mypinata.cloud",
       "b891d14d436694bb9a7feeba91730b95.ipfscdn.io",
+      "res.cloudinary.com",
     ].map((domain) => ({
       protocol: "https",
       hostname: domain,
