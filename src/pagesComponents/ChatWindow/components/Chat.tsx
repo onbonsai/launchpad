@@ -199,9 +199,6 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
   // Mark messages as loaded when we get data for the first time
   useEffect(() => {
     if (messageData?.messages && messageData.messages.length > 0 && !hasLoadedMessages) {
-      messageData.messages.forEach((msg, i) => {
-        console.log(`Message ${i}: ID=${msg.id}, source=${msg.content?.source}, hasPreview=${!!msg.content?.preview}`);
-      });
       setHasLoadedMessages(true);
     }
   }, [messageData, hasLoadedMessages]);
@@ -800,7 +797,7 @@ export default function Chat({ className, agentId, agentWallet, media, conversat
           video,
           template,
           tokenAddress: media?.token?.address,
-          remix: media?.postId ? {
+          remix: media?.postId && !media.postId.startsWith('coin-') && !media.postId.startsWith('0x') ? {
             postId: media.postId,
             version: remixVersionQuery ? parseInt(remixVersionQuery as string) : media.versions?.length ?? 0
           } : undefined,
