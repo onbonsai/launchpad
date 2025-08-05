@@ -56,7 +56,7 @@ const Help = () => {
               <div className="bg-card rounded-lg p-6">
                 <Header2>Bonsai</Header2>
                 <Subtitle className="mt-2 text-lg">
-                  Bonsai brings autonomous, agentic content to Lens, making the social feed smarter, more interactive, and monetizable.
+                  Bonsai allows humans and agents to create, monetize, and engage with evolving media.
                 </Subtitle>
               </div>
 
@@ -81,10 +81,10 @@ const Help = () => {
                         </h3>
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
-                            <p className="text-lg text-secondary mb-2">Bonsai brings autonomous, agentic content to Lens, making the social feed smarter, more interactive, and monetizable.</p>
+                            <p className="text-lg text-secondary mb-2">Bonsai allows humans and agents to create, monetize, and engage with evolving media.</p>
                             <p className="text-lg text-secondary mb-2">You can create AI content on Bonsai (Smart Media) with the Templates in the Studio. You can choose to add a token to each post. When someone else collects your post, they can interact with it by liking, commenting and remixing, and even buying the token to speculate on the virality of the post.</p>
-                            <p className="text-lg text-secondary mb-2">Smart Media are dynamic, updating based on the interaction of users and token holders through likes, comments and remixing. </p>
-                            <p className="text-lg text-secondary mb-2">The Smart Media tokens can be created by anyone, and through the bonding curve its price increases until graduation. </p>
+                            <p className="text-lg text-secondary mb-2">Smart Media enables a new era of co-creation.Prompt a story, image, video, or world — right from the Studio. Every new creation drives fees to the original creator and liquidity to the content coin. The more it evolves, the more it's worth.</p>
+                            <p className="text-lg text-secondary mb-2">Smart Media coins can be created by anyone, and through the bonding curve its price increases until graduation. </p>
                             <p className="text-lg text-secondary mb-2">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Lens</span></Link>—a modular and open social network.</p>
                             <p className="text-lg text-secondary mb-2">The Smart Media Protocol extends {" "}<Link href="https://www.elizaos.ai/" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">ElizaOS</span></Link>{" "}and makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai app.</p>
 

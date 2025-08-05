@@ -327,7 +327,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
   const [hoveredPostSlug, setHoveredPostSlug] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
   const isMobile = useIsMobile();
-  
+
   // Chat context for opening remix chat
   const { setIsChatOpen, setIsRemixing } = useContext(ChatSidebarContext);
 
@@ -498,7 +498,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
       <main className="mx-auto max-w-full overflow-hidden">
         {/* FILTER */}
         <div className="flex justify-between items-center relative max-w-full">
-          {(activeTab === PostTabType.EXPLORE || activeTab === PostTabType.COLLECTED) && (
+          {/* {(activeTab === PostTabType.EXPLORE || activeTab === PostTabType.COLLECTED) && (
             <div className="flex-1 overflow-x-auto scrollbar-hide px-2 md:pt-2 pt-4">
               <CategoryScroll
                 categories={categories}
@@ -506,7 +506,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                 setCategoryFilter={setCategoryFilter}
               />
             </div>
-          )}
+          )} */}
           <div className="flex items-center">
             {filterBy && (
               <div className="px-4 py-2 border-dark-grey border p-1 rounded-md flex items-center">
@@ -576,7 +576,7 @@ export const PostCollage = ({ activeTab, setActiveTab, posts, postData, filterBy
                 >
                   {baseCoins.map((coin: Coin) => (
                     <div key={coin.id} className="mb-4">
-                      <BaseCoinItem 
+                      <BaseCoinItem
                         coin={coin}
                         onClick={handleCoinClick}
                       />

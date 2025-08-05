@@ -7,8 +7,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { coins } = await fetchTopCoins();
 
-    // Set cache-control header for 12 hours (43200 seconds)
-    res.setHeader('Cache-Control', 'public, max-age=43200, stale-while-revalidate=43200');
+    // Set cache-control header for 1 hour (3600 seconds)
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=3600');
 
     res.status(200).json(coins);
   } catch (error) {

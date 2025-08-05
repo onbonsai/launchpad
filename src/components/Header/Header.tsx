@@ -14,7 +14,6 @@ import { SearchClubs } from "../SearchApp/SearchClubs";
 import { Button } from "../Button";
 import { ClaimFeesEarned } from "./ClaimFeesEarned";
 import clsx from "clsx";
-import { Header2 } from "@src/styles/text";
 import { Balance } from "./Balance";
 // import { ClaimBonsai } from "./ClaimBonsai";
 import { Notifications } from "./Notifications";
@@ -25,7 +24,6 @@ import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { usePWA } from "@src/hooks/usePWA";
-import { HelpOutline } from "@mui/icons-material";
 
 const headerLinks = [
   {
@@ -187,7 +185,6 @@ export const Header = () => {
   const { route, query } = useRouter();
   const { data: walletClient } = useWalletClient();
   const { openSignInModal, setOpenSignInModal, isAuthenticated, authenticatedProfile } = useLensSignIn(walletClient);
-  const [openHelpModal, setOpenHelpModal] = useState(false);
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const isMounted = useIsMounted();
   const isAlmostMobile = useIsAlmostMobile();
@@ -284,19 +281,7 @@ export const Header = () => {
                 setOpenSignInModal={setOpenSignInModal}
                 autoLensLogin={!isAuthenticated}
                 className="sm:hidden"
-                setOpenHelpModal={setOpenHelpModal}
               />
-
-              {/* Help icon for unauthenticated users on larger screens */}
-              {(!isAuthenticated || !isConnected) && (
-                <button
-                  className="hidden sm:flex items-center justify-center w-10 h-10 ml-2 text-white/70 hover:text-white transition-colors duration-200 focus:outline-none"
-                  onClick={() => setOpenHelpModal(true)}
-                  title="Help & Info"
-                >
-                  <HelpOutline className="w-5 h-5"/>
-                </button>
-              )}
 
               {/* Hamburger (visible on small screens only) */}
               <button
@@ -343,15 +328,6 @@ export const Header = () => {
                   Stake
                 </Link>
               )}
-              <div
-                className="h-[40px] py-[10px] px-4 flex justify-center items-center text-center rounded-lg hover:opacity-80 hover:cursor-pointer w-full"
-                onClick={() => {
-                  setOpenHelpModal(true);
-                  setOpenMobileMenu(false);
-                }}
-              >
-                <span className="leading-4 font-medium text-white text-[16px] hover:opacity-100">Info</span>
-              </div>
             </div>
           </div>
         )}
@@ -369,47 +345,6 @@ export const Header = () => {
           modal={query.modal as string | undefined }
           withBudget={!!query.onboard}
         />
-      </Modal>
-
-      {/* Help Modal */}
-      <Modal
-        onClose={() => setOpenHelpModal(false)}
-        open={openHelpModal}
-        setOpen={setOpenHelpModal}
-        panelClassnames={clsx(
-          "text-md bg-card w-full p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8",
-          brandFont.className,
-        )}
-      >
-        <Header2>Bonsai</Header2>
-        <p className="mt-4 text-secondary/70">
-          With Bonsai, you can create and monetize AI media. This new format is called Smart Media.
-        </p>
-        <p className="mt-4 text-secondary/70">
-          Creators can choose from a selection of templates that make it easy to create Smart Media and experiment with
-          tokenization. Smart Media are dynamic, updating based on the interaction of users and token holders through
-          likes, comments and remixing.
-        </p>
-        <p className="mt-2 text-secondary/70">
-          The Smart Media tokens can be created by anyone, and through the bonding curve its price increases until
-          graduation.
-        </p>
-
-        <p className="mt-2 text-secondary/70">
-          Head to the{" "}
-          <Link href={routesApp.stake}>
-            <span className="text-brand-highlight/80 link-hover cursor-pointer" onClick={() => setOpenHelpModal(false)}>
-              staking page
-            </span>
-          </Link>{" "}
-          to bridge or buy $BONSAI tokens.
-        </p>
-
-        <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
-          <Link href={routesApp.info}>
-            <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
-          </Link>
-        </div>
       </Modal>
 
       {/* Mobile Bottom Navigation */}

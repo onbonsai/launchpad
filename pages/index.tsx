@@ -19,6 +19,12 @@ import ChatWindowButton from "@src/pagesComponents/ChatWindow/components/ChatWin
 import Chat from "@src/pagesComponents/ChatWindow/components/Chat";
 import { Coin } from "@src/services/farcaster/tbd";
 import { SmartMedia } from "@src/services/madfi/studio";
+import { Header, Header2, Subtitle } from "@src/styles/text";
+import { Modal } from "@src/components/Modal";
+import { brandFont } from "@src/fonts/fonts";
+import Link from "next/link";
+import { routesApp } from "@src/constants/routesApp";
+import clsx from "clsx";
 
 interface TimelinePosts {
   posts: Post[];
@@ -37,6 +43,7 @@ const IndexPage: NextPage = () => {
   const { filteredClubs, setFilteredClubs, filterBy, setFilterBy, sortedBy, setSortedBy } = useClubs();
   const { isMiniApp } = useIsMiniApp();
   const hasCheckedAuth = useRef(false);
+  const [openHelpModal, setOpenHelpModal] = useState(false);
 
   const [activeTab, setActiveTab] = useState<PostTabType>(() => {
     if (isMiniApp) return PostTabType.BASE;
@@ -192,6 +199,15 @@ const IndexPage: NextPage = () => {
                 {!isMiniApp && (
                   <PostsTabs activeTab={activeTab} onTabChange={setActiveTab} isAuthenticated={isAuthenticated} />
                 )}
+                <div className="pt-2 mb-2">
+                  <Header className="!text-brand-highlight text-2xl inline">{activeTab === PostTabType.BASE ? 'Choose a trending Base post to remix' : 'Choose a smart media post to remix'}.</Header>
+                  <span
+                    className="text-lg ml-4 text-secondary/60 cursor-pointer hover:text-secondary/90 transition-colors"
+                    onClick={() => setOpenHelpModal(true)}
+                  >
+                    More info
+                  </span>
+                </div>
                 {(isLoadingExplorePosts || isLoadingTimelinePosts || isLoadingFeaturedPosts || isLoading || isLoadingAuthenticatedProfile || isLoadingBaseCoins)
                   ? <div className="flex justify-center pt-8"><Spinner customClasses="h-6 w-6" color="#5be39d" /></div>
                   : <PostCollage
@@ -291,6 +307,44 @@ const IndexPage: NextPage = () => {
 
         </main>
       </div>
+
+      {/* Help Modal */}
+      <Modal
+        onClose={() => setOpenHelpModal(false)}
+        open={openHelpModal}
+        setOpen={setOpenHelpModal}
+        panelClassnames={clsx(
+          "text-md bg-card w-full p-4 md:w-[35vw] max-w-[2000px] lg:max-w-[500px] text-secondary md:mx-8",
+          brandFont.className,
+        )}
+      >
+        <Header2>Bonsai is the genAI remix engine for content coins</Header2>
+        <p className="mt-4 text-secondary/70">
+          With our {isMiniApp ? 'miniapp' : 'Studio app'}, you can generate media with AI by choosing an existing post as your starting point.
+        </p>
+        <p className="mt-4 text-secondary/70">
+          Each media post has a coin associated - you can create a new one or import a clanker/zora coin. When others remix your media, they must swap into the coin to generate.
+        </p>
+        <p className="mt-2 text-secondary/70">
+          At the core is our Smart Media Protocol (SMP): where media and actions are onchain, enabling open remix and co-creation culture.
+        </p>
+
+        <p className="mt-2 text-secondary/70">
+          Staking $BONSAI earns you free daily generation credits. Head to the{" "}
+          <Link href={routesApp.stake}>
+            <span className="text-brand-highlight/80 link-hover cursor-pointer" onClick={() => setOpenHelpModal(false)}>
+              staking page
+            </span>
+          </Link>{" "}
+          to bridge or buy $BONSAI tokens.
+        </p>
+
+        <div className="mt-4 text-secondary/70" onClick={() => setOpenHelpModal(false)}>
+          <Link href={routesApp.info}>
+            <span className="text-brand-highlight/80 link-hover cursor-pointer">Learn more.</span>
+          </Link>
+        </div>
+      </Modal>
     </div>
   );
 };

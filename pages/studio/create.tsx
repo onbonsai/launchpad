@@ -1671,9 +1671,11 @@ const StudioCreatePage: NextPage = () => {
               </div>
               <div className="flex-grow overflow-visible">
                 {/* Zora coin selector */}
-                <div className={`w-full mb-4 px-4 sm:px-6 ${openTab === 1 ? 'pt-2 pb-2 flex flex-col shadow-lg' : 'flex items-center gap-4'} overflow-hidden max-w-[1250px]`}>
-                  <ZoraCoinsList onCoinSelect={handleCoinSelect} selectedCoin={selectedCoin} />
-                </div>
+                {openTab === 1 && (
+                  <div className={`w-full mb-4 px-4 sm:px-6 pt-2 pb-2 flex flex-col shadow-lg overflow-hidden max-w-[1250px]`}>
+                    <ZoraCoinsList onCoinSelect={handleCoinSelect} selectedCoin={selectedCoin} />
+                  </div>
+                )}
 
                 {/* Full-width Template Selector - moved above padding */}
                 {template && (

@@ -45,10 +45,9 @@ interface Props {
   className?: string;
   setOpenSignInModal?: (b: boolean) => void;
   autoLensLogin?: boolean;
-  setOpenHelpModal?: (b: boolean) => void;
 }
 
-export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin, setOpenHelpModal }) => {
+export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLensLogin }) => {
   const isMounted = useIsMounted();
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
   const { data: walletClient } = useWalletClient();
@@ -165,13 +164,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
             }}>
               Stake
             </MenuItem>
-            <hr className="border-white/10 " />
-            <MenuItem onClick={() => {
-              setOpenHelpModal?.(true)
-              handleClose();
-            }}>
-              Info
-            </MenuItem>
+
             <hr className="border-white/10 " />
             {/* <MenuItem onClick={() => {
               disconnect();
@@ -245,13 +238,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
             Settings
           </MenuItem>
         )}
-        <hr className="border-white/10 " />
-        <MenuItem onClick={() => {
-          setOpenHelpModal?.(true)
-          handleClose();
-        }}>
-          Info
-        </MenuItem>
+
         <hr className="border-white/10 " />
         <MenuItem onClick={() => {
           disconnect();
