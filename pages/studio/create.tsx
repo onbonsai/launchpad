@@ -1054,6 +1054,7 @@ const StudioCreatePage: NextPage = () => {
     // Store the coin address separately for when token creation is needed
     // The system will use this address when creating/importing the token
     setSavedTokenAddress(coin.address as `0x${string}`);
+    setAddToken(false);
 
     toast.success(`Coin set: ${coin.symbol}`);
   };
