@@ -105,7 +105,7 @@ export default function ChatWindowButton({
           className="fixed inset-0 z-[1001] flex items-center justify-center"
         >
           {/* Backdrop with blur */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-lg pointer-events-auto animate-fade-in" />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md pointer-events-auto animate-fade-in" />
 
           {/* Chat Modal */}
           <div
