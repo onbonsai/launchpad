@@ -26,8 +26,6 @@ const LOCKUP_PERIODS = [
   { label: "12 Months", value: 360 * 24 * 60 * 60, multiplier: 3 },
 ];
 
-const MIN_STAKE = 5000;
-
 export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPrice, switchNetwork, amount, setAmount }: StakeModalProps) => {
   const { chain } = useAccount();
   const [selectedPeriod, setSelectedPeriod] = useState(LOCKUP_PERIODS[0]);
@@ -37,7 +35,6 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
   };
 
   const handleStake = async () => {
-    if (Number(amount) < MIN_STAKE) return;
     const success = await onStake(amount, selectedPeriod.value);
     if (success) {
       setAmount("");
@@ -76,7 +73,6 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
         <div className="flex flex-col justify-between gap-2">
           <div className="flex items-center justify-between gap-1">
             <Subtitle className="text-white/70 text-sm md:text-base">Amount</Subtitle>
-            <span className="text-xs text-white/50">Minimum: {MIN_STAKE}</span>
           </div>
           <div className="relative">
             <input
@@ -86,7 +82,6 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
               className={clsx(
                 "w-full pr-4",
                 sharedInputClasses,
-                Number(amount) > 0 && Number(amount) < MIN_STAKE && "border-bearish focus:border-bearish",
               )}
               placeholder="0"
               min="1000"
@@ -95,9 +90,6 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
               MAX
             </button>
           </div>
-          {Number(amount) > 0 && Number(amount) < MIN_STAKE && (
-            <p className="text-xs !text-bearish">Minimum stake amount is {MIN_STAKE}</p>
-          )}
         </div>
 
         {/* Lockup Period Selection */}
@@ -168,7 +160,7 @@ export const StakeModal = ({ onStake, maxAmount, calculateCreditsPerDay, twapPri
             variant="accentBrand"
             className="w-full hover:bg-bullish"
             onClick={handleStake}
-            disabled={!amount || Number(amount) < MIN_STAKE}
+            disabled={!amount}
           >
             {chain?.id !== LENS_CHAIN_ID ? 'Switch to Lens Chain' : 'Stake'}
           </Button>
