@@ -110,7 +110,7 @@ export const Modal: FC<ModalProps> = ({ open, onClose, setOpen, children, panelC
     <Transition.Root show={open} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-[1002]"
+        className="relative z-[1000]"
         onClose={isStatic ? () => {} : onClose}
         static={isStatic}
       >
