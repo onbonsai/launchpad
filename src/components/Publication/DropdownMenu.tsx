@@ -369,51 +369,51 @@ export default ({
   const renderContent = () => {
     if (isCreator) {
       switch (currentView) {
-        case 'refresh':
-          return (
-            <>
-              <div className="px-4 py-3 text-center text-sm">
-                Request a generation?
-                {media?.estimatedCost && <span className="ml-1"><br />~ {media.estimatedCost.toFixed(2)} credits</span>}
-              </div>
-              <div className="border-t border-white/10">
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
-                  onClick={(e) => handleButtonClick(e, onRefreshMetadata)}
-                >
-                  Generate
-                </button>
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
-                  onClick={() => setCurrentView('initial')}
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          );
-        case 'disable':
-          return (
-            <>
-              <div className="px-4 py-3 text-center text-sm">
-                Disable post updates?
-              </div>
-              <div className="border-t border-white/10">
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
-                  onClick={(e) => handleButtonClick(e, onDisableMetadata)}
-                >
-                  Disable
-                </button>
-                <button
-                  className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
-                  onClick={() => setCurrentView('initial')}
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          );
+        // case 'refresh':
+        //   return (
+        //     <>
+        //       <div className="px-4 py-3 text-center text-sm">
+        //         Request a generation?
+        //         {media?.estimatedCost && <span className="ml-1"><br />~ {media.estimatedCost.toFixed(2)} credits</span>}
+        //       </div>
+        //       <div className="border-t border-white/10">
+        //         <button
+        //           className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-brand-highlight"
+        //           onClick={(e) => handleButtonClick(e, onRefreshMetadata)}
+        //         >
+        //           Generate
+        //         </button>
+        //         <button
+        //           className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+        //           onClick={() => setCurrentView('initial')}
+        //         >
+        //           Cancel
+        //         </button>
+        //       </div>
+        //     </>
+        //   );
+        // case 'disable':
+        //   return (
+        //     <>
+        //       <div className="px-4 py-3 text-center text-sm">
+        //         Disable post updates?
+        //       </div>
+        //       <div className="border-t border-white/10">
+        //         <button
+        //           className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 text-bearish"
+        //           onClick={(e) => handleButtonClick(e, onDisableMetadata)}
+        //         >
+        //           Disable
+        //         </button>
+        //         <button
+        //           className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10"
+        //           onClick={() => setCurrentView('initial')}
+        //         >
+        //           Cancel
+        //         </button>
+        //       </div>
+        //     </>
+        //   );
         case 'delete':
           return (
             <>
@@ -529,7 +529,7 @@ export default ({
                   <span className="ml-2">{media?.featured ? (!isFeatured ? "Feature" : "Remove Feature") : 'Toggle featured'}</span>
                 </button>
               )}
-              <button
+              {/* <button
                 className={`w-full py-3 px-4 text-left flex items-center ${!insufficientCredits ? 'cursor-pointer hover:bg-black/10' : 'cursor-not-allowed opacity-50'}`}
                 onClick={() => !insufficientCredits && setCurrentView('refresh')}
               >
@@ -539,8 +539,8 @@ export default ({
                 <span className="ml-2">
                   {!insufficientCredits ? 'Post generation' : 'Insufficient credits to update'}
                 </span>
-              </button>
-              {media?.status === SmartMediaStatus.ACTIVE && (
+              </button> */}
+              {/* {media?.status === SmartMediaStatus.ACTIVE && (
                 <button
                   className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
                   onClick={() => setCurrentView('disable')}
@@ -550,7 +550,7 @@ export default ({
                   </div>
                   <span className="ml-2">Disable Updates</span>
                 </button>
-              )}
+              )} */}
               <button
                 className="w-full py-3 px-4 text-left cursor-pointer hover:bg-black/10 flex items-center"
                 onClick={() => setCurrentView('delete')}
@@ -585,7 +585,7 @@ export default ({
                   </span>
                 </button>
               )}
-              {media && (
+              {/* {media && (
                 <div className="px-4 py-2 flex items-center justify-end border-t border-white/10">
                   <div className="relative flex items-center justify-center w-3 h-3">
                     <div className={`w-1.5 h-1.5 rounded-full ${getStatusColor(media.status)}`} />
@@ -613,7 +613,7 @@ export default ({
                   </div>
                   <span className="ml-1.5 text-xs capitalize">{media.status || 'Status Unknown'}</span>
                 </div>
-              )}
+              )} */}
             </>
           );
       }

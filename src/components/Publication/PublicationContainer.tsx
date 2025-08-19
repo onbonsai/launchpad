@@ -619,7 +619,7 @@ const PublicationContainer = ({
           layout={layout}
         />
       )}
-      <div className={clsx(
+      {/* <div className={clsx(
         "absolute z-20 flex",
         isMobile ? "top-4 right-4" : "top-4 right-4"
       )}>
@@ -639,12 +639,12 @@ const PublicationContainer = ({
             </>
           )}
         </div>
-      </div>
+      </div> */}
       {sideBySideMode && (
         <div className="absolute top-2 left-2 flex justify-between z-10">
           {(media?.category || media?.template) && (
             <div className="rounded-2xl bg-dark-grey/80 hover:shining-border text-white flex flex-col px-2 w-10 hover:w-fit group transition-all duration-300 ease-in-out cursor-pointer select-none">
-              <div className="h-10 flex items-center overflow-hidden">
+              {/* <div className="h-10 flex items-center overflow-hidden">
                 <span className="pointer-events-none shrink-0">
                   <SparkIcon color={!isProcessing ? "#fff" : "#5be39d"} height={16} />
                 </span>
@@ -678,7 +678,6 @@ const PublicationContainer = ({
                       </span>
                     </>
                   )}
-                  {/* helpful for admins to know of failures */}
                   {isAdmin && media.status === SmartMediaStatus.FAILED && (
                     <>
                       <span className="text-white/60">•</span>
@@ -688,12 +687,12 @@ const PublicationContainer = ({
                     </>
                   )}
                 </div>
-              </div>
-              {media?.description && (
+              </div> */}
+              {/* {media?.description && (
                 <div className="w-0 h-0 group-hover:h-auto group-hover:w-fit max-w-[500px] opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 ease-in-out">
                   <span className="pointer-events-none text-sm block whitespace-normal break-words pb-2 ml-2">{media.description}</span>
                 </div>
-              )}
+              )} */}
             </div>
           )}
         </div>

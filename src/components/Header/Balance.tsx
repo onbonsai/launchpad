@@ -421,7 +421,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                 </Button>
               </Tooltip>
               <Tooltip message="Bridge assets between networks" direction="bottom" classNames="z-100">
-                <Link href="/studio/stake?bridge=1" className="w-full">
+                <Link href="/stake?bridge=1" className="w-full">
                   <Button
                     variant="primary"
                     size="md"

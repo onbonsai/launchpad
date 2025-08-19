@@ -205,7 +205,8 @@ export const RegisterClubModal = ({
         hash: txHash as string,
         postId,
         handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
-        chain: selectedNetwork
+        chain: selectedNetwork,
+        tokenAddress: tokenAddress as string, // Added required tokenAddress property
       });
 
       setTimeout(refetchRegisteredClub, 8000); // give the indexer some time
@@ -306,14 +307,6 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                     isMulti={false}
                     zIndex={1001}
                   />
-                  {/* <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <Image
-                      src={NETWORK_OPTIONS.find(opt => opt.value === selectedNetwork)?.icon || ''}
-                      alt={selectedNetwork}
-                      width={20}
-                      height={20}
-                    />
-                  </div> */}
                   <KeyboardArrowDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 pointer-events-none" />
                 </div>
               </div>
@@ -613,14 +606,14 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
               Create token
             </Button>
-            {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
+            {/* {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
               ? <Subtitle className="text-brand-highlight/90">You can only buy 10% of the mintable supply (80mil)</Subtitle>
               : <>
                 <Subtitle>
                   Creating will also make a post from {`${authenticatedProfile?.id ? 'your profile' : '@bons_ai'}`}
                 </Subtitle>
               </>
-            }
+            } */}
           </div>
         </div>
       </form>

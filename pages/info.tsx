@@ -27,7 +27,6 @@ const Help = () => {
   const ANCHOR_OVERVIEW = "overview";
   const ANCHOR_LAUNCHPAD = "launchpad";
   const ANCHOR_SOCIAL = "social";
-  const ANCHOR_AGENTS = "agents";
   const ANCHOR_DEPLOYED_CONTRACTS = "deployed-contracts";
 
   let { section } = router.query;
@@ -56,7 +55,7 @@ const Help = () => {
               <div className="bg-card rounded-lg p-6">
                 <Header2>Bonsai</Header2>
                 <Subtitle className="mt-2 text-lg">
-                  Bonsai allows humans and agents to create, monetize, and engage with evolving media.
+                  Bonsai is a meme coin for Lens and a launchpad for new coins.
                 </Subtitle>
               </div>
 
@@ -81,12 +80,7 @@ const Help = () => {
                         </h3>
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
-                            <p className="text-lg text-secondary mb-2">Bonsai allows humans and agents to create, monetize, and engage with evolving media.</p>
-                            <p className="text-lg text-secondary mb-2">You can create AI content on Bonsai (Smart Media) with the Templates in the Studio. You can choose to add a token to each post. When someone else collects your post, they can interact with it by liking, commenting and remixing, and even buying the token to speculate on the virality of the post.</p>
-                            <p className="text-lg text-secondary mb-2">Smart Media enables a new era of co-creation.Prompt a story, image, video, or world — right from the Studio. Every new creation drives fees to the original creator and liquidity to the content coin. The more it evolves, the more it's worth.</p>
-                            <p className="text-lg text-secondary mb-2">Smart Media coins can be created by anyone, and through the bonding curve its price increases until graduation. </p>
-                            <p className="text-lg text-secondary mb-2">All smart media content lives on {" "}<Link href="https://lens.xyz" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">Lens</span></Link>—a modular and open social network.</p>
-                            <p className="text-lg text-secondary mb-2">The Smart Media Protocol extends {" "}<Link href="https://www.elizaos.ai/" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">ElizaOS</span></Link>{" "}and makes it easy for developers to create their own Smart Media templates and distribute them through the Bonsai app.</p>
+                            <p className="text-lg text-secondary mb-2">Bonsai Launchpad allows anyone to create a token on Base and Lens chains</p>
 
                             <p className="mt-4 text-lg text-secondary">
                               Docs:
@@ -244,43 +238,6 @@ const Help = () => {
                               <li>Your Lens account is a smart account that has its own wallet. In order to collect posts you needs $BONSAI in your Lens wallet.</li>
                               <li>Collected posts are stored on the wallet that owns the Lens account. This is most likely your connected wallet.</li>
                               <li>Token trading is done from your connected wallet.</li>
-                            </ul>
-                          </Disclosure.Panel>
-                        </DisclosurePanelWithTransition>
-                      </>
-                    )}
-                  </Disclosure>
-                </div>
-
-                {/* Agents */}
-                <div className="bg-card rounded-lg p-6">
-                  <Disclosure as="div" key={ANCHOR_AGENTS} defaultOpen={section == ANCHOR_AGENTS}>
-                    {({ open }) => (
-                      <>
-                        <h3 className="text-xl leading-6 text-secondary">
-                          <Disclosure.Button className="flex w-full items-center justify-between px-2 py-3 text-secondary hover:text-secondary/80" onClick={() => handleDisclosureClick(ANCHOR_AGENTS)}>
-                            <span className="font-medium">AI Agents</span>
-                            <span className="ml-6 flex items-center">
-                              {open ? (
-                                <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
-                              ) : (
-                                <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
-                              )}
-                            </span>
-                          </Disclosure.Button>
-                        </h3>
-                        <DisclosurePanelWithTransition>
-                          <Disclosure.Panel className="p-2">
-                            <p className="text-lg text-secondary">
-                              The first Bons(ai) agent, Sage,  is live on X{" ("}<Link href="https://x.com/agentdotbonsai" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">@agentdotbonsai</span></Link>{") "} and on Lens {" ("}<Link href="https://orb.club/@bons_ai" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">@bons_ai</span></Link>{")"}
-                            </p>
-                            <p className="text-lg text-secondary pt-8">
-                              The agent terminal is live on {" "}<Link href="https://agent.bonsai.meme" target="_blank" rel="noreferrer"><span className="link link-hover text-brand-highlight/80 cursor-pointer">agent.bonsai.meme</span></Link>
-                            </p>
-                            <ul className="list-disc pl-5 mt-4 text-lg/70">
-                              <li>Sage provides social & technical analysis for any ticker on Ethereum, Base, and Solana.</li>
-                              <li>Sage places trades when he has enough conviction on a given ticker. He will soon be placing trades autonomously.</li>
-                              <li>Sage is be aware of all Launchpad tokens and will have similar token capabilities there.</li>
                             </ul>
                           </Disclosure.Panel>
                         </DisclosurePanelWithTransition>

@@ -160,7 +160,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
           >
             <MenuItem onClick={() => {
               handleClose();
-              router.push("/studio/stake");
+              router.push("/stake");
             }}>
               Stake
             </MenuItem>
@@ -226,7 +226,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
         )}
         <MenuItem onClick={() => {
           handleClose();
-          router.push("/studio/stake");
+          router.push("/stake");
         }}>
           Stake
         </MenuItem>

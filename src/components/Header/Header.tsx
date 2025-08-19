@@ -24,21 +24,12 @@ import useIsAlmostMobile from "@src/hooks/useIsAlmostMobile";
 import useIsMobile from "@src/hooks/useIsMobile";
 import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { usePWA } from "@src/hooks/usePWA";
+import { CreateClub } from "@src/pagesComponents/Dashboard";
 
 const headerLinks = [
   {
-    label: "Feed",
-    href: "/",
-    requiresAuth: false,
-  },
-  {
-    label: "Studio",
-    href: "/studio/create",
-    requiresAuth: true,
-  },
-  {
-    label: "Tokens",
-    href: "/tokens",
+    label: "Info",
+    href: "/info",
     requiresAuth: false,
   },
 ];
@@ -84,7 +75,6 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   const isProfileActive = route === "/profile/[handle]" && query?.handle === authenticatedProfile?.username?.localName;
   const isHomeActive = route === '/';
   const isTokensActive = route === '/tokens';
-  const isCreateActive = route === '/studio/create';
 
   const handleAuthRequiredClick = (e: React.MouseEvent) => {
     // For miniapp users, allow them to proceed to create/remix flow
@@ -127,26 +117,6 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
   // Prevent hydration mismatch by ensuring component doesn't render until mounted
   if (!isMounted) return null;
 
-  // Only the create button on miniapp
-  if (isMiniApp) {
-    return (
-      <div className={clsx(
-        "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
-        "pb-6"
-      )}>
-        <div className="flex justify-center items-center h-14 px-6">
-          <Link href="/studio/create" className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
-            <div className="bg-[#111] rounded-lg p-1.5">
-              <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={clsx(
       "fixed bottom-0 left-0 right-0 bg-black border-t border-dark-grey lg:hidden z-[1000]",
@@ -157,16 +127,6 @@ const MobileBottomNav = ({ setOpenSignInModal }) => {
           <svg className={`w-6 h-6 ${isHomeActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-        </Link>
-        <Link href="/tokens" className="flex flex-col items-center">
-          <CoinPile isTokensActive={isTokensActive} />
-        </Link>
-        <Link href="/studio/create" className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
-          <div className="bg-[#111] rounded-lg p-1.5">
-            <svg className={`w-8 h-8 ${isCreateActive ? 'text-brand-highlight' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
         </Link>
         <div className="flex flex-col items-center" onClick={handleAuthRequiredClick}>
           <Notifications isMobile onShowChange={setShowNotifications} />
@@ -253,23 +213,10 @@ export const Header = () => {
                 </div>
               )}
 
-              {/* Create button */}
-              {isConnected && (isMiniApp || isAuthenticated) && (
-                <div className="hidden sm:block mr-2">
-                  <Link href="/studio/create" onClick={handleAuthRequiredClick}>
-                    <Button variant="secondary" size="md" className="text-base font-bold md:px-4 rounded-lg space-x-1 min-w-[120px]">
-                      <svg className="w-4 h-4 text-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 4v16m8-8H4" />
-                      </svg>
-                      <span>Create</span>
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
               {/* Authenticated user actions */}
               {isAuthenticated && (
                 <div className="hidden sm:flex items-center gap-2 mr-2">
+                  <CreateClub />
                   <Balance />
                   <ClaimFeesEarned />
                   {/* <ClaimBonsai /> */}
@@ -314,6 +261,7 @@ export const Header = () => {
                   }} />
                 )}
               </div>
+              <CreateClub />
               <Balance openMobileMenu />
               <ClaimFeesEarned openMobileMenu />
               {/* <ClaimBonsai openMobileMenu /> */}

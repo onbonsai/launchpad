@@ -1,5 +1,4 @@
 import { NextPage } from "next";
-import Sidebar from "@pagesComponents/Studio/Sidebar";
 import { Header2, Subtitle } from "@src/styles/text";
 import { Button } from "@src/components/Button";
 import { switchChain } from "viem/actions";
@@ -113,7 +112,7 @@ const TokenPage: NextPage = () => {
 
   const referralLink = useMemo(() => {
     if (!address) return "";
-    return `${window.location.origin}/studio/stake?ref=${address}`;
+    return `${window.location.origin}/stake?ref=${address}`;
   }, [address]);
 
   useEffect(() => {
@@ -457,9 +456,6 @@ const TokenPage: NextPage = () => {
       <main className="mx-auto max-w-full md-plus:max-w-[100rem] px-2 sm:px-6 pt-6">
         <section aria-labelledby="studio-heading" className="pt-0 pb-6 max-w-full">
           <div className="flex flex-col md-plus:flex-row gap-y-6 md-plus:gap-x-6 max-w-full">
-            <div className="md-plus:w-64 flex-shrink-0 md-plus:sticky md-plus:top-6 md-plus:self-start">
-              <Sidebar />
-            </div>
             {/* Main Content */}
             <div className="flex-grow">
               <div className="bg-card rounded-lg p-6 relative">
@@ -471,19 +467,8 @@ const TokenPage: NextPage = () => {
                       <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
-                      Stake $BONSAI on Lens Chain to earn AI generation credits for creating smart media and sending
-                      messages. The longer the lockup, the more credits you earn. Credits reset daily.
+                      $BONSAI staking is currently deprecated and in withdrawal only mode.
                     </Subtitle>
-                    {isConnected && (
-                      <Button
-                        onClick={() => setIsReferralModalOpen(true)}
-                        size={"md"}
-                        className="mt-2 md-plus:mt-0 md-plus:top-4 md-plus:absolute md-plus:right-6 bg-gradient-to-r from-[#B6D5C2] to-[#52837D] hover:from-[#a4c3b0] hover:to-[#47726d] text-brand-secondary font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                      >
-                        <GiftIcon className="h-5 w-5 mr-2 text-brand-secondary" />
-                        <span className="text-brand-secondary">Referrals</span>
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -676,7 +661,7 @@ const TokenPage: NextPage = () => {
                           <span className="text-xs font-medium bg-brand-highlight/20 text-brand-highlight px-2 py-0.5 rounded">
                             {averageMultiplier}× Credits
                           </span>
-                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)}>
+                          <Button variant="accent" size="sm" onClick={() => setIsStakeModalOpen(true)} disabled>
                             Stake
                           </Button>
                         </div>
@@ -688,152 +673,6 @@ const TokenPage: NextPage = () => {
                     )}
                   </div>
                 </div>
-
-                {/* API Capacity Card */}
-                <div className="bg-card rounded-lg p-6">
-                  <div className="grid grid-cols-1 gap-6 md-plus:grid-cols-3 mt-4">
-                    {isConnected ? (
-                      <>
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-brand-highlight">Capacity Today</h3>
-                          <div className="text-2xl font-bold text-secondary">
-                            {(creditBalance?.creditsRemaining || 0).toFixed(2)} credits /
-                            <span className="ml-1">{creditBalance?.totalCredits?.toFixed(2) || 0} total</span>
-                          </div>
-                          <p className="text-xs text-secondary/60">
-                            ~{Math.floor(Number(creditBalance?.creditsRemaining || 0) / 3)} generations (non-premium
-                            templates)
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium text-brand-highlight">Next Reset</h3>
-                          <div className="text-2xl font-bold text-secondary">
-                            {creditBalance ? formatNextReset() : "--:--"}
-                          </div>
-                          <p className="text-xs text-secondary/60">
-                            Credits will reset to{" "}
-                            {estimatedFutureCredits !== null
-                              ? estimatedFutureCredits.toFixed(2)
-                              : creditBalance?.totalCredits?.toFixed(1) || 0}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-center">
-                          <div className="relative h-24 w-24">
-                            <svg className="w-full h-full transform -rotate-90">
-                              <circle cx="48" cy="48" r="44" className="stroke-card-light fill-none" strokeWidth="4" />
-                              <circle
-                                cx="48"
-                                cy="48"
-                                r="44"
-                                className="fill-none transition-all duration-300 ease-in-out"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                strokeDasharray={`${2 * Math.PI * 44}`}
-                                strokeDashoffset={`${
-                                  2 *
-                                  Math.PI *
-                                  44 *
-                                  (1 - (creditBalance?.creditsRemaining || 0) / (creditBalance?.totalCredits || 1))
-                                }`}
-                                stroke={
-                                  creditBalance?.creditsRemaining && creditBalance?.totalCredits
-                                    ? creditBalance.creditsRemaining / creditBalance.totalCredits > 0.66
-                                      ? "#22c55e" // Green for > 66% remaining
-                                      : creditBalance.creditsRemaining / creditBalance.totalCredits > 0.33
-                                      ? "#eab308" // Yellow for 33-66% remaining
-                                      : "#ef4444" // Red for < 33% remaining
-                                    : "#22c55e"
-                                }
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                              <div className="text-2xl font-bold text-secondary">
-                                {creditBalance
-                                  ? Math.round((creditBalance.creditsRemaining / creditBalance.totalCredits) * 100)
-                                  : 100}
-                                %
-                              </div>
-                              <div className="text-xs text-secondary/60">Remaining</div>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="col-span-3 text-center py-8">
-                        <p className="text-sm text-secondary/60 mb-4">Connect your wallet to view your AI credits</p>
-                      </div>
-                    )}
-                  </div>
-                  {isConnected && (
-                    <div className="mt-4">
-                      <Button variant="accent" size="sm" onClick={() => openTopUpModal("api-credits")}>
-                        Purchase Credits
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Recent Post Updates Table */}
-                {isConnected && creditBalance?.postUpdates && creditBalance.postUpdates.length > 0 && (
-                  <div className="bg-card rounded-lg p-6">
-                    <h3 className="text-sm font-medium text-brand-highlight mb-4">Recent Post Updates</h3>
-                    <Subtitle className="mt-2 mb-4 md-plus:mt-4">
-                      Credits used per post update since last refresh. Click a row to view post and manage updates.
-                    </Subtitle>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-card-light">
-                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Post</th>
-                            <th className="text-left py-3 px-4 text-xs font-medium text-secondary/60">Time</th>
-                            <th className="text-right py-3 px-4 text-xs font-medium text-secondary/60">Credits Used</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {creditBalance.postUpdates.map((update) => {
-                            // Try to find the post content from postDetails
-                            const post = postDetails?.find((p: any) => p?.id === update.postId || p?.slug === update.postId);
-                            // @ts-ignore
-                            const content = post?.metadata?.content ?? update.postId;
-                            return (
-                              <tr
-                                key={update.postId}
-                                className="border-b border-card-light last:border-0 hover:bg-card-light/10 cursor-pointer transition-colors"
-                                role="link"
-                                tabIndex={0}
-                                onClick={() => router.push(`/post/${update.postId}`)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    router.push(`/post/${update.postId}`);
-                                  }
-                                }}
-                              >
-                                <td className="py-3 px-4">
-                                  <span className="text-secondary">
-                                    {content
-                                      ? content.slice(0, 36) + (content.length > 36 ? "..." : "")
-                                      : update.postId}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4 text-secondary">
-                                  {new Date(update.timestamp * 1000).toLocaleString(undefined, {
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </td>
-                                <td className="py-3 px-4 text-right text-secondary">{update.creditsUsed.toFixed(2)}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
 
                 {/* Active Stakes List */}
                 {isConnected && (hasActiveStakes) && (

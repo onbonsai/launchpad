@@ -1,11 +1,8 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
-import dynamic from 'next/dynamic';
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
 import { useEffect, useMemo, useState, useRef, useContext } from "react";
-import Link from "next/link";
-import { ArrowBack } from "@mui/icons-material";
 import { switchChain } from "viem/actions";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -33,8 +30,6 @@ import { fetchSmartMedia, resolveSmartMedia, SmartMedia } from "@src/services/ma
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
-import ChatWindowButton from "@pagesComponents/ChatWindow/components/ChatWindowButton";
-import Chat from "@pagesComponents/ChatWindow/components/Chat";
 import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
@@ -460,27 +455,6 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
 
   return (
     <div className="bg-background text-secondary min-h-[50vh] max-h-[100%] overflow-hidden h-full relative">
-      {((!isLoadingAgentInfo && !!agentInfoSage?.agentId) || !!router.query.remix) && (
-        <ChatWindowButton
-          agentInfo={agentInfoSage || { agentId: currentPostId as string, info: { wallets: [] }, account: null }}
-          isOpen={isChatOpen}
-          setIsOpen={setIsChatOpen}
-        >
-          <Chat
-            agentId={currentPostId as string}
-            agentWallet={agentInfoSage?.info?.wallets?.[0] || ''}
-            agentName={agentInfoSage?.account?.metadata?.name ?
-              `${agentInfoSage.account.metadata.name} (${agentInfoSage.account.username?.localName})` :
-              'Remix Agent'
-            }
-            media={safeMedia}
-            conversationId={conversationId}
-            post={publication}
-            remixVersionQuery={v as string}
-            isRemixing={!!router.query.remix}
-          />
-        </ChatWindowButton>
-      )}
       <div className="h-full">
         <main className="mx-auto max-w-full md:max-w-[92rem] px-2 sm:px-6 lg:px-8 md:pt-8 md:pb-4 h-full relative">
           <section aria-labelledby="dashboard-heading" className="max-w-full items-start justify-center h-full gap-4">
