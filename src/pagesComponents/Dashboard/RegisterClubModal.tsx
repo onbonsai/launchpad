@@ -1,13 +1,12 @@
 import { brandFont } from "@src/fonts/fonts";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useAccount, useWalletClient, useReadContract } from "wagmi";
+import { useAccount, useWalletClient, useReadContract, useBalance } from "wagmi";
 import { switchChain } from "viem/actions";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
 import toast from "react-hot-toast"
-import Image from "next/image";
 
 import { Button } from "@src/components/Button"
 import { Tooltip } from "@src/components/Tooltip";
@@ -19,6 +18,7 @@ import {
   CONTRACT_CHAIN_ID,
   USDC_CONTRACT_ADDRESS,
   USDC_DECIMALS,
+  WGHO_CONTRACT_ADDRESS,
   registerClubTransaction,
   approveToken,
   MAX_INITIAL_SUPPLY,
@@ -119,9 +119,12 @@ export const RegisterClubModal = ({
   const [pricingTier, setPricingTier] = useState<string>("SMALL");
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
-  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(initialSupply || 0, address);
-  // TODO: might need to check this after registration fees enabled
-  const isValid = tokenName && tokenSymbol && tokenBalance >= (totalRegistrationFee || 0n) && !!tokenImage && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
+  const { data: totalRegistrationFee, isLoading: isLoadingRegistrationFee } = useGetRegistrationFee(
+    initialSupply || 0,
+    address,
+    selectedNetwork,
+    selectedNetwork === 'lens' ? pricingTier : undefined,
+  );
 
   const { data: usdcBalance } = useReadContract({
     address: USDC_CONTRACT_ADDRESS,
@@ -129,20 +132,45 @@ export const RegisterClubModal = ({
     chainId: CONTRACT_CHAIN_ID,
     functionName: 'balanceOf',
     args: [address || zeroAddress],
+  });
+
+  // Lens balances: WGHO (ERC20) + native GHO
+  const { data: wghoBalance } = useReadContract({
+    address: WGHO_CONTRACT_ADDRESS,
+    abi: erc20Abi,
+    chainId: LENS_CHAIN_ID,
+    functionName: 'balanceOf',
+    args: [address || zeroAddress],
+  });
+
+  const { data: ghoBalance } = useBalance({
+    address,
+    chainId: LENS_CHAIN_ID,
     query: {
-      refetchInterval: 5000
+      enabled: selectedNetwork === 'lens',
+      refetchInterval: 10000,
     }
   });
+
+  const stableDecimals = selectedNetwork === 'lens' ? 18 : USDC_DECIMALS;
 
   const registrationCost = BigInt(0);
 
   const buyPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, USDC_DECIMALS)), 4)
-  ), [totalRegistrationFee, isLoadingRegistrationFee]);
+    roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
+  ), [totalRegistrationFee, isLoadingRegistrationFee, stableDecimals]);
 
   const registrationFee = useMemo(() => (
     bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
   ), [registrationCost]);
+
+  const combinedStableBalance = selectedNetwork === 'lens'
+    ? ((ghoBalance?.value || 0n) + (wghoBalance || 0n))
+    : (usdcBalance || 0n);
+
+  console.log(tokenImage, !!tokenImage)
+
+  const isValid = tokenName && tokenSymbol && combinedStableBalance >= (totalRegistrationFee || 0n) && !!tokenImage && tokenImage.length > 0 && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
 
   const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
     switch (unit) {
@@ -175,7 +203,14 @@ export const RegisterClubModal = ({
 
     try {
       if (totalRegistrationFee && totalRegistrationFee > 0n) {
-        await approveToken(USDC_CONTRACT_ADDRESS, totalRegistrationFee!, walletClient, toastId)
+        await approveToken(
+          selectedNetwork === 'base' ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
+          totalRegistrationFee!,
+          walletClient,
+          toastId,
+          "Approving tokens...",
+          selectedNetwork
+        )
       }
 
       toastId = toast.loading("Creating token...");
@@ -585,8 +620,8 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                 <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
                     trailingAmount={`${buyPriceFormatted}`}
-                    trailingAmountSymbol="USDC"
-                    tokenBalance={tokenBalance}
+                    trailingAmountSymbol={selectedNetwork === 'base' ? 'USDC' : 'GHO'}
+                    tokenBalance={combinedStableBalance}
                     price={`${initialSupply}`}
                     isError={false}
                     onPriceSet={(e) => setInitialSupply(parseFloat(e))}
@@ -595,7 +630,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                   />
                   <div className="flex justify-end">
                     <Subtitle className="text-xs text-white/70 mr-4">
-                      Balance: {localizeNumber(formatUnits(usdcBalance || 0n, 6))}
+                      Balance: {localizeNumber(formatUnits(combinedStableBalance || 0n, stableDecimals))}
                     </Subtitle>
                   </div>
                 </div>
