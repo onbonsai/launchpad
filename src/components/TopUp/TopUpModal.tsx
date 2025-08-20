@@ -328,7 +328,7 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
       </Button>
       <Button
         variant={"primary"}
-        size='md'
+        size="md"
         className="w-full !border-none"
         onClick={() => {
           setBuyUSDCModalOpen(true);

@@ -13,18 +13,6 @@ const TopUpModal = dynamic(() => import("@src/components/TopUp/TopUpModal").then
   ssr: false,
 });
 
-const ApiCreditsModal = dynamic(
-  () => import("@src/components/TopUp/ApiCreditsModal").then((mod) => mod.ApiCreditsModal),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    ),
-    ssr: false,
-  },
-);
-
 const SwapToGenerateModal = dynamic(
   () => import("@src/components/TopUp/SwapToGenerateModal").then((mod) => mod.SwapToGenerateModal),
   {
@@ -37,14 +25,14 @@ const SwapToGenerateModal = dynamic(
   },
 );
 
-type ModalType = "topup" | "api-credits" | "swap-to-generate";
+type ModalType = "topup" | "swap-to-generate";
 
 interface SwapToGenerateConfig {
   token?: {
     symbol: string;
     address: string;
     chain: string;
-  }
+  };
   postId?: string;
   creditsNeeded: number;
   refetchCredits?: () => void;
@@ -64,15 +52,11 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
   const [requiredAmount, setRequiredAmount] = useState<bigint | undefined>(undefined);
   const [modalType, setModalType] = useState<ModalType>("topup");
   const [swapConfig, setSwapConfig] = useState<SwapToGenerateConfig | undefined>(undefined);
-  const [customHeader, setCustomHeader] = useState<string | undefined>(undefined);
-  const [customSubheader, setCustomSubheader] = useState<string | undefined>(undefined);
   const { isMiniApp } = useIsMiniApp();
 
   const openTopUpModal = (type: ModalType = "topup", amount?: bigint, header?: string, subheader?: string) => {
     setModalType(type);
     setRequiredAmount(amount);
-    setCustomHeader(header);
-    setCustomSubheader(subheader);
     setIsOpen(true);
   };
 
@@ -82,7 +66,7 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
         symbol: "BONSAI",
         address: PROTOCOL_DEPLOYMENT[isMiniApp ? "base" : "lens"].Bonsai,
         chain: isMiniApp ? "base" : "lens",
-      }
+      };
     }
     setModalType("swap-to-generate");
     setSwapConfig(config);
@@ -93,8 +77,6 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
     setIsOpen(false);
     setRequiredAmount(undefined);
     setSwapConfig(undefined);
-    setCustomHeader(undefined);
-    setCustomSubheader(undefined);
   };
 
   return (
@@ -109,10 +91,6 @@ export const TopUpModalProvider = ({ children }: { children: ReactNode }) => {
       >
         {modalType === "topup" ? (
           <TopUpModal requiredAmount={requiredAmount} />
-        ) : modalType === "api-credits" ? (
-          <div className="flex-1 overflow-y-auto">
-            <ApiCreditsModal customHeader={customHeader} customSubheader={customSubheader} />
-          </div>
         ) : modalType === "swap-to-generate" && swapConfig ? (
           <SwapToGenerateModal
             open={isOpen}

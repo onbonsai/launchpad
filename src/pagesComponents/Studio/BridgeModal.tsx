@@ -66,7 +66,8 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
   }], [bonsaiBalancePolygon, bonsaiBalanceBase, bonsaiBalanceZkSync]);
 
   const destinationChainOptions = [
-    { value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance }
+    { value: lens, label: "Lens", icon: "/svg/lens.svg", balance: bonsaiBalance },
+    { value: base, label: "Base", icon: "/svg/base.svg", size: 16, balance: bonsaiBalanceBase },
   ]
 
   const isLoading = isLoadingBase || isLoadingPolygon || isLoadingZkSync;

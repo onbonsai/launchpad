@@ -354,26 +354,27 @@ export const SwapToGenerateModal = ({
                 let completed = false;
                 let attempts = 0;
 
-                while (!completed && attempts < 60) { // 60 attempts, ~1 minute timeout
+                while (!completed && attempts < 60) {
+                  // 60 attempts, ~1 minute timeout
                   try {
                     const status = await walletClient.getCallsStatus({
                       id: result.id,
                     });
 
                     // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
-                    const statusValue = (status.status || '').toString().toUpperCase();
-                    if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
+                    const statusValue = (status.status || "").toString().toUpperCase();
+                    if (statusValue === "CONFIRMED" || statusValue === "SUCCESS") {
                       completed = true;
                       toast.success("Purchase and credit payment completed!", { id: toastId });
                       // Set transferTx for the credit update later
                       transferTx.txHash = "batched";
                       transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
-                    } else if (statusValue === 'REVERTED' || statusValue === 'FAILURE' || statusValue === 'FAILED') {
+                    } else if (statusValue === "REVERTED" || statusValue === "FAILURE" || statusValue === "FAILED") {
                       throw new Error("Batch transaction reverted");
                     }
                   } catch (e) {
                     // If getCallsStatus is not supported, just wait a bit and assume success
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                     completed = true;
                     transferTx.txHash = "batched";
                     transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
@@ -381,7 +382,7 @@ export const SwapToGenerateModal = ({
 
                   attempts++;
                   if (!completed) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                   }
                 }
 
@@ -457,18 +458,14 @@ export const SwapToGenerateModal = ({
             });
 
             // Concatenate: original data + signature length + signature
-            quote.transaction.data = concat([
-              quote.transaction.data as `0x${string}`,
-              signatureLengthInHex,
-              signature,
-            ]);
+            quote.transaction.data = concat([quote.transaction.data as `0x${string}`, signatureLengthInHex, signature]);
           }
 
           if (supportsBatchedCalls) {
             // Batch the swap and credit payment
             toast.loading("Processing swap and credits in batch...", { id: toastId });
 
-            const calls: SendCallsParameters['calls'] = [
+            const calls: SendCallsParameters["calls"] = [
               // Matcha swap call
               {
                 to: quote.transaction.to as `0x${string}`,
@@ -481,7 +478,7 @@ export const SwapToGenerateModal = ({
                 abi: erc20Abi,
                 functionName: "transfer",
                 args: [PROTOCOL_DEPLOYMENT[token.chain].RevenueSplitter, creditsAmount],
-              }
+              },
             ];
 
             try {
@@ -500,26 +497,27 @@ export const SwapToGenerateModal = ({
                 // Poll for status (you might want to implement waitForCallsStatus if available)
                 let completed = false;
                 let attempts = 0;
-                while (!completed && attempts < 60) { // 60 attempts, ~1 minute timeout
+                while (!completed && attempts < 60) {
+                  // 60 attempts, ~1 minute timeout
                   try {
                     const status = await walletClient.getCallsStatus({
                       id: result.id,
                     });
 
                     // Check status - it might be 'success', 'CONFIRMED', etc. depending on wallet
-                    const statusValue = (status.status || '').toString().toUpperCase();
-                    if (statusValue === 'CONFIRMED' || statusValue === 'SUCCESS') {
+                    const statusValue = (status.status || "").toString().toUpperCase();
+                    if (statusValue === "CONFIRMED" || statusValue === "SUCCESS") {
                       completed = true;
                       toast.success("Swap and credit payment completed!", { id: toastId });
                       // Set transferTx for the credit update later
                       transferTx.txHash = "batched";
                       transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
-                    } else if (statusValue === 'REVERTED' || statusValue === 'FAILURE' || statusValue === 'FAILED') {
+                    } else if (statusValue === "REVERTED" || statusValue === "FAILURE" || statusValue === "FAILED") {
                       throw new Error("Batch transaction reverted");
                     }
                   } catch (e) {
                     // If getCallsStatus is not supported, just wait a bit and assume success
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                     completed = true;
                     transferTx.txHash = "batched";
                     transferTx.creditsAmount = Math.floor(generationFee * 100).toString();
@@ -527,7 +525,7 @@ export const SwapToGenerateModal = ({
 
                   attempts++;
                   if (!completed) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                   }
                 }
 

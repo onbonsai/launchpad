@@ -1,1 +1,0 @@
-export { BaseCoinItem, default } from './BaseCoinItem';

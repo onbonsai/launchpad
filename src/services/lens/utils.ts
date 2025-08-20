@@ -1,16 +1,8 @@
 import { omit } from "lodash/object";
 
-import { chainIdNumber as chainId } from "@src/constants/validChainId";
-import { Chains } from "@src/constants/chains";
-
 export const USE_LENS_RELAY = false; // = process.env.NODE_ENV === 'production';
 
 export const LENS_HUB_NFT_NAME = "Lens Protocol Profiles";
-
-export const LENSHUB_PROXY =
-  chainId === Chains.POLYGON
-    ? "0xDb46d1Dc155634FbC732f92E853b10B288AD5a1d"
-    : "0x4fbffF20302F3326B20052ab9C217C44F6480900";
 
 export const FREE_COLLECT_MODULE =
   process.env.NEXT_PUBLIC_CHAIN_ID === "137"

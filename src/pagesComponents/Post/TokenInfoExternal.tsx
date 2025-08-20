@@ -18,15 +18,17 @@ const BuySellModal = dynamic(() => import("@pagesComponents/Club/BuySellModal"),
 
 interface Token {
   address: `0x${string}`;
-  chain: string;
+  chain: "base" | "lens";
   metadata?: TokenMetadata;
+  external?: boolean;
 }
 
 interface TokenMetadata {
-  name: string;
-  symbol: string;
-  logo: string;
-  decimals: number;
+  name?: string;
+  symbol?: string;
+  logo?: string;
+  image?: string;
+  decimals?: number;
 }
 
 const BonsaiToken: Token = {
@@ -120,7 +122,9 @@ export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Tok
     >
       <div className="flex items-center gap-x-1.5 md:gap-x-3">
         <CoinPile color="text-black" className={`w-6 h-6 md:w-7 md:h-7 -mt-1`} />
-        <BodySemiBold className={`text-md md:text-md ${brandFont.className} ${!isConnected ? "text-black" : ""}`}>BUY</BodySemiBold>
+        <BodySemiBold className={`text-md md:text-md ${brandFont.className} ${!isConnected ? "text-black" : ""}`}>
+          BUY
+        </BodySemiBold>
       </div>
     </div>
   );
@@ -131,7 +135,7 @@ export const TokenInfoExternal = ({ token = BonsaiToken, postId }: { token?: Tok
     <div className="md:col-span-3s rounded-3xl animate-fade-in-down">
       <div className="relative w-full rounded-t-3xl bg-true-black overflow-hidden bg-clip-border">
         <div className="absolute inset-0" style={{ filter: "blur(40px)" }}>
-          <img src={tokenMetadata.logo} alt={tokenMetadata.name} className="w-full h-full object-cover" fill="true" />
+          <img src={tokenMetadata.logo} alt={tokenMetadata.name} className="w-full h-full object-cover" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-true-black to-transparent" />
 

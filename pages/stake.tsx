@@ -19,8 +19,7 @@ import BridgeModal from "@pagesComponents/Studio/BridgeModal";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import toast from "react-hot-toast";
 import { calculateStakingCredits, LockupPeriod } from "@src/services/madfi/stakingCalculator";
-import { ReferralModal } from "@src/components/ReferralModal/ReferralModal";
-import { GiftIcon } from "@heroicons/react/outline";
+ 
 import { useRouter } from "next/router";
 import axios from "axios";
 import { useGetCredits } from "@src/hooks/useGetCredits";
@@ -96,7 +95,6 @@ const TokenPage: NextPage = () => {
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false);
   const [isBridgeModalOpen, setIsBridgeModalOpen] = useState(false);
   const [bridgeInfo, setBridgeInfo] = useState<{ txHash: `0x${string}` }>();
-  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [estimatedFutureCredits, setEstimatedFutureCredits] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -105,15 +103,7 @@ const TokenPage: NextPage = () => {
 
   const { stake, unstake } = useStakingTransactions();
 
-  const referrer = useMemo(() => {
-    const { ref } = router.query;
-    return typeof ref === "string" ? ref : null;
-  }, [router.query]);
-
-  const referralLink = useMemo(() => {
-    if (!address) return "";
-    return `${window.location.origin}/stake?ref=${address}`;
-  }, [address]);
+  
 
   useEffect(() => {
     const { bridge } = router.query;
@@ -168,20 +158,6 @@ const TokenPage: NextPage = () => {
   // Add safe checks for stakes array
   const activeStakes = stakingData?.stakes || [];
   const hasActiveStakes = activeStakes.length > 0;
-
-  const recordReferral = async (userAddress: string, referrerAddress: string) => {
-    try {
-      const response = await axios.post("/api/referrals/record", {
-        user: userAddress,
-        referrer: referrerAddress,
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error("Error recording referral:", error);
-      throw error;
-    }
-  };
 
   // Claim staking rewards
   const handleClaimRewards = async () => {
@@ -293,17 +269,6 @@ const TokenPage: NextPage = () => {
       refetchBonsaiBalance();
 
       setIsStakeModalOpen(false);
-      setIsReferralModalOpen(true);
-
-      // Record referral if there's a referrer and we have the user's address
-      if (referrer && address && referrer !== address) {
-        try {
-          await recordReferral(address, referrer);
-        } catch (error) {
-          console.error("Failed to record referral:", error);
-          // Don't throw here - we don't want to revert the stake if referral recording fails
-        }
-      }
 
       toast.success("Stake successful. Your credits will be updated in a few moments.");
 
@@ -744,15 +709,7 @@ const TokenPage: NextPage = () => {
                   <BridgeModal bonsaiBalance={bonsaiBalance} onBridge={onBridge} bridgeInfo={bridgeInfo} />
                 </Modal>
 
-                {/* Referral Modal */}
-                <Modal
-                  onClose={() => setIsReferralModalOpen(false)}
-                  open={isReferralModalOpen}
-                  setOpen={setIsReferralModalOpen}
-                  panelClassnames="w-screen max-h-[100dvh] md-plus:h-fit md-plus:w-[500px] text-secondary"
-                >
-                  <ReferralModal onClose={() => setIsReferralModalOpen(false)} referralLink={referralLink} />
-                </Modal>
+                
 
                 {/* Buy Modal for BONSAI */}
                 <BuySellModal

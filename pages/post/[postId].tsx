@@ -2,7 +2,7 @@ import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-hot-toast";
-import { useEffect, useMemo, useState, useRef, useContext } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { switchChain } from "viem/actions";
 import { LENS_ENVIRONMENT, storageClient } from "@src/services/lens/client";
 import useLensSignIn from "@src/hooks/useLensSignIn";
@@ -21,30 +21,25 @@ import {
   reactionsContainerStyleOverride,
   textContainerStyleOverrides,
   publicationContainerStyleOverride,
-  shareContainerStyleOverride,
 } from "@src/components/Publication/PublicationStyleOverrides";
 import { sendLike } from "@src/services/lens/getReactions";
 import { resumeSession } from "@src/hooks/useLensLogin";
 import { getProfileImage } from "@src/services/lens/utils";
-import { fetchSmartMedia, resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
+import { resolveSmartMedia, SmartMedia } from "@src/services/madfi/studio";
 import { createPost, uploadFile } from "@src/services/lens/createPost";
 import { useRegisteredClubByToken } from "@src/hooks/useMoneyClubs";
 import { TokenInfoComponent } from "@pagesComponents/Post/TokenInfoComponent";
-import { useGetAgentInfo } from "@src/services/madfi/terminal";
 import { LENS_CHAIN_ID } from "@src/services/madfi/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import usePostPresence from '@src/pagesComponents/Post/hooks/usePostPresence';
 import { QuotePreviews } from '@src/pagesComponents/Post/QuotePreviews';
-import { ChatSidebarContext } from "@src/components/Layouts/Layout/Layout";
-import { generateSeededUUID, generateUUID } from "@pagesComponents/ChatWindow/utils";
 import { TokenInfoExternal } from "@pagesComponents/Post/TokenInfoExternal";
 import useIsMobile from "@src/hooks/useIsMobile";
-import SendSvg from "@pagesComponents/ChatWindow/svg/SendSvg";
 import { SafeImage } from "@src/components/SafeImage/SafeImage";
 import formatRelativeDate from "@src/utils/formatRelativeDate";
-import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import { Publications } from "@src/components/Publication/Publications";
 import PublicationContainer from "@src/components/Publication/PublicationContainer";
+import SendSvg from "@src/components/Icons/SendSvg";
 
 interface PublicationProps {
   media: SmartMedia | null;
@@ -67,25 +62,10 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const { isConnected, chain, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { isAuthenticated, authenticatedProfileId, authenticatedProfile } = useLensSignIn(walletClient);
-  const { data: agentInfoSage, isLoading: isLoadingAgentInfo } = useGetAgentInfo();
   const { connectedAccounts, isConnected: isPresenceConnected } = usePostPresence({
     postId: rootPostId || postId as string,
     account: authenticatedProfile || null
   });
-  const { isChatOpen, setIsChatOpen } = useContext(ChatSidebarContext);
-  const { context } = useIsMiniApp();
-
-  // TODO: fix this
-  // Load version from URL query parameter when page loads
-  // useEffect(() => {
-  //   if (!isMounted || !media?.versions || !v) return;
-
-  //   const versionIndex = parseInt(v as string);
-  //   // Check if version is within bounds (0 to versions.length)
-  //   if (versionIndex >= 0 && versionIndex < media.versions.length) {
-  //     loadVersion(versionIndex);
-  //   }
-  // }, [isMounted, media?.versions, v]);
 
   // Use router.query.postId instead of postId from destructuring
   const currentPostId = router.query.postId as string;
@@ -214,17 +194,9 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
   const isLoadingPage = useMemo(() => {
     if (passedPostData) return false;
     if (isLoadingPublication) return true;
-    if (isLoadingAgentInfo) return true;
 
     return false;
-  }, [isLoadingPublication, isLoadingAgentInfo, passedPostData]);
-
-  const conversationId = useMemo(() => {
-    if (isMounted && !isLoadingPage)
-      return media?.postId && (authenticatedProfile?.address || context?.user?.fid || address)
-        ? generateSeededUUID(`${media.postId}-${authenticatedProfile?.address || context?.user?.fid || address}`)
-        : generateUUID();
-  }, [isMounted, isLoadingPage, authenticatedProfile, address, media, context]);
+  }, [isLoadingPublication, passedPostData]);
 
   const remixPostId = useMemo(() => publication?.metadata?.attributes?.find(({ key }) => key === "remix")?.value, [publication]);
 
@@ -465,7 +437,7 @@ const SinglePublicationPage: NextPage<PublicationProps> = ({ media, rootPostId, 
                 </div>
               )}
               {club?.tokenAddress && <TokenInfoComponent club={club} media={safeMedia} remixPostId={remixPostId} postId={publication?.id} />}
-              {!club && <TokenInfoExternal token={media?.token ? { ...media.token } : undefined} />}
+              {!club && <TokenInfoExternal token={media?.token ?? undefined} />}
               <div className="overflow-y-hidden h-full">
                 {isConnected && isLoading ? (
                   <div className="flex justify-center pt-8 pb-8">
