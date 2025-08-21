@@ -1,16 +1,16 @@
-import { FC } from 'react';
-import Link from 'next/link';
-import { Account, Post, Repost } from '@lens-protocol/client';
-import { getPostContentSubstring } from '@src/utils/utils';
-import { ProfilePopper } from '@src/components/Profile/ProfilePopper';
-import { ChatIcon, SwitchHorizontalIcon } from '@heroicons/react/outline';
-import clsx from 'clsx';
-import { SafeImage } from '../SafeImage/SafeImage';
+import { FC } from "react";
+import Link from "next/link";
+import { Post, Repost } from "@lens-protocol/client";
+import { getPostContentSubstring } from "@src/utils/utils";
+import { ProfilePopper } from "@src/components/Profile/ProfilePopper";
+import { SwitchHorizontalIcon } from "@heroicons/react/outline";
+import clsx from "clsx";
+import { SafeImage } from "../SafeImage/SafeImage";
 
 interface TimelineItemInteractionsProps {
   reposts?: Repost[];
   comments?: Post[];
-  position: 'top' | 'bottom';
+  position: "top" | "bottom";
   postData?: {
     presence?: {
       count: number;
@@ -19,11 +19,16 @@ interface TimelineItemInteractionsProps {
         image: string;
         score: number;
       }>;
-    }
+    };
   };
 }
 
-export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ reposts, comments, position, postData }) => {
+export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({
+  reposts,
+  comments,
+  position,
+  postData,
+}) => {
   const hasComments = comments && comments.length > 0;
   const hasReposts = reposts && reposts.length > 0;
   const hasPresence = !!postData?.presence?.topUsers?.length;
@@ -35,7 +40,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
   const displayedReposts = hasReposts ? reposts.slice(0, maxDisplayedReposts) : [];
 
   // Only render reposts and presence at the top
-  if (position === 'top' && (hasReposts || hasPresence)) {
+  if (position === "top" && (hasReposts || hasPresence)) {
     return (
       <div className="w-full overflow-hidden bg-clip-border animate-fade-in-down rounded-t-3xl relative">
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.1] via-white/[0.025] to-transparent" />
@@ -55,9 +60,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                   />
                 ))}
               </div>
-              <span className="text-xs">
-                {postData.presence?.count} viewing now
-              </span>
+              <span className="text-xs">{postData.presence?.count} viewing now</span>
             </div>
           )}
 
@@ -80,8 +83,8 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                       >
                         <ProfilePopper profile={profile} followed={{}} setFollowed={() => {}}>
                           <Link
-                            href={username ? `/profile/${username}` : '#'}
-                            className={`block w-full h-full ${username ? 'cursor-pointer' : 'cursor-default'}`}
+                            href={username ? `/profile/${username}` : "#"}
+                            className={`block w-full h-full ${username ? "cursor-pointer" : "cursor-default"}`}
                           >
                             <SafeImage
                               src={profile.metadata?.picture || "/default.webp"}
@@ -98,9 +101,7 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                 </div>
                 <p className="text-white/80 text-sm">
                   <span className="font-bold">{displayedReposts[0].author.username?.localName}</span>
-                  {reposts.length > 1 && (
-                    <span> and {reposts.length - 1} others</span>
-                  )}
+                  {reposts.length > 1 && <span> and {reposts.length - 1} others</span>}
                   <span className="font-normal"> reposted</span>
                 </p>
               </div>
@@ -112,17 +113,14 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
   }
 
   // Only render comments at the bottom
-  if (position === 'bottom' && hasComments && lastComments.length > 0) {
+  if (position === "bottom" && hasComments && lastComments.length > 0) {
     return (
       <div className="w-full overflow-hidden bg-clip-border animate-fade-in-up rounded-b-3xl relative">
         <div className="absolute inset-0 bg-gradient-to-t from-white/[0.1] via-white/[0.025] to-transparent" />
         <div className="relative">
           {lastComments.map((comment, index) => (
             <Link key={comment.slug} href={`/post/${comment.slug}`} className="block">
-              <div className={clsx(
-                "p-3 flex gap-3 cursor-pointer",
-                index > 0 && "border-t border-white/[0.03]"
-              )}>
+              <div className={clsx("p-3 flex gap-3 cursor-pointer", index > 0 && "border-t border-white/[0.03]")}>
                 <div className="flex-shrink-0">
                   <div className="h-8 w-8 border-2 border-dark-grey rounded-full overflow-hidden relative">
                     <ProfilePopper profile={comment.author} followed={{}} setFollowed={() => {}}>
@@ -141,7 +139,9 @@ export const TimelineItemInteractions: FC<TimelineItemInteractionsProps> = ({ re
                     <span className="font-bold">{comment.author.username?.localName}</span>
                     <span className="font-normal"> commented</span>
                   </p>
-                  <p className="text-gray-300 text-sm">{getPostContentSubstring(comment.metadata?.content ?? '', 75)}</p>
+                  <p className="text-gray-300 text-sm">
+                    {getPostContentSubstring(comment.metadata?.content ?? "", 75)}
+                  </p>
                 </div>
               </div>
             </Link>
