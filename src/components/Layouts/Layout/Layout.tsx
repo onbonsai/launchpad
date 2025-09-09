@@ -6,7 +6,7 @@ import PWAInstallPrompt from "../../PWAInstallPrompt";
 import OfflineIndicator from "../../OfflineIndicator";
 import { Footer } from "@src/components/Footer/Footer";
 import { useAccount } from "wagmi";
-import MigrationBanner from "../../MigrationBanner";
+import MigrationBanner from "@src/components/MigrationBanner/MigrationBanner";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
