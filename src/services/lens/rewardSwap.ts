@@ -11,14 +11,14 @@ export const PARAM__AMOUNT_OUT_MINIMUM = "0x2e31dac88fd210e9e7136637af05b767ae55
 export const PARAM__CLIENT_ADDRESS = "0xa2e2b831586f148ebb0c7311ada7371940ec21502df651de9a65455f55f8d580" as const;
 export const PARAM__REFERRALS = "0x183a1b7fdb9626f5ae4e8cac88ee13cc03b29800d2690f61e2a2566f76d8773f" as const;
 
-export const calculatePath = (tokenAddress: `0x${string}` | string, fromAddress?: `0x${string}` | string) => {
+export const calculatePath = (tokenAddress: `0x${string}`, fromAddress?: `0x${string}`) => {
   if (tokenAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
     if (fromAddress) {
       return encodePacked(["address", "uint24", "address"], [fromAddress, 10000, PROTOCOL_DEPLOYMENT.lens.Bonsai]);
     }
     return encodePacked(
       ["address", "uint24", "address"],
-      [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai],
+      [WGHO_CONTRACT_ADDRESS, 10000, PROTOCOL_DEPLOYMENT.lens.Bonsai],
     );
   }
   if (fromAddress === PROTOCOL_DEPLOYMENT.lens.Bonsai) {
@@ -26,7 +26,7 @@ export const calculatePath = (tokenAddress: `0x${string}` | string, fromAddress?
   }
   return encodePacked(
     ["address", "uint24", "address", "uint24", "address"],
-    [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, tokenAddress],
+    [WGHO_CONTRACT_ADDRESS, 10000, PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, tokenAddress],
   );
 };
 
@@ -35,12 +35,17 @@ export const calculatePath = (tokenAddress: `0x${string}` | string, fromAddress?
  * @param walletClient
  * @param amountOut Amount of BONSAI desired
  */
-export const swapGhoForBonsai = async (walletClient: any, amountOut: bigint, account: string, amountIn?: bigint) => {
+export const swapGhoForBonsai = async (
+  walletClient: any,
+  amountOut: bigint,
+  account: `0x${string}`,
+  amountIn?: bigint,
+) => {
   const quoteResult = amountIn
     ? { amount: amountIn }
     : // If no amountIn, get quote for amountOut, reverse path
       await quoteExactOutput(
-        encodePacked(["address", "uint24", "address"], [PROTOCOL_DEPLOYMENT.lens.Bonsai, 3000, WGHO_CONTRACT_ADDRESS]),
+        encodePacked(["address", "uint24", "address"], [PROTOCOL_DEPLOYMENT.lens.Bonsai, 10000, WGHO_CONTRACT_ADDRESS]),
         amountOut,
         account,
       );

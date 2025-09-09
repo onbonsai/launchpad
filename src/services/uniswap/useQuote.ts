@@ -93,7 +93,7 @@ export async function quoteExactInput(
 export async function quoteExactOutput(
   path: `0x${string}`,
   amountOut: bigint,
-  account?: `0x${string}` | string,
+  account?: `0x${string}`,
 ): Promise<QuoteResult> {
   try {
     const { result } = await publicClient("lens").simulateContract({

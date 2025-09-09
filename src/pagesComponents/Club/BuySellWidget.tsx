@@ -31,23 +31,10 @@ import { Header as HeaderText, Header2 as Header2Text } from "@src/styles/text";
 import { useRouter } from "next/router";
 import { haptics } from "@src/utils/haptics";
 import { localizeNumber } from "@src/constants/utils";
-import {
-  ACTION_HUB_ADDRESS,
-  getChain,
-  IS_PRODUCTION,
-  lens,
-  LENS_BONSAI_DEFAULT_FEED,
-  LENS_GLOBAL_FEED,
-  lensTestnet,
-  PROTOCOL_DEPLOYMENT,
-} from "@src/services/madfi/utils";
-import ActionHubAbi from "@src/services/madfi/abi/ActionHub.json";
-import { calculatePath, PARAM__CLIENT_ADDRESS, PARAM__REFERRALS } from "@src/services/lens/rewardSwap";
-import { PARAM__AMOUNT_OUT_MINIMUM } from "@src/services/lens/rewardSwap";
-import { PARAM__AMOUNT_IN } from "@src/services/lens/rewardSwap";
-import { PARAM__PATH } from "@src/services/lens/rewardSwap";
+import { getChain, IS_PRODUCTION, lens, lensTestnet, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
+import { calculatePath } from "@src/services/lens/rewardSwap";
 import useQuoter from "@src/services/uniswap/useQuote";
-import { getPostId } from "@src/services/lens/getStats";
+import { swapTokens, SWAP_ROUTER_CONTRACT_ADDRESS } from "@src/services/uniswap/swap";
 import { MatchaSwapWidget } from "@src/components/Matcha/MatchaSwapWidget";
 
 export const BuySellWidget = ({
@@ -368,44 +355,30 @@ export const BuySellWidget = ({
       }
 
       const parsedBuyPrice = parseUnits(buyPrice, _DECIMALS);
+
+      // For graduated tokens, use Uniswap directly
+      const tokenIn = useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : quoteTokenAddress;
+
+      // Approve the swap router instead of RewardSwap
       await approveToken(
-        useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : quoteTokenAddress,
+        tokenIn,
         parsedBuyPrice,
         walletClient,
         toastId,
         undefined,
         club.chain,
-        PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+        SWAP_ROUTER_CONTRACT_ADDRESS,
       );
 
       toastId = toast.loading("Buying", { id: toastId });
       let _buyAmount = quoteResult[0];
-      const hash = await walletClient!.writeContract({
-        address: ACTION_HUB_ADDRESS,
-        abi: ActionHubAbi,
-        functionName: "executePostAction",
-        args: [
-          PROTOCOL_DEPLOYMENT.lens.RewardSwap,
-          // if output is Bonsai, use the global feed, since its a specific post
-          club.tokenAddress == PROTOCOL_DEPLOYMENT.lens.Bonsai ? LENS_GLOBAL_FEED : LENS_BONSAI_DEFAULT_FEED,
-          postId ? await getPostId(postId) : SWAP_TO_BONSAI_POST_ID,
-          [
-            {
-              key: PARAM__PATH,
-              value: encodeAbiParameters(
-                [{ type: "bytes" }],
-                [calculatePath(club.tokenAddress, useBonsaiAsInput ? PROTOCOL_DEPLOYMENT.lens.Bonsai : undefined)],
-              ),
-            },
-            { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: "uint256" }], [parsedBuyPrice]) },
-            {
-              key: PARAM__AMOUNT_OUT_MINIMUM,
-              value: encodeAbiParameters([{ type: "uint256" }], [(9n * quoteResult[0]) / 10n]),
-            },
-            { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
-            { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: "address[]" }], [[]]) },
-          ],
-        ],
+
+      // Use the new Uniswap swap function for graduated tokens
+      const hash = await swapTokens(walletClient!, {
+        tokenIn: tokenIn,
+        tokenOut: club.tokenAddress,
+        amountIn: buyPrice, // Pass as string, will be parsed inside swapTokens
+        recipient: address,
       });
 
       await publicClient("lens").waitForTransactionReceipt({ hash });
@@ -461,6 +434,8 @@ export const BuySellWidget = ({
       }
 
       const parsedSellAmount = parseUnits(sellAmount, _DECIMALS);
+
+      // Approve the swap router instead of RewardSwap
       await approveToken(
         club.tokenAddress,
         parsedSellAmount,
@@ -468,37 +443,18 @@ export const BuySellWidget = ({
         toastId,
         undefined,
         club.chain,
-        PROTOCOL_DEPLOYMENT.lens.RewardSwap,
+        SWAP_ROUTER_CONTRACT_ADDRESS,
       );
 
       toastId = toast.loading("Selling", { id: toastId });
       let _buyAmount = quoteResult[0];
-      const hash = await walletClient!.writeContract({
-        address: ACTION_HUB_ADDRESS,
-        abi: ActionHubAbi,
-        functionName: "executePostAction",
-        args: [
-          PROTOCOL_DEPLOYMENT.lens.RewardSwap,
-          // use the global feed and specific post
-          LENS_GLOBAL_FEED,
-          SWAP_TO_BONSAI_POST_ID,
-          [
-            {
-              key: PARAM__PATH,
-              value: encodeAbiParameters(
-                [{ type: "bytes" }],
-                [calculatePath(PROTOCOL_DEPLOYMENT.lens.Bonsai, club.tokenAddress)],
-              ),
-            },
-            { key: PARAM__AMOUNT_IN, value: encodeAbiParameters([{ type: "uint256" }], [parsedSellAmount]) },
-            {
-              key: PARAM__AMOUNT_OUT_MINIMUM,
-              value: encodeAbiParameters([{ type: "uint256" }], [(9n * quoteResult[0]) / 10n]),
-            },
-            { key: PARAM__CLIENT_ADDRESS, value: encodeAbiParameters([{ type: "address" }], [zeroAddress]) },
-            { key: PARAM__REFERRALS, value: encodeAbiParameters([{ type: "address[]" }], [[]]) },
-          ],
-        ],
+
+      // Use the new Uniswap swap function for graduated tokens
+      const hash = await swapTokens(walletClient!, {
+        tokenIn: club.tokenAddress,
+        tokenOut: PROTOCOL_DEPLOYMENT.lens.Bonsai,
+        amountIn: sellAmount, // Pass as string, will be parsed inside swapTokens
+        recipient: address,
       });
 
       await publicClient("lens").waitForTransactionReceipt({ hash });
