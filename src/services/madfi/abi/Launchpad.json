@@ -1,5 +1,16 @@
 [
   {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_owner", "type": "address", "internalType": "address" },
+      { "name": "_quoteToken", "type": "address", "internalType": "address" },
+      { "name": "_defaultHook", "type": "address", "internalType": "address" },
+      { "name": "_feeWaiverNFT", "type": "address", "internalType": "address" },
+      { "name": "_bondedPairingToken", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
     "type": "function",
     "name": "buyChips",
     "inputs": [
@@ -69,20 +80,6 @@
     ],
     "outputs": [{ "name": "price", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "initialize",
-    "inputs": [
-      { "name": "_owner", "type": "address", "internalType": "address" },
-      { "name": "_quoteToken", "type": "address", "internalType": "address" },
-      { "name": "_defaultHook", "type": "address", "internalType": "address" },
-      { "name": "_bonsaiNFT", "type": "address", "internalType": "address" },
-      { "name": "_bonsaiToken", "type": "address", "internalType": "address" },
-      { "name": "_lastClubId", "type": "uint256", "internalType": "uint256" }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -215,7 +212,8 @@
       { "name": "_clientFeeBps", "type": "uint16", "internalType": "uint16" },
       { "name": "_registrationCost", "type": "uint256", "internalType": "uint256" },
       { "name": "_quoteTokenPercentForPool", "type": "uint256", "internalType": "uint256" },
-      { "name": "_lpManager", "type": "address", "internalType": "address" }
+      { "name": "_lpManager", "type": "address", "internalType": "address" },
+      { "name": "_executor", "type": "address", "internalType": "address" }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
@@ -307,14 +305,9 @@
       { "name": "protocolFee", "type": "uint16", "indexed": false, "internalType": "uint16" },
       { "name": "creatorFee", "type": "uint16", "indexed": false, "internalType": "uint16" },
       { "name": "clientFee", "type": "uint16", "indexed": false, "internalType": "uint16" },
-      { "name": "lpManager", "type": "address", "indexed": false, "internalType": "address" }
+      { "name": "lpManager", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "executor", "type": "address", "indexed": false, "internalType": "address" }
     ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Initialized",
-    "inputs": [{ "name": "version", "type": "uint64", "indexed": false, "internalType": "uint64" }],
     "anonymous": false
   },
   {
@@ -379,13 +372,12 @@
   { "type": "error", "name": "InsufficientOutputAmount", "inputs": [] },
   { "type": "error", "name": "InsufficientPayment", "inputs": [] },
   { "type": "error", "name": "InvalidHook", "inputs": [] },
-  { "type": "error", "name": "InvalidInitialization", "inputs": [] },
   { "type": "error", "name": "InvalidQuoteToken", "inputs": [] },
   { "type": "error", "name": "InvalidRegistrationParam", "inputs": [] },
   { "type": "error", "name": "NotAllowed", "inputs": [] },
-  { "type": "error", "name": "NotInitializing", "inputs": [] },
   { "type": "error", "name": "NotRegistered", "inputs": [] },
   { "type": "error", "name": "NotWhitelisted", "inputs": [] },
+  { "type": "error", "name": "OnlyExecutor", "inputs": [] },
   {
     "type": "error",
     "name": "OwnableInvalidOwner",

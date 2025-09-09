@@ -79,19 +79,7 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
     queryFn: async ({ pageParam = { base: 0, lens: 0 } }) => {
       try {
         // Fetch from both chains in parallel
-        const [baseRes, lensRes] = await Promise.all([
-          getRegisteredClubs(pageParam.base, sortedBy, 'base'),
-          getRegisteredClubs(pageParam.lens, sortedBy, 'lens')
-        ]);
-
-        // Transform and combine the results
-        const baseClubs = (baseRes.clubs || []).map(club => ({
-          ...club,
-          publication: club.publication,
-          club: omit(club, 'publication'),
-          chain: 'base',
-          sortingMarketCap: BigInt(club.marketCap || "0")
-        }));
+        const lensRes = await getRegisteredClubs(pageParam.lens, sortedBy, 'lens')
 
         const lensClubs = (lensRes.clubs || []).map(club => ({
           ...club,
@@ -101,22 +89,20 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
           sortingMarketCap: BigInt(BigInt(club.marketCap) / BigInt(10 ** 12) || "0")
         }));
 
-        const _combinedClubs = [...lensClubs, ...baseClubs];
-
         // Combine and sort the clubs according to sortedBy parameter
         const combinedClubs = sortedBy === "sortingMarketCap"
-          ? _combinedClubs.sort((a, b) => {
+          ? lensClubs.sort((a, b) => {
               const marketCapA = a.sortingMarketCap;
               const marketCapB = b.sortingMarketCap;
               return marketCapB > marketCapA ? 1 : -1;
             })
           : sortedBy === "publication.stats.collects"
-          ? _combinedClubs.sort((a, b) => {
+          ? lensClubs.sort((a, b) => {
               const collectsA = a.publication?.stats?.collects || 0;
               const collectsB = b.publication?.stats?.collects || 0;
               return collectsB - collectsA;
             })
-          : _combinedClubs.sort((a, b) => {
+          : lensClubs.sort((a, b) => {
               const timeA = new Date(a.club.createdAt).getTime();
               const timeB = new Date(b.club.createdAt).getTime();
               return timeB - timeA;
@@ -125,17 +111,16 @@ export const useGetRegisteredClubs = (sortedBy: string) => {
         return {
           clubs: combinedClubs,
           nextPage: {
-            base: baseRes.hasMore ? pageParam.base + 1 : pageParam.base,
             lens: lensRes.hasMore ? pageParam.lens + 1 : pageParam.lens,
           },
-          hasMore: (baseRes.hasMore || lensRes.hasMore) && combinedClubs.length > 0
+          hasMore: lensRes.hasMore && combinedClubs.length > 0
         };
       } catch (error) {
         console.error('Failed to fetch clubs:', error);
         throw error;
       }
     },
-    initialPageParam: { base: 0, lens: 0 },
+    initialPageParam: { lens: 0 },
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextPage : undefined,
     refetchInterval: 60000,

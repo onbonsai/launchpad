@@ -27,7 +27,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
     // v2 with token vesting fix
     BonsaiLaunchpadFix: "0xEd724DAD5e23C8e3E9A8dB8D252825F86E8Dd5b5",
     CreatorNFTFix: "0xF8154ad1e28c216d5b8A0FA37a8bB1fe417E1c70",
-    RevenueSplitter: "0x21aF1185734D213D45C6236146fb81E2b0E8b821",
+    RevenueSplitter: "0xcccb97b148ae30bfbc29e831278778f0b24cf044",
   },
   lens: {
     Bonsai: "0x795cc31B44834Ff1F72F7db73985f9159Bd51ac2",
@@ -43,7 +43,7 @@ const PROTOCOL_DEPLOYMENT_TESTNET: ProtocolDeployment = {
     CreatorNFTFix: "0xc860899A6006d0be1e86E534242E4F1542e501A1",
     PeripheryFix: "0xf3CD5925F22A08A54652e9d44CB804bC59498a54",
     StakingRewards: "0x652fA04CfaD90c06DF785c6eD3A404176b1b4dd1",
-    RevenueSplitter: "0x21aF1185734D213D45C6236146fb81E2b0E8b821",
+    RevenueSplitter: "0xcccb97b148ae30bfbc29e831278778f0b24cf044",
   },
 };
 
@@ -56,23 +56,23 @@ const PROTOCOL_DEPLOYMENT_MAINNET: ProtocolDeployment = {
     // v2 with token vesting fix
     BonsaiLaunchpadFix: "0x1EEC8b1338d36f189D8bc075d801bbd4b0d04caa",
     CreatorNFTFix: "0xfC9A94c0788511356EFF2E304b9258a3688A899e",
-    RevenueSplitter: "0x4188C0a51825473704A9eFF23aE26dE63FF696B9",
+    RevenueSplitter: "0xcccb97b148ae30bfbc29e831278778f0b24cf044",
   },
   lens: {
-    Bonsai: "0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82",
+    Bonsai: "0x302AC2BF6D20572F125e21bEB83e5a4e5F1Fe4B5",
     BonsaiNFT: "0x40df0F8C263885093DCCEb4698DE3580FC0C9D49",
-    BonsaiLaunchpad: "0xe86B6e5381C2641c2dfA247628481f1dEd18DCC7",
-    CreatorNFT: "0xb7ab564e86CC2b898A8003554815E1f464BE4D74",
-    Periphery: "0x1C091216341e03a0A03Ed45fE052AEc66CF0d4ae",
+    BonsaiLaunchpad: "0x609910215d39485c0CC3b9745777209BbF4b05c7",
+    CreatorNFT: "0xDfe6F129F33207cCCf3DaA8A10Ad1929edCAB4Fc",
+    Periphery: "0x7D3bbcE32892Af1eE12dd7F760a0A5c4f2B18EaE",
     Staking: "0xD51C163134Fd3f2403AD68860C02B123503bf3BD",
     AccountTokenClaim: "0xDD25E29840daB77Daab42FeEB4174364A89037d1",
     RewardSwap: "0x80Dc28a9Dc227ee5EC717C509c8d6ceB7Bd43C25",
     // v3 with token vesting fix
-    BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
-    CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
-    PeripheryFix: "0x59b8e5a2141db6e39d19EEbE33Fcb9714c2FF719",
-    StakingRewards: "0x7BeB726Bb3D1E7249d6cdF6B5B08E40Cb6D4F284",
-    RevenueSplitter: "0x33890D6Ca047F212f4F0dAAF4AA74900B2Ee4838",
+    // BonsaiLaunchpadFix: "0xaB7311a413a39C4F640D152Eec00f70eD3889066",
+    // CreatorNFTFix: "0xA89102015780aE5aBF460811FB1bb246d4f5cc18",
+    // PeripheryFix: "0x59b8e5a2141db6e39d19EEbE33Fcb9714c2FF719",
+    // StakingRewards: "0x7BeB726Bb3D1E7249d6cdF6B5B08E40Cb6D4F284",
+    RevenueSplitter: "0xcccb97b148ae30bfbc29e831278778f0b24cf044",
   },
 };
 
@@ -107,55 +107,8 @@ export const BONSAI_NAMESPACE = IS_PRODUCTION
 // HELPER FUNCTIONS FOR CORRECT LAUNCHPAD DEPLOYMENT
 type ContractType = "BonsaiLaunchpad" | "CreatorNFT" | "Periphery";
 
-interface ContractThresholds {
-  base: {
-    [key in ContractType]: number;
-  };
-  lens: {
-    [key in ContractType]: number;
-  };
-}
-
-const MAINNET_THRESHOLDS: ContractThresholds = {
-  base: {
-    BonsaiLaunchpad: 306,
-    CreatorNFT: 306,
-    Periphery: 306,
-  },
-  lens: {
-    BonsaiLaunchpad: 177,
-    CreatorNFT: 177,
-    Periphery: 177,
-  },
-};
-
-const TESTNET_THRESHOLDS: ContractThresholds = {
-  base: {
-    BonsaiLaunchpad: 22,
-    CreatorNFT: 22,
-    Periphery: 22,
-  },
-  lens: {
-    BonsaiLaunchpad: 51,
-    CreatorNFT: 51,
-    Periphery: 51,
-  },
-};
-
-export const CONTRACT_THRESHOLDS = IS_PRODUCTION ? MAINNET_THRESHOLDS : TESTNET_THRESHOLDS;
-
-export const getLaunchpadAddress = (contractType: ContractType, clubId: number | string, chain: string): `0x${string}` => {
+export const getLaunchpadAddress = (contractType: ContractType, chain = "lens"): `0x${string}` => {
   const deployment = IS_PRODUCTION ? PROTOCOL_DEPLOYMENT_MAINNET : PROTOCOL_DEPLOYMENT_TESTNET;
 
-  const chainKey = chain === "base" ? "base" : "lens";
-
-  // Special case: clubId 0 always uses the fixed version
-  if (Number(clubId) === 0) {
-    return deployment[chainKey][`${contractType}Fix`];
-  }
-
-  const threshold = CONTRACT_THRESHOLDS[chainKey][contractType];
-  const contractKey = Number(clubId) <= threshold ? contractType : `${contractType}Fix`;
-
-  return deployment[chainKey][contractKey];
+  return deployment[chain][contractType];
 };

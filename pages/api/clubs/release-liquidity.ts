@@ -11,9 +11,15 @@ import {
   WGHO_CONTRACT_ADDRESS,
   getRegisteredClubById,
 } from "@src/services/madfi/moneyClubs";
-import { IS_PRODUCTION, lensTestnet, lens, PROTOCOL_DEPLOYMENT, getChain, getLaunchpadAddress } from "@src/services/madfi/utils";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
-import BonsaiLaunchpadV3Abi from "@src/services/madfi/abi/BonsaiLaunchpadV3.json";
+import {
+  IS_PRODUCTION,
+  lensTestnet,
+  lens,
+  PROTOCOL_DEPLOYMENT,
+  getChain,
+  getLaunchpadAddress,
+} from "@src/services/madfi/utils";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/Launchpad.json";
 import RewardSwapAbi from "@src/services/madfi/abi/RewardSwap.json";
 import VestingERC20Abi from "@src/services/madfi/abi/VestingERC20.json";
 
@@ -23,34 +29,16 @@ const getPath = (chain: string) => {
   // TODO: this is only for base, lens will need to be updated when v4 is available
   const swapInfoV4 = IS_PRODUCTION
     ? {
-        path: chain === "base" ? [
-          {
-            intermediateCurrency: zeroAddress,
-            fee: 500,
-            tickSpacing: 10,
-            hooks: zeroAddress,
-            hookData: "0x",
-          },
-          {
-            intermediateCurrency: BONSAI_TOKEN_BASE_ADDRESS,
-            fee: "10000", // "0x800000",
-            tickSpacing: 200,
-            hooks: zeroAddress, // DEFAULT_HOOK_ADDRESS,
-            hookData: "0x",
-          },
-        ] : [],
+        path: [],
         router: "0x6fF5693b99212Da76ad316178A184AB56D299b43",
         // TODO: add v4 addresses for lens when available
-        ...(chain === "lens"
-          ? {
-              posm: "0x0000000000000000000000000000000000000000",
-              poolManager: "0x0000000000000000000000000000000000000000",
-              allowanceTransfer: "0x000000000022D473030F116dDEE9F6B43aC78BA3", // TODO: add v4 addresses for lens when available
-              hookData: "0x",
-            }
-          : {}),
+        posm: "0x0000000000000000000000000000000000000000",
+        poolManager: "0x0000000000000000000000000000000000000000",
+        allowanceTransfer: "0x000000000022D473030F116dDEE9F6B43aC78BA3", // TODO: add v4 addresses for lens when available
+        hookData: "0x",
       }
-    : {
+    : // Base testnet outdated
+      {
         path: [
           {
             intermediateCurrency: "0x1d3C6386F05ed330c1a53A31Bb11d410AeD094dF",
@@ -74,7 +62,7 @@ const getPath = (chain: string) => {
   const swapInfoV3 = {
     path: encodePacked(
       ["address", "uint24", "address"],
-      [WGHO_CONTRACT_ADDRESS, 3000, PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`],
+      [WGHO_CONTRACT_ADDRESS, 10000, PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`],
     ),
     router: "0x6ddD32cd941041D8b61df213B9f515A7D288Dc13",
     positionManager: "0xC5d0CAaE8aa00032F6DA993A69Ffa6ff80b5F031",
@@ -92,23 +80,13 @@ const minLiquidityThreshold = {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    let { clubId, clubCreator, tokenAddress, tokenPrice, chain } = req.body;
+    let { clubId, clubCreator, tokenAddress, chain } = req.body;
 
     const account = privateKeyToAccount(process.env.OWNER_PRIVATE_KEY as `0x${string}`);
-    const walletClient = createWalletClient({ account, chain: getChain(chain || "base"), transport: http() });
+    const walletClient = createWalletClient({ account, chain: getChain(chain || "lens"), transport: http() });
 
     // approximate a reasonable minAmountOut based on current price
-    const club = chain === "lens" ? await getRegisteredClubById(clubId, chain) : null;
-    const minAmountOut = IS_PRODUCTION
-      ? parseEther(
-          (
-            // 0.82 *
-            0.25 * // liquidity is shit rn
-            (chain === "base" ? Number(MIN_LIQUIDITY_THRESHOLD) : minLiquidityThreshold[club.initialPrice]) *
-            tokenPrice
-          ).toString(),
-        )
-      : 0;
+    const minAmountOut = 0; // TODO: add back in when theres liquidity
 
     const { swapInfoV3, swapInfoV4 } = getPath(chain);
 
@@ -118,8 +96,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       args = [clubId, minAmountOut, swapInfoV3, swapInfoV4, true];
     }
     const hash = await walletClient.writeContract({
-      address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
-      abi: chain === "base" ? BonsaiLaunchpadAbi : BonsaiLaunchpadV3Abi,
+      address: getLaunchpadAddress("BonsaiLaunchpad", chain),
+      abi: BonsaiLaunchpadAbi,
       functionName: "releaseLiquidity",
       args,
       gas: 1000000n,

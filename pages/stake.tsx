@@ -218,10 +218,10 @@ const TokenPage: NextPage = () => {
                     <div>
                       {isConnected ? (
                         <>
-                          <div className="text-2xl font-bold text-secondary">{formattedBalance} $BONSAI</div>
+                          <div className="text-2xl font-bold text-secondary">{formattedBalance} $IASNOB</div>
                           <p className="text-xs text-secondary/60">${tokenHoldings.toFixed(2)}</p>
                           <div className="mt-4 flex justify-end space-x-2">
-                            <Button
+                            {/* <Button
                               variant="dark-grey"
                               size="sm"
                               onClick={() => setIsBridgeModalOpen(true)}
@@ -234,9 +234,12 @@ const TokenPage: NextPage = () => {
                                   <span>Bridging</span>
                                 </div>
                               )}
-                            </Button>
-                            <Button variant="accent" size="sm" onClick={() => setShowBuyModal(true)}>
+                            </Button> */}
+                            {/* <Button variant="accent" size="sm" onClick={() => setShowBuyModal(true)}>
                               Buy $BONSAI
+                            </Button> */}
+                            <Button variant="accent" size="sm" onClick={() => window.open("https://oku.trade/?inputChain=lens&inToken=0x6bDc36E20D267Ff0dd6097799f82e78907105e2F&outToken=0x302AC2BF6D20572F125e21bEB83e5a4e5F1Fe4B5", "_blank")}>
+                              Buy $IASNOB
                             </Button>
                           </div>
                         </>

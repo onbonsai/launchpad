@@ -81,8 +81,8 @@ const PP = () => {
                 </li>
                 <li>
                   <strong>Website</strong> refers to the App, accessible from{" "}
-                  <a href="https://app.onbons.ai/" rel="external nofollow noopener" target="_blank">
-                    https://app.onbons.ai/
+                  <a href="https://launch.onbons.ai/" rel="external nofollow noopener" target="_blank">
+                    https://launch.onbons.ai/
                   </a>
                 </li>
                 <li>

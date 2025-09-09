@@ -1,7 +1,7 @@
 import { http, createConfig, cookieStorage, createStorage } from "wagmi";
 import { polygon, base, baseSepolia, mainnet, zkSync } from "viem/chains";
 import { getDefaultConfig } from "connectkit";
-import { farcasterFrame as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
+import { farcasterFrame as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 
 import { ChainRpcs } from "@src/constants/chains";
 import { lens, lensTestnet } from "@src/services/madfi/utils";
@@ -26,9 +26,9 @@ export const config = (isMiniApp?: boolean) => {
       walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
       appName: "Bonsai",
       appDescription: "Create & monetize AI media",
-      appUrl: IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai",
+      appUrl: IS_PRODUCTION ? "https://launch.onbons.ai" : "https://testnet.onbons.ai",
       appIcon: "/static/images/logo.png",
-    }
+    };
     const defaultConfig = getDefaultConfig(options as any);
     defaultConfig.ssr = true;
     defaultConfig.storage = createStorage({ storage: cookieStorage });

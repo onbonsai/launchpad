@@ -164,7 +164,7 @@ export default ({ bonsaiBalance, onBridge, bridgeInfo }) => {
     <div className="space-y-6 md:min-w-[450px] text-secondary font-sf-pro-text">
       <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
-          Bridge $BONSAI
+          Bridge $IASNOB
         </Dialog.Title>
       </div>
       {isLoading && (

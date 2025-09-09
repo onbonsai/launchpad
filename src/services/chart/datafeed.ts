@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { decodeAbiParameters, decodeEventLog } from "viem";
 import { subgraphClient, publicClient } from "../madfi/moneyClubs";
 import { getBondingCurveTrades, formatTrades } from "./getChartData";
-import BonsaiLaunchpadAbi from "./../madfi/abi/BonsaiLaunchpad.json";
+import BonsaiLaunchpadAbi from "./../madfi/abi/Launchpad.json";
 import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "../madfi/utils";
 
 const EXCHANGE_BONDING_CURVE = "Bonsai";
@@ -156,7 +156,7 @@ export const createDatafeed = (chain: string) => {
 
       const client = publicClient();
       const unwatch = client.watchContractEvent({
-        address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
+        address: getLaunchpadAddress("BonsaiLaunchpad", chain),
         abi: BonsaiLaunchpadAbi,
         eventName: "Trade",
         args: { clubId },
@@ -203,7 +203,7 @@ export const createDatafeed = (chain: string) => {
             console.log('[Chart] Page restored from bfcache - resuming chart subscription');
             // Resubscribe to the same contract event
             const newUnwatch = client.watchContractEvent({
-              address: getLaunchpadAddress("BonsaiLaunchpad", clubId, chain),
+              address: getLaunchpadAddress("BonsaiLaunchpad", chain),
               abi: BonsaiLaunchpadAbi,
               eventName: "Trade",
               args: { clubId },

@@ -117,14 +117,6 @@ const IndexPage: NextPage = () => {
                           <CreatorButton text="1 BONSAI NFT" image={'nft-example.png'} />
                         </div>
                       </div>
-                      {/* <Button
-                        className="mt-6"
-                        size="sm"
-                        onClick={() => setOpenBuyModal(true)}
-                        disabled={!isConnected}
-                      >
-                        Buy $BONSAI
-                      </Button> */}
                     </div>
                   </div>
                 )}
