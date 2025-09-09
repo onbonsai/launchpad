@@ -54,11 +54,11 @@ const NETWORK_OPTIONS: NetworkOption[] = [
     label: 'Lens',
     icon: '/lens.webp'
   },
-  {
-    value: 'base',
-    label: 'Base',
-    icon: '/base.webp'
-  }
+  // {
+  //   value: 'base',
+  //   label: 'Base',
+  //   icon: '/base.webp'
+  // }
 ];
 
 const LENS_PRICING_TIERS = {
