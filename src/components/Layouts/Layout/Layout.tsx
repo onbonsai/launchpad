@@ -6,6 +6,7 @@ import PWAInstallPrompt from "../../PWAInstallPrompt";
 import OfflineIndicator from "../../OfflineIndicator";
 import { Footer } from "@src/components/Footer/Footer";
 import { useAccount } from "wagmi";
+import MigrationBanner from "../../MigrationBanner";
 
 // Context to allow toggling chat from anywhere
 export const ChatSidebarContext = createContext<{
@@ -71,6 +72,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
       <div
         className={`${brandFont.className} min-h-screen flex flex-col relative transition-all duration-300`}
       >
+        <MigrationBanner />
         <OfflineIndicator />
         <Header />
         <div className="relative flex-1 flex flex-col w-full max-w-full flex-grow min-h-full transition-transform duration-300">
