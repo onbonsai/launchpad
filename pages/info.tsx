@@ -324,7 +324,8 @@ const Help = () => {
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
                             <p className="text-lg text-secondary">
-                              $BONSAI was originally created on Polygon but has been sunsetted in favor of IASNOB to create improved distribution and tokenomics. BONSAI NFTs still grant you 0 trading fees.
+                              $BONSAI was originally created on Polygon but has been sunsetted in favor of IASNOB to
+                              create improved distribution and tokenomics. BONSAI NFTs still grant you 0 trading fees.
                             </p>
                             <p className="text-lg text-secondary mt-4">
                               The original supply was airdropped to active Lens users in March 2024. Team and private
@@ -415,7 +416,7 @@ const Help = () => {
                                 className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={lensScanUrl(getLaunchpadAddress("CreatorNFT", 0, "lens"), false)}
+                                href={lensScanUrl(getLaunchpadAddress("CreatorNFT", "lens"), false)}
                               >
                                 Lens: {getLaunchpadAddress("CreatorNFT", "lens")}
                               </a>

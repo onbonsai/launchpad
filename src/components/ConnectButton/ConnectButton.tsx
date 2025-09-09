@@ -1,8 +1,8 @@
 import { FC, useMemo, useState, useEffect } from "react";
 import useIsMounted from "@src/hooks/useIsMounted";
-import { styled } from '@mui/material/styles';
+import { styled } from "@mui/material/styles";
 import { useAccount, useDisconnect, useWalletClient } from "wagmi";
-import { Menu as MuiMenu, MenuItem as MuiMenuItem } from '@mui/material';
+import { Menu as MuiMenu, MenuItem as MuiMenuItem } from "@mui/material";
 import { useModal } from "connectkit";
 
 import { Button } from "@components/Button";
@@ -18,27 +18,27 @@ import { useIsMiniApp } from "@src/hooks/useIsMiniApp";
 import Image from "next/image";
 
 const Menu = styled(MuiMenu)(({ theme }) => ({
-  '& .MuiPaper-root': {
-    border: 'none',
-    backgroundColor: '#262626',
-    borderRadius: '12px',
-    margin: '4px',
-    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
-    '& .MuiMenu-list': {
-      padding: '4px',
-      backgroundColor: '#262626',
-      color: '#FFFFFF', // white text
+  "& .MuiPaper-root": {
+    border: "none",
+    backgroundColor: "#262626",
+    borderRadius: "12px",
+    margin: "4px",
+    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.15)",
+    "& .MuiMenu-list": {
+      padding: "4px",
+      backgroundColor: "#262626",
+      color: "#FFFFFF", // white text
     },
-  }
+  },
 }));
 
 const MenuItem = styled(MuiMenuItem)(({ theme }) => ({
-  padding: '10px 8px',
-  borderRadius: '12px',
-  minWidth: '115px',
-  position: 'relative',
+  padding: "10px 8px",
+  borderRadius: "12px",
+  minWidth: "115px",
+  position: "relative",
   fontFamily: brandFont.style.fontFamily,
-  fontSize: '14px',
+  fontSize: "14px",
 }));
 
 interface Props {
@@ -71,8 +71,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   const router = useRouter();
 
   const identity = useMemo(() => {
-    if (authenticatedProfile)
-      return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name
+    if (authenticatedProfile) return authenticatedProfile.username?.localName || authenticatedProfile.metadata?.name;
     if (isMiniApp && farcasterContext?.user) {
       return `@${farcasterContext.user.username}`;
     }
@@ -83,7 +82,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
 
   const profilePicture = useMemo(() => {
     if (authenticatedProfile) {
-      return getProfileImage(authenticatedProfile)
+      return getProfileImage(authenticatedProfile);
     }
     if (isMiniApp && farcasterContext?.user?.pfpUrl) {
       return farcasterContext.user.pfpUrl;
@@ -106,7 +105,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
   if (!isMounted) return null;
 
   if (!isConnected) {
-  // if (!connected || !isConnected) {
+    // if (!connected || !isConnected) {
     return (
       <Button
         variant="accent"
@@ -137,10 +136,18 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
           <div
             className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-lg min-w-fit justify-end overflow-hidden`}
             onClick={handleClick}
-            style={{ maxWidth: 'calc(100vw - 20px)' }}
+            style={{ maxWidth: "calc(100vw - 20px)" }}
           >
             <span className="flex items-center shrink min-w-0">
-              {profilePicture && <img src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
+              {profilePicture && (
+                <img
+                  src={profilePicture ?? ""}
+                  alt="profile"
+                  className="w-9 h-9 rounded-[10px]"
+                  width={36}
+                  height={36}
+                />
+              )}
               <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
                 {identity}
               </span>
@@ -153,15 +160,17 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
           </div>
           <Menu
             anchorEl={anchorEl}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
             open={open}
             onClose={handleClose}
           >
-            <MenuItem onClick={() => {
-              handleClose();
-              router.push("/stake");
-            }}>
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                router.push("/stake");
+              }}
+            >
               Stake
             </MenuItem>
 
@@ -187,7 +196,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       >
         Login
       </Button>
-    )
+    );
   }
 
   return (
@@ -195,10 +204,12 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       <div
         className={`flex h-10 bg-button py-[2px] pl-[2px] items-center cursor-pointer hover:opacity-90 rounded-lg min-w-fit justify-end overflow-hidden`}
         onClick={handleClick}
-        style={{ maxWidth: 'calc(100vw - 20px)' }} // Ensure the container does not exceed the viewport width
+        style={{ maxWidth: "calc(100vw - 20px)" }} // Ensure the container does not exceed the viewport width
       >
         <span className="flex items-center shrink min-w-0">
-          {profilePicture && <Image src={profilePicture ?? ''} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />}
+          {profilePicture && (
+            <Image src={profilePicture ?? ""} alt="profile" className="w-9 h-9 rounded-[10px]" width={36} height={36} />
+          )}
           <span className="pl-3 pr-[6px] text-white font-medium text-base whitespace-nowrap overflow-hidden text-ellipsis">
             {identity}
           </span>
@@ -211,39 +222,59 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
       </div>
       <Menu
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
         open={open}
         onClose={handleClose}
       >
         {authenticatedProfile?.username?.localName && (
-          <MenuItem onClick={() => {
-            handleClose();
-            router.push(`/profile/${authenticatedProfile?.username?.localName}`);
-          }}>
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              router.push(`/profile/${authenticatedProfile?.username?.localName}`);
+            }}
+          >
             View profile
           </MenuItem>
         )}
-        <MenuItem onClick={() => {
-          handleClose();
-          router.push("/stake");
-        }}>
-          Stake
-        </MenuItem>
         {authenticatedProfile?.username?.localName && (
-          <MenuItem onClick={() => {
-            handleClose();
-            router.push(`/profile/${authenticatedProfile?.username?.localName}?settings=true`);
-          }}>
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              router.push(`/profile/${authenticatedProfile?.username?.localName}?settings=true`);
+            }}
+          >
             Settings
           </MenuItem>
         )}
 
         <hr className="border-white/10 " />
-        <MenuItem onClick={() => {
-          disconnect();
-          handleClose();
-        }}>
+
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            router.push("/stake");
+          }}
+        >
+          Stake
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            router.push("/custody");
+          }}
+        >
+          Custody
+        </MenuItem>
+
+        <hr className="border-white/10 " />
+
+        <MenuItem
+          onClick={() => {
+            disconnect();
+            handleClose();
+          }}
+        >
           Log out
         </MenuItem>
       </Menu>
