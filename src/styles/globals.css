@@ -337,6 +337,7 @@ header .bonsaiLogo {
   font-size: 0px;
   text-indent: -50000em;
   transition: filter 0.3s ease;
+  transform: rotate(180deg);
 }
 
 .bonsaiLogoPattern {
@@ -347,6 +348,7 @@ header .bonsaiLogo {
   background-size: 100% auto;
   font-size: 0px;
   transition: filter 0.3s ease;
+  transform: rotate(180deg);
 }
 
 .bonsaiLogoPattern:hover {

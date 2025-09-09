@@ -69,7 +69,7 @@ export const fetchTokenMetadata = async (tokenAddress: string, network: "lens" |
     return {
       name: "Bonsai",
       symbol: "BONSAI",
-      logo: "https://app.onbons.ai/logo-spaced.webp",
+      logo: "https://launch.onbons.ai/logo-spaced.webp",
       decimals: 18,
       network,
     };

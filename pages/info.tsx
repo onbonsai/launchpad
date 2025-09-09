@@ -56,9 +56,9 @@ const Help = () => {
             <div className="flex-grow">
               {/* Header Card */}
               <div className="bg-card rounded-lg p-6">
-                <Header2>Bonsai</Header2>
+                <Header2>IASNOB</Header2>
                 <Subtitle className="mt-2 text-lg">
-                  Bonsai is a meme coin for Lens and a launchpad for new coins.
+                  IASNOB is a meme coin for Lens and a launchpad for new coins.
                 </Subtitle>
               </div>
 
@@ -87,7 +87,7 @@ const Help = () => {
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
                             <p className="text-lg text-secondary mb-2">
-                              Bonsai Launchpad allows anyone to create a token on Base and Lens chains
+                              IASNOB Launchpad allows anyone to create a token on Lens chain
                             </p>
                             <p className="mt-4 text-lg text-secondary">
                               Docs:
@@ -149,7 +149,7 @@ const Help = () => {
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>Bonding curves are priced in USDC/Wrapped GHO for easier fiat onramp</li>
                               <li>Sniper protection through early flat pricing and creator-defined vesting</li>
-                              <li>Value accrual for $BONSAI holders: graduated tokens are paired with $BONSAI</li>
+                              <li>Value accrual for $IASNOB holders: graduated tokens are paired with $IASNOB</li>
                               <li>
                                 Utility for Bonsai NFT holders: no trading fees on bonding curves and tokens that
                                 graduate to Uniswap v4
@@ -166,7 +166,7 @@ const Help = () => {
                             </ul>
                             <p className="text-lg text-secondary pt-8">Trading tokens</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
-                              <li>Tokens are traded in USDC on Base and Wrapped GHO on Lens.</li>
+                              <li>Tokens are traded in Wrapped GHO on Lens.</li>
                               <li>
                                 The first 200 million tokens are sold at a flat price. After that, the price is set by
                                 the bonding curve formula
@@ -176,37 +176,11 @@ const Help = () => {
                                 in liquidity raised)
                               </li>
                               <li>
-                                The USDC/WGHO is swapped into $BONSAI and paired with 200m newly minted tokens on
-                                Uniswap v4 for a total supply of 1 billion tokens
+                                The WGHO is swapped into $IASNOB and paired with 200m newly minted tokens on Uniswap v4
+                                for a total supply of 1 billion tokens
                               </li>
                             </ul>
-                            <p className="text-lg text-secondary pt-8">
-                              Creating from the{" "}
-                              <Link href="https://orb.club/c/bonsai" target="_blank" rel="noreferrer">
-                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">
-                                  Bonsai Club on Orb
-                                </span>
-                              </Link>
-                            </p>
-                            <ul className="list-disc pl-5 mt-4 text-lg/70">
-                              <li>
-                                Tag @bons_ai in a post with your token image. For example: "hey @bons_ai create the
-                                token $BLONDE for all the blondes out there"
-                              </li>
-                              <li>Our agent will create your token and reply with a component for you to buy</li>
-                              <li>
-                                You need 10k $BONSAI tokens to join the Bonsai Club. You can buy some on{" "}
-                                <Link
-                                  href="https://app.uniswap.org/explore/tokens/base/0x474f4cb764df9da079D94052fED39625c147C12C?chain=base"
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  <span className="link link-hover text-brand-highlight/80 cursor-pointer">
-                                    Uniswap
-                                  </span>
-                                </Link>
-                              </li>
-                            </ul>
+                            <ul className="list-disc pl-5 mt-4 text-lg/70"></ul>
                             <p className="text-lg text-secondary pt-8">Fees</p>
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>
@@ -225,7 +199,7 @@ const Help = () => {
                             <p className="text-lg text-secondary pt-8">Hooks</p>
                             <p className="text-lg/70 mt-4 text-secondary">
                               Uniswap v4 allows for token pools to be instantiated with Hooks - smart contracts that
-                              execute custom logic before or after transfers
+                              execute custom logic before or after transfers. NOT
                             </p>
                             <li>Our default hook removes trading fees for Bonsai NFT holders</li>
                             <li>
@@ -235,19 +209,8 @@ const Help = () => {
                                   submit their hook
                                 </span>
                               </Link>{" "}
-                              so Bonsai Launchpad users can use it
+                              so IASNOB Launchpad users can use it
                             </li>
-                            <p className="text-lg text-secondary pt-8">
-                              Tokens from V1 Launchpad are tradeable on{" "}
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                href={V1_LAUNCHPAD_URL}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {V1_LAUNCHPAD_URL}
-                              </a>
-                            </p>
                           </Disclosure.Panel>
                         </DisclosurePanelWithTransition>
                       </>
@@ -323,7 +286,7 @@ const Help = () => {
                             <ul className="list-disc pl-5 mt-4 text-lg/70">
                               <li>
                                 Your Lens account is a smart account that has its own wallet. In order to collect posts
-                                you needs $BONSAI in your Lens wallet.
+                                you needs $IASNOB in your Lens wallet.
                               </li>
                               <li>
                                 Collected posts are stored on the wallet that owns the Lens account. This is most likely
@@ -361,39 +324,12 @@ const Help = () => {
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
                             <p className="text-lg text-secondary">
-                              $BONSAI was originally created on Polygon and is now live on Base and Lens chain. You can
-                              view the token on{" "}
-                              <Link
-                                href="https://www.coingecko.com/en/coins/bonsai-token"
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">
-                                  CoinGecko
-                                </span>
-                              </Link>
-                              .
+                              $BONSAI was originally created on Polygon but has been sunsetted in favor of IASNOB to create improved distribution and tokenomics. BONSAI NFTs still grant you 0 trading fees.
                             </p>
                             <p className="text-lg text-secondary mt-4">
                               The original supply was airdropped to active Lens users in March 2024. Team and private
                               sale allocations are vesting on Superfluid on Polygon starting April 2024 for 18 months
                               with a 6-month cliff.
-                            </p>
-                            <p className="text-lg text-secondary mt-4">
-                              Treasury Address (Polygon):{" "}
-                              <Link
-                                href="https://polygonscan.com/address/0xFf9730b6534087d07692c1262F916521966244E6"
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                <span className="link link-hover text-brand-highlight/80 cursor-pointer">
-                                  0xFf9730b6534087d07692c1262F916521966244E6
-                                </span>
-                              </Link>
-                            </p>
-                            <p className="text-lg text-secondary mt-4">
-                              $BONSAI, together with our app and Smart Media Protocol are designed to generate
-                              sustainable revenue for the project, creators, and users.
                             </p>
                             <p className="text-lg text-secondary mt-4">
                               <Link
@@ -437,16 +373,7 @@ const Help = () => {
                         <DisclosurePanelWithTransition>
                           <Disclosure.Panel className="p-2">
                             <p className="mt-4 text-lg text-secondary">
-                              Bonsai Token
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
-                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.Bonsai, false)}
-                              >
-                                Base: {PROTOCOL_DEPLOYMENT.base.Bonsai}
-                              </a>
+                              IASNOB Token
                               <br />
                               <a
                                 className="link link-hover text-brand-highlight/80"
@@ -464,15 +391,6 @@ const Help = () => {
                                 className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.BonsaiNFT, false)}
-                              >
-                                Base: {PROTOCOL_DEPLOYMENT.base.BonsaiNFT}
-                              </a>
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
                                 href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.BonsaiNFT, false)}
                               >
                                 Lens: {PROTOCOL_DEPLOYMENT.lens.BonsaiNFT}
@@ -485,18 +403,9 @@ const Help = () => {
                                 className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={baseScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "base"), false)}
+                                href={lensScanUrl(getLaunchpadAddress("BonsaiLaunchpad", "lens"), false)}
                               >
-                                Base: {getLaunchpadAddress("BonsaiLaunchpad", 0, "base")}
-                              </a>
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
-                                href={lensScanUrl(getLaunchpadAddress("BonsaiLaunchpad", 0, "lens"), false)}
-                              >
-                                Lens: {getLaunchpadAddress("BonsaiLaunchpad", 0, "lens")}
+                                Lens: {getLaunchpadAddress("BonsaiLaunchpad", "lens")}
                               </a>
                             </p>
                             <p className="mt-4 text-lg text-secondary">
@@ -506,18 +415,9 @@ const Help = () => {
                                 className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={baseScanUrl(getLaunchpadAddress("CreatorNFT", 0, "base"), false)}
-                              >
-                                Base: {getLaunchpadAddress("CreatorNFT", 0, "base")}
-                              </a>
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
                                 href={lensScanUrl(getLaunchpadAddress("CreatorNFT", 0, "lens"), false)}
                               >
-                                Lens: {getLaunchpadAddress("CreatorNFT", 0, "lens")}
+                                Lens: {getLaunchpadAddress("CreatorNFT", "lens")}
                               </a>
                             </p>
                             <p className="mt-4 text-lg text-secondary">
@@ -527,13 +427,13 @@ const Help = () => {
                                 className="link link-hover text-brand-highlight/80"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={lensScanUrl(getLaunchpadAddress("Periphery", 0, "lens"), false)}
+                                href={lensScanUrl(getLaunchpadAddress("Periphery", "lens"), false)}
                               >
-                                Lens: {getLaunchpadAddress("Periphery", 0, "lens")}
+                                Lens: {getLaunchpadAddress("Periphery", "lens")}
                               </a>
                             </p>
                             <p className="mt-4 text-lg text-secondary">
-                              Staking
+                              Bonsai Staking
                               <br />
                               <a
                                 className="link link-hover text-brand-highlight/80"
@@ -542,27 +442,6 @@ const Help = () => {
                                 href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.Staking, false)}
                               >
                                 Lens: {PROTOCOL_DEPLOYMENT.lens.Staking}
-                              </a>
-                            </p>
-                            <p className="mt-4 text-lg text-secondary">
-                              RevenueSplitter
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
-                                href={baseScanUrl(PROTOCOL_DEPLOYMENT.base.RevenueSplitter, false)}
-                              >
-                                Base: {PROTOCOL_DEPLOYMENT.base.RevenueSplitter}
-                              </a>
-                              <br />
-                              <a
-                                className="link link-hover text-brand-highlight/80"
-                                target="_blank"
-                                rel="noreferrer"
-                                href={lensScanUrl(PROTOCOL_DEPLOYMENT.lens.RevenueSplitter, false)}
-                              >
-                                Lens: {PROTOCOL_DEPLOYMENT.base.RevenueSplitter}
                               </a>
                             </p>
                           </Disclosure.Panel>

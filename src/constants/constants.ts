@@ -4,7 +4,7 @@ export const MADFI_BANNER_IMAGE_SMALL =
   "https://link.storjshare.io/raw/jvnvg6pove7qyyfbyo5hqggdis6a/misc%2Fmadfi-banner.jpeg";
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || (IS_PRODUCTION ? "https://app.onbons.ai" : "https://testnet.onbons.ai");
+  process.env.NEXT_PUBLIC_SITE_URL || (IS_PRODUCTION ? "https://launch.onbons.ai" : "https://testnet.onbons.ai");
 
 export const MONGO_DB_CREATORS = "creators";
 export const MONGO_COLLECTION_BOUNTIES = `bounties${IS_PRODUCTION ? "" : "-testnet"}`;

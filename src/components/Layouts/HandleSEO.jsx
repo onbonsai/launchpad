@@ -255,12 +255,12 @@ const HandleSEO = ({ pageProps, query }) => {
       <meta name="twitter:description" content={description} key="twitter:description" />
 
       {/* All image-related tags grouped together */}
-      <meta property="og:image" content="https://app.onbons.ai/opengraph-image.jpg" key="og:image" />
-      <meta property="og:image:secure_url" content="https://app.onbons.ai/opengraph-image.jpg" key="og:image:secure_url" />
+      <meta property="og:image" content="https://launch.onbons.ai/opengraph-image.jpg" key="og:image" />
+      <meta property="og:image:secure_url" content="https://launch.onbons.ai/opengraph-image.jpg" key="og:image:secure_url" />
       <meta property="og:image:width" content="1200" key="og:image:width" />
       <meta property="og:image:height" content="630" key="og:image:height" />
       <meta property="og:image:alt" content="Bonsai" key="og:image:alt" />
-      <meta name="twitter:image" content="https://app.onbons.ai/opengraph-image.jpg" key="twitter:image" />
+      <meta name="twitter:image" content="https://launch.onbons.ai/opengraph-image.jpg" key="twitter:image" />
       <meta name="twitter:image:alt" content="Bonsai" key="twitter:image:alt" />
 
       {/* Additional OG tags */}

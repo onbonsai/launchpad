@@ -215,7 +215,7 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
     }
 
     const amountToTransfer = parseUnits(selectedOption.bonsai.toString(), DECIMALS);
-    const transferToastId = toast.loading(`Transferring ${formatEther(amountToTransfer)} $BONSAI to Lens account...`);
+    const transferToastId = toast.loading(`Transferring ${formatEther(amountToTransfer)} $IASNOB to Lens account...`);
 
     const transferResult = await walletClient.writeContract({
       address: PROTOCOL_DEPLOYMENT.lens.Bonsai,
@@ -248,7 +248,7 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
     >
       <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl font-bold">
-          Buy $BONSAI
+          Buy $IASNOB
         </Dialog.Title>
       </div>
 
@@ -264,7 +264,7 @@ export const TopUpModal = ({ requiredAmount }: TopUpModalProps) => {
             <div className="w-4 h-4">
               <Image src="/bonsai.png" alt="BONSAI" width={16} height={16} />
             </div>
-            <div className="font-semibold">{formattedBonsaiBalance} $BONSAI</div>
+            <div className="font-semibold">{formattedBonsaiBalance} $IASNOB</div>
           </div>
         </div>
         <div className="space-y-1 text-right">

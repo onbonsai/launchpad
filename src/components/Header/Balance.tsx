@@ -4,9 +4,6 @@ import { useAccount, useBalance, useReadContract, useSwitchChain, useWalletClien
 import { formatUnits, erc20Abi } from "viem";
 import clsx from "clsx";
 import {
-  USDC_DECIMALS,
-  CONTRACT_CHAIN_ID,
-  USDC_CONTRACT_ADDRESS,
   WGHO_CONTRACT_ADDRESS,
   WGHO_ABI,
   publicClient
@@ -39,19 +36,6 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
   const { switchChain } = useSwitchChain();
   const { openTopUpModal } = useTopUpModal();
   const {isMiniApp} = useIsMiniApp();
-
-  // USDC Balance
-  const { data: usdcBalance } = useReadContract({
-    address: USDC_CONTRACT_ADDRESS,
-    abi: erc20Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: "balanceOf",
-    args: [address!],
-    query: {
-      refetchInterval: 10000,
-      enabled: isConnected,
-    },
-  });
 
   // GHO Balance
   const { data: ghoBalance } = useBalance({
@@ -111,8 +95,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
     },
   });
 
-  const { usdcFormatted, ghoFormatted, wghoFormatted, bonsaiFormatted, totalFormatted, ghoLensFormatted, bonsaiLensFormatted } = useMemo(() => {
-    const usdcAmount = usdcBalance ? parseFloat(formatUnits(usdcBalance, USDC_DECIMALS)) : 0;
+  const { ghoFormatted, wghoFormatted, bonsaiFormatted, totalFormatted, ghoLensFormatted, bonsaiLensFormatted } = useMemo(() => {
     const wghoAmount = wghoBalance ? parseFloat(formatUnits(wghoBalance, 18)) : 0;
     const ghoAmount = ghoBalance ? parseFloat(formatUnits(ghoBalance.value, 18)) : 0;
     const ghoLensAmount = ghoBalanceLensAccount ? parseFloat(formatUnits(ghoBalanceLensAccount, 18)) : 0;
@@ -120,15 +103,14 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
     const bonsaiLensAmount = bonsaiBalanceLensAccount ? parseFloat(formatUnits(bonsaiBalanceLensAccount, 18)) : 0;
 
     return {
-      usdcFormatted: localizeNumber(usdcAmount, undefined, 2),
       ghoFormatted: localizeNumber(ghoAmount, undefined, 2),
       wghoFormatted: localizeNumber(wghoAmount, undefined, 2),
       ghoLensFormatted: localizeNumber(ghoLensAmount, undefined, 2),
       bonsaiFormatted: kFormatter(bonsaiAmount, undefined),
       bonsaiLensFormatted: kFormatter(bonsaiLensAmount, undefined),
-      totalFormatted: kFormatter(usdcAmount + wghoAmount + ghoAmount + ghoLensAmount), // TODO: need to get $ value for bonsai
+      totalFormatted: kFormatter(wghoAmount + ghoAmount + ghoLensAmount), // TODO: need to get $ value for bonsai
     };
-  }, [usdcBalance, wghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
+  }, [wghoBalance, ghoBalanceLensAccount, bonsaiBalance, bonsaiBalanceLensAccount]);
 
   const handleInteraction = (event: React.MouseEvent<HTMLDivElement>) => {
     if (isMobile) {
@@ -220,7 +202,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
           <div className="relative items-center ml-6">
             <Image src="/bonsai.png" alt="bonsai" className="object-cover absolute right-8 z-20" width={24} height={24}/>
             <Image src="/gho.webp" alt="gho" className="object-cover absolute right-4 z-10" width={24} height={24}/>
-            <Image src="/usdc.png" alt="usdc" className="object-cover relative" width={24} height={24}/>
+            <Image src="/usdc.png" alt="usdc" className="object-cover relative opacity-0" width={24} height={24}/>
           </div>
           <span className="ml-2">${totalFormatted}</span>
         </div>
@@ -283,7 +265,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                     <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
-                        <span className="text-sm text-zinc-400">BONSAI</span>
+                        <span className="text-sm text-zinc-400">IASNOB</span>
                       </div>
                       <p className="text-base md:text-lg font-bold">{bonsaiLensFormatted}</p>
                     </div>
@@ -336,7 +318,7 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                   <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Image src="/bonsai.png" alt="bonsai" className="rounded-full" width={20} height={20}/>
-                      <span className="text-sm text-zinc-400">BONSAI</span>
+                      <span className="text-sm text-zinc-400">IASNOB</span>
                     </div>
                     <p className="text-base md:text-lg font-bold">{bonsaiFormatted}</p>
                   </div>
@@ -398,14 +380,6 @@ export const Balance = ({ openMobileMenu }: { openMobileMenu?: boolean }) => {
                       </div>
                     </div>
                   )}
-
-                  <div className="p-2 md:p-3 rounded-md flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Image src="/usdc.png" alt="usdc" className="rounded-full" width={20} height={20}/>
-                      <span className="text-sm text-zinc-400">USDC (Base)</span>
-                    </div>
-                    <p className="text-base md:text-lg font-bold">{usdcFormatted}</p>
-                  </div>
                 </div>
               </div>
             </div>

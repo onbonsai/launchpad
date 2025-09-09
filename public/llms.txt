@@ -4,13 +4,11 @@ Bonsai is a next-gen social app & developer framework that allows anyone to crea
 
 # Content Types
 
-- User profile: https://app.onbons.ai/profile/{username}
-- Post: https://app.onbons.ai/post/{postSlug}
-- Token: https://app.onbons.ai/token/{chain}/{tokenAddress}
+- User profile: https://launch.onbons.ai/profile/{username}
+- Post: https://launch.onbons.ai/post/{postSlug}
+- Token: https://launch.onbons.ai/token/{chain}/{tokenAddress}
 
 # Additional Routes
-- Studio: https://app.onbons.ai/studio
-- Feed: https://app.onbons.ai/
-- Stake: https://app.onbons.ai/studio/stake
+- Feed: https://launch.onbons.ai/
 
 Sitemap: https://app.onbons.ai/sitemap.xml

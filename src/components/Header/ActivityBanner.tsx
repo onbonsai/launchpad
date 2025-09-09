@@ -3,7 +3,7 @@ import Link from "next/link";
 import { decodeEventLog, PublicClient, getAddress, decodeAbiParameters, createPublicClient, http } from "viem";
 import { groupBy } from "lodash/collection";
 import { publicClient, getRegisteredClubInfo, toHexString } from "@src/services/madfi/moneyClubs";
-import BonsaiLaunchpadAbi from "@src/services/madfi/abi/BonsaiLaunchpad.json";
+import BonsaiLaunchpadAbi from "@src/services/madfi/abi/Launchpad.json";
 import { getLaunchpadAddress, PROTOCOL_DEPLOYMENT } from "@src/services/madfi/utils";
 // import { getProfilesByOwners } from "@src/services/lens/getProfiles";
 import { shortAddress } from "@src/utils/utils";
@@ -139,7 +139,7 @@ export const ActivityBanner = () => {
   const initListenForClubTrades = async () => {
     const client = createPublicClient({ chain: mainnet, transport: http() });
     client.watchContractEvent({
-      address: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
+      address: getLaunchpadAddress("BonsaiLaunchpad", chain),
       abi: BonsaiLaunchpadAbi,
       eventName: "Trade",
       onLogs: (logs: any[]) => {
@@ -164,7 +164,7 @@ export const ActivityBanner = () => {
 
         const [_, __, ___, ____, _____, ______, tokenInfo] = (await client.readContract({
           abi: BonsaiLaunchpadAbi,
-          address: getLaunchpadAddress("BonsaiLaunchpad", Number(clubId), chain),
+          address: getLaunchpadAddress("BonsaiLaunchpad", chain),
           functionName: "registeredClubs",
           args: [clubId],
         })) as unknown[];
@@ -220,7 +220,7 @@ export const ActivityBanner = () => {
   const initListenForRegisteredClubs = async () => {
     const client = publicClient();
     client.watchContractEvent({
-      address: getLaunchpadAddress("BonsaiLaunchpad", 0, chain),
+      address: getLaunchpadAddress("BonsaiLaunchpad", chain),
       abi: BonsaiLaunchpadAbi,
       eventName: "RegisteredClub",
       onLogs: (logs: any[]) => {

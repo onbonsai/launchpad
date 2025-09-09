@@ -24,7 +24,7 @@ const CustomOption = ({ children, ...props }: any) => {
         </div>
         <span className="text-md text-gray-400 flex">{
             kFormatter(parseFloat(formatEther(data.balance || 0n)), true)
-          } $BONSAI</span>
+          } $IASNOB</span>
       </div>
     </components.Option>
   );

@@ -30,7 +30,7 @@ const hooksList = [
   },
   {
     name: "Buyback and Burn Hook",
-    description: "Collect 5% trading fee on every swap, only in $BONSAI, and perform a buyback and burn of the paired token every 500 swaps.",
+    description: "Collect 5% trading fee on every swap, only in $IASNOB, and perform a buyback and burn of the paired token every 500 swaps.",
     address: BUYBACK_AND_BURN_HOOK_ADDRESS,
     source: "https://github.com/onbonsai/univ4-hooks/blob/main/src/BuybackAndBurn.sol",
   },

@@ -214,6 +214,7 @@ const nextConfig = {
       "pink-splendid-urial-219.mypinata.cloud",
       "storage.googleapis.com",
       "app.onbons.ai",
+      "launch.onbons.ai",
       "onbonsai.mypinata.cloud",
       "token-media.defined.fi",
       "imagedelivery.net",
