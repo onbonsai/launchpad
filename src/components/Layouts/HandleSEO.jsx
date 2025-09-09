@@ -8,10 +8,10 @@ const frameDataTemplate = {
   version: "next",
   imageUrl: `${SITE_URL}/frameImage.jpg`,
   button: {
-    title: "Remix AI media",
+    title: "Launch coins on Lens Chain",
     action: {
       type: "launch_frame",
-      name: "Bonsai",
+      name: "IASNOB",
       // url: SITE_URL,
       splashImageUrl: `${SITE_URL}/splash.jpg`,
       splashBackgroundColor: "#000000",
@@ -51,7 +51,7 @@ const HandleSEO = ({ pageProps, query }) => {
     const handle = profile.username?.localName || profile.username || profile.metadata.name;
     const title = trimText(`@${handle}`, 45);
     const image = getProfileImage(profile);
-    const description = trimText("Profile on Bonsai", 45);
+    const description = trimText("Profile on IASNOB", 45);
     const absoluteImageUrl = getAbsoluteImageUrl(image);
     const profileUrl = `${SITE_URL}/profile/${handle}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?handle=${encodeURIComponent(handle)}`;
@@ -59,13 +59,13 @@ const HandleSEO = ({ pageProps, query }) => {
     const frameData = createFrameData(
       absoluteImageUrl,
       "View Profile",
-      `@${handle} on Bonsai`,
+      `@${handle} on IASNOB`,
       profileUrl
     );
 
     return (
       <Head>
-        {/* Critical SEO tags at the top with high priority */}
+        {/* Critical SEO tags at the top with high priority */}w
         <title key="title">{title}</title>
 
         {/* Twitter card and site first */}
@@ -93,7 +93,7 @@ const HandleSEO = ({ pageProps, query }) => {
 
         {/* Additional OG tags */}
         <meta property="og:locale" content="en_US" key="og:locale" />
-        <meta property="og:site_name" content="Bonsai" key="og:site_name" />
+        <meta property="og:site_name" content="IASNOB" key="og:site_name" />
 
         {/* Non-critical meta tags and links at the bottom */}
         <meta name="viewport" content="initial-scale=1, width=device-width" key="viewport" />
@@ -152,7 +152,7 @@ const HandleSEO = ({ pageProps, query }) => {
 
         {/* Additional OG tags */}
         <meta property="og:locale" content="en_US" key="og:locale" />
-        <meta property="og:site_name" content="Bonsai" key="og:site_name" />
+        <meta property="og:site_name" content="IASNOB" key="og:site_name" />
 
         {/* Non-critical meta tags and links at the bottom */}
         <meta name="viewport" content="initial-scale=1, width=device-width" key="viewport" />
@@ -169,7 +169,7 @@ const HandleSEO = ({ pageProps, query }) => {
   if (pageName === "token") {
     const { club } = pageProps;
     const title = `${club.token.name} ($${club.token.symbol})`;
-    const description = trimText(`Buy $${club.token.symbol} on Bonsai`, 45);
+    const description = trimText(`Buy $${club.token.symbol} on IASNOB`, 45);
     const absoluteImageUrl = getAbsoluteImageUrl(club.token.image);
     const tokenUrl = `${SITE_URL}/token/${club.chain}/${club.tokenAddress}`;
     const ogImageUrl = `${SITE_URL}/api/og-image?image=${encodeURIComponent(absoluteImageUrl)}`;
@@ -211,7 +211,7 @@ const HandleSEO = ({ pageProps, query }) => {
 
         {/* Additional OG tags */}
         <meta property="og:locale" content="en_US" key="og:locale" />
-        <meta property="og:site_name" content="Bonsai" key="og:site_name" />
+        <meta property="og:site_name" content="IASNOB" key="og:site_name" />
 
         {/* Non-critical meta tags and links at the bottom */}
         <meta name="viewport" content="initial-scale=1, width=device-width" key="viewport" />
@@ -238,7 +238,7 @@ const HandleSEO = ({ pageProps, query }) => {
   return (
     <Head>
       {/* Critical SEO tags at the top with high priority */}
-      <title key="title">Bonsai</title>
+      <title key="title">IASNOB</title>
 
       {/* Twitter card and site first */}
       <meta name="twitter:card" content="summary_large_image" key="twitter:card" />
@@ -249,9 +249,9 @@ const HandleSEO = ({ pageProps, query }) => {
       <meta property="og:url" content={SITE_URL} key="og:url" />
 
       {/* Title and description pairs */}
-      <meta property="og:title" content="Bonsai" key="og:title" />
+      <meta property="og:title" content="IASNOB" key="og:title" />
       <meta property="og:description" content={description} key="og:description" />
-      <meta name="twitter:title" content="Bonsai" key="twitter:title" />
+      <meta name="twitter:title" content="IASNOB" key="twitter:title" />
       <meta name="twitter:description" content={description} key="twitter:description" />
 
       {/* All image-related tags grouped together */}
@@ -259,13 +259,13 @@ const HandleSEO = ({ pageProps, query }) => {
       <meta property="og:image:secure_url" content="https://launch.onbons.ai/opengraph-image.jpg" key="og:image:secure_url" />
       <meta property="og:image:width" content="1200" key="og:image:width" />
       <meta property="og:image:height" content="630" key="og:image:height" />
-      <meta property="og:image:alt" content="Bonsai" key="og:image:alt" />
+      <meta property="og:image:alt" content="IASNOB" key="og:image:alt" />
       <meta name="twitter:image" content="https://launch.onbons.ai/opengraph-image.jpg" key="twitter:image" />
-      <meta name="twitter:image:alt" content="Bonsai" key="twitter:image:alt" />
+      <meta name="twitter:image:alt" content="IASNOB" key="twitter:image:alt" />
 
       {/* Additional OG tags */}
       <meta property="og:locale" content="en_US" key="og:locale" />
-      <meta property="og:site_name" content="Bonsai" key="og:site_name" />
+      <meta property="og:site_name" content="IASNOB" key="og:site_name" />
 
       {/* Non-critical meta tags and links at the bottom */}
       <meta name="viewport" content="initial-scale=1, width=device-width" key="viewport" />

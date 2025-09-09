@@ -191,13 +191,33 @@ const TokenPage: NextPage = () => {
                     <div className="flex space-x-2">
                       <Image
                         src="/bonsai.png"
+                        alt="iasnob"
+                        className="object-cover rounded-lg"
+                        height={24}
+                        width={24}
+                      />
+                      <Header2>IASNOB Token</Header2>
+                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
+                    </div>
+                    <Subtitle className="mt-2 md-plus:mt-4">
+                      $IASNOB replaced BONSAI on Lens Chain.
+                    </Subtitle>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-card rounded-lg p-6 relative">
+                <div className="flex flex-col ">
+                  <div className="flex flex-col">
+                    <div className="flex space-x-2">
+                      <Image
+                        src="/bonsai-copy.png"
                         alt="bonsai"
                         className="object-cover rounded-lg"
                         height={24}
                         width={24}
                       />
                       <Header2>Bonsai Token</Header2>
-                      <WalletButton wallet={PROTOCOL_DEPLOYMENT.lens.Bonsai} />
+                      <WalletButton wallet={"0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82"} />
                     </div>
                     <Subtitle className="mt-2 md-plus:mt-4">
                       $BONSAI staking is currently deprecated and in withdrawal only mode.
@@ -238,7 +258,16 @@ const TokenPage: NextPage = () => {
                             {/* <Button variant="accent" size="sm" onClick={() => setShowBuyModal(true)}>
                               Buy $BONSAI
                             </Button> */}
-                            <Button variant="accent" size="sm" onClick={() => window.open("https://oku.trade/?inputChain=lens&inToken=0x6bDc36E20D267Ff0dd6097799f82e78907105e2F&outToken=0x302AC2BF6D20572F125e21bEB83e5a4e5F1Fe4B5", "_blank")}>
+                            <Button
+                              variant="accent"
+                              size="sm"
+                              onClick={() =>
+                                window.open(
+                                  "https://oku.trade/?inputChain=lens&inToken=0x6bDc36E20D267Ff0dd6097799f82e78907105e2F&outToken=0x302AC2BF6D20572F125e21bEB83e5a4e5F1Fe4B5",
+                                  "_blank",
+                                )
+                              }
+                            >
                               Buy $IASNOB
                             </Button>
                           </div>
