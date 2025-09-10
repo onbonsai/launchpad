@@ -234,7 +234,7 @@ export const ConnectButton: FC<Props> = ({ className, setOpenSignInModal, autoLe
               router.push(`/profile/${authenticatedProfile?.username?.localName}`);
             }}
           >
-            View profile
+            Profile
           </MenuItem>
         )}
         {authenticatedProfile?.username?.localName && (

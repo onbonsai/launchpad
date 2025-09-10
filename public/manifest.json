@@ -1,7 +1,7 @@
 {
-  "name": "Bonsai Smart Media",
-  "short_name": "Bonsai",
-  "description": "A decentralized social media platform for creators and communities",
+  "name": "IASNOB",
+  "short_name": "IASNOB",
+  "description": "IASNOB is a meme coin for Lens and a launchpad for new coins.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en-US",
-  "categories": ["social", "finance", "entertainment"],
+  "categories": ["social", "finance", "entertainment", "meme", "lens"],
   "icons": [
     {
       "src": "/favicon.ico",
@@ -35,18 +35,6 @@
     }
   ],
   "shortcuts": [
-    {
-      "name": "Create Post",
-      "short_name": "Post",
-      "description": "Create a new post",
-      "url": "/studio/create",
-      "icons": [
-        {
-          "src": "/logo.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
     {
       "name": "Profile",
       "short_name": "Profile",

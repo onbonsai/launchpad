@@ -35,8 +35,8 @@ const BonsaiToken: Token = {
   address: PROTOCOL_DEPLOYMENT.lens.Bonsai as `0x${string}`,
   chain: "lens",
   metadata: {
-    name: "Bonsai",
-    symbol: "BONSAI",
+    name: "IASNOB",
+    symbol: "IASNOB",
     logo: "https://launch.onbons.ai/logo-spaced.webp",
     decimals: 18,
   },
