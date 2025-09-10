@@ -19,7 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!user) return res.status(403).json({ error: "Invalid lens id token" });
 
     const account = await getProfileByAddress((user.act as any)?.sub as `0x${string}`);
-    if (!account) return res.status(400).json({ error: "Account not found "});
+    if (!account) return res.status(400).json({ error: "Account not found " });
 
     let { txHash, postId, chain, tokenAddress } = req.body;
     if (!postId) return res.status(400).json({ error: "Missing postId" });
@@ -30,14 +30,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // If we have a txHash, verify it's from the launchpad and get the clubId
     if (txHash) {
-      const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({ hash: txHash });
+      const transactionReceipt: TransactionReceipt = await publicClient(chain).waitForTransactionReceipt({
+        hash: txHash,
+      });
       const registeredClubEvent = getEventFromReceipt({
         contractAddress: getLaunchpadAddress("BonsaiLaunchpad", chain),
         transactionReceipt,
         abi: BonsaiLaunchpadAbi,
         eventName: "RegisteredClub",
       });
-      const { clubId, tokenAddress: launchpadTokenAddress }: { clubId: bigint, tokenAddress: string } = registeredClubEvent?.args || {};
+      const { clubId, tokenAddress: launchpadTokenAddress }: { clubId: bigint; tokenAddress: string } =
+        registeredClubEvent?.args || {};
       if (!clubId) throw new Error("No registered club");
 
       tokenAddress = launchpadTokenAddress;
@@ -46,7 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await collection.updateOne(
         { clubId: parseInt(clubId.toString()) },
         { $setOnInsert: { postId, handle: account?.username?.localName, tokenAddress } },
-        { upsert: true }
+        { upsert: true },
       );
     } else {
       // For non-launchpad tokens, we need tokenAddress in the request
@@ -56,7 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await collection.updateOne(
         { tokenAddress, externalTokenChain: chain },
         { $setOnInsert: { postId, handle: account?.username?.localName } },
-        { upsert: true }
+        { upsert: true },
       );
     }
 

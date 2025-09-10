@@ -539,38 +539,21 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     })(),
     (async () => {
       let result;
-      if (chain === "base") {
-        const { collection } = await getClientWithClubs();
-        result = await collection.findOne(
-          { tokenAddress: getAddress(tokenAddress as string) },
-          {
-            projection: {
-              _id: 0,
-              featureEndAt: 1,
-              postId: 1,
-              pubId: 1,
-              profileId: 1,
-              handle: 1,
-              strategy: 1
-            }
+      const { collection } = await getClientWithClubs();
+      result = await collection.findOne(
+        { tokenAddress: getAddress(tokenAddress as string) },
+        {
+          projection: {
+            _id: 0,
+            featureEndAt: 1,
+            postId: 1,
+            pubId: 1,
+            profileId: 1,
+            handle: 1,
+            strategy: 1
           }
-        );
-      } else {
-        const { collection } = await getClientWithMedia();
-        result = await collection.findOne(
-          { "token.address": getAddress(tokenAddress as string) },
-          {
-            projection: {
-              _id: 0,
-              postId: 1,
-              pubId: 1,
-              profileId: 1,
-              handle: 1,
-              strategy: 1
-            }
-          }
-        );
-      }
+        }
+      );
       return result;
     })()
   ]);

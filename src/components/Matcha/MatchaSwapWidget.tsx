@@ -8,7 +8,7 @@ import { Button } from "@src/components/Button";
 import CurrencyInput from "@src/pagesComponents/Club/CurrencyInput";
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { USDC_CONTRACT_ADDRESS, USDC_DECIMALS, publicClient } from "@src/services/madfi/moneyClubs";
-import { kFormatter, roundedToFixed } from "@src/utils/utils";
+import { kFormatter } from "@src/utils/utils";
 
 interface MatchaSwapWidgetProps {
   tokenAddress: Address;

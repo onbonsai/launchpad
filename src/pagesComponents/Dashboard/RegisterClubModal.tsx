@@ -6,9 +6,9 @@ import { switchChain } from "viem/actions";
 import { erc20Abi, formatUnits, parseUnits, zeroAddress } from "viem";
 import { Dialog } from "@headlessui/react";
 import { InfoOutlined, ScheduleOutlined, SwapHoriz, LocalAtmOutlined, KeyboardArrowDown } from "@mui/icons-material";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
 
-import { Button } from "@src/components/Button"
+import { Button } from "@src/components/Button";
 import { Tooltip } from "@src/components/Tooltip";
 import { roundedToFixed } from "@src/utils/utils";
 import { useGetRegistrationFee } from "@src/hooks/useMoneyClubs";
@@ -43,16 +43,16 @@ import { immutable } from "@lens-chain/storage-client";
 import { storageClient } from "@src/services/lens/client";
 
 type NetworkOption = {
-  value: 'base' | 'lens';
+  value: "base" | "lens";
   label: string;
   icon: string;
 };
 
 const NETWORK_OPTIONS: NetworkOption[] = [
   {
-    value: 'lens',
-    label: 'Lens',
-    icon: '/lens.webp'
+    value: "lens",
+    label: "Lens",
+    icon: "/lens.webp",
   },
   // {
   //   value: 'base',
@@ -64,35 +64,35 @@ const NETWORK_OPTIONS: NetworkOption[] = [
 const LENS_PRICING_TIERS = {
   ...(!IS_PRODUCTION && {
     [PricingTier.TEST]: {
-      label: 'Test',
+      label: "Test",
       value: 1,
-      icon: 'local-atm',
-      iconLabel: '$1 to graduate'
+      icon: "local-atm",
+      iconLabel: "$1 to graduate",
     },
   }),
   [PricingTier.SMALL]: {
-    label: 'Small',
+    label: "Small",
     value: 6000,
-    icon: 'local-atm',
-    iconLabel: '$6k to graduate'
+    icon: "local-atm",
+    iconLabel: "$6k to graduate",
   },
   [PricingTier.MEDIUM]: {
-    label: 'Medium',
+    label: "Medium",
     value: 11000,
-    icon: 'local-atm',
-    iconLabel: '$11k to graduate'
+    icon: "local-atm",
+    iconLabel: "$11k to graduate",
   },
   [PricingTier.LARGE]: {
-    label: 'Large',
+    label: "Large",
     value: 21000,
-    icon: 'local-atm',
-    iconLabel: '$21k to graduate'
-  }
+    icon: "local-atm",
+    iconLabel: "$21k to graduate",
+  },
 };
 
 const NETWORK_CHAIN_IDS = {
-  'base': CONTRACT_CHAIN_ID,
-  'lens': IS_PRODUCTION ? 232 : 37111
+  base: CONTRACT_CHAIN_ID,
+  lens: IS_PRODUCTION ? 232 : 37111,
 } as const;
 
 export const RegisterClubModal = ({
@@ -115,7 +115,7 @@ export const RegisterClubModal = ({
   const [strategy, setStrategy] = useState<string>("lens");
   const [isBuying, setIsBuying] = useState(false);
   const [tokenImage, setTokenImage] = useState<any[]>([]);
-  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">('lens');
+  const [selectedNetwork, setSelectedNetwork] = useState<"lens" | "base">("lens");
   const [pricingTier, setPricingTier] = useState<string>("SMALL");
 
   const { data: authenticatedProfile } = useAuthenticatedLensProfile();
@@ -123,23 +123,15 @@ export const RegisterClubModal = ({
     initialSupply || 0,
     address,
     selectedNetwork,
-    selectedNetwork === 'lens' ? pricingTier : undefined,
+    selectedNetwork === "lens" ? pricingTier : undefined,
   );
-
-  const { data: usdcBalance } = useReadContract({
-    address: USDC_CONTRACT_ADDRESS,
-    abi: erc20Abi,
-    chainId: CONTRACT_CHAIN_ID,
-    functionName: 'balanceOf',
-    args: [address || zeroAddress],
-  });
 
   // Lens balances: WGHO (ERC20) + native GHO
   const { data: wghoBalance } = useReadContract({
     address: WGHO_CONTRACT_ADDRESS,
     abi: erc20Abi,
     chainId: LENS_CHAIN_ID,
-    functionName: 'balanceOf',
+    functionName: "balanceOf",
     args: [address || zeroAddress],
   });
 
@@ -147,38 +139,42 @@ export const RegisterClubModal = ({
     address,
     chainId: LENS_CHAIN_ID,
     query: {
-      enabled: selectedNetwork === 'lens',
+      enabled: selectedNetwork === "lens",
       refetchInterval: 10000,
-    }
+    },
   });
 
-  const stableDecimals = selectedNetwork === 'lens' ? 18 : USDC_DECIMALS;
+  const stableDecimals = selectedNetwork === "lens" ? 18 : USDC_DECIMALS;
 
   const registrationCost = BigInt(0);
 
-  const buyPriceFormatted = useMemo(() => (
-    roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4)
-  ), [totalRegistrationFee, isLoadingRegistrationFee, stableDecimals]);
+  const buyPriceFormatted = useMemo(
+    () => roundedToFixed(parseFloat(formatUnits(totalRegistrationFee || 0n, stableDecimals)), 4),
+    [totalRegistrationFee, isLoadingRegistrationFee, stableDecimals],
+  );
 
-  const registrationFee = useMemo(() => (
-    bonsaiNftBalance > 0n ? '0' : (registrationCost?.toString() || '-')
-  ), [registrationCost]);
+  const registrationFee = useMemo(
+    () => (bonsaiNftBalance > 0n ? "0" : registrationCost?.toString() || "-"),
+    [registrationCost],
+  );
 
-  const combinedStableBalance = selectedNetwork === 'lens'
-    ? ((ghoBalance?.value || 0n) + (wghoBalance || 0n))
-    : (usdcBalance || 0n);
+  const combinedStableBalance = selectedNetwork === "lens" ? (ghoBalance?.value || 0n) + (wghoBalance || 0n) : 0n;
 
-  console.log(tokenImage, !!tokenImage)
-
-  const isValid = tokenName && tokenSymbol && combinedStableBalance >= (totalRegistrationFee || 0n) && !!tokenImage && tokenImage.length > 0 && ((initialSupply || 0) <= MAX_INITIAL_SUPPLY)
+  const isValid =
+    tokenName &&
+    tokenSymbol &&
+    combinedStableBalance >= (totalRegistrationFee || 0n) &&
+    !!tokenImage &&
+    tokenImage.length > 0 &&
+    (initialSupply || 0) <= MAX_INITIAL_SUPPLY;
 
   const convertVestingDurationToSeconds = (duration: number, unit: string): number => {
     switch (unit) {
-      case 'hours':
+      case "hours":
         return duration * 3600;
-      case 'days':
+      case "days":
         return duration * 3600 * 24;
-      case 'weeks':
+      case "weeks":
         return duration * 3600 * 24 * 7;
       default:
         return 0; // Default case to handle unexpected units
@@ -204,28 +200,37 @@ export const RegisterClubModal = ({
     try {
       if (totalRegistrationFee && totalRegistrationFee > 0n) {
         await approveToken(
-          selectedNetwork === 'base' ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
+          selectedNetwork === "base" ? USDC_CONTRACT_ADDRESS : WGHO_CONTRACT_ADDRESS,
           totalRegistrationFee!,
           walletClient,
           toastId,
           "Approving tokens...",
-          selectedNetwork
-        )
+          selectedNetwork,
+        );
       }
 
       toastId = toast.loading("Creating token...");
-      const { gatewayUrl: _tokenImage } = await storageClient.uploadFile(tokenImage[0], { acl: immutable(LENS_CHAIN_ID) });
+      const { gatewayUrl: _tokenImage } = await storageClient.uploadFile(tokenImage[0], {
+        acl: immutable(LENS_CHAIN_ID),
+      });
 
-      const { clubId, txHash, tokenAddress } = await registerClubTransaction(walletClient, {
-        initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
-        tokenName,
-        tokenSymbol,
-        tokenImage: _tokenImage,
-        hook: selectedNetwork === 'base' ? WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}` : zeroAddress,
-        cliffPercent: vestingCliff * 100,
-        vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit),
-        pricingTier: selectedNetwork === 'lens' ? pricingTier as PricingTier : undefined,
-      }, selectedNetwork);
+      const { clubId, txHash, tokenAddress } = await registerClubTransaction(
+        walletClient,
+        {
+          initialSupply: parseUnits((initialSupply || 0).toString(), DECIMALS).toString(),
+          tokenName,
+          tokenSymbol,
+          tokenImage: _tokenImage,
+          hook:
+            selectedNetwork === "base"
+              ? (WHITELISTED_UNI_HOOKS[uniHook].contractAddress as `0x${string}`)
+              : zeroAddress,
+          cliffPercent: vestingCliff * 100,
+          vestingDuration: convertVestingDurationToSeconds(vestingDuration, vestingDurationUnit),
+          pricingTier: selectedNetwork === "lens" ? (pricingTier as PricingTier) : undefined,
+        },
+        selectedNetwork,
+      );
       if (!clubId) throw new Error("failed");
 
       let postId;
@@ -239,7 +244,9 @@ export const RegisterClubModal = ({
       await setLensData({
         hash: txHash as string,
         postId,
-        handle: authenticatedProfile?.username?.localName ? authenticatedProfile.username.localName : address as string,
+        handle: authenticatedProfile?.username?.localName
+          ? authenticatedProfile.username.localName
+          : (address as string),
         chain: selectedNetwork,
         tokenAddress: tokenAddress as string, // Added required tokenAddress property
       });
@@ -267,11 +274,7 @@ export const RegisterClubModal = ({
 ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
 
       const sessionClient = await resumeSession();
-      const result = await createPost(
-        sessionClient as SessionClient,
-        walletClient,
-        { text }
-      );
+      const result = await createPost(sessionClient as SessionClient, walletClient, { text });
 
       return result?.postId;
     } catch (error) {
@@ -279,64 +282,77 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
     }
   };
 
-  const sharedInputClasses = 'bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm';
+  const sharedInputClasses =
+    "bg-card-light rounded-lg text-white text-[16px] tracking-[-0.02em] leading-5 placeholder:text-secondary/70 border-transparent focus:border-transparent focus:ring-dark-grey sm:text-sm";
 
-  const networkOptions = useMemo(() => [{
-    // label: "Networks",
-    options: NETWORK_OPTIONS.map(option => ({
-      value: option.value,
-      label: option.label
-    }))
-  }], []);
+  const networkOptions = useMemo(
+    () => [
+      {
+        // label: "Networks",
+        options: NETWORK_OPTIONS.map((option) => ({
+          value: option.value,
+          label: option.label,
+        })),
+      },
+    ],
+    [],
+  );
 
-  const vestingDurationOptions = useMemo(() => [{
-    label: "",
-    options: [
-      { value: "hours", label: "Hours" },
-      { value: "days", label: "Days" },
-      { value: "weeks", label: "Weeks" }
-    ]
-  }], []);
+  const vestingDurationOptions = useMemo(
+    () => [
+      {
+        label: "",
+        options: [
+          { value: "hours", label: "Hours" },
+          { value: "days", label: "Days" },
+          { value: "weeks", label: "Weeks" },
+        ],
+      },
+    ],
+    [],
+  );
 
   return (
-    <div className={clsx("flex flex-col md:w-[448px] w-full")}
+    <div
+      className={clsx("flex flex-col md:w-[448px] w-full")}
       style={{
         fontFamily: brandFont.style.fontFamily,
-      }}>
+      }}
+    >
       <div className="flex items-center justify-between">
         <Dialog.Title as="h2" className="text-2xl leading-7 font-bold">
           Create a token
         </Dialog.Title>
       </div>
-      <form
-        className="mt-5 mx-auto md:w-[448px] w-full space-y-4 divide-y divide-dark-grey"
-      >
+      <form className="mt-5 mx-auto md:w-[448px] w-full space-y-4 divide-y divide-dark-grey">
         <div className="space-y-2">
           <div className="grid grid-cols-1 gap-y-5 gap-x-8">
             {/* Network Selector */}
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Network
-                  </Subtitle>
+                  <Subtitle className="text-white/70">Network</Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Select the network where you want to create your token. Different networks may have different options." direction="right">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                      />
+                    <Tooltip
+                      message="Select the network where you want to create your token. Different networks may have different options."
+                      direction="right"
+                    >
+                      <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
                     </Tooltip>
                   </div>
                 </div>
                 <div className="relative">
                   <SelectDropdown
                     options={networkOptions}
-                    value={networkOptions[0].options.find(opt => opt.value === selectedNetwork) || networkOptions[0].options[0]}
+                    value={
+                      networkOptions[0].options.find((opt) => opt.value === selectedNetwork) ||
+                      networkOptions[0].options[0]
+                    }
                     onChange={(option) => {
-                      const network = option.value as 'base' | 'lens';
+                      const network = option.value as "base" | "lens";
                       setSelectedNetwork(network);
-                      if (network === 'lens') {
-                        setUniHook(''); // or some default value
+                      if (network === "lens") {
+                        setUniHook(""); // or some default value
                       }
                     }}
                     isMulti={false}
@@ -390,14 +406,13 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Name
-                  </Subtitle>
+                  <Subtitle className="text-white/70">Name</Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker" direction="right">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                      />
+                    <Tooltip
+                      message="Once your token reaches the liquidity threshold, a uni v4 pool will be created with this token name and ticker"
+                      direction="right"
+                    >
+                      <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
                     </Tooltip>
                   </div>
                 </div>
@@ -406,7 +421,10 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                     type="text"
                     value={tokenName}
                     className={clsx("w-full pr-4", sharedInputClasses)}
-                    onChange={(e) => { setTokenName(e.target.value); setTokenSymbol(e.target.value.substring(0, 6).toUpperCase()); }}
+                    onChange={(e) => {
+                      setTokenName(e.target.value);
+                      setTokenSymbol(e.target.value.substring(0, 6).toUpperCase());
+                    }}
                   />
                 </div>
               </div>
@@ -414,9 +432,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-3 flex flex-col">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70">
-                    Ticker
-                  </Subtitle>
+                  <Subtitle className="text-white/70">Ticker</Subtitle>
                   <div className="text-sm inline-block text-white/40">$</div>
                 </div>
                 <div>
@@ -433,9 +449,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-6 flex flex-col">
               <div className="flex flex-col justify-between">
                 <div className="flex items-center">
-                  <Subtitle className="text-white/70 mb-2">
-                    Token image
-                  </Subtitle>
+                  <Subtitle className="text-white/70 mb-2">Token image</Subtitle>
                 </div>
                 <div>
                   <ImageUploader files={tokenImage} setFiles={setTokenImage} maxFiles={1} />
@@ -446,14 +460,13 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-3 flex flex-col justify-start items-start">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70 mb-2">
-                    Vesting Cliff Unlock %
-                  </Subtitle>
+                  <Subtitle className="text-white/70 mb-2">Vesting Cliff Unlock %</Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="The % of tokens that are unlocked and immediately available after graduation" direction="top">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
-                      />
+                    <Tooltip
+                      message="The % of tokens that are unlocked and immediately available after graduation"
+                      direction="top"
+                    >
+                      <InfoOutlined className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1" />
                     </Tooltip>
                   </div>
                 </div>
@@ -462,7 +475,12 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                 <BondingCurveSelector
                   value={vestingCliff}
                   onChange={(type) => setVestingCliff(type)}
-                  options={[{ vestingCliff: 10, label: '10' }, { vestingCliff: 25, label: '25' }, { vestingCliff: 50, label: '50' }, { vestingCliff: 100, label: '100' }]}
+                  options={[
+                    { vestingCliff: 10, label: "10" },
+                    { vestingCliff: 25, label: "25" },
+                    { vestingCliff: 50, label: "50" },
+                    { vestingCliff: 100, label: "100" },
+                  ]}
                 />
               </div>
             </div>
@@ -470,14 +488,13 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             <div className="sm:col-span-3 flex flex-col justify-start items-start">
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex items-center gap-1">
-                  <Subtitle className="text-white/70 mb-2">
-                    Vesting Duration
-                  </Subtitle>
+                  <Subtitle className="text-white/70 mb-2">Vesting Duration</Subtitle>
                   <div className="text-sm inline-block">
-                    <Tooltip message="How long after graduation when the remaining tokens are 100% unlocked" direction="left">
-                      <InfoOutlined
-                        className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1"
-                      />
+                    <Tooltip
+                      message="How long after graduation when the remaining tokens are 100% unlocked"
+                      direction="left"
+                    >
+                      <InfoOutlined className="max-w-4 max-h-4 -mt-[8px] inline-block text-white/40 mr-1" />
                     </Tooltip>
                   </div>
                 </div>
@@ -496,7 +513,10 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                 <div className="col-span-3">
                   <SelectDropdown
                     options={vestingDurationOptions}
-                    value={vestingDurationOptions[0].options.find(opt => opt.value === vestingDurationUnit) || vestingDurationOptions[0].options[0]}
+                    value={
+                      vestingDurationOptions[0].options.find((opt) => opt.value === vestingDurationUnit) ||
+                      vestingDurationOptions[0].options[0]
+                    }
                     onChange={(option) => setVestingDurationUnit(option.value)}
                     isMulti={false}
                     zIndex={1001}
@@ -506,18 +526,17 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             </div>
 
             {/* Uniswap v4 Hook - Only show for Base network */}
-            {selectedNetwork === 'base' ? (
+            {selectedNetwork === "base" ? (
               <div className="sm:col-span-6 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
-                    <Subtitle className="text-white/70">
-                      Uniswap v4 Hook
-                    </Subtitle>
+                    <Subtitle className="text-white/70">Uniswap v4 Hook</Subtitle>
                     <div className="text-sm inline-block">
-                      <Tooltip message="Choose a Uni v4 hook to attach custom logic to your token once it graduates" direction="top">
-                        <InfoOutlined
-                          className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                        />
+                      <Tooltip
+                        message="Choose a Uni v4 hook to attach custom logic to your token once it graduates"
+                        direction="top"
+                      >
+                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
                       </Tooltip>
                     </div>
                   </div>
@@ -527,7 +546,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                         key={`hook-${key}`}
                         className={clsx(
                           "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-lg transition-all p-3",
-                          uniHook === key ? "" : "border-card-lightest"
+                          uniHook === key ? "" : "border-card-lightest",
                         )}
                         onClick={() => setUniHook(key)}
                       >
@@ -559,14 +578,13 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
               <div className="sm:col-span-6 flex flex-col">
                 <div className="flex flex-col justify-between gap-2">
                   <div className="flex items-center gap-1">
-                    <Subtitle className="text-white/70">
-                      Pricing Options
-                    </Subtitle>
+                    <Subtitle className="text-white/70">Pricing Options</Subtitle>
                     <div className="text-sm inline-block">
-                      <Tooltip message="Select the liquidity threshold required for your token to graduate" direction="top">
-                        <InfoOutlined
-                          className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1"
-                        />
+                      <Tooltip
+                        message="Select the liquidity threshold required for your token to graduate"
+                        direction="top"
+                      >
+                        <InfoOutlined className="max-w-4 max-h-4 -mt-[2px] inline-block text-white/40 mr-1" />
                       </Tooltip>
                     </div>
                   </div>
@@ -576,7 +594,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                         key={`tier-${key}`}
                         className={clsx(
                           "flex-shrink-0 w-48 cursor-pointer bg-card-light justify-center border-2 rounded-lg transition-all p-3",
-                          pricingTier === key ? "" : "border-card-lightest"
+                          pricingTier === key ? "" : "border-card-lightest",
                         )}
                         onClick={() => setPricingTier(key)}
                       >
@@ -602,14 +620,10 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
               <div className="flex flex-col justify-between gap-2">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-1">
-                    <Subtitle className="text-white/70">
-                      Buy initial supply
-                    </Subtitle>
+                    <Subtitle className="text-white/70">Buy initial supply</Subtitle>
                     <div className="text-sm inline-block">
                       <Tooltip message="Buying the initial supply is optional, but recommended" direction="top">
-                        <InfoOutlined
-                          className="max-w-4 max-h-4 inline-block text-white/40 mr-1"
-                        />
+                        <InfoOutlined className="max-w-4 max-h-4 inline-block text-white/40 mr-1" />
                       </Tooltip>
                     </div>
                   </div>
@@ -620,7 +634,7 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
                 <div className="relative flex flex-col space-y-1 gap-1">
                   <CurrencyInput
                     trailingAmount={`${buyPriceFormatted}`}
-                    trailingAmountSymbol={selectedNetwork === 'base' ? 'USDC' : 'GHO'}
+                    trailingAmountSymbol={selectedNetwork === "base" ? "USDC" : "GHO"}
                     tokenBalance={combinedStableBalance}
                     price={`${initialSupply}`}
                     isError={false}
@@ -638,7 +652,13 @@ ${SITE_URL}/token/${selectedNetwork}/${tokenAddress}`;
             </div>
           </div>
           <div className="pt-8 flex flex-col gap-4 justify-center items-center">
-            <Button size='md' disabled={isBuying || !isValid} onClick={registerClub} variant="accentBrand" className="w-full hover:bg-bullish">
+            <Button
+              size="md"
+              disabled={isBuying || !isValid}
+              onClick={registerClub}
+              variant="accentBrand"
+              className="w-full hover:bg-bullish"
+            >
               Create token
             </Button>
             {/* {initialSupply && initialSupply > MAX_INITIAL_SUPPLY
