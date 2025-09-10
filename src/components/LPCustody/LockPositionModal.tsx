@@ -5,7 +5,6 @@ import { Button } from "@src/components/Button";
 import { useLockPosition, LOCK_PERIODS } from "@src/hooks/useLPCustody";
 import Spinner from "@src/components/LoadingSpinner/LoadingSpinner";
 import toast from "react-hot-toast";
-import { isAddress } from "viem";
 
 interface LockPositionModalProps {
   open: boolean;
@@ -13,8 +12,9 @@ interface LockPositionModalProps {
   setOpen: (open: boolean) => void;
 }
 
+const defaultNftContract = "0xC5d0CAaE8aa00032F6DA993A69Ffa6ff80b5F031"; // Uniswap V3 NFT
+
 export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onClose, setOpen }) => {
-  const [nftContract, setNftContract] = useState("");
   const [tokenId, setTokenId] = useState("");
   const [lockPeriod, setLockPeriod] = useState(LOCK_PERIODS[0].value);
   const [isV3, setIsV3] = useState(true);
@@ -25,17 +25,13 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
 
   const handleLock = async () => {
     // Validate inputs
-    if (!isAddress(nftContract)) {
-      toast.error("Please enter a valid NFT contract address");
-      return;
-    }
 
     if (!tokenId || isNaN(Number(tokenId))) {
       toast.error("Please enter a valid token ID");
       return;
     }
 
-    const finalLockPeriod = useCustomPeriod 
+    const finalLockPeriod = useCustomPeriod
       ? Number(customPeriod) * 24 * 60 * 60 // Convert days to seconds
       : lockPeriod;
 
@@ -45,16 +41,10 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
     }
 
     try {
-      await lockPosition(
-        nftContract as `0x${string}`,
-        BigInt(tokenId),
-        BigInt(finalLockPeriod),
-        isV3
-      );
+      await lockPosition(defaultNftContract as `0x${string}`, BigInt(tokenId), BigInt(finalLockPeriod), isV3);
 
       // Reset form on success
       setTimeout(() => {
-        setNftContract("");
         setTokenId("");
         setLockPeriod(LOCK_PERIODS[0].value);
         setCustomPeriod("");
@@ -71,29 +61,14 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
       <div className="p-6">
         <Header2 className="mb-4">Lock LP Position</Header2>
         <Subtitle className="mb-4">
-          Lock your LP NFT position in the custody contract to earn rewards
+          Lock your Uniswap V3 LP NFT position in the custody contract to create locked liquidity positions. You can
+          collect fees whenever you want.
         </Subtitle>
 
         <div className="space-y-4">
-          {/* NFT Contract Address */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-secondary">
-              NFT Contract Address
-            </label>
-            <input
-              type="text"
-              value={nftContract}
-              onChange={(e) => setNftContract(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:border-primary text-secondary"
-            />
-          </div>
-
           {/* Token ID */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-secondary">
-              Token ID
-            </label>
+            <label className="block text-sm font-medium mb-2 text-secondary">Token ID</label>
             <input
               type="text"
               value={tokenId}
@@ -105,27 +80,14 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
 
           {/* Position Type */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-secondary">
-              Position Type
-            </label>
+            <label className="block text-sm font-medium mb-2 text-secondary">Position Type</label>
             <div className="flex gap-4">
               <label className="flex items-center text-secondary">
-                <input
-                  type="radio"
-                  checked={isV3}
-                  onChange={() => setIsV3(true)}
-                  className="mr-2"
-                />
+                <input type="radio" checked={isV3} onChange={() => setIsV3(true)} className="mr-2" />
                 <span>Uniswap V3</span>
               </label>
               <label className="flex items-center text-secondary/50">
-                <input
-                  type="radio"
-                  checked={!isV3}
-                  onChange={() => setIsV3(false)}
-                  className="mr-2"
-                  disabled
-                />
+                <input type="radio" checked={!isV3} onChange={() => setIsV3(false)} className="mr-2" disabled />
                 <span>Uniswap V4</span>
               </label>
             </div>
@@ -133,9 +95,7 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
 
           {/* Lock Period */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-secondary">
-              Lock Period
-            </label>
+            <label className="block text-sm font-medium mb-2 text-secondary">Lock Period</label>
             {!useCustomPeriod ? (
               <select
                 value={lockPeriod}
@@ -171,8 +131,8 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
           {/* Warning */}
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
             <p className="text-sm text-yellow-400">
-              ⚠️ Warning: Once locked, you cannot withdraw your position until the lock period expires.
-              Make sure you understand the terms before proceeding.
+              ⚠️ Warning: Once locked, you cannot withdraw your position until the lock period expires. Make sure you
+              understand the terms before proceeding.
             </p>
           </div>
 
@@ -183,12 +143,7 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
         </div>
 
         <div className="flex gap-3 mt-6">
-          <Button
-            onClick={handleLock}
-            disabled={isLocking || !isAddress(nftContract) || !tokenId}
-            className="flex-1"
-            variant="primary"
-          >
+          <Button onClick={handleLock} disabled={isLocking || !tokenId} className="flex-1" variant="primary">
             {isLocking ? (
               <div className="flex items-center justify-center gap-2">
                 <Spinner customClasses="h-4 w-4" color="#fff" />
@@ -201,7 +156,6 @@ export const LockPositionModal: React.FC<LockPositionModalProps> = ({ open, onCl
           <Button
             onClick={() => {
               onClose();
-              setNftContract("");
               setTokenId("");
               setLockPeriod(LOCK_PERIODS[0].value);
               setCustomPeriod("");

@@ -222,29 +222,15 @@ export const useLockPosition = () => {
   const { address } = useAccount();
   const [isLocking, setIsLocking] = useState(false);
   const { data: walletClient } = useWalletClient();
-  
-  const { 
-    writeContract, 
-    data: hash,
-    isPending: isWritePending,
-    error: writeError,
-    reset 
-  } = useWriteContract();
 
-  const { 
-    isLoading: isConfirming, 
-    isSuccess: isConfirmed 
-  } = useWaitForTransactionReceipt({
+  const { writeContract, data: hash, isPending: isWritePending, error: writeError, reset } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
 
   const lockPosition = useCallback(
-    async (
-      nftContract: `0x${string}`,
-      tokenId: bigint,
-      lockPeriod: bigint,
-      isV3: boolean
-    ) => {
+    async (nftContract: `0x${string}`, tokenId: bigint, lockPeriod: bigint, isV3: boolean) => {
       if (!address || !walletClient) {
         toast.error("Please connect your wallet");
         return;
@@ -252,14 +238,13 @@ export const useLockPosition = () => {
 
       try {
         setIsLocking(true);
-        
+
         await writeContract({
           address: LP_CUSTODY_CONTRACT,
           abi: LP_CUSTODY_ABI,
           functionName: "lockPosition",
           args: [nftContract, tokenId, lockPeriod, isV3],
         });
-
       } catch (error) {
         console.error("Error locking position:", error);
         toast.error("Failed to lock position");
@@ -294,27 +279,15 @@ export const useUnlockPosition = () => {
   const { address } = useAccount();
   const [isUnlocking, setIsUnlocking] = useState(false);
   const { data: walletClient } = useWalletClient();
-  
-  const { 
-    writeContract, 
-    data: hash,
-    isPending: isWritePending,
-    error: writeError,
-    reset 
-  } = useWriteContract();
 
-  const { 
-    isLoading: isConfirming, 
-    isSuccess: isConfirmed 
-  } = useWaitForTransactionReceipt({
+  const { writeContract, data: hash, isPending: isWritePending, error: writeError, reset } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
 
   const unlockPosition = useCallback(
-    async (
-      nftContract: `0x${string}`,
-      tokenId: bigint
-    ) => {
+    async (nftContract: `0x${string}`, tokenId: bigint) => {
       if (!address || !walletClient) {
         toast.error("Please connect your wallet");
         return;
@@ -322,14 +295,13 @@ export const useUnlockPosition = () => {
 
       try {
         setIsUnlocking(true);
-        
+
         await writeContract({
           address: LP_CUSTODY_CONTRACT,
           abi: LP_CUSTODY_ABI,
           functionName: "unlockPosition",
           args: [nftContract, tokenId],
         });
-
       } catch (error) {
         console.error("Error unlocking position:", error);
         toast.error("Failed to unlock position");
@@ -366,4 +338,8 @@ export const LOCK_PERIODS = [
   { label: "3 Months", value: 90 * 24 * 60 * 60 },
   { label: "6 Months", value: 180 * 24 * 60 * 60 },
   { label: "1 Year", value: 365 * 24 * 60 * 60 },
+  { label: "2 Years", value: 2 * 365 * 24 * 60 * 60 },
+  { label: "3 Years", value: 3 * 365 * 24 * 60 * 60 },
+  { label: "4 Years", value: 4 * 365 * 24 * 60 * 60 },
+  { label: "5 Years", value: 5 * 365 * 24 * 60 * 60 },
 ];
